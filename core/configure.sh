@@ -30,6 +30,7 @@ else
 fi
 
 # Check OpenCV
+error=0
 if [[ -z $OPENCV_INCDIR ]]; then
     printf "\033[95mwarning\033[00m ... \$OPENCV_INCDIR must be set for lmdb headers.\n";
     error=1;
