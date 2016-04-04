@@ -23,17 +23,6 @@
 #include <opencv2/core/core.hpp>
 #endif
 
-struct _object;
-typedef _object PyObject;
-
-#ifndef __CLING__
-#ifndef __CINT__
-#include <Python.h>
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/ndarrayobject.h>
-#endif
-#endif
-
 namespace larcv {
 
   /**
@@ -52,16 +41,19 @@ namespace larcv {
     Image2D(const std::string img_file);
     
 #ifndef __CINT__
+#ifndef __CLING__
     Image2D(ImageMeta&&, std::vector<float>&&);
     Image2D(const cv::Mat&);
 #endif
-
+#endif
     virtual ~Image2D(){}
 
     enum CompressionModes_t { kSum, kAverage, kMaxPool};
 
+    ImageIndex_t index() const { return _id; }
+    void index(ImageIndex_t n) { _id = n; }
+
     void imread(const std::string file_name);//, bool as_imshow=false);
-    void imshow(const std::string frame_name) const;
 
     float pixel(size_t row, size_t col) const;
     const ImageMeta& meta() const { return _meta; }
@@ -76,11 +68,6 @@ namespace larcv {
     const std::vector<float>& as_vector() const 
     { return _img; }
 
-    #ifndef __CINT__
-    cv::Mat as_mat() const;
-    PyObject* as_ndarray() const;
-    #endif
-
     void resize( size_t row_count, size_t col_count );
     void set_pixel( size_t row, size_t col, float value );
     void paint(float value);
@@ -89,6 +76,7 @@ namespace larcv {
 
   private:
     std::vector<float> _img;
+    ImageIndex_t _id;
     ImageMeta _meta;
     void clear();
   };

@@ -11,7 +11,7 @@ for x in xrange(20):
     print
 print
 
-j=k.as_ndarray()
+j=ROOT.larcv.as_ndarray(k)
 
 for x in xrange(len(j)):
     for y in xrange(len(j[x])):

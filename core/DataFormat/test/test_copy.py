@@ -14,8 +14,8 @@ print
 img2=ROOT.larcv.Image2D(img1.meta())
 img2.copy(0,0,img1.as_vector())
 
-arr1=img1.as_ndarray()
-arr2=img2.as_ndarray()
+arr1=ROOT.larcv.as_ndarray(img1)
+arr2=ROOT.larcv.as_ndarray(img2)
 
 for x in xrange(len(arr1)):
     for y in xrange(len(arr1[x])):

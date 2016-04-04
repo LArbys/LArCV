@@ -8,12 +8,14 @@ namespace larcv {
   Image2D::Image2D(size_t row_count, size_t col_count)
     : _img(row_count*col_count,0.)
     , _meta(col_count,row_count,row_count,col_count,0.,0.)
-  {import_array();}
+  {}
+  //{import_array();}
 
   Image2D::Image2D(const ImageMeta& meta)
     : _img(meta.rows()*meta.cols(),0.)
     , _meta(meta)
-  {import_array();}
+  {}
+  //{import_array();}
 
   Image2D::Image2D(const ImageMeta& meta, const std::vector<float>& img)
     : _img(img)
@@ -23,12 +25,14 @@ namespace larcv {
   Image2D::Image2D(const Image2D& rhs) 
     : _img(rhs._img)
     , _meta(rhs._meta)
-  {import_array();}
-
+  {}
+  //{import_array();}
+      
   Image2D::Image2D(const std::string image_file)
     : _img(0,0.)
     , _meta(1.,1.,1,1,0.,0.)
-  { imread(image_file); import_array();}
+  { imread(image_file); }
+  //{ imread(image_file); import_array();}
 
   Image2D::Image2D(ImageMeta&& meta, std::vector<float>&& img)
     : _img(std::move(img))
@@ -160,38 +164,6 @@ namespace larcv {
 
   void Image2D::compress(size_t rows, size_t cols, CompressionModes_t mode)
   { _img = copy_compress(rows,cols,mode); }
-
-  void Image2D::imshow(const std::string frame_name) const{
-    ::cv::imshow(frame_name.c_str(),as_mat());
-  }
-
-  cv::Mat Image2D::as_mat() const
-  {
-    cv::Mat img(_meta.rows(),_meta.cols(),CV_8UC3);
-    
-    unsigned char* px_ptr = (unsigned char*)img.data;
-    int cn = img.channels();
-    
-    for(int i=0;i<_meta.rows();i++) {
-      for (int j=0;j<_meta.cols();j++) {
-	
-	float q = pixel(i,j);
-	px_ptr[i*img.cols*cn + j*cn + 0] = (unsigned char)(((int)(q+0.5)));
-	px_ptr[i*img.cols*cn + j*cn + 1] = (unsigned char)(((int)(q+0.5))/256);
-	px_ptr[i*img.cols*cn + j*cn + 2] = (unsigned char)(((int)(q+0.5))/256/256);
-      }
-    }
-    return img;
-  }
-
-  PyObject* Image2D::as_ndarray() const
-  {
-    int* dim_data = new int[2];
-    dim_data[0] = _meta.cols();
-    dim_data[1] = _meta.rows();
-    
-    return PyArray_FromDimsAndData( 2, dim_data, NPY_FLOAT, (char*) &(_img[0]));
-  }
 
   Image2D Image2D::crop(ImageMeta& crop_meta) const
   {

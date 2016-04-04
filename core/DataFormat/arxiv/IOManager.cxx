@@ -4,24 +4,8 @@
 #include "IOManager.h"
 #include "Base/larbys.h"
 #include "ProductMap.h"
-#include "DataProductFactory.h"
 #include <algorithm>
 namespace larcv {
-
-  void IOManager::add_in_file(const std::string filename, const std::string dirname)
-  { _in_file_v.push_back(filename); _in_dir_v.push_back(dirname); }
-  void IOManager::set_out_file(const std::string name)
-  { _out_file_name = name; }
-
-
-  ProductType_t IOManager::product_type(const size_t id) const
-  {
-    if( id > _product_type_v.size() ) {
-      LARCV_CRITICAL() << "Product ID " << id << " does not exist... " << std::endl;
-      throw larbys();
-    }
-    return _product_type_v[id];
-  }
 
   bool IOManager::initialize()
   {
@@ -49,62 +33,9 @@ namespace larcv {
     return true;
   }
 
-  size_t IOManager::register_producer(const ProductType_t type, const std::string& name)
-  {
-    LARCV_DEBUG() << "start" << std::endl;
-
-    if(type == kProductUnknown) {
-      LARCV_CRITICAL() << "Cannot register a producer " << name << " for kProductUnknown!" << std::endl;
-      throw larbys();
-    }
-
-    auto& key_m = _key_list[type];
-    
-    auto in_iter = key_m.find(name);
-    std::string tree_name = ProductName(type) + "_" + name + "_tree";
-    std::string tree_desc = name + " tree";
-    std::string br_name = ProductName(type) + "_" + name + "_branch";
-
-    LARCV_INFO() << "Requested to register a producer: " << name << " (TTree " << tree_name << ")" << std::endl;
-    
-    if(in_iter != key_m.end()) {
-      LARCV_INFO() << "... already registered. Returning a registered key " << (*in_iter).second << std::endl;
-      return (*in_iter).second;
-    }
-
-    _product_ptr_v[_product_ctr] = (EventBase*)(DataProductFactory::get().create(type,name));
-    _product_type_v[_product_ctr] = type;
-    
-    const size_t id = _product_ctr;
-    key_m.insert(std::make_pair(name,id));
-
-    _product_ctr+=1;
-
-    LARCV_INFO() << "It is a new producer registration (key=" << id << ")" << std::endl;
-    
-    if(_io_mode != kWRITE) {
-      LARCV_INFO() << "kREAD/kBOTH mode: creating an input TChain" << std::endl;
-      LARCV_DEBUG() << "Branch name: " << br_name << " data pointer: " << _product_ptr_v[id] << std::endl;
-      auto in_tree_ptr = new TChain(tree_name.c_str(),tree_desc.c_str());
-      in_tree_ptr->SetBranchAddress(br_name.c_str(), &(_product_ptr_v[id]));
-      _in_tree_v[id] = in_tree_ptr;
-      _in_tree_index_v.push_back(kINVALID_SIZE);
-    }	
-    
-    if(_io_mode != kREAD) {
-      LARCV_INFO() << "kWRITE/kBOTH mode: creating an output TTree" << std::endl;
-      LARCV_DEBUG() << "Branch name: " << br_name << " data pointer: " << _product_ptr_v[id] << "(" << id <<"/"<<_product_ptr_v.size()<<")"<<std::endl;
-      _out_file->cd();
-      _out_tree_v[id] = new TTree(tree_name.c_str(),tree_desc.c_str());
-      auto out_br_ptr = _out_tree_v[id]->Branch(br_name.c_str(), &(_product_ptr_v[id]));
-      LARCV_DEBUG() << "Created TTree @ " << _out_tree_v[id] << " ... TBranch @ " << out_br_ptr << std::endl;
-
-    }
-
-    return id;
-  }
-
-  void IOManager::prepare_input()
+  
+  template <class T>
+  void IOManager<T>::prepare_input()
   {
     LARCV_DEBUG() << "start" << std::endl;
     if(_product_ctr) {
@@ -166,23 +97,13 @@ namespace larcv {
 	  LARCV_INFO() << "Skipping " << obj->GetName() << " ... (not LArCV TTree)" << std::endl;
 	  continue;
 	}
-
-	larcv::ProductType_t type = larcv::kProductUnknown;
-	for(size_t i=0; i<((size_t)(larcv::kProductUnknown)); ++i) {
-	  auto temp_type = (larcv::ProductType_t)i;
-	  if(type_name != ProductName(temp_type)) {
-	    LARCV_DEBUG() << "TTree " << obj->GetName() << " != type " << ProductName(temp_type) << std::endl;
-	    continue;
-	  }
-	  type = temp_type;
-	  break;
-	}
-	if(type == larcv::kProductUnknown) {
-	  LARCV_INFO() << "TTree " << obj->GetName() << " not LArCV data product TTree. Skipping..." << std::endl;
+	
+	if(type_name != ProductName<T>()) {
+	  LARCV_INFO() << "Ignoring TTree " << obj->GetName() << " (not " << ProductName<T>() << " type)" << std::endl;
 	  continue;
 	}
 
-	auto id = register_producer(type,producer_name);
+	auto id = register_producer(producer_name);
 	LARCV_INFO() << "Registered: producer=" << producer_name << " Key=" << id << std::endl;
 	_in_tree_v[id]->AddFile(fname.c_str());
       }
@@ -205,7 +126,8 @@ namespace larcv {
     
   }
 
-  bool IOManager::read_entry(const size_t index)
+  template <class T>
+  bool IOManager<T>::read_entry(const size_t index)
   {
     LARCV_DEBUG() << "start" << std::endl;
     if(_io_mode == kWRITE) {
@@ -220,15 +142,13 @@ namespace larcv {
       LARCV_ERROR() << "Input only has " << _tree_entries << " entries!" << std::endl;
       return false;
     }
-    if(_tree_index != index) {
-      _tree_index = index;
-      _event_id.clear();
-    }
+    _tree_index = index;
     LARCV_DEBUG() << "Current tree index: " << _tree_index << std::endl;
     return true;
   }
 
-  bool IOManager::save_entry()
+  template <class T>
+  bool IOManager<T>::save_entry()
   {
     LARCV_DEBUG() << "start" << std::endl;
 
@@ -244,20 +164,11 @@ namespace larcv {
 
     LARCV_INFO() << "Saving new entry " << std::endl;
 
-    set_id();
-
     for(auto& t : _out_tree_v) {
       if(!t) break;
       LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
       t->Fill();
     }
-
-    for(auto& p : _product_ptr_v) {
-      if(!p) break;
-      p->clear();
-    }
-
-    _event_id.clear();
 
     _tree_entries += 1;
     if(_io_mode == kWRITE) _tree_index += 1;
@@ -265,46 +176,42 @@ namespace larcv {
     return true;
   }
 
-  size_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const
+  template <class T>
+  size_t IOManager<T>::producer_id(const std::string& producer) const
   {
     LARCV_DEBUG() << "start" << std::endl;
-
-    if(producer.empty()) {
-      LARCV_CRITICAL() << "Empty producer name (invalid)" << std::endl;
-      throw larbys();
-    }
-    if(type==kProductUnknown) {
-      LARCV_CRITICAL() << "Queried kProductUnknown type!" << std::endl;
-      throw larbys();
-    }
-
-    auto& m = _key_list[type];
-    auto iter = m.find(producer);
-    if(iter == m.end()) {
+    auto iter = _key_m.find(producer);
+    if(iter == _key_m.end()) {
       return kINVALID_SIZE;      
     }
     return (*iter).second;
   }
 
-  EventBase* IOManager::get_data(const ProductType_t type, const std::string& producer)
+  template <class T>
+  std::vector<T>& IOManager<T>::get_data(const std::string& producer)
   {
     LARCV_DEBUG() << "start" << std::endl;
+    if(producer.empty()) {
+      LARCV_CRITICAL() << "Empty producer name (invalid)" << std::endl;
+      throw larbys();
+    }
 
-    auto id = producer_id(type,producer);
+    auto id = producer_id(producer);
 
     if(id == kINVALID_SIZE) {
       if(_io_mode == kREAD) {
-	LARCV_ERROR() << "Invalid producer requested: " << producer << " for " << ProductName(type) << std::endl;
+	LARCV_ERROR() << "Invalid producer requested:" << producer << std::endl;
 	throw larbys();
       }
-      id = register_producer(type,producer);
+      id = register_producer(producer);
       for(size_t i=0; i<_tree_entries; ++i) _out_tree_v[id]->Fill();
       LARCV_NORMAL() << "Created TTree " << _out_tree_v[id]->GetName() << " (id=" << id <<") w/ " << _tree_entries << " entries..." << std::endl;
     }
     return get_data(id);
   }
 
-  EventBase* IOManager::get_data(const size_t id)
+  template <class T>
+  std::vector<T>& IOManager<T>::get_data(const size_t id)
   {
     LARCV_DEBUG() << "start" << std::endl;
     if(id >= _product_ctr) {
@@ -312,75 +219,16 @@ namespace larcv {
       throw larbys();
     }
 
-    if(_io_mode != kWRITE && _tree_index != kINVALID_SIZE &&
+    if(_io_mode != kWRITE && _tree_index && _tree_index != kINVALID_SIZE &&
        _in_tree_index_v[id] != _tree_index) {
-
-      LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _tree_index << std::endl;
       _in_tree_v[id]->GetEntry(_tree_index);
       _in_tree_index_v[id] =_tree_index;
-
-      auto& ptr = _product_ptr_v[id];
-      // retrieve event_id if not yet done
-      if(!_event_id.valid()) _event_id = _set_event_id = *ptr;
-      else if(_event_id != *ptr) {
-	LARCV_CRITICAL() << "Event alignment error (run,subrun,event) detected: "
-			 << "Current (" << _event_id.run() << "," << _event_id.subrun() << "," << _event_id.event() << ") vs. "
-			 << "Read-in (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
-	throw larbys();
-      }
     }
-    return _product_ptr_v[id];
+    return *(_product_v[id]);
   }
 
-  void IOManager::set_id(const size_t run, const size_t subrun, const size_t event) {
-
-    if(_io_mode == kREAD) {
-      LARCV_CRITICAL() << "Cannot change event id in kREAD mode" << std::endl;
-      throw larbys();
-    }
-    
-    EventBase tmp;
-    tmp._run    = run;
-    tmp._subrun = subrun;
-    tmp._event  = event;
-    
-    if(_set_event_id.valid() && _set_event_id != tmp)
-      LARCV_INFO() << "Force setting (run,subrun,event) ID as (" << run << "," << subrun << "," << event << ")" << std::endl;
-
-    _set_event_id = tmp;
-
-  }
-
-  void IOManager::set_id() {
-    LARCV_DEBUG() << "start" << std::endl;
-
-    if(_event_id == _set_event_id)  return;
-
-    LARCV_INFO() << "Setting event id for output trees..." << std::endl;
-
-    _event_id = _set_event_id;
-
-    for(size_t i=0; i<_product_ptr_v.size(); ++i) {
-
-      auto& p = _product_ptr_v[i];
-      if(!p) break;
-
-      if( (*p) != _event_id ) {
-	if(p->valid()) {
-	  LARCV_WARNING() << "Override event id for product " << ProductName(_product_type_v[i])
-			  << " by " << p->producer()
-			  << " from (" << p->run() << "," << p->subrun() << "," << p->event() << ")"
-			  << " to (" << _event_id.run() << "," << _event_id.subrun() << "," << _event_id.event() << ")" << std::endl;
-	}
-	p->_run = _event_id.run();
-	p->_subrun = _event_id.subrun();
-	p->_event = _event_id.event();
-      }
-      
-    }
-  }
-
-  void IOManager::finalize()
+  template <class T>
+  void IOManager<T>::finalize()
   {
     LARCV_DEBUG() << "start" << std::endl;
 
@@ -402,15 +250,15 @@ namespace larcv {
     }
 
     LARCV_INFO() << "Deleting data pointers" << std::endl;
-    for(auto& p : _product_ptr_v) { delete p; }
+    for(auto& p : _product_v) { delete p; }
 
     reset();
   }
 
-  void IOManager::reset()
+  template <class T>
+  void IOManager<T>::reset()
   {
     LARCV_DEBUG() << "start" << std::endl;
-    _event_id.clear();
     _in_tree_v.clear();
     _in_tree_v.resize(1000,nullptr);
     _in_tree_index_v.clear();
@@ -427,7 +275,7 @@ namespace larcv {
     _out_file_name = "";
     _in_file_v.clear();
     _in_dir_v.clear();
-    for(auto& m : _key_list) m.clear();
+    _key_m.clear();
   }
 
 }

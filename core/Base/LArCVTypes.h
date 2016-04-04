@@ -28,15 +28,15 @@ namespace larcv {
   };
 
   /// Used as an invalid value identifier for size_t
-  static const size_t kINVALID_SIZE = std::numeric_limits<size_t>::max();
+  static const size_t  kINVALID_SIZE   = std::numeric_limits< size_t         >::max();
   /// Used as an invalid value identifier for int
-  static const int    kINVALID_INT  = std::numeric_limits<int>::max();
+  static const int     kINVALID_INT    = std::numeric_limits< int            >::max();
   /// Used as an invalid value identifier for unsigned int
-  const unsigned int kINVALID_UINT = std::numeric_limits<unsigned int>::max();
-
-  //typedef ::std::pair<unsigned int, unsigned int> Range_t;
-
-  //typedef ::std::vector<Range_t> RangeArray_t;
+  const unsigned int   kINVALID_UINT   = std::numeric_limits< unsigned int   >::max();
+  /// Used as an invalid value identifier for unsigned short
+  static const short   kINVALID_SHORT  = std::numeric_limits< short          >::max();
+  /// Used as an invalid value identifier for unsigned unsigned short
+  const unsigned short kINVALID_USHORT = std::numeric_limits< unsigned short >::max();
 
   /// Namespace for larcv message related types
   namespace msg {

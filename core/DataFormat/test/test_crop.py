@@ -18,7 +18,7 @@ bb = ROOT.larcv.ImageMeta(10,10,
                           img.meta().max_y()-1)
 crop=img.crop(bb)
 
-img_array=img.as_ndarray()
+img_array=ROOT.larcv.as_ndarray(img)
 print len(img_array),len(img_array[0])
 print
 for row in xrange(img.meta().rows()):
@@ -27,7 +27,7 @@ for row in xrange(img.meta().rows()):
     print
 print
 
-crop_array=crop.as_ndarray()
+crop_array=ROOT.larcv.as_ndarray(crop)
 print len(crop_array),len(crop_array[0])
 print
 for row in xrange(crop.meta().rows()):

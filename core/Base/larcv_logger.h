@@ -54,6 +54,9 @@ namespace larcv {
     
     /// Set of loggers
     static std::map<std::string,larcv::logger> *_logger_m;
+
+    /// Default logger level
+    static msg::Level_t _level_default;
     
   public:
 
@@ -85,6 +88,18 @@ namespace larcv {
       }
       return iter->second;
     };
+
+    /// Default logger level getter
+    static msg::Level_t default_level() { return _level_default; }
+    /// Default logger level setter (only affect future loggers)
+    static void default_level(msg::Level_t l) { _level_default = l; }
+    /// Force all loggers to change level
+    static void force_level(msg::Level_t l)
+    {
+      default_level(l);
+      for(auto& name_logger : *_logger_m) name_logger.second.set(l);
+    }
+	
     //
     // Verbosity level checker
     //

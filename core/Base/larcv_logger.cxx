@@ -5,6 +5,8 @@
 namespace larcv {
 
   std::map<std::string,logger> *logger::_logger_m = nullptr;
+
+  msg::Level_t logger::_level_default = msg::kNORMAL;
   
   std::ostream& logger::send(const msg::Level_t level) const
   {

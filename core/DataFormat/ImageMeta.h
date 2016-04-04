@@ -16,8 +16,8 @@
 
 #include <iostream>
 #include "Base/larbys.h"
-#include "Base/LArCVTypes.h"
-
+//#include "Base/LArCVTypes.h"
+#include "DataFormatTypes.h"
 namespace larcv {
 
   class Image2D;
@@ -42,11 +42,12 @@ namespace larcv {
     ImageMeta(const double width=0.,     const double height=0.,
 	      const size_t row_count=0., const size_t col_count=0,
 	      const double origin_x=0.,  const double origin_y=0.,
-	      const size_t plane=::larcv::kINVALID_SIZE)
-      : _origin(origin_x,origin_y)
-      , _width(width)
-      , _height(height)
-      , _plane(plane)
+	      const PlaneID_t plane=::larcv::kINVALID_PLANE)
+      : _image_id (kINVALID_INDEX)
+      , _origin (origin_x,origin_y)
+      , _width  (width)
+      , _height (height)
+      , _plane  (plane)
     {
       if( width  < 0. ) throw larbys("Width must be a positive floating point!");
       if( height < 0. ) throw larbys("Height must be a positive floating point!");
@@ -56,11 +57,14 @@ namespace larcv {
     /// Default destructor
     ~ImageMeta(){}
 
+    ImageIndex_t image_index() const  { return _image_id; }
+    void image_index(ImageIndex_t id) { _image_id = id;   }
+
     const Point2D& tl   () const { return _origin;                                          }
     const Point2D  bl   () const { return Point2D(_origin.x,          _origin.y - _height); }
     const Point2D  tr   () const { return Point2D(_origin.x + _width, _origin.y          ); }
     const Point2D  br   () const { return Point2D(_origin.x + _width, _origin.y - _height); }
-    size_t plane        () const { return _plane;     }
+    PlaneID_t plane     () const { return _plane;     }
     double width        () const { return _width;     }
     double height       () const { return _height;    }
     size_t rows         () const { return _row_count; }
@@ -96,12 +100,13 @@ namespace larcv {
 
   protected:
 
-    larcv::Point2D _origin; ///< Absolute coordinate of the left top corner of an image
-    double _width;          ///< Horizontal size of an image in double floating precision (in original coordinate unit size)
-    double _height;         ///< Vertical size of an image in double floating precision (in original coordinate unit size)
-    size_t _col_count;      ///< # of pixels in horizontal axis
-    size_t _row_count;      ///< # of pixels in vertical axis
-    size_t _plane;          ///< unique plane ID number
+    ImageIndex_t   _image_id; ///< Associated image ID (of the same producer name)
+    larcv::Point2D _origin;   ///< Absolute coordinate of the left top corner of an image
+    double    _width;         ///< Horizontal size of an image in double floating precision (in original coordinate unit size)
+    double    _height;        ///< Vertical size of an image in double floating precision (in original coordinate unit size)
+    size_t    _col_count;     ///< # of pixels in horizontal axis
+    size_t    _row_count;     ///< # of pixels in vertical axis
+    PlaneID_t _plane;         ///< unique plane ID number
   };
 
 }

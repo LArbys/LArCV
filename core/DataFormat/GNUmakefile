@@ -7,6 +7,7 @@ PACKAGE_NAME = DataFormat
 SOURCES = $(wildcard *.cxx)
 FMWK_HEADERS = LinkDef.h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
+#HEADERS += IOManager.inl
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself

@@ -2,16 +2,21 @@
 #define __LARCV_PRODUCTMAP_CXX__
 
 #include "ProductMap.h"
-
+#include "Base/larbys.h"
 namespace larcv {
 
-  //class ImageMeta;
-  template<> std::string ProductName<larcv::ImageMeta>()
-  { return "meta2d"; }
+  const std::string ProductName(ProductType_t type)
+  {
+    switch(type) {
+    case kProductImage2D:     return "image2d";
+    case kProductParticleROI: return "partroi";
+    default:
+      throw larbys("Unsupported type! Implement DataFormat/ProductMap.cxx!");
+    }
+  }
 
-  //class Image2D;
-  template<> std::string ProductName<larcv::Image2D>()
-  { return "img2d"; }
+  template<> ProductType_t ProductType< larcv::Image2D     > () { return kProductImage2D;     }
+  template<> ProductType_t ProductType< larcv::ParticleROI > () { return kProductParticleROI; }
 
 }
 

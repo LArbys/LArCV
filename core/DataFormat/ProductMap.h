@@ -3,16 +3,17 @@
 #define __LARCV_PRODUCTMAP_H__
 
 #include <string>
-
+#include "DataFormatTypes.h"
 namespace larcv {
 
-  template<class T> std::string ProductName();
+  const std::string ProductName(ProductType_t type);
 
-  class ImageMeta;
-  template<> std::string ProductName<larcv::ImageMeta>();
+  template<class T> ProductType_t ProductType();
 
   class Image2D;
-  template<> std::string ProductName<larcv::Image2D>();
+  template<> ProductType_t ProductType< larcv::Image2D     > ();
+  class ParticleROI;
+  template<> ProductType_t ProductType< larcv::ParticleROI > ();
 
 }
 #endif
