@@ -32,7 +32,7 @@ DLLFLAGS        += -ggdb
 
 #######"-Wl" FLAG: BOTH COMPILER & LINKER
 CFLAGS          += -Wall
-CXXFLAGS        += -Wall
+CXXFLAGS        += -Wall -std=c++11 -Wc++11-extensions
 #SOFLAGS         += -Wl #-Wall g++
 #AFLAGS          += -Wall
 DLLFLAGS        += -Wall
