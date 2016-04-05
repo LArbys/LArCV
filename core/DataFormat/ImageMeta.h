@@ -97,6 +97,8 @@ namespace larcv {
     }
     /// Check if there's an overlap. If so return overlapping bounding box
     ImageMeta overlap(const ImageMeta& meta) const;
+    /// Construct a union bounding box
+    ImageMeta inclusive(const ImageMeta& meta) const;
 
   protected:
 

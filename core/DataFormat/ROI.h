@@ -30,13 +30,19 @@ namespace larcv {
   public:
     
     /// Default constructor
-    ROI(larcv::ROIType_t type=larcv::kUnknownROI,
-	larcv::ShapeType_t shape=larcv::kUnknownShape)
+    ROI(larcv::ROIType_t type=larcv::kROIUnknown,
+	larcv::ShapeType_t shape=larcv::kShapeUnknown)
       : _index      (kINVALID_INDEX)
       , _shape      (shape)
       , _type       (type )
       , _mcst_index (kINVALID_INDEX)
       , _mct_index  (kINVALID_INDEX)
+      , _energy_deposit (0.)
+      , _energy_init    (0.)
+      , _pdg            (0)
+      , _px             (0.)
+      , _py             (0.)
+      , _pz             (0.)
     {}
     
     /// Default destructor
@@ -74,6 +80,8 @@ namespace larcv {
     void Momentum      (double px, double py, double pz) { _px = px; _py = py; _pz = pz; }
     void AppendBB      (const larcv::ImageMeta& bb);
     void SetBB         (const std::vector<larcv::ImageMeta>& bb_v);
+
+    std::string dump() const;
     
   private:
 

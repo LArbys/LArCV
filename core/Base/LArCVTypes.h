@@ -37,6 +37,8 @@ namespace larcv {
   static const short   kINVALID_SHORT  = std::numeric_limits< short          >::max();
   /// Used as an invalid value identifier for unsigned unsigned short
   const unsigned short kINVALID_USHORT = std::numeric_limits< unsigned short >::max();
+  /// Used as an invalid value idnetifier for double-point precision
+  const double         kINVALID_DOUBLE = std::numeric_limits< double         >::max();
 
   /// Namespace for larcv message related types
   namespace msg {

@@ -33,11 +33,11 @@ namespace larcv {
       _msg += msg;
       _msg += "\033[00m";
     }
-    
-    virtual ~larbys() throw(){};
-    virtual const char* what() const throw() 
+
+    virtual ~larbys() throw() {}
+    virtual const char* what() const throw()
     { return _msg.c_str(); }
-    
+
   private:
     
     std::string _msg;

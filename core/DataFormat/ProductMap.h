@@ -16,4 +16,5 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::ROI     > ();
 
 }
+
 #endif

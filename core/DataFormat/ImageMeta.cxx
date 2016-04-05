@@ -37,9 +37,22 @@ namespace larcv {
     return ImageMeta(max_x - min_x, max_y - min_y,
 		     (max_y - min_y) / pixel_height(),
 		     (max_x - min_x) / pixel_width(),
-		     min_x, max_y);
+		     min_x, max_y, _plane);
   }
-  
+
+  ImageMeta ImageMeta::inclusive(const ImageMeta& meta) const
+  {
+    double min_x = ( meta.min_x() < this->min_x() ? meta.min_x() : this->min_x() ); //pick smaller x min-boudn
+    double max_x = ( meta.max_x() > this->max_x() ? meta.max_x() : this->max_x() ); //pick larger x max-bound
+
+    double min_y = ( meta.min_y() < this->min_y() ? meta.min_y() : this->min_y() ); //pick smaller y min-boudn
+    double max_y = ( meta.max_y() > this->max_y() ? meta.max_y() : this->max_y() ); //pick larger y max-bound
+
+    return ImageMeta(max_x - min_x, max_y - min_y,
+		     (max_y - min_y) / pixel_height(),
+		     (max_x - min_x) / pixel_width(),
+		     min_x, max_y, _plane);
+  }
 }
 
 #endif

@@ -37,17 +37,21 @@ namespace larcv {
 
   public:
     /// Default ctor
-    Range(){}
+    Range() : _valid(false)
+    {}
 
     /// Enforced ctor. start must be less than end.
     Range(const T& start,
 	  const T& end)
       : _window(start,end)
+      , _valid(true)
     { if(start>end) throw std::runtime_error("Inserted invalid range: end before start."); }
 
     /// Default dtor
     ~Range(){}
-    
+
+    /// validity
+    bool valid() const { return _valid; }
     /// "start" accessor
     const T& Start() const { return _window.first;  }
     /// "end" accessor
@@ -58,6 +62,7 @@ namespace larcv {
       if(s>e) throw std::runtime_error("Inserted invalid range: end before start."); 
       _window.first  = s;
       _window.second = e;
+      _valid = true;
     }
     /// Checker (if value is inside range or not)
     inline bool Inside(const T& v) const
@@ -100,6 +105,12 @@ namespace larcv {
       _window.second = std::max( _window.second, rhs.End()   );
       return (*this);
     }
+    inline Range<T>& operator+= (const T& rhs)
+    {
+      _window.first  = std::min( _window.first,  rhs );
+      _window.second = std::max( _window.second, rhs );
+      return (*this);
+    }
 
     /*
     void Merge(const Range& a) {
@@ -110,7 +121,8 @@ namespace larcv {
   protected:
     /// Protected to avoid user's illegal modification on first/second (sorry users!)
     std::pair<T,T> _window;
-
+    /// For validity
+    bool _valid;
   };
 }
 

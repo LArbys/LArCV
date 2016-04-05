@@ -3,6 +3,7 @@
 
 #include "ROI.h"
 #include <set>
+#include <sstream>
 namespace larcv {
 
   const ImageMeta& ROI::BB(PlaneID_t plane) const
@@ -29,6 +30,39 @@ namespace larcv {
     _bb_v = bb_v;
   }
 
+  std::string ROI::dump() const
+  {
+    std::stringstream ss;
+    std::stringstream buf;
+    if(Type() == larcv::kROIBNB || Type() == larcv::kROICosmic) {
+      ss  << "    \033[93m" << (Type() == larcv::kROIBNB ? "BNB PdgCode=" : "Cosmic PdgCode=") << PdgCode() << "\033[00m" << std::endl;
+      buf << "    ";
+    }
+    else {
+      ss  << "      \033[95m" << "PdgCode=" << PdgCode() << "\033[00m" << std::endl;
+      buf << "      ";
+    }
+
+    ss << buf.str() << "Vertex   (x, y, z, t) = (" << X() << "," << Y() << "," << Z() << "," << T() << ")" << std::endl
+       << buf.str() << "Momentum (px, py, pz) = (" << Px() << "," << Py() << "," << Pz() << ")" << std::endl
+       << buf.str() << "Inittial Energy = " << EnergyInit() << std::endl
+       << buf.str() << "Deposit  Energy = " << EnergyDeposit() << std::endl
+       << buf.str() << "# Bounding Box  = " << BB().size() << std::endl;
+
+    buf << "    ";
+
+    for(auto const& meta : BB()) {
+
+      ss << buf.str() << "Plane " << meta.plane()
+	 << " ... Left Top (" << meta.min_x() << "," << meta.max_y()
+	 << ") ... Right Bottom (" << meta.max_x() << "," << meta.min_y()
+	 << ")" << std::endl;
+
+    }
+    ss << std::endl;
+    return ss.str();
+  }
+  
 }
 
 #endif
