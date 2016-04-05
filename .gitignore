@@ -22,3 +22,6 @@ SuperaCore/caffe.pb.h
 SuperaCore/caffe.pb.cc
 SuperaCore/caffe.pb.cxx
 *~
+*.pyc
+.ipynb_checkpoints
+*.ipynb
