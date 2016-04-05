@@ -9,7 +9,7 @@ namespace larcv {
   static const unsigned short kINVALID_INDEX = kINVALID_USHORT;
   
   typedef unsigned short ImageIndex_t;
-  typedef unsigned short ParticleROIIndex_t;
+  typedef unsigned short ROIIndex_t;
 
   /// "ID" of MCShower/MCTrack in terms of its index number in the collection std::vector
   typedef unsigned short MCSTIndex_t;
@@ -25,7 +25,7 @@ namespace larcv {
     kUnknownShape
   };
 
-  enum ParticleType_t {
+  enum ROIType_t {
     kEminus,
     kKminus,
     kProton,
@@ -35,7 +35,7 @@ namespace larcv {
     kPizero,
     kBNB,
     kCosmic,
-    kUnknownParticle
+    kUnknownROI
   };
 
   /// "ID" of MCParticles in terms of its G4 track ID (unless mixing multiple MC samples)
@@ -45,7 +45,7 @@ namespace larcv {
   
   enum ProductType_t {
     kProductImage2D,
-    kProductParticleROI,
+    kProductROI,
     kProductUnknown
   };
 

@@ -322,7 +322,12 @@ namespace larcv {
       auto& ptr = _product_ptr_v[id];
       // retrieve event_id if not yet done
       if(!_event_id.valid()) _event_id = _set_event_id = *ptr;
-      else if(_event_id != *ptr) {
+      else if( !ptr->valid() ) {
+	LARCV_WARNING() << "Event alignment cannot be checked for tree "
+			<<_in_tree_v[id]->GetName() << " by " << ptr->producer()
+			<< " (invalid event id)" << std::endl;
+      }	
+      else if( _event_id != *ptr) {
 	LARCV_CRITICAL() << "Event alignment error (run,subrun,event) detected: "
 			 << "Current (" << _event_id.run() << "," << _event_id.subrun() << "," << _event_id.event() << ") vs. "
 			 << "Read-in (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
