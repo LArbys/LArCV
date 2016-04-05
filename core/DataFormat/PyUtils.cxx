@@ -23,6 +23,25 @@ namespace larcv {
     return PyArray_FromDimsAndData( 2, dim_data, NPY_FLOAT, (char*) &(vec[0]));
   }
 
+  PyObject* as_bbox(const ROI& roi,PlaneID_t pl)
+  {
+    const auto& meta = roi.BB( pl );
+    
+    PyObject* pdic = PyDict_New();
+    PyObject* pset = PyTuple_New(2);
+      
+    PyTuple_SetItem(pset,0,PyFloat_FromDouble(meta.tl().x));
+    PyTuple_SetItem(pset,1,PyFloat_FromDouble(meta.tl().y));
+
+    PyDict_SetItem(pdic,PyString_FromString("xy")       ,pset);
+    PyDict_SetItem(pdic,PyString_FromString("height")   ,PyFloat_FromDouble(meta.height()));
+    PyDict_SetItem(pdic,PyString_FromString("width")    ,PyFloat_FromDouble(meta.width()));
+    PyDict_SetItem(pdic,PyString_FromString("linewidth"),PyFloat_FromDouble(3.5));
+    PyDict_SetItem(pdic,PyString_FromString("edgecolor"),PyString_FromString("red"));
+    PyDict_SetItem(pdic,PyString_FromString("fill")     ,Py_False);
+
+    return pdic;
+  }
 }
 
 #endif
