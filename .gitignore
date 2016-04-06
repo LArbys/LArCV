@@ -23,3 +23,6 @@ core/APILArLite/MCParticleTree.*
 core/APILArLite/SuperaTypes.h
 core/APILArLite/SuperaUtils.*
 *~
+*.pyc
+.ipynb_checkpoints
+*.ipynb
