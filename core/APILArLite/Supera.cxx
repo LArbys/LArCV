@@ -84,10 +84,9 @@ namespace larlite {
       size_t cols = _event_image_cols[p] * _event_comp_cols[p];
       size_t rows = _event_image_rows[p] * _event_comp_rows[p];
 
-      auto meta = ::larcv::ImageMeta(cols,rows,rows,cols,_min_wire,_min_time+rows-1,p);
+      auto meta = ::larcv::ImageMeta(cols-1,rows-1,rows,cols,_min_wire,_min_time+rows-1,p);
       image_meta_m.insert(std::make_pair(p,meta));
       image_v->Emplace(::larcv::supera::Extract<larlite::wire>(meta,*ev_wire));
-
     }
 
     //

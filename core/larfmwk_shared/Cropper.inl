@@ -34,7 +34,7 @@ namespace larcv {
       LARCV_DEBUG() << "start" << std::endl;
       const double drift_velocity = ::larcv::supera::DriftVelocity()*1.0e-3; // make it cm/ns
       const int tick_max = ::larcv::supera::NumberTimeSamples();
-      const double wireplaneoffset_cm = 7.0; //cm (made up)
+      const double wireplaneoffset_cm = 0.0; //cm (made up)
       TVector3 xyz; xyz[0] = xyz[1] = xyz[2] = 0.;
 
       // result is N planes' wire boundary + time boundary (N+1 elements)
@@ -50,13 +50,12 @@ namespace larcv {
 	auto& trange = result.back();
 	if(!trange.valid()) trange.Set((unsigned int)tick,(unsigned int)tick); // 1st time: "set" it
 	else trange += (unsigned int)tick; // >1st time: "add (include)" it
-
-	LARCV_INFO() << "(x,t,v) = (" << xyz[0] << "," << step.T() << "," << drift_velocity << ") ... tick = " << tick << std::endl;
 	
 	// Figure out wire per plane
 	xyz[0] = step.X();
 	xyz[1] = step.Y();
 	xyz[2] = step.Z();
+	LARCV_INFO() << "(x,t,v) = (" << xyz[0] << "," << step.T() << "," << drift_velocity << ") ... tick = " << tick << std::endl;
 	for(size_t plane=0; plane < larcv::supera::Nplanes(); ++plane) {
 
 	  auto wire_id = ::larcv::supera::NearestWire(xyz,plane);
@@ -100,7 +99,7 @@ namespace larcv {
       //double showerlength = 100.0;
       double detprofnorm = sqrt( detprofile.Px()*detprofile.Px() + detprofile.Py()*detprofile.Py() + detprofile.Pz()*detprofile.Pz() );
       TLorentzVector showerend;
-      const double wireplaneoffset_cm = 7.0; //cm (made up)
+      const double wireplaneoffset_cm = 0.0; //cm (made up)
       showerend[0] = detprofile.X()+showerlength*(detprofile.Px()/detprofnorm); 
       showerend[1] = detprofile.Y()+showerlength*(detprofile.Py()/detprofnorm); 
       showerend[2] = detprofile.Z()+showerlength*(detprofile.Pz()/detprofnorm); 
@@ -166,13 +165,13 @@ namespace larcv {
 	rows = cols = 0;
 	if(wrange.valid()) {
 	  width = wrange.End() - wrange.Start() + 1;
-	  cols = wrange.End() - wrange.Start() + 1;
+	  cols = wrange.End() - wrange.Start();
 	  origin_x = wrange.Start();
 	}
 	if(trange.valid()) {
 	  height = trange.End() - trange.Start() + 1;
-	  rows = trange.End() - trange.Start() + 1;
-	  origin_y = trange.Start();
+	  rows = trange.End() - trange.Start();
+	  origin_y = trange.End();
 	}
 
 	LARCV_INFO() << "Constructing ImageMeta from WTRange_t for Plane "<< i << std::endl

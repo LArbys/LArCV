@@ -51,14 +51,10 @@ namespace larcv {
 
     buf << "    ";
 
-    for(auto const& meta : BB()) {
+    for(auto const& meta : BB())
 
-      ss << buf.str() << "Plane " << meta.plane()
-	 << " ... Left Top (" << meta.min_x() << "," << meta.max_y()
-	 << ") ... Right Bottom (" << meta.max_x() << "," << meta.min_y()
-	 << ")" << std::endl;
+      ss << buf.str() << meta.dump();
 
-    }
     ss << std::endl;
     return ss.str();
   }

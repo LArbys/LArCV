@@ -33,13 +33,21 @@ namespace larcv {
     /// Nearest wire
     unsigned int NearestWire(const TVector3& xyz, unsigned int plane)
     {
+      /*
       unsigned int res;
       try{
 	res = ::larutil::Geometry::GetME()->NearestWire(xyz,plane);
       }catch( ::larutil::InvalidWireError& err){
 	res = err.better_wire_number;
       }
-      return res;
+      */
+      double min_wire=0;
+      double max_wire=Nwires(plane)-1;
+      double wire = ::larutil::Geometry::GetME()->WireCoordinate(xyz,plane) + 0.5;
+      if(wire<min_wire) wire = min_wire;
+      if(wire>max_wire) wire = max_wire;
+
+      return (unsigned int)wire;
     }
 
     /// G4 time to TPC tick
