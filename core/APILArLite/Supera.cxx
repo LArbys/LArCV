@@ -5,16 +5,12 @@
 #include "FhiclLite/ConfigManager.h"
 #include "LArUtil/Geometry.h"
 #include "DataFormat/wire.h"
-#include "DataFormat/mctrack.h"
-#include "DataFormat/mcshower.h"
-#include "DataFormat/mctruth.h"
 #include "DataFormat/simch.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
 #include "Base/larbys.h"
 #include "SuperaUtils.h"
 #include "DataFormat/ProductMap.h"
-#include "MCParticleTree.h"
 
 namespace larlite {
 
@@ -50,8 +46,9 @@ namespace larlite {
 
     // Check/Enforce conditions
     _logger.set((::larcv::msg::Level_t)(main_cfg.get<unsigned short>("Verbosity")));
-    _mctree_verbosity = (::larcv::msg::Level_t)(main_cfg.get<unsigned short>("MCTreeVerbosity"));
-    _cropper_verbosity = (::larcv::msg::Level_t)(main_cfg.get<unsigned short>("CropperVerbosity"));
+    _mctp.configure(main_cfg.get<larcv::supera::Config_t>("MCParticleTree"));
+    //_mctree_verbosity = (::larcv::msg::Level_t)(main_cfg.get<unsigned short>("MCTreeVerbosity"));
+    //_cropper_verbosity = (::larcv::msg::Level_t)(main_cfg.get<unsigned short>("CropperVerbosity"));
 
     if(geom->Nplanes() != _event_image_rows.size()) throw larcv::larbys("EventImageRows size != # planes!");
     if(geom->Nplanes() != _event_image_cols.size()) throw larcv::larbys("EventImageCols size != # planes!");
@@ -92,14 +89,14 @@ namespace larlite {
     //
     // ROIs
     //
-    ::larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower> mctp;
-    mctp.set_verbosity(_mctree_verbosity);
-    mctp.GetCropper().set_verbosity(_cropper_verbosity);
-    mctp.DefinePrimary(*(storage->get_data<event_mctruth>(_producer_gen)));
-    mctp.RegisterSecondary(*(storage->get_data<event_mctrack>(_producer_mcreco)));
-    mctp.RegisterSecondary(*(storage->get_data<event_mcshower>(_producer_mcreco)));
-    mctp.UpdatePrimaryROI();
-    auto int_roi_v = mctp.GetPrimaryROI();
+    //_mctp.set_verbosity(_mctree_verbosity);
+    //_mctp.GetCropper().set_verbosity(_cropper_verbosity);
+    _mctp.clear();
+    _mctp.DefinePrimary(*(storage->get_data<event_mctruth>(_producer_gen)));
+    _mctp.RegisterSecondary(*(storage->get_data<event_mctrack>(_producer_mcreco)));
+    _mctp.RegisterSecondary(*(storage->get_data<event_mcshower>(_producer_mcreco)));
+    _mctp.UpdatePrimaryROI();
+    auto int_roi_v = _mctp.GetPrimaryROI();
 
     auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI,"event_roi"));
 

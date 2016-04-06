@@ -10,6 +10,20 @@ Supera: {
     EventCompRows:    [7,7,7]
     EventCompCols:    [5,5,5]
     Verbosity:        1
-    MCTreeVerbosity:  3
-    CropperVerbosity: 3
+
+    # MCParticleTree configuration
+    MCParticleTree: {
+        Verbosity: 3
+        # Cropper configuration
+        Cropper: {
+            Verbosity:    1
+            TimePadding:  5
+            WirePadding:  5
+            MinWidth:     5
+            MinHeight:    5
+            TargetWidth:  247 # currently irrelevant
+            TargetHeight: 247 # currently irrelevant
+            CompressionFactor: 0 # currently irrelevant
+        }
+    }
 }

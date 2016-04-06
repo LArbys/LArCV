@@ -18,7 +18,10 @@
 #include "Analysis/ana_base.h"
 #include "Base/larcv_logger.h"
 #include "DataFormat/IOManager.h"
-
+#include "MCParticleTree.h"
+#include "DataFormat/mctrack.h"
+#include "DataFormat/mcshower.h"
+#include "DataFormat/mctruth.h"
 namespace larlite {
   /**
      \class Supera
@@ -55,10 +58,11 @@ namespace larlite {
 
   protected:
 
+    ::larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower> _mctp;
     ::larcv::logger _logger;
     ::larcv::IOManager _larcv_io;
-    ::larcv::msg::Level_t _cropper_verbosity;
-    ::larcv::msg::Level_t _mctree_verbosity;
+    //::larcv::msg::Level_t _cropper_verbosity;
+    //::larcv::msg::Level_t _mctree_verbosity;
     std::string _config_file;
     std::string _producer_wire;
     std::string _producer_gen;

@@ -7,6 +7,14 @@ namespace larcv {
   namespace supera {
 
     template <class T, class U, class V>
+    void MCParticleTree<T,U,V>::configure(const Config_t& cfg)
+    {
+      set_verbosity((::larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity")));
+      auto const& cropper_cfg = cfg.get<larcv::supera::Config_t>("Cropper");
+      _cropper.configure(cropper_cfg);
+    }
+
+    template <class T, class U, class V>
     void MCParticleTree<T,U,V>::DefinePrimary(const std::vector<T>& mctruth_v)
     {
       LARCV_DEBUG() << "start" << std::endl;

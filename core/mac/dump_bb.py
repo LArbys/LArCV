@@ -30,11 +30,17 @@ exec('img_br=img_ch.%s' % img_br_name)
 img_array = img_br.Image2DArray()
 for img in img_array:
     if not img.meta().plane() == 2: continue
+    print 'Image meta info'
     print img.meta().dump()
     #img_copy = larcv.Image2D(img)
     #img_copy.compress(768,768)
-    sys.exit(1)
+
     mat=larcv.as_ndarray(img)
+    plt_img=plt.imshow(mat)
+    plt_img.write_png('plane2.png')
+    
+    sys.exit(1)
+
     print img.meta().cols()
     print img.meta().rows()
     cols = len(mat)
@@ -46,5 +52,4 @@ for img in img_array:
         for x in xrange(cols):
             if mat[x][y] > 5: print x,y
 
-    #plt_img=plt.imshow(mat)
-    #plt_img.write_png('plane2.png')
+

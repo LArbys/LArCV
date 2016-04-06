@@ -123,17 +123,17 @@ namespace larcv {
       throw larbys("Not enough pixel in source!");
   }
 
-  void Image2D::reverse_copy(size_t row, size_t col, const std::vector<float>& src, size_t num_pixel)
+  void Image2D::reverse_copy(size_t row, size_t col, const std::vector<float>& src, size_t nskip, size_t num_pixel)
   {
     const size_t idx = _meta.index(row,col);
-    if(!num_pixel) num_pixel = src.size();
+    if(!num_pixel) num_pixel = src.size() - nskip;
     if( (idx+1) < num_pixel ) num_pixel = idx + 1;
     /*
     std::cout<<"Image2D ... fill idx: "<<idx<<" => "<<idx+num_pixel-1<<std::endl;
     std::cout<<"Image2D ... fill row: "<<idx%_meta.rows()<<" => "<<(idx+num_pixel-1)%_meta.rows()<<std::endl;
-    std::cout<<"Image2D ... orig idx: "<<num_pixel-1<<" => "<<0<<std::endl;
+    std::cout<<"Image2D ... orig idx: "<<nskip<<" => "<<nskip+num_pixel-1<<std::endl;
     */
-    for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[num_pixel-i-1]; }
+    for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[nskip+num_pixel-i-1]; }
   }
 
   std::vector<float> Image2D::copy_compress(size_t rows, size_t cols, CompressionModes_t mode) const

@@ -14,6 +14,7 @@
 #include "Base/Range.h"
 #include "DataFormat/ROI.h"
 #include "DataFormat/DataFormatUtil.h"
+#include "FMWKInterface.h"
 namespace larcv {
 
   namespace supera {
@@ -26,16 +27,18 @@ namespace larcv {
 
     public:
       
-      Cropper()
-      { configure(10,10,247,247,0); }
+      Cropper() : _time_padding(10)
+		, _wire_padding(10)
+		, _target_width(247)
+		, _target_height(247)
+		, _compression_factor(0)
+		, _min_width(10)
+		, _min_height(14)
+      {}
       
       virtual ~Cropper() {}
       
-      void configure(unsigned int time_padding,
-		     unsigned int wire_padding,
-		     unsigned int target_width,
-		     unsigned int target_height,
-		     unsigned int compression_factor);
+      void configure(const larcv::supera::Config_t& cfg);
       /**
 	 Given single MCTrack, returns length 4 range array (3 planes + time) \n
 	 which contains all trajectory points of input MCTrack.
@@ -73,6 +76,9 @@ namespace larcv {
 	 sample image size and hence compression factor stays constant from one image to another). 
        */
       unsigned int _compression_factor;
+
+      unsigned int _min_width;
+      unsigned int _min_height;
     };
   }
 }

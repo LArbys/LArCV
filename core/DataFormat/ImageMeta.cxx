@@ -12,13 +12,13 @@ namespace larcv {
     return ( col * _row_count + row );
   }
 
-  size_t ImageMeta::col (double x) const
+  size_t ImageMeta::col(double x) const
   {
     if(x < _origin.x || x > (_origin.x + _width)) throw larbys("Out of range x!");
     return (size_t)((x - _origin.x) / pixel_width() + 0.5);
   }
 
-  size_t ImageMeta::row (double y) const
+  size_t ImageMeta::row(double y) const
   {
     if(y < (_origin.y - _height) || y > _origin.y) throw larbys("Out of range y!");
     return (size_t)((_origin.y - y) / pixel_height() + 0.5);

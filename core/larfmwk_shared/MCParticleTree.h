@@ -41,6 +41,8 @@ namespace larcv {
       /// Default destructor
       ~MCParticleTree(){}
 
+      void configure(const Config_t& cfg);
+
       Cropper<U,V>& GetCropper() { return _cropper; }
 
       void DefinePrimary(const std::vector<T>&);
@@ -56,6 +58,9 @@ namespace larcv {
       void UpdatePrimaryROI();
 
       std::vector<larcv::supera::InteractionROI_t> GetPrimaryROI() const;
+
+      void clear()
+      { _roi_m.clear(); }
 
     private:
 
