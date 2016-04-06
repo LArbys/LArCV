@@ -22,6 +22,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.imi = pg.ImageItem()
         self.vb.addItem(self.imi)        
         
+        self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
         # Main Layout
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget( self.win, 0, 0, 1, 10 )
@@ -52,15 +53,38 @@ class RGBDisplay(QtGui.QWidget) :
 
     def plotData(self):
         event   = int(self.event.text())
-        b = self.dm.get_event_image(event)
+        b,rois,imgs = self.dm.get_event_image(event)
         tic = time.clock()        
     
     
         self.imi.setImage(b)
 
+        for i in xrange(3):
+            meta = imgs[i].meta()
+            print meta.tl().x,meta.tl().y,meta.col(meta.tl().x),meta.row(meta.tl().y)
+            print meta.bl().x,meta.bl().y,meta.col(meta.bl().x),meta.row(meta.bl().y)
+            print meta.tr().x,meta.tr().y,meta.col(meta.tr().x),meta.row(meta.tr().y)
+            print meta.br().x,meta.br().y,meta.col(meta.br().x),meta.row(meta.br().y)
+            print "))))"
+
+        
+        r1 = pg.QtGui.QGraphicsRectItem(meta.col(meta.tl().x),meta.row(meta.tl().y),meta.width(),meta.height())
+        r1.setPen(pg.mkPen('w'))
+        r1.setBrush(pg.mkBrush(None))
+        self.vb.addItem(r1)
         
         toc = time.clock()
         print "added item: {} s".format(toc - tic)
-
-
-        
+        print rois
+        for roi_p in rois:
+            for plane in roi_p:
+                bbox = roi_p[plane]
+                r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),meta.row(bbox['tl'][1]),bbox['width'],bbox['height'])
+                r1.setPen(pg.mkPen(self.co[plane]))
+                r1.setBrush(pg.mkBrush(None))
+                self.vb.addItem(r1)
+            
+            
+        # from PyQt4.QtCore import pyqtRemoveInputHook
+        # pyqtRemoveInputHook()
+        # import pdb; pdb.set_trace()
