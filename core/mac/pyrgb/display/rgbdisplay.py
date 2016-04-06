@@ -52,10 +52,10 @@ class RGBDisplay(QtGui.QWidget) :
         self.dm = datamanager.DataManager(rfile)
 
     def plotData(self):
+
         event   = int(self.event.text())
         b,rois,imgs = self.dm.get_event_image(event)
         tic = time.clock()        
-    
     
         self.imi.setImage(b)
 
@@ -67,7 +67,8 @@ class RGBDisplay(QtGui.QWidget) :
             print meta.br().x,meta.br().y,meta.col(meta.br().x),meta.row(meta.br().y)
             print "))))"
 
-        
+            
+            
         r1 = pg.QtGui.QGraphicsRectItem(meta.col(meta.tl().x),meta.row(meta.tl().y),meta.width(),meta.height())
         r1.setPen(pg.mkPen('w'))
         r1.setBrush(pg.mkBrush(None))

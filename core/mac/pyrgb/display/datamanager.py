@@ -39,14 +39,17 @@ class DataManager(object):
         toc = time.clock()
         print "create b: {} s".format(toc - tic)
         
-        imin = 5
-
+        imin = 1
+        imax = 2
         tic = time.clock()        
         for ix,img in enumerate(img_array):
             img[img < imin] = 0
+            img[img > imax] = imax
+            
             #img -= np.min(img)
             
-            b[:,:,ix] = img
+            b[:,:,ix] = img[:,::-1]
+            
         toc = time.clock()
         print "fill data: {} s".format(toc - tic)
 
@@ -73,7 +76,9 @@ class DataManager(object):
         for ix in xrange(roi_v.size()):
             #this ROI
             roi = roi_v[ix]
-
+            if roi.Type() != 7:
+                continue
+            
             #Three ROIs, one for each plane
             r = {}
             for iy in xrange(3):
