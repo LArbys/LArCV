@@ -70,10 +70,19 @@ mkdir -p $LARCV_BUILDDIR;
 
 export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
 
-if [ $LARLITE_OS -e 'Darwin' ]; then
-    export DYLD_LIBRARY_PATH=$LARCV_LIBDIR:$DYLD_LIBRARY_PATH
-fi
+#if [ "$LARLITE_OS" -eq "Darwin" ]; then
+#    export DYLD_LIBRARY_PATH=$LARCV_LIBDIR:$DYLD_LIBRARY_PATH
+#fi
 
+if [[ $LARLITE_BASEDIR ]]; then
+    echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
+    echo "    Preparing APILArLite package for build (making sym links)"
+    target=$LARCV_BASEDIR/larfmwk_shared/*
+    for f in $target
+    do
+	ln -sf $f $LARCV_BASEDIR/APILArLite/
+    done
+fi
 #if [ -d $MRB_TOP/srcs/uboonecode/uboone ]; then
 #    echo Found local uboonecode @ \$MRB_TOP=${MRB_TOP}
 #    if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
