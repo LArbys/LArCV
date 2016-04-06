@@ -123,6 +123,14 @@ namespace larcv {
       throw larbys("Not enough pixel in source!");
   }
 
+  void Image2D::reverse_copy(size_t row, size_t col, const std::vector<float>& src, size_t num_pixel)
+  {
+    const size_t idx = _meta.index(row,col);
+    if(!num_pixel) num_pixel = src.size();
+    if( (idx+1) < num_pixel ) num_pixel = idx + 1;
+    for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[num_pixel-i-1]; }
+  }
+
   std::vector<float> Image2D::copy_compress(size_t rows, size_t cols, CompressionModes_t mode) const
   { 
     const size_t self_cols = _meta.cols();
