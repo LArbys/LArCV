@@ -17,7 +17,6 @@ namespace larcv {
 
   template<> ProductType_t ProductType< larcv::Image2D > () { return kProductImage2D; }
   template<> ProductType_t ProductType< larcv::ROI     > () { return kProductROI;     }
-
 }
 
 #endif

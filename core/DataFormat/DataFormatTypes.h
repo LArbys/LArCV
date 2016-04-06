@@ -20,22 +20,22 @@ namespace larcv {
   static const PlaneID_t kINVALID_PLANE = kINVALID_USHORT;
   
   enum ShapeType_t {
-    kMCShower,
-    kMCTrack,
-    kUnknownShape
+    kShapeShower,
+    kShapeTrack,
+    kShapeUnknown
   };
 
   enum ROIType_t {
-    kEminus,
-    kKminus,
-    kProton,
-    kMuminus,
-    kPiminus,
-    kGamma,
-    kPizero,
-    kBNB,
-    kCosmic,
-    kUnknownROI
+    kROIEminus,
+    kROIKminus,
+    kROIProton,
+    kROIMuminus,
+    kROIPiminus,
+    kROIGamma,
+    kROIPizero,
+    kROIBNB,
+    kROICosmic,
+    kROIUnknown
   };
 
   /// "ID" of MCParticles in terms of its G4 track ID (unless mixing multiple MC samples)

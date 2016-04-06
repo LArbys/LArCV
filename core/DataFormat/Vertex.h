@@ -11,8 +11,11 @@ namespace larcv {
     Vertex();
     Vertex(double x, double y, double z, double t);
     
-    /// Reset function for x, y, z, t
+    /// Reset function 
     void Reset();
+
+    /// Reset function for x, y, z, t
+    void Reset(double x, double y, double z, double t);
     
     double X() const { return _x; }
     double Y() const { return _y; }

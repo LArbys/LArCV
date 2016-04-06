@@ -15,18 +15,27 @@ namespace larcv {
   
   Vertex::Vertex(double x, double y, double z, double t)
     : _x(x), _y(y), _z(z), _t(t)
-  {}
+  {Approx();}
   
   void Vertex::Reset(){
     _x = _y = _z = _t = 0;
   }
+
+  void Vertex::Reset(double x, double y, double z, double t)
+  {
+    _x = x;
+    _y = y;
+    _z = z;
+    _t = t;
+    Approx();
+  }
   
   void Vertex::Approx()
   {
-    _x = (double)( ((signed long long)(_x * 1.e12)) * 1.e-12 );
-    _y = (double)( ((signed long long)(_y * 1.e12)) * 1.e-12 );
-    _z = (double)( ((signed long long)(_z * 1.e12)) * 1.e-12 );
-    _t = (double)( ((signed long long)(_t * 1.e12)) * 1.e-12 );
+    _x = (double)( ((double)((signed long long)(_x * 1.e6)) * 1.e-6 ));
+    _y = (double)( ((double)((signed long long)(_y * 1.e6)) * 1.e-6 ));
+    _z = (double)( ((double)((signed long long)(_z * 1.e6)) * 1.e-6 ));
+    _t = (double)( ((double)((signed long long)(_t * 1.e6)) * 1.e-6 ));
   }
 }
 
