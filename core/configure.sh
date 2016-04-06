@@ -77,7 +77,7 @@ export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
 if [[ $LARLITE_BASEDIR ]]; then
     echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
     echo "    Preparing APILArLite package for build (making sym links)"
-    target=$LARCV_BASEDIR/fmwk_src/*
+    target=$LARCV_BASEDIR/larfmwk_shared/*
     for f in $target
     do
 	ln -sf $f $LARCV_BASEDIR/APILArLite/
