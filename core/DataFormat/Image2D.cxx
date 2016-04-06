@@ -128,6 +128,11 @@ namespace larcv {
     const size_t idx = _meta.index(row,col);
     if(!num_pixel) num_pixel = src.size();
     if( (idx+1) < num_pixel ) num_pixel = idx + 1;
+    /*
+    std::cout<<"Image2D ... fill idx: "<<idx<<" => "<<idx+num_pixel-1<<std::endl;
+    std::cout<<"Image2D ... fill row: "<<idx%_meta.rows()<<" => "<<(idx+num_pixel-1)%_meta.rows()<<std::endl;
+    std::cout<<"Image2D ... orig idx: "<<num_pixel-1<<" => "<<0<<std::endl;
+    */
     for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[num_pixel-i-1]; }
   }
 
@@ -143,7 +148,7 @@ namespace larcv {
     }
     size_t cols_factor = self_cols / cols;
     size_t rows_factor = self_rows / rows;
-    std::vector<float> result(cols,rows);
+    std::vector<float> result(cols*rows,0);
 
     for(size_t col=0; col<cols; ++col) {
       for(size_t row=0; row<rows; ++row) {
@@ -171,7 +176,10 @@ namespace larcv {
   }
 
   void Image2D::compress(size_t rows, size_t cols, CompressionModes_t mode)
-  { _img = copy_compress(rows,cols,mode); }
+  {
+    _img = copy_compress(rows,cols,mode);
+    _meta = ImageMeta(_meta.width(),_meta.height(),rows,cols,_meta.min_x(),_meta.max_y(),_meta.plane());
+  }
 
   Image2D Image2D::crop(ImageMeta& crop_meta) const
   {
