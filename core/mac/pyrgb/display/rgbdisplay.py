@@ -18,7 +18,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.win = pg.GraphicsWindow(title="Fuck P100")
         self.win.setWindowTitle('Fuck P100')
 
-
         self.plt  = self.win.addPlot()
 
         
@@ -106,26 +105,55 @@ class RGBDisplay(QtGui.QWidget) :
             print "))))"
 
             
-        r1 = pg.QtGui.QGraphicsRectItem(meta.col(meta.tl().x),meta.row(meta.tl().y),meta.width(),meta.height())
+        #r1 = pg.QtGui.QGraphicsRectItem(0,0,meta.tr().x,meta.tr().y)
+        r1 = pg.QtGui.QGraphicsRectItem(0,0,meta.cols(),meta.rows())
         r1.setPen(pg.mkPen('w'))
         r1.setBrush(pg.mkBrush(None))
         self.plt.addItem(r1)
         
         toc = time.clock()
         print "added item: {} s".format(toc - tic)
-
+        print rois
         delay = 0
         for roi_p in rois:
             for plane in roi_p:
                 bbox = roi_p[plane]
-                r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),
-                                                meta.row(bbox['tl'][1] - delay),
-                                                bbox['width'],
-                                                bbox['height'])
+                # r1 = pg.QtGui.QGraphicsRectItem(bbox['tl'][0],
+                #                                 bbox['tl'][1],
+                #                                 #bbox['width'],
+                #                                 #bbox['height'])
+                #                                 100,
+                #                                 100)
+                
+                imm = imgs[0].meta()
+
+                print "rows : {} cols : {} " .format(imm.rows(),imm.cols())
+                
+                x = bbox['bl'][0] - imm.bl().x
+                y = bbox['bl'][1] - imm.bl().y
+
+                print "bbox bl x: {} bbox bl y: {}".format(x,y)
+                
+                dw_i = imm.cols() / ( imm.tr().x - imm.bl().x )
+                dh_i = imm.rows() / ( imm.tr().y - imm.bl().y )
+
+                print "dw_i : {} dh_i : {}".format(dw_i,dh_i)
+                
+                w_b = bbox['tr'][0] - bbox['bl'][0]
+                h_b = bbox['tr'][1] - bbox['bl'][1]
+
+
+                print "w_b : {} h_b : {}".format(w_b,h_b)
+                
+                r1 = pg.QtGui.QGraphicsRectItem(x * dw_i,
+                                                y * dh_i,
+                                                w_b * dw_i,
+                                                h_b * dh_i)
+                                                
                 # r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),meta.row(bbox['tl'][1]-delay),20,20)
                 # r2 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['br'][0]),meta.row(bbox['br'][1]-delay),20,20)
                 # r3 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tr'][0]),meta.row(bbox['tr'][1]-delay),20,20)
-                # r4 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['bl'][0]),meta.row(bbox['bl'][1]-delay),20,20)
+                # r4 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['bl'][0]),meta.row(bbox['bl'][1]-delay),100,100)
                 
                 r1.setPen(pg.mkPen(self.co[plane]))
                 r1.setBrush(pg.mkBrush(None))

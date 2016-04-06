@@ -50,9 +50,16 @@ class DataManager(object):
 
         tic = time.clock()        
 
+
         b = np.zeros(list(img_array[0].shape) + [3])
+        print b.shape
+
+        #b = np.zeros([ imgs[0].meta().tr().x+1, imgs[0].meta().tr().y+1,3 ])
+        #print b.shape
         toc = time.clock()
         print "create b: {} s".format(toc - tic)
+
+        print imgs[0].meta().pixel_height(),imgs[0].meta().pixel_width()
         
         imin = 1
         imax = 2
@@ -60,10 +67,17 @@ class DataManager(object):
         for ix,img in enumerate(img_array):
             img[img < imin] = 0
             img[img > imax] = imax
+
+            #aa = (int(imgs[0].meta().tr().x+1 - imgs[0].meta().cols()),0)
+            #bb = (int(imgs[0].meta().tr().y+1 - imgs[0].meta().rows()),0)
+            #print aa
+            #print bb
+            #img = np.pad(img,(aa,bb),
+            #             mode='constant',
+            #             constant_values=0)
+            #print "shape"
+            #print img.shape
             
-            #img -= np.min(img)
-            
-            #b[:,:,ix] = img[:,::-1]
             b[:,:,ix] = img
             
         toc = time.clock()
@@ -74,9 +88,9 @@ class DataManager(object):
         b[:,:,0][ b[:,:,2] > 0.0 ] = 0.0
 
         b[:,:,1][ b[:,:,2] > 0.0 ] = 0.0
+
         toc = time.clock()
         print "slice on data: {} s".format(toc - tic)
-        
         print "~~~~~~~~~~~"
 
         #event ROIs
