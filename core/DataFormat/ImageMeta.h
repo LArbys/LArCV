@@ -100,6 +100,9 @@ namespace larcv {
     /// Construct a union bounding box
     ImageMeta inclusive(const ImageMeta& meta) const;
 
+    /// Dump info in text
+    std::string dump() const;
+
   protected:
 
     ImageIndex_t   _image_id; ///< Associated image ID (of the same producer name)

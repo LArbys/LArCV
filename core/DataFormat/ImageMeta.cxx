@@ -2,7 +2,7 @@
 #define __LARCAFFE_IMAGEMETA_CXX__
 
 #include "ImageMeta.h"
-
+#include <sstream>
 namespace larcv {
 
   size_t ImageMeta::index( size_t row, size_t col ) const {
@@ -52,6 +52,16 @@ namespace larcv {
 		     (max_y - min_y) / pixel_height(),
 		     (max_x - min_x) / pixel_width(),
 		     min_x, max_y, _plane);
+  }
+
+  std::string ImageMeta::dump() const
+  {
+    std::stringstream ss;
+    ss << "Plane " << plane()
+       << " ... Left Top (" << min_x() << "," << max_y()
+       << ") ... Right Bottom (" << max_x() << "," << min_y()
+       << ")" << std::endl;
+    return ss.str();
   }
 }
 

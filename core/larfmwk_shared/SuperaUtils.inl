@@ -11,8 +11,12 @@ namespace larcv {
   namespace supera {
 
     template <class T>
-    larcv::Image2D Extract(const ImageMeta& meta, const std::vector<T>& wires)
+    larcv::Image2D Extract(const ImageMeta& meta_in, const std::vector<T>& wires)
     {
+      ImageMeta meta(meta_in.width(),meta_in.height(),
+		     meta_in.rows(),meta_in.cols(),
+		     meta_in.tl().x,meta_in.tl().y,//-3200,
+		     meta_in.plane());
       //int nticks = meta.rows();
       //int nwires = meta.cols();
 
@@ -20,7 +24,7 @@ namespace larcv {
       int ymax = meta.max_y();
       int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
 
-      larcv::Image2D img(meta);
+      larcv::Image2D img(meta_in);
 
       for(auto const& wire : wires) {
 
