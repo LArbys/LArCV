@@ -19,9 +19,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.win.setWindowTitle('Fuck P100')
 
 
-        self.vb  = self.win.addPlot()
-        self.imi = pg.ImageItem()
-        self.vb.addItem(self.imi)        
+        self.plt  = self.win.addPlot()
+
         
         self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
         # Main Layout
@@ -43,21 +42,59 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( QtGui.QLabel("Event"), 0, 0)
         self.lay_inputs.addWidget( self.event, 0, 1 )
         
-        # # axis options
-        self.axis_plot = QtGui.QPushButton("Plot!")
+        # # event choicesoptions
+        self.axis_plot = QtGui.QPushButton("Plot")
         self.lay_inputs.addWidget( self.axis_plot, 0, 2 )
 
-    
+        self.previous_plot = QtGui.QPushButton("Previous Event")
+        self.lay_inputs.addWidget( self.previous_plot, 0, 3 )
+        
+        self.next_plot = QtGui.QPushButton("Next Event")
+        self.lay_inputs.addWidget( self.next_plot, 0, 4 )
+        
+
         self.axis_plot.clicked.connect( self.plotData )
+
+        self.previous_plot.clicked.connect( self.previousEvent )
+        self.next_plot.clicked.connect( self.nextEvent )
 
         self.dm = datamanager.DataManager(rfile)
 
+
+
+    def previousEvent(self):
+
+        event = int(self.event.text())
+
+        if event == 0:
+            return
+        
+        self.event.setText(str(event-1))
+
+        
+        self.plotData()
+
+        
+    def nextEvent(self):
+        
+        event = int(self.event.text())
+        self.event.setText(str(event+1))
+
+        self.plotData()
+        
     def plotData(self):
 
+        #Clear out plot
+        self.plt.clear()
+
+        #Add image
+        self.imi = pg.ImageItem()
+        self.plt.addItem(self.imi)        
+        
         event   = int(self.event.text())
         b,rois,imgs = self.dm.get_event_image(event)
         tic = time.clock()        
-    
+
         self.imi.setImage(b)
 
         for i in xrange(3):
@@ -69,11 +106,10 @@ class RGBDisplay(QtGui.QWidget) :
             print "))))"
 
             
-            
         r1 = pg.QtGui.QGraphicsRectItem(meta.col(meta.tl().x),meta.row(meta.tl().y),meta.width(),meta.height())
         r1.setPen(pg.mkPen('w'))
         r1.setBrush(pg.mkBrush(None))
-        self.vb.addItem(r1)
+        self.plt.addItem(r1)
         
         toc = time.clock()
         print "added item: {} s".format(toc - tic)
@@ -93,19 +129,19 @@ class RGBDisplay(QtGui.QWidget) :
                 
                 r1.setPen(pg.mkPen(self.co[plane]))
                 r1.setBrush(pg.mkBrush(None))
-                self.vb.addItem(r1)
+                self.plt.addItem(r1)
 
                 # r2.setPen(pg.mkPen(self.co[plane]))
                 # r2.setBrush(pg.mkBrush(None))
-                # self.vb.addItem(r2)
+                # self.plt.addItem(r2)
 
                 # r3.setPen(pg.mkPen(self.co[plane]))
                 # r3.setBrush(pg.mkBrush(None))
-                # self.vb.addItem(r3)
+                # self.plt.addItem(r3)
             
                 # r4.setPen(pg.mkPen(self.co[plane]))
                 # r4.setBrush(pg.mkBrush(None))
-                # self.vb.addItem(r4)
+                # self.plt.addItem(r4)
                                 
             
         # from PyQt4.QtCore import pyqtRemoveInputHook

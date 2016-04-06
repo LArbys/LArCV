@@ -1,25 +1,40 @@
-import ROOT
-from ROOT import larcv
+from ROOT import TChain, larcv
 import numpy as np
 import time
 
 class DataManager(object):
     def __init__(self,rfile):
-        self.tf = ROOT.TFile.Open(rfile,"READ")
-        self.img_tree = self.tf.image2d_event_image_tree
-        self.roi_tree = self.tf.partroi_event_roi_tree
+
+        ROI_PRODUCER='event_roi'
+        IMG_PRODUCER='event_image'
+
+        self.img_tree_name='image2d_%s_tree' % IMG_PRODUCER
+        self.img_br_name='image2d_%s_branch' % IMG_PRODUCER
+        
+        self.img_ch = TChain(self.img_tree_name)
+        self.img_ch.AddFile(rfile)
+        self.img_ch.GetEntry(0)
+        
+        self.roi_tree_name='partroi_%s_tree' % ROI_PRODUCER
+        self.roi_br_name='partroi_%s_branch' % ROI_PRODUCER
+
+        self.roi_ch = TChain(self.roi_tree_name)
+        self.roi_ch.AddFile(rfile)
+        self.roi_ch.GetEntry(0)
 
         self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
 
     def get_event_image(self,ii) :
         tic = time.clock()
-        self.img_tree.GetEntry(ii)
+
+        self.img_ch.GetEntry(ii)
+        img_br=None
+        exec('img_br=self.img_ch.%s' % self.img_br_name)
         toc = time.clock()
         print "Get entry time: {} s".format(toc - tic)
 
         tic = time.clock()        
-        ev_image = self.img_tree.image2d_event_image_branch
-        img_v = ev_image.Image2DArray()
+        img_v = img_br.Image2DArray()
         toc = time.clock()
         print "Set ev_image and get Image2DArray: {} s".format(toc - tic)
 
@@ -64,11 +79,12 @@ class DataManager(object):
         
         print "~~~~~~~~~~~"
 
-        self.roi_tree.GetEntry(ii)
-
         #event ROIs
-        ev_roi = self.roi_tree.partroi_event_roi_branch
-        roi_v = ev_roi.ROIArray()
+        self.roi_ch.GetEntry(ii)
+        roi_br=None
+        exec('roi_br=self.roi_ch.%s' % self.roi_br_name)
+
+        roi_v = roi_br.ROIArray()
 
         #list of ROIs
         rois = []
@@ -83,7 +99,7 @@ class DataManager(object):
             #Three ROIs, one for each plane
             r = {}
             for iy in xrange(3):
-                r[iy] = ROOT.larcv.as_bbox(roi,iy)
+                r[iy] = larcv.as_bbox(roi,iy)
             
             rois.append(r)
 
