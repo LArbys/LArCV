@@ -58,6 +58,8 @@ class DataManager(object):
             img[img < imin] = 0
             img[img > imax] = imax
 
+            img = img[:,::-1]
+            
             b[:,:,ix] = img
 
         toc = time.clock()
