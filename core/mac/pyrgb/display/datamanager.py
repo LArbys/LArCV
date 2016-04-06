@@ -24,7 +24,7 @@ class DataManager(object):
 
         self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
 
-    def get_event_image(self,ii) :
+    def get_event_image(self,ii,imin,imax) :
         tic = time.clock()
 
         self.img_ch.GetEntry(ii)
@@ -43,43 +43,23 @@ class DataManager(object):
         toc = time.clock()
         print "imgs list: {} s".format(toc - tic)
         
-        tic = time.clock()        
+        tic = time.clock()
         img_array = [ larcv.as_ndarray(img) for img in imgs ]
         toc = time.clock()
         print "img_array list: {} s".format(toc - tic)
 
         tic = time.clock()        
-
-
         b = np.zeros(list(img_array[0].shape) + [3])
-        print b.shape
-
-        #b = np.zeros([ imgs[0].meta().tr().x+1, imgs[0].meta().tr().y+1,3 ])
-        #print b.shape
         toc = time.clock()
         print "create b: {} s".format(toc - tic)
 
-        print imgs[0].meta().pixel_height(),imgs[0].meta().pixel_width()
-        
-        imin = 1
-        imax = 2
         tic = time.clock()        
         for ix,img in enumerate(img_array):
             img[img < imin] = 0
             img[img > imax] = imax
 
-            #aa = (int(imgs[0].meta().tr().x+1 - imgs[0].meta().cols()),0)
-            #bb = (int(imgs[0].meta().tr().y+1 - imgs[0].meta().rows()),0)
-            #print aa
-            #print bb
-            #img = np.pad(img,(aa,bb),
-            #             mode='constant',
-            #             constant_values=0)
-            #print "shape"
-            #print img.shape
-            
             b[:,:,ix] = img
-            
+
         toc = time.clock()
         print "fill data: {} s".format(toc - tic)
 
@@ -91,7 +71,6 @@ class DataManager(object):
 
         toc = time.clock()
         print "slice on data: {} s".format(toc - tic)
-        print "~~~~~~~~~~~"
 
         #event ROIs
         self.roi_ch.GetEntry(ii)
@@ -107,14 +86,17 @@ class DataManager(object):
         for ix in xrange(roi_v.size()):
             #this ROI
             roi = roi_v[ix]
-            if roi.Type() != 7:
-                continue
+            # if roi.Type() != 7:
+            #     continue
             
             #Three ROIs, one for each plane
             r = {}
+            if roi.BB().size() == 0:
+                continue
+                
             for iy in xrange(3):
-                r[iy] = larcv.as_bbox(roi,iy)
+                r[iy] = roi.BB(iy)
             
             rois.append(r)
-
+        # print rois
         return (b,rois,imgs)

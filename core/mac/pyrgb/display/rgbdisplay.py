@@ -40,16 +40,29 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.lay_inputs.addWidget( QtGui.QLabel("Event"), 0, 0)
         self.lay_inputs.addWidget( self.event, 0, 1 )
+
+        # # imin
+        self.imin = QtGui.QLineEdit("%d"%(0)) 
+
+        self.lay_inputs.addWidget( QtGui.QLabel("imin"), 0, 2)
+        self.lay_inputs.addWidget( self.imin, 0, 3 )
+
+        # # imax
+        self.imax = QtGui.QLineEdit("%d"%(5))
+
+        self.lay_inputs.addWidget( QtGui.QLabel("imax"), 0, 4)
+        self.lay_inputs.addWidget( self.imax, 0, 5 )
+
         
         # # event choicesoptions
         self.axis_plot = QtGui.QPushButton("Plot")
-        self.lay_inputs.addWidget( self.axis_plot, 0, 2 )
+        self.lay_inputs.addWidget( self.axis_plot, 0, 6 )
 
         self.previous_plot = QtGui.QPushButton("Previous Event")
-        self.lay_inputs.addWidget( self.previous_plot, 0, 3 )
+        self.lay_inputs.addWidget( self.previous_plot, 0, 7 )
         
         self.next_plot = QtGui.QPushButton("Next Event")
-        self.lay_inputs.addWidget( self.next_plot, 0, 4 )
+        self.lay_inputs.addWidget( self.next_plot, 0, 8 )
         
 
         self.axis_plot.clicked.connect( self.plotData )
@@ -66,6 +79,7 @@ class RGBDisplay(QtGui.QWidget) :
         event = int(self.event.text())
 
         if event == 0:
+            print "idiot.."
             return
         
         self.event.setText(str(event-1))
@@ -91,21 +105,25 @@ class RGBDisplay(QtGui.QWidget) :
         self.plt.addItem(self.imi)        
         
         event   = int(self.event.text())
-        b,rois,imgs = self.dm.get_event_image(event)
+        imin   = int(self.imin.text())
+        imax   = int(self.imax.text())
+        
+        b,rois,imgs = self.dm.get_event_image(event,imin,imax)
         tic = time.clock()        
 
         self.imi.setImage(b)
 
-        for i in xrange(3):
-            meta = imgs[i].meta()
-            print meta.tl().x,meta.tl().y,meta.col(meta.tl().x),meta.row(meta.tl().y)
-            print meta.bl().x,meta.bl().y,meta.col(meta.bl().x),meta.row(meta.bl().y)
-            print meta.tr().x,meta.tr().y,meta.col(meta.tr().x),meta.row(meta.tr().y)
-            print meta.br().x,meta.br().y,meta.col(meta.br().x),meta.row(meta.br().y)
-            print "))))"
+        # for i in xrange(3):
+        #     meta = imgs[i].meta()
+        #     print meta.tl().x,meta.tl().y,meta.col(meta.tl().x),meta.row(meta.tl().y)
+        #     print meta.bl().x,meta.bl().y,meta.col(meta.bl().x),meta.row(meta.bl().y)
+        #     print meta.tr().x,meta.tr().y,meta.col(meta.tr().x),meta.row(meta.tr().y)
+        #     print meta.br().x,meta.br().y,meta.col(meta.br().x),meta.row(meta.br().y)
+        #     print "))))"
 
             
         #r1 = pg.QtGui.QGraphicsRectItem(0,0,meta.tr().x,meta.tr().y)
+        meta = imgs[0].meta()
         r1 = pg.QtGui.QGraphicsRectItem(0,0,meta.cols(),meta.rows())
         r1.setPen(pg.mkPen('w'))
         r1.setBrush(pg.mkBrush(None))
@@ -118,19 +136,13 @@ class RGBDisplay(QtGui.QWidget) :
         for roi_p in rois:
             for plane in roi_p:
                 bbox = roi_p[plane]
-                # r1 = pg.QtGui.QGraphicsRectItem(bbox['tl'][0],
-                #                                 bbox['tl'][1],
-                #                                 #bbox['width'],
-                #                                 #bbox['height'])
-                #                                 100,
-                #                                 100)
                 
                 imm = imgs[0].meta()
 
                 print "rows : {} cols : {} " .format(imm.rows(),imm.cols())
                 
-                x = bbox['bl'][0] - imm.bl().x
-                y = bbox['bl'][1] - imm.bl().y
+                x = bbox.bl().x - imm.bl().x
+                y = bbox.bl().y - imm.bl().y
 
                 print "bbox bl x: {} bbox bl y: {}".format(x,y)
                 
@@ -139,8 +151,8 @@ class RGBDisplay(QtGui.QWidget) :
 
                 print "dw_i : {} dh_i : {}".format(dw_i,dh_i)
                 
-                w_b = bbox['tr'][0] - bbox['bl'][0]
-                h_b = bbox['tr'][1] - bbox['bl'][1]
+                w_b = bbox.tr().x - bbox.bl().x
+                h_b = bbox.tr().y - bbox.bl().y
 
 
                 print "w_b : {} h_b : {}".format(w_b,h_b)
@@ -150,27 +162,10 @@ class RGBDisplay(QtGui.QWidget) :
                                                 w_b * dw_i,
                                                 h_b * dh_i)
                                                 
-                # r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),meta.row(bbox['tl'][1]-delay),20,20)
-                # r2 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['br'][0]),meta.row(bbox['br'][1]-delay),20,20)
-                # r3 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tr'][0]),meta.row(bbox['tr'][1]-delay),20,20)
-                # r4 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['bl'][0]),meta.row(bbox['bl'][1]-delay),100,100)
                 
                 r1.setPen(pg.mkPen(self.co[plane]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
-
-                # r2.setPen(pg.mkPen(self.co[plane]))
-                # r2.setBrush(pg.mkBrush(None))
-                # self.plt.addItem(r2)
-
-                # r3.setPen(pg.mkPen(self.co[plane]))
-                # r3.setBrush(pg.mkBrush(None))
-                # self.plt.addItem(r3)
-            
-                # r4.setPen(pg.mkPen(self.co[plane]))
-                # r4.setBrush(pg.mkBrush(None))
-                # self.plt.addItem(r4)
-                                
             
         # from PyQt4.QtCore import pyqtRemoveInputHook
         # pyqtRemoveInputHook()
