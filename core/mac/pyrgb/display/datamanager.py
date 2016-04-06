@@ -48,7 +48,8 @@ class DataManager(object):
             
             #img -= np.min(img)
             
-            b[:,:,ix] = img[:,::-1]
+            #b[:,:,ix] = img[:,::-1]
+            b[:,:,ix] = img
             
         toc = time.clock()
         print "fill data: {} s".format(toc - tic)

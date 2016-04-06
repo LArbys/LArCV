@@ -17,8 +17,9 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.win = pg.GraphicsWindow(title="Fuck P100")
         self.win.setWindowTitle('Fuck P100')
-        
-        self.vb  = self.win.addViewBox()
+
+
+        self.vb  = self.win.addPlot()
         self.imi = pg.ImageItem()
         self.vb.addItem(self.imi)        
         
@@ -76,15 +77,36 @@ class RGBDisplay(QtGui.QWidget) :
         
         toc = time.clock()
         print "added item: {} s".format(toc - tic)
-        print rois
+
+        delay = 0
         for roi_p in rois:
             for plane in roi_p:
                 bbox = roi_p[plane]
-                r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),meta.row(bbox['tl'][1]),bbox['width'],bbox['height'])
+                r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),
+                                                meta.row(bbox['tl'][1] - delay),
+                                                bbox['width'],
+                                                bbox['height'])
+                # r1 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tl'][0]),meta.row(bbox['tl'][1]-delay),20,20)
+                # r2 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['br'][0]),meta.row(bbox['br'][1]-delay),20,20)
+                # r3 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['tr'][0]),meta.row(bbox['tr'][1]-delay),20,20)
+                # r4 = pg.QtGui.QGraphicsRectItem(meta.col(bbox['bl'][0]),meta.row(bbox['bl'][1]-delay),20,20)
+                
                 r1.setPen(pg.mkPen(self.co[plane]))
                 r1.setBrush(pg.mkBrush(None))
                 self.vb.addItem(r1)
+
+                # r2.setPen(pg.mkPen(self.co[plane]))
+                # r2.setBrush(pg.mkBrush(None))
+                # self.vb.addItem(r2)
+
+                # r3.setPen(pg.mkPen(self.co[plane]))
+                # r3.setBrush(pg.mkBrush(None))
+                # self.vb.addItem(r3)
             
+                # r4.setPen(pg.mkPen(self.co[plane]))
+                # r4.setBrush(pg.mkBrush(None))
+                # self.vb.addItem(r4)
+                                
             
         # from PyQt4.QtCore import pyqtRemoveInputHook
         # pyqtRemoveInputHook()
