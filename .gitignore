@@ -17,8 +17,9 @@
 *.txt
 *.bin
 *.root
-build
-SuperaCore/caffe.pb.h
-SuperaCore/caffe.pb.cc
-SuperaCore/caffe.pb.cxx
+core/build
+core/APILArLite/Cropper.*
+core/APILArLite/MCParticleTree.*
+core/APILArLite/SuperaTypes.h
+core/APILArLite/SuperaUtils.*
 *~
