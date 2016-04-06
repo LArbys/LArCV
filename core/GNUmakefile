@@ -32,6 +32,9 @@ export LARCV_BASEDIR
 # Define directories to be compile upon a global "make"...
 #
 SUBDIRS := Base DataFormat #Utils
+ifdef LARLITE_BASEDIR
+SUBDIRS += APILArLite
+endif
 
 #####################################################################################
 #
