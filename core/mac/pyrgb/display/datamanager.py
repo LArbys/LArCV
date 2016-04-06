@@ -24,8 +24,15 @@ class DataManager(object):
 
         self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
 
+
+        self.loaded = {}
+        
     def get_event_image(self,ii,imin,imax) :
 
+        if (ii,imin,imax) in self.loaded.keys():
+            print "\t>> Already loaded this image return it\n"
+            return self.loaded[(ii,imin,imax)] 
+        
         self.img_ch.GetEntry(ii)
         img_br=None
         exec('img_br=self.img_ch.%s' % self.img_br_name)
@@ -66,7 +73,7 @@ class DataManager(object):
             #this ROI
             roi = roi_v[ix]
 
-            if roi.BB().size() == 0: #there was no ROI continue
+            if roi.BB().size() == 0: #there was no ROI continue...
                 continue
 
             r = {}
@@ -78,4 +85,5 @@ class DataManager(object):
                 
             rois.append(r)
 
+        self.loaded[(ii,imin,imax)]  =  (b,rois,imgs)
         return (b,rois,imgs)

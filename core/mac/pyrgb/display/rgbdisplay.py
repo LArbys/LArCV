@@ -5,8 +5,6 @@ from . import QtGui, QtCore
 import pyqtgraph as pg
 import numpy as np
 import time
-#from ..pyfakefifo import PyFakeFifo
-#import plotmanager
 
 import datamanager
 
@@ -95,7 +93,8 @@ class RGBDisplay(QtGui.QWidget) :
             if self.kTypes[button][0].isChecked():
                 print "returning!", self.kTypes[button][1]
                 return self.kTypes[button][1]
-        
+        return None
+    
     def previousEvent(self):
 
         event = int(self.event.text())
@@ -145,15 +144,17 @@ class RGBDisplay(QtGui.QWidget) :
         self.drawBBOX(self.which_type())
 
     def drawBBOX(self,kType):
-
+        
         if self.image is None:
             return
 
+        if kType is None:
+            return
+        
         for box in self.boxes:
             self.plt.removeItem(box)
 
         self.boxes = []
-
             
         for roi_p in self.rois:
 
