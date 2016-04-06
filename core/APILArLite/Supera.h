@@ -22,6 +22,7 @@
 #include "DataFormat/mctrack.h"
 #include "DataFormat/mcshower.h"
 #include "DataFormat/mctruth.h"
+#include "DataFormat/Image2D.h"
 namespace larlite {
   /**
      \class Supera
@@ -73,7 +74,7 @@ namespace larlite {
     std::vector<size_t> _event_comp_cols;
     double _min_time;
     double _min_wire;
-
+    ::larcv::Image2D _full_image;
     //::larcv::supera::ImageExtractor<larlite::wire> _extractor;
   };
 }

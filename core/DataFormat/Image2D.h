@@ -48,6 +48,8 @@ namespace larcv {
 #endif
     virtual ~Image2D(){}
 
+    void reset(const ImageMeta&);
+
     enum CompressionModes_t { kSum, kAverage, kMaxPool};
 
     ImageIndex_t index() const { return _id; }

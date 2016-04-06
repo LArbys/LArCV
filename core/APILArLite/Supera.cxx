@@ -73,21 +73,26 @@ namespace larlite {
     auto geom = ::larutil::Geometry::GetME();
 
     //auto& image_v = _larcv_io.get_data<larcv::EventImage2D>("event_image");
-    auto image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"event_image"));
+    auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"event_image"));
 
+    //
+    // 0) Construct Event-image ROI
+    //
     std::map<larcv::PlaneID_t,larcv::ImageMeta> image_meta_m;
     for(size_t p=0; p<geom->Nplanes(); ++p) {
 
       size_t cols = _event_image_cols[p] * _event_comp_cols[p];
       size_t rows = _event_image_rows[p] * _event_comp_rows[p];
 
-      auto meta = ::larcv::ImageMeta(cols-1,rows-1,rows,cols,_min_wire,_min_time+rows-1,p);
+      auto meta = ::larcv::ImageMeta(cols-1,rows-1,
+				     rows,cols,
+				     _min_wire,_min_time+rows-1,
+				     p);
       image_meta_m.insert(std::make_pair(p,meta));
-      image_v->Emplace(::larcv::supera::Extract<larlite::wire>(meta,*ev_wire));
     }
 
     //
-    // ROIs
+    // 1) Construct Interaction/Particle ROIs
     //
     //_mctp.set_verbosity(_mctree_verbosity);
     //_mctp.GetCropper().set_verbosity(_cropper_verbosity);
@@ -157,8 +162,66 @@ namespace larlite {
       }
     }
 
-    _larcv_io.save_entry();
+    //
+    // If no ROI, skip this event
+    //
+    if(roi_v->ROIArray().empty()) {
+      _larcv_io.save_entry();
+      return true;
+    }
+    //
+    // If no Interaction ImageMeta (Interaction ROI object w/ no real ROI), skip this event
+    //
+    bool skip = true;
+    for(auto const& roi : roi_v->ROIArray()) {
+      if(roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
+      if(roi.BB().size() == geom->Nplanes()) {
+	skip=false;
+	break;
+      }
+    }
+    if(skip) {
+      _larcv_io.save_entry();
+      return true;
+    }
     
+    //
+    // Extract image if there's any ROI
+    //
+    for(size_t p=0; p<geom->Nplanes(); ++p) {
+
+      auto const& full_meta = (*(image_meta_m.find(p))).second;
+
+      // Create full resolution image
+      _full_image.reset(full_meta);
+      ::larcv::supera::Fill<larlite::wire>(_full_image,*ev_wire);
+      _full_image.index(event_image_v->Image2DArray().size());
+
+      // Now extract each high-resolution interaction image
+      for(auto const& roi : roi_v->ROIArray()) {
+	// Only care about interaction
+	if(roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
+	auto const& roi_meta = roi.BB(p);
+	::larcv::ImageMeta bb(roi_meta.width(),roi_meta.height(),
+			      roi_meta.rows(),roi_meta.height(),
+			      roi_meta.min_x(), roi_meta.max_y(),
+			      roi_meta.plane());
+	// Retrieve cropped full resolution image
+	auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("mcint%02d",roi.MCTIndex())));
+	auto hires_img = _full_image.crop(bb);
+	int_img_v->Emplace(std::move(hires_img));
+      }
+
+      // Finally compress and store as event image
+      //auto img = _full_image.copy_compress(
+      auto comp_meta = ::larcv::ImageMeta(_full_image.meta());
+      comp_meta.update(_event_image_rows[p],_event_image_cols[p]);
+      ::larcv::Image2D img(std::move(comp_meta),
+			   std::move(_full_image.copy_compress(_event_image_rows[p],_event_image_cols[p])));
+      event_image_v->Emplace(std::move(img));
+    }
+    
+    _larcv_io.save_entry();
     return true;
   }
 

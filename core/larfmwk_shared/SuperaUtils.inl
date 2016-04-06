@@ -11,21 +11,16 @@ namespace larcv {
   namespace supera {
 
     template <class T>
-    larcv::Image2D Extract(const ImageMeta& meta_in, const std::vector<T>& wires, const int time_offset)
+    void Fill(Image2D& img, const std::vector<T>& wires, const int time_offset)
     {
-      ImageMeta meta(meta_in.width(),meta_in.height(),
-		     meta_in.rows(),meta_in.cols(),
-		     meta_in.tl().x,meta_in.tl().y,//-3200,
-		     meta_in.plane());
       //int nticks = meta.rows();
       //int nwires = meta.cols();
-
+      auto const& meta = img.meta();
       size_t row_comp_factor = (size_t)(meta.pixel_height());
       int ymax = meta.max_y();
       int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
-
-      larcv::Image2D img(meta_in);
-
+      img.paint(0.);
+      
       for(auto const& wire : wires) {
 
 	auto const& wire_id = ChannelToWireID(wire.Channel());
@@ -88,8 +83,6 @@ namespace larcv {
 	  }
 	}
       }
-      
-      return img;
     }
   }
 }

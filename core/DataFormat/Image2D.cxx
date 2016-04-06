@@ -39,6 +39,13 @@ namespace larcv {
     , _meta(std::move(meta))
   { if(_img.size() != _meta.rows() * _meta.cols()) throw larbys("Inconsistent dimensions!"); }
 
+  void Image2D::reset(const ImageMeta& meta)
+  {
+    _meta = meta;
+    if(_img.size() != _meta.rows() * _meta.cols()) _img.resize(_meta.rows() * _meta.cols());
+    paint(0.);
+  }
+
   void Image2D::imread(const std::string file_name)
   {
     ::cv::Mat image;
@@ -194,7 +201,7 @@ namespace larcv {
 			(max_y - min_y + 1),
 			(max_x - min_x + 1),
 			_meta.pos_x(min_x),
-			_meta.pos_y(max_y) );
+			_meta.pos_y(max_y), _meta.plane() );
     
     std::vector<float> img;
     img.resize(res_meta.cols() * res_meta.rows());
