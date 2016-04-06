@@ -24,36 +24,26 @@ class DataManager(object):
 
         self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
 
-    def get_event_image(self,ii,imin,imax) :
-        tic = time.clock()
 
+        self.loaded = {}
+        
+    def get_event_image(self,ii,imin,imax) :
+
+        if (ii,imin,imax) in self.loaded.keys():
+            print "\t>> Already loaded this image return it\n"
+            return self.loaded[(ii,imin,imax)] 
+        
         self.img_ch.GetEntry(ii)
         img_br=None
         exec('img_br=self.img_ch.%s' % self.img_br_name)
-        toc = time.clock()
-        print "Get entry time: {} s".format(toc - tic)
 
-        tic = time.clock()        
         img_v = img_br.Image2DArray()
-        toc = time.clock()
-        print "Set ev_image and get Image2DArray: {} s".format(toc - tic)
 
-        tic = time.clock()        
-        imgs = [ img_v[i] for i in xrange(img_v.size()) ]
-        toc = time.clock()
-        print "imgs list: {} s".format(toc - tic)
-        
-        tic = time.clock()
+        imgs      = [ img_v[i] for i in xrange(img_v.size()) ]
         img_array = [ larcv.as_ndarray(img) for img in imgs ]
-        toc = time.clock()
-        print "img_array list: {} s".format(toc - tic)
 
-        tic = time.clock()        
         b = np.zeros(list(img_array[0].shape) + [3])
-        toc = time.clock()
-        print "create b: {} s".format(toc - tic)
 
-        tic = time.clock()        
         for ix,img in enumerate(img_array):
             img[img < imin] = 0
             img[img > imax] = imax
@@ -62,17 +52,11 @@ class DataManager(object):
             
             b[:,:,ix] = img
 
-        toc = time.clock()
-        print "fill data: {} s".format(toc - tic)
 
-        tic = time.clock()        
         b[:,:,0][ b[:,:,1] > 0.0 ] = 0.0
         b[:,:,0][ b[:,:,2] > 0.0 ] = 0.0
 
         b[:,:,1][ b[:,:,2] > 0.0 ] = 0.0
-
-        toc = time.clock()
-        print "slice on data: {} s".format(toc - tic)
 
         #event ROIs
         self.roi_ch.GetEntry(ii)
@@ -88,17 +72,18 @@ class DataManager(object):
         for ix in xrange(roi_v.size()):
             #this ROI
             roi = roi_v[ix]
-            # if roi.Type() != 7:
-            #     continue
-            
-            #Three ROIs, one for each plane
-            r = {}
-            if roi.BB().size() == 0:
+
+            if roi.BB().size() == 0: #there was no ROI continue...
                 continue
-                
+
+            r = {}
+                        
+            r['type'] = roi.Type()
+            r['bbox'] = []
             for iy in xrange(3):
-                r[iy] = roi.BB(iy)
-            
+                r['bbox'].append( roi.BB(iy) )
+                
             rois.append(r)
-        # print rois
+
+        self.loaded[(ii,imin,imax)]  =  (b,rois,imgs)
         return (b,rois,imgs)
