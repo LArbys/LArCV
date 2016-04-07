@@ -151,6 +151,10 @@ class RGBDisplay(QtGui.QWidget) :
         
         b,self.rois,imgs = self.dm.get_event_image(event,imin,imax)
 
+        if b is None:
+            self.image = None
+            return
+        
         self.imi.setImage(b)
 
         meta = imgs[0].meta()
