@@ -73,11 +73,9 @@ private:
 
 };
 
-
 Supera::Supera(fhicl::ParameterSet const & main_cfg)
-  :
-  EDAnalyzer(main_cfg)  // ,
- // More initializers here.
+  : EDAnalyzer(main_cfg)
+  , _larcv_io(::larcv::IOManager::kWRITE)
 {
   auto const* geom = ::lar::providerFrom<geo::Geometry>();
 
