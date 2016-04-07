@@ -1,0 +1,33 @@
+Supera: {
+    OutFileName:      "out.root"
+    WireProducer:     "caldata"
+    MCRecoProducer:   "mcreco"
+    GenProducer:      "generator"
+    MinTime:          2400
+    MinWire:          0
+    EventImageRows:   [768,768,768]
+    EventImageCols:   [768,768,768]
+    EventCompRows:    [7,7,7]
+    EventCompCols:    [5,5,5]
+    #EventImageRows:   [5376,5376,5376]
+    #EventImageCols:   [3840,3840,3840]
+    #EventCompRows:    [1,1,1]
+    #EventCompCols:    [1,1,1]
+    Verbosity:        1
+
+    # MCParticleTree configuration
+    MCParticleTree: {
+        Verbosity: 3
+        # Cropper configuration
+        Cropper: {
+            Verbosity:    1
+            TimePadding:  5
+            WirePadding:  5
+            MinWidth:     5
+            MinHeight:    5
+            TargetWidth:  247 # currently irrelevant
+            TargetHeight: 247 # currently irrelevant
+            CompressionFactor: 0 # currently irrelevant
+        }
+    }
+}
