@@ -2,11 +2,13 @@
 
 import os,sys,copy
 from . import QtGui, QtCore
-import pyqtgraph as pg
+from . import pg
 import numpy as np
 import time
 
 import datamanager
+
+from hoverrect import HoverRect as HR
 
 class RGBDisplay(QtGui.QWidget) :
     def __init__(self,rfile):
@@ -20,6 +22,20 @@ class RGBDisplay(QtGui.QWidget) :
 
         
         self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
+        self.particles = [
+
+            "Eminus",
+            "Kminus",
+            "Proton",
+            "Muminus",
+            "Piminus",
+            "Gamma",
+            "Pizero",
+            "BNB",
+            "Cosmic",
+            "Unknown"
+        ]
+        
         # Main Layout
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget( self.win, 0, 0, 1, 10 )
@@ -62,8 +78,11 @@ class RGBDisplay(QtGui.QWidget) :
         
         self.kBNB   = QtGui.QRadioButton("BNB")
         self.lay_inputs.addWidget( self.kBNB, 0, 9 )
+
+        self.kBNB.setChecked(True)
         self.kOTHER = QtGui.QRadioButton("Particle")
         self.lay_inputs.addWidget( self.kOTHER, 0, 10 )
+        
         self.kBOTH  = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
@@ -91,7 +110,6 @@ class RGBDisplay(QtGui.QWidget) :
     def which_type(self):
         for button in self.kTypes:
             if self.kTypes[button][0].isChecked():
-                print "returning!", self.kTypes[button][1]
                 return self.kTypes[button][1]
         return None
     
@@ -118,6 +136,8 @@ class RGBDisplay(QtGui.QWidget) :
         
     def plotData(self):
 
+        self.image = None
+        
         #Clear out plot
         self.plt.clear()
 
@@ -179,13 +199,22 @@ class RGBDisplay(QtGui.QWidget) :
                 h_b = bbox.tr().y - bbox.bl().y
 
                 # print "w_b : {} h_b : {}".format(w_b,h_b)
+                ti = pg.TextItem(text=self.particles[ roi_p['type'] ])
+                ti.setPos(x*dw_i,(y+h_b)*dh_i+1)
                 
-                r1 = pg.QtGui.QGraphicsRectItem(x * dw_i,
-                                                y * dh_i,
-                                                w_b * dw_i,
-                                                h_b * dh_i)
+                r1 = HR(x * dw_i,
+                        y * dh_i,
+                        w_b * dw_i,
+                        h_b * dh_i,
+                        ti,self.plt)
+
                 
                 r1.setPen(pg.mkPen(self.co[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
+
+        def showParticle(self):
+            print "aho"
+
+                
