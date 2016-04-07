@@ -1,6 +1,5 @@
-
 #!/usr/bin python
-#thanks taritree
+#thanks taritree(!)
 
 import os,sys
 from PyQt4 import QtGui, QtCore

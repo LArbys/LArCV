@@ -86,6 +86,9 @@ class RGBDisplay(QtGui.QWidget) :
         self.kBOTH  = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
+        self.compression  = QtGui.QCheckBox("Compressed")
+        self.lay_inputs.addWidget( self.compression, 0, 12 )
+        self.compression.setChecked(True)
 
         self.kTypes = { 'kBNB'  :  (self.kBNB,[7]),
                         'kOTHER' : (self.kOTHER,[i for i in xrange(10) if i != 7]),
@@ -104,7 +107,6 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.boxes = []
         self.dm = datamanager.DataManager(rfile)
-        
         
 
     def which_type(self):
@@ -149,7 +151,7 @@ class RGBDisplay(QtGui.QWidget) :
         imin  = int(self.imin.text())
         imax  = int(self.imax.text())
         
-        b,self.rois,imgs = self.dm.get_event_image(event,imin,imax)
+        b,self.rois,imgs = self.dm.get_event_image(event,imin,imax,self.compression.isChecked())
 
         if b is None:
             self.image = None
@@ -157,13 +159,13 @@ class RGBDisplay(QtGui.QWidget) :
         
         self.imi.setImage(b)
 
-        meta = imgs[0].meta()
-        outline = pg.QtGui.QGraphicsRectItem(0,0,meta.cols(),meta.rows())
-        outline.setPen(pg.mkPen('w'))
-        outline.setBrush(pg.mkBrush(None))
-        self.plt.addItem(outline)
+        # meta = imgs[2].meta()
+        # outline = pg.QtGui.QGraphicsRectItem(0,0,meta.cols(),meta.rows())
+        # outline.setPen(pg.mkPen('w'))
+        # outline.setBrush(pg.mkBrush(None))
+        # self.plt.addItem(outline)
 
-        self.image = imgs[0]
+        self.image = imgs
         
         self.drawBBOX(self.which_type())
 
@@ -187,7 +189,7 @@ class RGBDisplay(QtGui.QWidget) :
             
             for ix,bbox in enumerate(roi_p['bbox']):
                 
-                imm = self.image.meta()
+                imm = self.image[ix].meta()
 
                 x = bbox.bl().x - imm.bl().x
                 y = bbox.bl().y - imm.bl().y
