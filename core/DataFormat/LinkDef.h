@@ -31,12 +31,6 @@
 #pragma link C++ class larcv::DataProductFactory+;
 #pragma link C++ class larcv::IOManager+;
 
-//
-// Functions
-//
-#pragma link C++ function larcv::as_ndarray(const larcv::Image2D&)+;
-#pragma link C++ function larcv::as_mat(const larcv::Image2D&)+;
-
 //ADD_NEW_CLASS ... do not change this line
 
 #endif

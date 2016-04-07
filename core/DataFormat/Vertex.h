@@ -4,8 +4,6 @@
 namespace larcv {
 
   class Vertex {
-    friend class Vertex;
-    
   public:
     /// Particle ID default constructor
     Vertex();

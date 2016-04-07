@@ -66,13 +66,15 @@ namespace larlite {
   
   bool Supera::analyze(storage_manager* storage) {
 
-    auto ev_wire = storage->get_data<event_wire>(_producer_wire);
+    auto wire_h = storage->get_data<event_wire>(_producer_wire);                                                                                        
+    //art::Handle<std::vector<recob::Wire> > wire_h; e.getByLabel(_producer_wire,wire_h);
 
-    if(!ev_wire) { throw DataFormatException("Could not load wire data!"); }
+    if(!wire_h) { throw DataFormatException("Could not load wire data!"); }
+    //if(!wire_h.isValid()) { throw larcv::larbys("Could not load wire data!"); }
 
+    //auto const* geom = ::lar::providerFrom<geo::Geometry>();
     auto geom = ::larutil::Geometry::GetME();
 
-    //auto& image_v = _larcv_io.get_data<larcv::EventImage2D>("event_image");
     auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"event_image"));
 
     //
@@ -94,12 +96,16 @@ namespace larlite {
     //
     // 1) Construct Interaction/Particle ROIs
     //
-    //_mctp.set_verbosity(_mctree_verbosity);
-    //_mctp.GetCropper().set_verbosity(_cropper_verbosity);
+    //art::Handle<std::vector<simb::MCTruth> > mctruth_h;  e.getByLabel( _producer_gen,    mctruth_h  );
+    //art::Handle<std::vector<sim::MCTrack > > mctrack_h;  e.getByLabel( _producer_mcreco, mctrack_h  );
+    //art::Handle<std::vector<sim::MCShower> > mcshower_h; e.getByLabel( _producer_mcreco, mcshower_h );
+    auto mctruth_h  = storage->get_data<event_mctruth>(_producer_gen);
+    auto mctrack_h  = storage->get_data<event_mctrack>(_producer_mcreco);
+    auto mcshower_h = storage->get_data<event_mcshower>(_producer_mcreco);
     _mctp.clear();
-    _mctp.DefinePrimary(*(storage->get_data<event_mctruth>(_producer_gen)));
-    _mctp.RegisterSecondary(*(storage->get_data<event_mctrack>(_producer_mcreco)));
-    _mctp.RegisterSecondary(*(storage->get_data<event_mcshower>(_producer_mcreco)));
+    _mctp.DefinePrimary(*mctruth_h);
+    _mctp.RegisterSecondary(*(mctrack_h));
+    _mctp.RegisterSecondary(*(mcshower_h));
     _mctp.UpdatePrimaryROI();
     auto int_roi_v = _mctp.GetPrimaryROI();
 
@@ -168,6 +174,7 @@ namespace larlite {
     if(roi_v->ROIArray().empty()) {
       _larcv_io.save_entry();
       return true;
+      //return;
     }
     //
     // If no Interaction ImageMeta (Interaction ROI object w/ no real ROI), skip this event
@@ -183,6 +190,7 @@ namespace larlite {
     if(skip) {
       _larcv_io.save_entry();
       return true;
+      //return;
     }
     
     //
@@ -194,7 +202,7 @@ namespace larlite {
 
       // Create full resolution image
       _full_image.reset(full_meta);
-      ::larcv::supera::Fill<larlite::wire>(_full_image,*ev_wire);
+      ::larcv::supera::Fill<larlite::wire>(_full_image,*wire_h);
       _full_image.index(event_image_v->Image2DArray().size());
 
       // Now extract each high-resolution interaction image
@@ -213,7 +221,6 @@ namespace larlite {
       }
 
       // Finally compress and store as event image
-      //auto img = _full_image.copy_compress(
       auto comp_meta = ::larcv::ImageMeta(_full_image.meta());
       comp_meta.update(_event_image_rows[p],_event_image_cols[p]);
       ::larcv::Image2D img(std::move(comp_meta),
@@ -223,6 +230,7 @@ namespace larlite {
     
     _larcv_io.save_entry();
     return true;
+    //return;
   }
 
   bool Supera::finalize() {

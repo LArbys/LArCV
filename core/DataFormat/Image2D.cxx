@@ -9,13 +9,11 @@ namespace larcv {
     : _img(row_count*col_count,0.)
     , _meta(col_count,row_count,row_count,col_count,0.,0.)
   {}
-  //{import_array();}
 
   Image2D::Image2D(const ImageMeta& meta)
     : _img(meta.rows()*meta.cols(),0.)
     , _meta(meta)
   {}
-  //{import_array();}
 
   Image2D::Image2D(const ImageMeta& meta, const std::vector<float>& img)
     : _img(img)
@@ -26,14 +24,7 @@ namespace larcv {
     : _img(rhs._img)
     , _meta(rhs._meta)
   {}
-  //{import_array();}
       
-  Image2D::Image2D(const std::string image_file)
-    : _img(0,0.)
-    , _meta(1.,1.,1,1,0.,0.)
-  { imread(image_file); }
-  //{ imread(image_file); import_array();}
-
   Image2D::Image2D(ImageMeta&& meta, std::vector<float>&& img)
     : _img(std::move(img))
     , _meta(std::move(meta))
@@ -44,29 +35,6 @@ namespace larcv {
     _meta = meta;
     if(_img.size() != _meta.rows() * _meta.cols()) _img.resize(_meta.rows() * _meta.cols());
     paint(0.);
-  }
-
-  void Image2D::imread(const std::string file_name)
-  {
-    ::cv::Mat image;
-    image = ::cv::imread(file_name.c_str(), CV_LOAD_IMAGE_COLOR);
-
-    _img.resize(image.cols * image.rows);
-
-    _meta = ImageMeta(image.cols,image.rows,image.cols, image.rows, 0., 0.);
-      
-    unsigned char* px_ptr = (unsigned char*)image.data;
-    int cn = image.channels();
-    
-    for(int i=0;i<image.rows;i++) {
-      for (int j=0;j<image.cols;j++) {
-	float q = 0;
-	q += (float)(px_ptr[i*image.cols*cn + j*cn + 0]);               //B
-	q += (float)(px_ptr[i*image.cols*cn + j*cn + 1]) * 256.;        //G
-	q += (float)(px_ptr[i*image.cols*cn + j*cn + 2]) * 256. * 256.; //R
-	set_pixel(j,i,q);
-      }
-    }
   }
 
   void Image2D::resize(size_t rows, size_t cols)

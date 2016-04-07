@@ -62,8 +62,6 @@ namespace larlite {
     ::larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower> _mctp;
     ::larcv::logger _logger;
     ::larcv::IOManager _larcv_io;
-    //::larcv::msg::Level_t _cropper_verbosity;
-    //::larcv::msg::Level_t _mctree_verbosity;
     std::string _config_file;
     std::string _producer_wire;
     std::string _producer_gen;
@@ -75,7 +73,6 @@ namespace larlite {
     double _min_time;
     double _min_wire;
     ::larcv::Image2D _full_image;
-    //::larcv::supera::ImageExtractor<larlite::wire> _extractor;
   };
 }
 

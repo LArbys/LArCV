@@ -13,11 +13,16 @@ while test $# -gt 0; do
 	  ;;
       --includes)
 	  out="-I${LARCV_INCDIR} "
-	  out+="-I${OPENCV_INCDIR} "
+	  if [ $LARCV_OPENCV -eq 1 ]; then
+	      out+="-I${OPENCV_INCDIR} "
+	  fi
 	  out+=`python-config --includes`
-	  out+=" -I"
-	  out+=`python -c "import numpy; print numpy.get_include()"`
 	  out+=" "
+	  if [ $LARCV_NUMPY -eq 1 ]; then
+	      out+="-I"
+	      out+=`python -c "import numpy; print numpy.get_include()"`
+	      out+=" "
+	  fi
 	  ;;
       --libdir)
 	  out="{$LARCV_LIBDIR} "
