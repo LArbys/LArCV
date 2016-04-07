@@ -161,33 +161,34 @@ namespace larcv {
 	double width,height;
 	double origin_x, origin_y;
 	size_t rows,cols;
+	width=height=0.;
+	origin_x=origin_y = 0.;
+	rows = cols=0;
 	width = height = origin_x = origin_y = 0.;
 	rows = cols = 0;
-	if(wrange.valid()) {
+	if(wrange.valid() && (wrange.End() - wrange.Start())) {
 	  width = wrange.End() - wrange.Start() + 1 + 2 * _wire_padding;
 	  cols = wrange.End() - wrange.Start() + 2 * _wire_padding;
 	  origin_x = wrange.Start() - _wire_padding;
 	}
-	if(trange.valid()) {
+	if(trange.valid() && (trange.End() - trange.Start())) {
 	  height = trange.End() - trange.Start() + 1 + 2 * _time_padding;
 	  rows = trange.End() - trange.Start() + 2 * _time_padding;
 	  origin_y = trange.End() + _time_padding;
 	}
 
 	if( (width - 2 * _wire_padding) < _min_width && (height - 2 * _time_padding) < _min_height ) {
-	  LARCV_INFO() << "Ignoring ImageMeta (too small) based on WTRange_t for Plane "<< i << std::endl
+	  LARCV_INFO() << "Making an empty ImageMeta (too small) based on WTRange_t for Plane "<< i << std::endl
 		       << "      W: " << wrange.Start() << " => " << wrange.End() << (wrange.valid() ? " good" : " bad")
 		       << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl;
-	  return std::vector<larcv::ImageMeta>();
+	}else{
+	  LARCV_INFO() << "Constructing ImageMeta from WTRange_t for Plane "<< i
+		       << " w/ padding (w,t) = (" << _wire_padding << "," << _time_padding << ")" << std::endl
+		       << "      W: " << wrange.Start() << " => " << wrange.End() << (wrange.valid() ? " good" : " bad")
+		       << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl
+		       << "      Origin: (" << origin_x << "," << origin_y << ")" << std::endl
+		       << "      Rows = " << rows << " Cols = " << cols << " ... Height = " << height << " Width = " << width << std::endl;
 	}
-	
-	LARCV_INFO() << "Constructing ImageMeta from WTRange_t for Plane "<< i
-		     << " w/ padding (w,t) = (" << _wire_padding << "," << _time_padding << ")" << std::endl
-		     << "      W: " << wrange.Start() << " => " << wrange.End() << (wrange.valid() ? " good" : " bad")
-		     << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl
-		     << "      Origin: (" << origin_x << "," << origin_y << ")" << std::endl
-		     << "      Rows = " << rows << " Cols = " << cols << " ... Height = " << height << " Width = " << width << std::endl;
-	
 	bb_v.emplace_back(width,height,rows,cols,origin_x,origin_y,i);
       }
       return bb_v;
