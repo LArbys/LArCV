@@ -10,8 +10,8 @@ typedef _object PyObject;
 #endif
 #endif
 
-#include "Image2D.h"
-#include "ROI.h"
+#include "DataFormat/Image2D.h"
+#include "DataFormat/ROI.h"
 
 namespace larcv {
 

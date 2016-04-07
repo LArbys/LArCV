@@ -18,10 +18,6 @@
 #include <vector>
 #include <cstdlib>
 #include "ImageMeta.h"
-#ifndef __CINT__
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-#endif
 
 namespace larcv {
 
@@ -38,12 +34,10 @@ namespace larcv {
     Image2D(const ImageMeta&);
     Image2D(const ImageMeta&, const std::vector<float>&);
     Image2D(const Image2D&);
-    Image2D(const std::string img_file);
     
 #ifndef __CINT__
 #ifndef __CLING__
     Image2D(ImageMeta&&, std::vector<float>&&);
-    Image2D(const cv::Mat&);
 #endif
 #endif
     virtual ~Image2D(){}
