@@ -11,6 +11,9 @@ from ..lib.storage   import Storage
 
 from ..lib.hoverrect import HoverRect as HR
 
+import cv2
+
+
 class RGBDisplay(QtGui.QWidget) :
 
     def __init__(self,rfile):
@@ -109,7 +112,14 @@ class RGBDisplay(QtGui.QWidget) :
 
         ### DataManager
         self.dm = datamanager.DataManager(rfile)
-        
+
+        self.startup = cv2.imread("pyrgb/inc/__.png" ,cv2.IMREAD_GRAYSCALE)
+        self.noevent = cv2.imread("pyrgb/inc/___.png",cv2.IMREAD_GRAYSCALE)
+
+        self.imi = pg.ImageItem()
+        self.plt.addItem(self.imi)
+        self.imi.setImage(self.startup.T[:,::-1])
+
     
     def which_type(self):
         for button in self.kTypes:
@@ -158,7 +168,9 @@ class RGBDisplay(QtGui.QWidget) :
         pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax)
 
         if pimg is None:
-            
+            self.imi = pg.ImageItem()
+            self.plt.addItem(self.imi)
+            self.imi.setImage(self.noevent.T[:,::-1])
             self.image = None
             return
 
@@ -194,19 +206,17 @@ class RGBDisplay(QtGui.QWidget) :
                 x = bbox.bl().x - imm.bl().x
                 y = bbox.bl().y - imm.bl().y
 
-                # print "bbox bl x: {} bbox bl y: {}".format(x,y)
-                
                 dw_i = imm.cols() / ( imm.tr().x - imm.bl().x )
                 dh_i = imm.rows() / ( imm.tr().y - imm.bl().y )
 
-                # print "dw_i : {} dh_i : {}".format(dw_i,dh_i)
-                
                 w_b = bbox.tr().x - bbox.bl().x
                 h_b = bbox.tr().y - bbox.bl().y
 
-                # print "w_b : {} h_b : {}".format(w_b,h_b)
+                #Set the text
                 ti = pg.TextItem(text=self.st.particle_types[ roi_p['type'] ])
-                ti.setPos(x*dw_i,(y+h_b)*dh_i+1)
+                ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
+
+                print "ix: {} bbox x {} y {} wb {} hb {} dw_i {} dh_i {}".format(ix,x,y,w_b,h_b,dw_i,dh_i)
                 
                 r1 = HR(x * dw_i,
                         y * dh_i,

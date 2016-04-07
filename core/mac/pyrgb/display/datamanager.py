@@ -23,7 +23,7 @@ class DataManager(object):
         
         self.loaded = {}
         
-    def get_event_image(self,ii,imin,imax,lr=True) :
+    def get_event_image(self,ii,imin,imax) :
 
         #Load data in TChain
         self.iom.iom.read_entry(ii)
@@ -32,19 +32,15 @@ class DataManager(object):
         roidata = roidata.ROIArray()
 
         imdata, image = None, None
-
-        if lr == True :
-            imdata  = self.iom.iom.get_data( larcv.kProductImage2D, self.LR_IMG_PRODUCER )
-            imdata  = imdata.Image2DArray()
-            image = CompressedImage(imdata,roidata)
-        else:
-            imdata  = self.iom.iom.get_data( larcv.kProductImage2D, self.HR_IMG_PRODUCER )
-            imdata  = imdata.Image2DArray()
-            image   = UnCompressedImage(imdata,roidata)
-
         
+        imdata  = self.iom.iom.get_data( larcv.kProductImage2D, self.LR_IMG_PRODUCER )
+        imdata  = imdata.Image2DArray()
+
         if imdata.size() == 0:
             return (None,None,None)
+
+        image   = CompressedImage(imdata,roidata)
+
         
 
         return ( image.treshold_mat(imin,imax),

@@ -8,7 +8,7 @@ class IOManager(object):
 
         self.iom = larcv.IOManager()
 
-        self.iom.set_verbosity(0)
+        #self.iom.set_verbosity(0)
         
         for f in infiles :
             self.iom.add_in_file(f)
