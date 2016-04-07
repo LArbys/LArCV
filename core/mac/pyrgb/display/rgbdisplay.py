@@ -113,12 +113,6 @@ class RGBDisplay(QtGui.QWidget) :
         ### DataManager
         self.dm = datamanager.DataManager(rfile)
 
-        self.startup = cv2.imread("pyrgb/inc/__.png" ,cv2.IMREAD_GRAYSCALE)
-        self.noevent = cv2.imread("pyrgb/inc/___.png",cv2.IMREAD_GRAYSCALE)
-
-        self.imi = pg.ImageItem()
-        self.plt.addItem(self.imi)
-        self.imi.setImage(self.startup.T[:,::-1])
 
     
     def which_type(self):
@@ -168,9 +162,7 @@ class RGBDisplay(QtGui.QWidget) :
         pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax)
 
         if pimg is None:
-            self.imi = pg.ImageItem()
-            self.plt.addItem(self.imi)
-            self.imi.setImage(self.noevent.T[:,::-1])
+
             self.image = None
             return
 
