@@ -161,11 +161,12 @@ namespace larcv {
 	double width,height;
 	double origin_x, origin_y;
 	size_t rows,cols;
-	width=height=0.;
-	origin_x=origin_y = 0.;
-	rows = cols=0;
-	width = height = origin_x = origin_y = 0.;
-	rows = cols = 0;
+	width=wrange.End()-wrange.Start();
+	height=trange.End()-trange.Start();
+	origin_x=wrange.Start();
+	origin_y=trange.End();
+	rows = trange.End() - trange.Start();
+	cols = wrange.End() - wrange.Start();
 	if(wrange.valid() && (wrange.End() - wrange.Start())) {
 	  width = wrange.End() - wrange.Start() + 1 + 2 * _wire_padding;
 	  cols = wrange.End() - wrange.Start() + 2 * _wire_padding;
