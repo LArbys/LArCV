@@ -23,7 +23,7 @@ namespace larcv {
 
 	auto const& mctruth = mctruth_v[mctruth_index];
 
-	for(size_t i=0; i<mctruth.NParticles(); ++i) {
+	for(size_t i=0; i<(size_t)(mctruth.NParticles()); ++i) {
 
 	  auto const& mcp = mctruth.GetParticle(i);
 

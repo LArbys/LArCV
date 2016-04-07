@@ -49,8 +49,8 @@ namespace larcv {
 	  if(row_comp_factor>1) {
 
 	    for(size_t index=0; index<adcs.size(); ++index) {
-	      if(index + start_index < ymin) continue;
-	      if(index + start_index > ymax) break;
+	      if((int)index + start_index < ymin) continue;
+	      if((int)index + start_index > ymax) break;
 	      auto row = meta.row((double)(start_index+index));
 	      img.set_pixel(row,col,adcs[index]);
 	    }
