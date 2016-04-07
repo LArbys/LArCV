@@ -1,71 +1,57 @@
 #thanks taritree
 
 import os,sys,copy
-from . import QtGui, QtCore
-from . import pg
+from .. import QtGui, QtCore
+from .. import pg
 import numpy as np
 import time
 
 import datamanager
+from ..lib.storage   import Storage
 
-from hoverrect import HoverRect as HR
+from ..lib.hoverrect import HoverRect as HR
 
 class RGBDisplay(QtGui.QWidget) :
+
     def __init__(self,rfile):
         super(RGBDisplay,self).__init__()
+
         self.resize( 1200, 700 )
 
-        self.win = pg.GraphicsWindow(title="Fuck P100")
-        self.win.setWindowTitle('Fuck P100')
+        self.win = pg.GraphicsWindow()
 
         self.plt  = self.win.addPlot()
-
         
-        self.co = { 0 : 'r', 1 : 'g' , 2 : 'b' }
-        self.particles = [
-
-            "Eminus",
-            "Kminus",
-            "Proton",
-            "Muminus",
-            "Piminus",
-            "Gamma",
-            "Pizero",
-            "BNB",
-            "Cosmic",
-            "Unknown"
-        ]
-        
-        # Main Layout
+        ### Main Layout
         self.layout = QtGui.QGridLayout()
         self.layout.addWidget( self.win, 0, 0, 1, 10 )
         self.setLayout(self.layout)
         
-        # # -------------
-        # # Input Widgets
-        # # -------------
+        ### -------------
+        ### Input Widgets
+        ### -------------
         
-        # # Layouts
+        ### Layouts
         self.lay_inputs = QtGui.QGridLayout()
         self.layout.addLayout( self.lay_inputs, 1, 0 )
         
-        # # Navigation
+        ### Navigation
         self.event = QtGui.QLineEdit("%d"%(0))      # event number
         self.lay_inputs.addWidget( QtGui.QLabel("Event"), 0, 0)
         self.lay_inputs.addWidget( self.event, 0, 1 )
 
-        # # imin
+        ### imin
         self.imin = QtGui.QLineEdit("%d"%(0)) 
         self.lay_inputs.addWidget( QtGui.QLabel("imin"), 0, 2)
         self.lay_inputs.addWidget( self.imin, 0, 3 )
 
-        # # imax
+        ### imax
         self.imax = QtGui.QLineEdit("%d"%(5))
         self.lay_inputs.addWidget( QtGui.QLabel("imax"), 0, 4)
         self.lay_inputs.addWidget( self.imax, 0, 5 )
 
         
-        # event choicesoptions
+        ### select choice options
         self.axis_plot = QtGui.QPushButton("Plot")
         self.lay_inputs.addWidget( self.axis_plot, 0, 6 )
 
@@ -75,17 +61,24 @@ class RGBDisplay(QtGui.QWidget) :
         self.next_plot = QtGui.QPushButton("Next Event")
         self.lay_inputs.addWidget( self.next_plot, 0, 8 )
 
-        
+
+
+        ### particle types
+
+        #BNB
         self.kBNB   = QtGui.QRadioButton("BNB")
         self.lay_inputs.addWidget( self.kBNB, 0, 9 )
-
         self.kBNB.setChecked(True)
+
+        #Particle
         self.kOTHER = QtGui.QRadioButton("Particle")
         self.lay_inputs.addWidget( self.kOTHER, 0, 10 )
-        
+
+        #Both
         self.kBOTH  = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
+        #Compressed or not comporessed image
         self.compression  = QtGui.QCheckBox("Compressed")
         self.lay_inputs.addWidget( self.compression, 0, 12 )
         self.compression.setChecked(True)
@@ -94,18 +87,22 @@ class RGBDisplay(QtGui.QWidget) :
                         'kOTHER' : (self.kOTHER,[i for i in xrange(10) if i != 7]),
                         'kBOTH'  : (self.kBOTH,[ i for i in xrange(10) ])}
         
+        ### The current image
         self.image = None
-    
+        
         self.axis_plot.clicked.connect( self.plotData )
 
         self.previous_plot.clicked.connect( self.previousEvent )
-        self.next_plot.clicked.connect( self.nextEvent )
+        self.next_plot.clicked.connect    ( self.nextEvent )
         
-        self.kBNB.clicked.connect(  lambda: self.drawBBOX(self.kTypes['kBNB'][1]) )
-        self.kOTHER.clicked.connect(lambda: self.drawBBOX(self.kTypes['kOTHER'][1]) )
-        self.kBOTH.clicked.connect( lambda: self.drawBBOX(self.kTypes['kBOTH'][1]) )
+        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1]) )
+        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1]) )
+        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1]) )
 
+        ### Set of ROI's on view
         self.boxes = []
+
+        self.st = Storage()
         self.dm = datamanager.DataManager(rfile)
         
 
@@ -147,11 +144,12 @@ class RGBDisplay(QtGui.QWidget) :
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)        
         
-        event = int(self.event.text())
-        imin  = int(self.imin.text())
-        imax  = int(self.imax.text())
-        
-        b,self.rois,imgs = self.dm.get_event_image(event,imin,imax,self.compression.isChecked())
+        event = int( self.event.text())
+        imin  = int( self.imin.text() )
+        imax  = int( self.imax.text() )
+
+
+        b,self.rois,imgs = self.dm.get_event_image(event,imin,imax)
 
         if b is None:
             self.image = None
@@ -205,7 +203,7 @@ class RGBDisplay(QtGui.QWidget) :
                 h_b = bbox.tr().y - bbox.bl().y
 
                 # print "w_b : {} h_b : {}".format(w_b,h_b)
-                ti = pg.TextItem(text=self.particles[ roi_p['type'] ])
+                ti = pg.TextItem(text=self.st.particle_types[ roi_p['type'] ])
                 ti.setPos(x*dw_i,(y+h_b)*dh_i+1)
                 
                 r1 = HR(x * dw_i,
@@ -215,7 +213,7 @@ class RGBDisplay(QtGui.QWidget) :
                         ti,self.plt)
 
                 
-                r1.setPen(pg.mkPen(self.co[ix]))
+                r1.setPen(pg.mkPen(self.st.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
