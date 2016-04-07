@@ -15,9 +15,12 @@
 #pragma link C++ function larcv::as_ndarray(const larcv::Image2D&)+;
 #pragma link C++ function larcv::as_mat(const larcv::Image2D&)+;
 
+#pragma link C++ class larcv::load_pycvutil+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
+
+
 
 
 
