@@ -39,7 +39,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.layout.addLayout( self.lay_inputs, 1, 0 )
         
         ### Navigation
-        self.event = QtGui.QLineEdit("%d"%(0))      # event number
+        self.event = QtGui.QLineEdit("%d"%0)      # event number
         self.lay_inputs.addWidget( QtGui.QLabel("Event"), 0, 0)
         self.lay_inputs.addWidget( self.event, 0, 1 )
 
@@ -58,13 +58,15 @@ class RGBDisplay(QtGui.QWidget) :
         self.axis_plot = QtGui.QPushButton("Plot")
         self.lay_inputs.addWidget( self.axis_plot, 0, 6 )
 
-        self.previous_plot = QtGui.QPushButton("Previous Event")
+        self.previous_plot = QtGui.QPushButton("Prev. Event")
         self.lay_inputs.addWidget( self.previous_plot, 0, 7 )
 
         self.next_plot = QtGui.QPushButton("Next Event")
         self.lay_inputs.addWidget( self.next_plot, 0, 8 )
 
 
+        #autorange
+        
         ### particle types
 
         #BNB
@@ -85,6 +87,11 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.compression, 0, 12 )
         self.compression.setChecked(True)
 
+
+        self.auto_range = QtGui.QPushButton("AutoRange")
+        self.lay_inputs.addWidget( self.auto_range, 0, 13 )
+
+
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[7]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 7]),
                         'kBOTH'  : (self.kBOTH ,[ i for i in xrange(10) ])}
@@ -100,10 +107,14 @@ class RGBDisplay(QtGui.QWidget) :
         self.next_plot.clicked.connect    ( self.nextEvent )
 
         ### Radio buttons
-        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1])   )
-        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1]) )
-        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1])  )
+        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1],
+                                                            self.compression.isChecked()) )
+        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1],
+                                                            self.compression.isChecked()) )
+        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1],
+                                                            self.compression.isChecked())  )
 
+        self.auto_range.clicked.connect( self.autoRange )
         ### Set of ROI's on view
         self.boxes = []
 
@@ -113,6 +124,10 @@ class RGBDisplay(QtGui.QWidget) :
         ### DataManager
         self.dm = datamanager.DataManager(rfile)
 
+        self.plotData()
+                
+    def autoRange(self):
+        self.plt.autoRange()
 
     
     def which_type(self):
@@ -159,21 +174,22 @@ class RGBDisplay(QtGui.QWidget) :
         imax  = int( self.imax.text() )
 
 
-        pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax)
+        pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax,
+                                                              self.compression.isChecked())
 
         if pimg is None:
-
             self.image = None
             return
 
         # Display the image
         self.imi.setImage(pimg)
 
-        self.drawBBOX( self.which_type() )
+        self.drawBBOX( self.which_type(), self.compression.isChecked())
 
+        self.autoRange()
 
     ### For now this is fine....
-    def drawBBOX(self,kType):
+    def drawBBOX(self,kType,comp):
         
         if self.image is None: #no image was drawn
             return
@@ -195,15 +211,25 @@ class RGBDisplay(QtGui.QWidget) :
                 
                 imm = self.image[ix].meta()
 
+
                 x = bbox.bl().x - imm.bl().x
                 y = bbox.bl().y - imm.bl().y
-
+                
                 dw_i = imm.cols() / ( imm.tr().x - imm.bl().x )
                 dh_i = imm.rows() / ( imm.tr().y - imm.bl().y )
 
+                
                 w_b = bbox.tr().x - bbox.bl().x
                 h_b = bbox.tr().y - bbox.bl().y
 
+
+                if comp == False:
+                    dw_i = 1.0;
+                    dh_i = 1.0;
+                    x = bbox.bl().x
+                    y = bbox.bl().y - h_b
+
+                
                 #Set the text
                 ti = pg.TextItem(text=self.st.particle_types[ roi_p['type'] ])
                 ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
@@ -221,4 +247,3 @@ class RGBDisplay(QtGui.QWidget) :
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
 
-                
