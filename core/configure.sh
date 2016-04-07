@@ -30,35 +30,44 @@ else
 fi
 
 # Check OpenCV
-error=0
+export LARCV_OPENCV=1
 if [[ -z $OPENCV_INCDIR ]]; then
-    printf "\033[95mwarning\033[00m ... \$OPENCV_INCDIR must be set for lmdb headers.\n";
-    error=1;
+    export LARCV_OPENCV=0
 fi
 if [[ -z $OPENCV_LIBDIR ]]; then
-    printf "\033[95mwarning\033[00m ... \$OPENCV_LIBDIR must be set for lmdb libraries.\n";
-    error=1;
+    export LARCV_OPENCV=0
 fi
 
-if [ $error -eq 1 ]; then
-    printf "\033[91merror\033[00m ... aborting configuration.\n";
-    unset LARCV_BASEDIR;
-    unset LARCV_LIBDIR;
-    unset LARCV_BUILDDIR;
-    unset LARCV_ROOT6;
-    unset LARCV_INCDIR;
-    return 1;
+# Check Numpy
+export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
+
+# warning for missing support
+missing=""
+if [ $LARCV_OPENCV -eq 0 ]; then
+    missing+=" OpenCV"
+fi
+if [ $LARCV_NUMPY -eq 0 ]; then
+    missing+=" Numpy"
+fi
+if [[ $missing ]]; then
+    printf "\033[93mWarning\033[00m ... missing$missing support. Build without them.\n";
 fi
 
 echo
-printf "\033[95mLARCV_BASEDIR\033[00m  = $LARCV_BASEDIR\n"
-printf "\033[95mLARCV_INCDIR\033[00m   = $LARCV_INCDIR\n"
-printf "\033[95mLARCV_LIBDIR\033[00m   = $LARCV_LIBDIR\n"
-printf "\033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
+printf "\033[93mLArCV\033[00m Setting up shell envs.\n"
+printf "    \033[95mLARCV_BASEDIR\033[00m  = $LARCV_BASEDIR\n"
+printf "    \033[95mLARCV_INCDIR\033[00m   = $LARCV_INCDIR\n"
+printf "    \033[95mLARCV_LIBDIR\033[00m   = $LARCV_LIBDIR\n"
+printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
 
 export PATH=$LARCV_BASEDIR/bin:$PATH
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LARCV_LIBDIR:$OPENCV_LIBDIR;
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LARCV_LIBDIR:$OPENCV_LIBDIR;
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LARCV_LIBDIR
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LARCV_LIBDIR
+
+if [[ -z $NO_OPENCV ]]; then
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OPENCV_LIBDIR
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$OPENCV_LIBDIR
+fi
 
 mkdir -p $LARCV_BUILDDIR;
 
@@ -75,24 +84,26 @@ export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
 #fi
 
 if [[ $LARLITE_BASEDIR ]]; then
+    printf "\033[93mLArLite\033[00m\n"
     echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
     echo "    Preparing APILArLite package for build (making sym links)"
     target=$LARCV_BASEDIR/larfmwk_shared/*
     for f in $target
     do
-	ln -sf $f $LARCV_BASEDIR/APILArLite/
+	ln -sf $f $LARCV_BASEDIR/Supera/APILArLite/
     done
 fi
 
 if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
+    printf "\033[93mLArSoft\033[00m\n"
     echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
     echo "    Preparing APILArSoft package for build (making sym links)"
     target=$LARCV_BASEDIR/larfmwk_shared/*
     for f in $target
     do
-	ln -sf $f $LARCV_BASEDIR/APILArSoft/
+	ln -sf $f $LARCV_BASEDIR/Supera/APILArSoft/
     done
-    ln -s $LARCV_BASEDIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+    ln -sf $LARCV_BASEDIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
 fi
 #if [ -d $MRB_TOP/srcs/uboonecode/uboone ]; then
 #    echo Found local uboonecode @ \$MRB_TOP=${MRB_TOP}

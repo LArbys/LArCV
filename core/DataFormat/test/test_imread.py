@@ -5,7 +5,7 @@ k=ROOT.larcv.Image2D('Sakura.png')
 #k.imshow("aho")
 #sys.stdin.readline()
 
-j=ROOT.larcv.as_ndarray(k)
+j=ROOT.larcv.imread(k)
 print type(j)
 print len(j),len(j[0])
 
