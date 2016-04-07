@@ -32,8 +32,10 @@ export LARCV_BASEDIR
 # Define directories to be compile upon a global "make"...
 #
 SUBDIRS := Base DataFormat #Utils
-ifeq ($(LARCV_NUPY)$(LARCV_OPENCV),"11")
-SUBDIRS += PyCVUtil
+ifeq ($(LARCV_NUMPY),1)
+  ifeq ($(LARCV_OPENCV),1)
+  SUBDIRS += PyCVUtil
+  endif
 endif
 ifdef LARLITE_BASEDIR
 SUBDIRS += Supera/APILArLite
