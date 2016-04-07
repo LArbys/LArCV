@@ -42,6 +42,9 @@ class DataManager(object):
         imgs      = [ img_v[i] for i in xrange(img_v.size()) ]
         img_array = [ larcv.as_ndarray(img) for img in imgs ]
 
+        if ( len(img_array) == 0 ) :
+            return (None,None,None)
+        
         b = np.zeros(list(img_array[0].shape) + [3])
 
         for ix,img in enumerate(img_array):
