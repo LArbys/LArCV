@@ -4,8 +4,8 @@ from .. import np
 
 class CompressedImage(PlotImage):
 
-    def __init__(self,img_v) :
-        super(CompressedImage,self).__init__(img_v)
+    def __init__(self,img_v,roi_v) :
+        super(CompressedImage,self).__init__(img_v,roi_v)
         self.name = "CompressedImage"
     
     def __create_mat__(self):
@@ -34,10 +34,22 @@ class CompressedImage(PlotImage):
         #I don't know how to slice
         self.plot_mat_t[ self.plot_mat_t < imin ] = 0
         self.plot_mat_t[ self.plot_mat_t > imax ] = imax
+        
+        
+    def __create_rois__(self):
+        
+        for ix,roi in enumerate(self.roi_v) :
+
+            if roi.BB().size() == 0: #there was no ROI continue...
+                continue
+
+            r = {}
+
+            r['type'] = roi.Type()
+            r['bbox'] = []
             
-        
-        
-        
-        
-        
-        
+            for iy in xrange(3):
+                r['bbox'].append( roi.BB(iy) )
+                
+            self.rois.append(r)
+

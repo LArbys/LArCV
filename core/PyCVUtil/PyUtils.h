@@ -18,7 +18,6 @@ namespace larcv {
   void SetPyUtil();
 
   PyObject* as_ndarray(const Image2D& img);
-  PyObject* as_bbox(const ROI& roi,PlaneID_t pl);
   
 }
 

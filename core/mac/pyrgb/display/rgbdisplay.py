@@ -62,7 +62,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.next_plot, 0, 8 )
 
 
-
         ### particle types
 
         #BNB
@@ -83,29 +82,35 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.compression, 0, 12 )
         self.compression.setChecked(True)
 
-        self.kTypes = { 'kBNB'  :  (self.kBNB,[7]),
-                        'kOTHER' : (self.kOTHER,[i for i in xrange(10) if i != 7]),
-                        'kBOTH'  : (self.kBOTH,[ i for i in xrange(10) ])}
+        self.kTypes = { 'kBNB'  :  (self.kBNB  ,[7]), 
+                        'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 7]),
+                        'kBOTH'  : (self.kBOTH ,[ i for i in xrange(10) ])}
         
-        ### The current image
+        ### The current image array, useful for meta
         self.image = None
-        
+
+        ### Plot button
         self.axis_plot.clicked.connect( self.plotData )
 
+        ### Previous and Next 
         self.previous_plot.clicked.connect( self.previousEvent )
         self.next_plot.clicked.connect    ( self.nextEvent )
-        
-        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1]) )
+
+        ### Radio buttons
+        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1])   )
         self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1]) )
-        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1]) )
+        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1])  )
 
         ### Set of ROI's on view
         self.boxes = []
 
+        ### Hold constants
         self.st = Storage()
+
+        ### DataManager
         self.dm = datamanager.DataManager(rfile)
         
-
+    
     def which_type(self):
         for button in self.kTypes:
             if self.kTypes[button][0].isChecked():
@@ -143,36 +148,33 @@ class RGBDisplay(QtGui.QWidget) :
         #Add image
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)        
-        
+
+        #From QT
         event = int( self.event.text())
         imin  = int( self.imin.text() )
         imax  = int( self.imax.text() )
 
 
-        b,self.rois,imgs = self.dm.get_event_image(event,imin,imax)
+        pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax)
 
-        if b is None:
+        if pimg is None:
+            
             self.image = None
             return
-        
-        self.imi.setImage(b)
 
-        # meta = imgs[2].meta()
-        # outline = pg.QtGui.QGraphicsRectItem(0,0,meta.cols(),meta.rows())
-        # outline.setPen(pg.mkPen('w'))
-        # outline.setBrush(pg.mkBrush(None))
-        # self.plt.addItem(outline)
+        # Display the image
+        self.imi.setImage(pimg)
 
-        self.image = imgs
-        
-        self.drawBBOX(self.which_type())
+        self.drawBBOX( self.which_type() )
 
+
+    ### For now this is fine....
     def drawBBOX(self,kType):
         
-        if self.image is None:
+        if self.image is None: #no image was drawn
             return
 
-        if kType is None:
+        if kType is None: #no type to draw
             return
         
         for box in self.boxes:
@@ -212,13 +214,9 @@ class RGBDisplay(QtGui.QWidget) :
                         h_b * dh_i,
                         ti,self.plt)
 
-                
                 r1.setPen(pg.mkPen(self.st.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
-
-        def showParticle(self):
-            print "aho"
 
                 

@@ -5,3 +5,5 @@ from ROOT import larcv
 import pyqtgraph as pg
 
 import numpy as np
+
+larcv.load_pycvutil
