@@ -1,6 +1,5 @@
-
 #!/usr/bin python
-#thanks taritree
+#thanks taritree(!)
 
 import os,sys
 from PyQt4 import QtGui, QtCore
@@ -18,7 +17,7 @@ if len(inputs) < 2:
 
 
 app = QtGui.QApplication([])
-rgbdisplay = rgbd.RGBDisplay(sys.argv[1])
+rgbdisplay = rgbd.RGBDisplay(sys.argv[1:])
 rgbdisplay.show()
 
 if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
