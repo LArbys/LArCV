@@ -1,0 +1,42 @@
+#include "services_microboone.fcl"
+#include "supera.fcl"
+
+process_name: Supera
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "ana_hist.root" }
+  Timing:       {}
+  RandomNumberGenerator: {} #ART native random number generator
+  message:      @local::standard_warning
+  FileCatalogMetadata:  @local::art_file_catalog_mc
+  LLMetaMaker: {Enable: true}
+  #message:      @local::standard_debug # If you turn this on, uncomment the debug lines below
+  @table::microboone_simulation_services
+}
+
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
+services.DetectorClocksService.InheritClockConfig:    false
+services.DetectorClocksService.TriggerOffsetTPC:      -0.400e3
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+physics:
+{
+
+ analyzers:
+ {
+    supera: @local::Supera
+ }
+
+ analyzeIt: [ supera ]
+
+ end_paths: [ analyzeIt ]
+}
+

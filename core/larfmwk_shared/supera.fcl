@@ -20,11 +20,11 @@ Supera: {
         Verbosity: 3
         # Cropper configuration
         Cropper: {
-            Verbosity:    1
+            Verbosity:    3
             TimePadding:  5
             WirePadding:  5
-            MinWidth:     5
-            MinHeight:    5
+            MinWidth:     0
+            MinHeight:    0
             TargetWidth:  247 # currently irrelevant
             TargetHeight: 247 # currently irrelevant
             CompressionFactor: 0 # currently irrelevant
