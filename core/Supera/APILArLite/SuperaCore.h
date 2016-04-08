@@ -64,9 +64,9 @@ namespace larcv {
 
     private:
       
-      ::larcv::supera::MCParticleTree<T,U,V,W> _mctp;
-      ::larcv::logger _logger;
-      ::larcv::IOManager _larcv_io;
+      MCParticleTree<T,U,V,W> _mctp;
+      larcv::logger _logger;
+      larcv::IOManager _larcv_io;
       std::string _producer_simch;
       std::string _producer_wire;
       std::string _producer_gen;
@@ -77,7 +77,7 @@ namespace larcv {
       std::vector<size_t> _event_comp_cols;
       double _min_time;
       double _min_wire;
-      ::larcv::Image2D _full_image;
+      larcv::Image2D _full_image;
       bool _skip_empty_image;
       bool _configured;
       bool _use_mc;

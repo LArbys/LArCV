@@ -16,7 +16,6 @@
 
 #pragma link C++ class larlite::Supera+;
 
-#pragma link C++ class SuperaCore+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
