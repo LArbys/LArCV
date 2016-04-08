@@ -46,7 +46,8 @@ class UnCompressedImage(PlotImage):
             aa = [ int(meta.bl().x)       , int(xmax - meta.tr().x) ] # column padding before and after
             bb = [ int(ymax - meta.tl().y), int(meta.bl().y)        ] # row padding before and after
 
-
+            xx,yy = img.shape
+            
             # Need explicit checks to make sure no fuck up with rounding
             while xx + aa[0] + aa[1] > int(xmax): aa[0] -= 1
             while xx + aa[0] + aa[1] < int(xmax): aa[0] += 1
