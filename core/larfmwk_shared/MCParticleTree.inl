@@ -6,16 +6,23 @@
 namespace larcv {
   namespace supera {
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::configure(const Config_t& cfg)
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::configure(const Config_t& cfg)
     {
       set_verbosity((::larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity")));
       auto const& cropper_cfg = cfg.get<larcv::supera::Config_t>("Cropper");
+
+      _min_energy_init_mcshower = cfg.get<double>("MCShowerMinEnergyInit");
+      _min_energy_deposit_mcshower = cfg.get<double>("MCShowerMinEnergyDeposit");
+
+      _min_energy_init_mctrack = cfg.get<double>("MCTrackMinEnergyInit");
+      _min_energy_deposit_mctrack = cfg.get<double>("MCTrackMinEnergyDeposit");
+
       _cropper.configure(cropper_cfg);
     }
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::DefinePrimary(const std::vector<T>& mctruth_v)
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::DefinePrimary(const std::vector<T>& mctruth_v)
     {
       LARCV_DEBUG() << "start" << std::endl;
       std::map<larcv::Vertex,larcv::ROI> roi_m;
@@ -72,13 +79,34 @@ namespace larcv {
       for(auto const& vtx_roi : roi_m) DefinePrimary(vtx_roi.first, vtx_roi.second);
     }
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::RegisterSecondary(const std::vector<U>& mctrack_v)
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::RegisterSecondary(const std::vector<U>& mctrack_v)
     {
       LARCV_DEBUG() << "start" << std::endl;
       ::larcv::Vertex pri_vtx;      
       for(size_t i=0; i<mctrack_v.size(); ++i) {
 	auto const& mctrack = mctrack_v[i];
+
+	if(mctrack.size()<2) {
+	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+		       << " PdgCode " << mctrack.PdgCode()
+		       << " as it has < 2 steps in the detector" << std::endl;
+	  continue;
+	}
+	if((mctrack.Start().E() < _min_energy_init_mctrack) ) {
+	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+		       << " PdgCode " << mctrack.PdgCode()
+		       << " as it has too small initial energy " << mctrack.Start().E()
+		       << " MeV < " << _min_energy_init_mctrack << " MeV" << std::endl;
+	  continue;
+	}
+	if((mctrack.front().E() - mctrack.back().E()) < _min_energy_deposit_mctrack) {
+	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+		       << " PdgCode " << mctrack.PdgCode()
+		       << " as it has too small deposit energy " << (mctrack.front().E() - mctrack.back().E())
+		       << " MeV < " << _min_energy_deposit_mctrack << " MeV" << std::endl;
+	  continue;
+	}
 	
 	if(mctrack.AncestorStart().E() < 1.e6) {
 	  auto const& start = mctrack.AncestorStart();
@@ -98,13 +126,29 @@ namespace larcv {
       }
     }
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::RegisterSecondary(const std::vector<V>& mcshower_v)
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::RegisterSecondary(const std::vector<V>& mcshower_v)
     {
       LARCV_DEBUG() << "start" << std::endl;
       ::larcv::Vertex pri_vtx;
       for(size_t i=0; i<mcshower_v.size(); ++i) {
 	auto const& mcshower = mcshower_v[i];
+
+	if((mcshower.Start().E() < _min_energy_init_mcshower) ) {
+	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
+		       << " PdgCode " << mcshower.PdgCode()
+		       << " as it has too small initial energy " << mcshower.Start().E()
+		       << " MeV < " << _min_energy_init_mcshower << " MeV" << std::endl;
+	  continue;
+	}
+	if(mcshower.DetProfile().E() < _min_energy_deposit_mcshower) {
+	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
+		       << " PdgCode " << mcshower.PdgCode()
+		       << " as it has too small deposited energy " << mcshower.DetProfile().E()
+		       << " MeV < " << _min_energy_deposit_mcshower << " MeV" << std::endl;
+	  continue;
+	}
+
 
 	if(mcshower.AncestorStart().E() < 1.e6) {
 	  auto const& start = mcshower.AncestorStart();
@@ -124,8 +168,51 @@ namespace larcv {
       }
     }
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction)
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::RegisterSecondary(const std::vector<V>& mcshower_v,
+						    const std::vector<W>& simch_v)
+    {
+      LARCV_DEBUG() << "start" << std::endl;
+      ::larcv::Vertex pri_vtx;
+      for(size_t i=0; i<mcshower_v.size(); ++i) {
+	auto const& mcshower = mcshower_v[i];
+
+	if((mcshower.Start().E() < _min_energy_init_mcshower) ) {
+	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
+		       << " PdgCode " << mcshower.PdgCode()
+		       << " as it has too small initial energy " << mcshower.Start().E()
+		       << " MeV < " << _min_energy_init_mcshower << " MeV" << std::endl;
+	  continue;
+	}
+	if(mcshower.DetProfile().E() < _min_energy_deposit_mcshower) {
+	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
+		       << " PdgCode " << mcshower.PdgCode()
+		       << " as it has too small deposited energy " << mcshower.DetProfile().E()
+		       << " MeV < " << _min_energy_deposit_mcshower << " MeV" << std::endl;
+	  continue;
+	}
+
+
+	if(mcshower.AncestorStart().E() < 1.e6) {
+	  auto const& start = mcshower.AncestorStart();
+	  pri_vtx.Reset(start.X(),start.Y(),start.Z(),start.T());
+	}
+	else if(mcshower.MotherStart().E() < 1.e6) {
+	  auto const& start = mcshower.MotherStart();
+	  pri_vtx.Reset(start.X(),start.Y(),start.Z(),start.T());
+	}else {
+	  auto const& start = mcshower.Start();
+	  pri_vtx.Reset(start.X(),start.Y(),start.Z(),start.T());
+	}
+
+	auto roi = _cropper.ParticleROI(mcshower,simch_v);
+	roi.MCSTIndex(i);
+	RegisterSecondary(pri_vtx,roi);
+      }
+    }
+
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction)
     {
       LARCV_DEBUG() << "start" << std::endl;
       auto iter = _roi_m.find(vtx);
@@ -139,8 +226,8 @@ namespace larcv {
       _roi_m.insert(std::make_pair(vtx,std::make_pair(interaction,ParticleROIArray_t())));
     }
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::RegisterSecondary(const larcv::Vertex& vtx, const larcv::ROI& secondary)
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::RegisterSecondary(const larcv::Vertex& vtx, const larcv::ROI& secondary)
     {
       LARCV_DEBUG() << "start" << std::endl;
       if(_roi_m.empty()) {
@@ -194,8 +281,8 @@ namespace larcv {
       
     }
 
-    template <class T, class U, class V>
-    void MCParticleTree<T,U,V>::UpdatePrimaryROI()
+    template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::UpdatePrimaryROI()
     {
       LARCV_DEBUG() << "start" << std::endl;
       for(auto& roi_key_value : _roi_m) {
@@ -234,8 +321,8 @@ namespace larcv {
       }
     }
 
-    template <class T, class U, class V>
-    std::vector<larcv::supera::InteractionROI_t> MCParticleTree<T,U,V>::GetPrimaryROI() const
+    template <class T, class U, class V, class W>
+    std::vector<larcv::supera::InteractionROI_t> MCParticleTree<T,U,V,W>::GetPrimaryROI() const
     {
       LARCV_DEBUG() << "start" << std::endl;
       std::vector<larcv::supera::InteractionROI_t> res;

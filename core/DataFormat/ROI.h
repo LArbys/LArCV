@@ -40,6 +40,9 @@ namespace larcv {
       , _energy_deposit (0.)
       , _energy_init    (0.)
       , _pdg            (0)
+      , _parent_pdg     (0)
+      , _trackid        (kINVALID_UINT)
+      , _parent_trackid (kINVALID_UINT)
       , _px             (0.)
       , _py             (0.)
       , _pz             (0.)
@@ -56,6 +59,9 @@ namespace larcv {
     double        EnergyDeposit () const { return _energy_deposit; }
     double        EnergyInit    () const { return _energy_init;    }
     int           PdgCode       () const { return _pdg;            }
+    int           ParentPdgCode () const { return _parent_pdg;     }
+    unsigned int  TrackID       () const { return _trackid;        }
+    unsigned int  ParentTrackID () const { return _parent_trackid; }
     larcv::Vertex Position      () const { return _vtx;            }
     double        X  () const { return _vtx.X(); }
     double        Y  () const { return _vtx.Y(); }
@@ -75,6 +81,9 @@ namespace larcv {
     void EnergyDeposit (double e)           { _energy_deposit = e; }
     void EnergyInit    (double e)           { _energy_init = e;    }
     void PdgCode       (int code)           { _pdg = code;         }
+    void ParentPdgCode (int code)           { _parent_pdg = code;  }
+    void TrackID       (unsigned int id )   { _trackid = id;       }
+    void ParentTrackID (unsigned int id )   { _parent_trackid = id;}
     void Position      (const larcv::Vertex& vtx) { _vtx = vtx;          }
     void Position      (double x, double y, double z, double t) { _vtx = Vertex(x,y,z,t); }
     void Momentum      (double px, double py, double pz) { _px = px; _py = py; _pz = pz; }
@@ -85,18 +94,21 @@ namespace larcv {
     
   private:
 
-    ROIIndex_t  _index;
-    ShapeType_t _shape;
-    ROIType_t   _type;
-    MCSTIndex_t _mcst_index;
-    MCTIndex_t  _mct_index;
+    ROIIndex_t   _index;
+    ShapeType_t  _shape;
+    ROIType_t    _type;
+    MCSTIndex_t  _mcst_index;
+    MCTIndex_t   _mct_index;
 
-    double      _energy_deposit;
-    double      _energy_init;
-    int         _pdg;
-    Vertex      _vtx;
-    double      _px,_py,_pz;
-    std::vector<larcv::ImageMeta> _bb_v;    
+    double       _energy_deposit;
+    double       _energy_init;
+    int          _pdg;
+    int          _parent_pdg;
+    unsigned int _trackid;
+    unsigned int _parent_trackid;
+    Vertex       _vtx;
+    double       _px,_py,_pz;
+    std::vector<larcv::ImageMeta> _bb_v;
   };
 }
 #endif

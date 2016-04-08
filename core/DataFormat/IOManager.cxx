@@ -246,6 +246,11 @@ namespace larcv {
 
     set_id();
 
+    for(auto& p : _product_ptr_v)  {
+      if(!p) break;
+      if(!p->valid()) throw larbys("Must set an event ID to store!");
+    }
+
     for(auto& t : _out_tree_v) {
       if(!t) break;
       LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;

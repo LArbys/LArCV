@@ -22,7 +22,7 @@ namespace larcv {
     typedef ::larcv::Range<unsigned int> WTRange_t;
     typedef std::vector<larcv::supera::WTRange_t> WTRangeArray_t;
 
-    template <class T, class U>
+    template <class T, class U, class V>
     class Cropper : public ::larcv::larcv_base {
 
     public:
@@ -45,9 +45,11 @@ namespace larcv {
       */
       WTRangeArray_t WireTimeBoundary( const T& mct ) const;
       WTRangeArray_t WireTimeBoundary( const U& mcs ) const;
+      WTRangeArray_t WireTimeBoundary( const U& mcs, const std::vector<V>& sch_v ) const;
 
       ::larcv::ROI ParticleROI( const T& mct ) const;
       ::larcv::ROI ParticleROI( const U& mcs ) const;
+      ::larcv::ROI ParticleROI( const U& mcs, const std::vector<V>& sch_v ) const;
 
       /**
 	 Given a range and corresponding plane ID (plan_id == #plane is considered time), \n

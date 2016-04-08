@@ -10,27 +10,21 @@
 namespace larcv {
   namespace supera {
 
-    /// Channel number to wire ID
     ::larlite::geo::WireID ChannelToWireID(unsigned int ch)
     { return ::larutil::Geometry::GetME()->ChannelToWireID(ch); }
 
-    /// DriftVelocity in cm/us
     double DriftVelocity()
     { return ::larutil::LArProperties::GetME()->DriftVelocity(); }
 
-    /// Number of time ticks
     unsigned int NumberTimeSamples()
     { return ::larutil::DetectorProperties::GetME()->NumberTimeSamples(); }
 
-    /// Number of planes
     unsigned int Nplanes()
     { return ::larutil::Geometry::GetME()->Nplanes(); }
 
-    /// Number of wires
     unsigned int Nwires(unsigned int plane)
     { return ::larutil::Geometry::GetME()->Nwires(plane); }
 
-    /// Nearest wire
     unsigned int NearestWire(const TVector3& xyz, unsigned int plane)
     {
       /*
@@ -50,9 +44,11 @@ namespace larcv {
       return (unsigned int)wire;
     }
 
-    /// G4 time to TPC tick
     int TPCG4Time2Tick(double ns)
     { return ::larutil::TimeService::GetME()->TPCG4Time2Tick(ns); }
+
+    double TPCTDC2Tick(double tdc)
+    { return ::larutil::TimeService::GetME()->TPCTDC2Tick(tdc); }      
     
   }
 }

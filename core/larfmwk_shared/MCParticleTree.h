@@ -29,13 +29,17 @@ namespace larcv {
        User defined class MCParticleTree ... these comments are used to generate
        doxygen documentation!
     */
-    template <class T, class U, class V>
+    template <class T, class U, class V, class W>
     class MCParticleTree : public larcv::larcv_base {
       
     public:
       
       /// Default constructor
       MCParticleTree() : larcv::larcv_base("MCParticleTree")
+		       , _min_energy_init_mcshower(0)
+		       , _min_energy_init_mctrack(0)
+		       , _min_energy_deposit_mcshower(0)
+		       , _min_energy_deposit_mctrack(0)
       {}
       
       /// Default destructor
@@ -43,13 +47,15 @@ namespace larcv {
 
       void configure(const Config_t& cfg);
 
-      Cropper<U,V>& GetCropper() { return _cropper; }
+      Cropper<U,V,W>& GetCropper() { return _cropper; }
 
       void DefinePrimary(const std::vector<T>&);
 
       void RegisterSecondary(const std::vector<U>&);
 
       void RegisterSecondary(const std::vector<V>&);
+
+      void RegisterSecondary(const std::vector<V>&, const std::vector<W>&);
 
       void DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction);
 
@@ -64,8 +70,14 @@ namespace larcv {
 
     private:
 
-      Cropper<U,V> _cropper;
+
+      Cropper<U,V,W> _cropper;
       std::map<larcv::Vertex,larcv::supera::InteractionROI_t> _roi_m;
+
+      double _min_energy_init_mcshower;
+      double _min_energy_init_mctrack;
+      double _min_energy_deposit_mcshower;
+      double _min_energy_deposit_mctrack;
 
     };
   }

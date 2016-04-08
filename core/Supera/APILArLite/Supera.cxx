@@ -5,7 +5,6 @@
 #include "FhiclLite/ConfigManager.h"
 #include "LArUtil/Geometry.h"
 #include "DataFormat/wire.h"
-#include "DataFormat/simch.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
 #include "Base/larbys.h"
@@ -32,6 +31,7 @@ namespace larlite {
 
     _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
 
+    _producer_simch  = main_cfg.get<std::string>("SimChProducer");
     _producer_wire   = main_cfg.get<std::string>("WireProducer");
     _producer_gen    = main_cfg.get<std::string>("GenProducer");
     _producer_mcreco = main_cfg.get<std::string>("MCRecoProducer");
@@ -65,6 +65,8 @@ namespace larlite {
   }
   
   bool Supera::analyze(storage_manager* storage) {
+
+    _larcv_io.set_id(storage->run_id(), storage->subrun_id(), storage->event_id());
 
     auto wire_h = storage->get_data<event_wire>(_producer_wire);                                                                                        
     //art::Handle<std::vector<recob::Wire> > wire_h; e.getByLabel(_producer_wire,wire_h);
@@ -105,7 +107,13 @@ namespace larlite {
     _mctp.clear();
     _mctp.DefinePrimary(*mctruth_h);
     _mctp.RegisterSecondary(*(mctrack_h));
-    _mctp.RegisterSecondary(*(mcshower_h));
+    if(_producer_simch.empty()) {
+      _mctp.RegisterSecondary(*(mcshower_h));
+    }else{
+      //art::Handle<std::vector<sim::SimChannel> > simch_h; e.getByLabel( _producer_simch, simch_h );
+      auto simch_h = storage->get_data<event_simch>(_producer_simch);
+      _mctp.RegisterSecondary(*(mcshower_h),*(simch_h));
+    }
     _mctp.UpdatePrimaryROI();
     auto int_roi_v = _mctp.GetPrimaryROI();
 
@@ -125,15 +133,19 @@ namespace larlite {
 	  pri_bb_v.push_back(bb.overlap((*iter).second));
 	}catch(const ::larcv::larbys& err){
 	  break;
+	  //pri_bb_v.push_back(::larcv::ImageMeta(0.,0.,0,0,0.,0.,bb.plane()));
+	  //LARCV_NORMAL() << "Skipping high-res imge for plane " << bb.plane()
+	  //<< " since no overlap found" << std::endl;
 	}
       }
-      
+
       if(pri_bb_v.size() != int_roi.first.BB().size()) {
 	LARCV_NORMAL() << "Requested to register Interaction..." << std::endl
 		     << int_roi.first.dump() << std::endl;
 	LARCV_NORMAL() << "No overlap found in image region and Interaction ROI. Skipping..." << std::endl;
 	continue;
       }
+
       int_roi.first.SetBB(pri_bb_v);
       LARCV_INFO() << "Registering Interaction..." << std::endl
 		   << int_roi.first.dump() << std::endl;
@@ -214,6 +226,7 @@ namespace larlite {
 			      roi_meta.rows(),roi_meta.height(),
 			      roi_meta.min_x(), roi_meta.max_y(),
 			      roi_meta.plane());
+	//if(bb.rows()*bb.cols() <1) continue;
 	// Retrieve cropped full resolution image
 	auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("mcint%02d",roi.MCTIndex())));
 	auto hires_img = _full_image.crop(bb);

@@ -11,8 +11,8 @@
 
 #pragma link C++ namespace larcv::supera;
 //#pragma link C++ class larlite::Supera+;
-#pragma link C++ class larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower>+;
-#pragma link C++ class larcv::supera::Cropper<larlite::mctrack,larlite::mcshower>+;
+#pragma link C++ class larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower,larlite::simch>+;
+#pragma link C++ class larcv::supera::Cropper<larlite::mctrack,larlite::mcshower,larlite::simch>+;
 
 #pragma link C++ class larlite::Supera+;
 

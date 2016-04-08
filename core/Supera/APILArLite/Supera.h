@@ -19,6 +19,7 @@
 #include "Base/larcv_logger.h"
 #include "DataFormat/IOManager.h"
 #include "MCParticleTree.h"
+#include "DataFormat/simch.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/mcshower.h"
 #include "DataFormat/mctruth.h"
@@ -59,10 +60,11 @@ namespace larlite {
 
   protected:
 
-    ::larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower> _mctp;
+    ::larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower,larlite::simch> _mctp;
     ::larcv::logger _logger;
     ::larcv::IOManager _larcv_io;
     std::string _config_file;
+    std::string _producer_simch;
     std::string _producer_wire;
     std::string _producer_gen;
     std::string _producer_mcreco;

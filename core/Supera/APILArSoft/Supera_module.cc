@@ -60,6 +60,7 @@ private:
   ::larcv::supera::MCParticleTree<simb::MCTruth,sim::MCTrack,sim::MCShower> _mctp;
   ::larcv::logger _logger;
   ::larcv::IOManager _larcv_io;
+  std::string _producer_simch;
   std::string _producer_wire;
   std::string _producer_gen;
   std::string _producer_mcreco;
@@ -81,6 +82,7 @@ Supera::Supera(fhicl::ParameterSet const & main_cfg)
 
   _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
 
+  _producer_simch  = main_cfg.get<std::string>("SimChProducer");
   _producer_wire   = main_cfg.get<std::string>("WireProducer");
   _producer_gen    = main_cfg.get<std::string>("GenProducer");
   _producer_mcreco = main_cfg.get<std::string>("MCRecoProducer");
@@ -160,7 +162,13 @@ void Supera::analyze(art::Event const & e)
   _mctp.clear();
   _mctp.DefinePrimary(*mctruth_h);
   _mctp.RegisterSecondary(*(mctrack_h));
-  _mctp.RegisterSecondary(*(mcshower_h));
+  if(_producer_simch.empty()) 
+    _mctp.RegisterSecondary(*(mcshower_h));
+  else{
+    art::Handle<std::vector<sim::SimChannel> > simch_h; e.getByLabel( _producer_simch, simch_h );
+    //auto simch_h = storage->get_data<event_simch>(_producer_simch);
+    _mctp.RegisterSecondary(*(mcshower_h),*(simch_h));
+  }
   _mctp.UpdatePrimaryROI();
   auto int_roi_v = _mctp.GetPrimaryROI();
 
