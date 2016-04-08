@@ -15,22 +15,22 @@ namespace larcv {
   size_t ImageMeta::col(double x) const
   {
     if(x < _origin.x || x > (_origin.x + _width)) throw larbys("Out of range x!");
-    return (size_t)((x - _origin.x) / pixel_width() + 0.5);
+    return (size_t)((x - _origin.x) / pixel_width());
   }
 
   size_t ImageMeta::row(double y) const
   {
     if(y < (_origin.y - _height) || y > _origin.y) throw larbys("Out of range y!");
-    return (size_t)((_origin.y - y) / pixel_height() + 0.5);
+    return (size_t)((_origin.y - y) / pixel_height());
   }
 
   ImageMeta ImageMeta::overlap(const ImageMeta& meta) const
   {
-    double min_x = ( meta.tl().x < this->tl().x ? this->tl().x : meta.tl().x  ); //pick larger x min-bound
-    double max_x = ( meta.tr().x < this->tr().x ? meta.tr().x  : this->tr().x ); //pick smaller x max-bound
+    double min_x = ( meta.min_x() < this->min_x() ? this->min_x() : meta.min_x()  ); //pick larger x min-bound
+    double max_x = ( meta.max_x() < this->max_x() ? meta.max_x()  : this->max_x() ); //pick smaller x max-bound
 
-    double min_y = ( meta.bl().y < this->bl().y ? this->bl().y : meta.bl().y  ); //pick larger x min-bound
-    double max_y = ( meta.tl().y < this->tl().y ? meta.tl().y  : this->tl().y ); //pick smaller x max-bound
+    double min_y = ( meta.min_y() < this->min_y() ? this->min_y() : meta.min_y()  ); //pick larger x min-bound
+    double max_y = ( meta.max_y() < this->max_y() ? meta.max_y()  : this->max_y() ); //pick smaller x max-bound
 
     if(!(min_x < max_x && min_y < max_y)) throw larbys("No overlap found");
 

@@ -88,11 +88,13 @@ namespace larlite {
       size_t cols = _event_image_cols[p] * _event_comp_cols[p];
       size_t rows = _event_image_rows[p] * _event_comp_rows[p];
 
-      auto meta = ::larcv::ImageMeta(cols-1,rows-1,
+      auto meta = ::larcv::ImageMeta(cols,rows,
 				     rows,cols,
-				     _min_wire,_min_time+rows-1,
+				     _min_wire,_min_time+rows,
 				     p);
       image_meta_m.insert(std::make_pair(p,meta));
+
+      LARCV_INFO() << "Creating Event image frame for plane " << p << " " << meta.dump();
     }
 
     //
@@ -130,12 +132,10 @@ namespace larlite {
 	auto iter = image_meta_m.find(bb.plane());
 	if(iter == image_meta_m.end()) continue;
 	try{
-	  pri_bb_v.push_back(bb.overlap((*iter).second));
+	  auto trimmed = (*iter).second.overlap(bb);
+	  pri_bb_v.push_back(trimmed);
 	}catch(const ::larcv::larbys& err){
 	  break;
-	  //pri_bb_v.push_back(::larcv::ImageMeta(0.,0.,0,0,0.,0.,bb.plane()));
-	  //LARCV_NORMAL() << "Skipping high-res imge for plane " << bb.plane()
-	  //<< " since no overlap found" << std::endl;
 	}
       }
 
@@ -162,7 +162,8 @@ namespace larlite {
 	  auto iter = image_meta_m.find(bb.plane());
 	  if(iter == image_meta_m.end()) continue;
 	  try{
-	    sec_bb_v.push_back(bb.overlap((*iter).second));
+	    auto trimmed = (*iter).second.overlap(bb);
+	    sec_bb_v.push_back(trimmed);
 	  }catch(const ::larcv::larbys& err) {
 	    break;
 	  }
@@ -222,14 +223,9 @@ namespace larlite {
 	// Only care about interaction
 	if(roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
 	auto const& roi_meta = roi.BB(p);
-	::larcv::ImageMeta bb(roi_meta.width(),roi_meta.height(),
-			      roi_meta.rows(),roi_meta.height(),
-			      roi_meta.min_x(), roi_meta.max_y(),
-			      roi_meta.plane());
-	//if(bb.rows()*bb.cols() <1) continue;
 	// Retrieve cropped full resolution image
 	auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("mcint%02d",roi.MCTIndex())));
-	auto hires_img = _full_image.crop(bb);
+	auto hires_img = _full_image.crop(roi_meta);
 	int_img_v->Emplace(std::move(hires_img));
       }
 

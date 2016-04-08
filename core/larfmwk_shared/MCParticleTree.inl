@@ -18,6 +18,8 @@ namespace larcv {
       _min_energy_init_mctrack = cfg.get<double>("MCTrackMinEnergyInit");
       _min_energy_deposit_mctrack = cfg.get<double>("MCTrackMinEnergyDeposit");
 
+      _min_nplanes = cfg.get<size_t>("MinNPlanes");
+
       _cropper.configure(cropper_cfg);
     }
 
@@ -122,7 +124,12 @@ namespace larcv {
 
 	auto roi = _cropper.ParticleROI(mctrack);
 	roi.MCSTIndex(i);
-	RegisterSecondary(pri_vtx,roi);
+	
+	if(roi.BB().size() < _min_nplanes) {
+	  LARCV_INFO() << "Skipping ROI as # planes (" << roi.BB().size() << ") < requirement (" << _min_nplanes << std::endl
+		       << roi.dump() << std::endl;
+	}
+	else RegisterSecondary(pri_vtx,roi);
       }
     }
 
@@ -164,7 +171,12 @@ namespace larcv {
 
 	auto roi = _cropper.ParticleROI(mcshower);
 	roi.MCSTIndex(i);
-	RegisterSecondary(pri_vtx,roi);
+
+	if(roi.BB().size() < _min_nplanes) {
+	  LARCV_INFO() << "Skipping ROI as # planes (" << roi.BB().size() << ") < requirement (" << _min_nplanes << std::endl
+		       << roi.dump() << std::endl;
+	}
+	else RegisterSecondary(pri_vtx,roi);
       }
     }
 
@@ -207,10 +219,15 @@ namespace larcv {
 
 	auto roi = _cropper.ParticleROI(mcshower,simch_v);
 	roi.MCSTIndex(i);
-	RegisterSecondary(pri_vtx,roi);
+
+	if(roi.BB().size() < _min_nplanes) {
+	  LARCV_INFO() << "Skipping ROI as # planes (" << roi.BB().size() << ") < requirement (" << _min_nplanes << std::endl
+		       << roi.dump() << std::endl;
+	}
+	else RegisterSecondary(pri_vtx,roi);
       }
     }
-
+    
     template <class T, class U, class V, class W>
     void MCParticleTree<T,U,V,W>::DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction)
     {

@@ -1,4 +1,5 @@
 
+
 #ifndef __SUPERA_CROPPER_INL__
 #define __SUPERA_CROPPER_INL__
 
@@ -68,8 +69,8 @@ namespace larcv {
 	}
       }
       
-      for(auto& r : result)
-	if(!r.valid() || (r.End() - r.Start()) < 2) r.Set(0,0);
+      for(auto& r : result) if(!r.valid()) r.Set(0,0);
+	//if(!r.valid() || (r.End() - r.Start()) < 2) r.Set(0,0);
 
       for(size_t plane=0; plane <= larcv::supera::Nplanes(); ++plane)
 	  
@@ -215,18 +216,20 @@ namespace larcv {
 	origin_y=trange.End();
 	rows = trange.End() - trange.Start();
 	cols = wrange.End() - wrange.Start();
-	if(wrange.valid() && (wrange.End() - wrange.Start())) {
+	//if(wrange.valid() && (wrange.End() - wrange.Start())) {
+	if(wrange.valid() && wrange.Start()) {
 	  width = wrange.End() - wrange.Start() + 1 + 2 * _wire_padding;
-	  cols = wrange.End() - wrange.Start() + 2 * _wire_padding;
+	  cols = wrange.End() - wrange.Start() + 1 + 2 * _wire_padding;
 	  origin_x = wrange.Start() - _wire_padding;
 	}
-	if(trange.valid() && (trange.End() - trange.Start())) {
+	//if(trange.valid() && (trange.End() - trange.Start())) {
+	if(trange.valid() && trange.Start()) {
 	  height = trange.End() - trange.Start() + 1 + 2 * _time_padding;
-	  rows = trange.End() - trange.Start() + 2 * _time_padding;
+	  rows = trange.End() - trange.Start() + 1 + 2 * _time_padding;
 	  origin_y = trange.End() + _time_padding;
 	}
 
-	if( (width - 2 * _wire_padding) < _min_width && (height - 2 * _time_padding) < _min_height ) {
+	if( (width - 2 * _wire_padding) < _min_width || (height - 2 * _time_padding) < _min_height ) {
 	  LARCV_INFO() << "Making an empty ImageMeta (too small) based on WTRange_t for Plane "<< i << std::endl
 		       << "      W: " << wrange.Start() << " => " << wrange.End() << (wrange.valid() ? " good" : " bad")
 		       << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl;
@@ -237,8 +240,9 @@ namespace larcv {
 		       << " ... T: " << trange.Start() << " => " << trange.End() << (trange.valid() ? " good" : " bad") << std::endl
 		       << "      Origin: (" << origin_x << "," << origin_y << ")" << std::endl
 		       << "      Rows = " << rows << " Cols = " << cols << " ... Height = " << height << " Width = " << width << std::endl;
+	  bb_v.emplace_back(width,height,rows,cols,origin_x,origin_y,i);
 	}
-	bb_v.emplace_back(width,height,rows,cols,origin_x,origin_y,i);
+
       }
       return bb_v;
     }

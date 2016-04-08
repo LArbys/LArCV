@@ -83,9 +83,9 @@ namespace larcv {
     /// Provide absolute scale max y
     double max_y() const { return _origin.y; }
     /// Provide absolute horizontal coordinate of the center of a specified pixel row
-    double pos_x   (size_t col) const { return _origin.x + pixel_width() * ((double)col + 0.5); }
+    double pos_x   (size_t col) const { return _origin.x + pixel_width() * col; }
     /// Provide absolute vertical coordinate of the center of a specified pixel row
-    double pos_y   (size_t row) const { return _origin.y - pixel_height() * ((double)row + 0.5); }
+    double pos_y   (size_t row) const { return _origin.y - pixel_height() * row; }
     /// Provide horizontal pixel index for a given horizontal x position (in absolute coordinate)
     size_t col (double x) const;
     /// Provide vertical pixel index for a given vertical y position (in absolute coordinate)

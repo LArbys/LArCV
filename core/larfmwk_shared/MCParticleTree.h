@@ -40,6 +40,7 @@ namespace larcv {
 		       , _min_energy_init_mctrack(0)
 		       , _min_energy_deposit_mcshower(0)
 		       , _min_energy_deposit_mctrack(0)
+		       , _min_nplanes(2)
       {}
       
       /// Default destructor
@@ -70,7 +71,6 @@ namespace larcv {
 
     private:
 
-
       Cropper<U,V,W> _cropper;
       std::map<larcv::Vertex,larcv::supera::InteractionROI_t> _roi_m;
 
@@ -78,7 +78,8 @@ namespace larcv {
       double _min_energy_init_mctrack;
       double _min_energy_deposit_mcshower;
       double _min_energy_deposit_mctrack;
-
+      size_t _min_nplanes;
+      
     };
   }
 }
