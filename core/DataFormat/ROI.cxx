@@ -39,7 +39,8 @@ namespace larcv {
       buf << "    ";
     }
     else {
-      ss  << "      \033[95m" << "PdgCode=" << PdgCode() << "\033[00m" << std::endl;
+      ss  << "      \033[95m" << "Particle (PdgCode,TrackID) = (" << PdgCode() << "," << TrackID() << ")\033[00m "
+	  << "... with Parent (" << ParentPdgCode() << "," << ParentTrackID() << ")" << std::endl;
       buf << "      ";
     }
 
