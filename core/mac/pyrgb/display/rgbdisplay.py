@@ -221,12 +221,14 @@ class RGBDisplay(QtGui.QWidget) :
                 
                 w_b = bbox.tr().x - bbox.bl().x
                 h_b = bbox.tr().y - bbox.bl().y
-
-
+                
+                # print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,
+                #                                                                    imm.bl().x,imm.bl().y) 
                 if comp == False:
                     dw_i = 1.0;
                     dh_i = 1.0;
                     x = bbox.bl().x
+                    #Temporary hack bbox.bl() doesn't match imm.bl() !!
                     y = bbox.bl().y - h_b
 
                 
@@ -234,7 +236,7 @@ class RGBDisplay(QtGui.QWidget) :
                 ti = pg.TextItem(text=self.st.particle_types[ roi_p['type'] ])
                 ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
 
-                print "ix: {} bbox x {} y {} wb {} hb {} dw_i {} dh_i {}".format(ix,x,y,w_b,h_b,dw_i,dh_i)
+                # print "ix: {} bbox x {} y {} wb {} hb {} dw_i {} dh_i {}".format(ix,x,y,w_b,h_b,dw_i,dh_i)
                 
                 r1 = HR(x * dw_i,
                         y * dh_i,
