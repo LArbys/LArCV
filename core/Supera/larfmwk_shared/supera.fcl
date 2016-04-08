@@ -1,5 +1,6 @@
 Supera: {
     SkipEmptyImage:   true
+    UseMC:            true
     OutFileName:      "out.root"
     WireProducer:     "caldata"
     SimChProducer:    "largeant"

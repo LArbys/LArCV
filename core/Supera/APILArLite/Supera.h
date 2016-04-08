@@ -16,14 +16,12 @@
 #define LARLITE_SUPERA_H
 
 #include "Analysis/ana_base.h"
-#include "Base/larcv_logger.h"
-#include "DataFormat/IOManager.h"
-#include "MCParticleTree.h"
-#include "DataFormat/simch.h"
+#include "DataFormat/wire.h"
+#include "DataFormat/mctruth.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/mcshower.h"
-#include "DataFormat/mctruth.h"
-#include "DataFormat/Image2D.h"
+#include "DataFormat/simch.h"
+#include "SuperaCore.h"
 namespace larlite {
   /**
      \class Supera
@@ -54,28 +52,14 @@ namespace larlite {
     */
     virtual bool finalize();
 
-    const ::larcv::logger& logger() const { return _logger;}
-
     void set_config(const std::string cfg_file) {_config_file=cfg_file;}
 
   protected:
 
-    ::larcv::supera::MCParticleTree<larlite::mctruth,larlite::mctrack,larlite::mcshower,larlite::simch> _mctp;
-    ::larcv::logger _logger;
-    ::larcv::IOManager _larcv_io;
+    ::larcv::supera::SuperaCore<larlite::wire,
+				larlite::mctruth, larlite::mctrack, larlite::mcshower, larlite::simch> _core;
     std::string _config_file;
-    std::string _producer_simch;
-    std::string _producer_wire;
-    std::string _producer_gen;
-    std::string _producer_mcreco;
-    std::vector<size_t> _event_image_cols;
-    std::vector<size_t> _event_image_rows;
-    std::vector<size_t> _event_comp_rows;
-    std::vector<size_t> _event_comp_cols;
-    double _min_time;
-    double _min_wire;
-    ::larcv::Image2D _full_image;
-    bool _skip_empty_image;
+    
   };
 }
 

@@ -229,7 +229,7 @@ class RGBDisplay(QtGui.QWidget) :
                     dh_i = 1.0;
                     x = bbox.bl().x
                     #Temporary hack bbox.bl() doesn't match imm.bl() !!
-                    y = bbox.bl().y - h_b
+                    y = bbox.bl().y
 
                 
                 #Set the text
