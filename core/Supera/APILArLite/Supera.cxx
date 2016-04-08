@@ -44,11 +44,11 @@ namespace larlite {
     _event_comp_rows  = main_cfg.get<std::vector<size_t> >("EventCompRows");
     _event_comp_cols  = main_cfg.get<std::vector<size_t> >("EventCompCols");
 
+    _skip_empty_image = main_cfg.get<bool>("SkipEmptyImage");
+
     // Check/Enforce conditions
     _logger.set((::larcv::msg::Level_t)(main_cfg.get<unsigned short>("Verbosity")));
     _mctp.configure(main_cfg.get<larcv::supera::Config_t>("MCParticleTree"));
-    //_mctree_verbosity = (::larcv::msg::Level_t)(main_cfg.get<unsigned short>("MCTreeVerbosity"));
-    //_cropper_verbosity = (::larcv::msg::Level_t)(main_cfg.get<unsigned short>("CropperVerbosity"));
 
     if(geom->Nplanes() != _event_image_rows.size()) throw larcv::larbys("EventImageRows size != # planes!");
     if(geom->Nplanes() != _event_image_cols.size()) throw larcv::larbys("EventImageCols size != # planes!");
@@ -65,6 +65,8 @@ namespace larlite {
   }
   
   bool Supera::analyze(storage_manager* storage) {
+
+    _larcv_io.clear_entry();
 
     _larcv_io.set_id(storage->run_id(), storage->subrun_id(), storage->event_id());
 
@@ -185,7 +187,7 @@ namespace larlite {
     // If no ROI, skip this event
     //
     if(roi_v->ROIArray().empty()) {
-      _larcv_io.save_entry();
+      if(!_skip_empty_image) _larcv_io.save_entry();
       return true;
       //return;
     }
@@ -201,7 +203,7 @@ namespace larlite {
       }
     }
     if(skip) {
-      _larcv_io.save_entry();
+      if(!_skip_empty_image) _larcv_io.save_entry();
       return true;
       //return;
     }

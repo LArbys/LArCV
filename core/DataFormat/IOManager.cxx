@@ -257,17 +257,21 @@ namespace larcv {
       t->Fill();
     }
 
-    for(auto& p : _product_ptr_v) {
-      if(!p) break;
-      p->clear();
-    }
-
-    _event_id.clear();
+    clear_entry();
 
     _tree_entries += 1;
     if(_io_mode == kWRITE) _tree_index += 1;
 
     return true;
+  }
+
+  void IOManager::clear_entry()
+  {
+    for(auto& p : _product_ptr_v) {
+      if(!p) break;
+      p->clear();
+    }
+    _event_id.clear();
   }
 
   size_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const

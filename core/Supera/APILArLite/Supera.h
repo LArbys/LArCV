@@ -75,6 +75,7 @@ namespace larlite {
     double _min_time;
     double _min_wire;
     ::larcv::Image2D _full_image;
+    bool _skip_empty_image;
   };
 }
 

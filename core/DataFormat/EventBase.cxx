@@ -13,8 +13,8 @@ namespace larcv {
   std::string EventBase::event_key() const
   {
     std::stringstream ss;
-    ss << std::setw( 7 ) << std::setfill( '0' ) << _run
-       << std::setw( 5 ) << std::setfill( '0' ) << _subrun
+    ss << std::setw( 7 ) << std::setfill( '0' ) << _run << "_"
+       << std::setw( 5 ) << std::setfill( '0' ) << _subrun << "_"
        << std::setw( 6 ) << std::setfill( '0' ) << _event;
     return ss.str();
   }

@@ -87,7 +87,7 @@ if [[ $LARLITE_BASEDIR ]]; then
     printf "\033[93mLArLite\033[00m\n"
     echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
     echo "    Preparing APILArLite package for build (making sym links)"
-    target=$LARCV_BASEDIR/larfmwk_shared/*
+    target=$LARCV_BASEDIR/Supera/larfmwk_shared/*
     for f in $target
     do
 	ln -sf $f $LARCV_BASEDIR/Supera/APILArLite/
@@ -98,12 +98,14 @@ if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
     printf "\033[93mLArSoft\033[00m\n"
     echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
     echo "    Preparing APILArSoft package for build (making sym links)"
-    target=$LARCV_BASEDIR/larfmwk_shared/*
+    target=$LARCV_BASEDIR/Supera/larfmwk_shared/*
     for f in $target
     do
 	ln -sf $f $LARCV_BASEDIR/Supera/APILArSoft/
     done
-    ln -sf $LARCV_BASEDIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+    if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
+	ln -s $LARCV_BASEDIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+    fi
 fi
 #if [ -d $MRB_TOP/srcs/uboonecode/uboone ]; then
 #    echo Found local uboonecode @ \$MRB_TOP=${MRB_TOP}

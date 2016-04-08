@@ -1,4 +1,5 @@
 Supera: {
+    SkipEmptyImage:   true
     OutFileName:      "out.root"
     WireProducer:     "caldata"
     SimChProducer:    "largeant"
@@ -15,11 +16,11 @@ Supera: {
     #EventImageCols:   [3840,3840,3840]
     #EventCompRows:    [1,1,1]
     #EventCompCols:    [1,1,1]
-    Verbosity:        1
+    Verbosity:        3
 
     # MCParticleTree configuration
     MCParticleTree: {
-        Verbosity: 1
+        Verbosity: 3
         MCShowerMinEnergyInit:    5
         MCShowerMinEnergyDeposit: 10
         MCTrackMinEnergyInit:     5
@@ -27,7 +28,7 @@ Supera: {
         MinNPlanes:               3
         # Cropper configuration
         Cropper: {
-            Verbosity:    1
+            Verbosity:    3
             TimePadding:  5
             WirePadding:  5
             MinWidth:     2
