@@ -22,10 +22,13 @@ core/Supera/APILArLite/Cropper.*
 core/Supera/APILArLite/MCParticleTree.*
 core/Supera/APILArLite/SuperaTypes.h
 core/Supera/APILArLite/SuperaUtils.*
+core/Supera/APILArLite/SuperaCore.*
 core/Supera/APILArSoft/Cropper.*
 core/Supera/APILArSoft/MCParticleTree.*
 core/Supera/APILArSoft/SuperaTypes.h
 core/Supera/APILArSoft/SuperaUtils.*
+core/Supera/APILArSoft/SuperaCore.*
+core/Supera/APILArSoft/supera.fcl
 *~
 *.pyc
 .ipynb_checkpoints

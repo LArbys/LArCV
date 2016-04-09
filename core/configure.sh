@@ -104,7 +104,7 @@ if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
 	ln -sf $f $LARCV_BASEDIR/Supera/APILArSoft/
     done
     if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
-	ln -s $LARCV_BASEDIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+	ln -s $LARCV_BASEDIR/Supera/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
     fi
 fi
 #if [ -d $MRB_TOP/srcs/uboonecode/uboone ]; then

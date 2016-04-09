@@ -29,6 +29,9 @@ namespace larcv {
 
     /// G4 time to TPC tick
     int TPCG4Time2Tick(double ns);
+
+    /// TPC TDC to Tick
+    double TPCTDC2Tick(double tdc);
     
   }
 }
