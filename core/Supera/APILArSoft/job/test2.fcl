@@ -69,7 +69,6 @@ physics:
 
  analyzers:
  {
-   supera:  @local::Supera
    mcinfo:  @local::litemc_mcinfo
    simch:   @local::litemc_simch
 
@@ -78,11 +77,13 @@ physics:
    opreco:  @local::litemc_opreco
  }
 
+ filters: {supera:  @local::Supera}
+
  simulate: [ rns, generator, 
              largeant, mcreco, optdigitizer, optfem, triggersim, pmtreadout, daq, 
-             digitfilter, saturation, ophit, opflash, ophitSat, opflashSat, caldata ]
+             digitfilter, saturation, ophit, opflash, ophitSat, opflashSat, caldata, supera ]
 
- ana: [ supera ]
+ ana: [ mcinfo, simch, wire, opdigit, opreco ]
  
  stream1:  [ out1 ]
 
@@ -95,7 +96,7 @@ physics.producers.generator: @local::microboone_genie_simple
 physics.producers.generator.GlobalTimeOffset: 3125.
 physics.producers.generator.RandomTimeOffset: 1600.
 #physics.producers.generator.TopVolume: "volCryostat"
-physics.producers.generator.TopVolume: "volCryostat"
+physics.producers.generator.TopVolume: "volTPCActive"
 physics.producers.generator.BeamName: "booster"
 
 physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"]

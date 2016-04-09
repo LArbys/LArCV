@@ -29,7 +29,8 @@ services:
   SimpleMemoryCheck:     { ignoreTotal: 1 } # default is one
   RandomNumberGenerator: {} #ART native random number generator
   FileCatalogMetadata:  @local::art_file_catalog_mc
-  user:         @local::microboone_simulation_services
+  #@table::microboone_reco_mcc7_services
+  @table::microboone_simulation_services
 }
 
 services.FileCatalogMetadata.applicationVersion: "develop"
@@ -42,6 +43,9 @@ services.FileCatalogMetadataMicroBooNE: {
   ProjectStage: "LiteMaker"
   ProjectVersion: "develop"
 }
+
+services.SignalShapingServiceMicroBooNE.StretchFullResponse: true
+services.SignalShapingServiceMicroBooNE.NConfigs:            2
 
 source:
 {
@@ -81,7 +85,6 @@ physics:
 
  analyzers:
  {
-   supera:  @local::Supera
    mcinfo:  @local::litemc_mcinfo
    simch:   @local::litemc_simch
 
@@ -90,11 +93,14 @@ physics:
    opreco:  @local::litemc_opreco
  }
 
- simulate: [ rns, generator, 
-             largeant, mcreco, optdigitizer, optfem, triggersim, pmtreadout, daq, 
-             digitfilter, saturation, ophit, opflash, ophitSat, opflashSat, caldata ]
+ filters: { supera:  @local::Supera }
 
- ana: [ supera, mcinfo, simch, wire, opdigit, opreco ]
+ simulate: [ rns, generator, 
+             largeant, mcreco, 
+             optdigitizer, optfem, triggersim, pmtreadout, daq, 
+             digitfilter, saturation, ophit, opflash, ophitSat, opflashSat, caldata, supera ]
+
+ ana: [ mcinfo, simch, wire, opdigit, opreco ]
  
  stream1:  [ out1 ]
 
@@ -107,20 +113,24 @@ physics.producers.generator: @local::microboone_genie_simple
 physics.producers.generator.GlobalTimeOffset: 3125.
 physics.producers.generator.RandomTimeOffset: 1600.
 #physics.producers.generator.TopVolume: "volCryostat"
-physics.producers.generator.TopVolume: "volCryostat"
+physics.producers.generator.TopVolume: "volTPCActive"
 physics.producers.generator.BeamName: "booster"
 
-physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"]
+#physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"]
 
 physics.producers.mcreco.MCRecoPart.SavePathPDGList: [13,-13,211,-211,111,311,310,130,321,-321,2212,2112,2224,2214,2114,1114,3122,
                                                       1000010020,1000010030,1000020030,1000020040]
 
 physics.producers.digitfilter.TruncateTicks: false
+physics.producers.digitfilter.WindowSize:    9600
+physics.producers.digitfilter.NumTicksToDropFront:  0
 
 physics.producers.saturation.CalibrationCorr : [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
                                                 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
+physics.producers.caldata.MinAllowedChannelStatus: 0
 physics.producers.caldata.DigitModuleLabel: "digitfilter"
+physics.producers.caldata.DodQdxCalib: false
 
 physics.analyzers.mcinfo.stream:      "mcinfo"
 physics.analyzers.simch.stream:       "simch"

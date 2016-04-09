@@ -194,7 +194,7 @@ namespace larcv {
       //
       if(roi_v->ROIArray().empty()) {
 	if(!_skip_empty_image) _larcv_io.save_entry();
-	return true;
+	return (!_skip_empty_image);
       }
       //
       // If no Interaction ImageMeta (Interaction ROI object w/ no real ROI), skip this event
@@ -209,7 +209,7 @@ namespace larcv {
       }
       if(skip) {
 	if(!_skip_empty_image) _larcv_io.save_entry();
-	return true;
+	return (!_skip_empty_image);
       }
       
       //

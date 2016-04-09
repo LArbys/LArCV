@@ -1,5 +1,6 @@
 Supera: {
-    SkipEmptyImage:   true
+    module_type:      "Supera"
+    SkipEmptyImage:   false
     UseMC:            true
     OutFileName:      "out.root"
     WireProducer:     "caldata"
@@ -10,9 +11,10 @@ Supera: {
     MinTime:          2400
     MinWire:          0
     EventImageRows:   [768,768,768]
-    EventImageCols:   [768,768,768]
+    EventImageCols:   [864,864,864]
     EventCompRows:    [7,7,7]
-    EventCompCols:    [5,5,5]
+    #EventCompCols:    [5,5,5]
+    EventCompCols:    [4,4,4]
     #EventImageRows:   [5376,5376,5376]
     #EventImageCols:   [3840,3840,3840]
     #EventCompRows:    [1,1,1]
