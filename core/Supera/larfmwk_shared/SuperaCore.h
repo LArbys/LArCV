@@ -17,9 +17,9 @@
 #include "Base/larcv_logger.h"
 #include "DataFormat/IOManager.h"
 #include "DataFormat/Image2D.h"
+#include "DataFormat/ChStatus.h"
 #include "MCParticleTree.h"
 #include "FMWKInterface.h"
-
 
 namespace larcv {
   namespace supera {
@@ -54,17 +54,19 @@ namespace larcv {
 
       void finalize();
 
+      void set_chstatus(larcv::PlaneID_t id, larcv::ChStatus status);
+
       const std::string& producer_wire      () const { return _producer_wire;   }
       const std::string& producer_generator () const { return _producer_gen;    }
       const std::string& producer_mcreco    () const { return _producer_mcreco; }
       const std::string& producer_simch     () const { return _producer_simch;  }
       bool use_mc() const { return _use_mc; }
-
       const ::larcv::logger& logger() const { return _logger;}
 
     private:
       
       MCParticleTree<T,U,V,W> _mctp;
+      std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;
       larcv::logger _logger;
       larcv::IOManager _larcv_io;
       std::string _producer_simch;

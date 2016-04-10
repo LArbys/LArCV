@@ -5,6 +5,7 @@
 #include "SuperaUtils.h"
 #include "DataFormat/ProductMap.h"
 #include "DataFormat/EventROI.h"
+#include "DataFormat/EventChStatus.h"
 #include "DataFormat/EventImage2D.h"
 namespace larcv {
   namespace supera {
@@ -54,8 +55,21 @@ namespace larcv {
       for(auto const& v : _event_image_cols){ if(!v) throw larcv::larbys("Event-Image col size is 0!"); }
       for(auto const& v : _event_comp_rows){ if(!v) throw larcv::larbys("Event-Image row comp factor is 0!"); }
       for(auto const& v : _event_comp_cols){ if(!v) throw larcv::larbys("Event-Image col comp factor is 0!"); }
+
+      for(size_t p=0; p < ::larcv::supera::Nplanes(); ++p)
+
+	_status_m[p].Reset(::larcv::supera::Nwires(p),4);
       
       _configured = true;
+    }
+
+    template <class S, class T, class U, class V, class W>
+    void SuperaCore<S,T,U,V,W>::set_chstatus(larcv::PlaneID_t id, larcv::ChStatus status)
+    {
+      auto iter = _status_m.find(id);
+      if(iter == _status_m.end()) throw larcv::larbys("Invalid plane ID requested!");
+      if((*iter).second.as_vector().size() != status.as_vector().size()) throw larcv::larbys("Cannot set ChStatus (# wires do not match)!");
+      _status_m[id] = status;
     }
 
     template <class S, class T, class U, class V, class W>    
@@ -68,6 +82,10 @@ namespace larcv {
       if(!_configured) throw larbys("Call configure() first!");
 
       _larcv_io.clear_entry();
+      
+      auto event_chstatus = (::larcv::EventChStatus*)(_larcv_io.get_data(::larcv::kProductChStatus,"event_status"));
+      for(auto const& id_status : _status_m)
+	event_chstatus->Insert(id_status.first,id_status.second);
       
       auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"event_image"));
       
