@@ -4,7 +4,7 @@
  * \ingroup DataFormat
  * 
  * \brief Class def header for a class EventChStatus
- *
+1;2c *
  * @author kazuhiro
  */
 
@@ -15,6 +15,7 @@
 #define EVENTCHSTATUS_H
 
 #include <iostream>
+#include <map>
 #include "EventBase.h"
 #include "ChStatus.h"
 #include "DataProductFactory.h"
@@ -39,17 +40,17 @@ namespace larcv {
 
     const std::map<larcv::PlaneID_t,larcv::ChStatus>& ChStatusMap() const { return _status_m; }
 
-    const ChStatus& at(PlaneID_t id) const;
+    const ChStatus& at(larcv::PlaneID_t id) const;
 
-    void Insert(PlaneID_t id, const ChStatus& status_v);
+    void Insert(larcv::PlaneID_t id, const ChStatus& status_v);
     
 #ifndef __CINT__
-    void Emplace(PlaneID_t id, ChStatus&& status_v);
+    void Emplace(larcv::PlaneID_t id, ChStatus&& status_v);
 #endif
     
   private:
 
-    std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;
+    std::map< ::larcv::PlaneID_t, ::larcv::ChStatus > _status_m;
 
   };
 

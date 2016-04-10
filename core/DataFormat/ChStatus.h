@@ -44,7 +44,7 @@ namespace larcv {
 
   private:
     std::vector<short> _status_v;
-    PlaneID_t _plane;
+    larcv::PlaneID_t _plane;
   };
 }
 
