@@ -1,6 +1,6 @@
 #thanks taritree
 
-import os,sys,copy
+import os,sys,copy,re
 from .. import QtGui, QtCore
 from .. import pg
 import numpy as np
@@ -18,6 +18,13 @@ class RGBDisplay(QtGui.QWidget) :
 
     def __init__(self,rfile):
         super(RGBDisplay,self).__init__()
+
+        
+        ### Hold constants
+        self.st = Storage()
+
+        ### DataManager
+        self.dm = datamanager.DataManager(rfile)
 
         self.resize( 1200, 700 )
 
@@ -56,19 +63,16 @@ class RGBDisplay(QtGui.QWidget) :
         
         ### select choice options
         self.axis_plot = QtGui.QPushButton("Plot")
-        self.lay_inputs.addWidget( self.axis_plot, 0, 6 )
+        self.lay_inputs.addWidget( self.axis_plot, 1, 0, 1 , 2  )
 
         self.previous_plot = QtGui.QPushButton("Prev. Event")
-        self.lay_inputs.addWidget( self.previous_plot, 0, 7 )
+        self.lay_inputs.addWidget( self.previous_plot, 1, 2, 1, 2 )
 
         self.next_plot = QtGui.QPushButton("Next Event")
-        self.lay_inputs.addWidget( self.next_plot, 0, 8 )
-
-
-        #autorange
+        self.lay_inputs.addWidget( self.next_plot, 1, 4, 1 , 2 )
         
-        ### particle types
 
+        ### particle types
         #BNB
         self.kBNB   = QtGui.QRadioButton("BNB")
         self.lay_inputs.addWidget( self.kBNB, 0, 9 )
@@ -82,14 +86,38 @@ class RGBDisplay(QtGui.QWidget) :
         self.kBOTH  = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
+
+        self.lay_inputs.addWidget( QtGui.QLabel("Image2D"), 0, 12)
+        self.comboBoxImage = QtGui.QComboBox()
+        self.image_producer = None
+        self.high_res = False
+        for prod in self.dm.keys['image2d'] :
+            self.comboBoxImage.addItem(prod)
+            
+        self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
+
+
+        self.lay_inputs.addWidget( QtGui.QLabel("ROI"), 0, 13)
+        self.comboBoxROI = QtGui.QComboBox()
+        self.roi_producer   = None
+
+        if 'partroi' in self.dm.keys.keys():
+            self.roi_exists = True
+            for prod in self.dm.keys['partroi'] :
+                self.comboBoxROI.addItem(prod)
+        else:
+            self.roi_exists = False
+
+        self.lay_inputs.addWidget( self.comboBoxROI, 1, 13 )
+        
         #Compressed or not comporessed image
-        self.compression  = QtGui.QCheckBox("Compressed")
-        self.lay_inputs.addWidget( self.compression, 0, 12 )
-        self.compression.setChecked(True)
+        # self.compression  = QtGui.QCheckBox("Compressed")
+        # self.lay_inputs.addWidget( self.compression, 0, 14 )
+        # self.compression.setChecked(True)
 
-
+        
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget( self.auto_range, 0, 13 )
+        self.lay_inputs.addWidget( self.auto_range, 0, 14 )
 
 
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[7]), 
@@ -107,25 +135,38 @@ class RGBDisplay(QtGui.QWidget) :
         self.next_plot.clicked.connect    ( self.nextEvent )
 
         ### Radio buttons
-        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1],
-                                                            self.compression.isChecked()) )
-        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1],
-                                                            self.compression.isChecked()) )
-        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1],
-                                                            self.compression.isChecked())  )
+        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1] ) )
+        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1]) )
+        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1])  )
 
         self.auto_range.clicked.connect( self.autoRange )
         ### Set of ROI's on view
         self.boxes = []
 
-        ### Hold constants
-        self.st = Storage()
 
-        ### DataManager
-        self.dm = datamanager.DataManager(rfile)
+        self.comboBoxImage.activated[str].connect(self.chosenImageProducer)
+        self.comboBoxROI.activated[str].connect(self.chosenROIProducer)
 
+
+        self.chosenImageProducer()
+        self.chosenROIProducer()
+        
         self.plotData()
-                
+
+
+    def chosenImageProducer(self):
+        self.image_producer = str(self.comboBoxImage.currentText())
+        if re.search("mcint",self.image_producer) is None:
+            self.highres = False
+        else:
+            self.highres = True
+
+        
+    def chosenROIProducer(self):
+
+        if self.roi_exists == True:
+            self.roi_producer = str(self.comboBoxROI.currentText())
+        
     def autoRange(self):
         self.plt.autoRange()
 
@@ -175,7 +216,9 @@ class RGBDisplay(QtGui.QWidget) :
 
 
         pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax,
-                                                              self.compression.isChecked())
+                                                              self.image_producer,
+                                                              self.roi_producer,
+                                                              self.highres)
 
         if pimg is None:
             self.image = None
@@ -184,12 +227,13 @@ class RGBDisplay(QtGui.QWidget) :
         # Display the image
         self.imi.setImage(pimg)
 
-        self.drawBBOX( self.which_type(), self.compression.isChecked())
+        if self.roi_exists == True:
+            self.drawBBOX( self.which_type() )
 
         self.autoRange()
 
     ### For now this is fine....
-    def drawBBOX(self,kType,comp):
+    def drawBBOX(self,kType):
         
         if self.image is None: #no image was drawn
             return
@@ -224,7 +268,7 @@ class RGBDisplay(QtGui.QWidget) :
                 
                 # print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,
                 #                                                                    imm.bl().x,imm.bl().y) 
-                if comp == False:
+                if self.highres == True:
                     dw_i = 1.0;
                     dh_i = 1.0;
                     x = bbox.bl().x
