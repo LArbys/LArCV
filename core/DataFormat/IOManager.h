@@ -69,6 +69,9 @@ namespace larcv {
     void clear_entry();
     void set_id(const size_t run, const size_t subrun, const size_t event);
 
+    size_t get_n_entries() const
+    { return _tree_entries; }
+    
     EventBase* get_data(const ProductType_t type, const std::string& producer);
     EventBase* get_data(const size_t id);
 

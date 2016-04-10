@@ -9,7 +9,9 @@ namespace larcv {
 
   cv::Mat as_mat(const Image2D& larcv_img);
 
+  
   Image2D imread(const std::string file_name);
+  Image2D imread_gray(const std::string file_name);
 
 }
 

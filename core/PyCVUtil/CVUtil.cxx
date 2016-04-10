@@ -48,6 +48,25 @@ namespace larcv {
     return larcv_img;
   }
 
+  Image2D imread_gray(const std::string file_name)
+  {
+    ::cv::Mat image;
+    image = ::cv::imread(file_name.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+
+    ImageMeta meta(image.cols,image.rows,image.cols, image.rows, 0., 0.);
+    Image2D larcv_img(meta);
+      
+    unsigned char* px_ptr = (unsigned char*)image.data;
+
+    for(int i=0;i<image.rows;i++) {
+      for (int j=0;j<image.cols;j++) {
+	float q = 0;
+	q += (float)(px_ptr[i*image.cols + j]);
+	larcv_img.set_pixel(j,i,q);
+      }
+    }
+    return larcv_img;
+  }
 
 
 }
