@@ -64,6 +64,8 @@ namespace larcv {
       const ::larcv::logger& logger() const { return _logger;}
 
     private:
+
+      void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
       
       MCParticleTree<T,U,V,W> _mctp;
       std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;
