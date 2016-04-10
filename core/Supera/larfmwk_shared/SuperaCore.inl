@@ -2,7 +2,6 @@
 #define __SUPERACORE_INL__
 
 #include "Base/larbys.h"
-#include "SuperaUtils.h"
 #include "DataFormat/ProductMap.h"
 #include "DataFormat/EventROI.h"
 #include "DataFormat/EventImage2D.h"
@@ -86,7 +85,7 @@ namespace larcv {
 				       p);
 	image_meta_m.insert(std::make_pair(p,meta));
 	
-	LARCV_INFO() << "Creating Event image frame for plane " << p << " " << meta.dump();
+	LARCV_INFO() << "Creating Event image frame:" << meta.dump();
       }
 
       if(!_use_mc) {
@@ -98,7 +97,7 @@ namespace larcv {
 	  
 	  // Create full resolution image
 	  _full_image.reset(full_meta);
-	  ::larcv::supera::Fill<S>(_full_image,wire_v);
+	  fill(_full_image,wire_v);
 	  _full_image.index(event_image_v->Image2DArray().size());
 	
 	  // Finally compress and store as event image
@@ -221,7 +220,7 @@ namespace larcv {
 	
 	// Create full resolution image
 	_full_image.reset(full_meta);
-	::larcv::supera::Fill<S>(_full_image,wire_v);
+	fill(_full_image,wire_v);
 	_full_image.index(event_image_v->Image2DArray().size());
 	
 	// Now extract each high-resolution interaction image
@@ -260,6 +259,100 @@ namespace larcv {
       _larcv_io.finalize();
       _larcv_io.reset();
     }
+
+    template <class S, class T, class U, class V, class W>
+    void SuperaCore<S,T,U,V,W>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
+    {
+      //int nticks = meta.rows();
+      //int nwires = meta.cols();
+      auto const& meta = img.meta();
+      size_t row_comp_factor = (size_t)(meta.pixel_height());
+      const int ymax = meta.max_y();
+      const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
+      img.paint(0.);
+
+      LARCV_INFO() << "Filling an image..." << std::endl
+		   << meta.dump()
+		   << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
+      
+      for(auto const& wire : wires) {
+
+	auto const& wire_id = ChannelToWireID(wire.Channel());
+	
+	if((int)(wire_id.Plane) != meta.plane()) continue;
+
+	size_t col=0;
+	try{
+	  col = meta.col(wire_id.Wire);
+	}catch(const larbys&){
+	  continue;
+	}
+
+	for(auto const& range : wire.SignalROI().get_ranges()) {
+	  
+	  auto const& adcs = range.data();
+	  //double sumq = 0;
+	  //for(auto const& v : adcs) sumq += v;
+	  //sumq /= (double)(adcs.size());
+	  //if(sumq<3) continue;
+	  
+	  int start_index = range.begin_index() + time_offset;
+	  int end_index   = start_index + adcs.size() - 1;
+	  if(start_index > ymax || end_index < ymin) continue;
+
+	  if(row_comp_factor>1) {
+
+	    for(size_t index=0; index<adcs.size(); ++index) {
+	      if((int)index + start_index < ymin) continue;
+	      if((int)index + start_index > ymax) break;
+	      auto row = meta.row((double)(start_index+index));
+	      img.set_pixel(row,col,adcs[index]);
+	    }
+	  }else{
+	    // Fill matrix from start_index => end_index of matrix row
+	    // By default use index 0=>length-1 index of source vector
+	    int nskip=0;
+	    int nsample=adcs.size();
+	    if(end_index   > ymax) {
+	      LARCV_DEBUG() << "End index (" << end_index << ") exceeding image bound (" << ymax << ")" << std::endl;
+	      nsample   = adcs.size() - (end_index - ymax);
+	      end_index = ymax;
+	      LARCV_DEBUG() << "Corrected End index = " << end_index << std::endl;
+	    }
+	    if(start_index < ymin) {
+	      LARCV_DEBUG() << "Start index (" << start_index << ") exceeding image bound (" << ymin << ")" << std::endl;
+	      nskip = ymin - start_index;
+	      nsample -= nskip;
+	      start_index = ymin;
+	      LARCV_DEBUG() << "Corrected Start index = " << start_index << std::endl;
+	    }
+	    LARCV_DEBUG() << "Calling a reverse_copy..." << std::endl
+			  << "      source wf : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
+			  << "      (row,col) : (" << (ymax - end_index) << "," << col << ")" << std::endl
+			  << "      nskip     : "  << nskip << std::endl
+			  << "      nsample   : "  << nsample << std::endl;
+	    try{
+	      img.reverse_copy(ymax - end_index,
+			       col,
+			       adcs,
+			       nskip,
+			       nsample);
+	    }catch(const ::larcv::larbys& err) {
+	      LARCV_CRITICAL() << "Attempted to fill an image..." << std::endl
+			       << meta.dump()
+			       << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl
+			       << "Called a reverse_copy..." << std::endl
+			       << "      source wf : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
+			       << "      (row,col) : (" << (ymax - end_index) << "," << col << ")" << std::endl
+			       << "      nskip     : "  << nskip << std::endl
+			       << "Re-throwing an error:" << std::endl;
+	      throw err;
+	    }
+	  }
+	}
+      }
+    }
+
   }
 }
 #endif
