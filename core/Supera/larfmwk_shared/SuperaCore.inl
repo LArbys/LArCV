@@ -285,7 +285,7 @@ namespace larcv {
       //int nwires = meta.cols();
       auto const& meta = img.meta();
       size_t row_comp_factor = (size_t)(meta.pixel_height());
-      const int ymax = meta.max_y();
+      const int ymax = meta.max_y() - 1; // Need in terms of row coordinate
       const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
       img.paint(0.);
 
