@@ -10,7 +10,8 @@ class PlotImage(object):
         self.imgs   = [ img_v[i] for i in xrange(img_v.size()) ]
         self.img_v  = [ larcv.as_ndarray(img) for img in self.imgs  ]
 
-        self.roi_v  = [ roi_v[i] for i in xrange(roi_v.size()) ]
+        if roi_v is not None:
+            self.roi_v  = [ roi_v[i] for i in xrange(roi_v.size()) ]
         
         self.__create_mat__()
         self.plot_mat_t = None

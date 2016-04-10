@@ -18,6 +18,9 @@ namespace larcv {
     /// Number of time ticks
     unsigned int NumberTimeSamples();
 
+    /// Number of channels
+    unsigned int Nchannels();
+
     /// Number of planes
     unsigned int Nplanes();
 
