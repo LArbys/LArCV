@@ -11,9 +11,11 @@ namespace larcv {
   template<class T> ProductType_t ProductType();
 
   class Image2D;
-  template<> ProductType_t ProductType< larcv::Image2D > ();
+  template<> ProductType_t ProductType< larcv::Image2D  > ();
   class ROI;
-  template<> ProductType_t ProductType< larcv::ROI     > ();
+  template<> ProductType_t ProductType< larcv::ROI      > ();
+  class ChStatus;
+  template<> ProductType_t ProductType< larcv::ChStatus > ();
 
 }
 

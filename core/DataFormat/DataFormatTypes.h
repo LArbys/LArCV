@@ -46,6 +46,7 @@ namespace larcv {
   enum ProductType_t {
     kProductImage2D,
     kProductROI,
+    kProductChStatus,
     kProductUnknown
   };
 
