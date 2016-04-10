@@ -10,14 +10,57 @@
 #include "correct_saturation.fcl"
 #include "caldata_microboone.fcl" 
 #include "time_memory_tracker_microboone.fcl"
-#include "supera.fcl"
 #include "litemc_mcinfo.fcl"
 #include "litemc_simch.fcl"
 #include "litemc_wire.fcl"
 #include "litemc_opreco.fcl"
 #include "litemc_opdigit.fcl"
 
-process_name: TEST
+standard_supera: {
+    module_type:      "Supera"
+    SkipEmptyImage:   false
+    UseMC:            true
+    OutFileName:      "out.root"
+    WireProducer:     "caldata"
+    SimChProducer:    "largeant"
+    #SimChProducer:    ""
+    MCRecoProducer:   "mcreco"
+    GenProducer:      "generator"
+    MinTime:          2400
+    MinWire:          0
+    #EventImageRows:   [6048,6048,6048]
+    #EventImageCols:   [3456,3456,3456]
+    #EventCompRows:    [1,1,1]
+    #EventCompCols:    [1,1,1]
+    EventImageRows:   [864,864,864]
+    EventImageCols:   [864,864,864]
+    EventCompRows:    [7,7,7]
+    EventCompCols:    [4,4,4]
+    Verbosity:        3
+
+    # MCParticleTree configuration
+    MCParticleTree: {
+        Verbosity: 3
+        MCShowerMinEnergyInit:    5
+        MCShowerMinEnergyDeposit: 20
+        MCTrackMinEnergyInit:     5
+        MCTrackMinEnergyDeposit:  20
+        MinNPlanes:               3
+        # Cropper configuration
+        Cropper: {
+            Verbosity:    3
+            TimePadding:  5
+            WirePadding:  5
+            MinWidth:     2
+            MinHeight:    2
+            TargetWidth:  247 # currently irrelevant
+            TargetHeight: 247 # currently irrelevant
+            CompressionFactor: 0 # currently irrelevant
+        }
+    }
+}
+
+process_name: BNBNuSuperaLArLite
 
 services:
 {
@@ -93,7 +136,7 @@ physics:
    opreco:  @local::litemc_opreco
  }
 
- filters: { supera:  @local::Supera }
+ filters: { supera:  @local::standard_supera }
 
  simulate: [ rns, generator, 
              largeant, mcreco, 
@@ -102,7 +145,8 @@ physics:
 
  ana: [ mcinfo, simch, wire, opdigit, opreco ]
  
- stream1:  [ out1 ]
+ #stream1:  [ out1 ]
+ stream1:  []
 
  trigger_paths: [simulate] 
 

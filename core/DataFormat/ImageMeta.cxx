@@ -7,8 +7,11 @@ namespace larcv {
 
   size_t ImageMeta::index( size_t row, size_t col ) const {
     
-    if ( row >= _row_count || col >= _col_count ) throw larbys("Invalid pixel index queried");
-    
+    if ( row >= _row_count || col >= _col_count ) {
+      std::stringstream ss;
+      ss << "Invalid pixel index queried: (" << row << "," << col << ") but the dimension is only ("<<_row_count<<","<<_col_count<<")!"<<std::endl;
+      throw larbys(ss.str());
+    }    
     return ( col * _row_count + row );
   }
 
@@ -57,8 +60,8 @@ namespace larcv {
   std::string ImageMeta::dump() const
   {
     std::stringstream ss;
-    ss << "Plane " << plane()
-       << " ... Left Top (" << min_x() << "," << max_y()
+    ss << "Plane " << plane() << " (rows,cols) = (" << _row_count << "," << _col_count
+       << ") ... Left Top (" << min_x() << "," << max_y()
        << ") ... Right Bottom (" << max_x() << "," << min_y()
        << ")" << std::endl;
     return ss.str();

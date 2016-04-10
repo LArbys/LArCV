@@ -231,6 +231,8 @@ namespace larcv {
 	  auto const& roi_meta = roi.BB(p);
 	  // Retrieve cropped full resolution image
 	  auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("mcint%02d",roi.MCTIndex())));
+	  LARCV_INFO() << "Cropping an interaction image (high resolution) @ plane " << p << std::endl
+		       << roi_meta.dump() << std::endl;
 	  auto hires_img = _full_image.crop(roi_meta);
 	  int_img_v->Emplace(std::move(hires_img));
 	}
@@ -238,6 +240,11 @@ namespace larcv {
 	// Finally compress and store as event image
 	auto comp_meta = ::larcv::ImageMeta(_full_image.meta());
 	comp_meta.update(_event_image_rows[p],_event_image_cols[p]);
+
+	LARCV_INFO() << "Compressing an event image! " << std::endl
+		     << "From: " << _full_image.meta().dump() << std::endl
+		     << "To: " << comp_meta.dump() << std::endl;
+
 	::larcv::Image2D img(std::move(comp_meta),
 			     std::move(_full_image.copy_compress(_event_image_rows[p],_event_image_cols[p])));
 	event_image_v->Emplace(std::move(img));

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!-- Production Project -->
+
+<!DOCTYPE project [
+<!ENTITY release      "v05_08_00" >
+<!ENTITY file_type    "mc"        >
+<!ENTITY run_type     "physics"   >
+<!ENTITY name         "bnb_nu_supera_larlite">
+<!ENTITY prod_version "v2"        >
+<!ENTITY part_number  "00"        >
+<!ENTITY tardir       "/pnfs/uboone/scratch/users/kterao/tars">
+]>
+
+<job>
+
+<project name="&name;">
+
+  <!-- Project size -->
+  <numevents>50000</numevents>
+
+  <!-- Operating System -->
+  <os>SL6</os>
+
+  <!-- Batch resources -->
+  <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e9:prof</qual>
+    <local>&tardir;/&release;_&file_type;.tar</local>
+  </larsoft>
+
+  <!-- Project stages -->
+
+  <stage name="gen">
+    <fcl>bnb_nu_supera_larlite.fcl</fcl>
+    <outdir>/pnfs/uboone/scratch/users/kterao/&name;_&prod_version;_part&part_number;_out/&release;</outdir>
+    <logdir>/pnfs/uboone/scratch/users/kterao/&name;_&prod_version;_part&part_number;_log/&release;</logdir>
+    <workdir>/uboone/data/users/kterao/&name;_&prod_version;_part&part_number;_work</workdir>
+    <numjobs>500</numjobs>
+    <memory> 4096 </memory>
+    <datatier>supera</datatier>
+    <defname>&name;_&prod_version;_part&part_number;</defname>
+  </stage>
+
+  <!-- file type -->
+  <filetype>&file_type;</filetype>
+
+  <!-- run type -->
+  <runtype>&run_type;</runtype>
+
+</project>
+
+</job>

@@ -100,14 +100,18 @@ namespace larcv {
 
   void Image2D::reverse_copy(size_t row, size_t col, const std::vector<float>& src, size_t nskip, size_t num_pixel)
   {
-    const size_t idx = _meta.index(row,col);
+    size_t idx = 0;
+    try{
+      idx = _meta.index(row,col);
+    }catch(const larbys& err){
+      std::cout << "Exception caught @ " << __FUNCTION__ << std::endl
+		<< "Image2D ... fill row: "<<row<<" => "<<(row+num_pixel-1)<<std::endl
+		<< "Image2D ... orig idx: "<<nskip<<" => "<<nskip+num_pixel-1<<std::endl
+		<< "Re-throwing exception..."<<std::endl; 
+      throw err;
+    }
     if(!num_pixel) num_pixel = src.size() - nskip;
     if( (idx+1) < num_pixel ) num_pixel = idx + 1;
-    /*
-    std::cout<<"Image2D ... fill idx: "<<idx<<" => "<<idx+num_pixel-1<<std::endl;
-    std::cout<<"Image2D ... fill row: "<<idx%_meta.rows()<<" => "<<(idx+num_pixel-1)%_meta.rows()<<std::endl;
-    std::cout<<"Image2D ... orig idx: "<<nskip<<" => "<<nskip+num_pixel-1<<std::endl;
-    */
     for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[nskip+num_pixel-i-1]; }
   }
 
@@ -163,18 +167,19 @@ namespace larcv {
 	crop_meta.max_x() > _meta.max_x() || crop_meta.max_y() > _meta.max_y() )
       throw larbys("Cropping region contains region outside the image!");
     
-    size_t min_col = _meta.col(crop_meta.min_x());
-    size_t max_col = _meta.col(crop_meta.max_x());
-    size_t min_row = _meta.row(crop_meta.max_y());
-    size_t max_row = _meta.row(crop_meta.min_y());
+    size_t min_col = _meta.col(crop_meta.min_x() + _meta.pixel_width()  / 2. );
+    size_t max_col = _meta.col(crop_meta.max_x() - _meta.pixel_width()  / 2. );
+    size_t min_row = _meta.row(crop_meta.max_y() - _meta.pixel_height() / 2. );
+    size_t max_row = _meta.row(crop_meta.min_y() + _meta.pixel_height() / 2. );
     /*
     std::cout<<"Cropping! Requested:" << std::endl
 	     << crop_meta.dump() << std::endl
 	     <<"Original:"<<std::endl
 	     <<_meta.dump()<<std::endl;
+    
+    std::cout<<min_col<< " => " << max_col << " ... " << min_row << " => " << max_row << std::endl;
+    std::cout<<_meta.width() << " / " << _meta.cols() << " = " << _meta.pixel_width() << std::endl;
     */
-    //std::cout<<min_col<< " => " << max_col << " ... " << min_row << " => " << max_row << std::endl;
-    //std::cout<<_meta.width() << " / " << _meta.cols() << " = " << _meta.pixel_width() << std::endl;
     ImageMeta res_meta( (max_col - min_col + 1) * _meta.pixel_width(),
 			(max_row - min_row + 1) * _meta.pixel_height(),
 			(max_row - min_row + 1),
