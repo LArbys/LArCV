@@ -34,6 +34,10 @@ namespace larlite {
 
     if(!wire_h) { throw DataFormatException("Could not load wire data!"); }
 
+    if(_core.store_chstatus())
+
+      throw ::larcv::larbys("ChStatus storage is not supported in LArLite (no database API)");
+
     bool status=true;
     if(_core.use_mc()) {
 

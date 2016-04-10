@@ -2,7 +2,10 @@ Supera: {
     module_type:      "Supera"
     SkipEmptyImage:   false
     UseMC:            true
+    StoreChStatus:    false
     OutFileName:      "out.root"
+    ProducerKey:      "bnbnu_mc"
+    DigitProducer:    "digitfilter"
     WireProducer:     "caldata"
     SimChProducer:    "largeant"
     #SimChProducer:    ""

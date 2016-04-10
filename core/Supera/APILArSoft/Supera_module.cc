@@ -25,8 +25,11 @@
 #include "larcore/Geometry/Geometry.h"
 #include "larsim/Simulation/SimChannel.h"
 #include "lardata/RecoBase/Wire.h"
+#include "lardata/RawData/RawDigit.h"
 #include "lardata/MCBase/MCTrack.h"
 #include "lardata/MCBase/MCShower.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
+#include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 // larcv
 #include "SuperaCore.h"
 
@@ -77,12 +80,42 @@ void Supera::endJob()
 
 bool Supera::filter(art::Event & e)
 {
- _core.set_id(e.id().run(),e.id().subRun(),e.id().event());
+  _core.set_id(e.id().run(),e.id().subRun(),e.id().event());
 
   art::Handle<std::vector<recob::Wire> > wire_h;
   e.getByLabel(_core.producer_wire(),wire_h);
 
   if(!wire_h.isValid()) { throw ::larcv::larbys("Could not load wire data!"); }
+
+  //
+  // Fill Channel Status
+  // 
+  if(_core.store_chstatus()) {
+
+    std::vector<bool> filled_ch( ::larcv::supera::Nchannels(), false );
+    
+    // If specified check RawDigit pedestal value: if negative this channel is not used by wire (set status=>-2)
+    if(!_core.producer_digit().empty()) {
+      art::Handle<std::vector<raw::RawDigit> > digit_h;
+      e.getByLabel(_core.producer_digit(),digit_h);
+      for(auto const& digit : *digit_h) {
+	auto const ch = digit.Channel();
+	if(ch >= filled_ch.size()) throw ::larcv::larbys("Found RawDigit > possible channel number!");
+	if(digit.GetPedestal()<0.) {
+	  _core.set_chstatus(ch,::larcv::chstatus::kNEGATIVEPEDESTAL);
+	  filled_ch[ch] = true;
+	}
+      }
+    }
+
+    // Set database status
+    const lariov::ChannelStatusProvider& chanFilt = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    for(size_t i=0; i < ::larcv::supera::Nchannels(); ++i) {
+      if ( filled_ch[i] ) continue;
+      if (!chanFilt.IsPresent(i)) _core.set_chstatus(i,::larcv::chstatus::kNOTPRESENT);
+      else _core.set_chstatus(i,(short)(chanFilt.Status(i)));
+    }
+  }
 
   bool status=true;
   if(_core.use_mc()) {

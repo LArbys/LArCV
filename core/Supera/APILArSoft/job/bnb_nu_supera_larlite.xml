@@ -39,7 +39,7 @@
     <outdir>/pnfs/uboone/scratch/users/kterao/&name;_&prod_version;_part&part_number;_out/&release;</outdir>
     <logdir>/pnfs/uboone/scratch/users/kterao/&name;_&prod_version;_part&part_number;_log/&release;</logdir>
     <workdir>/uboone/data/users/kterao/&name;_&prod_version;_part&part_number;_work</workdir>
-    <numjobs>500</numjobs>
+    <numjobs>1000</numjobs>
     <memory> 4096 </memory>
     <datatier>supera</datatier>
     <defname>&name;_&prod_version;_part&part_number;</defname>

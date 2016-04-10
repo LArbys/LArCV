@@ -40,13 +40,15 @@ namespace larcv {
 
     const std::map<larcv::PlaneID_t,larcv::ChStatus>& ChStatusMap() const { return _status_m; }
 
-    const ChStatus& at(larcv::PlaneID_t id) const;
+    const ChStatus& Status(larcv::PlaneID_t id) const;
 
-    void Insert(larcv::PlaneID_t id, const ChStatus& status_v);
+    void Insert(const ChStatus& status);
     
 #ifndef __CINT__
-    void Emplace(larcv::PlaneID_t id, ChStatus&& status_v);
+    void Emplace(ChStatus&& status);
 #endif
+
+    std::string dump() const;
     
   private:
 
