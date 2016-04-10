@@ -54,13 +54,14 @@ namespace larcv {
 
       void finalize();
 
-      void set_chstatus(larcv::PlaneID_t id, larcv::ChStatus status);
-
+      void set_chstatus(unsigned int ch, short status);
+      const std::string& producer_digit     () const { return _producer_digit;  }
       const std::string& producer_wire      () const { return _producer_wire;   }
       const std::string& producer_generator () const { return _producer_gen;    }
       const std::string& producer_mcreco    () const { return _producer_mcreco; }
       const std::string& producer_simch     () const { return _producer_simch;  }
       bool use_mc() const { return _use_mc; }
+      bool store_chstatus() const { return _store_chstatus; }
       const ::larcv::logger& logger() const { return _logger;}
 
     private:
@@ -69,8 +70,11 @@ namespace larcv {
       
       MCParticleTree<T,U,V,W> _mctp;
       std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;
+      std::vector<std::pair<unsigned short,unsigned short> > _channel_to_plane_wire;
       larcv::logger _logger;
       larcv::IOManager _larcv_io;
+      std::string _producer_key;
+      std::string _producer_digit;
       std::string _producer_simch;
       std::string _producer_wire;
       std::string _producer_gen;
@@ -85,6 +89,7 @@ namespace larcv {
       bool _skip_empty_image;
       bool _configured;
       bool _use_mc;
+      bool _store_chstatus;
     };
   }
 }

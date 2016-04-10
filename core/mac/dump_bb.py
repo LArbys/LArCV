@@ -1,11 +1,9 @@
 from ROOT import larcv
 larcv.IOManager
 from ROOT import TChain
-import matplotlib.pyplot as plt
 import sys
 
-ROI_PRODUCER='event_roi'
-IMG_PRODUCER='event_image'
+ROI_PRODUCER='supera_event'
 
 roi_tree_name='partroi_%s_tree' % ROI_PRODUCER
 roi_br_name='partroi_%s_branch' % ROI_PRODUCER

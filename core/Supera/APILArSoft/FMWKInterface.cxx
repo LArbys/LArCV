@@ -28,6 +28,12 @@ namespace larcv {
       return detp->NumberTimeSamples(); 
     }
 
+    unsigned int Nchannels()
+    {
+      auto const* geom = ::lar::providerFrom<geo::Geometry>();
+      return geom->Nchannels();
+    }
+
     unsigned int Nplanes()
     { 
       auto const* geom = ::lar::providerFrom<geo::Geometry>();

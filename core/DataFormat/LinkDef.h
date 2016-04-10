@@ -9,8 +9,12 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+// namespace
+#pragma link C++ namespace larcv::chstatus+;
+
 // enums
 #pragma link C++ enum larcv::ProductType_t+;
+#pragma link C++ enum larcv::chstatus::ChannelStatus_t+;
 
 // Classes
 #pragma link C++ class larcv::Vertex+;
