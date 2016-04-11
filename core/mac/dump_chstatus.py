@@ -3,7 +3,7 @@ larcv.IOManager
 from ROOT import TChain
 import sys
 
-CHSTATUS_PRODUCER='supera_event'
+CHSTATUS_PRODUCER='bnb_mc'
 
 chstatus_tree_name='chstatus_%s_tree' % CHSTATUS_PRODUCER
 chstatus_br_name='chstatus_%s_branch' % CHSTATUS_PRODUCER
