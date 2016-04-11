@@ -12,6 +12,9 @@
 *Cint.h
 *Cint.cc
 *.root
+*.json
+*.db
+*.log
 *.dat
 !*CMakeLists.txt
 *.txt

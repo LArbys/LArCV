@@ -19,6 +19,9 @@ namespace larcv {
     unsigned int NumberTimeSamples()
     { return ::larutil::DetectorProperties::GetME()->NumberTimeSamples(); }
 
+    unsigned int Nchannels()
+    { return ::larutil::Geometry::GetME()->Nchannels(); }
+
     unsigned int Nplanes()
     { return ::larutil::Geometry::GetME()->Nplanes(); }
 

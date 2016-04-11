@@ -12,7 +12,7 @@ namespace larcv {
     template <class S, class T, class U, class V, class W>
     SuperaCore<S,T,U,V,W>::SuperaCore() : _logger("Supera")
 			     , _larcv_io(::larcv::IOManager::kWRITE)
-    { _configured = false; }
+    { _configured = false; _use_mc = false; _store_chstatus = false; }
 
     template <class S, class T, class U, class V, class W>
     void SuperaCore<S,T,U,V,W>::initialize() {
@@ -23,9 +23,11 @@ namespace larcv {
     void SuperaCore<S,T,U,V,W>::configure(const Config_t& main_cfg) {
 
       _use_mc = main_cfg.get<bool>("UseMC");
-
+      _store_chstatus = main_cfg.get<bool>("StoreChStatus");
       _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
-      
+
+      _producer_key    = main_cfg.get<std::string>("ProducerKey");
+      _producer_digit  = main_cfg.get<std::string>("DigitProducer");
       _producer_simch  = main_cfg.get<std::string>("SimChProducer");
       _producer_wire   = main_cfg.get<std::string>("WireProducer");
       _producer_gen    = main_cfg.get<std::string>("GenProducer");
@@ -55,20 +57,34 @@ namespace larcv {
       for(auto const& v : _event_comp_rows){ if(!v) throw larcv::larbys("Event-Image row comp factor is 0!"); }
       for(auto const& v : _event_comp_cols){ if(!v) throw larcv::larbys("Event-Image col comp factor is 0!"); }
 
-      for(size_t p=0; p < ::larcv::supera::Nplanes(); ++p)
 
-	_status_m[p].Reset(::larcv::supera::Nwires(p),4);
-      
+
+      if(_store_chstatus) {
+	_channel_to_plane_wire.clear();
+	_channel_to_plane_wire.resize(::larcv::supera::Nchannels());
+	for(size_t i=0; i < ::larcv::supera::Nchannels(); ++i) {
+	  auto& plane_wire = _channel_to_plane_wire[i];
+	  auto const wid = ::larcv::supera::ChannelToWireID(i);
+	  plane_wire.first  = wid.Plane;
+	  plane_wire.second = wid.Wire;
+	}
+
+	for(size_t i=0; i < ::larcv::supera::Nplanes(); ++i) {
+	  ::larcv::ChStatus status;
+	  status.Plane(i);
+	  status.Initialize(::larcv::supera::Nwires(i),::larcv::chstatus::kUNKNOWN);
+	  _status_m.emplace(status.Plane(),status);
+	}
+      }
       _configured = true;
     }
 
     template <class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::set_chstatus(larcv::PlaneID_t id, larcv::ChStatus status)
+    void SuperaCore<S,T,U,V,W>::set_chstatus(unsigned int ch, short status)
     {
-      auto iter = _status_m.find(id);
-      if(iter == _status_m.end()) throw larcv::larbys("Invalid plane ID requested!");
-      if((*iter).second.as_vector().size() != status.as_vector().size()) throw larcv::larbys("Cannot set ChStatus (# wires do not match)!");
-      _status_m[id] = status;
+      if(ch >= _channel_to_plane_wire.size()) throw ::larcv::larbys("Invalid channel to store status!");
+      auto const& plane_wire = _channel_to_plane_wire[ch];
+      _status_m[plane_wire.first].Status(plane_wire.second,status);
     }
 
     template <class S, class T, class U, class V, class W>    
@@ -81,12 +97,22 @@ namespace larcv {
       if(!_configured) throw larbys("Call configure() first!");
 
       _larcv_io.clear_entry();
+
+      //
+      // 0) Store channel status if requested
+      //
+      if(_store_chstatus) {
+
+	auto event_chstatus = (::larcv::EventChStatus*)(_larcv_io.get_data(::larcv::kProductChStatus,_producer_key));
+	for(auto const& id_status : _status_m)
+	  event_chstatus->Insert(id_status.second);
+
+	// Reset status
+	for(auto& plane_status : _status_m) plane_status.second.Reset(::larcv::chstatus::kUNKNOWN);
+	
+      }
       
-      auto event_chstatus = (::larcv::EventChStatus*)(_larcv_io.get_data(::larcv::kProductChStatus,"event_status"));
-      for(auto const& id_status : _status_m)
-	event_chstatus->Insert(id_status.first,id_status.second);
-      
-      auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"event_image"));
+      auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,_producer_key));
       
       //
       // 0) Construct Event-image ROI
@@ -144,7 +170,7 @@ namespace larcv {
       _mctp.UpdatePrimaryROI();
       auto int_roi_v = _mctp.GetPrimaryROI();
       
-      auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI,"event_roi"));
+      auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI,_producer_key));
       
       for(auto& int_roi : int_roi_v) {
 	
@@ -247,7 +273,7 @@ namespace larcv {
 	  if(roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
 	  auto const& roi_meta = roi.BB(p);
 	  // Retrieve cropped full resolution image
-	  auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("mcint%02d",roi.MCTIndex())));
+	  auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("%s_int%02d",_producer_key.c_str(),roi.MCTIndex())));
 	  LARCV_INFO() << "Cropping an interaction image (high resolution) @ plane " << p << std::endl
 		       << roi_meta.dump() << std::endl;
 	  auto hires_img = _full_image.crop(roi_meta);

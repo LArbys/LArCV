@@ -18,6 +18,18 @@ namespace larcv {
 
   typedef unsigned short PlaneID_t;
   static const PlaneID_t kINVALID_PLANE = kINVALID_USHORT;
+
+  namespace chstatus {
+    static const short kNOTPRESENT = -1;
+    static const short kNEGATIVEPEDESTAL = -2;
+    enum ChannelStatus_t { kDISCONNECTED=0, 
+			   kDEAD=1, 
+			   kLOWNOISE=2, 
+			   kNOISY=3, 
+			   kGOOD=4, 
+			   kUNKNOWN=5
+    };
+  }
   
   enum ShapeType_t {
     kShapeShower,

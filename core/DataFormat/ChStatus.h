@@ -32,15 +32,21 @@ namespace larcv {
     /// Default destructor
     ~ChStatus(){}
 
-    PlaneID_t Plane() const { return _plane; }
+    void  Initialize(size_t nwires, short status = chstatus::kUNKNOWN);
 
-    void  Reset(size_t nwires, short status);
+    void  Reset(short status = chstatus::kUNKNOWN);
+
+    void Plane(PlaneID_t p) { _plane = p; }
 
     void Status(size_t wire, short status);
+
+    PlaneID_t Plane() const { return _plane; }
 
     short Status(size_t wire) const;
 
     const std::vector<short>& as_vector() const { return _status_v; }
+
+    std::string dump() const;
 
   private:
     std::vector<short> _status_v;

@@ -15,18 +15,25 @@ namespace larcv {
     _status_m.clear();
   }
 
-  const ChStatus& EventChStatus::at(PlaneID_t id) const
+  const ChStatus& EventChStatus::Status(PlaneID_t id) const
   {
     auto iter = _status_m.find(id);
     if( iter == _status_m.end() ) throw larbys("Invalid request (PlaneID_t not found)!");
     return (*iter).second;
   }
 
-  void EventChStatus::Insert(PlaneID_t id, const ChStatus& status)
-  { _status_m[id] = status; }
+  void EventChStatus::Insert(const ChStatus& status)
+  { _status_m[status.Plane()] = status; }
 
-  void EventChStatus::Emplace(PlaneID_t id, ChStatus&& img)
-  { _status_m.emplace(id,std::move(img)); }
+  void EventChStatus::Emplace(ChStatus&& status)
+  { _status_m.emplace(status.Plane(),std::move(status)); }
+
+  std::string EventChStatus::dump() const
+  {
+    std::string res;
+    for(auto const& plane_status : _status_m) res += plane_status.second.dump() + "\n";
+    return res;
+  }
 
 }
 
