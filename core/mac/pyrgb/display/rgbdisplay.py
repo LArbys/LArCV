@@ -62,7 +62,7 @@ class RGBDisplay(QtGui.QWidget) :
 
         
         ### select choice options
-        self.axis_plot = QtGui.QPushButton("Plot")
+        self.axis_plot = QtGui.QPushButton("Replot")
         self.lay_inputs.addWidget( self.axis_plot, 1, 0, 1 , 2  )
 
         self.previous_plot = QtGui.QPushButton("Prev. Event")
@@ -87,6 +87,23 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
 
+
+
+        self.p0 = QtGui.QCheckBox("Plane 0")
+        self.p0.setChecked(True)
+        self.lay_inputs.addWidget( self.p0, 1, 9 )
+        
+        self.p1 = QtGui.QCheckBox("Plane 1")
+        self.p1.setChecked(True)
+        self.lay_inputs.addWidget( self.p1, 1, 10 )
+
+        self.p2 = QtGui.QCheckBox("Plane 2")
+        self.p2.setChecked(True)
+        self.lay_inputs.addWidget( self.p2, 1, 11 )
+
+
+        self.planes = [ self.p0, self.p1, self.p2 ]
+
         self.lay_inputs.addWidget( QtGui.QLabel("Image2D"), 0, 12)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
@@ -95,7 +112,7 @@ class RGBDisplay(QtGui.QWidget) :
             self.comboBoxImage.addItem(prod)
             
         self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
-
+        
 
         self.lay_inputs.addWidget( QtGui.QLabel("ROI"), 0, 13)
         self.comboBoxROI = QtGui.QComboBox()
@@ -214,10 +231,17 @@ class RGBDisplay(QtGui.QWidget) :
         imin  = int( self.imin.text() )
         imax  = int( self.imax.text() )
 
+        planes = []
+
+        for ix, p in enumerate( self.planes ):
+            if p.isChecked():
+                planes.append(ix)
+            
 
         pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax,
                                                               self.image_producer,
                                                               self.roi_producer,
+                                                              planes,
                                                               self.highres)
 
         if pimg is None:

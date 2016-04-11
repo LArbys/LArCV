@@ -16,15 +16,11 @@ class DataManager(object):
 
     def __init__(self,rfiles):
 
-        self.ROI_PRODUCER   ='event_roi'
-        self.LR_IMG_PRODUCER='event_image'
-        self.HR_IMG_PRODUCER='mcint00'
-        
-        # for rf in rfiles:
-        #     ROOT.TFile.Open((rf
-            
         
         self.iom = IOManager(rfiles)
+
+
+        #get keys from rootfile
         
         keys = [ key.GetName() for key in ROOT.gDirectory.GetListOfKeys() ]
         self.keys= {}
@@ -54,7 +50,7 @@ class DataManager(object):
         
         self.loaded = {}
         
-    def get_event_image(self,ii,imin,imax,imgprod,roiprod,highres) :
+    def get_event_image(self,ii,imin,imax,imgprod,roiprod,planes,highres) :
 
         #Load data in TChain
         self.iom.iom.read_entry(ii)
@@ -62,22 +58,25 @@ class DataManager(object):
         imdata, roidata, image = None, None, None
 
         if roiprod is not None:
-            roidata = self.iom.iom.get_data( larcv.kProductROI , roiprod    )
+            roidata = self.iom.iom.get_data(larcv.kProductROI,roiprod)
             roidata = roidata.ROIArray()
 
         #Awkward true false
         if highres == False:
-            imdata  = self.iom.iom.get_data( larcv.kProductImage2D, imgprod )
+            imdata  = self.iom.iom.get_data(larcv.kProductImage2D,imgprod)
             imdata  = imdata.Image2DArray()
             if imdata.size() == 0 : return (None,None,None)
-            image   = CompressedImage(imdata,roidata)
+            image   = CompressedImage(imdata,roidata,planes)
             
         else:
-            imdata  = self.iom.iom.get_data( larcv.kProductImage2D, imgprod )
+            imdata  = self.iom.iom.get_data( larcv.kProductImage2D,imgprod)
             imdata  = imdata.Image2DArray()
             if imdata.size() == 0 : return (None,None,None)
             image   = UnCompressedImage(imdata,roidata)
 
+
+        
+        
         if roiprod is None:
             return ( image.treshold_mat(imin,imax),
                      None,

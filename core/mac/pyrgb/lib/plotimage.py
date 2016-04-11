@@ -5,17 +5,21 @@ import abc
 class PlotImage(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self,img_v,roi_v):
+    def __init__(self,img_v,roi_v,planes):
         
         self.imgs   = [ img_v[i] for i in xrange(img_v.size()) ]
         self.img_v  = [ larcv.as_ndarray(img) for img in self.imgs  ]
 
         if roi_v is not None:
             self.roi_v  = [ roi_v[i] for i in xrange(roi_v.size()) ]
-        
+
+
+        self.planes = planes
+                    
         self.__create_mat__()
         self.plot_mat_t = None
 
+        
         self.rois = []
 
     @abc.abstractmethod
