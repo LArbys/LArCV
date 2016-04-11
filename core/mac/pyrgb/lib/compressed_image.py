@@ -36,14 +36,10 @@ class CompressedImage(PlotImage):
         self.plot_mat_t[ self.plot_mat_t > imax ] = imax
         
 
-
-
-
-        
     def __create_rois__(self):
         
         for ix,roi in enumerate(self.roi_v) :
-
+            
             if roi.BB().size() == 0: #there was no ROI continue...
                 continue
 
@@ -51,7 +47,7 @@ class CompressedImage(PlotImage):
 
             r['type'] = roi.Type()
             r['bbox'] = []
-            
+
             for iy in xrange(3):
                 r['bbox'].append( roi.BB(iy) )
                 

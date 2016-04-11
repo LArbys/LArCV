@@ -103,7 +103,8 @@ class RGBDisplay(QtGui.QWidget) :
 
 
         self.planes = [ self.p0, self.p1, self.p2 ]
-
+        self.views = []
+        
         self.lay_inputs.addWidget( QtGui.QLabel("Image2D"), 0, 12)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
@@ -124,6 +125,7 @@ class RGBDisplay(QtGui.QWidget) :
                 self.comboBoxROI.addItem(prod)
         else:
             self.roi_exists = False
+            self.comboBoxROI.addItem("None")
 
         self.lay_inputs.addWidget( self.comboBoxROI, 1, 13 )
         
@@ -163,7 +165,6 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.comboBoxImage.activated[str].connect(self.chosenImageProducer)
         self.comboBoxROI.activated[str].connect(self.chosenROIProducer)
-
 
         self.chosenImageProducer()
         self.chosenROIProducer()
@@ -214,7 +215,15 @@ class RGBDisplay(QtGui.QWidget) :
         self.event.setText(str(event+1))
 
         self.plotData()
-        
+
+    def setViewPlanes(self):
+
+        self.views = []
+        for ix, p in enumerate( self.planes ):
+            if p.isChecked():
+                self.views.append(ix)
+
+                
     def plotData(self):
 
         self.image = None
@@ -231,17 +240,13 @@ class RGBDisplay(QtGui.QWidget) :
         imin  = int( self.imin.text() )
         imax  = int( self.imax.text() )
 
-        planes = []
 
-        for ix, p in enumerate( self.planes ):
-            if p.isChecked():
-                planes.append(ix)
-            
-
+        self.setViewPlanes()
+        
         pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax,
                                                               self.image_producer,
                                                               self.roi_producer,
-                                                              planes,
+                                                              self.views,
                                                               self.highres)
 
         if pimg is None:
@@ -258,6 +263,8 @@ class RGBDisplay(QtGui.QWidget) :
 
     ### For now this is fine....
     def drawBBOX(self,kType):
+
+        self.setViewPlanes()
         
         if self.image is None: #no image was drawn
             return
@@ -276,9 +283,10 @@ class RGBDisplay(QtGui.QWidget) :
                 continue
             
             for ix,bbox in enumerate(roi_p['bbox']):
+
+                if ix not in self.views: continue
                 
                 imm = self.image[ix].meta()
-
 
                 x = bbox.bl().x - imm.bl().x
                 y = bbox.bl().y - imm.bl().y

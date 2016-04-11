@@ -72,7 +72,7 @@ class DataManager(object):
             imdata  = self.iom.iom.get_data( larcv.kProductImage2D,imgprod)
             imdata  = imdata.Image2DArray()
             if imdata.size() == 0 : return (None,None,None)
-            image   = UnCompressedImage(imdata,roidata)
+            image   = UnCompressedImage(imdata,roidata,planes)
 
 
         

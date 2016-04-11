@@ -4,8 +4,8 @@ from .. import np
 
 class UnCompressedImage(PlotImage):
 
-    def __init__(self,img_v,roi_v) :
-        super(UnCompressedImage,self).__init__(img_v,roi_v)
+    def __init__(self,img_v,roi_v,planes) :
+        super(UnCompressedImage,self).__init__(img_v,roi_v,planes)
         self.name = "UnCompressedImage"
 
     def _get_boundaries(self,imgs):
@@ -41,6 +41,8 @@ class UnCompressedImage(PlotImage):
 
         for ix,img in enumerate(self.img_v):
 
+            if ix not in self.planes: continue
+            
             meta = self.imgs[ix].meta()
             
             aa = [ int(meta.bl().x)       , int(xmax - meta.tr().x) ] # column padding before and after
