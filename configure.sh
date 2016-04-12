@@ -12,6 +12,8 @@ if [[ -z $LARCV_BUILDDIR ]]; then
     export LARCV_BUILDDIR=$LARCV_BASEDIR/build
 fi
 
+export LARCV_COREDIR=$LARCV_BASEDIR/core
+export LARCV_SUPERADIR=$LARCV_BASEDIR/Supera
 export LARCV_LIBDIR=$LARCV_BUILDDIR/lib
 export LARCV_INCDIR=$LARCV_BUILDDIR/include
 
@@ -54,8 +56,7 @@ if [[ $missing ]]; then
 fi
 
 echo
-printf "\033[93mLArCV\033[00m Setting up shell envs.\n"
-printf "    \033[95mLARCV_BASEDIR\033[00m  = $LARCV_BASEDIR\n"
+printf "\033[93mLArCV\033[00m FYI shell env. may useful for external packages:\n"
 printf "    \033[95mLARCV_INCDIR\033[00m   = $LARCV_INCDIR\n"
 printf "    \033[95mLARCV_LIBDIR\033[00m   = $LARCV_LIBDIR\n"
 printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
@@ -71,26 +72,16 @@ fi
 
 mkdir -p $LARCV_BUILDDIR;
 
-#if [ ! -f $LARCV_BASEDIR/APICaffe/caffe.pb.h ]; then
-#    printf "\033[93mnotice\033[00m ... generating caffe proto-buf source code (one-time operation)\n"
-#    protoc $LARCV_BASEDIR/APICaffe/caffe.proto --proto_path=$LARCV_BASEDIR/APICaffe --cpp_out=$LARCV_BASEDIR/APICaffe/
-#    mv $LARCV_BASEDIR/APICaffe/caffe.pb.cc $LARCV_BASEDIR/APICaffe/caffe.pb.cxx
-#fi
-
 export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
-
-#if [ "$LARLITE_OS" -eq "Darwin" ]; then
-#    export DYLD_LIBRARY_PATH=$LARCV_LIBDIR:$DYLD_LIBRARY_PATH
-#fi
 
 if [[ $LARLITE_BASEDIR ]]; then
     printf "\033[93mLArLite\033[00m\n"
     echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
     echo "    Preparing APILArLite package for build (making sym links)"
-    target=$LARCV_BASEDIR/Supera/larfmwk_shared/*
+    target=$LARCV_SUPERADIR/larfmwk_shared/*
     for f in $target
     do
-	ln -sf $f $LARCV_BASEDIR/Supera/APILArLite/
+	ln -sf $f $LARCV_SUPERADIR/APILArLite/
     done
 fi
 
@@ -101,19 +92,12 @@ if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
     target=$LARCV_BASEDIR/Supera/larfmwk_shared/*
     for f in $target
     do
-	ln -sf $f $LARCV_BASEDIR/Supera/APILArSoft/
+	ln -sf $f $LARCV_SUPERADIR/APILArSoft/
     done
     if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
-	ln -s $LARCV_BASEDIR/Supera/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+	ln -s $LARCV_SUPERADIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
     fi
 fi
-#if [ -d $MRB_TOP/srcs/uboonecode/uboone ]; then
-#    echo Found local uboonecode @ \$MRB_TOP=${MRB_TOP}
-#    if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
-#	echo Making a sym-link for LArSoft API...
-#	ln -s $LARCV_BASEDIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
-#    fi
-#fi
 
 export LARCV_CXX=clang++
 if [ -z `command -v $LARCV_CXX` ]; then

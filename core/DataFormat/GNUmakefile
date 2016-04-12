@@ -11,7 +11,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
-INCFLAGS += -I$(LARCV_BASEDIR)
+INCFLAGS += -I$(LARCV_COREDIR)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)

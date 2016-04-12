@@ -1,18 +1,17 @@
 
-ifndef LARCV_COREDIR
-ERROR_MESSAGE := $(error LARCV_COREDIR is not set... run configure.sh!)
+ifndef LARCV_SUPERADIR
+ERROR_MESSAGE := $(error LARCV_SUPERADIR is not set... run configure.sh!)
+endif
+
+ifndef LARLITE_BASEDIR
+ERROR_MESSAGE := $(error LARLITE_BASEDIR is not set...)
 endif
 
 #####################################################################################
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := Base DataFormat
-ifeq ($(LARCV_NUMPY),1)
-  ifeq ($(LARCV_OPENCV),1)
-  SUBDIRS += PyCVUtil
-  endif
-endif
+SUBDIRS := APILArLite
 
 #####################################################################################
 #
@@ -28,16 +27,17 @@ all:
 # CLEANs...
 #
 clean:
-	@for i in $(SUBDIRS); do ( echo "" && echo "Cleaning $$i..." && cd $$i && $(MAKE) clean && rm -rf $(LARCV_BUILDDIR)/$$i && rm -rf $(LARCV_BUILDDIR)/lib/*$ii.* ) || exit $$?; done
+	@for i in $(SUBDIRS); do ( echo "" && echo "Cleaning $$i..." && cd $$i && $(MAKE) clean && rm -rf $(LARCV_BUILDDIR)/$$i && rm -rf $(LARCV_LIBDIR)/*$$i.* ) || exit $$?; done
 
 #####################################################################################
 #
 # DOCUMENTATION...
 #
 doxygen:
-	@echo 'dOxygenising LArCV core...'
-	@mkdir -p $(LARCV_COREDIR)/doc/dOxygenMyProject
-	@doxygen $(LARCV_COREDIR)/doc/doxygenMyProject.script
+	@echo 'dOxygenising Supera code...'
+	@mkdir -p $(LARCV_SUPERADIR)/doc/dOxygenMyProject
+	@doxygen $(LARCV_SUPERADIR)/doc/doxygenMyProject.script
+
 #
 #####################################################################################
 #EOF

@@ -14,7 +14,7 @@ INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell python-config --includes)
 INCFLAGS += -I$(shell python -c "import numpy; print numpy.get_include()")
 INCFLAGS += -I$(OPENCV_INCDIR)
-INCFLAGS += -I$(LARCV_BASEDIR)
+INCFLAGS += -I$(LARCV_COREDIR)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)

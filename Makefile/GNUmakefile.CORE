@@ -105,7 +105,7 @@ clearCINT:
 # auto-generate dependencies using g++ -M
 .depend: $(SOURCES) $(HEADERS)
 	@#rm .depend
-	@echo '<< checking dependencies yo>>'
+	@echo '<< checking dependencies>>'
 	@$(CXX) -M $(addprefix '-MT ', $(OBJECTS)) $(LARCV_BASIC_ROOTINC) $(INCFLAGS) $(SOURCES) > .depend
 -include .depend
 
