@@ -49,8 +49,6 @@ namespace larcv {
     ImageIndex_t index() const { return _id; }
     void index(ImageIndex_t n) { _id = n; }
 
-    void imread(const std::string file_name);//, bool as_imshow=false);
-
     float pixel(size_t row, size_t col) const;
     const ImageMeta& meta() const { return _meta; }
     std::vector<float> copy_compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum) const;
