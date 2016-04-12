@@ -4,11 +4,11 @@
 
 <!DOCTYPE project [
 <!ENTITY release      "v05_08_00" >
-<!ENTITY file_type    "mc"        >
+<!ENTITY file_type    "data"        >
 <!ENTITY run_type     "physics"   >
-<!ENTITY name         "bnb_nu_supera_larlite">
+<!ENTITY name         "wireop_supera_larlite_extunb">
 <!ENTITY prod_version "v2"        >
-<!ENTITY part_number  "00"        >
+<!ENTITY part_number  "04"        >
 <!ENTITY tardir       "/pnfs/uboone/scratch/users/kterao/tars">
 ]>
 
@@ -17,7 +17,7 @@
 <project name="&name;">
 
   <!-- Project size -->
-  <numevents>100000</numevents>
+  <numevents>10000000</numevents>
 
   <!-- Operating System -->
   <os>SL6</os>
@@ -31,15 +31,17 @@
 
   <!-- Project stages -->
 
-  <stage name="gen">
-    <fcl>bnb_nu_supera_larlite.fcl</fcl>
+  <stage name="convert">
+    <fcl>wireop_supera_larlite.fcl</fcl>
     <outdir>/pnfs/uboone/persistent/users/kterao/&name;_&prod_version;_part&part_number;_out/&release;</outdir>
     <logdir>/pnfs/uboone/persistent/users/kterao/&name;_&prod_version;_part&part_number;_log/&release;</logdir>
     <workdir>/uboone/data/users/kterao/&name;_&prod_version;_part&part_number;_work</workdir>
-    <numjobs>1000</numjobs>
-    <memory>4096</memory>
+    <inputdef>&name;_&prod_version;_part&part_number;_input</inputdef>
+    <numjobs>254</numjobs>
+    <memory> 4096 </memory>
     <datatier>supera</datatier>
     <resource>DEDICATED,OPPORTUNISTIC</resource>
+    <maxfilesperjob>2</maxfilesperjob>
     <defname>&name;_&prod_version;_part&part_number;</defname>
   </stage>
 

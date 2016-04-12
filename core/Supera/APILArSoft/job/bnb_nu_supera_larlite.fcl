@@ -162,6 +162,8 @@ physics.producers.generator.RandomTimeOffset: 1600.
 #physics.producers.generator.TopVolume: "volCryostat"
 physics.producers.generator.TopVolume: "volTPCActive"
 physics.producers.generator.BeamName: "booster"
+physics.producers.generator.FluxCopyMethod: "IFDH"
+physics.producers.generator.MaxFluxFileMB:  2000
 
 #physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"]
 
