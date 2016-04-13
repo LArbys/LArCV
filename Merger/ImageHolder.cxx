@@ -7,13 +7,10 @@ namespace larcv {
 
   ImageHolder::ImageHolder(const std::string name)
     : ProcessBase(name)
-  {}
+  { _run = _subrun = _event = 0; }
 
   void ImageHolder::move(std::vector<larcv::Image2D>& dest)
   { dest = std::move(_image_v); }
-
-  void ImageHolder::move(std::vector<larcv::ROI>& dest)
-  { dest = std::move(_roi_v); }
 
 }
 #endif

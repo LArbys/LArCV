@@ -60,6 +60,8 @@ namespace larcv {
 
     const ProcessBase* process_ptr(ProcessID_t id) const;
 
+    const IOManager& io() const { return _io; }
+
   private:
 
     bool _process_entry_();

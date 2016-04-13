@@ -36,8 +36,10 @@ namespace larcv {
     void configure(std::string cfg_file);
 
     void initialize();
+    
+    bool process();
 
-    void process();
+    void batch_process();
 
     void finalize();
 
@@ -51,6 +53,10 @@ namespace larcv {
     std::string   _proc1_name;
     std::string   _proc2_name;
     bool _prepared;
+    size_t _num_proc1;
+    size_t _num_proc2;
+    size_t _num_proc_max;
+    size_t _num_proc_frac;
   };
 }
   

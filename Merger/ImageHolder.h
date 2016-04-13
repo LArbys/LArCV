@@ -15,7 +15,6 @@
 #define __IMAGEHOLDER_H__
 
 #include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/ROI.h"
 
@@ -38,13 +37,22 @@ namespace larcv {
 
     void move(std::vector<larcv::Image2D>&);
 
-    void move(std::vector<larcv::ROI>&);
+    const ROI& roi() const { return _roi; }
 
-  private:
+    void retrieve_id(const EventBase* data)
+    { _run=data->run(); _subrun=data->subrun(); _event=data->event(); }
+    
+    size_t run    () const { return _run;    }
+    size_t subrun () const { return _subrun; }
+    size_t event  () const { return _event;  }
+
+  protected:
 
     std::vector<larcv::Image2D> _image_v;
-    std::vector<larcv::ROI>     _roi_v;
     
+    ROI _roi;
+
+    size_t _run, _subrun, _event;
   };
 
 }

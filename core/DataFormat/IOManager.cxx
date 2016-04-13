@@ -79,6 +79,12 @@ namespace larcv {
     _in_file_v = cfg.get<std::vector<std::string> >("InputFiles",_in_file_v);
     _in_dir_v.clear();
     _in_dir_v = cfg.get<std::vector<std::string> >("InputDirs",_in_dir_v);
+    if(_in_dir_v.empty()) _in_dir_v.resize(_in_file_v.size(),"");
+    if(_in_dir_v.size()!=_in_file_v.size()) {
+      LARCV_CRITICAL() << "# of input file (" << _in_file_v.size() 
+		       << ") != # of input dir (" << _in_dir_v.size() << ")!" << std::endl;
+      throw larbys();
+    }
     _store_only_name = cfg.get<std::vector<std::string> >("StoreOnlyName",_store_only_name);
     std::vector<unsigned short> store_only_type;
     for(auto const& ptype : _store_only_type) store_only_type.push_back((unsigned short)ptype);
@@ -522,10 +528,10 @@ namespace larcv {
       _out_file->cd();
       for(auto& t : _out_tree_v) {
 	if(!t) break;
-	LARCV_INFO() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
 	t->Write(); 
       }
-      LARCV_INFO() << "Closing output file" << std::endl;
+      LARCV_NORMAL() << "Closing output file" << std::endl;
       _out_file->Close();
       _out_file = nullptr;
     }

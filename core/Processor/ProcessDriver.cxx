@@ -148,7 +148,7 @@ namespace larcv {
       // Attempt to instantiate retrieved class + register its ID
       auto ptr = ProcessFactory::get().create(proc_type,proc_name);
       ptr->_id = _proc_v.size();
-      _proc_m.emplace(ptr->name(),_proc_v.size()-1);
+      _proc_m.emplace(ptr->name(),ptr->_id);
 
       // Configure process
       LARCV_INFO() << "Assigned ProcessID_t: " << ptr->_id << " configuring the instance..." << std::endl;
@@ -193,8 +193,10 @@ namespace larcv {
     }
 
     // Prepare analysis output file if needed
-    LARCV_INFO() << "Opening analysis output file" << std::endl;
-    if(!_fout_name.empty()) _fout = TFile::Open(_fout_name.c_str(),"RECREATE");
+    if(!_fout_name.empty()) {
+      LARCV_NORMAL() << "Opening analysis output file " << _fout_name << std::endl;
+      _fout = TFile::Open(_fout_name.c_str(),"RECREATE");
+    }
 
     // Change state from to-be-initialized to to-process
     _processing = true;
@@ -363,8 +365,11 @@ namespace larcv {
 		     << msg
 		     << std::endl;
 
-    LARCV_INFO() << "Closing analysis output file..." << std::endl;
-    if(_fout) _fout->Close();
+    if(_fout) {
+      LARCV_NORMAL() << "Closing analysis output file..." << std::endl;
+      _fout->Close();
+    }
+
     LARCV_INFO() << "Finalizing IO..." << std::endl;
     _io.finalize();
     LARCV_INFO() << "Resetting..." << std::endl;

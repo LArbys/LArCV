@@ -14,4 +14,9 @@ clean:
 ifdef LARLITE_BASEDIR
 	@make clean --directory=$(LARCV_SUPERADIR)
 endif
+	@make clean --directory=$(LARCV_BASEDIR)/Merger
 
+merger: all
+	@echo
+	@echo "Compiling Merger"
+	@make --directory=$(LARCV_BASEDIR)/Merger
