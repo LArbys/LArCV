@@ -14,8 +14,8 @@
 #ifndef __EMPTY_CLASS_NAME_H__
 #define __EMPTY_CLASS_NAME_H__
 
-#include "ProcessBase.h"
-#include "ProcessFactory.h"
+#include "Processor/ProcessBase.h"
+#include "Processor/ProcessFactory.h"
 namespace larcv {
 
   /**
