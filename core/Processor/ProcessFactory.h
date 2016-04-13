@@ -18,10 +18,9 @@
 #include <map>
 #include "Base/larcv_base.h"
 #include "Base/larbys.h"
-
+#include "ProcessBase.h"
 namespace larcv {
 
-  class ProcessBase;
   /**
      \class ProcessFactoryBase
      \brief Abstract base class for factory (to be implemented per process)
@@ -65,7 +64,9 @@ namespace larcv {
 	LARCV_ERROR() << "Found no registered class " << name << std::endl;
 	return nullptr;
       }
-      return (*iter).second->create(instance_name);
+      auto ptr = (*iter).second->create(instance_name);
+      ptr->_typename = name;
+      return ptr;
     }
 
   private:

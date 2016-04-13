@@ -91,6 +91,11 @@ namespace larcv {
       throw larbys();
     }
     auto const cfg = main_cfg.get<larcv::PSet>(name());
+    configure(cfg);
+  }
+
+  void ProcessDriver::configure(const PSet& cfg) 
+  {
     // check io config exists
     if(!cfg.contains_pset("IOManager")) {
       LARCV_CRITICAL() << "IOManager config not found!" << std::endl

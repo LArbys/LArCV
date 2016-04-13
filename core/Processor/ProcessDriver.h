@@ -38,6 +38,8 @@ namespace larcv {
 
     void configure(const std::string config_file);
 
+    void configure(const PSet& cfg);
+
     void initialize();
 
     void override_input_file(const std::vector<std::string>& flist);

@@ -20,14 +20,15 @@
 namespace larcv {
 
   class ProcessDriver;
+  class ProcessFactory;
   /**
      \class ProcessBase
      User defined class ProcessBase ... these comments are used to generate
      doxygen documentation!
   */
   class ProcessBase : public larcv_base {
-
     friend class ProcessDriver;
+    friend class ProcessFactory;
 
   public:
     
@@ -56,7 +57,7 @@ namespace larcv {
     size_t _proc_count;     ///< algorithm execution counter (cumulative)
     larcv::ProcessID_t _id; ///< unique algorithm identifier
     bool _profile;          ///< measure process time if profile flag is on
-    
+    std::string _typename;  ///< process type from factory
   };
 }
 
