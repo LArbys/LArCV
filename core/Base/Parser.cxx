@@ -65,7 +65,10 @@ namespace larcv {
       while((index+1) < value.size()) {
 	size_t next_index = value.find(",",index);
 	if(next_index >= value.size()) break;
-	res.push_back(value.substr(index,next_index-index));
+	std::string cand = value.substr(index,next_index-index);
+	if(cand.find("\"")==0) cand=cand.substr(1,cand.size()-1);
+	if(cand.rfind("\"")+1 == cand.size()) cand = cand.substr(0,cand.size()-1);
+	res.emplace_back(cand);
 	index = next_index + 1;
       }
       if( (index+1) < value.size() )

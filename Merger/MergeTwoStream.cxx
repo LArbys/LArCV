@@ -17,6 +17,28 @@ namespace larcv {
 				   , _num_proc2(0)
   {}
 
+  void MergeTwoStream::override_input_file(const std::vector<std::string> driver1,
+					   const std::vector<std::string> driver2)
+  {
+    if(_prepared) {
+      LARCV_CRITICAL() << "Cannot re-configure after initialized..." << std::endl;
+      throw larbys();
+    }
+    if(driver1.size())
+      _driver1.override_input_file(driver1);
+    if(driver2.size())
+      _driver2.override_input_file(driver2);
+  }
+
+  void MergeTwoStream::override_output_file(std::string out_fname)
+  {
+    if(_prepared) {
+      LARCV_CRITICAL() << "Cannot re-configure after initialized..." << std::endl;
+      throw larbys();
+    }
+    _io.set_out_file(out_fname);
+  }
+
   void MergeTwoStream::configure(std::string cfg_file)
   {
     if(_prepared) {

@@ -75,6 +75,8 @@ namespace larcv {
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
     _io_mode = (IOMode_t)(cfg.get<unsigned short>("IOMode"));
     _out_file_name = cfg.get<std::string>("OutFileName","");
+
+    // Figure out input files
     _in_file_v.clear();
     _in_file_v = cfg.get<std::vector<std::string> >("InputFiles",_in_file_v);
     _in_dir_v.clear();
@@ -85,6 +87,7 @@ namespace larcv {
 		       << ") != # of input dir (" << _in_dir_v.size() << ")!" << std::endl;
       throw larbys();
     }
+
     _store_only_name = cfg.get<std::vector<std::string> >("StoreOnlyName",_store_only_name);
     std::vector<unsigned short> store_only_type;
     for(auto const& ptype : _store_only_type) store_only_type.push_back((unsigned short)ptype);

@@ -35,6 +35,11 @@ namespace larcv {
 
     void configure(std::string cfg_file);
 
+    void override_input_file(const std::vector<std::string> driver1 = std::vector<std::string>(),
+			     const std::vector<std::string> driver2 = std::vector<std::string>());
+
+    void override_output_file(std::string out_fname);
+
     void initialize();
     
     bool process();
