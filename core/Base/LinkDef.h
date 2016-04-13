@@ -11,6 +11,7 @@
 
 // Classes
 #pragma link C++ namespace larcv+;
+#pragma link C++ class larcv::Watch+;
 #pragma link C++ class larcv::Range<int>+;
 #pragma link C++ class larcv::Range<size_t>+;
 #pragma link C++ class larcv::Range<double>+;
@@ -24,13 +25,17 @@
 #pragma link C++ class larcv::logger+;
 #pragma link C++ class larcv::larcv_base+;
 #pragma link C++ class larcv::larbys+;
+
+// Configuration handler
+#pragma link C++ class larcv::PSet+;
+#pragma link C++ function larcv::PSet::get< string > (const string&)+;
+#pragma link C++ function larcv::ConfigFile2String(const string)+;
+#pragma link C++ function larcv::CreatePSetFromFile(const string)+;
+#pragma link C++ class larcv::ConfigManager+;
 //ADD_NEW_CLASS ... do not change this line
 
-// Functions
-//#pragma link C++ namespace larcv::test+;
-//#pragma link C++ function larcv::test::bmark_insert(const size_t)+;
-//#pragma link C++ function larcv::test::bmark_exclude(const size_t)+;
 #endif
+
 
 
 

@@ -8,11 +8,56 @@
 #include <algorithm>
 namespace larcv {
 
+  IOManager::IOManager(IOMode_t mode, std::string name)
+    : larcv_base(name)
+    , _io_mode         ( mode          )
+    , _prepared        ( false         )
+    , _out_file        ( nullptr       )
+    , _tree_index      ( 0             )
+    , _tree_entries    ( 0             )
+    , _out_file_name   ( ""            )
+    , _in_file_v       ()
+    , _in_dir_v        ()
+    , _key_list        ( kProductUnknown )
+    , _out_tree_v      ()
+    , _in_tree_v       ()
+    , _in_tree_index_v ()
+    , _product_ctr     (0)
+    , _product_ptr_v   ()
+    , _product_type_v  ()
+  { reset(); }
+
+  IOManager::IOManager(const PSet& cfg)
+    : larcv_base(cfg.get<std::string>("Name"))
+    , _io_mode         ( kREAD         )
+    , _prepared        ( false         )
+    , _out_file        ( nullptr       )
+    , _tree_index      ( 0             )
+    , _tree_entries    ( 0             )
+    , _out_file_name   ( ""            )
+    , _in_file_v       ()
+    , _in_dir_v        ()
+    , _key_list        ( kProductUnknown )
+    , _out_tree_v      ()
+    , _in_tree_v       ()
+    , _in_tree_index_v ()
+    , _product_ctr     (0)
+    , _product_ptr_v   ()
+    , _product_type_v  ()
+
+  { 
+    reset();
+    configure(cfg);
+  }
+  
   void IOManager::add_in_file(const std::string filename, const std::string dirname)
   { _in_file_v.push_back(filename); _in_dir_v.push_back(dirname); }
+
+  void IOManager::clear_in_file()
+  { _in_file_v.clear(); }
+
   void IOManager::set_out_file(const std::string name)
   { _out_file_name = name; }
-
 
   ProductType_t IOManager::product_type(const size_t id) const
   {
@@ -21,6 +66,36 @@ namespace larcv {
       throw larbys();
     }
     return _product_type_v[id];
+  }
+
+  void IOManager::configure(const PSet& cfg)
+  {
+    if(_prepared) throw larbys("Cannot call configure() after initialize()!");
+
+    set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
+    _io_mode = (IOMode_t)(cfg.get<unsigned short>("IOMode"));
+    _out_file_name = cfg.get<std::string>("OutFileName","");
+    _in_file_v.clear();
+    _in_file_v = cfg.get<std::vector<std::string> >("InputFiles",_in_file_v);
+    _in_dir_v.clear();
+    _in_dir_v = cfg.get<std::vector<std::string> >("InputDirs",_in_dir_v);
+    _store_only_name = cfg.get<std::vector<std::string> >("StoreOnlyName",_store_only_name);
+    std::vector<unsigned short> store_only_type;
+    for(auto const& ptype : _store_only_type) store_only_type.push_back((unsigned short)ptype);
+    store_only_type = cfg.get<std::vector<unsigned short> >("StoreOnlyType",store_only_type);
+    _store_only_type.clear();
+    for(auto const& ptype : store_only_type) {
+      if(ptype >= (unsigned short)kProductUnknown) {
+	LARCV_CRITICAL() << "StoreOnlyType contains invalid type: " 
+			 << ptype << " (>=" << kProductUnknown << ")" << std::endl;
+	throw larbys();
+      }
+      _store_only_type.push_back((ProductType_t)(ptype));
+    }
+    if(_store_only_name.size() != _store_only_type.size()) {
+      LARCV_CRITICAL() << "StoreOnlyName and StoreOnlyType has different lengths!" << std::endl;
+      throw larbys();
+    }
   }
 
   bool IOManager::initialize()
@@ -41,6 +116,16 @@ namespace larcv {
 	LARCV_ERROR() << "Found 0 entries from input files..." << std::endl;
 	return false;
       }
+    }
+
+    // Now handle "store-only" configuration
+    _store_only_bool.clear();
+    if(_io_mode != kREAD && _store_only_type.size()) {
+      std::vector<size_t> store_only_id;
+      for(size_t i=0; i<_store_only_type.size(); ++i)
+	store_only_id.push_back(register_producer(_store_only_type[i],_store_only_name[i]));
+      _store_only_bool.resize(_product_ctr,false);
+      for(auto const& id : store_only_id) _store_only_bool.at(id) = true;
     }
 
     _tree_index = 0;
@@ -138,11 +223,14 @@ namespace larcv {
       
       TList* key_list = fin_dir->GetListOfKeys();
       TIter key_iter(key_list);
+      std::set<std::string> processed_object;
       while(1) {
 	TObject* obj = key_iter.Next();
 	if(!obj) break;
+	if(processed_object.find(obj->GetName()) != processed_object.end()) continue;
 	obj = fin_dir->Get(obj->GetName());
 	LARCV_DEBUG() << "Found object " << obj->GetName() << " (type=" << obj->ClassName() << ")" << std::endl;
+	processed_object.insert(obj->GetName());
 	
 	if(std::string(obj->ClassName())!="TTree") {
 	  LARCV_DEBUG() << "Skipping " << obj->GetName() << " ... (not TTree)" << std::endl;
@@ -242,19 +330,46 @@ namespace larcv {
       return false;
     }
 
+    // in kBOTH mode make sure all TTree entries are read-in
+    if(_io_mode == kBOTH) {
+      for(size_t id=0; id<_in_tree_index_v.size(); ++id) {
+	if(_store_only_bool.size() && (id >= _store_only_bool.size() || !_store_only_bool[id])) continue;
+	if(_in_tree_index_v[id] == _tree_index) continue;
+	get_data(id);
+      }
+    }
+
     LARCV_INFO() << "Saving new entry " << std::endl;
 
     set_id();
 
-    for(auto& p : _product_ptr_v)  {
-      if(!p) break;
-      if(!p->valid()) throw larbys("Must set an event ID to store!");
-    }
+    if(_store_only_bool.empty()) {
 
-    for(auto& t : _out_tree_v) {
-      if(!t) break;
-      LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
-      t->Fill();
+      for(auto& p : _product_ptr_v)  {
+	if(!p) break;
+	if(!p->valid()) throw larbys("Must set an event ID to store!");
+      }
+
+      for(auto& t : _out_tree_v) {	
+	if(!t) break;
+	LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
+	t->Fill();
+      }
+
+    }else{
+
+      for(size_t i=0; i<_store_only_bool.size(); ++i) {
+	if(!_store_only_bool[i]) continue;
+	auto const& p = _product_ptr_v[i];
+	if(!p->valid()) throw larbys("Must set an event ID to store!");
+      }
+
+      for(size_t i=0; i<_store_only_bool.size(); ++i) {
+	if(!_store_only_bool[i]) continue;
+	auto& t = _out_tree_v[i];
+	LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
+	t->Fill();
+      }
     }
 
     clear_entry();

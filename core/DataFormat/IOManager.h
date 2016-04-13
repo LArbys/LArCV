@@ -22,6 +22,7 @@
 #include "Base/larcv_base.h"
 #include "EventBase.h"
 #include "Base/larbys.h"
+#include "Base/PSet.h"
 #include "ProductMap.h"
 namespace larcv {
   /**
@@ -36,32 +37,22 @@ namespace larcv {
     enum IOMode_t { kREAD, kWRITE, kBOTH };
 
     /// Default constructor
-    IOManager(IOMode_t mode=kREAD) 
-      : _io_mode         ( mode          )
-      , _prepared        ( false         )
-      , _out_file        ( nullptr       )
-      , _tree_index      ( 0             )
-      , _tree_entries    ( 0             )
-      , _out_file_name   ( ""            )
-      , _in_file_v       ()
-      , _in_dir_v        ()
-      , _key_list        ( kProductUnknown )
-      , _out_tree_v      ()
-      , _in_tree_v       ()
-      , _in_tree_index_v ()
-      , _product_ctr     (0)
-      , _product_ptr_v   ()
-      , _product_type_v  ()
-    { reset(); }
+    IOManager(IOMode_t mode=kREAD, std::string name="IOManager");
+
+    /// Configuration PSet construction
+    IOManager(const PSet& cfg);
     
     /// Default destructor
     ~IOManager(){}
 
+    IOMode_t io_mode() const { return _io_mode;}
     void reset();
     void add_in_file(const std::string filename, const std::string dirname="");
+    void clear_in_file();
     void set_out_file(const std::string name);
     size_t producer_id(const ProductType_t type, const std::string& producer) const;
     ProductType_t product_type(const size_t id) const;
+    void configure(const PSet& cfg);
     bool initialize();
     bool read_entry(const size_t index);
     bool save_entry();
@@ -115,6 +106,9 @@ namespace larcv {
     size_t _product_ctr;
     std::vector<larcv::EventBase*>      _product_ptr_v;
     std::vector<larcv::ProductType_t>   _product_type_v;
+    std::vector<std::string> _store_only_name;
+    std::vector<larcv::ProductType_t> _store_only_type;
+    std::vector<bool> _store_only_bool;
   };
 
 }

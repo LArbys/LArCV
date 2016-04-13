@@ -46,6 +46,9 @@ namespace larcv {
     /// Verbosity level
     void set_verbosity(::larcv::msg::Level_t level)
     { _logger->set(level); }
+
+    const std::string& name() const
+    { return logger().name(); }
     
   private:
     

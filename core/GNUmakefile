@@ -7,7 +7,7 @@ endif
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := Base DataFormat
+SUBDIRS := Base DataFormat Processor
 ifeq ($(LARCV_NUMPY),1)
   ifeq ($(LARCV_OPENCV),1)
   SUBDIRS += PyCVUtil
