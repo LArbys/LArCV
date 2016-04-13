@@ -12,5 +12,8 @@ namespace larcv {
   void ImageHolder::move(std::vector<larcv::Image2D>& dest)
   { dest = std::move(_image_v); }
 
+  void ImageHolder::move(std::map<larcv::PlaneID_t,larcv::ChStatus>& dest)
+  { dest = std::move(_chstatus_m); }
+
 }
 #endif

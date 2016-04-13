@@ -15,9 +15,10 @@
 #define __IMAGEHOLDER_H__
 
 #include "Processor/ProcessBase.h"
+#include "DataFormat/ChStatus.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/ROI.h"
-
+#include <map>
 namespace larcv {
 
   /**
@@ -36,6 +37,7 @@ namespace larcv {
     virtual ~ImageHolder(){}
 
     void move(std::vector<larcv::Image2D>&);
+    void move(std::map<larcv::PlaneID_t,larcv::ChStatus>&);
 
     const ROI& roi() const { return _roi; }
 
@@ -48,8 +50,8 @@ namespace larcv {
 
   protected:
 
-    std::vector<larcv::Image2D> _image_v;
-    
+    std::vector<larcv::Image2D>  _image_v;
+    std::map<larcv::PlaneID_t,larcv::ChStatus> _chstatus_m;
     ROI _roi;
 
     size_t _run, _subrun, _event;

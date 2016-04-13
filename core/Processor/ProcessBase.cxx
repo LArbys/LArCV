@@ -17,6 +17,7 @@ namespace larcv {
   {
     _profile = cfg.get<bool>("Profile",_profile);
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
+    configure(cfg);
   }
   
   bool ProcessBase::_process_(IOManager& mgr)

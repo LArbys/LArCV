@@ -31,10 +31,6 @@ namespace larcv {
     _image_v.clear();
     _roi = ROI();
 
-    auto event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
-
-    if(!event_image || event_image->Image2DArray().empty()) return false;
-
     auto event_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
 
     bool found=false;
@@ -57,6 +53,10 @@ namespace larcv {
       _roi = roi;
     }
     if(!found) return false;
+
+    auto event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
+
+    if(!event_image || event_image->Image2DArray().empty()) return false;
 
     for(auto const& img : event_image->Image2DArray())
       

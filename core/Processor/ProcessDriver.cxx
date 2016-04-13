@@ -152,7 +152,7 @@ namespace larcv {
 
       // Configure process
       LARCV_INFO() << "Assigned ProcessID_t: " << ptr->_id << " configuring the instance..." << std::endl;
-      ptr->configure(proc_cfg);
+      ptr->_configure_(proc_cfg);
       // Register instance pointer
       _proc_v.push_back(ptr);
     }
@@ -221,7 +221,7 @@ namespace larcv {
     // Execute
     bool good_status=true;
     for(auto& p : _proc_v) {
-      good_status = good_status && p->process(_io);
+      good_status = good_status && p->_process_(_io);
       if(!good_status && _enable_filter) break;
     }
     // If not read mode save entry
@@ -358,6 +358,7 @@ namespace larcv {
 	 << " ... average time " << p->_proc_time / p->_proc_count << " [s/process]"
 	 << std::endl;
     }
+
     std::string msg(ss.str());
     if(!msg.empty()) 
       LARCV_NORMAL() << "Simple time profiling requested and run..."

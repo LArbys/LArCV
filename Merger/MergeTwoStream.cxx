@@ -5,6 +5,8 @@
 #include "Base/UtilFunc.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
+#include "DataFormat/EventChStatus.h"
+
 namespace larcv {
 
   MergeTwoStream::MergeTwoStream() : larcv_base("MergeTwoStream")
@@ -55,7 +57,7 @@ namespace larcv {
     _io = IOManager(cfg.get_pset("IOManager"));
     _driver1.configure(cfg.get_pset("Stream1"));
     _driver2.configure(cfg.get_pset("Stream2"));
-
+    _min_chstatus=cfg.get<short>("MinChannelStatus");
   }
   
   void MergeTwoStream::initialize()
@@ -105,12 +107,15 @@ namespace larcv {
       LARCV_NORMAL() << "Processing " << num_proc/_num_proc_frac * 10 << "%" << std::endl;
     }
 
+    std::map<larcv::PlaneID_t,larcv::ChStatus> chstatus_m;
     std::vector<larcv::Image2D> image1_v;
     std::vector<larcv::Image2D> image2_v;
 
     auto const& roi1 = _proc1->roi();
     _proc1->move(image1_v);
+
     _proc2->move(image2_v);
+    _proc2->move(chstatus_m);
 
     // Check size
     if(image1_v.size() != image2_v.size()) {
@@ -128,10 +133,14 @@ namespace larcv {
 
     // Check PlaneID
     for(size_t i=0; i<image1_v.size(); ++i) {
-      auto& image1 = image1_v[i];
-      auto& image2 = image2_v[i];
+      auto const& image1 = image1_v[i];
+      auto const& image2 = image2_v[i];
       if(image1.meta().plane() != image2.meta().plane()) {
 	LARCV_ERROR() << "Plane ID mismatch! skipping..." << std::endl;
+	return true;
+      }
+      if(chstatus_m.find(image1.meta().plane()) == chstatus_m.end()) {
+	LARCV_ERROR() << "Plane ID " << image1.meta().plane() << " not found for ch status!" << std::endl;
 	return true;
       }
     }
@@ -139,16 +148,25 @@ namespace larcv {
     // All check done
     auto event_image = (EventImage2D*)(_io.get_data(kProductImage2D,"merged"));
     for(size_t i=0; i<image1_v.size(); ++i) {
+
+      // Overlay image
       auto& image1 = image1_v[i];
       auto& image2 = image2_v[i];
-      if(image1.meta().plane() != image2.meta().plane()) {
-	LARCV_ERROR() << "Plane ID mismatch! skipping..." << std::endl;
-	return true;
-      }
-
       auto const& bb = roi1.BB(image1.meta().plane());
       auto cropped = image1.crop(bb);
       image2.overlay(cropped);
+
+      auto const& meta = image2.meta();
+      std::vector<float> null_col(meta.rows(),0);
+      // Impose ChStatus
+      auto const& stat_v = chstatus_m[image1.meta().plane()].as_vector();
+      for(size_t wire_num=0; wire_num < stat_v.size(); ++wire_num) {
+	auto const& stat = stat_v[wire_num];
+	if(stat < _min_chstatus) {
+	  auto col = meta.col((double)wire_num);
+	  image2.copy(0,col,null_col);
+	}
+      }
       
       event_image->Emplace(std::move(image2));
     }

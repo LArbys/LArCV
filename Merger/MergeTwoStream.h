@@ -57,6 +57,7 @@ namespace larcv {
     size_t _num_proc2;
     size_t _num_proc_max;
     size_t _num_proc_frac;
+    short _min_chstatus;
   };
 }
   
