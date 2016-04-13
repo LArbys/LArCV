@@ -36,9 +36,7 @@ namespace larcv {
     Image2D(const Image2D&);
     
 #ifndef __CINT__
-#ifndef __CLING__
     Image2D(ImageMeta&&, std::vector<float>&&);
-#endif
 #endif
     virtual ~Image2D(){}
 
@@ -68,6 +66,7 @@ namespace larcv {
     void paint(float value);
     void clear_data();
     void compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum);
+    void overlay(const Image2D&, CompressionModes_t mode=kSum);
 
   private:
     std::vector<float> _img;

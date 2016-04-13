@@ -200,4 +200,66 @@ namespace larcv {
     
     return Image2D(std::move(res_meta),std::move(img));
   }
+
+
+  void Image2D::overlay(const Image2D& rhs, CompressionModes_t mode)
+  {
+    auto const& rhs_meta = rhs.meta();
+
+    if(rhs_meta.pixel_height() != _meta.pixel_height() || rhs_meta.pixel_width() != _meta.pixel_width())
+
+      throw larbys("Overlay not supported yet for images w/ different pixel size!");
+
+    double x_min = std::max(_meta.min_x(),rhs_meta.min_x());
+    double x_max = std::min(_meta.max_x(),rhs_meta.max_x());
+    if(x_min >= x_max) return;
+
+    double y_min = std::max(_meta.min_y(),rhs_meta.min_y());
+    double y_max = std::min(_meta.max_y(),rhs_meta.max_y());
+    if(y_min >= y_max) return;
+
+    size_t row_min1 = _meta.row(y_max);
+    size_t col_min1 = _meta.col(x_min);
+
+    size_t row_min2 = rhs_meta.row(y_max);
+    size_t col_min2 = rhs_meta.col(x_min);
+
+    size_t nrows = (y_max - y_min) / _meta.pixel_height();
+    size_t ncols = (x_max - x_min) / _meta.pixel_width();
+
+    auto const& img2 = rhs.as_vector();
+    
+    for(size_t col_index=0; col_index < ncols; ++col_index) {
+
+      size_t index1 = _meta.index(row_min1,col_min1+col_index);
+      size_t index2 = rhs_meta.index(row_min2,col_min2+col_index);
+
+      switch(mode) {
+
+      case kSum:
+
+	for(size_t row_index=0; row_index < nrows; ++row_index) 
+
+	  _img[index1+row_index] += img2[index2+row_index];
+
+	break;
+
+      case kAverage:
+
+	for(size_t row_index=0; row_index < nrows; ++row_index) 
+
+	  _img[index1+row_index] += (_img[index1+row_index] + img2[index2+row_index]) / 2.;
+
+	break;
+
+      case kMaxPool:
+
+	for(size_t row_index=0; row_index < nrows; ++row_index) 
+
+	  _img[index1+row_index] = std::max(_img[index1+row_index],img2[index2+row_index]);
+
+	break;
+      }
+    }
+  }
 }
