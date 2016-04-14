@@ -28,3 +28,5 @@ LDFLAGS += $(shell basictool-config --libs)
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
+pkg_build: # nothing extra for this package
+pkg_clean: # nothing extra for this package

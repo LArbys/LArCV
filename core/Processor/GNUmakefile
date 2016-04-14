@@ -24,3 +24,7 @@ LDFLAGS += -L$(LARCV_LIBDIR) -lLArCVBase -lLArCVDataFormat
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
+pkg_build:
+	@cp -f bin/run_processor $(LARCV_BINDIR)/run_processor
+pkg_clean:
+	@rm -f $(LARCV_BINDIR)/run_processor

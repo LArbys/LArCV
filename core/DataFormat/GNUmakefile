@@ -24,3 +24,6 @@ LDFLAGS += -L$(LARCV_LIBDIR) -lLArCVBase
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
+pkg_build: # nothing extra to do in this package
+pkg_clean: # nothing extra to do in this package
+

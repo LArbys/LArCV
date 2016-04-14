@@ -24,3 +24,7 @@ LDFLAGS += $(shell larcv-config --libs)
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
+pkg_build:
+	@cp -f bin/run_merger $(LARCV_BINDIR)/run_merger
+pkg_clean:
+	@rm -f $(LARCV_BINDIR)/run_merger

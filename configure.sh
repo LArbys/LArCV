@@ -13,9 +13,10 @@ if [[ -z $LARCV_BUILDDIR ]]; then
 fi
 
 export LARCV_COREDIR=$LARCV_BASEDIR/core
-export LARCV_SUPERADIR=$LARCV_BASEDIR/Supera
+export LARCV_APPDIR=$LARCV_BASEDIR/app
 export LARCV_LIBDIR=$LARCV_BUILDDIR/lib
 export LARCV_INCDIR=$LARCV_BUILDDIR/include
+export LARCV_BINDIR=$LARCV_BUILDDIR/bin
 
 # Abort if ROOT not installed. Let's check rootcint for this.
 if [ `command -v rootcling` ]; then
@@ -61,7 +62,7 @@ printf "    \033[95mLARCV_INCDIR\033[00m   = $LARCV_INCDIR\n"
 printf "    \033[95mLARCV_LIBDIR\033[00m   = $LARCV_LIBDIR\n"
 printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
 
-export PATH=$LARCV_BASEDIR/bin:$PATH
+export PATH=$LARCV_BASEDIR/bin:$LARCV_BINDIR:$PATH
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LARCV_LIBDIR
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$LARCV_LIBDIR
 
@@ -71,6 +72,8 @@ if [[ -z $NO_OPENCV ]]; then
 fi
 
 mkdir -p $LARCV_BUILDDIR;
+mkdir -p $LARCV_LIBDIR;
+mkdir -p $LARCV_BINDIR;
 
 export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
 
@@ -78,10 +81,10 @@ if [[ $LARLITE_BASEDIR ]]; then
     printf "\033[93mLArLite\033[00m\n"
     echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
     echo "    Preparing APILArLite package for build (making sym links)"
-    target=$LARCV_SUPERADIR/larfmwk_shared/*
+    target=$LARCV_APPDIR/Supera/larfmwk_shared/*
     for f in $target
     do
-	ln -sf $f $LARCV_SUPERADIR/APILArLite/
+	ln -sf $f $LARCV_APPDIR/Supera/APILArLite/
     done
 fi
 
@@ -92,10 +95,10 @@ if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
     target=$LARCV_BASEDIR/Supera/larfmwk_shared/*
     for f in $target
     do
-	ln -sf $f $LARCV_SUPERADIR/APILArSoft/
+	ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
     done
     if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
-	ln -s $LARCV_SUPERADIR/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+	ln -s $LARCV_APPDIR/Supera/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
     fi
 fi
 

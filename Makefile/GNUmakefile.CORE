@@ -10,13 +10,14 @@ PACKAGE_BUILDDIR = $(LARCV_BUILDDIR)/$(PACKAGE_NAME)
 PACKAGE_INCDIR   = $(LARCV_INCDIR)/$(PACKAGE_NAME)
 $(shell mkdir -p $(LARCV_BUILDDIR))
 $(shell mkdir -p $(LARCV_LIBDIR))
+$(shell mkdir -p $(LARCV_BINDIR))
 $(shell mkdir -p $(PACKAGE_BUILDDIR))
 $(shell mkdir -p $(PACKAGE_INCDIR))
 
 DICT    = $(PACKAGE_BUILDDIR)/$(PACKAGE_NAME)Dict
 OBJECTS = $(addprefix $(PACKAGE_BUILDDIR)/, $(SOURCES:.cxx=.o))
 
-all: pre_build main_build 
+all: pre_build main_build pkg_build
 
 pre_build:
 
@@ -81,7 +82,7 @@ endif
 ###################################################
 
 # "make clean" target
-clean: pre_clean
+clean: pre_clean pkg_clean
 	@echo '<< cleaning all >>'
 	@rm -f .depend
 	@rm -f $(PACKAGE_BUILDDIR)/*
