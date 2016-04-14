@@ -1,6 +1,8 @@
 CXXFLAGS += $(shell larcv-config --includes)
+CXXFLAGS += $(shell root-config --cflags)
 
 LDFLAGS += $(shell larcv-config --libs)
+LDFLAGS += $(shell root-config --libs)
 
 OSNAME = $(shell uname -s)
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
