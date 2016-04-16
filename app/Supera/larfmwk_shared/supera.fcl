@@ -21,6 +21,7 @@ Supera: {
     EventImageCols:   [864,864,864]
     EventCompRows:    [7,7,7]
     EventCompCols:    [4,4,4]
+    TDC2TickOffset:   
     Verbosity:        3
 
     # MCParticleTree configuration

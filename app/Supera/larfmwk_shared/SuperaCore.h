@@ -67,6 +67,11 @@ namespace larcv {
     private:
 
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
+      void fill(std::vector<Image2D>& img,
+		const std::vector<U>& mct_v,
+		const std::vector<V>& mcs_v,
+		const std::vector<W>& sch_v,
+		const int time_offset=0);
       
       MCParticleTree<T,U,V,W> _mctp;
       std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;

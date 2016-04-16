@@ -6,6 +6,9 @@
 #include "DataFormat/EventROI.h"
 #include "DataFormat/EventChStatus.h"
 #include "DataFormat/EventImage2D.h"
+#include "DataFormat/UtilFunc.h"
+
+
 namespace larcv {
   namespace supera {
 
@@ -42,7 +45,7 @@ namespace larcv {
       _event_comp_cols  = main_cfg.get<std::vector<size_t> >("EventCompCols");
       
       _skip_empty_image = main_cfg.get<bool>("SkipEmptyImage");
-      
+
       // Check/Enforce conditions
       _logger.set((::larcv::msg::Level_t)(main_cfg.get<unsigned short>("Verbosity")));
       _mctp.configure(main_cfg.get<larcv::supera::Config_t>("MCParticleTree"));
@@ -56,8 +59,6 @@ namespace larcv {
       for(auto const& v : _event_image_cols){ if(!v) throw larcv::larbys("Event-Image col size is 0!"); }
       for(auto const& v : _event_comp_rows){ if(!v) throw larcv::larbys("Event-Image row comp factor is 0!"); }
       for(auto const& v : _event_comp_cols){ if(!v) throw larcv::larbys("Event-Image col comp factor is 0!"); }
-
-
 
       if(_store_chstatus) {
 	_channel_to_plane_wire.clear();
@@ -292,6 +293,19 @@ namespace larcv {
 			     std::move(_full_image.copy_compress(_event_image_rows[p],_event_image_cols[p])));
 	event_image_v->Emplace(std::move(img));
       }
+
+      //
+      // Semantic Segmentation
+      //
+      std::string sem_producer = "segment_" + _producer_key;
+      auto event_semimage_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,sem_producer));
+      std::vector<larcv::Image2D> sem_images;
+      for(auto const& img : event_image_v->Image2DArray())
+
+	sem_images.emplace_back(::larcv::Image2D(img.meta()));
+
+      fill(sem_images,mctrack_v,mcshower_v,simch_v);
+      event_semimage_v->Emplace(std::move(sem_images));
       
       _larcv_io.save_entry();
       return true;
@@ -304,6 +318,66 @@ namespace larcv {
       _larcv_io.reset();
     }
 
+    template <class S, class T, class U, class V, class W>
+    void SuperaCore<S,T,U,V,W>::fill(std::vector<Image2D>& img_v,
+				     const std::vector<U>& mct_v,
+				     const std::vector<V>& mcs_v,
+				     const std::vector<W>& sch_v,
+				     const int time_offset)
+    {
+      static std::vector<larcv::ROIType_t> track2type_v(1e6,::larcv::kROIUnknown);
+      for(auto& v : track2type_v) v = ::larcv::kROIUnknown;
+      for(auto const& mct : mct_v) {
+	if(mct.TrackID() >= track2type_v.size())
+	  track2type_v.resize(mct.TrackID()+1,::larcv::kROIUnknown);
+	track2type_v[mct.TrackID()] = ::larcv::PDG2ROIType(mct.PdgCode());
+      }
+      for(auto const& mcs : mcs_v) {
+	if(mcs.TrackID() >= track2type_v.size())
+	  track2type_v.resize(mcs.TrackID()+1,::larcv::kROIUnknown);
+	auto const roi_type = ::larcv::PDG2ROIType(mcs.PdgCode());
+	track2type_v[mcs.TrackID()] = roi_type;
+	for(auto const& id : mcs.DaughterTrackID()) {
+	  if(id >= track2type_v.size())
+	    track2type_v.resize(id+1,::larcv::kROIUnknown);
+	  track2type_v[id] = roi_type;
+	}
+      }
+      
+      for(auto const& sch : sch_v) {
+
+	auto ch = sch.Channel();
+	auto const& wid = ::larcv::supera::ChannelToWireID(ch);
+	auto const& plane = wid.Plane;
+	auto& img = img_v.at(plane);
+	auto const& meta = img.meta();
+
+	const size_t col = wid.Wire;
+
+	if(col < meta.min_x()) continue;
+	if(meta.max_x() >= col) continue;
+
+	if(plane != img.meta().plane()) continue;
+
+	for(auto const tick_ides : sch.TDCIDEMap()) {
+	  int tick = (TPCTDC2Tick((double)(tick_ides.first)) + time_offset);
+	  if(tick <= meta.min_y()) continue;
+	  if(tick >  meta.max_y()) continue;
+	  // Pick type
+	  double energy=0;
+	  ::larcv::ROIType_t roi_type=::larcv::kROIUnknown;
+	  for(auto const& edep : tick_ides.second) {
+	    if(edep.energy < energy) continue;
+	    auto temp_roi_type = ::larcv::PDG2ROIType(edep.trackID);
+	    if(temp_roi_type==::larcv::kROIUnknown) continue;
+	    energy = edep.energy;
+	    roi_type = temp_roi_type;
+	  }
+	  img.set_pixel((size_t)tick,col,roi_type);
+	}
+      }
+    }
+    
     template <class S, class T, class U, class V, class W>
     void SuperaCore<S,T,U,V,W>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
     {
