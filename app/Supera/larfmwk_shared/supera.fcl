@@ -8,6 +8,7 @@ Supera: {
     DigitProducer:    "digitfilter"
     WireProducer:     "caldata"
     SimChProducer:    "largeant"
+    OpDigitProducer:  "saturation"
     #SimChProducer:    ""
     MCRecoProducer:   "mcreco"
     GenProducer:      "generator"

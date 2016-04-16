@@ -55,6 +55,7 @@ namespace larcv {
     void copy(size_t row, size_t col, const short* src, size_t num_pixel);
     void copy(size_t row, size_t col, const std::vector<short>& src, size_t num_pixel=0);
     void reverse_copy(size_t row, size_t col, const std::vector<float>& src, size_t nskip=0, size_t num_pixel=0);
+    void reverse_copy(size_t row, size_t col, const std::vector<short>& src, size_t nskip=0, size_t num_pixel=0);
 
     Image2D crop(const ImageMeta& crop_meta) const;
 
