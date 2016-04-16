@@ -33,6 +33,15 @@ namespace larcv {
 					     0, 0 );
       mNPlanes++;
     }
+
+    bool DivisionDef::isInsideDetRegion( float x, float y, float z ) const {
+      float pos[3] = { x, y, z};
+      for (int v=0; v<3; v++) {
+	if ( pos[v] < fDetBounds[v][0] || pos[v] > fDetBounds[v][1] )
+	  return false;
+      }
+      return true;
+    }
     
   }
 }
