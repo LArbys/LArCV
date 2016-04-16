@@ -2,7 +2,7 @@
 #define LARLITE_SUPERA_CXX
 
 #include "Supera.h"
-#include "FhiclLite/ConfigManager.h"
+#include "Base/UtilFunc.h"
 
 namespace larlite {
 
@@ -11,12 +11,7 @@ namespace larlite {
 
   bool Supera::initialize() {
 
-    ::fcllite::ConfigManager cfg_mgr(_name);
-
-    cfg_mgr.AddCfgFile(_config_file);
-
-    auto const& main_cfg = cfg_mgr.Config().get_pset(_name);
-
+    auto const main_cfg = ::larcv::CreatePSetFromFile(_config_file,_name);
     //std::cout<<main_cfg.dump()<<std::endl;
 
     _core.configure(main_cfg);

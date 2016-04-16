@@ -29,8 +29,11 @@ while test $# -gt 0; do
 	  ;;
       --libs)
 	  out="-L${LARCV_LIBDIR} -lLArCVBase -lLArCVDataFormat -lLArCVProcessor "
-	  if [ $LARCV_NUMPY -eq 1 ] && [ $LARCV_OPENCV -eq 1 ]; then
-	      out+=" -lLArCVPyCVUtil "
+	  if [ $LARCV_NUMPY -eq 1 ]; then
+	      out+=" -lLArCVPyUtil "
+	  fi
+	  if [ $LARCV_OPENCV -eq 1 ]; then
+	      out+=" -lLArCVCVUtil "
 	  fi
 	  ;;
       --help)

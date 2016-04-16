@@ -1,13 +1,12 @@
-#ifndef __FMWKINTERFACE_H__
-#define __FMWKINTERFACE_H__
+#ifndef __SUPERA_FMWKINTERFACE_H__
+#define __SUPERA_FMWKINTERFACE_H__
 
 #include "LArUtil/Geometry.h"
-#include "FhiclLite/ConfigManager.h"
-
+#include "Base/PSet.h"
 namespace larcv {
   namespace supera {
 
-    typedef ::fcllite::PSet Config_t;
+    typedef ::larcv::PSet Config_t;
 
     /// Channel number to wire ID
     ::larlite::geo::WireID ChannelToWireID(unsigned int ch);

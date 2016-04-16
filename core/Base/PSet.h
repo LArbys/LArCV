@@ -11,8 +11,8 @@
 /** \addtogroup CVFhicl
 
     @{*/
-#ifndef CVFHICL_PSET_H
-#define CVFHICL_PSET_H
+#ifndef __CVFHICL_PSET_H__
+#define __CVFHICL_PSET_H__
 
 #include <iostream>
 #include <string>

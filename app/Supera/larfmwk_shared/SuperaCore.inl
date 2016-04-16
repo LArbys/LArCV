@@ -362,7 +362,7 @@ namespace larcv {
 	if(time_offset < 0) nskip = (-1 * time_offset);
 	if(nskip >= opdigit.size()) continue;
 	size_t num_pixel = std::min(meta.rows(),opdigit.size() - nskip);
-	img.reverse_copy(0,col,(std::vector<short>)opdigit,nskip,num_pixel);
+	img.copy(0,col,&((std::vector<short>)opdigit)[nskip],num_pixel);
       }
     }
 

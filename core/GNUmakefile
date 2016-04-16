@@ -9,9 +9,10 @@ endif
 #
 SUBDIRS := Base DataFormat Processor
 ifeq ($(LARCV_NUMPY),1)
-  ifeq ($(LARCV_OPENCV),1)
-  SUBDIRS += PyCVUtil
-  endif
+SUBDIRS += PyUtil
+endif
+ifeq ($(LARCV_OPENCV),1)
+  SUBDIRS += CVUtil
 endif
 
 #####################################################################################

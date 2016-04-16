@@ -76,6 +76,7 @@ mkdir -p $LARCV_LIBDIR;
 mkdir -p $LARCV_BINDIR;
 
 export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
+export PYTHONPATH=$LARCV_BASEDIR/python:$PYTHONPATH
 
 if [[ $LARLITE_BASEDIR ]]; then
     printf "\033[93mLArLite\033[00m\n"
