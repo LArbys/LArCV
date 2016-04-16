@@ -219,7 +219,7 @@ namespace larcv {
   }
 
 
-  void Image2D::overlay(const Image2D& rhs, CompressionModes_t mode)
+  void Image2D::overlay(const Image2D& rhs, CompressionModes_t mode )
   {
     auto const& rhs_meta = rhs.meta();
 
@@ -310,6 +310,26 @@ namespace larcv {
 
   Image2D& Image2D::operator*=( const Image2D& rhs ) {
     (*this) = multiRHS( rhs );
+  }
+
+  Image2D Image2D::eltwise( const Image2D& rhs ) const {
+    // check multiplication is valid
+    if ( meta().cols()!=rhs.meta().cols() || meta().rows()!=rhs.meta().rows() ) {
+      char oops[500];
+      sprintf( oops, "Image2D element-wise multiplication not valid. LHS cols (%zu) != RHS rcols (%zu) or LHS rows(%zu)!=RHS rows(%zu)", 
+	       meta().cols(), rhs.meta().cols(), meta().rows(), rhs.meta().rows() );
+      throw larbys(oops);
+    }
+
+    // LHS copies internal data
+    Image2D out( *this );
+    for (int r=0; r<out.meta().rows(); r++) {
+      for (int c=0; c<out.meta().cols(); c++) {
+	out.set_pixel( r, c, pixel(r,c)*rhs.pixel(r,c) );
+      }
+    }
+
+    return out;
   }
 
 }

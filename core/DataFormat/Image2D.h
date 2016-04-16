@@ -73,6 +73,10 @@ namespace larcv {
     Image2D multiRHS( const Image2D& rhs ) const; 
     Image2D& operator*=( const Image2D& rhs );
     Image2D operator*(const Image2D& rhs) const;
+
+    // Element-wise
+    Image2D eltwise( const Image2D& rhs ) const;
+
   private:
     std::vector<float> _img;
     ImageIndex_t _id;
