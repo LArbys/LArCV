@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "DataFormat/ImageMeta.h"
+#include "DataFormat/ROI.h"
 #include "PMTWeights/PMTWireWeights.h"
 #include "DivisionDef.h"
 
@@ -53,11 +54,18 @@ namespace larcv {
 
       std::string fDivisionFile;
       int fNPlanes;
-      int fTickImageWidth;
+      int fTickStart;
+      int fTickDownSample;
       int fMaxWireImageWidth;
       int fMaxWireInRegion;
+      std::string fInputImageProducer;
+      std::string fInputROIProducer;
       std::vector< larcv::hires::DivisionDef > m_divisions;
 
+      bool decideToContinueBasedOnROI( const larcv::ROI& roi );
+      int findVertexDivisionUsingROI( const larcv::ROI& roi );
+      bool decideToKeepBasedOnROI( const larcv::ROI& roi );
+      
     };
     
     /**
