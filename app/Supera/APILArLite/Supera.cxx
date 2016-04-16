@@ -11,7 +11,7 @@ namespace larlite {
 
   bool Supera::initialize() {
 
-    auto const main_cfg = ::larcv::CreatePSetFromFile(_config_file,_name);
+    auto main_cfg = ::larcv::CreatePSetFromFile(_config_file,_name);
     //std::cout<<main_cfg.dump()<<std::endl;
 
     _core.configure(main_cfg);
