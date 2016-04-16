@@ -69,6 +69,10 @@ namespace larcv {
     void compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum);
     void overlay(const Image2D&, CompressionModes_t mode=kSum);
 
+    // Matrix Multiplication
+    Image2D multiRHS( const Image2D& rhs ) const; 
+    Image2D& operator*=( const Image2D& rhs );
+    Image2D operator*(const Image2D& rhs) const;
   private:
     std::vector<float> _img;
     ImageIndex_t _id;

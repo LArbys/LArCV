@@ -279,4 +279,37 @@ namespace larcv {
       }
     }
   }
+
+  Image2D Image2D::multiRHS( const Image2D& rhs ) const {
+    // check multiplication is valid
+    if ( meta().cols()!=rhs.meta().rows() ) {
+      char oops[500];
+      sprintf( oops, "Image2D Matrix multiplication not valid. LHS cols (%zu) != RHS rows (%zu).", meta().cols(), rhs.meta().rows() );
+      throw larbys(oops);
+    }
+
+    // LHS copies internal data
+    Image2D out( *this );
+    out.resize( (*this).meta().rows(), rhs.meta().cols() );
+    for (int r=0; r<out.meta().rows(); r++) {
+      for (int c=0; c<out.meta().cols(); c++) {
+	float val = 0.0;
+	for (int k=0; k<meta().cols(); k++) {
+	  val += pixel( r, k )*rhs.pixel(k,c);
+	}
+	out.set_pixel( r, c, val );
+      }
+    }
+
+    return out;
+  }
+
+  Image2D Image2D::operator*(const Image2D& rhs) const {
+    return (*this).multiRHS( rhs );
+  }
+
+  Image2D& Image2D::operator*=( const Image2D& rhs ) {
+    (*this) = multiRHS( rhs );
+  }
+
 }

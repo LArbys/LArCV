@@ -27,6 +27,7 @@ namespace larcv {
       fImageProducer = cfg.get<std::string>( "ImageProducer" );
       fStartTick = cfg.get<int>( "StartTick" );
       fEndTick = cfg.get<int>( "StartTick" );
+      fCheckSat = cfg.get<bool>("CheckSaturation");
 
     }
     
@@ -49,7 +50,7 @@ namespace larcv {
       // Pick out PMT Image
       // -------------------
       larcv::Image2D const& pmtimg_highgain = event_image->at( 3 ); // placeholder code
-      larcv::Image2D const& pmtimg_lowgain  = event_image->at( 4 ); // placeholder code
+      //larcv::Image2D const& pmtimg_lowgain  = event_image->at( 4 ); // placeholder code
 
       // sum pmt charge in the trigger window
 
@@ -63,7 +64,9 @@ namespace larcv {
 	  // sum over the trigger window
 	  float hq = pmtimg_highgain.pixel( t, 10*ipmt ); 
 	  high_q += hq;
-	  low_q  += pmtimg_lowgain.pixel( t, 10*ipmt );
+	  if ( fCheckSat ) {
+	    low_q += event_image->at(4).pixel( t, ipmt );
+	  }
 	  if ( hq>1040 )
 	    usehigh = false;
 	}
@@ -86,11 +89,9 @@ namespace larcv {
 	}
       }
     
-//       cv::Mat wireweights[3];
       for (int p=0; p<3; p++) {
-	larcv::Image2D weights( m_WireWeights->planeWeights[p].meta().rows(), 1 );
-	//weights = (*m_WireWeights)*pmtq;
-// 	wireweights[p] = (*outsize[p])*pmtq;
+	larcv::Image2D const& planeweight = m_WireWeights->planeWeights[p];
+	larcv::Image2D weights = planeweight*pmtq;
 	m_pmtw_image_array.emplace_back( weights );
       }
       

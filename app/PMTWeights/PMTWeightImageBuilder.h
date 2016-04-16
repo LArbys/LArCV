@@ -52,6 +52,7 @@ namespace larcv {
       int fStartTick;
       int fEndTick;
       PMTWireWeights* m_WireWeights;
+      bool fCheckSat;
 
       std::vector< larcv::Image2D > m_pmtw_image_array;
       

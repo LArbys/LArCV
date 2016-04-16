@@ -9,7 +9,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class larcv::PMTWeightImageBuilder+;
+#pragma link C++ class larcv::pmtweights::PMTWireWeights+;
+
+#pragma link C++ class larcv::pmtweights::PMTWeightImageBuilder+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
