@@ -68,6 +68,11 @@ namespace larcv {
 	entry++;
 	bytes = t->GetEntry(entry);
       }
+
+      for (int p=0; p<fNPlanes; p++) {
+	delete [] planebounds[p];
+      }
+      delete [] planebounds;
       
       f->Close();
       
