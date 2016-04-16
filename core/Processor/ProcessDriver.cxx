@@ -3,7 +3,7 @@
 #include <sstream>
 #include "ProcessDriver.h"
 #include "ProcessFactory.h"
-#include "Base/UtilFunc.h"
+#include "Base/LArCVBaseUtilFunc.h"
 namespace larcv {
 
   ProcessDriver::ProcessDriver(std::string name)

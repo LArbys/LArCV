@@ -1,5 +1,4 @@
-from ROOT import larcv
-larcv.load_pycvutil
+from larcv import larcv
 larcv.IOManager
 import matplotlib.pyplot as plt
 from ROOT import TChain

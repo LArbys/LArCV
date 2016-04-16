@@ -44,10 +44,12 @@ namespace larcv {
 	 which contains all trajectory points of input MCTrack.
       */
       WTRangeArray_t WireTimeBoundary( const T& mct ) const;
+      WTRangeArray_t WireTimeBoundary( const T& mct, const std::vector<V>& sch_v ) const;
       WTRangeArray_t WireTimeBoundary( const U& mcs ) const;
       WTRangeArray_t WireTimeBoundary( const U& mcs, const std::vector<V>& sch_v ) const;
 
       ::larcv::ROI ParticleROI( const T& mct ) const;
+      ::larcv::ROI ParticleROI( const T& mct, const std::vector<V>& sch_v ) const;
       ::larcv::ROI ParticleROI( const U& mcs ) const;
       ::larcv::ROI ParticleROI( const U& mcs, const std::vector<V>& sch_v ) const;
 

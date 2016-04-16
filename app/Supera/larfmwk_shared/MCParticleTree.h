@@ -54,6 +54,8 @@ namespace larcv {
 
       void RegisterSecondary(const std::vector<U>&);
 
+      void RegisterSecondary(const std::vector<U>&, const std::vector<W>&);
+
       void RegisterSecondary(const std::vector<V>&);
 
       void RegisterSecondary(const std::vector<V>&, const std::vector<W>&);

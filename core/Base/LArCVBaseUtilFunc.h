@@ -1,5 +1,5 @@
-#ifndef __BASE_CVFHICL_UTILFUNC_H__
-#define __BASE_CVFHICL_UTILFUNC_H__
+#ifndef __LARCVBASE_UTILFUNC_H__
+#define __LARCVBASE_UTILFUNC_H__
 
 #include "PSet.h"
 

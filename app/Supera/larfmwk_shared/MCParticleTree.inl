@@ -134,6 +134,59 @@ namespace larcv {
     }
 
     template <class T, class U, class V, class W>
+    void MCParticleTree<T,U,V,W>::RegisterSecondary(const std::vector<U>& mctrack_v,
+						    const std::vector<W>& simch_v)
+    {
+      LARCV_DEBUG() << "start" << std::endl;
+      ::larcv::Vertex pri_vtx;      
+      for(size_t i=0; i<mctrack_v.size(); ++i) {
+	auto const& mctrack = mctrack_v[i];
+
+	if(mctrack.size()<2) {
+	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+		       << " PdgCode " << mctrack.PdgCode()
+		       << " as it has < 2 steps in the detector" << std::endl;
+	  continue;
+	}
+	if((mctrack.Start().E() < _min_energy_init_mctrack) ) {
+	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+		       << " PdgCode " << mctrack.PdgCode()
+		       << " as it has too small initial energy " << mctrack.Start().E()
+		       << " MeV < " << _min_energy_init_mctrack << " MeV" << std::endl;
+	  continue;
+	}
+	if((mctrack.front().E() - mctrack.back().E()) < _min_energy_deposit_mctrack) {
+	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+		       << " PdgCode " << mctrack.PdgCode()
+		       << " as it has too small deposit energy " << (mctrack.front().E() - mctrack.back().E())
+		       << " MeV < " << _min_energy_deposit_mctrack << " MeV" << std::endl;
+	  continue;
+	}
+	
+	if(mctrack.AncestorStart().E() < 1.e6) {
+	  auto const& start = mctrack.AncestorStart();
+	  pri_vtx.Reset(start.X(),start.Y(),start.Z(),start.T());
+	}
+	else if(mctrack.MotherStart().E() < 1.e6) {
+	  auto const& start = mctrack.MotherStart();
+	  pri_vtx.Reset(start.X(),start.Y(),start.Z(),start.T());
+	}else {
+	  auto const& start = mctrack.Start();
+	  pri_vtx.Reset(start.X(),start.Y(),start.Z(),start.T());
+	}
+
+	auto roi = _cropper.ParticleROI(mctrack,simch_v);
+	roi.MCSTIndex(i);
+	
+	if(roi.BB().size() < _min_nplanes) {
+	  LARCV_INFO() << "Skipping ROI as # planes (" << roi.BB().size() << ") < requirement (" << _min_nplanes << std::endl
+		       << roi.dump() << std::endl;
+	}
+	else RegisterSecondary(pri_vtx,roi);
+      }
+    }
+
+    template <class T, class U, class V, class W>
     void MCParticleTree<T,U,V,W>::RegisterSecondary(const std::vector<V>& mcshower_v)
     {
       LARCV_DEBUG() << "start" << std::endl;

@@ -1,5 +1,5 @@
-#ifndef CVFHICL_PARSER_H
-#define CVFHICL_PARSER_H
+#ifndef __LARCVBASE_PARSER_H__
+#define __LARCVBASE_PARSER_H__
 
 #include <string>
 #include <vector>
