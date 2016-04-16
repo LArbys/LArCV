@@ -356,7 +356,10 @@ namespace larcv {
 
       for(auto& p : _product_ptr_v)  {
 	if(!p) break;
-	if(!p->valid()) throw larbys("Must set an event ID to store!");
+	if(!p->valid()) {
+	  LARCV_CRITICAL() << "Invalid event id: (" << p->run() << "," << p->subrun() << "," << p->event() << ")" << std::endl;
+	  throw larbys("Must set an event ID to store!");
+	}
       }
 
       for(auto& t : _out_tree_v) {	
@@ -370,7 +373,10 @@ namespace larcv {
       for(size_t i=0; i<_store_only_bool.size(); ++i) {
 	if(!_store_only_bool[i]) continue;
 	auto const& p = _product_ptr_v[i];
-	if(!p->valid()) throw larbys("Must set an event ID to store!");
+	if(!p->valid()) {
+	  LARCV_CRITICAL() << "Invalid event id: (" << p->run() << "," << p->subrun() << "," << p->event() << ")" << std::endl;
+	  throw larbys("Must set an event ID to store!");
+	}
       }
 
       for(size_t i=0; i<_store_only_bool.size(); ++i) {
@@ -396,6 +402,7 @@ namespace larcv {
       p->clear();
     }
     _event_id.clear();
+    _set_event_id.clear();
   }
 
   size_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const
@@ -454,13 +461,10 @@ namespace larcv {
 
       auto& ptr = _product_ptr_v[id];
       // retrieve event_id if not yet done
-      if(!_event_id.valid()) _event_id = _set_event_id = *ptr;
-      else if( !ptr->valid() ) {
-	LARCV_WARNING() << "Event alignment cannot be checked for tree "
-			<<_in_tree_v[id]->GetName() << " by " << ptr->producer()
-			<< " (invalid event id)" << std::endl;
-      }	
-      else if( _event_id != *ptr) {
+      if(!_event_id.valid()) {
+	LARCV_INFO() << "Setting event id (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
+	_event_id = _set_event_id = *ptr;
+      }else if(ptr->valid() && _event_id != *ptr) {
 	LARCV_CRITICAL() << "Event alignment error (run,subrun,event) detected: "
 			 << "Current (" << _event_id.run() << "," << _event_id.subrun() << "," << _event_id.event() << ") vs. "
 			 << "Read-in (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
@@ -492,7 +496,7 @@ namespace larcv {
   void IOManager::set_id() {
     LARCV_DEBUG() << "start" << std::endl;
 
-    if(_event_id == _set_event_id)  return;
+    if(_io_mode == kREAD) return;
 
     LARCV_INFO() << "Setting event id for output trees..." << std::endl;
 
@@ -549,6 +553,7 @@ namespace larcv {
   {
     LARCV_DEBUG() << "start" << std::endl;
     _event_id.clear();
+    _set_event_id.clear();
     _in_tree_v.clear();
     _in_tree_v.resize(1000,nullptr);
     _in_tree_index_v.clear();
