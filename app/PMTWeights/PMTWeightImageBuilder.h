@@ -47,14 +47,16 @@ namespace larcv {
       void finalize(TFile* ana_file);
 
       std::string fGeoFile;
-      std::string fImageProducer;
+      std::string fPMTImageProducer;
+      std::string fTPCImageProducer;
       int fNWirePixels;
       int fStartTick;
       int fEndTick;
       PMTWireWeights* m_WireWeights;
       bool fCheckSat;
+      int fPMTImageIndex;
 
-      std::vector< larcv::Image2D > m_pmtw_image_array;
+      //larcv::Image2D& getWeightedImage( int plane );
       
     };
 
