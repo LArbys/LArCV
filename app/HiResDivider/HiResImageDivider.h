@@ -18,8 +18,11 @@
 #include "Processor/ProcessFactory.h"
 
 #include <string>
+#include <vector>
 
+#include "DataFormat/ImageMeta.h"
 #include "PMTWeights/PMTWireWeights.h"
+#include "DivisionDef.h"
 
 namespace larcv {
   namespace hires {
@@ -45,13 +48,15 @@ namespace larcv {
       bool process(IOManager& mgr);
       
       void finalize(TFile* ana_file);
-
-      std::string fGeoFile;
-      larcv::pmtweights::PMTWireWeights* m_WireInfo; // this is used because it loads wire data for us (shouldfactor that portion out)
       
     protected:
-      
-      float cross2D( float a[], float b[] );
+
+      std::string fDivisionFile;
+      int fNPlanes;
+      int fTickImageWidth;
+      int fMaxWireImageWidth;
+      int fMaxWireInRegion;
+      std::vector< larcv::hires::DivisionDef > m_divisions;
 
     };
     
