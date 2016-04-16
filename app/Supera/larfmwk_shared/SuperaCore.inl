@@ -126,10 +126,8 @@ namespace larcv {
 	size_t cols = _event_image_cols[p] * _event_comp_cols[p];
 	size_t rows = _event_image_rows[p] * _event_comp_rows[p];
 	
-	auto meta = ::larcv::ImageMeta(cols,rows,
-				       rows,cols,
-				       _min_wire,_min_time+rows,
-				       p);
+	auto meta = ::larcv::ImageMeta(cols,rows,rows,cols,
+				       _min_wire,_min_time+rows,p);
 	image_meta_m.insert(std::make_pair(p,meta));
 	
 	LARCV_INFO() << "Creating Event image frame:" << meta.dump();
@@ -172,11 +170,13 @@ namespace larcv {
       //
       _mctp.clear();
       _mctp.DefinePrimary(mctruth_v);
-      _mctp.RegisterSecondary(mctrack_v);
-      if(_producer_simch.empty())
+      if(_producer_simch.empty()) {
+	_mctp.RegisterSecondary(mctrack_v);
 	_mctp.RegisterSecondary(mcshower_v);
-      else
+      }else{
+	_mctp.RegisterSecondary(mctrack_v,simch_v);
 	_mctp.RegisterSecondary(mcshower_v,simch_v);
+      }
       
       _mctp.UpdatePrimaryROI();
       auto int_roi_v = _mctp.GetPrimaryROI();

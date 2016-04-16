@@ -1,7 +1,7 @@
-#ifndef CVFHICL_PARSER_CXX
-#define CVFHICL_PARSER_CXX
+#ifndef __LARCVBASE_PARSER_CXX__
+#define __LARCVBASE_PARSER_CXX__
 
-#include "UtilFunc.h"
+#include "LArCVBaseUtilFunc.h"
 #include "larbys.h"
 namespace larcv {
   namespace parser{

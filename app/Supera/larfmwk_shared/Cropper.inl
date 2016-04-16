@@ -30,6 +30,52 @@ namespace larcv {
     }
 
     template<class T, class U, class V>
+    WTRangeArray_t Cropper<T,U,V>::WireTimeBoundary(const T& mct, const std::vector<V>& sch_v) const
+    {
+      LARCV_DEBUG() << "start" << std::endl;
+      // result is N planes' wire boundary + time boundary (N+1 elements)
+      WTRangeArray_t result(::larcv::supera::Nplanes()+1);
+
+      for(auto const& sch : sch_v) {
+
+	auto const wire = ChannelToWireID(sch.Channel());
+	auto& wrange = result[wire.Plane];
+	auto& trange = result.back();
+
+	for(auto const& tdc_ide_v : sch.TDCIDEMap()) {
+	  bool store=false;
+	  double tick = TPCTDC2Tick((double)(tdc_ide_v.first));
+	  if(tick<0 || tick >= NumberTimeSamples()) continue;
+	  tick += 0.5;
+	  for(auto const& ide : tdc_ide_v.second){
+	    unsigned int trackid = (ide.trackID < 0 ? (-1 * ide.trackID) : ide.trackID);
+	    if(trackid != mct.TrackID()) continue;
+
+	    store=true;
+	    LARCV_INFO() << "IDE wire = " << (unsigned int)wire.Wire
+			 << " ... tick = " << (unsigned int)tick << std::endl
+			 << " (tdc=" << tdc_ide_v.first << ", x=" << ide.x << ")" << std::endl;
+	    break;
+	  }
+	  if(!store) continue;
+	  if(!wrange.valid()) wrange.Set((unsigned int)wire.Wire,(unsigned int)(wire.Wire));
+	  else wrange += (unsigned int)(wire.Wire);  
+	  if(!trange.valid()) trange.Set((unsigned int)(tick),(unsigned int)(tick));
+	  else trange += (unsigned int)(tick);
+	}
+      }
+      
+      for(auto& r : result) if(!r.valid()) r.Set(0,0);
+
+      for(size_t plane=0; plane <= larcv::supera::Nplanes(); ++plane)
+	  
+	LARCV_INFO() << "Single MCShower ... Plane " << plane 
+		     << " bound " << result[plane].Start() << " => " << result[plane].End() << std::endl;
+      
+      return result;
+    }
+    
+    template<class T, class U, class V>
     WTRangeArray_t Cropper<T,U,V>::WireTimeBoundary(const T& mct) const
     {
       LARCV_DEBUG() << "start" << std::endl;
@@ -156,6 +202,7 @@ namespace larcv {
 
       std::set<unsigned int> daughters;
       for(auto const& trackid : mcs.DaughterTrackID()) daughters.insert(trackid);
+      daughters.insert(mcs.TrackID());
       
       for(auto const& sch : sch_v) {
 
@@ -253,6 +300,31 @@ namespace larcv {
       LARCV_DEBUG() << "start" << std::endl;
       LARCV_INFO() << "Assessing MCTrack G4Track ID = " << mct.TrackID() << " PdgCode " << mct.PdgCode() << std::endl;
       auto wtrange_v = WireTimeBoundary(mct);
+      auto bb_v = WTRange2BB(wtrange_v);
+      ::larcv::ROI res;
+      res.SetBB(bb_v);
+      res.Shape(::larcv::kShapeTrack);
+      res.Type(::larcv::PdgCode2ROIType(mct.PdgCode()));
+      if(mct.size())
+	res.EnergyDeposit(mct.front().E() - mct.back().E());
+      else
+	res.EnergyDeposit(0);
+      res.EnergyInit(mct.Start().E());
+      res.Position(mct.Start().X(),mct.Start().Y(),mct.Start().Z(),mct.Start().T());
+      res.Momentum(mct.Start().Px(),mct.Start().Py(),mct.Start().Pz());
+      res.PdgCode(mct.PdgCode());
+      res.ParentPdgCode(mct.MotherPdgCode());
+      res.TrackID(mct.TrackID());
+      res.ParentTrackID(mct.MotherTrackID());
+      return res;
+    }
+
+    template<class T, class U, class V>
+    ::larcv::ROI Cropper<T,U,V>::ParticleROI( const T& mct, const std::vector<V>& sch_v ) const
+    {
+      LARCV_DEBUG() << "start" << std::endl;
+      LARCV_INFO() << "Assessing MCTrack G4Track ID = " << mct.TrackID() << " PdgCode " << mct.PdgCode() << std::endl;
+      auto wtrange_v = WireTimeBoundary(mct,sch_v);
       auto bb_v = WTRange2BB(wtrange_v);
       ::larcv::ROI res;
       res.SetBB(bb_v);
