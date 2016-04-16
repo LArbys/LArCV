@@ -1,0 +1,78 @@
+/**
+ * \file PMTWeightImageBuilder.h
+ *
+ * \ingroup Package_Name
+ * 
+ * \brief Class def header for a class PMTWeightImageBuilder
+ *
+ * @author twongjirad
+ */
+
+/** \addtogroup Package_Name
+
+    @{*/
+#ifndef __PMTWEIGHTIMAGEBUILDER_H__
+#define __PMTWEIGHTIMAGEBUILDER_H__
+
+#include "Processor/ProcessBase.h"
+#include "Processor/ProcessFactory.h"
+
+#include <string>
+
+#include "PMTWireWeights.h"
+
+namespace larcv {
+  namespace pmtweights {
+    /**
+       \class ProcessBase
+       User defined class PMTWeightImageBuilder ... these comments are used to generate
+       doxygen documentation!
+    */
+    class PMTWeightImageBuilder : public ProcessBase {
+      
+    public:
+      
+      /// Default constructor
+      PMTWeightImageBuilder(const std::string name="PMTWeightImageBuilder");
+      
+      /// Default destructor
+      ~PMTWeightImageBuilder();
+      
+      void configure(const PSet&);
+      
+      void initialize();
+      
+      bool process(IOManager& mgr);
+      
+      void finalize(TFile* ana_file);
+
+      std::string fGeoFile;
+      std::string fImageProducer;
+      int fNWirePixels;
+      int fStartTick;
+      int fEndTick;
+      PMTWireWeights* m_WireWeights;
+
+      std::vector< larcv::Image2D > m_pmtw_image_array;
+      
+    };
+
+    /**
+       \class larcv::PMTWeightImageBuilderFactory
+       \brief A concrete factory class for larcv::PMTWeightImageBuilder
+    */
+    class PMTWeightImageBuilderProcessFactory : public ProcessFactoryBase {
+    public:
+      /// ctor
+      PMTWeightImageBuilderProcessFactory() { ProcessFactory::get().add_factory("PMTWeightImageBuilder",this); }
+      /// dtor
+      ~PMTWeightImageBuilderProcessFactory() {}
+      /// creation method
+      ProcessBase* create(const std::string instance_name) { return new PMTWeightImageBuilder(instance_name); }
+    };
+  }
+}
+
+#endif
+/** @} */ // end of doxygen group 
+
