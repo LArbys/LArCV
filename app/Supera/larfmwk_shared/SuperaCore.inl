@@ -212,10 +212,80 @@ namespace larcv {
 	LARCV_INFO() << "Registering Interaction..." << std::endl
 		     << int_roi.first.dump() << std::endl;
 	roi_v->Append(int_roi.first);
+
+	//
+	// Secondaries
+	//
+	auto& sec_roi_v = int_roi.second;
+	std::vector<bool> sec_used_v(sec_roi_v.size(),false);
+	std::vector<larcv::ROI> sec_roi_out_v;
+	for(size_t sec_index=0; sec_index<sec_roi_v.size(); ++sec_index) {
+
+	  if(sec_used_v[sec_index]) continue;
+
+	  // Copy ROI (don't use reference)
+	  auto sec_roi = sec_roi_v[sec_index];
+
+	  // If gamma and parent is Pi0, search for sibling & merge two
+	  if(sec_roi.PdgCode() == 22 && sec_roi.ParentPdgCode() == 111) {
+	    size_t sibling_index = sec_index;
+	    for(size_t i=sec_index+1; i<sec_roi_v.size(); ++i) {
+	      if(sec_roi_v[i].ParentTrackID() == sec_roi.ParentTrackID()) {
+		sibling_index = i;
+		break;
+	      }
+	    }
+	    if(sibling_index!=sec_index) {
+	      // Merge
+	      auto sibling_roi = sec_roi_v[sibling_index];
+	      std::vector<larcv::ImageMeta> merged_bb_v = sec_roi.BB();
+	      for(auto& bb : merged_bb_v) {
+		auto const& sibling_bb = sibling_roi.BB(bb.plane());
+		bb = bb.inclusive(sibling_bb);
+	      }
+	      sec_roi.SetBB(merged_bb_v);
+	      sec_roi.Position(sec_roi.ParentPosition());
+	      sec_roi.Momentum(sec_roi.ParentPx(),sec_roi.ParentPy(),sec_roi.ParentPx());
+	      sec_roi.ParentPosition(0,0,0,0);
+	      sec_roi.ParentMomentum(0.,0.,0.);
+	      sec_roi.PdgCode(111);
+	      sec_roi.EnergyDeposit(sec_roi.EnergyDeposit() + sibling_roi.EnergyDeposit());
+	      sec_roi.EnergyInit(sec_roi.EnergyInit() + sibling_roi.EnergyInit());
+	      sec_roi.TrackID(sec_roi.ParentTrackID());
+	      sec_roi.ParentPdgCode(0);
+	      sec_roi.ParentTrackID(::larcv::kINVALID_UINT);
+	      sec_used_v[sibling_index] = true;
+	    }
+	  }
+	  sec_used_v[sec_index] = true;
+	  std::vector<larcv::ImageMeta> sec_bb_v;
+	  
+	  for(auto const& bb : sec_roi.BB()) {
+	    auto iter = image_meta_m.find(bb.plane());
+	    if(iter == image_meta_m.end()) continue;
+	    try{
+	      auto trimmed = (*iter).second.overlap(bb);
+	      sec_bb_v.push_back(trimmed);
+	    }catch(const ::larcv::larbys& err) {
+	      break;
+	    }
+	  }
+	  if(sec_bb_v.size() != sec_roi.BB().size()) {
+	    LARCV_INFO() << "Requested to register Secondary..." << std::endl
+			 << sec_roi.dump() << std::endl;
+	    LARCV_INFO() << "No overlap found in image region and Particle ROI. Skipping..." << std::endl;
+	    continue;
+	  }
+	  sec_roi.SetBB(sec_bb_v);
+	  LARCV_INFO() << "Registering Secondary..." << std::endl
+		       << sec_roi.dump() << std::endl;
+	  roi_v->Append(sec_roi);
+	}
 	
 	//
 	// Secondaries
 	//
+	/*
 	for(auto& roi : int_roi.second) {
 	  
 	  std::vector<larcv::ImageMeta> sec_bb_v;
@@ -241,8 +311,11 @@ namespace larcv {
 		       << roi.dump() << std::endl;
 	  roi_v->Append(roi);
 	}
+	*/
       }
-      
+
+
+	
       //
       // If no ROI, skip this event
       //

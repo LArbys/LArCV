@@ -67,6 +67,11 @@ namespace larcv {
 	      roi.PdgCode(mcp.PdgCode());
 	      roi.Momentum(mom.X()*1.e3,mom.Y()*1.e3,mom.Z()*1.e3);
 	      roi.EnergyInit(mom.E() * 1.e3);
+	      if(mctruth.NeutrinoSet()) {
+		roi.NuCurrentType(mctruth.GetNeutrino().CCNC());
+		roi.NuInteractionType(mctruth.GetNeutrino().InteractionType());
+	      }
+
 	    }
 	  }else{
 	    // Non neutrino: take larger energy particle as representative

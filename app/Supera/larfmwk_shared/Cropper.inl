@@ -316,6 +316,14 @@ namespace larcv {
       res.ParentPdgCode(mct.MotherPdgCode());
       res.TrackID(mct.TrackID());
       res.ParentTrackID(mct.MotherTrackID());
+      res.ParentPosition(mct.MotherStart().X(),
+			 mct.MotherStart().Y(),
+			 mct.MotherStart().Z(),
+			 mct.MotherStart().T());
+      res.ParentMomentum(mct.MotherStart().Px(),
+			 mct.MotherStart().Py(),
+			 mct.MotherStart().Pz());
+			 
       return res;
     }
 
@@ -341,6 +349,13 @@ namespace larcv {
       res.ParentPdgCode(mct.MotherPdgCode());
       res.TrackID(mct.TrackID());
       res.ParentTrackID(mct.MotherTrackID());
+      res.ParentPosition(mct.MotherStart().X(),
+			 mct.MotherStart().Y(),
+			 mct.MotherStart().Z(),
+			 mct.MotherStart().T());
+      res.ParentMomentum(mct.MotherStart().Px(),
+			 mct.MotherStart().Py(),
+			 mct.MotherStart().Pz());
       return res;
     }
 
@@ -364,6 +379,13 @@ namespace larcv {
       res.ParentPdgCode(mcs.MotherPdgCode());
       res.TrackID(mcs.TrackID());
       res.ParentTrackID(mcs.MotherTrackID());
+      res.ParentPosition(mcs.MotherStart().X(),
+			 mcs.MotherStart().Y(),
+			 mcs.MotherStart().Z(),
+			 mcs.MotherStart().T());
+      res.ParentMomentum(mcs.MotherStart().Px(),
+			 mcs.MotherStart().Py(),
+			 mcs.MotherStart().Pz());
       return res;
     }
 
@@ -383,8 +405,17 @@ namespace larcv {
       res.EnergyInit(mcs.Start().E());
       res.Position(mcs.Start().X(),mcs.Start().Y(),mcs.Start().Z(),mcs.Start().T());
       res.Momentum(mcs.Start().Px(),mcs.Start().Py(),mcs.Start().Pz());
-
       res.PdgCode(mcs.PdgCode());
+      res.ParentPdgCode(mcs.MotherPdgCode());
+      res.TrackID(mcs.TrackID());
+      res.ParentTrackID(mcs.MotherTrackID());
+      res.ParentPosition(mcs.MotherStart().X(),
+			 mcs.MotherStart().Y(),
+			 mcs.MotherStart().Z(),
+			 mcs.MotherStart().T());
+      res.ParentMomentum(mcs.MotherStart().Px(),
+			 mcs.MotherStart().Py(),
+			 mcs.MotherStart().Pz());
       return res;
     }
 

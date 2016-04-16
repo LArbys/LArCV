@@ -3,12 +3,12 @@ larcv.IOManager
 from ROOT import TChain
 import sys
 
-ROI_PRODUCER='supera_event'
+ROI_PRODUCER=sys.argv[1]
 
 roi_tree_name='partroi_%s_tree' % ROI_PRODUCER
 roi_br_name='partroi_%s_branch' % ROI_PRODUCER
 roi_ch = TChain(roi_tree_name)
-roi_ch.AddFile(sys.argv[1])
+roi_ch.AddFile(sys.argv[2])
 
 for entry in xrange(roi_ch.GetEntries()):
     roi_ch.GetEntry(entry)
