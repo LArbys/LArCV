@@ -16,6 +16,7 @@
 #define LARLITE_SUPERA_H
 
 #include "Analysis/ana_base.h"
+#include "DataFormat/opdetwaveform.h"
 #include "DataFormat/wire.h"
 #include "DataFormat/mctruth.h"
 #include "DataFormat/mctrack.h"
@@ -56,8 +57,10 @@ namespace larlite {
 
   protected:
 
-    ::larcv::supera::SuperaCore<larlite::wire,
-				larlite::mctruth, larlite::mctrack, larlite::mcshower, larlite::simch> _core;
+    ::larcv::supera::SuperaCore<larlite::opdetwaveform, larlite::wire,
+				larlite::mctruth,
+				larlite::mctrack, larlite::mcshower,
+				larlite::simch> _core;
     std::string _config_file;
     
   };

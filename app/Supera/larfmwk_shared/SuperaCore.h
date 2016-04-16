@@ -28,7 +28,7 @@ namespace larcv {
        User defined class SuperaCore ... these comments are used to generate
        doxygen documentation!
     */
-    template<class S, class T, class U, class V, class W>
+    template<class R, class S, class T, class U, class V, class W>
     class SuperaCore{
       
     public:
@@ -46,7 +46,8 @@ namespace larcv {
       void set_id(unsigned int run, unsigned int subrun, unsigned int event)
       { _larcv_io.set_id(run, subrun, event); }
 
-      bool process_event(const std::vector<S>&,  // Wire
+      bool process_event(const std::vector<R>&,  // OpDetWaveform
+			 const std::vector<S>&,  // Wire
 			 const std::vector<T>&,  // MCTruth
 			 const std::vector<U>&,  // MCTrack
 			 const std::vector<V>&,  // MCShower
@@ -55,11 +56,12 @@ namespace larcv {
       void finalize();
 
       void set_chstatus(unsigned int ch, short status);
-      const std::string& producer_digit     () const { return _producer_digit;  }
-      const std::string& producer_wire      () const { return _producer_wire;   }
-      const std::string& producer_generator () const { return _producer_gen;    }
-      const std::string& producer_mcreco    () const { return _producer_mcreco; }
-      const std::string& producer_simch     () const { return _producer_simch;  }
+      const std::string& producer_opdigit   () const { return _producer_opdigit; }
+      const std::string& producer_digit     () const { return _producer_digit;   }
+      const std::string& producer_wire      () const { return _producer_wire;    }
+      const std::string& producer_generator () const { return _producer_gen;     }
+      const std::string& producer_mcreco    () const { return _producer_mcreco;  }
+      const std::string& producer_simch     () const { return _producer_simch;   }
       bool use_mc() const { return _use_mc; }
       bool store_chstatus() const { return _store_chstatus; }
       const ::larcv::logger& logger() const { return _logger;}
@@ -67,6 +69,7 @@ namespace larcv {
     private:
 
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
+      void fill(Image2D& img, const std::vector<R>& opdigit_v, const int time_offset=0);
       void fill(std::vector<Image2D>& img,
 		const std::vector<U>& mct_v,
 		const std::vector<V>& mcs_v,
@@ -84,6 +87,7 @@ namespace larcv {
       std::string _producer_wire;
       std::string _producer_gen;
       std::string _producer_mcreco;
+      std::string _producer_opdigit;
       std::vector<size_t> _event_image_cols;
       std::vector<size_t> _event_image_rows;
       std::vector<size_t> _event_comp_rows;

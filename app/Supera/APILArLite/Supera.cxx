@@ -30,9 +30,13 @@ namespace larlite {
 
     _core.set_id(storage->run_id(), storage->subrun_id(), storage->event_id());
 
-    auto wire_h = storage->get_data<event_wire>(_core.producer_wire());                                                                                        
+    auto wire_h = storage->get_data<event_wire>(_core.producer_wire());
 
     if(!wire_h) { throw DataFormatException("Could not load wire data!"); }
+
+    auto opdigit_h = storage->get_data<event_opdetwaveform>(_core.producer_opdigit());
+
+    if(!opdigit_h) { throw DataFormatException("Could not load opdetwaveform data!"); }
 
     if(_core.store_chstatus())
 
@@ -50,13 +54,13 @@ namespace larlite {
       if(_core.producer_simch().empty()) {
 
 	std::vector<larlite::simch> empty_simch;
-	status = _core.process_event(*wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+	status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
 	
       }else{
 
 	auto simch_h = storage->get_data<event_simch>(_core.producer_simch());
 	if(!simch_h) throw DataFormatException("SimChannel requested but not available");
-	status = _core.process_event(*wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+	status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
 	
       }
     }else{
@@ -64,7 +68,7 @@ namespace larlite {
       std::vector<larlite::mctrack>  empty_mctrack;
       std::vector<larlite::mcshower> empty_mcshower;
       std::vector<larlite::simch>    empty_simch;
-      status = _core.process_event(*wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);
+      status = _core.process_event(*opdigit_h, *wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);
     }
     return status;
   }

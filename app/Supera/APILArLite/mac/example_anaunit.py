@@ -6,8 +6,9 @@ if len(sys.argv) < 2:
     msg += '\n'
     sys.stderr.write(msg)
     sys.exit(1)
-
-from larlite import larlite as fmwk
+import ROOT
+from ROOT import larlite as fmwk
+#from larlite import larlite as fmwk
 
 # Create ana_processor instance
 my_proc = fmwk.ana_processor()

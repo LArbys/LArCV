@@ -12,29 +12,30 @@
 namespace larcv {
   namespace supera {
 
-    template <class S, class T, class U, class V, class W>
-    SuperaCore<S,T,U,V,W>::SuperaCore() : _logger("Supera")
+    template <class R, class S, class T, class U, class V, class W>
+    SuperaCore<R,S,T,U,V,W>::SuperaCore() : _logger("Supera")
 			     , _larcv_io(::larcv::IOManager::kWRITE)
     { _configured = false; _use_mc = false; _store_chstatus = false; }
 
-    template <class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::initialize() {
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::initialize() {
       _larcv_io.initialize();
     }
     
-    template <class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::configure(const Config_t& main_cfg) {
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::configure(const Config_t& main_cfg) {
 
       _use_mc = main_cfg.get<bool>("UseMC");
       _store_chstatus = main_cfg.get<bool>("StoreChStatus");
       _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
 
-      _producer_key    = main_cfg.get<std::string>("ProducerKey");
-      _producer_digit  = main_cfg.get<std::string>("DigitProducer");
-      _producer_simch  = main_cfg.get<std::string>("SimChProducer");
-      _producer_wire   = main_cfg.get<std::string>("WireProducer");
-      _producer_gen    = main_cfg.get<std::string>("GenProducer");
-      _producer_mcreco = main_cfg.get<std::string>("MCRecoProducer");
+      _producer_key     = main_cfg.get<std::string>("ProducerKey");
+      _producer_digit   = main_cfg.get<std::string>("DigitProducer");
+      _producer_simch   = main_cfg.get<std::string>("SimChProducer");
+      _producer_wire    = main_cfg.get<std::string>("WireProducer");
+      _producer_gen     = main_cfg.get<std::string>("GenProducer");
+      _producer_mcreco  = main_cfg.get<std::string>("MCRecoProducer");
+      _producer_opdigit = main_cfg.get<std::string>("OpDigitProducer");
       
       _min_time = main_cfg.get<double>("MinTime");
       _min_wire = main_cfg.get<double>("MinWire");
@@ -80,20 +81,21 @@ namespace larcv {
       _configured = true;
     }
 
-    template <class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::set_chstatus(unsigned int ch, short status)
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::set_chstatus(unsigned int ch, short status)
     {
       if(ch >= _channel_to_plane_wire.size()) throw ::larcv::larbys("Invalid channel to store status!");
       auto const& plane_wire = _channel_to_plane_wire[ch];
       _status_m[plane_wire.first].Status(plane_wire.second,status);
     }
 
-    template <class S, class T, class U, class V, class W>    
-    bool SuperaCore<S,T,U,V,W>::process_event(const std::vector<S>& wire_v,
-					      const std::vector<T>& mctruth_v,
-					      const std::vector<U>& mctrack_v,
-					      const std::vector<V>& mcshower_v,
-					      const std::vector<W>& simch_v)
+    template <class R, class S, class T, class U, class V, class W>    
+    bool SuperaCore<R,S,T,U,V,W>::process_event(const std::vector<R>& opdigit_v,
+						const std::vector<S>& wire_v,
+						const std::vector<T>& mctruth_v,
+						const std::vector<U>& mctrack_v,
+						const std::vector<V>& mcshower_v,
+						const std::vector<W>& simch_v)
     {
       if(!_configured) throw larbys("Call configure() first!");
 
@@ -152,6 +154,14 @@ namespace larcv {
 			       std::move(_full_image.copy_compress(_event_image_rows[p],_event_image_cols[p])));
 	  event_image_v->Emplace(std::move(img));
 	}
+
+	// OpDigit
+	std::string op_producer = "op_" + _producer_key;
+	auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,op_producer));
+	::larcv::ImageMeta op_meta(32,1500,1500,32,0,1499);
+	::larcv::Image2D op_img(op_meta);
+	fill(op_img,opdigit_v);
+	opdigit_image_v->Emplace(std::move(op_img));
 	
 	_larcv_io.save_entry();
 	return true;
@@ -256,6 +266,14 @@ namespace larcv {
 	return (!_skip_empty_image);
       }
       
+      // OpDigit
+      std::string op_producer = "op_" + _producer_key;
+      auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,op_producer));
+      ::larcv::ImageMeta op_meta(32,1500,1500,32,0,1499);
+      ::larcv::Image2D op_img(op_meta);
+      fill(op_img,opdigit_v);
+      opdigit_image_v->Emplace(std::move(op_img));      
+      
       //
       // Extract image if there's any ROI
       //
@@ -300,32 +318,67 @@ namespace larcv {
       std::string sem_producer = "segment_" + _producer_key;
       auto event_semimage_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,sem_producer));
       std::vector<larcv::Image2D> sem_images;
-      for(auto const& img : event_image_v->Image2DArray())
-
-	sem_images.emplace_back(::larcv::Image2D(img.meta()));
-
-      fill(sem_images,mctrack_v,mcshower_v,simch_v);
+      /*// For full plane image + full resolution
+      for(auto const& plane_img : image_meta_m) 
+	sem_images.emplace_back(::larcv::Image2D(plane_img.second));
+      */
+      // For interaction ROI + full resolution
+      for(auto const& roi : roi_v->ROIArray()) {
+	if(roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
+	if(roi.BB().empty()) continue;
+	for(auto const& bb : roi.BB())
+	  sem_images.emplace_back(::larcv::Image2D(bb));
+	break;
+      }
+      if(!sem_images.empty())
+	fill(sem_images,mctrack_v,mcshower_v,simch_v);
       event_semimage_v->Emplace(std::move(sem_images));
       
       _larcv_io.save_entry();
-      return true;
+      return true;      
     }
 
-    template<class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::finalize() {
+    template<class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::finalize() {
       if(!_configured) throw larbys("Call configure() first!");
       _larcv_io.finalize();
       _larcv_io.reset();
     }
 
-    template <class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::fill(std::vector<Image2D>& img_v,
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::fill(Image2D& img, const std::vector<R>& opdigit_v, int time_offset)
+    {
+      auto const& meta = img.meta();
+      for(auto const& opdigit : opdigit_v) {
+	if(opdigit.size()<1000) continue;
+	auto const col = opdigit.ChannelNumber();
+	if(meta.min_x() > col) continue;
+	if(col >= meta.max_x()) continue;
+	//
+	// HACK: right way is to use TimeService + trigger.
+	//       for now I just record PMT beamgate tick=0 as edge of an image (w/ offset)
+	//
+	size_t nskip = 0;
+	if(time_offset < 0) nskip = (-1 * time_offset);
+	if(nskip >= opdigit.size()) continue;
+	size_t num_pixel = std::min(meta.rows(),opdigit.size() - nskip);
+	img.reverse_copy(0,col,(std::vector<short>)opdigit,nskip,num_pixel);
+      }
+    }
+
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::fill(std::vector<Image2D>& img_v,
 				     const std::vector<U>& mct_v,
 				     const std::vector<V>& mcs_v,
 				     const std::vector<W>& sch_v,
 				     const int time_offset)
     {
-      static std::vector<larcv::ROIType_t> track2type_v(1e6,::larcv::kROIUnknown);
+      LARCV_INFO() << "Filling semantic-segmentation ground truth image..." << std::endl;
+      for(auto const& img : img_v) 
+
+	LARCV_INFO() << img.meta().dump();
+      
+      static std::vector<larcv::ROIType_t> track2type_v(1e4,::larcv::kROIUnknown);
       for(auto& v : track2type_v) v = ::larcv::kROIUnknown;
       for(auto const& mct : mct_v) {
 	if(mct.TrackID() >= track2type_v.size())
@@ -343,7 +396,13 @@ namespace larcv {
 	  track2type_v[id] = roi_type;
 	}
       }
-      
+
+      static std::vector<float> column;
+      for(auto const& img : img_v) {
+	if(img.meta().rows() >= column.size())
+	  column.resize(img.meta().rows()+1,(float)(::larcv::kROIUnknown));
+      }
+
       for(auto const& sch : sch_v) {
 
 	auto ch = sch.Channel();
@@ -352,34 +411,42 @@ namespace larcv {
 	auto& img = img_v.at(plane);
 	auto const& meta = img.meta();
 
-	const size_t col = wid.Wire;
-
+	size_t col = wid.Wire;
 	if(col < meta.min_x()) continue;
-	if(meta.max_x() >= col) continue;
-
+	if(meta.max_x() <= col) continue;
 	if(plane != img.meta().plane()) continue;
+
+	col -= (size_t)(meta.min_x());
+	
+	// Initialize column vector
+	for(auto& v : column) v = (float)(::larcv::kROIUnknown);
 
 	for(auto const tick_ides : sch.TDCIDEMap()) {
 	  int tick = (TPCTDC2Tick((double)(tick_ides.first)) + time_offset);
-	  if(tick <= meta.min_y()) continue;
-	  if(tick >  meta.max_y()) continue;
+	  if(tick < meta.min_y()) continue;
+	  if(tick >= meta.max_y()) continue;
+	  // Where is this tick in column vector?
+	  size_t index = (size_t)(meta.max_y() - tick);
 	  // Pick type
 	  double energy=0;
 	  ::larcv::ROIType_t roi_type=::larcv::kROIUnknown;
 	  for(auto const& edep : tick_ides.second) {
 	    if(edep.energy < energy) continue;
-	    auto temp_roi_type = ::larcv::PDG2ROIType(edep.trackID);
+	    if(edep.trackID >= track2type_v.size()) continue;
+	    auto temp_roi_type = track2type_v[edep.trackID];
 	    if(temp_roi_type==::larcv::kROIUnknown) continue;
 	    energy = edep.energy;
 	    roi_type = temp_roi_type;
 	  }
-	  img.set_pixel((size_t)tick,col,roi_type);
+	  column[index]=roi_type;
 	}
+	// mem-copy column vector
+	img.copy(0,col,column,img.meta().rows());
       }
     }
     
-    template <class S, class T, class U, class V, class W>
-    void SuperaCore<S,T,U,V,W>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
     {
       //int nticks = meta.rows();
       //int nwires = meta.cols();

@@ -75,7 +75,7 @@ namespace larcv {
   {
     if(!num_pixel)
       this->copy(row,col,(float*)(&(src[0])),src.size());
-    else if(num_pixel < src.size()) 
+    else if(num_pixel <= src.size()) 
       this->copy(row,col,(float*)&src[0],num_pixel);
     else
       throw larbys("Not enough pixel in source!");
@@ -85,14 +85,14 @@ namespace larcv {
   {
     const size_t idx = _meta.index(row,col);
     if(idx+num_pixel-1 >= _img.size()) throw larbys("memcpy size exceeds allocated memory!");
-    for(size_t i=0; i<num_pixel; ++i) _img[idx+i] = src[num_pixel];
+    for(size_t i=0; i<num_pixel; ++i) _img[idx+i] = src[idx];
   }
 
   void Image2D::copy(size_t row, size_t col, const std::vector<short>& src, size_t num_pixel) 
   {
     if(!num_pixel)
       this->copy(row,col,(short*)(&(src[0])),src.size());
-    else if(num_pixel < src.size()) 
+    else if(num_pixel <= src.size()) 
       this->copy(row,col,(short*)&src[0],num_pixel);
     else
       throw larbys("Not enough pixel in source!");
@@ -113,6 +113,23 @@ namespace larcv {
     if(!num_pixel) num_pixel = src.size() - nskip;
     if( (idx+1) < num_pixel ) num_pixel = idx + 1;
     for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[nskip+num_pixel-i-1]; }
+  }
+
+  void Image2D::reverse_copy(size_t row, size_t col, const std::vector<short>& src, size_t nskip, size_t num_pixel)
+  {
+    size_t idx = 0;
+    try{
+      idx = _meta.index(row,col);
+    }catch(const larbys& err){
+      std::cout << "Exception caught @ " << __FUNCTION__ << std::endl
+		<< "Image2D ... fill row: "<<row<<" => "<<(row+num_pixel-1)<<std::endl
+		<< "Image2D ... orig idx: "<<nskip<<" => "<<nskip+num_pixel-1<<std::endl
+		<< "Re-throwing exception..."<<std::endl; 
+      throw err;
+    }
+    if(!num_pixel) num_pixel = src.size() - nskip;
+    if( (idx+1) < num_pixel ) num_pixel = idx + 1;
+    for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = (float)(src[nskip+num_pixel-i-1]); }
   }
 
   std::vector<float> Image2D::copy_compress(size_t rows, size_t cols, CompressionModes_t mode) const
