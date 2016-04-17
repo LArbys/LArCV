@@ -109,11 +109,13 @@ namespace larcv {
       res.first  = kBlockEnd;
       res.second = index;
     }
+    /*
     index = txt.find("\"",start);    
     if(index != std::string::npos && index < res.second) {
       res.first  = kString;
       res.second = index;
     }
+    */
     return res;
   }
 
@@ -185,7 +187,7 @@ namespace larcv {
 
       if(next_marker.first == kString) {
 
-	//std::cout<<"String found in here: "<<contents.substr(index,(next_marker.second-index))<<std::endl;
+	std::cout<<"String found in here: "<<contents.substr(index,(next_marker.second-index))<<std::endl;
 
 	while(next_marker.second < end_index+1) {
 
@@ -196,18 +198,18 @@ namespace larcv {
 	    break;
 	  }
 	}
-	//std::cout<<"String found in here: "<<contents.substr(index,next_marker.second-index)<<std::endl;
+	std::cout<<"String found in here: "<<contents.substr(index,next_marker.second-index)<<std::endl;
       }
       
       if(next_marker.second > end_index) break;
       if(next_marker.first == kNone) break;
-      /*
+
       std::cout<<"index: "<<index<<std::endl;
       std::cout<<"marker: "<<next_marker.second<<std::endl;
       std::cout<<"type  : "<<next_marker.first<<std::endl;
       std::cout<<"last  : "<<last_mark<<std::endl;
       std::cout<<"Inspecting: "<<"\""<<contents.substr(index,(next_marker.second-index))<<"\""<<std::endl;
-      */
+
       if(next_marker.first == kParamDef) {
 	if(last_mark ==  kNone || last_mark == kBlockEnd){
 	  key = contents.substr(index,(next_marker.second-index));
@@ -215,7 +217,7 @@ namespace larcv {
 	}
 	else if(last_mark == kParamDef || last_mark == kString) {
 	  tmp = contents.substr(index,(next_marker.second-index));
-	  //std::cout<<"Inspecting: \""<<tmp<<"\"" <<std::endl;
+	  std::cout<<"Inspecting: \""<<tmp<<"\"" <<std::endl;
 	  strip(tmp," ");
 	  rstrip(tmp," ");
 	  size_t sep_index = tmp.rfind(" ");
@@ -225,7 +227,7 @@ namespace larcv {
 	  value = tmp.substr(0,sep_index);
 	  // complete pair
 	  this->add_value(key,value);
-	  //std::cout<<"Found value: "<<value<<std::endl;	  
+	  std::cout<<"Found value: "<<value<<std::endl;	  
 	  key = value = "";
 	  key = tmp.substr(sep_index+1,(tmp.size()-sep_index-1));
 	  no_space(key);
@@ -235,7 +237,7 @@ namespace larcv {
 	throw larbys("Block end logic error!");
 
       else if(next_marker.first == kBlockStart){
-	//std::cout<<"Block start!"<<std::endl;
+	std::cout<<"Block start!"<<std::endl;
 	if(last_mark != kParamDef)
 	  throw larbys("Invalid paramter set start!");
 	
@@ -261,7 +263,7 @@ namespace larcv {
 	      }
 
 	    }
-	    //std::cout<<"Found string :"<<contents.substr(index,next_marker.second)<<std::endl;
+	    std::cout<<"Found string :"<<contents.substr(index,next_marker.second)<<std::endl;
 	  }
 
 	  switch(next_marker.first){
@@ -281,7 +283,7 @@ namespace larcv {
 	  throw larbys(msg.c_str());
 	}
 	value = contents.substr(index,next_marker.second-index);
-	//std::cout<<"PSET!\n"<<value<<"\n"<<std::endl;
+	std::cout<<"PSET!\n"<<value<<"\n"<<std::endl;
 	// complete key/value
 	this->add_pset(key,value);
 
