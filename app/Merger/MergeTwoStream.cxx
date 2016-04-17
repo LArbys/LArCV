@@ -2,7 +2,7 @@
 #define MERGETWOSTREAM_CXX
 
 #include "MergeTwoStream.h"
-#include "Base/UtilFunc.h"
+#include "Base/LArCVBaseUtilFunc.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
 #include "DataFormat/EventChStatus.h"

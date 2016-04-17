@@ -16,6 +16,7 @@ namespace larcv {
       ~DivisionDef() {};
 
       const larcv::ImageMeta& getPlaneMeta( int plane );
+      bool isInsideDetRegion( float x, float y, float z ) const;
 
     protected:
 
