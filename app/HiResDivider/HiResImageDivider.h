@@ -24,6 +24,7 @@
 #include "DataFormat/EventROI.h"
 #include "PMTWeights/PMTWireWeights.h"
 #include "DivisionDef.h"
+#include "DataFormat/EventImage2D.h"
 
 namespace larcv {
   namespace hires {
@@ -76,7 +77,7 @@ namespace larcv {
       bool isInteresting( const larcv::ROI& roi );
       int findVertexDivision( const larcv::ROI& roi );
       bool keepNonVertexDivision( const larcv::ROI& roi );
-      void cropEventImages( IOManager& mgr, const larcv::hires::DivisionDef& div, std::string producername, std::string outproducername );
+      void cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images  );
       
     };
     
