@@ -61,6 +61,7 @@ namespace larcv {
       int fNumNonVertexDivisionsPerEvent;
       bool fCropSegmentation;
       bool fCropPMTWeighted;
+      bool fDumpImages;
       std::vector< larcv::hires::DivisionDef > m_divisions;
 
       std::string fInputROIProducer;

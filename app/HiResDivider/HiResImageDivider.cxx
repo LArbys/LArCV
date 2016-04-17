@@ -8,6 +8,9 @@
 
 #include <iostream>
 
+#include "opencv/cv.h"
+#include "opencv2/opencv.hpp"
+
 namespace larcv {
   namespace hires {
     static HiResImageDividerProcessFactory __global_HiResImageDividerProcessFactory__;
@@ -33,6 +36,7 @@ namespace larcv {
       fOutputPMTWeightedProducer = cfg.get<std::string>( "OutputPMTWeightedProducer" );
       fCropSegmentation = cfg.get<bool>( "CropSegmentation" );
       fCropPMTWeighted  = cfg.get<bool>( "CropPMTWeighted" );
+      fDumpImages  = cfg.get<bool>( "DumpImages" );
 
     }
     
@@ -83,6 +87,12 @@ namespace larcv {
 	  tickbounds[i] *= fTickDownSample;
 	  tickbounds[i] += fTickStart;
 	}
+	std::cout << "division entry " << entry << ": ";
+	std::cout << " p0: [" << plane0[0] << "," << plane0[1] << "]";
+	std::cout << " p1: [" << plane1[0] << "," << plane1[1] << "]";
+	std::cout << " p2: [" << plane2[0] << "," << plane2[1] << "]";
+	std::cout << " t: ["  << tickbounds[0] << "," << tickbounds[1] << "]";
+	std::cout << std::endl;
 	
 	DivisionDef div( plane0, plane1, plane2, tickbounds, xbounds, ybounds, zbounds );
 	
@@ -130,6 +140,8 @@ namespace larcv {
       }
       larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
 
+      std::cout << "Vertex in ROI: " << roi.X() << ", " << roi.Y() << ", " << roi.Z() << std::endl;
+
       // now we crop out certain pieces
       // The input images
       cropEventImages( mgr, vertex_div, fInputImageProducer, fOutputImageProducer );
@@ -174,16 +186,64 @@ namespace larcv {
       // Output Image Container
       std::vector<larcv::Image2D> cropped_images;
 
+      cv::Mat outimg;
+
       for ( auto const& img : event_images->Image2DArray() ) {
 	int iplane = (int)img.meta().plane();
 	larcv::ImageMeta const& divPlaneMeta = div.getPlaneMeta( iplane );
 	// we adjust the actual crop meta
-	larcv::ImageMeta cropmeta( divPlaneMeta.width(), fMaxWireImageWidth*fTickDownSample,
-				   divPlaneMeta.width(), fMaxWireImageWidth*fTickDownSample,
-				   divPlaneMeta.min_x(), divPlaneMeta.min_y() );
+	int tstart = divPlaneMeta.max_y()-divPlaneMeta.height();
+	int twidth = fMaxWireImageWidth*fTickDownSample;
+	int tmax = std::min( tstart+twidth, (int)img.meta().max_y() );
+	larcv::ImageMeta cropmeta( divPlaneMeta.width(), twidth,
+				   divPlaneMeta.width(), twidth,
+				   divPlaneMeta.min_x(), tmax );
+
+	std::cout << "image: " << img.meta().height() << " x " << img.meta().width();
+	std::cout << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
+		  << " wmin=" << img.meta().min_x();
+	std::cout << std::endl;
+	
+	std::cout << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width();
+	std::cout << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
+		  << " wmin=" << divPlaneMeta.min_x();
+	std::cout << std::endl;
+
+	std::cout << "crop: " << cropmeta.height() << " x " << cropmeta.width();
+	std::cout << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
+		  << " wmin=" << cropmeta.min_x();
+	
+	std::cout << std::endl;
+
 	Image2D cropped = img.crop( cropmeta );
-	cropped.resize( fMaxWireImageWidth, cropped.meta().width(), 0.0 );  // resize to final image size (and zero pad extra space)
+	std::cout << "cropped." << std::endl;
+	cropped.resize( fMaxWireImageWidth*fTickDownSample, fMaxWireImageWidth, 0.0 );  // resize to final image size (and zero pad extra space)
+	std::cout << "resized." << std::endl;
+
+	cropped.compress( (int)cropped.meta().height()/6, fMaxWireImageWidth, larcv::Image2D::kSum );
+	std::cout << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
+
+	if ( iplane==0 ) {
+	  outimg.create( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 );
+	  outimg = cv::Mat::zeros( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 );
+	}
+	
+	for (int r=0; r<cropped.meta().rows(); r++) {
+	  for (int c=0; c<cropped.meta().cols(); c++) {
+	    int val = std::min( 255, (int)cropped.pixel(r,c) );
+	    val = std::max( 0, val );
+	    outimg.at< cv::Vec3b >(r,c)[iplane] = (unsigned int)val;
+	  }
+	}
+	
 	cropped_images.emplace_back( cropped );
+	std::cout << "stored." << std::endl;
+      }//end of plane loop
+
+      if ( fDumpImages ) {
+	char testname[200];
+	sprintf( testname, "test_%zu.png", event_images->event() );
+	cv::imwrite( testname, outimg );
       }
 
       // insert

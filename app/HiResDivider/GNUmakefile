@@ -20,10 +20,11 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights
+CVLIBDIR = /usr/local/opt/opencv3/lib
+
+LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights -L$(CVLIBDIR) -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
 pkg_build:
-
 pkg_clean:

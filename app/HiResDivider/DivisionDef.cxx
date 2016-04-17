@@ -38,7 +38,7 @@ namespace larcv {
       // we define divisions 
       m_planeMeta[plane] = larcv::ImageMeta( wirebounds[1]-wirebounds[0]+1, tickbounds[1]-tickbounds[0]+1,
 					     wirebounds[1]-wirebounds[0]+1, tickbounds[1]-tickbounds[0]+1,
-					     tickbounds[0], wirebounds[0] );
+					     wirebounds[0], tickbounds[1]+1 );
       mNPlanes++;
     }
 
