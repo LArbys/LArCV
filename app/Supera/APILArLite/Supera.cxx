@@ -23,7 +23,8 @@ namespace larlite {
   
   bool Supera::analyze(storage_manager* storage) {
 
-    _core.set_id(storage->run_id(), storage->subrun_id(), storage->event_id());
+    _core.clear_data();
+    _core.set_id(storage->run_id(),storage->subrun_id(),storage->event_id());
 
     auto wire_h = storage->get_data<event_wire>(_core.producer_wire());
 

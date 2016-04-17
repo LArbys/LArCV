@@ -15,7 +15,13 @@ namespace larcv {
     template <class R, class S, class T, class U, class V, class W>
     SuperaCore<R,S,T,U,V,W>::SuperaCore() : _logger("Supera")
 			     , _larcv_io(::larcv::IOManager::kWRITE)
-    { _configured = false; _use_mc = false; _store_chstatus = false; }
+    {
+      _configured = false;
+      _use_mc = false;
+      _store_chstatus = false;
+      _larcv_io.set_verbosity(::larcv::msg::kDEBUG);
+    }
+       
 
     template <class R, class S, class T, class U, class V, class W>
     void SuperaCore<R,S,T,U,V,W>::initialize() {
@@ -28,7 +34,7 @@ namespace larcv {
       _use_mc = main_cfg.get<bool>("UseMC");
       _store_chstatus = main_cfg.get<bool>("StoreChStatus");
       _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
-
+      
       _producer_key     = main_cfg.get<std::string>("ProducerKey");
       _producer_digit   = main_cfg.get<std::string>("DigitProducer");
       _producer_simch   = main_cfg.get<std::string>("SimChProducer");
@@ -98,8 +104,6 @@ namespace larcv {
 						const std::vector<W>& simch_v)
     {
       if(!_configured) throw larbys("Call configure() first!");
-
-      _larcv_io.clear_entry();
 
       //
       // 0) Store channel status if requested

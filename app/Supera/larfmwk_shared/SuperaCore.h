@@ -43,8 +43,11 @@ namespace larcv {
 
       void initialize();
 
+      void clear_data()
+      { _larcv_io.clear_entry(); _run = _subrun = _event = ::larcv::kINVALID_SIZE; }
+
       void set_id(unsigned int run, unsigned int subrun, unsigned int event)
-      { _larcv_io.set_id(run, subrun, event); }
+      { _larcv_io.set_id(run,subrun,event); }
 
       bool process_event(const std::vector<R>&,  // OpDetWaveform
 			 const std::vector<S>&,  // Wire
@@ -75,7 +78,8 @@ namespace larcv {
 		const std::vector<V>& mcs_v,
 		const std::vector<W>& sch_v,
 		const int time_offset=0);
-      
+
+      size_t _run, _subrun, _event;
       MCParticleTree<T,U,V,W> _mctp;
       std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;
       std::vector<std::pair<unsigned short,unsigned short> > _channel_to_plane_wire;

@@ -447,6 +447,7 @@ namespace larcv {
   EventBase* IOManager::get_data(const size_t id)
   {
     LARCV_DEBUG() << "start" << std::endl;
+
     if(id >= _product_ctr) {
       LARCV_ERROR() << "Invalid producer ID requested:" << id << std::endl;
       throw larbys();
@@ -463,7 +464,7 @@ namespace larcv {
       // retrieve event_id if not yet done
       if(!_event_id.valid()) {
 	LARCV_INFO() << "Setting event id (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
-	_event_id = _set_event_id = *ptr;
+	_event_id = *ptr;
       }else if(ptr->valid() && _event_id != *ptr) {
 	LARCV_CRITICAL() << "Event alignment error (run,subrun,event) detected: "
 			 << "Current (" << _event_id.run() << "," << _event_id.subrun() << "," << _event_id.event() << ") vs. "
@@ -471,6 +472,7 @@ namespace larcv {
 	throw larbys();
       }
     }
+
     return _product_ptr_v[id];
   }
 
@@ -480,11 +482,13 @@ namespace larcv {
       LARCV_CRITICAL() << "Cannot change event id in kREAD mode" << std::endl;
       throw larbys();
     }
-    
+
     EventBase tmp;
     tmp._run    = run;
     tmp._subrun = subrun;
     tmp._event  = event;
+
+    LARCV_INFO() << "Request to set event id: " << tmp.event_key() << std::endl;
     
     if(_set_event_id.valid() && _set_event_id != tmp)
       LARCV_INFO() << "Force setting (run,subrun,event) ID as (" << run << "," << subrun << "," << event << ")" << std::endl;
@@ -498,15 +502,17 @@ namespace larcv {
 
     if(_io_mode == kREAD) return;
 
-    LARCV_INFO() << "Setting event id for output trees..." << std::endl;
+    if(_set_event_id.valid())
 
-    _event_id = _set_event_id;
+      _event_id = _set_event_id;
+
+    LARCV_INFO() << "Setting event id for output trees: " << _event_id.event_key() << std::endl;
 
     for(size_t i=0; i<_product_ptr_v.size(); ++i) {
 
       auto& p = _product_ptr_v[i];
       if(!p) break;
-
+      LARCV_DEBUG() << "Updating event id for product " << ProductName(_product_type_v[i]) << " by " << p->producer() << std::endl;
       if( (*p) != _event_id ) {
 	if(p->valid()) {
 	  LARCV_WARNING() << "Override event id for product " << ProductName(_product_type_v[i])

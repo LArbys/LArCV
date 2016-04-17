@@ -80,6 +80,7 @@ void Supera::endJob()
 
 bool Supera::filter(art::Event & e)
 {
+  _core.clear_data();
   _core.set_id(e.id().run(),e.id().subRun(),e.id().event());
 
   art::Handle<std::vector<recob::Wire> > wire_h;

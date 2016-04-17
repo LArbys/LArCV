@@ -53,7 +53,7 @@ namespace larcv {
     size_t event()  const { return _event;  }
 
     bool valid() const
-    { return (_run != kINVALID_SIZE && _subrun != kINVALID_SIZE && _event != kINVALID_SIZE); }
+    { return !(_run == kINVALID_SIZE || _subrun == kINVALID_SIZE || _event == kINVALID_SIZE); }
 
     inline bool operator==(const EventBase& rhs) const
     { return (_run == rhs.run() && _subrun == rhs.subrun() && _event == rhs.event()); }
