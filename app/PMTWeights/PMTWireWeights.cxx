@@ -9,7 +9,7 @@ namespace larcv {
 
       //fGeoInfoFile = "configfiles/geoinfo.root";
       fGeoInfoFile = geofile;
-      std::cout << "Filling Weights using " << fGeoInfoFile << std::endl;
+      //std::cout << "Filling Weights using " << fGeoInfoFile << std::endl;
       fGeoFile = new TFile( fGeoInfoFile.c_str(), "OPEN" );
 
       // Get the PMT Info
@@ -50,14 +50,16 @@ namespace larcv {
 	m_WireData[planeID].addWire( wireID, start, end );
       }
 
-      std::cout << "Number of wire data stored (per plane)" << std::endl;
-      for ( std::map<int,WireData>::iterator it=m_WireData.begin(); it!=m_WireData.end(); it++) {
-	std::cout << " [Plane " << (*it).first << "]: " << (*it).second.nwires() << std::endl;
-      }
+//       std::cout << "Number of wire data stored (per plane)" << std::endl;
+//       for ( std::map<int,WireData>::iterator it=m_WireData.begin(); it!=m_WireData.end(); it++) {
+// 	std::cout << " [Plane " << (*it).first << "]: " << (*it).second.nwires() << std::endl;
+//       }
 
       
       // Configure
       configure();
+
+      fGeoFile->Close();
     }
     
     PMTWireWeights::~PMTWireWeights() {
@@ -87,9 +89,9 @@ namespace larcv {
 	  int wireid = (*it_wire);
 	  // we first need to project the data into 2D: z,y -> (x,y)
 	  std::vector< float > const& start = (*(data.wireStart.find(wireid))).second;
-	  std::vector< float > const& end   = (*(data.wireEnd.find(wireid))).second;
+	  //std::vector< float > const& end   = (*(data.wireEnd.find(wireid))).second;
 	  float s2[2] = { start.at(2), start.at(1) };
-	  float e2[2] = { end.at(2),   end.at(1)   };
+	  //float e2[2] = { end.at(2),   end.at(1)   };
 	  float l2 = (*(data.wireL2.find(wireid))).second;
 
 	  std::vector<float> dists(fNPMTs,0.0);

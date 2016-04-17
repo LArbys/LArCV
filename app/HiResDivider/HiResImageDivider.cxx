@@ -209,8 +209,10 @@ namespace larcv {
       
       // Output PMT weighted
       if ( fCropPMTWeighted )  {
+	LARCV_DEBUG() << "Load " << fInputPMTWeightedProducer << " Images." << std::endl;
 	auto input_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTWeightedProducer));
-	auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputPMTWeightedProducer) );
+	LARCV_DEBUG() << "Allocate " << fOutputPMTWeightedProducer << " Images." << std::endl;
+	auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
 	LARCV_DEBUG() << "Crop " << fInputPMTWeightedProducer << " Images." << std::endl;
 	cropEventImages( *input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
 	if ( fDumpImages ) {
@@ -265,6 +267,8 @@ namespace larcv {
       // Output Image Container
       std::vector<larcv::Image2D> cropped_images;
 
+      LARCV_DEBUG() << "Images to crop: "<< event_images.Image2DArray().size() << std::endl;
+
       for ( auto const& img : event_images.Image2DArray() ) {
 	int iplane = (int)img.meta().plane();
 	larcv::ImageMeta const& divPlaneMeta = div.getPlaneMeta( iplane );
@@ -276,22 +280,21 @@ namespace larcv {
 				   divPlaneMeta.width(), twidth,
 				   divPlaneMeta.min_x(), tmax );
 
-	LARCV_DEBUG() << "image: " << img.meta().height() << " x " << img.meta().width();
-	LARCV_DEBUG() << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
-		      << " wmin=" << img.meta().min_x();
-	LARCV_DEBUG() << std::endl;
+	LARCV_DEBUG() << "image: " << img.meta().height() << " x " << img.meta().width()
+		      << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
+		      << " wmin=" << img.meta().min_x()
+		      << std::endl;
 	
-	LARCV_DEBUG() << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width();
-	LARCV_DEBUG() << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
-		      << " wmin=" << divPlaneMeta.min_x();
-	LARCV_DEBUG() << std::endl;
+	LARCV_DEBUG() << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width()
+		      << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
+		      << " wmin=" << divPlaneMeta.min_x()
+		      << std::endl;
 	
-	LARCV_DEBUG() << "crop: " << cropmeta.height() << " x " << cropmeta.width();
-	LARCV_DEBUG() << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
-		      << " wmin=" << cropmeta.min_x();
-	
-	LARCV_DEBUG() << std::endl;
-	
+	LARCV_DEBUG() << "crop: " << cropmeta.height() << " x " << cropmeta.width()
+		      << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
+		      << " wmin=" << cropmeta.min_x()
+		      << std::endl;
+		
 	Image2D cropped = img.crop( cropmeta );
 	LARCV_DEBUG() << "cropped." << std::endl;
 	
