@@ -42,13 +42,13 @@ namespace larcv {
     size_t old_rows = _meta.rows();
     size_t old_cols = _meta.cols();
     _img.resize(rows * cols);
+    _meta.update(rows,cols);    
     for (size_t r=0; r<rows; r++) {
       for (size_t c=0; c<cols; c++) {
 	if ( r>=old_rows || c>=old_cols )
 	  set_pixel( r, c, fillval );
       }
     }
-    _meta.update(rows,cols);
   }
   
   void Image2D::clear() {
@@ -318,6 +318,7 @@ namespace larcv {
 
   Image2D& Image2D::operator*=( const Image2D& rhs ) {
     (*this) = multiRHS( rhs );
+    return (*this);
   }
 
   Image2D Image2D::eltwise( const Image2D& rhs ) const {
