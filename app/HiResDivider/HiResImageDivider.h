@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "DataFormat/ImageMeta.h"
-#include "DataFormat/ROI.h"
+#include "DataFormat/EventROI.h"
 #include "PMTWeights/PMTWireWeights.h"
 #include "DivisionDef.h"
 
@@ -49,7 +49,7 @@ namespace larcv {
       bool process(IOManager& mgr);
       
       void finalize(TFile* ana_file);
-      
+
     protected:
 
       std::string fDivisionFile;
@@ -58,13 +58,24 @@ namespace larcv {
       int fTickDownSample;
       int fMaxWireImageWidth;
       int fMaxWireInRegion;
-      std::string fInputImageProducer;
-      std::string fInputROIProducer;
+      int fNumNonVertexDivisionsPerEvent;
+      bool fCropSegmentation;
+      bool fCropPMTWeighted;
       std::vector< larcv::hires::DivisionDef > m_divisions;
 
-      bool decideToContinueBasedOnROI( const larcv::ROI& roi );
-      int findVertexDivisionUsingROI( const larcv::ROI& roi );
-      bool decideToKeepBasedOnROI( const larcv::ROI& roi );
+      std::string fInputROIProducer;
+      std::string fInputImageProducer;
+      std::string fInputSegmentationProducer;
+      std::string fInputPMTWeightedProducer;
+      std::string fOutputImageProducer;
+      std::string fOutputSegmentationProducer;
+      std::string fOutputPMTWeightedProducer;
+      
+
+      bool isInteresting( const larcv::ROI& roi );
+      int findVertexDivision( const larcv::ROI& roi );
+      bool keepNonVertexDivision( const larcv::ROI& roi );
+      void cropEventImages( IOManager& mgr, const larcv::hires::DivisionDef& div, std::string producername, std::string outproducername );
       
     };
     

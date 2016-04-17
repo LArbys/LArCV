@@ -62,7 +62,7 @@ namespace larcv {
     const std::vector<float>& as_vector() const 
     { return _img; }
 
-    void resize( size_t row_count, size_t col_count );
+    void resize( size_t row_count, size_t col_count, float fillval=0.0 );
     void set_pixel( size_t row, size_t col, float value );
     void paint(float value);
     void clear_data();

@@ -1,6 +1,7 @@
 #ifndef __DIVISIONDEF__
 #define __DIVISIONDEF__
 
+#include "DataFormat/DataFormatTypes.h"
 #include "DataFormat/ImageMeta.h"
 #include <map>
 
@@ -15,15 +16,15 @@ namespace larcv {
       DivisionDef() {};
       ~DivisionDef() {};
 
-      const larcv::ImageMeta& getPlaneMeta( int plane );
+      const larcv::ImageMeta& getPlaneMeta( PlaneID_t plane ) const;
       bool isInsideDetRegion( float x, float y, float z ) const;
 
     protected:
 
-      void setPlaneMeta( int plane, int wirebounds[],int tickbounds[] );
+      void setPlaneMeta( PlaneID_t plane, int wirebounds[],int tickbounds[] );
 
       int mNPlanes;
-      std::map< int, larcv::ImageMeta > m_planeMeta; // key is plane id
+      std::map< PlaneID_t, larcv::ImageMeta > m_planeMeta; // key is plane id
       float fDetBounds[3][2];
 
     };

@@ -1,4 +1,5 @@
 #include "DivisionDef.h"
+#include "Base/larbys.h"
 
 namespace larcv {
   namespace hires {
@@ -18,7 +19,7 @@ namespace larcv {
     }
 
     DivisionDef::DivisionDef( const DivisionDef& src) {
-      for ( std::map< int, larcv::ImageMeta >::const_iterator it=src.m_planeMeta.begin(); it!=src.m_planeMeta.end(); it++ ) {
+      for ( std::map< PlaneID_t, larcv::ImageMeta >::const_iterator it=src.m_planeMeta.begin(); it!=src.m_planeMeta.end(); it++ ) {
 	m_planeMeta[ (*it).first ] = (*it).second; // implied copy?
       }
       for (int i=0; i<2; i++)
@@ -26,11 +27,18 @@ namespace larcv {
 	  fDetBounds[j][i] = src.fDetBounds[j][i];
     }
 
-    void DivisionDef::setPlaneMeta( int plane, int wirebounds[],int tickbounds[] ) {
+    const larcv::ImageMeta& DivisionDef::getPlaneMeta( PlaneID_t plane ) const {
+      std::map< PlaneID_t, larcv::ImageMeta >::const_iterator it=m_planeMeta.find( plane );
+      if ( it==m_planeMeta.end() )
+	throw larcv::larbys("Did not have a division Image meta for plane.");
+      return (*it).second;
+    }
+
+    void DivisionDef::setPlaneMeta( PlaneID_t plane, int wirebounds[],int tickbounds[] ) {
       // we define divisions 
       m_planeMeta[plane] = larcv::ImageMeta( wirebounds[1]-wirebounds[0]+1, tickbounds[1]-tickbounds[0]+1,
 					     wirebounds[1]-wirebounds[0]+1, tickbounds[1]-tickbounds[0]+1,
-					     0, 0 );
+					     tickbounds[0], wirebounds[0] );
       mNPlanes++;
     }
 
