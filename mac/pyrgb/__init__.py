@@ -8,5 +8,5 @@ import pyqtgraph as pg
 
 import numpy as np
 
-larcv.load_pycvutil
+larcv.load_pyutil
 

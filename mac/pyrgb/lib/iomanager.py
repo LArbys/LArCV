@@ -15,7 +15,6 @@ class IOManager(object):
 
         self.iom.initialize()
 
-
     # you should just have access to it
     # def iom(self):
     #     return self.iom

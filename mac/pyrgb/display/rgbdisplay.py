@@ -16,7 +16,7 @@ import cv2
 
 class RGBDisplay(QtGui.QWidget) :
 
-    def __init__(self,rfile):
+    def __init__(self,argv):
         super(RGBDisplay,self).__init__()
 
         
@@ -24,7 +24,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.st = Storage()
 
         ### DataManager
-        self.dm = datamanager.DataManager(rfile)
+        self.dm = datamanager.DataManager(argv)
 
         self.resize( 1200, 700 )
 
@@ -86,9 +86,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.kBOTH  = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
-
-
-
         self.p0 = QtGui.QCheckBox("Plane 0")
         self.p0.setChecked(True)
         self.lay_inputs.addWidget( self.p0, 1, 9 )
@@ -101,7 +98,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.p2.setChecked(True)
         self.lay_inputs.addWidget( self.p2, 1, 11 )
 
-
         self.planes = [ self.p0, self.p1, self.p2 ]
         self.views = []
         
@@ -113,7 +109,6 @@ class RGBDisplay(QtGui.QWidget) :
             self.comboBoxImage.addItem(prod)
             
         self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
-        
 
         self.lay_inputs.addWidget( QtGui.QLabel("ROI"), 0, 13)
         self.comboBoxROI = QtGui.QComboBox()
@@ -174,7 +169,7 @@ class RGBDisplay(QtGui.QWidget) :
 
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
-        if re.search("mcint",self.image_producer) is None:
+        if re.search("mcint",self.image_producer) is None and re.search("segment",self.image_producer) is None:
             self.highres = False
         else:
             self.highres = True

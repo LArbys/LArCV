@@ -38,7 +38,7 @@
 
 #pragma link C++ class larcv::DataProductFactory+;
 #pragma link C++ class larcv::IOManager+;
-
+#pragma link C++ function larcv::ProductName(larcv::ProductType_t)+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
