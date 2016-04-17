@@ -37,9 +37,17 @@ namespace larcv {
     paint(0.);
   }
 
-  void Image2D::resize(size_t rows, size_t cols)
+  void Image2D::resize(size_t rows, size_t cols, float fillval)
   {
+    size_t old_rows = _meta.rows();
+    size_t old_cols = _meta.cols();
     _img.resize(rows * cols);
+    for (size_t r=0; r<rows; r++) {
+      for (size_t c=0; c<cols; c++) {
+	if ( r>=old_rows || c>=old_cols )
+	  set_pixel( r, c, fillval );
+      }
+    }
     _meta.update(rows,cols);
   }
   
