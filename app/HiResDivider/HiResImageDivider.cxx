@@ -37,7 +37,6 @@ namespace larcv {
       fCropSegmentation = cfg.get<bool>( "CropSegmentation" );
       fCropPMTWeighted  = cfg.get<bool>( "CropPMTWeighted" );
       fDumpImages  = cfg.get<bool>( "DumpImages" );
-
     }
     
     void HiResImageDivider::initialize()
@@ -144,15 +143,71 @@ namespace larcv {
 
       // now we crop out certain pieces
       // The input images
-      cropEventImages( mgr, vertex_div, fInputImageProducer, fOutputImageProducer );
+      auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
+      auto output_event_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputImageProducer) );
+      cropEventImages( *input_event_images, vertex_div, *output_event_images );
+      if ( fDumpImages ) {
+	cv::Mat outimg;
+	for (int p=0; p<3; p++) {
+	  larcv::Image2D const& cropped = output_event_images->at( p );
+	  if ( p==0 )
+	    outimg = cv::Mat::zeros( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 ); 
+	  for (int r=0; r<cropped.meta().rows(); r++) {
+	    for (int c=0; c<cropped.meta().cols(); c++) {
+	      int val = std::min( 255, (int)cropped.pixel(r,c) );
+	      val = std::max( 0, val );
+	      outimg.at< cv::Vec3b >(r,c)[p] = (unsigned int)val;
+	    }
+	  }
+	}
+	char testname[200];
+ 	sprintf( testname, "test_tpcimage_%zu.png", input_event_images->event() );
+ 	cv::imwrite( testname, outimg );
+      }
 
       // Output Segmentation
-      if ( fCropSegmentation )
-	cropEventImages( mgr, vertex_div, fInputSegmentationProducer, fOutputSegmentationProducer );
+      if ( fCropSegmentation ) {
+	// the semantic segmentation is only filled in the neighboor hood of the interaction
+	// we overlay it into a full image (and then crop out the division)
+	auto input_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer));
+	larcv::EventImage2D full_seg_images;
+	for ( unsigned int p=0; p<3; p++ ) {
+	  larcv::Image2D const& img = input_event_images->at( p ); 
+	  larcv::ImageMeta seg_image_meta( img.meta().width(), img.meta().height(),
+					   img.meta().rows(), img.meta().cols(),
+					   img.meta().min_x(), img.meta().max_y(),
+					   img.meta().plane() );
+	  larcv::Image2D seg_image( seg_image_meta );
+	  seg_image.paint( 0.0 );
+	  seg_image.overlay( input_seg_images->at(p) );
+	  full_seg_images.Emplace( std::move(seg_image) );
+	}
+	auto output_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputSegmentationProducer));
+	cropEventImages( full_seg_images, vertex_div, *output_seg_images );
 
+	if ( fDumpImages ) {
+	  cv::Mat outimg;
+	  for (int p=0; p<3; p++) {
+	    larcv::Image2D const& cropped = output_seg_images->at( p );
+	    if ( p==0 )
+	      outimg = cv::Mat::zeros( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 ); 
+	    for (int r=0; r<cropped.meta().rows(); r++) {
+	      for (int c=0; c<cropped.meta().cols(); c++) {
+		int val = std::min( 255, (int)(cropped.pixel(r,c)+0.4)*10 );
+		val = std::max( 0, val );
+		outimg.at< cv::Vec3b >(r,c)[p] = (unsigned int)val;
+	      }
+	    }
+	  }
+	  char testname[200];
+	  sprintf( testname, "test_seg_%zu.png", input_event_images->event() );
+	  cv::imwrite( testname, outimg );
+	}//if draw
+      }// if crop seg
+      
       // Output PMT weighted
-      if ( fCropPMTWeighted ) 
-	cropEventImages( mgr, vertex_div, fInputPMTWeightedProducer, fOutputPMTWeightedProducer );
+//       if ( fCropPMTWeighted ) 
+// 	cropEventImages( mgr, vertex_div, fInputPMTWeightedProducer, fOutputPMTWeightedProducer );
       
       return true;
     }
@@ -180,15 +235,13 @@ namespace larcv {
     bool HiResImageDivider::keepNonVertexDivision( const larcv::ROI& roi ) {
       return true;
     }
+    
+    void HiResImageDivider::cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images ) { 
 
-    void HiResImageDivider::cropEventImages( IOManager& mgr, const larcv::hires::DivisionDef& div, std::string producername, std::string outproducername ) {
-      auto event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,producername));
       // Output Image Container
       std::vector<larcv::Image2D> cropped_images;
 
-      cv::Mat outimg;
-
-      for ( auto const& img : event_images->Image2DArray() ) {
+      for ( auto const& img : event_images.Image2DArray() ) {
 	int iplane = (int)img.meta().plane();
 	larcv::ImageMeta const& divPlaneMeta = div.getPlaneMeta( iplane );
 	// we adjust the actual crop meta
@@ -222,33 +275,14 @@ namespace larcv {
 
 	cropped.compress( (int)cropped.meta().height()/6, fMaxWireImageWidth, larcv::Image2D::kSum );
 	std::cout << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
-
-	if ( iplane==0 ) {
-	  outimg.create( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 );
-	  outimg = cv::Mat::zeros( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 );
-	}
 	
-	for (int r=0; r<cropped.meta().rows(); r++) {
-	  for (int c=0; c<cropped.meta().cols(); c++) {
-	    int val = std::min( 255, (int)cropped.pixel(r,c) );
-	    val = std::max( 0, val );
-	    outimg.at< cv::Vec3b >(r,c)[iplane] = (unsigned int)val;
-	  }
-	}
 	
 	cropped_images.emplace_back( cropped );
 	std::cout << "stored." << std::endl;
       }//end of plane loop
 
-      if ( fDumpImages ) {
-	char testname[200];
-	sprintf( testname, "test_%zu.png", event_images->event() );
-	cv::imwrite( testname, outimg );
-      }
+      output_images.Emplace( std::move( cropped_images ) );
 
-      // insert
-      auto output_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D, outproducername) );
-      output_images->Emplace( std::move( cropped_images ) );
     }
 
 
