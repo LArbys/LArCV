@@ -2,7 +2,7 @@
 #define LARLITE_SUPERA_CXX
 
 #include "Supera.h"
-#include "Base/UtilFunc.h"
+#include "Base/LArCVBaseUtilFunc.h"
 
 namespace larlite {
 
