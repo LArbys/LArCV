@@ -30,6 +30,7 @@ namespace larcv {
       fEndTick = cfg.get<int>( "EndTick" );
       fCheckSat = cfg.get<bool>("CheckSaturation");
       fPMTImageIndex = cfg.get<int>("PMTImageIndex");
+      fOutputProducerName = cfg.get<std::string>( "OutputProducerName" );
     }
     
     void PMTWeightImageBuilder::initialize()
@@ -53,9 +54,9 @@ namespace larcv {
       // -------------------
       larcv::Image2D const& pmtimg_highgain = pmt_event_image->at( fPMTImageIndex ); // placeholder code
       //larcv::Image2D const& pmtimg_lowgain  = event_image->at( 4 ); // placeholder code
-      std::cout << "pmt image: " << pmtimg_highgain.meta().rows() << " x " << pmtimg_highgain.meta().cols() << std::endl;
-      std::cout << "tpc image: " << tpc_event_image->at(2).meta().rows() << " x " << tpc_event_image->at(2).meta().cols() << std::endl;
-      std::cout << "summing between: " << fStartTick << " and " << fEndTick << std::endl;
+//       std::cout << "pmt image: " << pmtimg_highgain.meta().rows() << " x " << pmtimg_highgain.meta().cols() << std::endl;
+//       std::cout << "tpc image: " << tpc_event_image->at(2).meta().rows() << " x " << tpc_event_image->at(2).meta().cols() << std::endl;
+//       std::cout << "summing between: " << fStartTick << " and " << fEndTick << std::endl;
       // sum pmt charge in the trigger window
 
       larcv::Image2D pmtq( 32, 1 );
@@ -89,7 +90,7 @@ namespace larcv {
       // normalize charge
       if ( totalq > 0 ) {
 	for (int ipmt=0; ipmt<32; ipmt++) {
-	  pmtq.set_pixel( ipmt, 0, pmtq.pixel( ipmt, 1 )/totalq );
+	  pmtq.set_pixel( ipmt, 0, pmtq.pixel( ipmt, 0 )/totalq );
 	}
       }
       std::cout << " make weight matrices" << std::endl;
@@ -118,11 +119,11 @@ namespace larcv {
 	weighted_images.emplace_back( weighted );
       }
       
-      auto out_image_v = (::larcv::EventImage2D*)(mgr.get_data(::larcv::kProductImage2D,"pmtweighted"));
+      auto out_image_v = (::larcv::EventImage2D*)(mgr.get_data(::larcv::kProductImage2D,fOutputProducerName));
       //mgr.set_id(tpc_event_image->run(),tpc_event_image->subrun(),tpc_event_image->event());
       //mgr.set_id(0,0,0);
       out_image_v->Emplace(std::move(weighted_images));
-
+      
       return true;
     }
 

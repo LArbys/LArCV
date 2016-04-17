@@ -145,6 +145,7 @@ namespace larcv {
       // The input images
       auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
       auto output_event_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputImageProducer) );
+      LARCV_DEBUG() << "Crop " << fInputImageProducer << " Images." << std::endl;
       cropEventImages( *input_event_images, vertex_div, *output_event_images );
       if ( fDumpImages ) {
 	cv::Mat outimg;
@@ -182,6 +183,7 @@ namespace larcv {
 	  seg_image.overlay( input_seg_images->at(p) );
 	  full_seg_images.Emplace( std::move(seg_image) );
 	}
+	LARCV_DEBUG() << "Crop " << fInputSegmentationProducer << " Images." << std::endl;
 	auto output_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputSegmentationProducer));
 	cropEventImages( full_seg_images, vertex_div, *output_seg_images );
 
@@ -206,8 +208,30 @@ namespace larcv {
       }// if crop seg
       
       // Output PMT weighted
-//       if ( fCropPMTWeighted ) 
-// 	cropEventImages( mgr, vertex_div, fInputPMTWeightedProducer, fOutputPMTWeightedProducer );
+      if ( fCropPMTWeighted )  {
+	auto input_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTWeightedProducer));
+	auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputPMTWeightedProducer) );
+	LARCV_DEBUG() << "Crop " << fInputPMTWeightedProducer << " Images." << std::endl;
+	cropEventImages( *input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
+	if ( fDumpImages ) {
+	  cv::Mat outimg;
+	  for (int p=0; p<3; p++) {
+	    larcv::Image2D const& cropped = output_pmtweighted_images->at( p );
+	    if ( p==0 )
+	      outimg = cv::Mat::zeros( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 ); 
+	    for (int r=0; r<cropped.meta().rows(); r++) {
+	      for (int c=0; c<cropped.meta().cols(); c++) {
+		int val = std::min( 255, (int)cropped.pixel(r,c) );
+		val = std::max( 0, val );
+		outimg.at< cv::Vec3b >(r,c)[p] = (unsigned int)val;
+	      }
+	    }
+	  }
+	  char testname[200];
+	  sprintf( testname, "test_pmtweighted_%zu.png", input_event_images->event() );
+	  cv::imwrite( testname, outimg );
+	}
+      }
       
       return true;
     }
@@ -252,33 +276,33 @@ namespace larcv {
 				   divPlaneMeta.width(), twidth,
 				   divPlaneMeta.min_x(), tmax );
 
-// 	std::cout << "image: " << img.meta().height() << " x " << img.meta().width();
-// 	std::cout << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
-// 		  << " wmin=" << img.meta().min_x();
-// 	std::cout << std::endl;
+	LARCV_DEBUG() << "image: " << img.meta().height() << " x " << img.meta().width();
+	LARCV_DEBUG() << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
+		      << " wmin=" << img.meta().min_x();
+	LARCV_DEBUG() << std::endl;
 	
-// 	std::cout << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width();
-// 	std::cout << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
-// 		  << " wmin=" << divPlaneMeta.min_x();
-// 	std::cout << std::endl;
-
-// 	std::cout << "crop: " << cropmeta.height() << " x " << cropmeta.width();
-// 	std::cout << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
-// 		  << " wmin=" << cropmeta.min_x();
+	LARCV_DEBUG() << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width();
+	LARCV_DEBUG() << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
+		      << " wmin=" << divPlaneMeta.min_x();
+	LARCV_DEBUG() << std::endl;
 	
-// 	std::cout << std::endl;
-
+	LARCV_DEBUG() << "crop: " << cropmeta.height() << " x " << cropmeta.width();
+	LARCV_DEBUG() << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
+		      << " wmin=" << cropmeta.min_x();
+	
+	LARCV_DEBUG() << std::endl;
+	
 	Image2D cropped = img.crop( cropmeta );
-	//std::cout << "cropped." << std::endl;
-
+	LARCV_DEBUG() << "cropped." << std::endl;
+	
 	cropped.resize( fMaxWireImageWidth*fTickDownSample, fMaxWireImageWidth, 0.0 );  // resize to final image size (and zero pad extra space)
-	//std::cout << "resized." << std::endl;
+	LARCV_DEBUG() << "resized." << std::endl;
 
 	cropped.compress( (int)cropped.meta().height()/6, fMaxWireImageWidth, larcv::Image2D::kSum );
-	//std::cout << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
+	LARCV_DEBUG() << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
 	
 	cropped_images.emplace_back( cropped );
-	//std::cout << "stored." << std::endl;
+	LARCV_DEBUG() << "stored." << std::endl;
       }//end of plane loop
 
       output_images.Emplace( std::move( cropped_images ) );

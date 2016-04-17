@@ -49,6 +49,7 @@ namespace larcv {
       std::string fGeoFile;
       std::string fPMTImageProducer;
       std::string fTPCImageProducer;
+      std::string fOutputProducerName;
       int fNWirePixels;
       int fStartTick;
       int fEndTick;
@@ -56,8 +57,6 @@ namespace larcv {
       bool fCheckSat;
       int fPMTImageIndex;
 
-      //larcv::Image2D& getWeightedImage( int plane );
-      
     };
 
     /**
