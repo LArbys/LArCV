@@ -86,12 +86,12 @@ namespace larcv {
 	  tickbounds[i] *= fTickDownSample;
 	  tickbounds[i] += fTickStart;
 	}
-	std::cout << "division entry " << entry << ": ";
-	std::cout << " p0: [" << plane0[0] << "," << plane0[1] << "]";
-	std::cout << " p1: [" << plane1[0] << "," << plane1[1] << "]";
-	std::cout << " p2: [" << plane2[0] << "," << plane2[1] << "]";
-	std::cout << " t: ["  << tickbounds[0] << "," << tickbounds[1] << "]";
-	std::cout << std::endl;
+// 	std::cout << "division entry " << entry << ": ";
+// 	std::cout << " p0: [" << plane0[0] << "," << plane0[1] << "]";
+// 	std::cout << " p1: [" << plane1[0] << "," << plane1[1] << "]";
+// 	std::cout << " p2: [" << plane2[0] << "," << plane2[1] << "]";
+// 	std::cout << " t: ["  << tickbounds[0] << "," << tickbounds[1] << "]";
+// 	std::cout << std::endl;
 	
 	DivisionDef div( plane0, plane1, plane2, tickbounds, xbounds, ybounds, zbounds );
 	
@@ -139,7 +139,7 @@ namespace larcv {
       }
       larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
 
-      std::cout << "Vertex in ROI: " << roi.X() << ", " << roi.Y() << ", " << roi.Z() << std::endl;
+      //std::cout << "Vertex in ROI: " << roi.X() << ", " << roi.Y() << ", " << roi.Z() << std::endl;
 
       // now we crop out certain pieces
       // The input images
@@ -252,33 +252,33 @@ namespace larcv {
 				   divPlaneMeta.width(), twidth,
 				   divPlaneMeta.min_x(), tmax );
 
-	std::cout << "image: " << img.meta().height() << " x " << img.meta().width();
-	std::cout << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
-		  << " wmin=" << img.meta().min_x();
-	std::cout << std::endl;
+// 	std::cout << "image: " << img.meta().height() << " x " << img.meta().width();
+// 	std::cout << " t=[" << img.meta().min_y() << "," << img.meta().max_y() << "]"
+// 		  << " wmin=" << img.meta().min_x();
+// 	std::cout << std::endl;
 	
-	std::cout << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width();
-	std::cout << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
-		  << " wmin=" << divPlaneMeta.min_x();
-	std::cout << std::endl;
+// 	std::cout << "div: " << divPlaneMeta.height() << " x " << divPlaneMeta.width();
+// 	std::cout << " t=[" << divPlaneMeta.min_y() << "," << divPlaneMeta.max_y() << "]"
+// 		  << " wmin=" << divPlaneMeta.min_x();
+// 	std::cout << std::endl;
 
-	std::cout << "crop: " << cropmeta.height() << " x " << cropmeta.width();
-	std::cout << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
-		  << " wmin=" << cropmeta.min_x();
+// 	std::cout << "crop: " << cropmeta.height() << " x " << cropmeta.width();
+// 	std::cout << " t=[" << cropmeta.min_y()  << "," << cropmeta.max_y() << "]"
+// 		  << " wmin=" << cropmeta.min_x();
 	
-	std::cout << std::endl;
+// 	std::cout << std::endl;
 
 	Image2D cropped = img.crop( cropmeta );
-	std::cout << "cropped." << std::endl;
+	//std::cout << "cropped." << std::endl;
+
 	cropped.resize( fMaxWireImageWidth*fTickDownSample, fMaxWireImageWidth, 0.0 );  // resize to final image size (and zero pad extra space)
-	std::cout << "resized." << std::endl;
+	//std::cout << "resized." << std::endl;
 
 	cropped.compress( (int)cropped.meta().height()/6, fMaxWireImageWidth, larcv::Image2D::kSum );
-	std::cout << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
-	
+	//std::cout << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
 	
 	cropped_images.emplace_back( cropped );
-	std::cout << "stored." << std::endl;
+	//std::cout << "stored." << std::endl;
       }//end of plane loop
 
       output_images.Emplace( std::move( cropped_images ) );
