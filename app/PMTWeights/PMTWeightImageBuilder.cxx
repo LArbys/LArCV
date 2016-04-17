@@ -120,7 +120,7 @@ namespace larcv {
       
       auto out_image_v = (::larcv::EventImage2D*)(mgr.get_data(::larcv::kProductImage2D,"pmtweighted"));
       //mgr.set_id(tpc_event_image->run(),tpc_event_image->subrun(),tpc_event_image->event());
-      mgr.set_id(0,0,0);
+      //mgr.set_id(0,0,0);
       out_image_v->Emplace(std::move(weighted_images));
 
       
