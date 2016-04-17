@@ -11,7 +11,7 @@ namespace larcv {
       setPlaneMeta( 0, plane0_wirebounds, tickbounds );
       setPlaneMeta( 1, plane1_wirebounds, tickbounds );
       setPlaneMeta( 2, plane2_wirebounds, tickbounds );
-      for (int i=0; i<2; ) {
+      for (int i=0; i<2; i++) {
 	fDetBounds[0][i] = det_xbounds[i];
 	fDetBounds[1][i] = det_ybounds[i];
 	fDetBounds[2][i] = det_zbounds[i];

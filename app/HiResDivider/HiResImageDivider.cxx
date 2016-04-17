@@ -6,6 +6,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include <iostream>
+
 namespace larcv {
   namespace hires {
     static HiResImageDividerProcessFactory __global_HiResImageDividerProcessFactory__;
@@ -52,7 +54,7 @@ namespace larcv {
 	char bname2[100];
 	sprintf( bname2, "plane%d_nwires", p );
 	t->SetBranchAddress( bname2, &(planenwires[p]) );
-
+	//std::cout << "setup plane=" << p << " branches" << std::endl;
       }
       
       float zbounds[2];
@@ -67,7 +69,7 @@ namespace larcv {
 
       fMaxWireInRegion = 0;
       size_t entry = 0;
-      size_t bytes = t->GetEntry(0);
+      size_t bytes = t->GetEntry(entry);
       while ( bytes>0 ) {
 	for (int p=0; p<3; p++) {
 	  if ( fMaxWireInRegion<planenwires[p] )
@@ -87,6 +89,7 @@ namespace larcv {
 	m_divisions.emplace_back( div );
 	entry++;
 	bytes = t->GetEntry(entry);
+	//std::cout << "Division tree entry:" << entry << " (" << bytes << ")" << std::endl;
       }
 
       if ( fMaxWireInRegion>fMaxWireImageWidth )
