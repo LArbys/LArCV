@@ -429,6 +429,8 @@ namespace larcv {
     void SuperaCore<R,S,T,U,V,W>::fill(Image2D& img, const std::vector<R>& opdigit_v, int time_offset)
     {
       auto const& meta = img.meta();
+      img.paint(2048);
+      std::vector<float> tmp_wf(meta.rows(),2048);
       for(auto const& opdigit : opdigit_v) {
 	if(opdigit.size()<1000) continue;
 	auto const col = opdigit.ChannelNumber();
@@ -441,8 +443,11 @@ namespace larcv {
 	size_t nskip = 0;
 	if(time_offset < 0) nskip = (-1 * time_offset);
 	if(nskip >= opdigit.size()) continue;
+	for(auto& v : tmp_wf) v=2048;
 	size_t num_pixel = std::min(meta.rows(),opdigit.size() - nskip);
-	img.copy(0,col,&((std::vector<short>)opdigit)[nskip],num_pixel);
+	for(size_t i=0; i<num_pixel; ++i) tmp_wf[i] = (float)(opdigit[nskip+i]);
+	img.copy(0,col,&(tmp_wf[0]),num_pixel);
+	//img.reverse_copy(0,col,opdigit,nskip,num_pixel);
       }
     }
 
