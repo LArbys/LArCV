@@ -19,7 +19,7 @@ namespace larcv {
       _configured = false;
       _use_mc = false;
       _store_chstatus = false;
-      _larcv_io.set_verbosity(::larcv::msg::kDEBUG);
+      //_larcv_io.set_verbosity(::larcv::msg::kDEBUG);
     }
        
 
@@ -403,8 +403,11 @@ namespace larcv {
       for(auto const& roi : roi_v->ROIArray()) {
 	if(roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
 	if(roi.BB().empty()) continue;
-	for(auto const& bb : roi.BB())
-	  sem_images.emplace_back(::larcv::Image2D(bb));
+	for(auto const& bb : roi.BB()) {
+	  auto sem_image = ::larcv::Image2D(bb);
+	  sem_image.paint(::larcv::kROIUnknown);
+	  sem_images.emplace_back(sem_image);
+	}
 	break;
       }
       if(!sem_images.empty())

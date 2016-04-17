@@ -38,6 +38,7 @@ namespace larcv {
   };
 
   enum ROIType_t {
+    kROIUnknown=0,
     kROIEminus,
     kROIKminus,
     kROIProton,
@@ -46,8 +47,7 @@ namespace larcv {
     kROIGamma,
     kROIPizero,
     kROIBNB,
-    kROICosmic,
-    kROIUnknown
+    kROICosmic
   };
 
   /// "ID" of MCParticles in terms of its G4 track ID (unless mixing multiple MC samples)
