@@ -55,6 +55,7 @@ namespace larcv {
     
     template<> std::vector< std::string    > FromString (const std::string& value )
     {
+      //std::cout<<value<<std::endl;
       std::vector<std::string> res;
       if(value.find("[") != 0 || (value.rfind("]")+1) != value.size()) {
 	std::string msg;
@@ -66,13 +67,17 @@ namespace larcv {
 	size_t next_index = value.find(",",index);
 	if(next_index >= value.size()) break;
 	std::string cand = value.substr(index,next_index-index);
-	if(cand.find("\"")==0) cand=cand.substr(1,cand.size()-1);
-	if(cand.rfind("\"")+1 == cand.size()) cand = cand.substr(0,cand.size()-1);
 	res.emplace_back(cand);
 	index = next_index + 1;
       }
       if( (index+1) < value.size() )
 	res.push_back(value.substr(index,value.size()-index-1));
+
+      for(auto& s : res) {
+	if(s.find("\"")==0) s=s.substr(1,s.size()-1);
+	if(s.rfind("\"")+1 == s.size()) s = s.substr(0,s.size()-1);
+      }
+      //for(auto const& s : res) std::cout<<s<<std::endl;
       return res;
     }
     

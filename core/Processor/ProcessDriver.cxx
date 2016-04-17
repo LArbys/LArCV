@@ -127,33 +127,41 @@ namespace larcv {
     _enable_filter = cfg.get<bool>("EnableFilter");
     _random_access = cfg.get<bool>("RandomAccess");
     _fout_name = cfg.get<std::string>("AnaFile","");
-    
-    // Prepare Process list: loop over fcl table and use key as an instance name
-    LARCV_INFO() << "Start looping process list to instantiate processes" << std::endl;
-    for(auto const& proc_name : proc_config.pset_keys()) {
 
-      // Retrieve process configuration
-      auto const& proc_cfg  = proc_config.get_pset(proc_name);
-      std::string proc_type = "";
-      // Attempt to retrieve process class name
-      try{
-	proc_type = proc_cfg.get<std::string>("ProcessType");
-      }catch(const larbys& err){
-	LARCV_CRITICAL() << "Could not locate ProcessType key..." << std::endl
-			 << proc_cfg.dump()
-			 << std::endl;
+    // Process list
+    auto process_instance_type_v = cfg.get<std::vector<std::string> >("ProcessType");
+    auto process_instance_name_v = cfg.get<std::vector<std::string> >("ProcessName");
+
+    if(process_instance_type_v.size() != process_instance_name_v.size()) {
+      LARCV_CRITICAL() << "Clustering: ProcessType and ProcessName config parameters have different length! "
+		       << "(" << process_instance_type_v.size() << " vs. " << process_instance_name_v.size() << ")" << std::endl;
+      throw larbys();
+    }
+
+    LARCV_INFO() << "Start looping process list to instantiate processes" << std::endl;
+    for(auto& p : _proc_v) if(p) { delete p; }
+    _proc_v.clear();
+    _proc_m.clear();
+    for(size_t i=0; i<process_instance_type_v.size(); ++i) {
+      auto const& name = process_instance_name_v[i];
+      auto const& type = process_instance_type_v[i];
+      if(_proc_m.find(name) != _proc_m.end()) {
+	LARCV_CRITICAL() << "Duplicate Process name found: " << name << std::endl;
+	throw larbys("Duplicate algorithm name found!");
+      }
+      size_t id = _proc_v.size();
+      LARCV_NORMAL() << "Instantiating Process ID=" << id << " Type: " << type << " w/ Name: " << name << std::endl;
+      /*
+      if(!proc_config.contains_pset(name)) {
+	LARCV_CRITICAL() << "Could not locate configuration for " << name << std::endl
+			 << proc_config.dump() << std::endl;
 	throw larbys();
       }
-      LARCV_INFO() << "Instantiating Process type: \033[93m" << proc_type << "\033[00m w/ a name \033[93m" << proc_name << "\033[00m" << std::endl;
-      // Attempt to instantiate retrieved class + register its ID
-      auto ptr = ProcessFactory::get().create(proc_type,proc_name);
-      ptr->_id = _proc_v.size();
-      _proc_m.emplace(ptr->name(),ptr->_id);
-
-      // Configure process
-      LARCV_INFO() << "Assigned ProcessID_t: " << ptr->_id << " configuring the instance..." << std::endl;
-      ptr->_configure_(proc_cfg);
-      // Register instance pointer
+      */
+      auto ptr = ProcessFactory::get().create(type,name);
+      ptr->_id = id;
+      ptr->_configure_(proc_config.get_pset(name));
+      _proc_m[name] = id;
       _proc_v.push_back(ptr);
     }
   }
