@@ -9,7 +9,7 @@ namespace larcv {
 
       //fGeoInfoFile = "configfiles/geoinfo.root";
       fGeoInfoFile = geofile;
-      std::cout << "Filling Weights using " << fGeoInfoFile << std::endl;
+      //std::cout << "Filling Weights using " << fGeoInfoFile << std::endl;
       fGeoFile = new TFile( fGeoInfoFile.c_str(), "OPEN" );
 
       // Get the PMT Info
@@ -50,14 +50,16 @@ namespace larcv {
 	m_WireData[planeID].addWire( wireID, start, end );
       }
 
-      std::cout << "Number of wire data stored (per plane)" << std::endl;
-      for ( std::map<int,WireData>::iterator it=m_WireData.begin(); it!=m_WireData.end(); it++) {
-	std::cout << " [Plane " << (*it).first << "]: " << (*it).second.nwires() << std::endl;
-      }
+//       std::cout << "Number of wire data stored (per plane)" << std::endl;
+//       for ( std::map<int,WireData>::iterator it=m_WireData.begin(); it!=m_WireData.end(); it++) {
+// 	std::cout << " [Plane " << (*it).first << "]: " << (*it).second.nwires() << std::endl;
+//       }
 
       
       // Configure
       configure();
+
+      fGeoFile->Close();
     }
     
     PMTWireWeights::~PMTWireWeights() {

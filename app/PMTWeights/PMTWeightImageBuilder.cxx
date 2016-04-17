@@ -93,7 +93,6 @@ namespace larcv {
 	  pmtq.set_pixel( ipmt, 0, pmtq.pixel( ipmt, 0 )/totalq );
 	}
       }
-      std::cout << " make weight matrices" << std::endl;
 
       // make weight matrices
       std::vector<larcv::Image2D> pmtw_image_array;
@@ -118,6 +117,8 @@ namespace larcv {
 	}
 	weighted_images.emplace_back( weighted );
       }
+      
+      LARCV_DEBUG() << "Made " << weighted_images.size() << " PMT Weighted Images." << std::endl;
       
       auto out_image_v = (::larcv::EventImage2D*)(mgr.get_data(::larcv::kProductImage2D,fOutputProducerName));
       //mgr.set_id(tpc_event_image->run(),tpc_event_image->subrun(),tpc_event_image->event());
