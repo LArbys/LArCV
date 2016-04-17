@@ -123,7 +123,7 @@ namespace larcv {
       //mgr.set_id(0,0,0);
       out_image_v->Emplace(std::move(weighted_images));
 
-      
+      return true;
     }
 
 //     larcv::Image2D& PMTWeightImageBuilder::getWeightedImage( int plane ) {
