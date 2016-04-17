@@ -89,9 +89,9 @@ namespace larcv {
 	  int wireid = (*it_wire);
 	  // we first need to project the data into 2D: z,y -> (x,y)
 	  std::vector< float > const& start = (*(data.wireStart.find(wireid))).second;
-	  std::vector< float > const& end   = (*(data.wireEnd.find(wireid))).second;
+	  //std::vector< float > const& end   = (*(data.wireEnd.find(wireid))).second;
 	  float s2[2] = { start.at(2), start.at(1) };
-	  float e2[2] = { end.at(2),   end.at(1)   };
+	  //float e2[2] = { end.at(2),   end.at(1)   };
 	  float l2 = (*(data.wireL2.find(wireid))).second;
 
 	  std::vector<float> dists(fNPMTs,0.0);
