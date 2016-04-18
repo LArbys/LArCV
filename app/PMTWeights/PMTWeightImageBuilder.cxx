@@ -30,6 +30,7 @@ namespace larcv {
       fEndTick = cfg.get<int>( "EndTick" );
       fCheckSat = cfg.get<bool>("CheckSaturation");
       fPMTImageIndex = cfg.get<int>("PMTImageIndex");
+      fHGpedestal = cfg.get<float>("HGpedestal",2047.0);
       fOutputProducerName = cfg.get<std::string>( "OutputProducerName" );
     }
     
@@ -67,12 +68,9 @@ namespace larcv {
 	bool usehigh = true;
 	for (int t=fStartTick; t<=fEndTick; t++) {
 	  // sum over the trigger window
-	  float hq = pmtimg_highgain.pixel( t, ipmt ); 
+	  float hq = pmtimg_highgain.pixel( t, ipmt )-fHGpedestal; 
 	  high_q += hq;
-// 	  if ( fCheckSat ) {
-// 	    low_q += pmt_event_image->at(fPMTImageIndex+1).pixel( t, ipmt );
-// 	  }
-	  if ( hq>1040 )
+	  if ( fCheckSat && hq>1040 )
 	    usehigh = false;
 	}
 	if ( high_q > 0.0 ) {
@@ -93,6 +91,7 @@ namespace larcv {
 	  pmtq.set_pixel( ipmt, 0, pmtq.pixel( ipmt, 0 )/totalq );
 	}
       }
+      LARCV_DEBUG() << "Total Q: " << totalq << std::endl;
 
       // make weight matrices
       std::vector<larcv::Image2D> pmtw_image_array;

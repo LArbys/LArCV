@@ -216,6 +216,27 @@ namespace larcv {
 	LARCV_DEBUG() << "Crop " << fInputPMTWeightedProducer << " Images." << std::endl;
 	cropEventImages( *input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
 	if ( fDumpImages ) {
+	  auto input_pmtraw_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,"op_bnbnu_mc"));
+	  cv::Mat pmtimg;
+	  larcv::Image2D const& pmtsrc = input_pmtraw_images->at(0);
+	  pmtimg = cv::Mat::zeros( pmtsrc.meta().rows(), pmtsrc.meta().cols(), CV_8UC3 );
+	  for (int r=0; r<pmtsrc.meta().rows(); r++) {
+	    for (int c=0; c<pmtsrc.meta().cols(); c++) {
+	      float adc = pmtsrc.pixel( r, c ) - 2047.0;
+	      int val = std::min( 255, (int)(adc) );
+	      //std::cout << "(" << r << "," << c << ") " << pmtsrc.pixel( r, c ) << std::endl;
+	      val = std::max( 0, val );
+	      for (int i=0; i<3; i++) {
+		pmtimg.at< cv::Vec3b >(r,c)[i] = val;
+	      }
+	      if ( r==190 || r==310 )
+		pmtimg.at< cv::Vec3b >(r,c)[2] = 100;
+	    }
+	  }
+	  char testname[200];
+	  sprintf( testname, "test_pmtraw_%zu.png", input_event_images->event() );
+	  cv::imwrite( testname, pmtimg );
+
 	  cv::Mat outimg;
 	  for (int p=0; p<3; p++) {
 	    larcv::Image2D const& cropped = output_pmtweighted_images->at( p );
@@ -229,7 +250,6 @@ namespace larcv {
 	      }
 	    }
 	  }
-	  char testname[200];
 	  sprintf( testname, "test_pmtweighted_%zu.png", input_event_images->event() );
 	  cv::imwrite( testname, outimg );
 	}

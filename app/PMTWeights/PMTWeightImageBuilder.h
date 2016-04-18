@@ -56,6 +56,7 @@ namespace larcv {
       PMTWireWeights* m_WireWeights;
       bool fCheckSat;
       int fPMTImageIndex;
+      float fHGpedestal;
 
     };
 
