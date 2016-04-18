@@ -18,6 +18,7 @@ for entry in xrange(img_ch.GetEntries()):
     event_key = img_br.event_key()
     for img in img_br.Image2DArray():
         mat=larcv.as_ndarray(img)
+        print mat
         mat_display=plt.imshow(mat)
         mat_display.write_png('%s_plane%d.png' % (event_key,img.meta().plane()))
 

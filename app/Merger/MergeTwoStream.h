@@ -15,6 +15,7 @@
 #define MERGETWOSTREAM_H
 
 #include "ImageHolder.h"
+#include "ImageMerger.h"
 #include "Processor/ProcessDriver.h"
 
 namespace larcv {
@@ -35,8 +36,8 @@ namespace larcv {
 
     void configure(std::string cfg_file);
 
-    void override_input_file(const std::vector<std::string> driver1 = std::vector<std::string>(),
-			     const std::vector<std::string> driver2 = std::vector<std::string>());
+    void override_input_file(const std::vector<std::string>& nu_flist = std::vector<std::string>(),
+			     const std::vector<std::string>& cosmic_flist = std::vector<std::string>());
 
     void override_output_file(std::string out_fname);
 
@@ -51,18 +52,24 @@ namespace larcv {
   private:
 
     IOManager _io;
-    ProcessDriver _driver1;
-    ProcessDriver _driver2;
-    ImageHolder*  _proc1;
-    ImageHolder*  _proc2;
-    std::string   _proc1_name;
-    std::string   _proc2_name;
+
+    ProcessDriver _nu_driver;
+    ImageHolder*  _nu_proc;
+    std::string   _nu_proc_name;
+    
+    ProcessDriver _cosmic_driver;
+    ImageHolder*  _cosmic_proc;
+    std::string   _cosmic_proc_name;
+
+    ProcessDriver _merge_driver;
+    ImageMerger*  _merge_proc;
+    std::string   _merge_proc_name;
+    
     bool _prepared;
-    size_t _num_proc1;
-    size_t _num_proc2;
-    size_t _num_proc_max;
-    size_t _num_proc_frac;
-    short _min_chstatus;
+    size_t _num_nu;
+    size_t _num_cosmic;
+    size_t _num_max;
+    size_t _num_frac;
   };
 }
   

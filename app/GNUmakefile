@@ -7,7 +7,7 @@ endif
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := Merger
+SUBDIRS := PMTWeights HiResDivider Merger
 ifdef LARLITE_BASEDIR
 SUBDIRS += Supera/APILArLite
 endif

@@ -36,10 +36,11 @@ namespace larcv {
     /// Default destructor
     virtual ~ImageHolder(){}
 
-    void move(std::vector<larcv::Image2D>&);
-    void move(std::map<larcv::PlaneID_t,larcv::ChStatus>&);
-
-    const ROI& roi() const { return _roi; }
+    void move_pmt_image   (Image2D&);
+    void move_tpc_image   (std::vector<larcv::Image2D>&);
+    void move_tpc_segment (std::vector<larcv::Image2D>&);
+    void move_ch_status   (std::map<larcv::PlaneID_t,larcv::ChStatus>&);
+    void move_roi         (std::vector<larcv::ROI>&);
 
     void retrieve_id(const EventBase* data)
     { _run=data->run(); _subrun=data->subrun(); _event=data->event(); }
@@ -50,11 +51,13 @@ namespace larcv {
 
   protected:
 
-    std::vector<larcv::Image2D>  _image_v;
-    std::map<larcv::PlaneID_t,larcv::ChStatus> _chstatus_m;
-    ROI _roi;
-
     size_t _run, _subrun, _event;
+    std::vector<larcv::Image2D>  _tpc_image_v;
+    std::vector<larcv::Image2D>  _tpc_segment_v;
+    Image2D _pmt_image;
+    std::map<larcv::PlaneID_t,larcv::ChStatus> _ch_status_m;
+    std::vector<larcv::ROI> _roi_v;
+
   };
 
 }

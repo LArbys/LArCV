@@ -28,7 +28,13 @@ namespace larcv {
     
     /// Default constructor
     ChStatus(){}
-    
+
+#ifndef __CINT__
+    ChStatus(PlaneID_t plane, std::vector<short>&&)
+      : _status_v(std::move(plane))
+      , _plane(plane)
+    {}
+#endif    
     /// Default destructor
     ~ChStatus(){}
 

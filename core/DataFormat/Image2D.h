@@ -65,6 +65,8 @@ namespace larcv {
     void resize( size_t row_count, size_t col_count, float fillval=0.0 );
     void set_pixel( size_t row, size_t col, float value );
     void paint(float value);
+    void threshold(float thres, float lower_overwrite);
+    void binary_threshold(float thres, float lower_overwrite, float upper_overwrite);
     void clear_data();
     void compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum);
     void overlay(const Image2D&, CompressionModes_t mode=kSum);
