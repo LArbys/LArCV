@@ -71,6 +71,24 @@ namespace larcv {
     void compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum);
     void overlay(const Image2D&, CompressionModes_t mode=kSum);
 
+    inline Image2D& operator+=(const float val)
+    { for(auto& v : _img) v+= val; return (*this);}
+    inline Image2D operator+(const float val) const
+    { Image2D res = (*this); res+=val; return res; }
+    inline Image2D& operator-=(const float val)
+    { for(auto& v : _img) v-= val; return (*this);}
+    inline Image2D operator-(const float val) const
+    { Image2D res = (*this); res-=val; return res; }
+    inline Image2D& operator*=(const float val)
+    { for(auto& v : _img) v*= val; return (*this);}
+    inline Image2D operator*(const float val) const
+    { Image2D res = (*this); res*=val; return res; }
+    inline Image2D& operator/=(const float val)
+    { for(auto& v : _img) v/= val; return (*this);}
+    inline Image2D operator/(const float val) const
+    { Image2D res = (*this); res/=val; return res; }
+
+
     // Matrix Multiplication
     Image2D multiRHS( const Image2D& rhs ) const; 
     Image2D& operator*=( const Image2D& rhs );

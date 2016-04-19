@@ -539,10 +539,19 @@ namespace larcv {
 
     if(_io_mode != kREAD) {
       _out_file->cd();
-      for(auto& t : _out_tree_v) {
-	if(!t) break;
-	LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
-	t->Write(); 
+      if(_store_only_bool.empty()) {
+	for(auto& t : _out_tree_v) {
+	  if(!t) break;
+	  LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	  t->Write(); 
+	}
+      }else{
+	for(size_t i=0; i<_store_only_bool.size(); ++i) {
+	  if(!_store_only_bool[i]) continue;
+	  auto& t = _out_tree_v[i];
+	  LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	  t->Write();
+	}
       }
       LARCV_NORMAL() << "Closing output file" << std::endl;
       _out_file->Close();

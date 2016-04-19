@@ -19,6 +19,7 @@ namespace larcv {
     
   void ImageMerger::configure(const PSet& cfg)
   {
+    _pmt_pedestal         = cfg.get<float>       ("PMTPedestal"      );
     _min_ch_status        = cfg.get<short>       ("MinChannelStatus" );
     _out_tpc_producer     = cfg.get<std::string> ("OutNameTPCImage"  );
     _out_pmt_producer     = cfg.get<std::string> ("OutNamePMTImage"  );
@@ -213,6 +214,7 @@ namespace larcv {
 
     // Merge pmt image
     data_pmt_image.overlay(mc_pmt_image);
+    data_pmt_image -= _pmt_pedestal;
 
     // Store
     auto out_tpc_image   = (EventImage2D*)(mgr.get_data(kProductImage2D,_out_tpc_producer));

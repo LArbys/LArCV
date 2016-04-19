@@ -51,6 +51,7 @@ namespace larcv {
     ImageHolder* _nu_proc;
     ImageHolder* _cosmic_proc;
     short        _min_ch_status;
+    float        _pmt_pedestal;
     std::string  _out_tpc_producer;
     std::string  _out_pmt_producer;
     std::string  _out_status_producer;

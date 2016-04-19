@@ -74,7 +74,7 @@ namespace larcv {
 
   void Image2D::binary_threshold(float thres, float lower_overwrite, float upper_overwrite)
   { for(auto& v : _img) v = (v <= thres ? lower_overwrite : upper_overwrite); }
-  
+
   float Image2D::pixel( size_t row, size_t col ) const 
   { return _img[_meta.index(row,col)]; }
 
