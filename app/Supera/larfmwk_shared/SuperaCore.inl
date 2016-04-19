@@ -45,6 +45,7 @@ namespace larcv {
       
       _min_time = main_cfg.get<double>("MinTime");
       _min_wire = main_cfg.get<double>("MinWire");
+      _tpc_tick_offset = main_cfg.get<int>("ShiftTPCTick");
       
       _event_image_rows = main_cfg.get<std::vector<size_t> >("EventImageRows");
       _event_image_cols = main_cfg.get<std::vector<size_t> >("EventImageCols");
@@ -146,7 +147,7 @@ namespace larcv {
 	  
 	  // Create full resolution image
 	  _full_image.reset(full_meta);
-	  fill(_full_image,wire_v);
+	  fill(_full_image,wire_v,_tpc_tick_offset);
 	  _full_image.index(event_image_v->Image2DArray().size());
 	
 	  // Finally compress and store as event image
@@ -360,7 +361,7 @@ namespace larcv {
 	
 	// Create full resolution image
 	_full_image.reset(full_meta);
-	fill(_full_image,wire_v);
+	fill(_full_image,wire_v,_tpc_tick_offset);
 	_full_image.index(event_image_v->Image2DArray().size());
 	
 	// Now extract each high-resolution interaction image
@@ -411,7 +412,7 @@ namespace larcv {
 	break;
       }
       if(!sem_images.empty())
-	fill(sem_images,mctrack_v,mcshower_v,simch_v);
+	fill(sem_images,mctrack_v,mcshower_v,simch_v,_tpc_tick_offset);
       event_semimage_v->Emplace(std::move(sem_images));
       
       _larcv_io.save_entry();

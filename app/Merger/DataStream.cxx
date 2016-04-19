@@ -17,7 +17,7 @@ namespace larcv {
   {
     _tpc_image_producer = cfg.get<std::string>("TPCImageProducer");
     _pmt_image_producer = cfg.get<std::string>("PMTImageProducer");
-    _ch_status_producer = cfg.get<std::string>("ChStatusProducer");
+    _ch_status_producer = cfg.get<std::string>("ChStatusProducer","");
     _adc_threshold = cfg.get<float>("ADCThreshold");
   }
 
@@ -31,13 +31,16 @@ namespace larcv {
     _tpc_segment_v.clear();
     _pmt_image = Image2D();
     
-    // Retrieve ChStatus    
-    auto event_chstatus = (EventChStatus*)(mgr.get_data(kProductChStatus,_ch_status_producer));
+    // Retrieve ChStatus
+    if(!_ch_status_producer.empty()) {
+
+      auto event_chstatus = (EventChStatus*)(mgr.get_data(kProductChStatus,_ch_status_producer));
     
-    if(!event_chstatus || event_chstatus->ChStatusMap().empty()) return false;
-
-    _ch_status_m = event_chstatus->ChStatusMap();
-
+      if(!event_chstatus || event_chstatus->ChStatusMap().empty()) return false;
+      
+      _ch_status_m = event_chstatus->ChStatusMap();
+    }
+    
     // Retrieve TPC Image
     auto event_tpc_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_tpc_image_producer));
 

@@ -65,6 +65,7 @@ namespace larcv {
       bool fDumpImages;
       std::vector< larcv::hires::DivisionDef > m_divisions;
 
+      std::string fInputPMTProducer;
       std::string fInputROIProducer;
       std::string fInputImageProducer;
       std::string fInputSegmentationProducer;

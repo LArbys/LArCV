@@ -26,6 +26,7 @@ namespace larcv {
       fTickStart          = cfg.get<int>( "TickStart", 2400 );
       fTickDownSample     = cfg.get<int>( "TickDownSampleFactor", 6 );
       fMaxWireImageWidth  = cfg.get<int>( "MaxWireImageWidth" );
+      fInputPMTProducer   = cfg.get<std::string>( "InputPMTProducer" );
       fInputROIProducer   = cfg.get<std::string>( "InputROIProducer" );
       fNumNonVertexDivisionsPerEvent = cfg.get<int>( "NumNonVertexDivisionsPerEvent" );
       fInputImageProducer = cfg.get<std::string>( "InputImageProducer" );
@@ -44,7 +45,7 @@ namespace larcv {
       // The image divisions are calculated before hand in the fixed grid model
       // we load the prefined region image definitions here
       
-      TFile* f = new TFile( fDivisionFile.c_str(), "open" );
+      TFile* f = new TFile( Form("%s/app/HiResDivider/dat/%s", getenv("LARCV_BASEDIR"),fDivisionFile.c_str()), "open" );
       TTree* t = (TTree*)f->Get("imagedivider/regionInfo");
       int **planebounds = new int*[fNPlanes];
       int planenwires[fNPlanes];
@@ -216,7 +217,7 @@ namespace larcv {
 	LARCV_DEBUG() << "Crop " << fInputPMTWeightedProducer << " Images." << std::endl;
 	cropEventImages( *input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
 	if ( fDumpImages ) {
-	  auto input_pmtraw_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,"op_bnbnu_mc"));
+	  auto input_pmtraw_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTProducer));
 	  cv::Mat pmtimg;
 	  larcv::Image2D const& pmtsrc = input_pmtraw_images->at(0);
 	  pmtimg = cv::Mat::zeros( pmtsrc.meta().rows(), pmtsrc.meta().cols(), CV_8UC3 );

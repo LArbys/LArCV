@@ -10,7 +10,7 @@ namespace larcv {
       //fGeoInfoFile = "configfiles/geoinfo.root";
       fGeoInfoFile = geofile;
       //std::cout << "Filling Weights using " << fGeoInfoFile << std::endl;
-      fGeoFile = new TFile( fGeoInfoFile.c_str(), "OPEN" );
+      fGeoFile = new TFile( Form("%s/app/PMTWeights/dat/%s",getenv("LARCV_BASEDIR"),fGeoInfoFile.c_str()), "OPEN" );
 
       // Get the PMT Info
       fNPMTs = 32;

@@ -63,7 +63,7 @@ namespace larcv {
       throw larbys();
     }
     if(!cfg.contains_pset(_merge_driver.name())) {
-      LARCV_CRITICAL() << "Main IOManager parameter set not found..." << std::endl;
+      LARCV_CRITICAL() << "OutStream parameter set not found..." << std::endl;
       throw larbys();
     }
     _cosmic_proc_name = cfg.get<std::string>("CosmicImageHolder");
@@ -138,7 +138,13 @@ namespace larcv {
     LARCV_INFO() << "Processing CosmicDataStream entry " << _num_cosmic
 		 << " ... NeutrinoMCStream entry " << _num_nu << std::endl;
 
+    static size_t num_entry=0;
     _merge_driver.process_entry();
+    ++num_entry;
+    if(_num_max < 10)
+      { LARCV_NORMAL() << "Processed " << num_entry << " entries..." << std::endl; }
+    else if( num_entry && (num_entry%_num_frac == 0) )
+      { LARCV_NORMAL() << "Processed " << 10*((num_entry/_num_frac)+1) << " % processed..." << std::endl; }
     
     return true;
   }

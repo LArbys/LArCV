@@ -83,29 +83,31 @@ namespace larcv {
     // Check size
     if(data_tpc_image_v.size() != mc_tpc_image_v.size()) {
       LARCV_ERROR() << "# of Data stream image do not match w/ MC stream! Skipping this entry..." << std::endl;
-      return true;
+      return false;
     }
     if(mc_roi_v.empty()) {
       LARCV_ERROR() << "No MC Interaction ROI found. skipping..." << std::endl;
-      return true;
+      return false;
     }
+    /*
     if(mc_roi_v.size() != data_tpc_image_v.size()) {
       LARCV_ERROR() << "# of image do not match w/ # of ROI! Skipping this entry..." << std::endl;
       return true;
     }
-
+    */
+    
     // Check PlaneID
     for(size_t i=0; i<data_tpc_image_v.size(); ++i) {
       auto const& image1 = data_tpc_image_v[i];
       auto const& image2 = mc_tpc_image_v[i];
       if(image1.meta().plane() != image2.meta().plane()) {
 	LARCV_ERROR() << "Plane ID mismatch! skipping..." << std::endl;
-	return true;
+	return false;
       }
       if( (!data_status_m.empty() && (data_status_m.find(image1.meta().plane()) == data_status_m.end())) ||
 	  (!mc_status_m.empty() && (mc_status_m.find(image1.meta().plane()) == mc_status_m.end())) ) {
 	LARCV_ERROR() << "Plane ID " << image1.meta().plane() << " not found for ch status!" << std::endl;
-	return true;
+	return false;
       }
     }
     // All check done
