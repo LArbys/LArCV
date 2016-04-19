@@ -51,8 +51,9 @@ namespace larcv {
     void _configure_(const PSet&);
 
     bool _process_(IOManager& mgr);
-
+#ifndef __CINT__
     larcv::Watch _watch;    ///< algorithm profile stopwatch
+#endif
     double _proc_time;      ///< algorithm execution time record (cumulative)
     size_t _proc_count;     ///< algorithm execution counter (cumulative)
     larcv::ProcessID_t _id; ///< unique algorithm identifier

@@ -65,17 +65,18 @@ namespace larcv {
   private:
 
     bool _process_entry_();
-
+#ifndef __CINT__
     size_t _current_entry;
     bool _enable_filter;
     bool _random_access;
     std::vector<size_t> _access_entry_v;
     IOManager _io;
     std::map<std::string,larcv::ProcessID_t> _proc_m;
-    std::vector<ProcessBase*> _proc_v;
+    std::vector<larcv::ProcessBase*> _proc_v;
     bool _processing;
     TFile* _fout;    
     std::string _fout_name;
+#endif
   };
 }
 

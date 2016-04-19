@@ -11,7 +11,7 @@
 
 // Classes
 #pragma link C++ namespace larcv+;
-#pragma link C++ class larcv::Watch+;
+//#pragma link C++ class larcv::Watch+;
 #pragma link C++ class larcv::Range<int>+;
 #pragma link C++ class larcv::Range<size_t>+;
 #pragma link C++ class larcv::Range<double>+;

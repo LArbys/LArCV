@@ -305,10 +305,10 @@ namespace larcv {
     // LHS copies internal data
     Image2D out( *this );
     out.resize( (*this).meta().rows(), rhs.meta().cols() );
-    for (int r=0; r<out.meta().rows(); r++) {
-      for (int c=0; c<out.meta().cols(); c++) {
+    for (int r=0; r<(int)(out.meta().rows()); r++) {
+      for (int c=0; c<(int)(out.meta().cols()); c++) {
 	float val = 0.0;
-	for (int k=0; k<meta().cols(); k++) {
+	for (int k=0; k<(int)(meta().cols()); k++) {
 	  val += pixel( r, k )*rhs.pixel(k,c);
 	}
 	out.set_pixel( r, c, val );
@@ -338,8 +338,8 @@ namespace larcv {
 
     // LHS copies internal data
     Image2D out( *this );
-    for (int r=0; r<out.meta().rows(); r++) {
-      for (int c=0; c<out.meta().cols(); c++) {
+    for (int r=0; r<(int)(out.meta().rows()); r++) {
+      for (int c=0; c<(int)(out.meta().cols()); c++) {
 	out.set_pixel( r, c, pixel(r,c)*rhs.pixel(r,c) );
       }
     }

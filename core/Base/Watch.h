@@ -1,6 +1,6 @@
 #ifndef __LARCV_BASE_WATCH_H__
 #define __LARCV_BASE_WATCH_H__
-
+#ifndef __CINT__
 /**
  * \file Watch.h
  *
@@ -59,5 +59,6 @@ namespace larcv {
     double _wall_time_start;
   };
 }
+#endif
 #endif
 /** @} */ // end of doxygen group 

@@ -1,6 +1,7 @@
 #ifndef PROCESSDRIVER_CXX
 #define PROCESSDRIVER_CXX
 #include <sstream>
+#include <iomanip>
 #include "ProcessDriver.h"
 #include "ProcessFactory.h"
 #include "Base/LArCVBaseUtilFunc.h"
