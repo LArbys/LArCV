@@ -1,0 +1,136 @@
+
+MergeTwoStream: {
+
+  Verbosity:           2
+  MaxOutputEntries:    100000000
+  CosmicImageHolder:   "CosmicImage"
+  NeutrinoImageHolder: "BNBNuImage"
+  ImageMerger:         "Merger"
+
+  OutStream: {
+    Verbosity:    0
+    EnableFilter: true
+    RandomAccess: false
+    ProcessType:  ["ImageMerger"]
+    ProcessName:  ["Merger"]
+    #ProcessType:  ["ImageMerger","PMTWeightImageBuilder","HiResImageDivider"]
+    #ProcessName:  ["Merger","PMTWeightImage","HiResImageDivider"]
+
+    IOManager: {
+      Verbosity:   2
+      Name:        "MergeStreamIO"
+      IOMode:      1
+      OutFileName: "out.root"
+      #InputFiles:  []
+      #InputDirs:   []
+      StoreOnlyType: [    0,    0,    1,    2,        0]
+      StoreOnlyName: ["tpc","pmt","bnb","tpc","segment"]
+    }
+
+    ProcessList: {
+      Merger: {
+        PMTPedestal:      2047
+        MinChannelStatus: 4
+	OutNameTPCImage:  "tpc"
+	OutNamePMTImage:  "pmt"
+	OutNameROI:       "bnb"
+	OutNameChStatus:  "tpc"
+	OutNameSegment:   "segment"
+      }
+      PMTWeightImage: {
+        Verbosity: 2
+      	GeoFile: "geoinfo.root"
+      	NWirePixels: 3456 # 768*5
+      	PMTImageProducer: "pmt"
+      	TPCImageProducer: "tpc"
+      	OutputProducerName: "pmtweight_tpc"
+      	StartTick: 190
+      	EndTick: 310
+      	CheckSaturation: false
+      	HGpedestal: 2047.0
+      	PMTImageIndex: 0
+      }
+      HiResImageDivider: {
+        Verbosity: 2
+      	DivisionFile: "imagedivider_y216.root"
+      	NPlanes: 3
+      	TickStart: 2400
+      	TickDownSampleFactor: 6
+      	MaxWireImageWidth: 216
+      	NumNonVertexDivisionsPerEvent:0
+	InputPMTProducer:"pmt"
+      	InputROIProducer:"bnb"
+	OutputROIProducer:"crop"
+      	InputImageProducer:"tpc"
+      	OutputImageProducer:"img_hires_crop"
+      	InputSegmentationProducer:"segment"
+      	OutputSegmentationProducer:"seg_hires_crop"
+      	InputPMTWeightedProducer:"pmtweight_tpc"
+      	OutputPMTWeightedProducer:"pmtweight_hires_crop"
+      	CropSegmentation: true
+      	CropPMTWeighted: true
+      	DumpImages: true
+      }
+    }
+  }
+ 
+  CosmicDataStream: {
+    Verbosity:    2
+    EnableFilter: true
+    RandomAccess: true
+    ProcessType:  ["DataStream"]
+    ProcessName:  ["CosmicImage"]
+
+    IOManager: {
+      Verbosity:   2
+      Name:        "CosmicStreamIO"
+      IOMode:      0
+      OutFileName: ""
+      InputFiles:  []
+      InputDirs:   []
+    }
+
+    ProcessList: {
+      CosmicImage: {
+        Profile:          true
+        TPCImageProducer: "extunb"
+ 	PMTImageProducer: "op_extunb"
+	ChStatusProducer: "extunb"
+	ADCThreshold:     0
+      }
+    }
+  }
+
+  NeutrinoMCStream: {
+    Verbosity:    2
+    EnableFilter: true
+    RandomAccess: true
+    ProcessType:  ["MCNuStream"]
+    ProcessName:  ["BNBNuImage"]
+
+    IOManager: {
+      Verbosity:   2
+      Name:        "NuStreamIO"
+      IOMode:      0
+      OutFileName: ""
+      InputFiles:  []
+      InputDirs:   []
+    }
+
+    ProcessList: {
+      BNBNuImage: {
+        Profile:          true
+	TPCImageProducer: "bnbnu_mc"
+	PMTImageProducer: "op_bnbnu_mc"
+	SegmentProducer:  "segment_bnbnu_mc"
+	ROIProducer:      "bnbnu_mc"
+	ADCSmearingMean:  [1.,1.,1.]
+	ADCSmearingSigma: [0.2,0.2,0.2]
+	MinEnergyDeposit: 100
+	MinEnergyInit:    100
+	MinWidth:         20
+	MinHeight:        20
+      }
+    }
+  }
+}
