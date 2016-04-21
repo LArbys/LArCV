@@ -35,13 +35,14 @@ namespace larcv {
       _store_chstatus = main_cfg.get<bool>("StoreChStatus");
       _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
       
-      _producer_key     = main_cfg.get<std::string>("ProducerKey");
-      _producer_digit   = main_cfg.get<std::string>("DigitProducer");
-      _producer_simch   = main_cfg.get<std::string>("SimChProducer");
-      _producer_wire    = main_cfg.get<std::string>("WireProducer");
-      _producer_gen     = main_cfg.get<std::string>("GenProducer");
-      _producer_mcreco  = main_cfg.get<std::string>("MCRecoProducer");
-      _producer_opdigit = main_cfg.get<std::string>("OpDigitProducer");
+      _producer_key      = main_cfg.get<std::string>("ProducerKey");
+      _producer_digit    = main_cfg.get<std::string>("DigitProducer");
+      _producer_simch    = main_cfg.get<std::string>("SimChProducer");
+      _producer_wire     = main_cfg.get<std::string>("WireProducer");
+      _producer_gen      = main_cfg.get<std::string>("GenProducer");
+      _producer_mcreco   = main_cfg.get<std::string>("MCRecoProducer");
+      _producer_opdigit  = main_cfg.get<std::string>("OpDigitProducer");
+      _producer_chstatus = main_cfg.get<std::string>("ChStatusProducer");
       
       _min_time = main_cfg.get<double>("MinTime");
       _min_wire = main_cfg.get<double>("MinWire");
@@ -93,7 +94,14 @@ namespace larcv {
     {
       if(ch >= _channel_to_plane_wire.size()) throw ::larcv::larbys("Invalid channel to store status!");
       auto const& plane_wire = _channel_to_plane_wire[ch];
-      _status_m[plane_wire.first].Status(plane_wire.second,status);
+      set_chstatus(plane_wire.first,plane_wire.second,status);
+    }
+
+    template <class R, class S, class T, class U, class V, class W>
+    void SuperaCore<R,S,T,U,V,W>::set_chstatus(::larcv::PlaneID_t plane, unsigned int wire, short status)
+    {
+      if(wire >= ::larcv::supera::Nwires(plane)) throw ::larcv::larbys("Invalid wire number to store status!");
+      _status_m[plane].Status(wire,status);
     }
 
     template <class R, class S, class T, class U, class V, class W>    

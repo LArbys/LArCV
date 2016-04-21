@@ -32,7 +32,7 @@ namespace larcv {
     
     template<> unsigned long FromString( const std::string& value)
     { return std::stoul(value); }
-    
+
     template<> short FromString( const std::string& value )
     { return std::stoi(value); }
     
@@ -160,7 +160,7 @@ namespace larcv {
 	res.push_back( FromString<unsigned long>(v) );
       return res;
     }
-    
+
     template<> std::vector< bool > FromString< std::vector< bool > > (const std::string& value )
     {
       auto str_v = FromString<std::vector<std::string> >(value);

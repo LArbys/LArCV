@@ -145,8 +145,11 @@ namespace larcv {
       { LARCV_NORMAL() << "Processed " << num_entry << " entries..." << std::endl; }
     else if( num_entry && (num_entry%_num_frac == 0) )
       { LARCV_NORMAL() << "Processed " << 10*((num_entry/_num_frac)+1) << " % processed..." << std::endl; }
-    
-    return true;
+
+    static size_t ctr=0;
+    ctr++;
+    return (ctr<3);
+    //return true;
   }
 
   void MergeTwoStream::batch_process()

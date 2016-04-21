@@ -28,7 +28,7 @@ while test $# -gt 0; do
 	  out="{$LARCV_LIBDIR} "
 	  ;;
       --libs)
-	  out="-L${LARCV_LIBDIR} -lLArCVBase -lLArCVDataFormat -lLArCVProcessor "
+	  out="-L${LARCV_LIBDIR} -lLArCVBase -lLArCVDataFormat -lLArCVProcessor -lLArCVCPPUtil "
 	  if [ $LARCV_NUMPY -eq 1 ]; then
 	      out+=" -lLArCVPyUtil "
 	  fi

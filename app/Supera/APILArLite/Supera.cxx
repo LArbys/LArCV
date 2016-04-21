@@ -3,6 +3,7 @@
 
 #include "Supera.h"
 #include "Base/LArCVBaseUtilFunc.h"
+#include "DataFormat/chstatus.h"
 
 namespace larlite {
 
@@ -34,9 +35,23 @@ namespace larlite {
 
     if(!opdigit_h) { throw DataFormatException("Could not load opdetwaveform data!"); }
 
-    if(_core.store_chstatus())
+    if(_core.store_chstatus()) {
 
-      throw ::larcv::larbys("ChStatus storage is not supported in LArLite (no database API)");
+      auto chstatus_h = storage->get_data<event_chstatus>(_core.producer_chstatus());
+
+      if(!chstatus_h || chstatus_h->empty()) 
+
+	throw ::larcv::larbys("ChStatus not found or empty!");
+
+      for(auto const& chs : *chstatus_h) {
+
+	auto const& pid = chs.plane();
+	auto const& status_v = chs.status();
+	for(size_t wire=0; wire<status_v.size(); ++wire)
+	  _core.set_chstatus(pid.Plane,wire,status_v[wire]);
+      }
+
+    }
 
     bool status=true;
     if(_core.use_mc()) {

@@ -20,6 +20,25 @@ namespace larcv {
 
       _min_nplanes = cfg.get<size_t>("MinNPlanes");
 
+      auto pdg_list = cfg.get<std::vector<int> >("SpecialPDGList");
+      auto pdg_init_energy = cfg.get<std::vector<double> >("SpecialPDGMinEnergyInit");
+      auto pdg_deposit_energy = cfg.get<std::vector<double> >("SpecialPDGMinEnergyDeposit");
+
+      if(pdg_list.size() != pdg_init_energy.size()) {
+	LARCV_ERROR() << "SpecialPDGList and SpecialPDGMinEnergyInit must carry the same length vector!" << std::endl;
+	throw ::larcv::larbys();
+      }
+
+      if(pdg_list.size() != pdg_deposit_energy.size()) {
+	LARCV_ERROR() << "SpecialPDGList and SpecialPDGMinEnergyDeposit must carry the same length vector!" << std::endl;
+	throw ::larcv::larbys();
+      }
+
+      _min_energy_init_pdg.clear();
+      _min_energy_deposit_pdg.clear();
+      for(size_t i=0; i<pdg_list.size(); ++i) _min_energy_init_pdg.emplace(pdg_list[i],pdg_init_energy[i]);
+      for(size_t i=0; i<pdg_list.size(); ++i) _min_energy_deposit_pdg.emplace(pdg_list[i],pdg_deposit_energy[i]);
+
       _cropper.configure(cropper_cfg);
     }
 
@@ -100,18 +119,28 @@ namespace larcv {
 		       << " as it has < 2 steps in the detector" << std::endl;
 	  continue;
 	}
-	if((mctrack.Start().E() < _min_energy_init_mctrack) ) {
+
+	double min_energy_init    = _min_energy_init_mctrack;
+	double min_energy_deposit = _min_energy_deposit_mctrack;
+
+	// Check if PDG is registered for a special handling
+	if(_min_energy_init_pdg.find(mctrack.PdgCode()) != _min_energy_init_pdg.end()) {
+	  min_energy_init    = _min_energy_init_pdg[mctrack.PdgCode()];
+	  min_energy_deposit = _min_energy_deposit_pdg[mctrack.PdgCode()];
+	}
+	
+	if((mctrack.Start().E() < min_energy_init) ) {
 	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 		       << " PdgCode " << mctrack.PdgCode()
 		       << " as it has too small initial energy " << mctrack.Start().E()
-		       << " MeV < " << _min_energy_init_mctrack << " MeV" << std::endl;
+		       << " MeV < " << min_energy_init << " MeV" << std::endl;
 	  continue;
 	}
-	if((mctrack.front().E() - mctrack.back().E()) < _min_energy_deposit_mctrack) {
+	if((mctrack.front().E() - mctrack.back().E()) < min_energy_deposit) {
 	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 		       << " PdgCode " << mctrack.PdgCode()
 		       << " as it has too small deposit energy " << (mctrack.front().E() - mctrack.back().E())
-		       << " MeV < " << _min_energy_deposit_mctrack << " MeV" << std::endl;
+		       << " MeV < " << min_energy_deposit << " MeV" << std::endl;
 	  continue;
 	}
 	
@@ -153,18 +182,28 @@ namespace larcv {
 		       << " as it has < 2 steps in the detector" << std::endl;
 	  continue;
 	}
-	if((mctrack.Start().E() < _min_energy_init_mctrack) ) {
+
+	double min_energy_init    = _min_energy_init_mctrack;
+	double min_energy_deposit = _min_energy_deposit_mctrack;
+
+	// Check if PDG is registered for a special handling
+	if(_min_energy_init_pdg.find(mctrack.PdgCode()) != _min_energy_init_pdg.end()) {
+	  min_energy_init    = _min_energy_init_pdg[mctrack.PdgCode()];
+	  min_energy_deposit = _min_energy_deposit_pdg[mctrack.PdgCode()];
+	}
+	
+	if((mctrack.Start().E() < min_energy_init) ) {
 	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 		       << " PdgCode " << mctrack.PdgCode()
 		       << " as it has too small initial energy " << mctrack.Start().E()
-		       << " MeV < " << _min_energy_init_mctrack << " MeV" << std::endl;
+		       << " MeV < " << min_energy_init << " MeV" << std::endl;
 	  continue;
 	}
-	if((mctrack.front().E() - mctrack.back().E()) < _min_energy_deposit_mctrack) {
+	if((mctrack.front().E() - mctrack.back().E()) < min_energy_deposit) {
 	  LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 		       << " PdgCode " << mctrack.PdgCode()
 		       << " as it has too small deposit energy " << (mctrack.front().E() - mctrack.back().E())
-		       << " MeV < " << _min_energy_deposit_mctrack << " MeV" << std::endl;
+		       << " MeV < " << min_energy_deposit << " MeV" << std::endl;
 	  continue;
 	}
 	
@@ -199,18 +238,27 @@ namespace larcv {
       for(size_t i=0; i<mcshower_v.size(); ++i) {
 	auto const& mcshower = mcshower_v[i];
 
-	if((mcshower.Start().E() < _min_energy_init_mcshower) ) {
+	double min_energy_init    = _min_energy_init_mcshower;
+	double min_energy_deposit = _min_energy_deposit_mcshower;
+
+	// Check if PDG is registered for a special handling
+	if(_min_energy_init_pdg.find(mcshower.PdgCode()) != _min_energy_init_pdg.end()) {
+	  min_energy_init    = _min_energy_init_pdg[mcshower.PdgCode()];
+	  min_energy_deposit = _min_energy_deposit_pdg[mcshower.PdgCode()];
+	}
+	
+	if((mcshower.Start().E() < min_energy_init) ) {
 	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
 		       << " PdgCode " << mcshower.PdgCode()
 		       << " as it has too small initial energy " << mcshower.Start().E()
-		       << " MeV < " << _min_energy_init_mcshower << " MeV" << std::endl;
+		       << " MeV < " << min_energy_init << " MeV" << std::endl;
 	  continue;
 	}
-	if(mcshower.DetProfile().E() < _min_energy_deposit_mcshower) {
+	if(mcshower.DetProfile().E() < min_energy_deposit) {
 	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
 		       << " PdgCode " << mcshower.PdgCode()
 		       << " as it has too small deposited energy " << mcshower.DetProfile().E()
-		       << " MeV < " << _min_energy_deposit_mcshower << " MeV" << std::endl;
+		       << " MeV < " << min_energy_deposit << " MeV" << std::endl;
 	  continue;
 	}
 
@@ -247,18 +295,27 @@ namespace larcv {
       for(size_t i=0; i<mcshower_v.size(); ++i) {
 	auto const& mcshower = mcshower_v[i];
 
-	if((mcshower.Start().E() < _min_energy_init_mcshower) ) {
+	double min_energy_init    = _min_energy_init_mcshower;
+	double min_energy_deposit = _min_energy_deposit_mcshower;
+
+	// Check if PDG is registered for a special handling
+	if(_min_energy_init_pdg.find(mcshower.PdgCode()) != _min_energy_init_pdg.end()) {
+	  min_energy_init    = _min_energy_init_pdg[mcshower.PdgCode()];
+	  min_energy_deposit = _min_energy_deposit_pdg[mcshower.PdgCode()];
+	}
+	
+	if((mcshower.Start().E() < min_energy_init) ) {
 	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
 		       << " PdgCode " << mcshower.PdgCode()
 		       << " as it has too small initial energy " << mcshower.Start().E()
-		       << " MeV < " << _min_energy_init_mcshower << " MeV" << std::endl;
+		       << " MeV < " << min_energy_init << " MeV" << std::endl;
 	  continue;
 	}
-	if(mcshower.DetProfile().E() < _min_energy_deposit_mcshower) {
+	if(mcshower.DetProfile().E() < min_energy_deposit) {
 	  LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
 		       << " PdgCode " << mcshower.PdgCode()
 		       << " as it has too small deposited energy " << mcshower.DetProfile().E()
-		       << " MeV < " << _min_energy_deposit_mcshower << " MeV" << std::endl;
+		       << " MeV < " << min_energy_deposit << " MeV" << std::endl;
 	  continue;
 	}
 

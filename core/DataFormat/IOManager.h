@@ -50,7 +50,7 @@ namespace larcv {
     void add_in_file(const std::string filename, const std::string dirname="");
     void clear_in_file();
     void set_out_file(const std::string name);
-    size_t producer_id(const ProductType_t type, const std::string& producer) const;
+    ProducerID_t producer_id(const ProductType_t type, const std::string& producer) const;
     ProductType_t product_type(const size_t id) const;
     void configure(const PSet& cfg);
     bool initialize();
@@ -64,7 +64,7 @@ namespace larcv {
     { return _tree_entries; }
     
     EventBase* get_data(const ProductType_t type, const std::string& producer);
-    EventBase* get_data(const size_t id);
+    EventBase* get_data(const ProducerID_t id);
 
     //
     // Some template class getter for auto-cast
@@ -72,7 +72,7 @@ namespace larcv {
     template <class T> T& get_data(const std::string& producer)
     { return *((T*)(get_data(ProductType<T>(),producer))); }
 
-    template <class T> T& get_data(const size_t id)
+    template <class T> T& get_data(const ProducerID_t id)
     {
       auto const type = product_type(id);
       if(ProductType<T>() != type) {
@@ -99,7 +99,7 @@ namespace larcv {
     std::string _out_file_name;
     std::vector<std::string>     _in_file_v;
     std::vector<std::string>     _in_dir_v;
-    std::vector<std::map<std::string,size_t> > _key_list;
+    std::vector<std::map<std::string,larcv::ProducerID_t> > _key_list;
     std::vector<TTree*>          _out_tree_v;
     std::vector<TChain*>         _in_tree_v;
     std::vector<size_t>          _in_tree_index_v;

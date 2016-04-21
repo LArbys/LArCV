@@ -67,6 +67,7 @@ namespace larcv {
 
       std::string fInputPMTProducer;
       std::string fInputROIProducer;
+      std::string fOutputROIProducer;
       std::string fInputImageProducer;
       std::string fInputSegmentationProducer;
       std::string fInputPMTWeightedProducer;

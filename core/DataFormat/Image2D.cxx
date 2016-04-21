@@ -327,24 +327,30 @@ namespace larcv {
     return (*this);
   }
 
-  Image2D Image2D::eltwise( const Image2D& rhs ) const {
+  void Image2D::eltwise(const std::vector<float>& arr,bool allow_longer) {
     // check multiplication is valid
-    if ( meta().cols()!=rhs.meta().cols() || meta().rows()!=rhs.meta().rows() ) {
+    if ( !( (allow_longer && _img.size() <= arr.size()) || arr.size() == _img.size() ) ) {
+      char oops[500];
+      sprintf( oops, "Image2D element-wise multiplication not valid. LHS size = %zu (row=%zu col=%zu) while argument size = %zu",
+	       _img.size(),_meta.cols(), _meta.cols(), arr.size());
+      throw larbys(oops);
+    }
+    // Element-wise multiplication: do random access as dimension has already been checked
+    for (size_t i=0; i<_img.size(); ++i)
+      _img[i] *= arr[i];
+  }
+
+  void Image2D::eltwise( const Image2D& rhs ) {
+    // check multiplication is valid
+    auto const& meta = rhs.meta();
+    if(meta.cols() != _meta.cols() || meta.rows() != _meta.rows()) {
       char oops[500];
       sprintf( oops, "Image2D element-wise multiplication not valid. LHS cols (%zu) != RHS rcols (%zu) or LHS rows(%zu)!=RHS rows(%zu)", 
-	       meta().cols(), rhs.meta().cols(), meta().rows(), rhs.meta().rows() );
+	       _meta.cols(), meta.cols(), _meta.rows(), meta.rows() );
       throw larbys(oops);
     }
 
-    // LHS copies internal data
-    Image2D out( *this );
-    for (int r=0; r<(int)(out.meta().rows()); r++) {
-      for (int c=0; c<(int)(out.meta().cols()); c++) {
-	out.set_pixel( r, c, pixel(r,c)*rhs.pixel(r,c) );
-      }
-    }
-
-    return out;
+    eltwise(rhs.as_vector(),false);
   }
 
 }

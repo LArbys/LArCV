@@ -54,6 +54,10 @@ namespace larcv {
   typedef size_t MCTrackID_t;
   /// A collection of MCTrackID_t for multiple MCParticles
   typedef std::set<larcv::MCTrackID_t> MCTrackIDSet_t;
+
+  /// ProducerID
+  typedef size_t ProducerID_t;
+  static const ProducerID_t kINVALID_PRODUCER=kINVALID_SIZE;
   
   enum ProductType_t {
     kProductImage2D,

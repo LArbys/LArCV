@@ -59,12 +59,14 @@ namespace larcv {
       void finalize();
 
       void set_chstatus(unsigned int ch, short status);
-      const std::string& producer_opdigit   () const { return _producer_opdigit; }
-      const std::string& producer_digit     () const { return _producer_digit;   }
-      const std::string& producer_wire      () const { return _producer_wire;    }
-      const std::string& producer_generator () const { return _producer_gen;     }
-      const std::string& producer_mcreco    () const { return _producer_mcreco;  }
-      const std::string& producer_simch     () const { return _producer_simch;   }
+      void set_chstatus(::larcv::PlaneID_t plane, unsigned int ch, short status);
+      const std::string& producer_opdigit   () const { return _producer_opdigit;  } 
+      const std::string& producer_digit     () const { return _producer_digit;    }
+      const std::string& producer_wire      () const { return _producer_wire;     }
+      const std::string& producer_generator () const { return _producer_gen;      }
+      const std::string& producer_mcreco    () const { return _producer_mcreco;   }
+      const std::string& producer_simch     () const { return _producer_simch;    }
+      const std::string& producer_chstatus  () const { return _producer_chstatus; }
       bool use_mc() const { return _use_mc; }
       bool store_chstatus() const { return _store_chstatus; }
       const ::larcv::logger& logger() const { return _logger;}
@@ -92,6 +94,7 @@ namespace larcv {
       std::string _producer_gen;
       std::string _producer_mcreco;
       std::string _producer_opdigit;
+      std::string _producer_chstatus;
       std::vector<size_t> _event_image_cols;
       std::vector<size_t> _event_image_rows;
       std::vector<size_t> _event_comp_rows;

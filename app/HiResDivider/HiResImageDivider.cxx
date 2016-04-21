@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include <random>
 #include <iostream>
 
 #include "opencv/cv.h"
@@ -28,6 +29,7 @@ namespace larcv {
       fMaxWireImageWidth  = cfg.get<int>( "MaxWireImageWidth" );
       fInputPMTProducer   = cfg.get<std::string>( "InputPMTProducer" );
       fInputROIProducer   = cfg.get<std::string>( "InputROIProducer" );
+      fOutputROIProducer  = cfg.get<std::string>( "OutputROIProducer" );
       fNumNonVertexDivisionsPerEvent = cfg.get<int>( "NumNonVertexDivisionsPerEvent" );
       fInputImageProducer = cfg.get<std::string>( "InputImageProducer" );
       fOutputImageProducer = cfg.get<std::string>( "OutputImageProducer" );
@@ -120,19 +122,49 @@ namespace larcv {
       // 1) read in hi-res images (from producer specified in config)
       // 2) (how to choose which one we clip?)
 
-      // we get the ROI which will guide us on how to use the image
-      auto event_roi = (larcv::EventROI*)(mgr.get_data(larcv::kProductROI,fInputROIProducer));
-
+      // If it exists, we get the ROI which will guide us on how to use the image
+      // This does not exist for cosmics, in which case we create
+      static const ProducerID_t roi_producer_id = mgr.producer_id(::larcv::kProductROI,fInputROIProducer);
+      
       larcv::ROI roi;
-      for ( auto const& aroi : event_roi->ROIArray() ) {
-	if ( aroi.Type()==kROIBNB ) {
-	  roi = aroi;
+      if(roi_producer_id != kINVALID_PRODUCER) {
+	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for kROIBNB..." << std::endl;
+	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	for ( auto const& aroi : event_roi->ROIArray() ) 
+	  if ( isInteresting(aroi) ) { roi = aroi; break; }
+      }else{
+	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " not found. Constructing Cosmic ROI..." << std::endl;
+	// Input ROI did not exist. Assume this means cosmics and create one
+	roi.Type(kROICosmic);
+	// FIXME: need a way to get detector dimension somehow...
+	const double zmin = 0;
+	const double zmax = 1060;
+	const double ymin = -116.;
+	const double ymax = 116.;
+	const double xmin = 0.;
+	const double xmax = 255.;
+	const double tmin = 3125.; // in ns
+	const double tmax = tmin + 1600.;
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dis(0.,1.);
+	roi.Position( dis(gen) * (xmax - xmin) + xmin,
+		      dis(gen) * (ymax - ymin) + ymin,
+		      dis(gen) * (zmax - zmin) + zmin,
+		      dis(gen) * (tmax - tmin) + tmin);
+      }
+      if(!isInteresting(roi)) {
+	LARCV_CRITICAL() << "Did not find any interesting ROI and/or failed to construct Cosmic ROI..." << std::endl;
+	if(roi_producer_id != kINVALID_PRODUCER) {
+	  LARCV_ERROR() << "Input ROI does exist. Looping over ROI types and printing out..." << std::endl;
+	  auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	  for(auto const& roi : event_roi->ROIArray()) LARCV_ERROR() << roi.dump();
+	  LARCV_ERROR() << "Dump finished..." << std::endl;
 	}
+	// Return false not to store this event in case of filter IO mode
+	return false;
       }
       
-      if ( !isInteresting( roi ) )
-	return false;
-
       // first we find the division with a neutrino in it
       int idiv = findVertexDivision( roi );
       if ( idiv==-1 ) {
@@ -255,6 +287,14 @@ namespace larcv {
 	  cv::imwrite( testname, outimg );
 	}
       }
+
+      // Finally let's store ROI w/ updated ImageMeta arrays
+      auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
+      std::vector<larcv::ImageMeta> out_meta_v;
+      for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
+      roi.SetBB(out_meta_v);
+      auto output_rois = (larcv::EventROI*)(mgr.get_data(kProductROI,fOutputROIProducer));
+      output_rois->Emplace(std::move(roi));
       
       return true;
     }
@@ -265,7 +305,9 @@ namespace larcv {
     // -------------------------------------------------------
 
     bool HiResImageDivider::isInteresting( const larcv::ROI& roi ) {
-      return true;
+      // Supposed to return the "primary" 
+      //return (roi.Type() == kROIBNB || roi.Type() == kROICosmic);
+      return (roi.ParentPdgCode() == 0);
     }
 
     int HiResImageDivider::findVertexDivision( const larcv::ROI& roi ) {

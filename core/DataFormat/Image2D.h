@@ -46,7 +46,7 @@ namespace larcv {
 
     ImageIndex_t index() const { return _id; }
     void index(ImageIndex_t n) { _id = n; }
-
+    size_t size() const { return _img.size(); }
     float pixel(size_t row, size_t col) const;
     const ImageMeta& meta() const { return _meta; }
     std::vector<float> copy_compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum) const;
@@ -95,8 +95,9 @@ namespace larcv {
     Image2D operator*(const Image2D& rhs) const;
 
     // Element-wise
-    Image2D eltwise( const Image2D& rhs ) const;
-
+    void eltwise( const Image2D& rhs );
+    void eltwise(const std::vector<float>& arr,bool allow_longer=false);
+    
   private:
     std::vector<float> _img;
     ImageIndex_t _id;

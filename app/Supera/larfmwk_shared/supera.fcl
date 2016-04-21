@@ -27,6 +27,9 @@ Supera: {
     # MCParticleTree configuration
     MCParticleTree: {
         Verbosity: 3
+        SpecialPDGList: [2212]
+        SpecialPDGMinEnergyInit:    [1000.]
+        SpecialPDGMinEnergyDeposit: [50.]
         MCShowerMinEnergyInit:    5
         MCShowerMinEnergyDeposit: 10
         MCTrackMinEnergyInit:     5
@@ -39,9 +42,6 @@ Supera: {
             WirePadding:  10
             MinWidth:     2
             MinHeight:    2
-            TargetWidth:  247 # currently irrelevant
-            TargetHeight: 247 # currently irrelevant
-            CompressionFactor: 0 # currently irrelevant
         }
     }
 }

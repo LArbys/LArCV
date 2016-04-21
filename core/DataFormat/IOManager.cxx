@@ -169,7 +169,7 @@ namespace larcv {
     _product_ptr_v[_product_ctr] = (EventBase*)(DataProductFactory::get().create(type,name));
     _product_type_v[_product_ctr] = type;
     
-    const size_t id = _product_ctr;
+    const ProducerID_t id = _product_ctr;
     key_m.insert(std::make_pair(name,id));
 
     _product_ctr+=1;
@@ -405,7 +405,7 @@ namespace larcv {
     _set_event_id.clear();
   }
 
-  size_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const
+  ProducerID_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const
   {
     LARCV_DEBUG() << "start" << std::endl;
 
@@ -421,7 +421,7 @@ namespace larcv {
     auto& m = _key_list[type];
     auto iter = m.find(producer);
     if(iter == m.end()) {
-      return kINVALID_SIZE;      
+      return kINVALID_PRODUCER;
     }
     return (*iter).second;
   }

@@ -76,6 +76,8 @@ namespace larcv {
       Cropper<U,V,W> _cropper;
       std::map<larcv::Vertex,larcv::supera::InteractionROI_t> _roi_m;
 
+      std::map<int,double> _min_energy_init_pdg;
+      std::map<int,double> _min_energy_deposit_pdg;
       double _min_energy_init_mcshower;
       double _min_energy_init_mctrack;
       double _min_energy_deposit_mcshower;
