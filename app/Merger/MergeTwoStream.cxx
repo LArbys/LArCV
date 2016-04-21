@@ -20,7 +20,9 @@ namespace larcv {
 				   , _prepared         (false)
 				   , _num_nu           (0)
 				   , _num_cosmic       (0)
-				   , _num_max          (0)
+				   , _num_processed    (0)
+				   , _num_input_max    (0)
+				   , _num_output_max   (0)
 				   , _num_frac         (0)
   {}
 
@@ -88,7 +90,7 @@ namespace larcv {
     LARCV_NORMAL() << "Registered Output Merged   : " << _merge_proc_name << std::endl; 
 
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
-    
+    _num_output_max = cfg.get<size_t>("MaxOutputEntries");
     _merge_driver.configure(cfg.get_pset(_merge_driver.name()));
     _cosmic_driver.configure(cfg.get_pset(_cosmic_driver.name()));
     _nu_driver.configure(cfg.get_pset(_nu_driver.name()));
@@ -111,50 +113,56 @@ namespace larcv {
     _prepared=true;
     _num_cosmic = 0;
     _num_nu = 0;
-    _num_max = std::min(_cosmic_driver.io().get_n_entries(),_nu_driver.io().get_n_entries());
-    _num_frac = _num_max/10 + 1;
-    LARCV_NORMAL() << "Processing max " << _num_max << " entries..." << std::endl;
+    _num_input_max = std::min(_cosmic_driver.io().get_n_entries(),_nu_driver.io().get_n_entries());
+    _num_frac = _num_input_max/10 + 1;
+    if(_num_output_max > _num_input_max) {
+      LARCV_NORMAL() << "Only " << _num_input_max << " entries available from input. Re-setting output max entry..." << std::endl;
+      _num_output_max = _num_input_max;
+    }
+    LARCV_NORMAL() << "Processing max " << _num_output_max << " entries..." << std::endl;
+    _num_processed = 0;
   }
   
   bool MergeTwoStream::process()
-  {
+  {    
     if(!_prepared) {
       LARCV_CRITICAL() << "Must call initialize() beore process()" << std::endl;
       throw larbys();
     }
 
-    while(_num_cosmic < _num_max) {
+    if(_num_processed >= _num_output_max) {
+      LARCV_CRITICAL() << "No more output entry to be made!" << std::endl;
+      return false;
+    }
+
+    while(_num_cosmic < _num_input_max) {
       ++_num_cosmic;
       if(_cosmic_driver.process_entry()) break;
     }
-    while(_num_nu < _num_max) {
+    while(_num_nu < _num_input_max) {
       ++_num_nu;
       if(_nu_driver.process_entry()) break;
     }
 
-    if(_num_cosmic >= _num_max) return false;
-    if(_num_nu >= _num_max) return false;
+    if(_num_cosmic >= _num_input_max) return false;
+    if(_num_nu >= _num_input_max) return false;
 
     LARCV_INFO() << "Processing CosmicDataStream entry " << _num_cosmic
 		 << " ... NeutrinoMCStream entry " << _num_nu << std::endl;
 
-    static size_t num_entry=0;
     _merge_driver.process_entry();
-    ++num_entry;
-    if(_num_max < 10)
-      { LARCV_NORMAL() << "Processed " << num_entry << " entries..." << std::endl; }
-    else if( num_entry && (num_entry%_num_frac == 0) )
-      { LARCV_NORMAL() << "Processed " << 10*((num_entry/_num_frac)+1) << " % processed..." << std::endl; }
+    ++_num_processed;
+    if(_num_output_max < 10)
+      { LARCV_NORMAL() << "Processed " << _num_processed << " entries..." << std::endl; }
+    else if( _num_processed && (_num_processed%_num_frac == 0) )
+      { LARCV_NORMAL() << "Processed " << 10*((_num_processed/_num_frac)+1) << " % processed..." << std::endl; }
 
-    static size_t ctr=0;
-    ctr++;
-    return (ctr<3);
-    //return true;
+    return true;
   }
 
   void MergeTwoStream::batch_process()
   {
-    while(1) if(!process()) break;
+    while(_num_processed<_num_output_max) if(!process()) break;
     LARCV_NORMAL() << "Finished 100%" << std::endl;
   }
   

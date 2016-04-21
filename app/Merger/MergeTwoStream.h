@@ -68,7 +68,9 @@ namespace larcv {
     bool _prepared;
     size_t _num_nu;
     size_t _num_cosmic;
-    size_t _num_max;
+    size_t _num_processed;
+    size_t _num_input_max;
+    size_t _num_output_max;
     size_t _num_frac;
   };
 }
