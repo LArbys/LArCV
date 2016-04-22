@@ -40,7 +40,7 @@ namespace larcv {
 
   bool ImageMerger::process(IOManager& mgr)
   {
-
+    LARCV_INFO() << "Start merging"<<std::endl;
     if(!_nu_proc) {
       LARCV_CRITICAL() << "NeutrinoImageHolder() must be called to set ImageHolder pointer!" << std::endl;
       throw larbys();
@@ -67,11 +67,13 @@ namespace larcv {
     std::map<larcv::PlaneID_t,larcv::ChStatus> mc_status_m;
     std::vector<larcv::ROI> mc_roi_v;
 
+    LARCV_INFO() << "Moving Cosmic images..." << std::endl;
     _cosmic_proc->move_tpc_image   ( data_tpc_image_v   );
     _cosmic_proc->move_tpc_segment ( data_tpc_segment_v );
     _cosmic_proc->move_pmt_image   ( data_pmt_image     );
     _cosmic_proc->move_ch_status   ( data_status_m      );
 
+    LARCV_INFO() << "Moving Neutrino images..." << std::endl;
     _nu_proc->move_tpc_image   ( mc_tpc_image_v   );
     _nu_proc->move_tpc_segment ( mc_tpc_segment_v );
     _nu_proc->move_pmt_image   ( mc_pmt_image     );
@@ -157,6 +159,7 @@ namespace larcv {
       auto& mc_image   = mc_tpc_image_v[i];
       auto& data_image = data_tpc_image_v[i];
       data_image.overlay(mc_image,Image2D::kSum);
+      
 
       auto const& meta = data_image.meta();
       std::vector<float> null_col(meta.rows(),0);
@@ -174,39 +177,42 @@ namespace larcv {
 	}
       }
     }
+    mc_tpc_image_v.clear();
 
     // Merge tpc segment
     std::vector<larcv::Image2D> out_segment_v;
     if(data_tpc_segment_v.empty()) {
       out_segment_v = std::move(mc_tpc_segment_v);
-      mc_tpc_segment_v.clear();
     }
-    else out_segment_v = std::move(data_tpc_segment_v);
-
-    for(size_t i=0; i<out_segment_v.size(); ++i) {
-
-      // retrieve & sum
-      auto& data_segment = out_segment_v[i];
-
-      if(mc_tpc_segment_v.size()>i) {
-	auto const& mc_segment   = mc_tpc_segment_v[i];
-	data_segment.overlay(mc_segment,Image2D::kMaxPool);
-      }
-
-      auto const& meta = data_segment.meta();
-      std::vector<float> null_col(meta.rows(),(float)kROIUnknown);
-      // Impose ChStatus
-      auto data_status_iter = data_status_m.find(meta.plane());
-      if(data_status_iter != data_status_m.end()) {
-	auto const& stat_v = (*data_status_iter).second.as_vector();
-	for(size_t wire_num=0; wire_num < stat_v.size(); ++wire_num) {
-	  
-	  if(wire_num < data_segment.meta().min_x() || wire_num>= data_segment.meta().max_x()) continue;
-
-	  auto const& stat = stat_v[wire_num];
-	  if(stat < _min_ch_status) {
-	    auto col = meta.col((double)wire_num);
-	    data_segment.copy(0,col,null_col);
+    else {
+      out_segment_v = std::move(data_tpc_segment_v);
+      
+      for(size_t i=0; i<out_segment_v.size(); ++i) {
+	
+	// retrieve & sum
+	auto& data_segment = out_segment_v[i];
+	
+	if(mc_tpc_segment_v.size()>i) {
+	  auto const& mc_segment   = mc_tpc_segment_v[i];
+	  //LARCV_INFO() << data_segment.meta().dump() << std::endl << mc_segment.meta().dump() << std::endl;
+	  data_segment.overlay(mc_segment,Image2D::kMaxPool);
+	}
+	
+	auto const& meta = data_segment.meta();
+	std::vector<float> null_col(meta.rows(),(float)kROIUnknown);
+	// Impose ChStatus
+	auto data_status_iter = data_status_m.find(meta.plane());
+	if(data_status_iter != data_status_m.end()) {
+	  auto const& stat_v = (*data_status_iter).second.as_vector();
+	  for(size_t wire_num=0; wire_num < stat_v.size(); ++wire_num) {
+	    
+	    if(wire_num < data_segment.meta().min_x() || wire_num>= data_segment.meta().max_x()) continue;
+	    
+	    auto const& stat = stat_v[wire_num];
+	    if(stat < _min_ch_status) {
+	      auto col = meta.col((double)wire_num);
+	      data_segment.copy(0,col,null_col);
+	    }
 	  }
 	}
       }
@@ -232,6 +238,7 @@ namespace larcv {
     auto out_roi = (EventROI*)(mgr.get_data(kProductROI,_out_roi_producer));
     out_roi->Emplace(std::move(mc_roi_v));
 
+    LARCV_INFO() << "End merging"<<std::endl;
     return true;
   }
 

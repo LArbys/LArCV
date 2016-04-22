@@ -7,18 +7,18 @@ Supera: {
     ProducerKey:      "extunb"
     DigitProducer:    "digitfilter"
     WireProducer:     "caldata"
-    SimChProducer:    "largeant"
     OpDigitProducer:  "saturation"
     ChStatusProducer: "data"
-    #SimChProducer:    ""
-    MCRecoProducer:   "mcreco"
-    GenProducer:      "generator"
+    SimChProducer:    ""
+    MCRecoProducer:   ""
+    GenProducer:      ""
     MinTime:          2400
     MinWire:          0
     ShiftTPCTick:     2400
-    EventImageRows:   [6048,6048,6048]
+    #EventImageRows:   [6048,6048,6048]
+    EventImageRows:   [1008,1008,1008]
     EventImageCols:   [3456,3456,3456]
-    EventCompRows:    [1,1,1]
+    EventCompRows:    [6,6,6]
     EventCompCols:    [1,1,1]
     #EventImageRows:   [864,864,864]
     #EventImageCols:   [864,864,864]

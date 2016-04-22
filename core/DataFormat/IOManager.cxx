@@ -362,17 +362,23 @@ namespace larcv {
 	}
       }
 
-      for(auto& t : _out_tree_v) {	
+      for(size_t i=0; i<_out_tree_v.size(); ++i) {
+	auto& t = _out_tree_v[i];
+	auto& p = _product_ptr_v[i];
 	if(!t) break;
 	LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
 	t->Fill();
+	p->clear();
       }
 
     }else{
 
       for(size_t i=0; i<_store_only_bool.size(); ++i) {
-	if(!_store_only_bool[i]) continue;
 	auto const& p = _product_ptr_v[i];
+	if(!_store_only_bool[i]) {
+	  p->clear();
+	  continue;
+	}
 	if(!p->valid()) {
 	  LARCV_CRITICAL() << "Invalid event id: (" << p->run() << "," << p->subrun() << "," << p->event() << ")" << std::endl;
 	  throw larbys("Must set an event ID to store!");
@@ -382,8 +388,10 @@ namespace larcv {
       for(size_t i=0; i<_store_only_bool.size(); ++i) {
 	if(!_store_only_bool[i]) continue;
 	auto& t = _out_tree_v[i];
+	auto& p = _product_ptr_v[i];
 	LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
 	t->Fill();
+	p->clear();
       }
     }
 

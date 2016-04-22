@@ -134,8 +134,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.auto_range, 0, 14 )
 
 
-        self.kTypes = { 'kBNB'  :  (self.kBNB  ,[7]), 
-                        'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 7]),
+        self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
+                        'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
                         'kBOTH'  : (self.kBOTH ,[ i for i in xrange(10) ])}
         
         ### The current image array, useful for meta
@@ -169,10 +169,11 @@ class RGBDisplay(QtGui.QWidget) :
 
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
-        if re.search("mcint",self.image_producer) is None and re.search("segment",self.image_producer) is None:
-            self.highres = False
-        else:
-            self.highres = True
+        self.highres=False
+        #if re.search("mcint",self.image_producer) is None and re.search("segment",self.image_producer) is None:
+        #    self.highres = False
+        #else:
+        #    self.highres = True
 
         
     def chosenROIProducer(self):
@@ -254,7 +255,18 @@ class RGBDisplay(QtGui.QWidget) :
         if self.roi_exists == True:
             self.drawBBOX( self.which_type() )
 
+        xmin,xmax,ymin,ymax = (1e9,0,1e9,0)
+        for roi in self.rois:
+            for bb in roi['bbox']:
+                if xmin > bb.min_x(): xmin = bb.min_x()
+                if xmax < bb.max_x(): xmax = bb.max_x()
+                if ymin > bb.min_y(): ymin = bb.min_y()
+                if ymax < bb.max_y(): ymax = bb.max_y()
         self.autoRange()
+        print ymin,ymax,xmin,xmax
+        #self.plt.setYRange(ymin,ymax,padding=0)
+        #self.plt.setXRange(xmin,xmax,padding=0)
+
 
     ### For now this is fine....
     def drawBBOX(self,kType):
@@ -293,8 +305,7 @@ class RGBDisplay(QtGui.QWidget) :
                 w_b = bbox.tr().x - bbox.bl().x
                 h_b = bbox.tr().y - bbox.bl().y
                 
-                # print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,
-                #                                                                    imm.bl().x,imm.bl().y) 
+                print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,imm.bl().x,imm.bl().y) 
                 if self.highres == True:
                     dw_i = 1.0;
                     dh_i = 1.0;

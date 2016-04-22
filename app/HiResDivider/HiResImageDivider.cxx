@@ -302,12 +302,31 @@ namespace larcv {
       }
 
       // Finally let's store ROI w/ updated ImageMeta arrays
+      //
+      // 0) Retrieve output image array and input ROI array (for the latter "if exists")
+      // 1) Loop over ROI array (or single ROI for "cosmic" = input does not exist), ask overlap in 2D plane ImageMeta with each image
       auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
-      std::vector<larcv::ImageMeta> out_meta_v;
-      for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
-      roi.SetBB(out_meta_v);
       auto output_rois = (larcv::EventROI*)(mgr.get_data(kProductROI,fOutputROIProducer));
-      output_rois->Emplace(std::move(roi));
+      if(roi_producer_id != kINVALID_PRODUCER) {
+	// Retrieve input ROI array
+	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	// Loop over and store in output
+	for(auto const& roi : event_roi->ROIArray()) {
+	  std::vector<larcv::ImageMeta> out_meta_v;
+	  for(auto const& bb : roi.BB()) {
+	    auto const& img_meta = output_pmtweighted_images->at(bb.plane()).meta();
+	    out_meta_v.push_back(img_meta.overlap(bb));
+	  }
+	  ::larcv::ROI out_roi(roi);
+	  out_roi.SetBB(out_meta_v);
+	  event_roi->Emplace(std::move(out_roi));
+	}
+      }else{
+	std::vector<larcv::ImageMeta> out_meta_v;
+	for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
+	roi.SetBB(out_meta_v);
+	output_rois->Emplace(std::move(roi));
+      }
       
       return true;
     }
@@ -320,7 +339,8 @@ namespace larcv {
     bool HiResImageDivider::isInteresting( const larcv::ROI& roi ) {
       // Supposed to return the "primary" 
       //return (roi.Type() == kROIBNB || roi.Type() == kROICosmic);
-      return (roi.ParentPdgCode() == 0);
+      // Consider if this came from MCTruth: MCSTIndex should be kINVALID_USHORT
+      return (roi.MCSTIndex() == kINVALID_USHORT);
     }
 
     int HiResImageDivider::findVertexDivision( const larcv::ROI& roi ) {
