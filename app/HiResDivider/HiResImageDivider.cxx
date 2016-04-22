@@ -127,11 +127,12 @@ namespace larcv {
       static const ProducerID_t roi_producer_id = mgr.producer_id(::larcv::kProductROI,fInputROIProducer);
       
       larcv::ROI roi;
+      bool hasmc = false;
       if(roi_producer_id != kINVALID_PRODUCER) {
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for kROIBNB..." << std::endl;
 	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
 	for ( auto const& aroi : event_roi->ROIArray() ) 
-	  if ( isInteresting(aroi) ) { roi = aroi; break; }
+	  if ( isInteresting(aroi) ) { roi = aroi; hasmc=true; break; }
       }else{
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " not found. Constructing Cosmic ROI..." << std::endl;
 	// Input ROI did not exist. Assume this means cosmics and create one
@@ -195,7 +196,10 @@ namespace larcv {
 	  }
 	}
 	char testname[200];
- 	sprintf( testname, "test_tpcimage_%zu.png", input_event_images->event() );
+	if (hasmc)
+	  sprintf( testname, "test_tpcimage_%zu_mc.png", input_event_images->event() );
+	else
+	  sprintf( testname, "test_tpcimage_%zu.png", input_event_images->event() );
  	cv::imwrite( testname, outimg );
       }
 
@@ -235,7 +239,10 @@ namespace larcv {
 	    }
 	  }
 	  char testname[200];
-	  sprintf( testname, "test_seg_%zu.png", input_event_images->event() );
+	  if ( hasmc ) 
+	    sprintf( testname, "test_seg_%zu_mc.png", input_event_images->event() );
+	  else
+	    sprintf( testname, "test_seg_%zu.png", input_event_images->event() );
 	  cv::imwrite( testname, outimg );
 	}//if draw
       }// if crop seg
@@ -267,7 +274,10 @@ namespace larcv {
 	    }
 	  }
 	  char testname[200];
-	  sprintf( testname, "test_pmtraw_%zu.png", input_event_images->event() );
+	  if (hasmc )
+	    sprintf( testname, "test_pmtraw_%zu_mc.png", input_event_images->event() );
+	  else
+	    sprintf( testname, "test_pmtraw_%zu.png", input_event_images->event() );
 	  cv::imwrite( testname, pmtimg );
 
 	  cv::Mat outimg;
@@ -283,7 +293,10 @@ namespace larcv {
 	      }
 	    }
 	  }
-	  sprintf( testname, "test_pmtweighted_%zu.png", input_event_images->event() );
+	  if ( hasmc ) 
+	    sprintf( testname, "test_pmtweighted_%zu_mc.png", input_event_images->event() );
+	  else
+	    sprintf( testname, "test_pmtweighted_%zu.png", input_event_images->event() );
 	  cv::imwrite( testname, outimg );
 	}
       }
