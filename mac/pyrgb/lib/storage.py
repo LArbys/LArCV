@@ -3,17 +3,17 @@ class Storage(object) :
         self.name = name
 
         ## Types of particles
-        self.particle_types  = [ 
+        self.particle_types  = [
+            "Unknown",
+            "Cosmic",
+            "BNB",
             "Eminus",
-            "Kminus",
-            "Proton",
-            "Muminus",
-            "Piminus",
             "Gamma",
             "Pizero",
-            "BNB",
-            "Cosmic",
-            "Unknown"
+            "Muminus",
+            "Kminus",
+            "Piminus",
+            "Proton"
         ]
 
 

@@ -14,6 +14,8 @@
 
 // enums
 #pragma link C++ enum larcv::ProductType_t+;
+#pragma link C++ enum larcv::ShapeType_t+;
+#pragma link C++ enum larcv::ROIType_t+;
 #pragma link C++ enum larcv::chstatus::ChannelStatus_t+;
 
 // Classes

@@ -73,6 +73,11 @@ namespace larcv {
 
     private:
 
+      larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
+					      const larcv::ImageMeta& event_image,
+					      const size_t modular_row,
+					      const size_t modular_col);
+	
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
       void fill(Image2D& img, const std::vector<R>& opdigit_v, const int time_offset=0);
       void fill(std::vector<Image2D>& img,

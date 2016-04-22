@@ -8,7 +8,7 @@ MergeTwoStream: {
   ImageMerger:         "Merger"
 
   OutStream: {
-    Verbosity:    0
+    Verbosity:    2
     EnableFilter: true
     RandomAccess: false
     ProcessType:  ["ImageMerger"]
@@ -29,6 +29,7 @@ MergeTwoStream: {
 
     ProcessList: {
       Merger: {
+        Verbosity:        2
         PMTPedestal:      2047
         MinChannelStatus: 4
 	OutNameTPCImage:  "tpc"
@@ -92,7 +93,9 @@ MergeTwoStream: {
 
     ProcessList: {
       CosmicImage: {
+        Verbosity:        2
         Profile:          true
+        MakeSegmentation: true
         TPCImageProducer: "extunb"
  	PMTImageProducer: "op_extunb"
 	ChStatusProducer: "extunb"
@@ -119,6 +122,7 @@ MergeTwoStream: {
 
     ProcessList: {
       BNBNuImage: {
+        Verbosity:        2
         Profile:          true
 	TPCImageProducer: "bnbnu_mc"
 	PMTImageProducer: "op_bnbnu_mc"

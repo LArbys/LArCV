@@ -45,6 +45,8 @@ namespace larcv {
 #ifndef __CINT__
     void Emplace(Image2D&& img);
     void Emplace(std::vector<larcv::Image2D>&& image_v);
+    void Move(std::vector<larcv::Image2D>& image_v)
+    { image_v = std::move(_image_v); }
 #endif
     
   private:
