@@ -37,18 +37,23 @@ namespace larcv {
 
   ImageMeta ImageMeta::overlap(const ImageMeta& meta) const
   {
-    double min_x = ( meta.min_x() < this->min_x() ? this->min_x() : meta.min_x()  ); //pick larger x min-bound
-    double max_x = ( meta.max_x() < this->max_x() ? meta.max_x()  : this->max_x() ); //pick smaller x max-bound
+    double minx = ( meta.min_x() < this->min_x() ? this->min_x() : meta.min_x()  ); //pick larger x min-bound
+    double maxx = ( meta.max_x() < this->max_x() ? meta.max_x()  : this->max_x() ); //pick smaller x max-bound
 
-    double min_y = ( meta.min_y() < this->min_y() ? this->min_y() : meta.min_y()  ); //pick larger x min-bound
-    double max_y = ( meta.max_y() < this->max_y() ? meta.max_y()  : this->max_y() ); //pick smaller x max-bound
+    double miny = ( meta.min_y() < this->min_y() ? this->min_y() : meta.min_y()  ); //pick larger x min-bound
+    double maxy = ( meta.max_y() < this->max_y() ? meta.max_y()  : this->max_y() ); //pick smaller x max-bound
 
-    if(!(min_x < max_x && min_y < max_y)) throw larbys("No overlap found");
+    if(!(minx < maxx && miny < maxy)) {
+      std::stringstream ss;
+      ss << "No overlap found ... this X: " << this->min_x() << " => " << this->max_x() << " Y: " << this->min_y() << " => " << this->max_y()
+	 << " ... the other X: " << meta.min_x() << " => " << meta.max_x() << " Y: " << meta.min_y() << " => " << meta.max_y() << std::endl;
+      throw larbys(ss.str());
+    }
 
-    return ImageMeta(max_x - min_x, max_y - min_y,
-		     (max_y - min_y) / pixel_height(),
-		     (max_x - min_x) / pixel_width(),
-		     min_x, max_y, _plane);
+    return ImageMeta(maxx - minx, maxy - miny,
+		     (maxy - miny) / pixel_height(),
+		     (maxx - minx) / pixel_width(),
+		     minx, maxy, _plane);
   }
 
   ImageMeta ImageMeta::inclusive(const ImageMeta& meta) const

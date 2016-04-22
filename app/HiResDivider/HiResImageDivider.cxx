@@ -180,6 +180,30 @@ namespace larcv {
       auto output_event_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputImageProducer) );
       LARCV_DEBUG() << "Crop " << fInputImageProducer << " Images." << std::endl;
       cropEventImages( *input_event_images, vertex_div, *output_event_images );
+
+      //
+      // Image is cropped based on DivisionDef which is found from ROI's vertex
+      // However ROI's vertex do not necessarily overlap with the same ROI's 2D bounding box
+      // in case of a neutrino interaction because the former is a neutrino interaction vertex
+      // while the latter is based on particles' trajectories that deposited energy. An example
+      // is a neutron produced at vertex and hit proton far away from the vertex. So, here, we
+      // ask, if it is non-cosmic type ROI, created image's meta overlaps with ROI's image meta.
+      //
+      if(roi.Type() != kROICosmic) {
+	static size_t exception_ctr=0;
+	try{
+	  for(auto const& img : output_event_images->Image2DArray())
+	    roi.BB(img.meta().plane()).overlap(img.meta());
+	}catch(const larbys& err) {
+	  ++exception_ctr;
+	  LARCV_NORMAL() << "Found an event w/ neutrino vertex not within ROI bounding box (" << exception_ctr << " events so far)" << std::endl;
+	  auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	  for(auto const& roi : event_roi->ROIArray()) LARCV_INFO() << roi.dump();
+	  output_event_images->clear();
+	  return false;
+	}
+      }
+      
       if ( fDumpImages ) {
 	cv::Mat outimg;
 	for (int p=0; p<3; p++) {
@@ -195,7 +219,7 @@ namespace larcv {
 	  }
 	}
 	char testname[200];
- 	sprintf( testname, "test_tpcimage_%zu.png", input_event_images->event() );
+ 	sprintf( testname, "test_tpcimage_%s.png", input_event_images->event_key().c_str() );
  	cv::imwrite( testname, outimg );
       }
 
@@ -235,7 +259,7 @@ namespace larcv {
 	    }
 	  }
 	  char testname[200];
-	  sprintf( testname, "test_seg_%zu.png", input_event_images->event() );
+	  sprintf( testname, "test_seg_%s.png", input_event_images->event_key().c_str() );
 	  cv::imwrite( testname, outimg );
 	}//if draw
       }// if crop seg
@@ -267,7 +291,7 @@ namespace larcv {
 	    }
 	  }
 	  char testname[200];
-	  sprintf( testname, "test_pmtraw_%zu.png", input_event_images->event() );
+	  sprintf( testname, "test_pmtraw_%s.png", input_event_images->event_key().c_str() );
 	  cv::imwrite( testname, pmtimg );
 
 	  cv::Mat outimg;
@@ -277,13 +301,13 @@ namespace larcv {
 	      outimg = cv::Mat::zeros( cropped.meta().rows(), cropped.meta().cols(), CV_8UC3 ); 
 	    for (int r=0; r<cropped.meta().rows(); r++) {
 	      for (int c=0; c<cropped.meta().cols(); c++) {
-		int val = std::min( 255, (int)cropped.pixel(r,c) );
-		val = std::max( 0, val );
-		outimg.at< cv::Vec3b >(r,c)[p] = (unsigned int)val;
+			int val = std::min( 255, (int)cropped.pixel(r,c) );
+			val = std::max( 0, val );
+			outimg.at< cv::Vec3b >(r,c)[p] = (unsigned int)val;
 	      }
 	    }
 	  }
-	  sprintf( testname, "test_pmtweighted_%zu.png", input_event_images->event() );
+	  sprintf( testname, "test_pmtweighted_%s.png", input_event_images->event_key().c_str() );
 	  cv::imwrite( testname, outimg );
 	}
       }
@@ -295,24 +319,25 @@ namespace larcv {
       auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
       auto output_rois = (larcv::EventROI*)(mgr.get_data(kProductROI,fOutputROIProducer));
       if(roi_producer_id != kINVALID_PRODUCER) {
-	// Retrieve input ROI array
-	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
-	// Loop over and store in output
-	for(auto const& roi : event_roi->ROIArray()) {
-	  std::vector<larcv::ImageMeta> out_meta_v;
-	  for(auto const& bb : roi.BB()) {
-	    auto const& img_meta = output_pmtweighted_images->at(bb.plane()).meta();
-	    out_meta_v.push_back(img_meta.overlap(bb));
-	  }
-	  ::larcv::ROI out_roi(roi);
-	  out_roi.SetBB(out_meta_v);
-	  event_roi->Emplace(std::move(out_roi));
-	}
+		// Retrieve input ROI array
+		auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+		// Loop over and store in output
+		for(auto const& roi : event_roi->ROIArray()) {
+			std::vector<larcv::ImageMeta> out_meta_v;
+			//LARCV_INFO() << "Creating particle ROI for: " << roi.dump() << std::endl;
+			for(auto const& bb : roi.BB()) {
+				auto const& img_meta = output_pmtweighted_images->at(bb.plane()).meta();
+				out_meta_v.push_back(img_meta.overlap(bb));
+			}
+	  		::larcv::ROI out_roi(roi);
+	  		out_roi.SetBB(out_meta_v);
+	  		event_roi->Emplace(std::move(out_roi));
+		}
       }else{
-	std::vector<larcv::ImageMeta> out_meta_v;
-	for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
-	roi.SetBB(out_meta_v);
-	output_rois->Emplace(std::move(roi));
+		std::vector<larcv::ImageMeta> out_meta_v;
+		for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
+		roi.SetBB(out_meta_v);
+		output_rois->Emplace(std::move(roi));
       }
       
       return true;

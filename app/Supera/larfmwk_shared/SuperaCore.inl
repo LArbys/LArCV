@@ -224,6 +224,7 @@ namespace larcv {
 	}
 	
 	int_roi.first.SetBB(pri_bb_v);
+
 	LARCV_INFO() << "Registering Interaction..." << std::endl
 		     << int_roi.first.dump() << std::endl;
 	roi_v->Append(int_roi.first);
