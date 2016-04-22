@@ -194,7 +194,7 @@ namespace larcv {
 	
 	if(mc_tpc_segment_v.size()>i) {
 	  auto const& mc_segment   = mc_tpc_segment_v[i];
-	  LARCV_WARNING() << data_segment.meta().dump() << std::endl << mc_segment.meta().dump() << std::endl;
+	  //LARCV_INFO() << data_segment.meta().dump() << std::endl << mc_segment.meta().dump() << std::endl;
 	  data_segment.overlay(mc_segment,Image2D::kMaxPool);
 	}
 	
