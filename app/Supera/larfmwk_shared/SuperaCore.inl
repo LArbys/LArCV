@@ -25,6 +25,7 @@ namespace larcv {
 
     template <class R, class S, class T, class U, class V, class W>
     void SuperaCore<R,S,T,U,V,W>::initialize() {
+      if(!_supera_fname.empty()) _larcv_io.set_out_file(_supera_fname);
       _larcv_io.initialize();
     }
     

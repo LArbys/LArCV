@@ -70,6 +70,7 @@ namespace larcv {
       bool use_mc() const { return _use_mc; }
       bool store_chstatus() const { return _store_chstatus; }
       const ::larcv::logger& logger() const { return _logger;}
+      void supera_fname(std::string name) { _supera_fname = name; }
 
     private:
 
@@ -111,6 +112,7 @@ namespace larcv {
       bool _configured;
       bool _use_mc;
       bool _store_chstatus;
+      std::string _supera_fname;
     };
   }
 }

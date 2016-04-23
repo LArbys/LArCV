@@ -1,6 +1,7 @@
 #ifndef __DIVISIONDEF__
 #define __DIVISIONDEF__
 
+//#include "Base/larcv_base.h"
 #include "DataFormat/DataFormatTypes.h"
 #include "DataFormat/ImageMeta.h"
 #include <map>
@@ -8,6 +9,7 @@
 namespace larcv {
   namespace hires {
 
+    //class DivisionDef : larcv::larcv_base {
     class DivisionDef {
     public:
       DivisionDef( int plane0_wirebounds[], int plane1_wirebounds[], int plane2_wirebounds[], int tickbounds[],

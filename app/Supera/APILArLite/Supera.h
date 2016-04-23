@@ -55,6 +55,8 @@ namespace larlite {
 
     void set_config(const std::string cfg_file) {_config_file=cfg_file;}
 
+    void supera_fname(std::string name) { _core.supera_fname(name); }
+
   protected:
 
     ::larcv::supera::SuperaCore<larlite::opdetwaveform, larlite::wire,

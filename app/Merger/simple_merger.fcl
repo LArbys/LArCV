@@ -13,8 +13,6 @@ MergeTwoStream: {
     RandomAccess: false
     ProcessType:  ["ImageMerger"]
     ProcessName:  ["Merger"]
-    #ProcessType:  ["ImageMerger","PMTWeightImageBuilder","HiResImageDivider"]
-    #ProcessName:  ["Merger","PMTWeightImage","HiResImageDivider"]
 
     IOManager: {
       Verbosity:   2
@@ -23,8 +21,6 @@ MergeTwoStream: {
       OutFileName: "out.root"
       StoreOnlyType: [    0,    0,    1,    2,        0]
       StoreOnlyName: ["tpc","pmt","bnb","tpc","segment"]
-      #StoreOnlyType: [                     0,               0,    0,                   0,               1,    2]
-      #StoreOnlyName: ["pmtweight_hires_crop","tpc_hires_crop","pmt","segment_hires_crop","tpc_hires_crop","tpc"]
     }
 
     ProcessList: {
@@ -37,41 +33,6 @@ MergeTwoStream: {
 	OutNameROI:       "bnb"
 	OutNameChStatus:  "tpc"
 	OutNameSegment:   "segment"
-      }
-      PMTWeightImage: {
-        Verbosity: 2
-      	GeoFile: "geoinfo.root"
-      	NWirePixels: 3456 # 768*5
-      	PMTImageProducer: "pmt"
-      	TPCImageProducer: "tpc"
-      	OutputProducerName: "pmtweight_tpc"
-      	StartTick: 190
-      	EndTick: 310
-      	CheckSaturation: false
-      	HGpedestal: 2047.0
-      	PMTImageIndex: 0
-      }
-      HiResImageDivider: {
-        Verbosity: 2
-      	DivisionFile: "imagedivider_y216.root"
-      	NPlanes: 3
-      	TickStart: 2400
-      	TickDownSampleFactor: 6
-      	MaxWireImageWidth: 216
-      	NumNonVertexDivisionsPerEvent:0
-	InputPMTProducer:"pmt"
-      	InputROIProducer:"tpc"
-      	InputImageProducer:"tpc"
-      	InputSegmentationProducer:"segment"
-      	InputPMTWeightedProducer:"pmtweight_tpc"
-          
-	OutputROIProducer:"tpc_hires_crop"
-      	OutputImageProducer:"tpc_hires_crop"
-      	OutputSegmentationProducer:"segment_hires_crop"
-      	OutputPMTWeightedProducer:"pmtweight_hires_crop"
-      	CropSegmentation: true
-      	CropPMTWeighted: true
-      	DumpImages: true
       }
     }
   }

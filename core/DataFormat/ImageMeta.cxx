@@ -49,7 +49,6 @@ namespace larcv {
 	 << " ... the other X: " << meta.min_x() << " => " << meta.max_x() << " Y: " << meta.min_y() << " => " << meta.max_y() << std::endl;
       throw larbys(ss.str());
     }
-
     return ImageMeta(maxx - minx, maxy - miny,
 		     (maxy - miny) / pixel_height(),
 		     (maxx - minx) / pixel_width(),

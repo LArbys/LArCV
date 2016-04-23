@@ -39,16 +39,22 @@ namespace larcv {
 
   void Image2D::resize(size_t rows, size_t cols, float fillval)
   {
-    size_t old_rows = _meta.rows();
-    size_t old_cols = _meta.cols();
-    _img.resize(rows * cols);
-    _meta.update(rows,cols);    
-    for (size_t r=0; r<rows; r++) {
-      for (size_t c=0; c<cols; c++) {
-	if ( r>=old_rows || c>=old_cols )
-	  set_pixel( r, c, fillval );
+    auto const current_rows = _meta.rows();
+    auto const current_cols = _meta.cols();
+    std::vector<float> img(rows*cols,0.);
+
+    size_t npixels = std::min(current_rows,rows);
+    for(size_t c=0; c < std::min(cols,current_cols); ++c) {
+      for(size_t r=0; r<npixels; ++r) {
+	img[c*rows+r] = _img[c*current_rows+r];
       }
     }
+
+    _meta = ImageMeta(cols * _meta.pixel_width(), rows * _meta.pixel_height(),
+		      rows, cols,
+		      _meta.min_x(), _meta.max_y(),
+		      _meta.plane());
+    _img = std::move(img);
   }
   
   void Image2D::clear() {

@@ -45,7 +45,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Cannot re-configure after initialized..." << std::endl;
       throw larbys();
     }
-    _io.set_out_file(out_fname);
+    _merge_driver.override_output_file(out_fname);
   }
 
   void MergeTwoStream::configure(std::string cfg_file)

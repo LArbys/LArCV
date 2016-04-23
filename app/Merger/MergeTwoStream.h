@@ -51,8 +51,6 @@ namespace larcv {
 
   private:
 
-    IOManager _io;
-
     ProcessDriver _nu_driver;
     ImageHolder*  _nu_proc;
     std::string   _nu_proc_name;

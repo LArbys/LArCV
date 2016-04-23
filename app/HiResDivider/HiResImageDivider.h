@@ -56,7 +56,8 @@ namespace larcv {
       std::string fDivisionFile;
       int fNPlanes;
       int fTickStart;
-      int fTickDownSample;
+      int fTickPreCompression;
+      int fWirePreCompression;
       int fMaxWireImageWidth;
       int fMaxWireInRegion;
       int fNumNonVertexDivisionsPerEvent;
@@ -74,6 +75,11 @@ namespace larcv {
       std::string fOutputImageProducer;
       std::string fOutputSegmentationProducer;
       std::string fOutputPMTWeightedProducer;
+
+      size_t fProcessedEvent;
+      size_t fROISkippedEvent;
+      size_t fProcessedROI;
+      size_t fROISkipped;
       
 
       bool isInteresting( const larcv::ROI& roi );

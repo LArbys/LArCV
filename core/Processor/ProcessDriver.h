@@ -44,6 +44,8 @@ namespace larcv {
 
     void override_input_file(const std::vector<std::string>& flist);
 
+    void override_output_file(const std::string fname);
+
     bool process_entry();
     
     bool process_entry(size_t entry);

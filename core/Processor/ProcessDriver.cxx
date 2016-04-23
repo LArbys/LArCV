@@ -36,6 +36,12 @@ namespace larcv {
     for(auto const& f : flist) _io.add_in_file(f);
   }
 
+  void ProcessDriver::override_output_file(const std::string fname)
+  {
+    LARCV_DEBUG() << "Called" << std::endl;
+    _io.set_out_file(fname);
+  }
+
   ProcessID_t ProcessDriver::process_id(std::string name) const
   {
     LARCV_DEBUG() << "Called" << std::endl;

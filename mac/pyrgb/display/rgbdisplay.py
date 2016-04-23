@@ -245,16 +245,6 @@ class RGBDisplay(QtGui.QWidget) :
                                                               self.views,
                                                               self.highres)
 
-        if pimg is None:
-            self.image = None
-            return
-
-        # Display the image
-        self.imi.setImage(pimg)
-
-        if self.roi_exists == True:
-            self.drawBBOX( self.which_type() )
-
         xmin,xmax,ymin,ymax = (1e9,0,1e9,0)
         for roi in self.rois:
             for bb in roi['bbox']:
@@ -262,8 +252,28 @@ class RGBDisplay(QtGui.QWidget) :
                 if xmax < bb.max_x(): xmax = bb.max_x()
                 if ymin > bb.min_y(): ymin = bb.min_y()
                 if ymax < bb.max_y(): ymax = bb.max_y()
+        pixel_size=(None,None)
+        for img in self.image:
+            bb = img.meta()
+            if xmin > bb.min_x(): xmin = bb.min_x()
+            if xmax < bb.max_x(): xmax = bb.max_x()
+            if ymin > bb.min_y(): ymin = bb.min_y()
+            if ymax < bb.max_y(): ymax = bb.max_y()
+            pixel_size = (bb.pixel_width(),bb.pixel_height())
+
+        if pimg is None:
+            self.image = None
+            return
+
+        # Display the image
+        #print ymin,ymax,xmin,xmax
+        #xscale,yscale=(xmax-xmin) / pimg.shape[0]
+        self.imi.setImage(pimg)
+
+        if self.roi_exists == True:
+            self.drawBBOX( self.which_type() )
+
         self.autoRange()
-        print ymin,ymax,xmin,xmax
         #self.plt.setYRange(ymin,ymax,padding=0)
         #self.plt.setXRange(xmin,xmax,padding=0)
 
@@ -295,24 +305,25 @@ class RGBDisplay(QtGui.QWidget) :
                 
                 imm = self.image[ix].meta()
 
-                x = bbox.bl().x - imm.bl().x
-                y = bbox.bl().y - imm.bl().y
-                
-                dw_i = imm.cols() / ( imm.tr().x - imm.bl().x )
-                dh_i = imm.rows() / ( imm.tr().y - imm.bl().y )
+                # x,y below are relative coordinate of bounding-box w.r.t. image in original unit
+                x = bbox.min_x() - imm.min_x()
+                y = bbox.min_y() - imm.min_y()
 
-                
-                w_b = bbox.tr().x - bbox.bl().x
-                h_b = bbox.tr().y - bbox.bl().y
+                #dw_i is an image X-axis unit legnth in pixel. dh_i for Y-axis. (i.e. like 0.5 pixel/cm)
+                dw_i = imm.cols() / ( imm.max_x() - imm.min_x() )
+                dh_i = imm.rows() / ( imm.max_y() - imm.min_y() )
+
+                #w_b is width of a lectangle in original unit
+                w_b = bbox.max_x() - bbox.min_x()
+                h_b = bbox.max_y() - bbox.min_y()
                 
                 print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,imm.bl().x,imm.bl().y) 
-                if self.highres == True:
-                    dw_i = 1.0;
-                    dh_i = 1.0;
-                    x = bbox.bl().x
-                    #Temporary hack bbox.bl() doesn't match imm.bl() !!
-                    y = bbox.bl().y
-
+                #if self.highres == True:
+                #    dw_i = 1.0;
+                #    dh_i = 1.0;
+                #   x = bbox.bl().x
+                #    #Temporary hack bbox.bl() doesn't match imm.bl() !!
+                #    y = bbox.bl().y
                 
                 #Set the text
                 ti = pg.TextItem(text=self.st.particle_types[ roi_p['type'] ])
@@ -320,6 +331,7 @@ class RGBDisplay(QtGui.QWidget) :
 
                 # print "ix: {} bbox x {} y {} wb {} hb {} dw_i {} dh_i {}".format(ix,x,y,w_b,h_b,dw_i,dh_i)
                 
+                print x*dw_i,y*dh_i,w_b*dw_i,h_b*dh_i
                 r1 = HR(x * dw_i,
                         y * dh_i,
                         w_b * dw_i,

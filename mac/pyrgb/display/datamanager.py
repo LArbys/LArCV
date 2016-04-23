@@ -88,14 +88,11 @@ class DataManager(object):
         #    if imdata.size() == 0 : return (None,None,None)
         #    image   = UnCompressedImage(imdata,roidata,planes)
 
-
-        
-        
         if roiprod is None:
             return ( image.treshold_mat(imin,imax),
                      None,
-                     imdata )
+                     image.imgs )
     
         return ( image.treshold_mat(imin,imax),
                  image.parse_rois(),
-                 imdata )
+                 image.imgs )

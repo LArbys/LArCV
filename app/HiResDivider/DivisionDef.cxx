@@ -35,11 +35,12 @@ namespace larcv {
     }
 
     void DivisionDef::setPlaneMeta( PlaneID_t plane, int wirebounds[],int tickbounds[] ) {
-      // we define divisions 
-      m_planeMeta[plane] = larcv::ImageMeta( wirebounds[1]-wirebounds[0]+1, tickbounds[1]-tickbounds[0]+1,
-					     wirebounds[1]-wirebounds[0]+1, tickbounds[1]-tickbounds[0]+1,
-					     wirebounds[0], tickbounds[1]+1 );
+      // we define divisions
+      m_planeMeta[plane] = larcv::ImageMeta( wirebounds[1]-wirebounds[0], tickbounds[1]-tickbounds[0],
+					     tickbounds[1]-tickbounds[0], wirebounds[1]-wirebounds[0],
+					     wirebounds[0], tickbounds[1], plane );
       mNPlanes++;
+      //LARCV_NORMAL() << m_planeMeta[plane].dump();
     }
 
     bool DivisionDef::isInsideDetRegion( float x, float y, float z ) const {
