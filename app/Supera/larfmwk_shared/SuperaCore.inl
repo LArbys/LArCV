@@ -35,7 +35,6 @@ namespace larcv {
       _store_chstatus = main_cfg.get<bool>("StoreChStatus");
       _larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
       
-      _producer_key      = main_cfg.get<std::string>("ProducerKey");
       _producer_digit    = main_cfg.get<std::string>("DigitProducer");
       _producer_simch    = main_cfg.get<std::string>("SimChProducer");
       _producer_wire     = main_cfg.get<std::string>("WireProducer");
@@ -119,7 +118,7 @@ namespace larcv {
       //
       if(_store_chstatus) {
 
-	auto event_chstatus = (::larcv::EventChStatus*)(_larcv_io.get_data(::larcv::kProductChStatus,_producer_key));
+	auto event_chstatus = (::larcv::EventChStatus*)(_larcv_io.get_data(::larcv::kProductChStatus,"tpc"));
 	for(auto const& id_status : _status_m)
 	  event_chstatus->Insert(id_status.second);
 
@@ -128,7 +127,7 @@ namespace larcv {
 	
       }
       
-      auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,_producer_key));
+      auto event_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"tpc"));
       
       //
       // 0) Construct Event-image ROI
@@ -167,8 +166,7 @@ namespace larcv {
 	}
 
 	// OpDigit
-	std::string op_producer = "op_" + _producer_key;
-	auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,op_producer));
+	auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"pmt"));
 	::larcv::ImageMeta op_meta(32,1500,1500,32,0,1499);
 	::larcv::Image2D op_img(op_meta);
 	fill(op_img,opdigit_v);
@@ -194,7 +192,7 @@ namespace larcv {
       _mctp.UpdatePrimaryROI();
       auto int_roi_v = _mctp.GetPrimaryROI();
       
-      auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI,_producer_key));
+      auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI,"tpc"));
       
       for(auto& int_roi : int_roi_v) {
 
@@ -358,8 +356,7 @@ namespace larcv {
       }
       
       // OpDigit
-      std::string op_producer = "op_" + _producer_key;
-      auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,op_producer));
+      auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"pmt"));
       ::larcv::ImageMeta op_meta(32,1500,1500,32,0,1499);
       ::larcv::Image2D op_img(op_meta);
       fill(op_img,opdigit_v);
@@ -384,7 +381,7 @@ namespace larcv {
 	  auto const& roi_meta = roi.BB(p);
 	  // Retrieve cropped full resolution image
 	  auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,
-								       Form("%s_int%02d",_producer_key.c_str(),roi.MCTIndex()))
+								       Form("tpc_int%02d",roi.MCTIndex()))
 						    );
 									    
 	  LARCV_INFO() << "Cropping an interaction image (high resolution) @ plane " << p << std::endl
@@ -409,8 +406,7 @@ namespace larcv {
       //
       // Semantic Segmentation
       //
-      std::string sem_producer = "segment_" + _producer_key;
-      auto event_semimage_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,sem_producer));
+      auto event_semimage_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,"segment"));
       std::vector<larcv::Image2D> sem_images;
       /*// For full plane image + full resolution
       for(auto const& plane_img : image_meta_m) 

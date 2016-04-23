@@ -92,7 +92,6 @@ namespace larcv {
       std::vector<std::pair<unsigned short,unsigned short> > _channel_to_plane_wire;
       larcv::logger _logger;
       larcv::IOManager _larcv_io;
-      std::string _producer_key;
       std::string _producer_digit;
       std::string _producer_simch;
       std::string _producer_wire;

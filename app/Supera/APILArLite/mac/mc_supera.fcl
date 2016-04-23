@@ -4,7 +4,6 @@ Supera: {
     UseMC:            true
     StoreChStatus:    true
     OutFileName:      "out.root"
-    ProducerKey:      "bnbnu_mc"
     DigitProducer:    "digitfilter"
     WireProducer:     "caldata"
     SimChProducer:    "largeant"

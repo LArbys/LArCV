@@ -21,10 +21,10 @@ MergeTwoStream: {
       Name:        "MergeStreamIO"
       IOMode:      1
       OutFileName: "out.root"
-      #InputFiles:  []
-      #InputDirs:   []
       StoreOnlyType: [    0,    0,    1,    2,        0]
       StoreOnlyName: ["tpc","pmt","bnb","tpc","segment"]
+      #StoreOnlyType: [                     0,               0,    0,                   0,               1,    2]
+      #StoreOnlyName: ["pmtweight_hires_crop","tpc_hires_crop","pmt","segment_hires_crop","tpc_hires_crop","tpc"]
     }
 
     ProcessList: {
@@ -60,13 +60,14 @@ MergeTwoStream: {
       	MaxWireImageWidth: 216
       	NumNonVertexDivisionsPerEvent:0
 	InputPMTProducer:"pmt"
-      	InputROIProducer:"bnb"
-	OutputROIProducer:"crop"
+      	InputROIProducer:"tpc"
       	InputImageProducer:"tpc"
-      	OutputImageProducer:"img_hires_crop"
       	InputSegmentationProducer:"segment"
-      	OutputSegmentationProducer:"seg_hires_crop"
       	InputPMTWeightedProducer:"pmtweight_tpc"
+          
+	OutputROIProducer:"tpc_hires_crop"
+      	OutputImageProducer:"tpc_hires_crop"
+      	OutputSegmentationProducer:"segment_hires_crop"
       	OutputPMTWeightedProducer:"pmtweight_hires_crop"
       	CropSegmentation: true
       	CropPMTWeighted: true
@@ -96,9 +97,9 @@ MergeTwoStream: {
         Verbosity:        2
         Profile:          true
         MakeSegmentation: true
-        TPCImageProducer: "extunb"
- 	PMTImageProducer: "op_extunb"
-	ChStatusProducer: "extunb"
+        TPCImageProducer: "tpc"
+ 	PMTImageProducer: "pmt"
+	ChStatusProducer: "tpc"
 	ADCThreshold:     0
       }
     }
@@ -108,8 +109,8 @@ MergeTwoStream: {
     Verbosity:    2
     EnableFilter: true
     RandomAccess: true
-    ProcessType:  ["MCNuStream"]
-    ProcessName:  ["BNBNuImage"]
+    ProcessType:  ["ADCScale","MCNuStream"]
+    ProcessName:  ["ADCScale","BNBNuImage"]
 
     IOManager: {
       Verbosity:   2
@@ -121,15 +122,18 @@ MergeTwoStream: {
     }
 
     ProcessList: {
+      ADCScale: {
+      	ImageProducer:  "tpc"
+      	ADCScaleMean:   [1.30,0.83.,1.42]
+      	ADCScaleSigma:  [0.28,0.25,0.25]
+      }
       BNBNuImage: {
         Verbosity:        2
         Profile:          true
-	TPCImageProducer: "bnbnu_mc"
-	PMTImageProducer: "op_bnbnu_mc"
-	SegmentProducer:  "segment_bnbnu_mc"
-	ROIProducer:      "bnbnu_mc"
-	ADCSmearingMean:  [1.,1.,1.]
-	ADCSmearingSigma: [0.2,0.2,0.2]
+	TPCImageProducer: "tpc"
+	PMTImageProducer: "pmt"
+	SegmentProducer:  "segment"
+	ROIProducer:      "tpc"
 	MinEnergyDeposit: 100
 	MinEnergyInit:    100
 	MinWidth:         20

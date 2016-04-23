@@ -4,7 +4,6 @@ Supera: {
     UseMC:            false
     StoreChStatus:    true
     OutFileName:      "out.root"
-    ProducerKey:      "extunb"
     DigitProducer:    "digitfilter"
     WireProducer:     "caldata"
     OpDigitProducer:  "saturation"
