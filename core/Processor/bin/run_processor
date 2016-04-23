@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ROOT, sys
-from ROOT import larcv, std
+from ROOT import std
+from larcv import larcv
 
 if len(sys.argv) < 2:
 

@@ -14,8 +14,12 @@
 #pragma link C++ class larcv::DataStream+;
 #pragma link C++ class larcv::ImageMerger+;
 #pragma link C++ class larcv::MergeTwoStream+;
+#pragma link C++ class larcv::ADCScaleAna+;
+#pragma link C++ class larcv::ADCScale+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 

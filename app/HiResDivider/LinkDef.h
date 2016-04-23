@@ -13,8 +13,10 @@
 #pragma link C++ class std::vector<larcv::hires::DivisionDef>+;
 
 #pragma link C++ class larcv::hires::HiResImageDivider+;
+#pragma link C++ class larcv::CosmicSegment+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
