@@ -139,7 +139,7 @@ namespace larcv {
 	roi.Type(kROICosmic);
 	// FIXME: need a way to get detector dimension somehow...
 	const double zmin = 0;
-	const double zmax = 1060;
+	const double zmax = 1036.0;
 	const double ymin = -116.;
 	const double ymax = 116.;
 	const double xmin = 0.;
@@ -169,7 +169,7 @@ namespace larcv {
       // first we find the division with a neutrino in it
       int idiv = findVertexDivision( roi );
       if ( idiv==-1 ) {
-	LARCV_ERROR() << "No divisions were found that contained an event vertex." <<std::endl;
+	LARCV_ERROR() << "No divisions were found that contained an event vertex.\n" << roi.dump() << std::endl;
       }
       larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
 
