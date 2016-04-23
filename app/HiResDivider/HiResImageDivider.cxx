@@ -199,7 +199,7 @@ namespace larcv {
 	  ++exception_ctr;
 	  LARCV_NORMAL() << "Found an event w/ neutrino vertex not within ROI bounding box (" << exception_ctr << " events so far)" << std::endl;
 	  auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
-	  for(auto const& roi : event_roi->ROIArray()) LARCV_INFO() << roi.dump();
+	  for(auto const& aroi : event_roi->ROIArray()) LARCV_INFO() << aroi.dump();
 	  output_event_images->clear();
 	  return false;
 	}
@@ -340,25 +340,33 @@ namespace larcv {
       auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
       auto output_rois = (larcv::EventROI*)(mgr.get_data(kProductROI,fOutputROIProducer));
       if(roi_producer_id != kINVALID_PRODUCER) {
-		// Retrieve input ROI array
-		auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
-		// Loop over and store in output
-		for(auto const& roi : event_roi->ROIArray()) {
-			std::vector<larcv::ImageMeta> out_meta_v;
-			//LARCV_INFO() << "Creating particle ROI for: " << roi.dump() << std::endl;
-			for(auto const& bb : roi.BB()) {
-				auto const& img_meta = output_pmtweighted_images->at(bb.plane()).meta();
-				out_meta_v.push_back(img_meta.overlap(bb));
-			}
-	  		::larcv::ROI out_roi(roi);
-	  		out_roi.SetBB(out_meta_v);
-	  		event_roi->Emplace(std::move(out_roi));
-		}
+	// Retrieve input ROI array
+	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	// Loop over and store in output
+	for(auto const& aroi : event_roi->ROIArray()) {
+	  std::vector<larcv::ImageMeta> out_meta_v;
+	  try {
+	    //LARCV_INFO() << "Creating particle ROI for: " << roi.dump() << std::endl;
+	    for(auto const& bb : aroi.BB()) {
+	      auto const& img_meta = output_pmtweighted_images->at(bb.plane()).meta();
+	      out_meta_v.push_back(img_meta.overlap(bb));
+	    }
+	  }catch(const larbys& err){
+	    LARCV_NORMAL() << "Found an ROI bounding box that has no overlap with neutrino vertex box. Skipping..." << std::endl;
+	    LARCV_INFO() << aroi.dump() << std::endl;
+	    out_meta_v.clear();
+	  }
+	  
+	  ::larcv::ROI out_roi(aroi);
+	  out_roi.SetBB(out_meta_v);
+
+	  event_roi->Emplace(std::move(out_roi));
+	}
       }else{
-		std::vector<larcv::ImageMeta> out_meta_v;
-		for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
-		roi.SetBB(out_meta_v);
-		output_rois->Emplace(std::move(roi));
+	std::vector<larcv::ImageMeta> out_meta_v;
+	for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
+	roi.SetBB(out_meta_v);
+	output_rois->Emplace(std::move(roi));
       }
       
       return true;
