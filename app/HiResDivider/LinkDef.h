@@ -14,8 +14,10 @@
 
 #pragma link C++ class larcv::hires::HiResImageDivider+;
 #pragma link C++ class larcv::CosmicSegment+;
+#pragma link C++ class larcv::DumpHiResCropImages+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
