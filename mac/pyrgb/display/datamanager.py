@@ -69,6 +69,7 @@ class DataManager(object):
             roidata = roidata.ROIArray()
 
         imdata  = self.iom.iom.get_data(larcv.kProductImage2D,imgprod)
+        print imdata.event_key()
         imdata  = imdata.Image2DArray()
         if imdata.size() == 0 : return (None,None,None)
         image   = VicImage(imdata,roidata,planes)

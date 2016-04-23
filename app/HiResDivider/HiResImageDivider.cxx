@@ -141,7 +141,7 @@ namespace larcv {
       larcv::ROI roi;
       bool hasmc = false;
       if(roi_producer_id != kINVALID_PRODUCER) {
-	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for kROIBNB..." << std::endl;
+	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for MC ROI..." << std::endl;
 	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
 	for ( auto const& aroi : event_roi->ROIArray() ) 
 	  if ( isInteresting(aroi) ) { roi = aroi; hasmc=true; break; }
@@ -166,6 +166,7 @@ namespace larcv {
 		      dis(gen) * (zmax - zmin) + zmin,
 		      dis(gen) * (tmax - tmin) + tmin);
       }
+      
       if(!isInteresting(roi)) {
 	LARCV_CRITICAL() << "Did not find any interesting ROI and/or failed to construct Cosmic ROI..." << std::endl;
 	if(roi_producer_id != kINVALID_PRODUCER) {
@@ -210,6 +211,7 @@ namespace larcv {
 	  ++fROISkippedEvent;
 	  LARCV_NORMAL() << "Found an event w/ neutrino vertex not within ROI bounding box (" << fROISkippedEvent << " events so far)" << std::endl;
 	  auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	  for(auto const& img : output_event_images->Image2DArray()) LARCV_INFO() << img.meta().dump();
 	  for(auto const& aroi : event_roi->ROIArray()) LARCV_INFO() << aroi.dump();
 	  output_event_images->clear();
 	  return false;
@@ -442,15 +444,11 @@ namespace larcv {
 
 	cropped.resize(fMaxWireImageWidth,fMaxWireImageWidth,0.);
 
-	LARCV_INFO() << "image: " << std::endl << img.meta().dump() << std::endl;
-	
-	LARCV_INFO() << "div: " << std::endl << divPlaneMeta.dump() << std::endl;
-
-	LARCV_INFO() << "scaled: " << std::endl << scaled.dump() << std::endl;
-	
-	LARCV_INFO() << "to-be-cropped: " << std::endl << cropmeta.dump() << std::endl;
-
-	LARCV_INFO() << "cropped: " << std::endl << cropped.meta().dump() << std::endl;
+	LARCV_DEBUG() << "image: " << std::endl << img.meta().dump() ;
+	LARCV_DEBUG() << "div: " << std::endl << divPlaneMeta.dump() ;
+	LARCV_DEBUG() << "scaled: " << std::endl << scaled.dump() ;
+	LARCV_DEBUG() << "to-be-cropped: " << std::endl << cropmeta.dump() ;
+	LARCV_DEBUG() << "cropped: " << std::endl << cropped.meta().dump() ;
 	
 	/*
 	// we adjust the actual crop meta
