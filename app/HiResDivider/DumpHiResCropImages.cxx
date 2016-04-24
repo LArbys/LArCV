@@ -75,7 +75,7 @@ namespace larcv {
 	sprintf( testname, "test_%s_pmtraw_%zu.png", fPMTRawProducer.c_str(), input_pmtraw_images->event() );
       
       cv::imwrite( testname, pmtimg );
-      
+      return true;
     }
 #endif
 
