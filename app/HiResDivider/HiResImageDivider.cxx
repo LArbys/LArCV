@@ -183,6 +183,7 @@ namespace larcv {
       int idiv = findVertexDivision( roi );
       if ( idiv==-1 ) {
 	LARCV_ERROR() << "No divisions were found that contained an event vertex.\n" << roi.dump() << std::endl;
+	return false;
       }
       larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
 
