@@ -18,7 +18,7 @@ int main(int argc, char** argv){
 
   if(argc < 3)  {
     LARCV_CRITICAL() << "Invalid argument count (needs at least 3)" << std::endl
-		     << "  Usage: " << argv[0] << " PRODUCER_NAME FILE_LIST_TXT_FILE" << std::endl;
+		     << "  Usage: " << argv[0] << " PRODUCER_NAME FILE1 [FILE2 FILE3 ...]" << std::endl;
     return 1;
   }
 
@@ -31,7 +31,7 @@ int main(int argc, char** argv){
   larcv::IOManager output_strm(larcv::IOManager::kWRITE);
   output_strm.set_out_file("mean.root");
   output_strm.initialize();
-  auto output_image = (larcv::EventImage2D*)(output_strm.get_data(larcv::kProductImage2D,producer));
+  auto output_image = (larcv::EventImage2D*)(output_strm.get_data(larcv::kProductImage2D,"mean"));
   std::map<larcv::PlaneID_t,std::vector<double> > image_m;
   std::map<larcv::PlaneID_t,larcv::ImageMeta > meta_m;
 

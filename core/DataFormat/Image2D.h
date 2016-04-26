@@ -44,6 +44,7 @@ namespace larcv {
 
     enum CompressionModes_t { kSum, kAverage, kMaxPool};
 
+    void reset_origin(double x, double y) {_meta.reset_origin(x,y);}
     ImageIndex_t index() const { return _id; }
     void index(ImageIndex_t n) { _id = n; }
     size_t size() const { return _img.size(); }
@@ -88,6 +89,8 @@ namespace larcv {
     inline Image2D operator/(const float val) const
     { Image2D res = (*this); res/=val; return res; }
 
+    Image2D& operator +=(const std::vector<float>& rhs);
+    Image2D& operator -=(const std::vector<float>& rhs);
 
     // Matrix Multiplication
     Image2D multiRHS( const Image2D& rhs ) const; 
