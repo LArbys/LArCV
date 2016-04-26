@@ -19,6 +19,7 @@
 
 #include <vector>
 #include "TH1D.h"
+#include "TTree.h"
 
 namespace larcv {
 
@@ -47,10 +48,18 @@ namespace larcv {
 
     std::vector<TH1D*> m_hADC_v;
     std::string fHiResCropProducer;
+    std::string fROIProducer;
     int fPlane0Thresh;
     int fPlane1Thresh;
     int fPlane2Thresh;
+    bool fFillCosmic;
 
+    TTree* m_tree;
+    int m_plane;
+    int m_neutrino;
+    int m_npixels;
+    float m_sum;
+    float m_edep;
   };
 
   /**
