@@ -78,6 +78,7 @@ namespace larcv {
     bool _processing;
     TFile* _fout;    
     std::string _fout_name;
+    bool _has_event_creator;
 #endif
   };
 }

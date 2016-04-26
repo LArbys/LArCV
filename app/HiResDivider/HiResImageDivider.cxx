@@ -41,7 +41,7 @@ namespace larcv {
       fCropSegmentation = cfg.get<bool>( "CropSegmentation" );
       fCropPMTWeighted  = cfg.get<bool>( "CropPMTWeighted" );
       fNumPixelRedrawThresh_v = cfg.get< std::vector<int> >( "NumPixelRedrawThresh" );
-      fInterestingPixelThresh_v = cfg.get< std::vector<float> >( "InteresingPixelThresh" );
+      fInterestingPixelThresh_v = cfg.get< std::vector<float> >( "InterestingPixelThresh" );
       fRedrawOnNEmptyPlanes = cfg.get<int>("RedrawOnNEmptyPlanes",2);
       fMaxRedrawAttempts = cfg.get<int>("MaxRedrawAttempts");
       fDivideWholeImage = cfg.get<bool>("DivideWholeImage");
@@ -427,6 +427,10 @@ namespace larcv {
       
       int nempty = 0;
       for ( size_t i=0;i<npixels.size(); i++ ) {
+	LARCV_INFO() << "Plane " << i << " has "
+		     << npixels[i] << " pixels above "
+		     << fInterestingPixelThresh_v[i] << " [ADC] ... Threshold = " 
+		     << fNumPixelRedrawThresh_v[i] << std::endl;
 	if ( fNumPixelRedrawThresh_v.at(i)>0 && npixels.at(i)<fNumPixelRedrawThresh_v.at(i) )
 	  nempty++;
       }

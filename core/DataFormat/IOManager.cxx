@@ -10,40 +10,44 @@ namespace larcv {
 
   IOManager::IOManager(IOMode_t mode, std::string name)
     : larcv_base(name)
-    , _io_mode         ( mode          )
-    , _prepared        ( false         )
-    , _out_file        ( nullptr       )
-    , _tree_index      ( 0             )
-    , _tree_entries    ( 0             )
-    , _out_file_name   ( ""            )
-    , _in_file_v       ()
-    , _in_dir_v        ()
-    , _key_list        ( kProductUnknown )
-    , _out_tree_v      ()
-    , _in_tree_v       ()
-    , _in_tree_index_v ()
-    , _product_ctr     (0)
-    , _product_ptr_v   ()
-    , _product_type_v  ()
+    , _io_mode          ( mode          )
+    , _prepared         ( false         )
+    , _out_file         ( nullptr       )
+    , _in_tree_index    ( 0             )
+    , _out_tree_index   ( 0             )
+    , _in_tree_entries  ( 0             )
+    , _out_tree_entries ( 0             )
+    , _out_file_name    ( ""            )
+    , _in_file_v        ()
+    , _in_dir_v         ()
+    , _key_list         ( kProductUnknown )
+    , _out_tree_v       ()
+    , _in_tree_v        ()
+    , _in_tree_index_v  ()
+    , _product_ctr      (0)
+    , _product_ptr_v    ()
+    , _product_type_v   ()
   { reset(); }
 
   IOManager::IOManager(const PSet& cfg)
     : larcv_base(cfg.get<std::string>("Name"))
-    , _io_mode         ( kREAD         )
-    , _prepared        ( false         )
-    , _out_file        ( nullptr       )
-    , _tree_index      ( 0             )
-    , _tree_entries    ( 0             )
-    , _out_file_name   ( ""            )
-    , _in_file_v       ()
-    , _in_dir_v        ()
-    , _key_list        ( kProductUnknown )
-    , _out_tree_v      ()
-    , _in_tree_v       ()
-    , _in_tree_index_v ()
-    , _product_ctr     (0)
-    , _product_ptr_v   ()
-    , _product_type_v  ()
+    , _io_mode          ( kREAD         )
+    , _prepared         ( false         )
+    , _out_file         ( nullptr       )
+    , _in_tree_index    ( 0             )
+    , _out_tree_index   ( 0             )
+    , _in_tree_entries  ( 0             )
+    , _out_tree_entries ( 0             )
+    , _out_file_name    ( ""            )
+    , _in_file_v        ()
+    , _in_dir_v         ()
+    , _key_list         ( kProductUnknown )
+    , _out_tree_v       ()
+    , _in_tree_v        ()
+    , _in_tree_index_v  ()
+    , _product_ctr      (0)
+    , _product_ptr_v    ()
+    , _product_type_v   ()
 
   { 
     reset();
@@ -121,7 +125,7 @@ namespace larcv {
     
     if(_io_mode != kWRITE) {
       prepare_input();
-      if(!_tree_entries) {
+      if(!_in_tree_entries) {
 	LARCV_ERROR() << "Found 0 entries from input files..." << std::endl;
 	return false;
       }
@@ -137,7 +141,8 @@ namespace larcv {
       for(auto const& id : store_only_id) _store_only_bool.at(id) = true;
     }
 
-    _tree_index = 0;
+    _in_tree_index = 0;
+    _out_tree_index = 0;
     _prepared = true;
 
     return true;
@@ -286,18 +291,18 @@ namespace larcv {
     }
 
     if(!_in_tree_v.front()) {
-      _tree_entries = 0;
+      _in_tree_entries = 0;
       return;
     }
 
     // Get tree entries
-    _tree_entries = kINVALID_SIZE;
+    _in_tree_entries = kINVALID_SIZE;
     for(auto const& t : _in_tree_v) {
       if(!t) break;
       size_t tmp_entries = t->GetEntries();
       LARCV_INFO() << "TTree " << t->GetName() << " has " << tmp_entries << " entries" << std::endl;
-      if(!_tree_entries) _tree_entries = tmp_entries;
-      else _tree_entries = (_tree_entries < tmp_entries ? _tree_entries : tmp_entries);
+      if(_in_tree_entries == kINVALID_SIZE) _in_tree_entries = tmp_entries;
+      else _in_tree_entries = (_in_tree_entries < tmp_entries ? _in_tree_entries : tmp_entries);
     }
     
   }
@@ -313,15 +318,15 @@ namespace larcv {
       LARCV_CRITICAL() << "Cannot be called before initialize()!" << std::endl;
       throw larbys();
     }
-    if(index >= _tree_entries) {
-      LARCV_ERROR() << "Input only has " << _tree_entries << " entries!" << std::endl;
+    if(index >= _in_tree_entries) {
+      LARCV_ERROR() << "Input only has " << _in_tree_entries << " entries!" << std::endl;
       return false;
     }
-    if(_tree_index != index) {
-      _tree_index = index;
+    if(_in_tree_index != index) {
+      _in_tree_index = index;
       _event_id.clear();
     }
-    LARCV_DEBUG() << "Current tree index: " << _tree_index << std::endl;
+    LARCV_DEBUG() << "Current input tree index: " << _in_tree_index << std::endl;
     return true;
   }
 
@@ -343,7 +348,7 @@ namespace larcv {
     if(_io_mode == kBOTH) {
       for(size_t id=0; id<_in_tree_index_v.size(); ++id) {
 	if(_store_only_bool.size() && (id >= _store_only_bool.size() || !_store_only_bool[id])) continue;
-	if(_in_tree_index_v[id] == _tree_index) continue;
+	if(_in_tree_index_v[id] == _in_tree_index) continue;
 	get_data(id);
       }
     }
@@ -397,8 +402,8 @@ namespace larcv {
 
     clear_entry();
 
-    _tree_entries += 1;
-    if(_io_mode == kWRITE) _tree_index += 1;
+    _out_tree_entries += 1;
+    _out_tree_index += 1;
 
     return true;
   }
@@ -446,8 +451,8 @@ namespace larcv {
 	throw larbys();
       }
       id = register_producer(type,producer);
-      for(size_t i=0; i<_tree_entries; ++i) _out_tree_v[id]->Fill();
-      LARCV_NORMAL() << "Created TTree " << _out_tree_v[id]->GetName() << " (id=" << id <<") w/ " << _tree_entries << " entries..." << std::endl;
+      for(size_t i=0; i<_in_tree_entries; ++i) _out_tree_v[id]->Fill();
+      LARCV_NORMAL() << "Created TTree " << _out_tree_v[id]->GetName() << " (id=" << id <<") w/ " << _in_tree_entries << " entries..." << std::endl;
     }
     return get_data(id);
   }
@@ -461,12 +466,12 @@ namespace larcv {
       throw larbys();
     }
 
-    if(_io_mode != kWRITE && _tree_index != kINVALID_SIZE &&
-       _in_tree_index_v[id] != _tree_index) {
+    if(_io_mode != kWRITE && _in_tree_index != kINVALID_SIZE &&
+       _in_tree_index_v[id] != _in_tree_index) {
 
-      LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _tree_index << std::endl;
-      _in_tree_v[id]->GetEntry(_tree_index);
-      _in_tree_index_v[id] =_tree_index;
+      LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _in_tree_index << std::endl;
+      _in_tree_v[id]->GetEntry(_in_tree_index);
+      _in_tree_index_v[id] =_in_tree_index;
 
       auto& ptr = _product_ptr_v[id];
       // retrieve event_id if not yet done
@@ -587,8 +592,9 @@ namespace larcv {
     _product_type_v.clear();
     _product_type_v.resize(1000,kProductUnknown);
     _product_ctr = 0;
-    _tree_index = 0;
-    _tree_entries = 0;
+    _in_tree_index = 0;
+    _out_tree_index = 0;
+    _in_tree_entries = 0;
     _prepared = false;
     _out_file_name = "";
     _in_file_v.clear();
