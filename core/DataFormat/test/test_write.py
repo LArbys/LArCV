@@ -19,6 +19,7 @@ img=larcv.Image2D()
 ptr.Append(img)
 print ptr.Image2DArray().size()
 o.get_data(larcv.kProductROI,"boke")
+o.get_data(larcv.kProductImage2D,"boke")
 o.set_id(1,1,0)
 o.save_entry()
 
