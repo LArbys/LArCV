@@ -40,6 +40,10 @@ namespace larcv {
       fOutputPMTWeightedProducer = cfg.get<std::string>( "OutputPMTWeightedProducer" );
       fCropSegmentation = cfg.get<bool>( "CropSegmentation" );
       fCropPMTWeighted  = cfg.get<bool>( "CropPMTWeighted" );
+      fNumPixelRedrawThresh_v = cfg.get< std::vector<int> >( "NumPixelRedrawThresh" );
+      fInterestingPixelThresh_v = cfg.get< std::vector<float> >( "InteresingPixelThresh" );
+      fRedrawOnNEmptyPlanes = cfg.get<int>("RedrawOnNEmptyPlanes",2);
+      fMaxRedrawAttempts = cfg.get<int>("MaxRedrawAttempts");
       fDumpImages  = cfg.get<bool>( "DumpImages" );
     }
     
@@ -137,6 +141,8 @@ namespace larcv {
       // If it exists, we get the ROI which will guide us on how to use the image
       // This does not exist for cosmics, in which case we create
       static const ProducerID_t roi_producer_id = mgr.producer_id(::larcv::kProductROI,fInputROIProducer);
+      auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
+      auto output_event_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputImageProducer) );
       
       larcv::ROI roi;
       bool hasmc = false;
@@ -148,23 +154,48 @@ namespace larcv {
       }else{
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " not found. Constructing Cosmic ROI..." << std::endl;
 	// Input ROI did not exist. Assume this means cosmics and create one
+
+	// we make a cosmic roi, we must select a patch with a good ADC value
+
+	bool viewok = false;
+	int ntries = 0;
 	roi.Type(kROICosmic);
-	// FIXME: need a way to get detector dimension somehow...
-	const double zmin = 0;
-	const double zmax = 1036.0;
-	const double ymin = -116.;
-	const double ymax = 116.;
-	const double xmin = 0.;
-	const double xmax = 255.;
-	const double tmin = 3125.; // in ns
-	const double tmax = tmin + 1600.;
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<> dis(0.,1.);
-	roi.Position( dis(gen) * (xmax - xmin) + xmin,
-		      dis(gen) * (ymax - ymin) + ymin,
-		      dis(gen) * (zmax - zmin) + zmin,
-		      dis(gen) * (tmax - tmin) + tmin);
+
+	while (viewok && ntries<fMaxRedrawAttempts) {
+	  ntries++;
+	  // FIXME: need a way to get detector dimension somehow...
+	  const double zmin = 0;
+	  const double zmax = 1036.0;
+	  const double ymin = -116.;
+	  const double ymax = 116.;
+	  const double xmin = 0.;
+	  const double xmax = 255.;
+	  const double tmin = 3125.; // in ns
+	  const double tmax = tmin + 1600.;
+	  std::random_device rd;
+	  std::mt19937 gen(rd());
+	  std::uniform_real_distribution<> dis(0.,1.);
+	  roi.Position( dis(gen) * (xmax - xmin) + xmin,
+			dis(gen) * (ymax - ymin) + ymin,
+			dis(gen) * (zmax - zmin) + zmin,
+			dis(gen) * (tmax - tmin) + tmin);
+
+	  int idiv = findVertexDivision( roi );
+	  if ( idiv==-1 ) {
+	    viewok = false;
+	    continue;
+	  }
+	  larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
+	  larcv::EventImage2D cosmic_test;
+	  cropEventImages( *input_event_images, vertex_div, cosmic_test );
+	  if ( isAbovePixelThreshold( cosmic_test ) )  {
+	    viewok = true;
+	    break;
+	  }
+	}
+	if ( !viewok ) {
+	  LARCV_ERROR() << "could not find cosmic roi with enough interesting pixels.\n" << std::endl;
+	}
       }
       
       if(!isInteresting(roi)) {
@@ -191,8 +222,6 @@ namespace larcv {
 
       // now we crop out certain pieces
       // The input images
-      auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
-      auto output_event_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputImageProducer) );
       LARCV_DEBUG() << "Crop " << fInputImageProducer << " Images." << std::endl;
       cropEventImages( *input_event_images, vertex_div, *output_event_images );
 
@@ -205,6 +234,16 @@ namespace larcv {
       // ask, if it is non-cosmic type ROI, created image's meta overlaps with ROI's image meta.
       //
       if(roi.Type() != kROICosmic) {
+	// if not cosmic, we check if neutrino image has enough interesting pixels
+	if ( !isAbovePixelThreshold( *output_event_images ) ) {
+	  ++fROISkippedEvent;
+	  LARCV_NORMAL() << "Found an event w/ neutrino vertex without enough interesting pixels (" << fROISkippedEvent << " events skipped so far)" << std::endl;
+	  auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
+	  for(auto const& img : output_event_images->Image2DArray()) LARCV_INFO() << img.meta().dump();
+          for(auto const& aroi : event_roi->ROIArray()) LARCV_INFO() << aroi.dump();
+          output_event_images->clear();
+          return false;
+	}
 	try{
 	  for(auto const& img : output_event_images->Image2DArray())
 	    roi.BB(img.meta().plane()).overlap(img.meta());
@@ -404,7 +443,31 @@ namespace larcv {
       // Consider if this came from MCTruth: MCSTIndex should be kINVALID_USHORT
       return (roi.MCSTIndex() == kINVALID_USHORT);
     }
-
+    
+    bool HiResImageDivider::isAbovePixelThreshold( const larcv::EventImage2D& imgs ) {
+      // warning, vectors assume plane ids are sequential and have no gaps
+      std::vector<int> npixels(fInterestingPixelThresh_v.size(),0);
+      for ( auto const& img: imgs.Image2DArray() ) {
+	auto const plane = img.meta().plane();
+	auto const& adc_v = img.as_vector();
+	for ( auto const& adc : adc_v ) {
+	  if ( adc>fInterestingPixelThresh_v.at(plane) ) {
+	    npixels.at(plane)++;
+	  }
+	}
+      }
+      
+      int nempty = 0;
+      for ( size_t i=0;i<npixels.size(); i++ ) {
+	if ( fNumPixelRedrawThresh_v.at(i)>0 && npixels.at(i)<fNumPixelRedrawThresh_v.at(i) )
+	  nempty++;
+      }
+      if ( nempty>=fRedrawOnNEmptyPlanes )
+	return false;
+      
+      return true;
+    }
+    
     int HiResImageDivider::findVertexDivision( const larcv::ROI& roi ) {
       int regionindex = 0;
       for ( std::vector< larcv::hires::DivisionDef >::iterator it=m_divisions.begin(); it!=m_divisions.end(); it++) {

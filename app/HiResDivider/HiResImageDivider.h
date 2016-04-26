@@ -64,6 +64,10 @@ namespace larcv {
       bool fCropSegmentation;
       bool fCropPMTWeighted;
       bool fDumpImages;
+      int fMaxRedrawAttempts;
+      int fRedrawOnNEmptyPlanes;
+      std::vector< int > fNumPixelRedrawThresh_v;
+      std::vector< float > fInterestingPixelThresh_v;
       std::vector< larcv::hires::DivisionDef > m_divisions;
 
       std::string fInputPMTProducer;
@@ -83,6 +87,7 @@ namespace larcv {
       
 
       bool isInteresting( const larcv::ROI& roi );
+      bool isAbovePixelThreshold( const larcv::EventImage2D& imgs );
       int findVertexDivision( const larcv::ROI& roi );
       bool keepNonVertexDivision( const larcv::ROI& roi );
       void cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images  );
