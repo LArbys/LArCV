@@ -95,6 +95,8 @@ namespace larcv {
       _row_count = row_count;
       _col_count = col_count;
     }
+    /// Reset origin coordinate
+    void   reset_origin(double x, double y) { _origin = Point2D(x,y); }
     /// Check if there's an overlap. If so return overlapping bounding box
     ImageMeta overlap(const ImageMeta& meta) const;
     /// Construct a union bounding box

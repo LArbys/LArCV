@@ -41,7 +41,7 @@ namespace larcv {
   {
     auto const current_rows = _meta.rows();
     auto const current_cols = _meta.cols();
-    std::vector<float> img(rows*cols,0.);
+    std::vector<float> img(rows*cols,fillval);
 
     size_t npixels = std::min(current_rows,rows);
     for(size_t c=0; c < std::min(cols,current_cols); ++c) {
@@ -298,6 +298,20 @@ namespace larcv {
 	break;
       }
     }
+  }
+
+  Image2D& Image2D::operator+=(const std::vector<float>& rhs)
+  {
+    if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!");
+    for(size_t i=0; i<_img.size(); ++i) _img[i] += rhs[i];
+    return (*this);
+  }
+
+  Image2D& Image2D::operator-=(const std::vector<float>& rhs)
+  {
+    if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!");
+    for(size_t i=0; i<_img.size(); ++i) _img[i] -= rhs[i];
+    return (*this);
   }
 
   Image2D Image2D::multiRHS( const Image2D& rhs ) const {
