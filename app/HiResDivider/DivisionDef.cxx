@@ -5,7 +5,12 @@ namespace larcv {
   namespace hires {
 
     DivisionDef::DivisionDef( int plane0_wirebounds[], int plane1_wirebounds[], int plane2_wirebounds[], int tickbounds[],
-			      float det_xbounds[], float det_ybounds[], float det_zbounds[] ) {
+			      float det_xbounds[], float det_ybounds[], float det_zbounds[] )
+      : fID(plane0_wirebounds[0],plane0_wirebounds[1],
+	    plane1_wirebounds[0],plane1_wirebounds[1],
+	    plane2_wirebounds[0],plane2_wirebounds[1],
+	    tickbounds[0],tickbounds[1])
+    {
 	// this constructor completely defines the definition (for 3 planes)
       mNPlanes = 0;
       setPlaneMeta( 0, plane0_wirebounds, tickbounds );
@@ -18,7 +23,9 @@ namespace larcv {
       }
     }
 
-    DivisionDef::DivisionDef( const DivisionDef& src) {
+    DivisionDef::DivisionDef( const DivisionDef& src)
+      : fID(src.fID)
+    {
       for ( std::map< PlaneID_t, larcv::ImageMeta >::const_iterator it=src.m_planeMeta.begin(); it!=src.m_planeMeta.end(); it++ ) {
 	m_planeMeta[ (*it).first ] = (*it).second; // implied copy?
       }

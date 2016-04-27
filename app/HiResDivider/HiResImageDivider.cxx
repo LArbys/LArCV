@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include <set>
 #include <random>
 #include <iostream>
 
@@ -51,7 +52,7 @@ namespace larcv {
     {
       // The image divisions are calculated before hand in the fixed grid model
       // we load the prefined region image definitions here
-      
+      std::set<larcv::hires::DivisionID> unique_div_s;
       TFile* f = new TFile( Form("%s/app/HiResDivider/dat/%s", getenv("LARCV_BASEDIR"),fDivisionFile.c_str()), "open" );
       TTree* t = (TTree*)f->Get("imagedivider/regionInfo");
       int **planebounds = new int*[fNPlanes];
@@ -106,8 +107,12 @@ namespace larcv {
 		      << std::endl;
 	
 	DivisionDef div( plane0, plane1, plane2, tickbounds, xbounds, ybounds, zbounds );
-	
-	m_divisions.emplace_back( div );
+
+	auto const& div_id = div.ID();
+	if(unique_div_s.find(div_id) == unique_div_s.end()) {
+	  unique_div_s.insert(div.ID());
+	  m_divisions.emplace_back(div);
+	}
 	entry++;
 	bytes = t->GetEntry(entry);
 	//std::cout << "Division tree entry:" << entry << " (" << bytes << ")" << std::endl;
@@ -116,6 +121,7 @@ namespace larcv {
       if ( fMaxWireInRegion>fMaxWireImageWidth )
 	fMaxWireImageWidth = fMaxWireInRegion;
 
+      LARCV_INFO() << "Filled " << m_divisions.size() << " unique divisions..." << std::endl;
       LARCV_INFO() << "MaxWireImageWidth: " << fMaxWireImageWidth << std::endl;
 
       for (int p=0; p<fNPlanes; p++) {
@@ -400,6 +406,7 @@ namespace larcv {
     void HiResImageDivider::generateFitleredWholeImageDivision( std::vector< int >& divlist, const EventImage2D& input_event_images) {
       // we loop through all divisions and make a test crop. we then test this cropped region if it
       // satisfies the conditions to be deemed interesting enough to save
+      divlist.clear();
       for ( int idiv=0; idiv<(int)m_divisions.size(); idiv++ ) {
 	// div is a larcv::hires::DivisionDef
 	larcv::hires::DivisionDef const& div = m_divisions.at(idiv);
@@ -408,6 +415,7 @@ namespace larcv {
 	if ( isAbovePixelThreshold( cropped ) )
 	  divlist.push_back( idiv );
       }
+      LARCV_INFO() << "Generated " << divlist.size() << " / " << m_divisions.size() << " divisions..." << std::endl;
     }
 
     // -------------------------------------------------------
@@ -441,6 +449,9 @@ namespace larcv {
 	if ( fNumPixelRedrawThresh_v.at(i)>0 && npixels.at(i)<fNumPixelRedrawThresh_v.at(i) )
 	  nempty++;
       }
+      LARCV_INFO() << "... " << nempty << " planes below threshold: returning "
+		   << ( nempty >=fRedrawOnNEmptyPlanes ? "false" : "true" ) << std::endl;
+
       if ( nempty>=fRedrawOnNEmptyPlanes )
 	return false;
       
@@ -519,7 +530,7 @@ namespace larcv {
 	LARCV_INFO() << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
 	*/	
 	cropped_images.emplace_back( cropped );
-	LARCV_INFO() << "stored." << std::endl;
+	//LARCV_INFO() << "stored." << std::endl;
       }//end of plane loop
 
       output_images.Emplace( std::move( cropped_images ) );
