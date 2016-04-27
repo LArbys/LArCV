@@ -61,7 +61,7 @@ namespace larcv {
     void set_id(const size_t run, const size_t subrun, const size_t event);
 
     size_t get_n_entries() const
-    { return _tree_entries; }
+    { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
     
     EventBase* get_data(const ProductType_t type, const std::string& producer);
     EventBase* get_data(const ProducerID_t id);
@@ -83,6 +83,8 @@ namespace larcv {
       }
       return *((T*)(get_data(id)));
     }
+
+    const EventBase& event_id() const { return ( _set_event_id.valid() ? _set_event_id : _event_id ); }
     
   private:
     void   set_id();
@@ -92,8 +94,10 @@ namespace larcv {
     IOMode_t    _io_mode;
     bool        _prepared;
     TFile*      _out_file;
-    size_t      _tree_index;
-    size_t      _tree_entries;
+    size_t      _in_tree_index;
+    size_t      _out_tree_index;
+    size_t      _in_tree_entries;
+    size_t      _out_tree_entries;
     EventBase   _event_id;
     EventBase   _set_event_id;
     std::string _out_file_name;

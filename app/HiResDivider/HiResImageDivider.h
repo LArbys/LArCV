@@ -63,7 +63,6 @@ namespace larcv {
       int fNumNonVertexDivisionsPerEvent;
       bool fCropSegmentation;
       bool fCropPMTWeighted;
-      bool fDumpImages;
       int fMaxRedrawAttempts;
       int fRedrawOnNEmptyPlanes;
       std::vector< int > fNumPixelRedrawThresh_v;
@@ -79,6 +78,7 @@ namespace larcv {
       std::string fOutputImageProducer;
       std::string fOutputSegmentationProducer;
       std::string fOutputPMTWeightedProducer;
+      bool fDivideWholeImage;
 
       size_t fProcessedEvent;
       size_t fROISkippedEvent;
@@ -91,7 +91,11 @@ namespace larcv {
       int findVertexDivision( const larcv::ROI& roi );
       bool keepNonVertexDivision( const larcv::ROI& roi );
       void cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images  );
-      
+
+      void generateSingleCosmicDivision( std::vector< int >& divlist, IOManager& mgr, larcv::ROI& roi );      
+      void generateSingleMCDivision( std::vector< int >& divlist, IOManager& mgr, larcv::ROI& roi );
+      void generateFitleredWholeImageDivision( std::vector< int >& divlist, IOManager& mgr );
+
     };
     
     /**

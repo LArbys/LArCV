@@ -51,11 +51,14 @@ namespace larcv {
     void _configure_(const PSet&);
 
     bool _process_(IOManager& mgr);
+
+    bool _event_creator;    ///< special flag to mark this algorithm an event creator
 #ifndef __CINT__
     larcv::Watch _watch;    ///< algorithm profile stopwatch
 #endif
     double _proc_time;      ///< algorithm execution time record (cumulative)
     size_t _proc_count;     ///< algorithm execution counter (cumulative)
+    
     larcv::ProcessID_t _id; ///< unique algorithm identifier
     bool _profile;          ///< measure process time if profile flag is on
     std::string _typename;  ///< process type from factory
