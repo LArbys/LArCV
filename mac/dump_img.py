@@ -11,6 +11,10 @@ img_br_name='image2d_%s_branch' % IMAGE_PRODUCER
 img_ch = TChain(img_tree_name)
 img_ch.AddFile(sys.argv[2])
 
+cutoff=0
+if len(sys.argv) > 3:
+    cutoff = int(sys.argv[3])
+
 for entry in xrange(img_ch.GetEntries()):
     img_ch.GetEntry(entry)
     img_br=None
@@ -20,6 +24,7 @@ for entry in xrange(img_ch.GetEntries()):
         mat=larcv.as_ndarray(img)
         mat_display=plt.imshow(mat)
         mat_display.write_png('%s_plane%d.png' % (event_key,img.meta().plane()))
-
+    if cutoff and cutoff <= entry:
+        break 
 
 
