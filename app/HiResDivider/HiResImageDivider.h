@@ -92,9 +92,9 @@ namespace larcv {
       bool keepNonVertexDivision( const larcv::ROI& roi );
       void cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images  );
 
-      void generateSingleCosmicDivision( std::vector< int >& divlist, IOManager& mgr, larcv::ROI& roi );      
-      void generateSingleMCDivision( std::vector< int >& divlist, IOManager& mgr, larcv::ROI& roi );
-      void generateFitleredWholeImageDivision( std::vector< int >& divlist, IOManager& mgr );
+      void generateSingleCosmicDivision( std::vector< int >& divlist, const EventImage2D& input_event_images, larcv::ROI& roi );
+      void generateSingleMCDivision( std::vector< int >& divlist, EventROI& event_roi, larcv::ROI& roi );
+      void generateFitleredWholeImageDivision( std::vector< int >& divlist, const EventImage2D& input_event_images);
 
     };
     

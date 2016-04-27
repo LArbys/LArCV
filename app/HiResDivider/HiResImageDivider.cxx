@@ -6,6 +6,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include <set>
 #include <random>
 #include <iostream>
 
@@ -51,7 +52,7 @@ namespace larcv {
     {
       // The image divisions are calculated before hand in the fixed grid model
       // we load the prefined region image definitions here
-      
+      std::set<larcv::hires::DivisionID> unique_div_s;
       TFile* f = new TFile( Form("%s/app/HiResDivider/dat/%s", getenv("LARCV_BASEDIR"),fDivisionFile.c_str()), "open" );
       TTree* t = (TTree*)f->Get("imagedivider/regionInfo");
       int **planebounds = new int*[fNPlanes];
@@ -106,8 +107,12 @@ namespace larcv {
 		      << std::endl;
 	
 	DivisionDef div( plane0, plane1, plane2, tickbounds, xbounds, ybounds, zbounds );
-	
-	m_divisions.emplace_back( div );
+
+	auto const& div_id = div.ID();
+	if(unique_div_s.find(div_id) == unique_div_s.end()) {
+	  unique_div_s.insert(div.ID());
+	  m_divisions.emplace_back(div);
+	}
 	entry++;
 	bytes = t->GetEntry(entry);
 	//std::cout << "Division tree entry:" << entry << " (" << bytes << ")" << std::endl;
@@ -116,6 +121,7 @@ namespace larcv {
       if ( fMaxWireInRegion>fMaxWireImageWidth )
 	fMaxWireImageWidth = fMaxWireInRegion;
 
+      LARCV_INFO() << "Filled " << m_divisions.size() << " unique divisions..." << std::endl;
       LARCV_INFO() << "MaxWireImageWidth: " << fMaxWireImageWidth << std::endl;
 
       for (int p=0; p<fNPlanes; p++) {
@@ -136,7 +142,12 @@ namespace larcv {
       ++fProcessedEvent;
       // This processor does the following:
       // 1) read in hi-res images (from producer specified in config)
-      // 2) (how to choose which one we clip?)      
+      // 2) (how to choose which one we clip?)
+
+      larcv::EventImage2D input_event_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer)));
+      larcv::EventImage2D input_pmtweighted_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTWeightedProducer)));
+      larcv::EventImage2D input_seg_images;
+      larcv::EventROI event_roi;
 
       // If it exists, we get the ROI which will guide us on how to use the image
       // This does not exist for cosmics, in which case we create
@@ -144,30 +155,31 @@ namespace larcv {
       larcv::ROI roi;
       if(roi_producer_id != kINVALID_PRODUCER) {
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for MC ROI..." << std::endl;
+	event_roi = *((larcv::EventROI*)(mgr.get_data(roi_producer_id)));
+	input_seg_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer)));
       }else{
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " not found. Constructing Cosmic ROI..." << std::endl;
 	// Input ROI did not exist. Assume this means cosmics and create one
 	roi.Type(kROICosmic);
-      }      
+      }
 
       // First we decide what divisions need to be cropped
       std::vector<int> divlist;
 
       if ( fDivideWholeImage ) {
-	generateFitleredWholeImageDivision( divlist, mgr );
+	generateFitleredWholeImageDivision( divlist, input_event_images );
       }
       else {
 	if ( roi.Type()==kROICosmic )
-	  generateSingleCosmicDivision( divlist, mgr, roi );
+	  generateSingleCosmicDivision( divlist, input_event_images, roi );
 	else
-	  generateSingleMCDivision( divlist, mgr, roi );
+	  generateSingleMCDivision( divlist, event_roi, roi );
 
 	if(!isInteresting(roi)) {
 	  LARCV_CRITICAL() << "Did not find any interesting ROI and/or failed to construct Cosmic ROI..." << std::endl;
 	  if(roi_producer_id != kINVALID_PRODUCER) {
 	    LARCV_ERROR() << "Input ROI does exist. Looping over ROI types and printing out..." << std::endl;
-	    auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
-	    for(auto const& roi : event_roi->ROIArray()) LARCV_ERROR() << roi.dump();
+	    for(auto const& roi : event_roi.ROIArray()) LARCV_ERROR() << roi.dump();
 	    LARCV_ERROR() << "Dump finished..." << std::endl;
 	  }
 	  // Return false not to store this event in case of filter IO mode
@@ -175,12 +187,9 @@ namespace larcv {
 	}
       }
 
-      auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
-
-      larcv::EventImage2D* input_seg_images = nullptr;
-      if(roi.Type() != kROICosmic)
-	input_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer));
-
+      // We call IOManger::store_entry which calls clear_data of all products.
+      // To keep necessary input event information, let's copy-construct them
+      
       auto const& event_id = mgr.event_id();
       const size_t input_run    = event_id.run();
       const size_t input_subrun = event_id.subrun();
@@ -202,7 +211,7 @@ namespace larcv {
 	auto output_event_images = (larcv::EventImage2D*)(mgr.get_data( kProductImage2D,fOutputImageProducer) );
 	output_event_images->clear();
 	LARCV_DEBUG() << "Crop " << fInputImageProducer << " Images." << std::endl;
-	cropEventImages( *input_event_images, vertex_div, *output_event_images );
+	cropEventImages( input_event_images, vertex_div, *output_event_images );
 
 	//
 	// Image is cropped based on DivisionDef which is found from ROI's vertex
@@ -217,9 +226,8 @@ namespace larcv {
 	  if ( !isAbovePixelThreshold( *output_event_images ) ) {
 	    ++fROISkippedEvent;
 	    LARCV_NORMAL() << "Found an event w/ neutrino vertex without enough interesting pixels (" << fROISkippedEvent << " events skipped so far)" << std::endl;
-	    auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
 	    for(auto const& img : output_event_images->Image2DArray()) LARCV_INFO() << img.meta().dump();
-	    for(auto const& aroi : event_roi->ROIArray()) LARCV_INFO() << aroi.dump();
+	    for(auto const& aroi : event_roi.ROIArray()) LARCV_INFO() << aroi.dump();
 	    output_event_images->clear();
 	    continue;
 	  }
@@ -229,28 +237,27 @@ namespace larcv {
 	  }catch(const larbys& err) {
 	    ++fROISkippedEvent;
 	    LARCV_NORMAL() << "Found an event w/ neutrino vertex not within ROI bounding box (" << fROISkippedEvent << " events so far)" << std::endl;
-	    auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
 	    for(auto const& img : output_event_images->Image2DArray()) LARCV_INFO() << img.meta().dump();
-	    for(auto const& aroi : event_roi->ROIArray()) LARCV_INFO() << aroi.dump();
+	    for(auto const& aroi : event_roi.ROIArray()) LARCV_INFO() << aroi.dump();
 	    output_event_images->clear();
 	    continue;
 	  }
 	}
 
 	// Output Segmentation
-	if ( fCropSegmentation && input_seg_images ) {
+	if ( fCropSegmentation && input_seg_images.Image2DArray().size() ) {
 	  // the semantic segmentation is only filled in the neighboor hood of the interaction
 	  // we overlay it into a full image (and then crop out the division)
 	  larcv::EventImage2D full_seg_images;
 	  for ( unsigned int p=0; p<3; p++ ) {
-	    larcv::Image2D const& img = input_event_images->at( p ); 
+	    larcv::Image2D const& img = input_event_images.at( p ); 
 	    larcv::ImageMeta seg_image_meta( img.meta().width(), img.meta().height(),
 					     img.meta().rows(), img.meta().cols(),
 					     img.meta().min_x(), img.meta().max_y(),
 					     img.meta().plane() );
 	    larcv::Image2D seg_image( seg_image_meta );
 	    seg_image.paint( 0.0 );
-	    seg_image.overlay( input_seg_images->at(p) );
+	    seg_image.overlay( input_seg_images.at(p) );
 	    full_seg_images.Emplace( std::move(seg_image) );
 	  }
 	  LARCV_DEBUG() << "Crop " << fInputSegmentationProducer << " Images." << std::endl;
@@ -263,12 +270,12 @@ namespace larcv {
 	// Output PMT weighted
 	if ( fCropPMTWeighted )  {
 	  LARCV_DEBUG() << "Load " << fInputPMTWeightedProducer << " Images." << std::endl;
-	  auto input_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTWeightedProducer));
+
 	  LARCV_DEBUG() << "Allocate " << fOutputPMTWeightedProducer << " Images." << std::endl;
 	  auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
 	  output_pmtweighted_images->clear();
 	  LARCV_DEBUG() << "Crop " << fInputPMTWeightedProducer << " Images." << std::endl;
-	  cropEventImages( *input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
+	  cropEventImages( input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
 	}
 
 	// Finally let's store ROI w/ updated ImageMeta arrays
@@ -280,11 +287,9 @@ namespace larcv {
 	output_rois->clear();
 	
 	if(roi_producer_id != kINVALID_PRODUCER) {
-	  // Retrieve input ROI array
-	  auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
 	  // Loop over and store in output
 	  
-	  for(auto const& aroi : event_roi->ROIArray()) {
+	  for(auto const& aroi : event_roi.ROIArray()) {
 	    ++fProcessedROI;
 	    std::vector<larcv::ImageMeta> out_meta_v;
 	    try {
@@ -313,7 +318,7 @@ namespace larcv {
 	}
 
 	mgr.set_id(input_run,input_subrun,input_event);
-	LARCV_INFO() << "Storing entry for a division...";
+	LARCV_INFO() << "Storing entry for a division..." << std::endl;
 	mgr.save_entry();
 
       }//end of divlist loop
@@ -330,7 +335,7 @@ namespace larcv {
     // -------------------------------------------------------
     // Division list generators
 
-    void HiResImageDivider::generateSingleCosmicDivision( std::vector< int >& divlist, IOManager& mgr, larcv::ROI& roi ) {
+    void HiResImageDivider::generateSingleCosmicDivision( std::vector< int >& divlist, const EventImage2D& input_event_images, larcv::ROI& roi ) {
       // we randomly pick a division (by randomly drawing a position in the detector
       // we return a division which satisfies some minimum amount of interesting pixel threshold
       bool viewok = false;
@@ -339,7 +344,6 @@ namespace larcv {
       roi.Type(kROICosmic);
 	
       int idiv = -1;
-      auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
 
       while (!viewok && ntries<fMaxRedrawAttempts) {
 	ntries++;
@@ -367,7 +371,7 @@ namespace larcv {
 	}
 	larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
 	larcv::EventImage2D cosmic_test;
-	cropEventImages( *input_event_images, vertex_div, cosmic_test );
+	cropEventImages( input_event_images, vertex_div, cosmic_test );
 	if ( isAbovePixelThreshold( cosmic_test ) )  {
 	  viewok = true;
 	  break;
@@ -381,14 +385,11 @@ namespace larcv {
       }
     }
 
-    void HiResImageDivider::generateSingleMCDivision( std::vector< int >& divlist, IOManager& mgr, larcv::ROI& roi ) {
-      static const ProducerID_t roi_producer_id = mgr.producer_id(::larcv::kProductROI,fInputROIProducer);
-
+    void HiResImageDivider::generateSingleMCDivision( std::vector< int >& divlist, EventROI& event_roi, larcv::ROI& roi ) {
       int idiv = -1;
-      if(roi_producer_id != kINVALID_PRODUCER) {
+      if(!event_roi.ROIArray().empty()){
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for MC ROI..." << std::endl;
-	auto event_roi = (larcv::EventROI*)(mgr.get_data(roi_producer_id));
-	for ( auto const& aroi : event_roi->ROIArray() ) 
+	for ( auto const& aroi : event_roi.ROIArray() ) 
 	  if ( isInteresting(aroi) ) { roi = aroi; break; }
 
 	idiv = findVertexDivision( roi );
@@ -402,18 +403,19 @@ namespace larcv {
       }
     }
     
-    void HiResImageDivider::generateFitleredWholeImageDivision( std::vector< int >& divlist, IOManager& mgr ) {
+    void HiResImageDivider::generateFitleredWholeImageDivision( std::vector< int >& divlist, const EventImage2D& input_event_images) {
       // we loop through all divisions and make a test crop. we then test this cropped region if it
       // satisfies the conditions to be deemed interesting enough to save
-      auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
+      divlist.clear();
       for ( int idiv=0; idiv<(int)m_divisions.size(); idiv++ ) {
 	// div is a larcv::hires::DivisionDef
 	larcv::hires::DivisionDef const& div = m_divisions.at(idiv);
 	larcv::EventImage2D cropped;
-	cropEventImages( *input_event_images, div, cropped );
+	cropEventImages( input_event_images, div, cropped );
 	if ( isAbovePixelThreshold( cropped ) )
 	  divlist.push_back( idiv );
       }
+      LARCV_INFO() << "Generated " << divlist.size() << " / " << m_divisions.size() << " divisions..." << std::endl;
     }
 
     // -------------------------------------------------------
@@ -447,6 +449,9 @@ namespace larcv {
 	if ( fNumPixelRedrawThresh_v.at(i)>0 && npixels.at(i)<fNumPixelRedrawThresh_v.at(i) )
 	  nempty++;
       }
+      LARCV_INFO() << "... " << nempty << " planes below threshold: returning "
+		   << ( nempty >=fRedrawOnNEmptyPlanes ? "false" : "true" ) << std::endl;
+
       if ( nempty>=fRedrawOnNEmptyPlanes )
 	return false;
       
@@ -525,7 +530,7 @@ namespace larcv {
 	LARCV_INFO() << "downsampled. " << cropped.meta().height() << " x " << cropped.meta().width() << std::endl;
 	*/	
 	cropped_images.emplace_back( cropped );
-	LARCV_INFO() << "stored." << std::endl;
+	//LARCV_INFO() << "stored." << std::endl;
       }//end of plane loop
 
       output_images.Emplace( std::move( cropped_images ) );
