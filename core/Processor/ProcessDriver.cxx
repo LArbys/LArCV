@@ -149,6 +149,7 @@ namespace larcv {
     for(auto& p : _proc_v) if(p) { delete p; }
     _proc_v.clear();
     _proc_m.clear();
+    _has_event_creator=false;
     for(size_t i=0; i<process_instance_type_v.size(); ++i) {
       auto const& name = process_instance_name_v[i];
       auto const& type = process_instance_type_v[i];
@@ -169,6 +170,17 @@ namespace larcv {
       ptr->_id = id;
       ptr->_configure_(proc_config.get_pset(name));
       _proc_m[name] = id;
+      if(ptr->_event_creator) {
+	if(_has_event_creator) {
+	  LARCV_CRITICAL() << "Only 1 event creator is allowed to exist!" << std::endl;
+	  throw larbys();
+	}
+	if((i+1) != process_instance_type_v.size()) {
+	  LARCV_CRITICAL() << "Event creator must be set to the last of ProcessList!" << std::endl;
+	  throw larbys();
+	}
+	_has_event_creator=true;
+      }
       _proc_v.push_back(ptr);
     }
   }
@@ -239,9 +251,12 @@ namespace larcv {
       good_status = good_status && p->_process_(_io);
       if(!good_status && _enable_filter) break;
     }
-    // If not read mode save entry
-    if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) _io.save_entry();    
-    // Bump up entry record
+    // No event-write to be done if _has_event_creator is set. Otherwise go ahead
+    if(!_has_event_creator) {
+      // If not read mode save entry
+      if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) _io.save_entry();    
+      // Bump up entry record
+    }else _io.clear_entry();
     ++_current_entry;
 
     return good_status;
