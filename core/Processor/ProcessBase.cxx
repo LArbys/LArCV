@@ -17,7 +17,7 @@ namespace larcv {
   {
     _profile = cfg.get<bool>("Profile",_profile);
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
-    _event_creator=cfg.get<bool>("CreateEvent",false);
+    _event_creator=cfg.get<bool>("EventCreator",false);
     configure(cfg);
   }
   

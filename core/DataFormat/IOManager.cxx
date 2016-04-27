@@ -180,7 +180,18 @@ namespace larcv {
     _product_ctr+=1;
 
     LARCV_INFO() << "It is a new producer registration (key=" << id << ")" << std::endl;
-    
+
+    // Set event ID
+    if(_event_id.valid()) {
+      _product_ptr_v[id]->_run    = _event_id.run();
+      _product_ptr_v[id]->_subrun = _event_id.subrun();
+      _product_ptr_v[id]->_event  = _event_id.event();
+    }else if(_set_event_id.valid()) {
+      _product_ptr_v[id]->_run    = _set_event_id.run();
+      _product_ptr_v[id]->_subrun = _set_event_id.subrun();
+      _product_ptr_v[id]->_event  = _set_event_id.event();
+    }
+
     if(_io_mode != kWRITE) {
       LARCV_INFO() << "kREAD/kBOTH mode: creating an input TChain" << std::endl;
       LARCV_DEBUG() << "Branch name: " << br_name << " data pointer: " << _product_ptr_v[id] << std::endl;
@@ -197,7 +208,6 @@ namespace larcv {
       _out_tree_v[id] = new TTree(tree_name.c_str(),tree_desc.c_str());
       auto out_br_ptr = _out_tree_v[id]->Branch(br_name.c_str(), &(_product_ptr_v[id]));
       LARCV_DEBUG() << "Created TTree @ " << _out_tree_v[id] << " ... TBranch @ " << out_br_ptr << std::endl;
-
     }
 
     return id;

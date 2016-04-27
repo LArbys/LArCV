@@ -83,6 +83,8 @@ namespace larcv {
       }
       return *((T*)(get_data(id)));
     }
+
+    const EventBase& event_id() const { return ( _set_event_id.valid() ? _set_event_id : _event_id ); }
     
   private:
     void   set_id();

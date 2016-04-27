@@ -136,7 +136,7 @@ namespace larcv {
       ++fProcessedEvent;
       // This processor does the following:
       // 1) read in hi-res images (from producer specified in config)
-      // 2) (how to choose which one we clip?)
+      // 2) (how to choose which one we clip?)      
 
       // If it exists, we get the ROI which will guide us on how to use the image
       // This does not exist for cosmics, in which case we create
@@ -176,6 +176,16 @@ namespace larcv {
       }
 
       auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
+
+      larcv::EventImage2D* input_seg_images = nullptr;
+      if(roi.Type() != kROICosmic)
+	input_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer));
+
+      auto const& event_id = mgr.event_id();
+      const size_t input_run    = event_id.run();
+      const size_t input_subrun = event_id.subrun();
+      const size_t input_event  = event_id.event();
+      LARCV_INFO() << "Reading-in (run,subrun,event) = (" << input_run << "," << input_subrun << "," << input_event << ")" << std::endl;
       
       // now we loop through and make divisions
       for ( auto const& idiv : divlist ) {
@@ -228,10 +238,9 @@ namespace larcv {
 	}
 
 	// Output Segmentation
-	if ( fCropSegmentation ) {
+	if ( fCropSegmentation && input_seg_images ) {
 	  // the semantic segmentation is only filled in the neighboor hood of the interaction
 	  // we overlay it into a full image (and then crop out the division)
-	  auto input_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer));
 	  larcv::EventImage2D full_seg_images;
 	  for ( unsigned int p=0; p<3; p++ ) {
 	    larcv::Image2D const& img = input_event_images->at( p ); 
@@ -303,8 +312,12 @@ namespace larcv {
 	  output_rois->Emplace(std::move(roi));
 	}
 
+	mgr.set_id(input_run,input_subrun,input_event);
+	LARCV_INFO() << "Storing entry for a division...";
 	mgr.save_entry();
+
       }//end of divlist loop
+      LARCV_INFO() << "Done storing divisions";
       return true;
     }
     
@@ -328,7 +341,7 @@ namespace larcv {
       int idiv = -1;
       auto input_event_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer));
 
-      while (viewok && ntries<fMaxRedrawAttempts) {
+      while (!viewok && ntries<fMaxRedrawAttempts) {
 	ntries++;
 	// FIXME: need a way to get detector dimension somehow...
 	const double zmin = 0;
