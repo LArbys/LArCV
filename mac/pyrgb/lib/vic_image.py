@@ -15,13 +15,15 @@ class VicImage(PlotImage):
 
 		tmp_img_v=[]
 		for i in xrange(len(self.img_v)):
-			meta=larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
-			img=larcv.Image2D(meta)
-			img.paint(0.)
-			img.overlay(self.imgs[i])
-			tmp_img_v.append(img)
+		    meta=larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
+		    img=larcv.Image2D(meta)
+		    img.paint(0.)
+		    img.overlay(self.imgs[i])
+		    tmp_img_v.append(img)
+                    
 		self.imgs = tmp_img_v
 		self.img_v  = [ larcv.as_ndarray(img) for img in self.imgs  ]
+
 		for img in self.img_v: print img.shape
 
         self.__create_mat__()

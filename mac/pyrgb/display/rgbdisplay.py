@@ -18,7 +18,6 @@ class RGBDisplay(QtGui.QWidget) :
 
     def __init__(self,argv):
         super(RGBDisplay,self).__init__()
-
         
         ### Hold constants
         self.st = Storage()
@@ -124,16 +123,14 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.lay_inputs.addWidget( self.comboBoxROI, 1, 13 )
         
-        #Compressed or not comporessed image
-        # self.compression  = QtGui.QCheckBox("Compressed")
-        # self.lay_inputs.addWidget( self.compression, 0, 14 )
-        # self.compression.setChecked(True)
-
-        
         self.auto_range = QtGui.QPushButton("AutoRange")
         self.lay_inputs.addWidget( self.auto_range, 0, 14 )
 
-
+        self.draw_bbox = QtGui.QCheckBox("Draw ROI")
+        self.draw_bbox.setChecked(True)
+        self.lay_inputs.addWidget( self.draw_bbox, 1, 14 )
+        
+        
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
                         'kBOTH'  : (self.kBOTH ,[ i for i in xrange(10) ])}
@@ -148,15 +145,15 @@ class RGBDisplay(QtGui.QWidget) :
         self.previous_plot.clicked.connect( self.previousEvent )
         self.next_plot.clicked.connect    ( self.nextEvent )
 
-        ### Radio buttons
-        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1] ) )
-        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1]) )
-        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1])  )
+        ### Radio buttons 
+        self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1]   ) )
+        self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1] ) )
+        self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1]  ) )
 
         self.auto_range.clicked.connect( self.autoRange )
+
         ### Set of ROI's on view
         self.boxes = []
-
 
         self.comboBoxImage.activated[str].connect(self.chosenImageProducer)
         self.comboBoxROI.activated[str].connect(self.chosenROIProducer)
@@ -170,14 +167,9 @@ class RGBDisplay(QtGui.QWidget) :
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
         self.highres=False
-        #if re.search("mcint",self.image_producer) is None and re.search("segment",self.image_producer) is None:
-        #    self.highres = False
-        #else:
-        #    self.highres = True
 
         
     def chosenROIProducer(self):
-
         if self.roi_exists == True:
             self.roi_producer = str(self.comboBoxROI.currentText())
         
@@ -201,7 +193,6 @@ class RGBDisplay(QtGui.QWidget) :
         
         self.event.setText(str(event-1))
 
-        
         self.plotData()
 
         
@@ -236,7 +227,6 @@ class RGBDisplay(QtGui.QWidget) :
         imin  = int( self.imin.text() )
         imax  = int( self.imax.text() )
 
-
         self.setViewPlanes()
         
         pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax,
@@ -268,19 +258,19 @@ class RGBDisplay(QtGui.QWidget) :
         # Display the image
         #print ymin,ymax,xmin,xmax
         #xscale,yscale=(xmax-xmin) / pimg.shape[0]
+        
         self.imi.setImage(pimg)
 
         if self.roi_exists == True:
             self.drawBBOX( self.which_type() )
 
         self.autoRange()
-        #self.plt.setYRange(ymin,ymax,padding=0)
-        #self.plt.setXRange(xmin,xmax,padding=0)
 
 
     ### For now this is fine....
     def drawBBOX(self,kType):
-
+        
+        
         self.setViewPlanes()
         
         if self.image is None: #no image was drawn
@@ -291,9 +281,12 @@ class RGBDisplay(QtGui.QWidget) :
         
         for box in self.boxes:
             self.plt.removeItem(box)
-
-        self.boxes = []
             
+        if self.draw_bbox.isChecked() == False:
+            return
+        
+        self.boxes = []
+        
         for roi_p in self.rois:
 
             if roi_p['type'] not in kType:

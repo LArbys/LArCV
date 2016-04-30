@@ -3,9 +3,8 @@ import time, re
 
 from ..lib.iomanager        import IOManager
 
-from ..lib.compressed_image   import CompressedImage
-from ..lib.uncompressed_image import UnCompressedImage
 from ..lib.vic_image          import VicImage
+
 from .. import ROOT
 from .. import larcv
 
@@ -23,32 +22,6 @@ class DataManager(object):
 
         self.keys = { larcv.ProductName(larcv.kProductImage2D) : [img_producer,'segment_'+img_producer],
                       larcv.ProductName(larcv.kProductROI)     : [roi_producer] }
-
-        #get keys from rootfile
-        """
-        keys = [ key.GetName() for key in ROOT.gDirectory.GetListOfKeys() ]
-        self.keys= {}
-        for key in keys:
-            key  = key.split("_")
-            prod = key[0]
-
-            if prod not in self.keys.keys():
-                self.keys[ prod ] = []
-                
-            producer = ""
-
-            for k in key[1:]:
-
-                if k == "tree":
-                    producer = producer[:-1]
-                    break
-
-                producer += k + "_"
-
-            if not producer.startswith('op') and not producer.startswith('segment'):
-                self.keys[ prod ].append(producer)
-        """
-        print self.keys
 
         ### set of loaded images, we actually read them into
         ### memory with as_ndarray, but probably lose
@@ -74,20 +47,6 @@ class DataManager(object):
         if imdata.size() == 0 : return (None,None,None)
         image   = VicImage(imdata,roidata,planes)
 
-        #Awkward true false
-        #if highres == False:
-        #    print imgprod
-        #    imdata  = self.iom.iom.get_data(larcv.kProductImage2D,imgprod)
-        #    imdata  = imdata.Image2DArray()
-        #    if imdata.size() == 0 : return (None,None,None)
-        #    image   = CompressedImage(imdata,roidata,planes)
-            
-        #else:
-        #    print imgprod
-        #    imdata  = self.iom.iom.get_data( larcv.kProductImage2D,imgprod)
-        #    imdata  = imdata.Image2DArray()
-        #    if imdata.size() == 0 : return (None,None,None)
-        #    image   = UnCompressedImage(imdata,roidata,planes)
 
         if roiprod is None:
             return ( image.treshold_mat(imin,imax),

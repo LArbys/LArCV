@@ -7,13 +7,13 @@ import pyqtgraph as pg
 from pyrgb.display import rgbdisplay as rgbd
 
 
-inputs = sys.argv
-def usage() :
-    print("\n\t" + '\033[91m' + " view_rgb.py [root file]..." + '\033[0m' + "\n")
+# inputs = sys.argv
+# def usage() :
+#     print("\n\t" + '\033[91m' + " view_rgb.py [root file]..." + '\033[0m' + "\n")
 
-if len(inputs) < 2:
-    usage()
-    sys.exit(1)
+# if len(inputs) < 2:
+#     usage()
+#     sys.exit(1)
 
 
 app = QtGui.QApplication([])
