@@ -21,11 +21,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-ifeq ($(LARCV_OPENCV),1)
-	CXXFLAGS += -DHAS_OPENCV
-	LDFLAGS += -L$(OPENCV_LIBDIR) -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc
-	LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights 
-endif
+LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights
 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE

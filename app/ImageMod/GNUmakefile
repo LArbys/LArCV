@@ -1,7 +1,7 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = Binary
+PACKAGE_NAME = ImageMod
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
@@ -20,12 +20,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-CVLIBDIR = /usr/local/opt/opencv3/lib
-
-ifeq ($(LARCV_OPENCV),1)
-	CXXFLAGS += -DHAS_OPENCV
-	LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights -L$(CVLIBDIR) -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
-endif
+LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights 
 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
