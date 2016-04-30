@@ -133,6 +133,9 @@ class RGBDisplay(QtGui.QWidget) :
         self.auto_range = QtGui.QPushButton("AutoRange")
         self.lay_inputs.addWidget( self.auto_range, 0, 14 )
 
+        self.draw_bbox = QtGui.QCheckBox("Draw ROI")
+        self.draw_bbox.setChecked(True)
+        self.lay_inputs.addWidget( self.draw_bbox, 1, 14 )
 
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
@@ -245,6 +248,16 @@ class RGBDisplay(QtGui.QWidget) :
                                                               self.views,
                                                               self.highres)
 
+        if pimg is None:
+            self.image = None
+            return
+
+        self.imi.setImage(pimg)
+
+        if self.rois is None:
+            self.autoRange()
+            return
+
         xmin,xmax,ymin,ymax = (1e9,0,1e9,0)
         for roi in self.rois:
             for bb in roi['bbox']:
@@ -261,19 +274,11 @@ class RGBDisplay(QtGui.QWidget) :
             if ymax < bb.max_y(): ymax = bb.max_y()
             pixel_size = (bb.pixel_width(),bb.pixel_height())
 
-        if pimg is None:
-            self.image = None
-            return
-
-        # Display the image
-        #print ymin,ymax,xmin,xmax
-        #xscale,yscale=(xmax-xmin) / pimg.shape[0]
-        self.imi.setImage(pimg)
-
         if self.roi_exists == True:
             self.drawBBOX( self.which_type() )
 
         self.autoRange()
+
         #self.plt.setYRange(ymin,ymax,padding=0)
         #self.plt.setXRange(xmin,xmax,padding=0)
 
@@ -292,6 +297,9 @@ class RGBDisplay(QtGui.QWidget) :
         for box in self.boxes:
             self.plt.removeItem(box)
 
+        if self.draw_bbox.isChecked() == False:
+            return
+            
         self.boxes = []
             
         for roi_p in self.rois:
