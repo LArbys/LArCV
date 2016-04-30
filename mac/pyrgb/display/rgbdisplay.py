@@ -11,8 +11,9 @@ from ..lib.storage   import Storage
 
 from ..lib.hoverrect import HoverRect as HR
 
-import cv2
+from .. import cv2
 
+from caffelayout import CaffeLayout
 
 class RGBDisplay(QtGui.QWidget) :
 
@@ -33,8 +34,10 @@ class RGBDisplay(QtGui.QWidget) :
         
         ### Main Layout
         self.layout = QtGui.QGridLayout()
-        self.layout.addWidget( self.win, 0, 0, 1, 10 )
         self.setLayout(self.layout)
+        
+        self.layout.addWidget( self.win, 0, 0, 1, 10 )
+
         
         ### -------------
         ### Input Widgets
@@ -129,7 +132,11 @@ class RGBDisplay(QtGui.QWidget) :
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
         self.lay_inputs.addWidget( self.draw_bbox, 1, 14 )
-        
+
+        self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
+        self.rgbcaffe.setFixedWidth(130)
+        self.lay_inputs.addWidget( self.rgbcaffe, 0, 15 )
+    
         
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
@@ -163,7 +170,25 @@ class RGBDisplay(QtGui.QWidget) :
         
         self.plotData()
 
+        self.rgbcaffe.clicked.connect( self.expandWindow )
 
+        ### -------------
+        ### Caffe Widgets
+        ### -------------
+        self.caffe_layout = CaffeLayout()
+        
+    def expandWindow(self):
+        if re.search("Disable",self.rgbcaffe.text()) is None:
+            self.rgbcaffe.setText("Disable RGBCaffe")
+            self.resize( 1200, 900 )
+            self.layout.addLayout( self.caffe_layout.grid(True), 2, 0 )
+            
+        else:
+            self.rgbcaffe.setText("Enable RGBCaffe")
+            self.layout.removeItem(self.caffe_layout.grid(False))
+            self.resize( 1200, 700 )
+
+        
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
         self.highres=False
@@ -235,6 +260,17 @@ class RGBDisplay(QtGui.QWidget) :
                                                               self.views,
                                                               self.highres)
 
+
+        if pimg is None:
+            self.image = None
+            return
+
+        self.imi.setImage(pimg)
+
+        if self.rois is None:
+            self.autoRange()
+            return
+        
         xmin,xmax,ymin,ymax = (1e9,0,1e9,0)
         for roi in self.rois:
             for bb in roi['bbox']:
@@ -251,20 +287,14 @@ class RGBDisplay(QtGui.QWidget) :
             if ymax < bb.max_y(): ymax = bb.max_y()
             pixel_size = (bb.pixel_width(),bb.pixel_height())
 
-        if pimg is None:
-            self.image = None
-            return
 
-        # Display the image
-        #print ymin,ymax,xmin,xmax
-        #xscale,yscale=(xmax-xmin) / pimg.shape[0]
-        
-        self.imi.setImage(pimg)
-
+            
         if self.roi_exists == True:
             self.drawBBOX( self.which_type() )
 
         self.autoRange()
+
+
 
 
     ### For now this is fine....

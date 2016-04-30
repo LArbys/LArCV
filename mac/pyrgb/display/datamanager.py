@@ -35,7 +35,10 @@ class DataManager(object):
         self.iom.iom.read_entry(ii)
 
         imdata, roidata, image = None, None, None
-
+        
+        if roiprod == "None":
+            roiprod = None
+        
         if roiprod is not None:
             print roiprod
             roidata = self.iom.iom.get_data(larcv.kProductROI,roiprod)
