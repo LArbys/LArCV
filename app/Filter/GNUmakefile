@@ -1,7 +1,7 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = HiRes
+PACKAGE_NAME = Filter
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
@@ -12,7 +12,6 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
-INCFLAGS += -I$(OPENCV_INCDIR)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
@@ -21,12 +20,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-ifeq ($(LARCV_OPENCV),1)
-	CXXFLAGS += -DHAS_OPENCV
-	LDFLAGS += -L$(OPENCV_LIBDIR) -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc
-	LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights 
-endif
-
+LDFLAGS += $(shell larcv-config --libs) 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 

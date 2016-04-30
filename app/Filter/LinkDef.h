@@ -17,7 +17,7 @@
 #pragma link C++ class larcv::ADCScaleAna+;
 #pragma link C++ class larcv::ADCScale+;
 #pragma link C++ class larcv::CombineImages+;
-#pragma link C++ class larcv::SliceImages+;
+#pragma link C++ class larcv::MCFilter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
