@@ -7,26 +7,25 @@ class VicImage(PlotImage):
     def __init__(self,img_v,roi_v,planes) :
         super(VicImage,self).__init__(img_v,roi_v,planes)
         self.name = "VicImage"
-
+        
       	ometa = None
-    	for img in self.imgs:
-    		if not ometa: ometa = larcv.ImageMeta(img.meta())
-	    	else: ometa = ometa.inclusive(img.meta())
+        for img in self.imgs:
+            if ometa == None: ometa = larcv.ImageMeta(img.meta())
+	    else:             ometa = ometa.inclusive(img.meta())
 
-		tmp_img_v=[]
-		for i in xrange(len(self.img_v)):
-			meta=larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
-			img=larcv.Image2D(meta)
-			img.paint(0.)
-			img.overlay(self.imgs[i])
-			tmp_img_v.append(img)
-		self.imgs = tmp_img_v
-		self.img_v  = [ larcv.as_ndarray(img) for img in self.imgs  ]
-		for img in self.img_v: print img.shape
+	tmp_img_v=[]
+        for i in xrange(len(self.img_v)):
+	    meta= larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
+	    img = larcv.Image2D(meta)
+	    img.paint(0.)
+	    img.overlay(self.imgs[i])
+	    tmp_img_v.append(img)
+        self.imgs  = tmp_img_v
+        self.img_v = [ larcv.as_ndarray(img) for img in tmp_img_v  ]
+        
 
         self.__create_mat__()
         self.plot_mat_t = None
-
         
         self.rois = []
     
@@ -36,7 +35,7 @@ class VicImage(PlotImage):
         self.plot_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
         for ix,img in enumerate(self.img_v):
-
+            
             if ix not in self.planes:
                 continue
             

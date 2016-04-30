@@ -6,7 +6,6 @@ class PlotImage(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self,img_v,roi_v,planes):
-        
         self.imgs   = [ img_v[i] for i in xrange(img_v.size()) ]
         self.img_v  = [ larcv.as_ndarray(img) for img in self.imgs  ]
 
