@@ -287,14 +287,11 @@ class RGBDisplay(QtGui.QWidget) :
             if ymax < bb.max_y(): ymax = bb.max_y()
             pixel_size = (bb.pixel_width(),bb.pixel_height())
 
-
             
         if self.roi_exists == True:
             self.drawBBOX( self.which_type() )
 
         self.autoRange()
-
-
 
 
     ### For now this is fine....
