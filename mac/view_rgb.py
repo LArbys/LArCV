@@ -1,11 +1,10 @@
 #!/usr/bin python
-#thanks taritree(!)
+# thanks taritree(!)
 
 import os,sys
 from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 from pyrgb.display import rgbdisplay as rgbd
-
 
 inputs = sys.argv
 

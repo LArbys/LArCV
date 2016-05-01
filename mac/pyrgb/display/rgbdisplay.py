@@ -22,31 +22,28 @@ class RGBDisplay(QtGui.QWidget) :
     def __init__(self,argv):
         super(RGBDisplay,self).__init__()
         
-        ### DataManager
+        ### DataManager for loading the plot image
         self.dm = DataManager(argv)
 
+        ### Size the canvas
         self.resize( 1200, 700 )
         
+        ### Graphics window which will hold the image
         self.win = pg.GraphicsWindow()
-
         self.plt  = self.win.addPlot()
-
+        # Handles to the axis which we will update with wire/tick
         self.plt_x = self.plt.getAxis('bottom')
         self.plt_y = self.plt.getAxis('left')
         
         ### Main Layout
         self.layout  = QtGui.QGridLayout()
-        self.runinfo = QtGui.QLabel("Run: -1 Subrun: -1 Event: -1")
-        
+        # run information up top
+        self.runinfo = QtGui.QLabel("<b>Run:</b> -1 <b>Subrun:</b> -1 <b>Event:</b> -1")
         self.layout.addWidget( self.runinfo, 0, 0)
-        
         self.layout.addWidget( self.win, 1, 0, 1, 10 )
         self.setLayout(self.layout)
         
-        ### -------------
         ### Input Widgets
-        ### -------------
-        
         ### Layouts
         self.lay_inputs = QtGui.QGridLayout()
         self.layout.addLayout( self.lay_inputs, 2, 0 )
@@ -57,15 +54,14 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.event, 0, 1 )
 
         ### imin
-        self.imin = QtGui.QLineEdit("%d"%(0)) 
+        self.imin = QtGui.QLineEdit("%d"%(5)) 
         self.lay_inputs.addWidget( QtGui.QLabel("imin"), 0, 2)
         self.lay_inputs.addWidget( self.imin, 0, 3 )
 
         ### imax
-        self.imax = QtGui.QLineEdit("%d"%(5))
+        self.imax = QtGui.QLineEdit("%d"%(400))
         self.lay_inputs.addWidget( QtGui.QLabel("imax"), 0, 4)
         self.lay_inputs.addWidget( self.imax, 0, 5 )
-
         
         ### select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
@@ -92,6 +88,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.kBOTH  = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
 
+        #Check boxes for drawing plane1/2/3 -- perhaps should
+        #become tied to current image being shown (N planes...)
         self.p0 = QtGui.QCheckBox("Plane 0")
         self.p0.setChecked(True)
         self.lay_inputs.addWidget( self.p0, 1, 9 )
@@ -107,6 +105,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.planes = [ self.p0, self.p1, self.p2 ]
         self.views = []
         
+        #Combo box to select the image producer
         self.lay_inputs.addWidget( QtGui.QLabel("Image2D"), 0, 12)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
@@ -116,6 +115,7 @@ class RGBDisplay(QtGui.QWidget) :
             
         self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
 
+        #and another combo box to select ROI
         self.lay_inputs.addWidget( QtGui.QLabel("ROI"), 0, 13)
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer   = None
@@ -130,39 +130,43 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.lay_inputs.addWidget( self.comboBoxROI, 1, 13 )
         
+        #Auto range function        
         self.auto_range = QtGui.QPushButton("AutoRange")
         self.lay_inputs.addWidget( self.auto_range, 0, 14 )
 
+        # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
         self.lay_inputs.addWidget( self.draw_bbox, 1, 14 )
 
+        #RGBCaffe will open and close bottom of the window
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcaffe.setFixedWidth(130)
         self.lay_inputs.addWidget( self.rgbcaffe, 0, 15 )
         
+        #Particle types
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
                         'kBOTH'  : (self.kBOTH ,[ i for i in xrange(10) ])}
         
-        ### The current image array, useful for meta
+        ### The current image array, useful for getting meta
         self.image = None
 
-        ### Plot button
+        ### (Re)Plot button
         self.axis_plot.clicked.connect( self.plotData )
 
-        ### Previous and Next 
+        ### Previous and Next event
         self.previous_plot.clicked.connect( self.previousEvent )
         self.next_plot.clicked.connect    ( self.nextEvent )
 
-        ### Radio buttons 
+        ### Radio buttons for choosing type of ROI
         self.kBNB.clicked.connect   ( lambda: self.drawBBOX(self.kTypes['kBNB'][1]   ) )
         self.kOTHER.clicked.connect ( lambda: self.drawBBOX(self.kTypes['kOTHER'][1] ) )
         self.kBOTH.clicked.connect  ( lambda: self.drawBBOX(self.kTypes['kBOTH'][1]  ) )
 
         self.auto_range.clicked.connect( self.autoRange )
 
-        ### Set of ROI's on view
+        ### Set of ROI's on the current view -- just "boxes"
         self.boxes = []
 
         self.comboBoxImage.activated[str].connect(self.chosenImageProducer)
@@ -175,12 +179,11 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.rgbcaffe.clicked.connect( self.expandWindow )
 
-        ### -------------
         ### Caffe Widgets
-        ### -------------
-        self.caffe_test   = TestWrapper()
+        #wrapper for FORWARD function
+        self.caffe_test   = TestWrapper() 
+        #wrapper for the caffe specific layout
         self.caffe_layout = CaffeLayout(self.caffe_test)
-        
         
     def expandWindow(self):
         if re.search("Disable",self.rgbcaffe.text()) is None:
@@ -194,7 +197,7 @@ class RGBDisplay(QtGui.QWidget) :
 
 
     def setRunInfo(self,run,subrun,event):
-        self.runinfo.setText("Run: {} Subrun: {} Event: {}".format(run,subrun,event))
+        self.runinfo.setText("<b>Run:</b> {} <b>Subrun:</b> {} <b>Event:</b> {}".format(run,subrun,event))
         
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
@@ -256,7 +259,6 @@ class RGBDisplay(QtGui.QWidget) :
     
     def autoRange(self):
 
-
         xticks, yticks = self.get_ticks()
         
         self.plt_y.setTicks(yticks)
@@ -268,6 +270,7 @@ class RGBDisplay(QtGui.QWidget) :
                         self.dm.event)
     
     def which_type(self):
+
         for button in self.kTypes:
             if self.kTypes[button][0].isChecked():
                 return self.kTypes[button][1]
@@ -366,23 +369,29 @@ class RGBDisplay(QtGui.QWidget) :
     ### For now this is fine....
     def drawBBOX(self,kType):
         
-        
+        # set the planes to be drawn
         self.setViewPlanes()
         
-        if self.image is None: #no image was drawn
-            return
-
-        if kType is None: #no type to draw
+        # no image to draw ontop of
+        if self.image is None: 
             return
         
+        # no type to draw
+        if kType is None: 
+            return
+
+        # remove the current set of boxes
         for box in self.boxes:
             self.plt.removeItem(box)
 
+        # if thie box is unchecked don't draw it
         if self.draw_bbox.isChecked() == False:
             return
-            
+        
+        # clear boxes explicitly
         self.boxes = []
         
+        # and makew new boxes
         for roi_p in self.rois:
 
             if roi_p['type'] not in kType:
@@ -402,27 +411,20 @@ class RGBDisplay(QtGui.QWidget) :
                 dw_i = imm.cols() / ( imm.max_x() - imm.min_x() )
                 dh_i = imm.rows() / ( imm.max_y() - imm.min_y() )
 
-                #w_b is width of a lectangle in original unit
+                #w_b is width of a rectangle in original unit
                 w_b = bbox.max_x() - bbox.min_x()
                 h_b = bbox.max_y() - bbox.min_y()
                 
-                print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,imm.bl().x,imm.bl().y) 
-                #if self.highres == True:
-                #    dw_i = 1.0;
-                #    dh_i = 1.0;
-                #   x = bbox.bl().x
-                #    #Temporary hack bbox.bl() doesn't match imm.bl() !!
-                #    y = bbox.bl().y
+                # print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,imm.bl().x,imm.bl().y) 
                 
                 #Set the text
                 ti = pg.TextItem(text=STORAGE.particle_types[ roi_p['type'] ])
                 ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
 
-                # print "ix: {} bbox x {} y {} wb {} hb {} dw_i {} dh_i {}".format(ix,x,y,w_b,h_b,dw_i,dh_i)
-                
                 print x*dw_i,y*dh_i,w_b*dw_i,h_b*dh_i
-                r1 = HR(x * dw_i,
-                        y * dh_i,
+
+                r1 = HR(x   * dw_i,
+                        y   * dh_i,
                         w_b * dw_i,
                         h_b * dh_i,
                         ti,self.plt)

@@ -7,16 +7,18 @@ class CaffeLayout(object):
         
         self.caffe_inputs = QtGui.QGridLayout()
 
+        self.caffe_label = QtGui.QLabel("<b>Caffe Integration</b>")
         self.open_deploy = QtGui.QPushButton("Open")
         self.load_config = QtGui.QPushButton("Load")
-        self.line_deploy = QtGui.QLineEdit("path/to/deploy")
+        self.line_deploy = QtGui.QLineEdit("absolute path to configuration YAML")
         self.load_config.clicked.connect(self.loadConfig)
         self.open_deploy.clicked.connect(self.selectFile)
 
         self.forward = QtGui.QPushButton("Forward")
         self.forward.clicked.connect(self.network_forward)
 
-        self.scores = QtGui.QLabel("Scores:")
+        self.loaded_config = QtGui.QLabel("")
+        self.scores = QtGui.QLabel("")
         
         self.tw = tw
 
@@ -25,11 +27,13 @@ class CaffeLayout(object):
         
     def grid(self,enable):
         if enable == True:
-            self.caffe_inputs.addWidget(self.line_deploy,0,0)
-            self.caffe_inputs.addWidget(self.open_deploy,0,1)
-            self.caffe_inputs.addWidget(self.load_config,0,2)
-            self.caffe_inputs.addWidget(self.forward,0,3)
-            self.caffe_inputs.addWidget(self.scores,1,0)
+            self.caffe_inputs.addWidget(self.caffe_label,0,0)
+            self.caffe_inputs.addWidget(self.line_deploy,1,0)
+            self.caffe_inputs.addWidget(self.open_deploy,1,1)
+            self.caffe_inputs.addWidget(self.load_config,1,2)
+            self.caffe_inputs.addWidget(self.forward,1,3)
+            self.caffe_inputs.addWidget(self.loaded_config,2,0)
+            self.caffe_inputs.addWidget(self.scores,3,0)
                 
         else:
             for i in reversed(range(self.caffe_inputs.count())):
@@ -38,10 +42,10 @@ class CaffeLayout(object):
         return self.caffe_inputs
 
     def loadConfig(self):
-        self.tw.set_config( str(self.line_deploy.text()) )
+        cfg = str( self.line_deploy.text() )
+        self.tw.set_config( cfg )
+        self.loaded_config.setText("<b>Loaded:</b> {}".format( cfg ) )
                 
     def network_forward(self):
         self.tw.forward_result()
-        
-        scores = self.tw.scores[0]
-        self.scores.setText("Scores: {}".format(scores))
+        self.scores.setText("<b>Scores:</b> {}".format(self.tw.scores))

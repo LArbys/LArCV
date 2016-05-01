@@ -8,35 +8,58 @@ class TestWrapper(object):
     def __init__(self):
         self.name = "TestWrapper"
 
+        # Configuration
         self.config = None
+
+        # The caffe net -- should only get loaded once when
+        # running forward for the first time
         self.net    = None
 
+        # Already loaded caffe or not
         self.loaded  = False
+
+        # pointer to the current image
         self.pimg    = None
+
+        # caffe itself
         self.caffe   = None
+
+        # iomanager instance
         self.iom     = None
+
+        # did config change since last running?
+        self.config_changed = None
         
     def set_config(self,config):
+        self.config_changed = True
         self.config = config
-    
-    def load(self):
-        sys.path.insert(0,'/Users/vgenty/git/caffe/python')
 
-        import caffe
-        self.caffe = caffe
-        self.caffe.set_mode_cpu()
-        self.reload_config()
 
-    def reload_config(self):
+    def load_config(self):
         with open(self.config, 'r') as f:
             self.config = yaml.load(f)
 
+        self.config_changed = False
+        
+    def load(self):
+        self.load_config()
+        print self.config['cafferoot']
+        sys.path.insert(0,self.config['cafferoot'])
+
+        import caffe
+        self.caffe = caffe
+        if self.config['usecpu'] :
+            self.caffe.set_mode_cpu()
+        else:
+            self.caffe.set_mode_gpu()
+            self.caffe.set_device(set.config['gpuid'])
+        
         self.__generate_model__()
         self.__create_net__()
-
+        
     def __create_net__(self):
         assert self.config is not None        
-        self.net = self.caffe.Net( self.config['tmpmodel'],
+        self.net = self.caffe.Net( self.config['model'],
                                    self.config["pretrainedmodel"],
                                    self.caffe.TEST )
         
@@ -54,7 +77,7 @@ class TestWrapper(object):
             self.iom = IOManager([self.config['meanfile']])
             self.iom.read_entry(0)
             means  = self.iom.get_data(larcv.kProductImage2D,self.config['meanproducer'])
-            self.mean_v = [ larcv.as_ndarray(img)[:,::-1] for img in means.Image2DArray() ]
+            self.mean_v = [ larcv.as_ndarray(img) for img in means.Image2DArray() ]
 
         for ix,mean in enumerate(self.mean_v):
             assert mean.shape == im[:,:,ix].shape
@@ -67,8 +90,8 @@ class TestWrapper(object):
         
     def forward_result(self):
 
-        if self.loaded == False: self.load()
-        self.loaded = True
+        if self.config_changed == True: self.load()
+        self.config_changed = False
 
         blob = {'data' : None, 'label' : None}
         
@@ -94,15 +117,15 @@ class TestWrapper(object):
         blobs_out = self.net.forward(**forward_kwargs)
         
         scores  =  self.net.blobs[ self.config['lastfc'] ].data
-        softmax =  self.net.blobs[ self.config['loss']   ].data
+        #softmax =  self.net.blobs[ self.config['loss']   ].data
 
         self.scores = scores
         print "Scores:  {}".format(scores)
-        print "Softmax: {}".format(softmax)
+        #print "Softmax: {}".format(softmax)
 
         
     def __generate_model__(self):
-        print self.pimg.shape
+        print "\t>> Got an image of shape: {}".format(self.pimg.shape)
         td = ""
         td += "input: \"data\"\n"
         td += "input_shape: { dim: 1 dim: 3 dim: %s dim: %s } \n"%(self.pimg.shape[0],
@@ -115,7 +138,6 @@ class TestWrapper(object):
             proto = f.read()
         
         proto = td + proto
-        fout = open(self.config['tmpmodel'],'w+')
+        fout = open(self.config['model'],'w+')
         fout.write(proto)
         fout.close()
-
