@@ -16,6 +16,7 @@ from ..lib.hoverrect import HoverRect as HR
 from caffelayout import CaffeLayout
 from ..rgb_caffe.testwrapper import TestWrapper
 
+from cv2display import CV2Display
 
 class RGBDisplay(QtGui.QWidget) :
 
@@ -27,10 +28,20 @@ class RGBDisplay(QtGui.QWidget) :
 
         ### Size the canvas
         self.resize( 1200, 700 )
-        
+
+        ### Sliding ROI which we will do OpenCV manipulations on
+        self.swindow = pg.ROI([0, 0], [10, 10])
+        self.swindow.addScaleHandle([0.0, 0.0], [0.5, 0.5])
+        self.swindow.addScaleHandle([0.0, 1.0], [0.5, 0.5])
+        self.swindow.addScaleHandle([1.0, 1.0], [0.5, 0.5])
+        self.swindow.addScaleHandle([1.0, 0.0], [0.5, 0.5])
+
+        self.swindow.sigRegionChanged.connect(self.regionChanged)
+
         ### Graphics window which will hold the image
-        self.win = pg.GraphicsWindow()
+        self.win  = pg.GraphicsWindow()
         self.plt  = self.win.addPlot()
+
         # Handles to the axis which we will update with wire/tick
         self.plt_x = self.plt.getAxis('bottom')
         self.plt_y = self.plt.getAxis('left')
@@ -141,8 +152,13 @@ class RGBDisplay(QtGui.QWidget) :
 
         #RGBCaffe will open and close bottom of the window
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
+        self.rgbcv2   = QtGui.QPushButton("Enable OpenCV")
+        
         self.rgbcaffe.setFixedWidth(130)
+        self.rgbcv2.setFixedWidth(130)
+
         self.lay_inputs.addWidget( self.rgbcaffe, 0, 15 )
+        self.lay_inputs.addWidget( self.rgbcv2, 1, 15 )
         
         #Particle types
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
@@ -178,13 +194,19 @@ class RGBDisplay(QtGui.QWidget) :
         self.pimg = None
 
         self.rgbcaffe.clicked.connect( self.expandWindow )
+        self.rgbcv2.clicked.connect( self.openCVEditor )
 
         ### Caffe Widgets
         #wrapper for FORWARD function
         self.caffe_test   = TestWrapper() 
         #wrapper for the caffe specific layout
         self.caffe_layout = CaffeLayout(self.caffe_test)
+
+        ### OpenCV Widgets
+        #wrapper for the opencv specific window
+        self.cv2_display = CV2Display()
         
+
     def expandWindow(self):
         if re.search("Disable",self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
@@ -195,6 +217,14 @@ class RGBDisplay(QtGui.QWidget) :
             self.layout.removeItem(self.caffe_layout.grid(False))
             self.resize( 1200, 700 )
 
+    def openCVEditor(self):
+        if re.search("Disable",self.rgbcv2.text()) is None:
+            self.rgbcv2.setText("Disable OpenCV")
+            self.cv2_display.enable()
+            self.cv2_display.show()
+        else:
+            self.rgbcv2.setText("Enable OpenCV")
+            self.cv2_display.hide()
 
     def setRunInfo(self,run,subrun,event):
         self.runinfo.setText("<b>Run:</b> {} <b>Subrun:</b> {} <b>Event:</b> {}".format(run,subrun,event))
@@ -203,7 +233,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.image_producer = str(self.comboBoxImage.currentText())
         self.highres=False
 
-        
     def chosenROIProducer(self):
         if self.roi_exists == True:
             self.roi_producer = str(self.comboBoxROI.currentText())
@@ -268,7 +297,10 @@ class RGBDisplay(QtGui.QWidget) :
         self.setRunInfo(self.dm.run,
                         self.dm.subrun,
                         self.dm.event)
-    
+
+        self.plt.addItem(self.swindow)
+        self.swindow.setZValue(10)         
+
     def which_type(self):
 
         for button in self.kTypes:
@@ -337,7 +369,9 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.caffe_test.set_image(plotimage.orig_mat)
         self.pimg = pimg
-        self.imi.setImage(pimg)
+
+        # Emplace the image on the canvas
+        self.imi.setImage(self.pimg)
 
         if self.rois is None:
             self.autoRange()
@@ -433,4 +467,7 @@ class RGBDisplay(QtGui.QWidget) :
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
+
+    def regionChanged(self):
+        self.cv2_display.paint(self.swindow.getArrayRegion(self.pimg,self.imi))
 
