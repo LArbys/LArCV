@@ -1,33 +1,11 @@
 from plotimage import PlotImage
-from larcv import larcv
 from .. import np
 
-class VicImage(PlotImage):
+class DefaultImage(PlotImage):
 
     def __init__(self,img_v,roi_v,planes) :
-        super(VicImage,self).__init__(img_v,roi_v,planes)
-        self.name = "VicImage"
-        
-      	ometa = None
-        for img in self.imgs:
-            if ometa == None: ometa = larcv.ImageMeta(img.meta())
-	    else:             ometa = ometa.inclusive(img.meta())
-
-	tmp_img_v=[]
-        for i in xrange(len(self.img_v)):
-	    meta= larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
-	    img = larcv.Image2D(meta)
-	    img.paint(0.)
-	    img.overlay(self.imgs[i])
-	    tmp_img_v.append(img)
-
-        self.imgs  = tmp_img_v
-        self.img_v = [ larcv.as_ndarray(img) for img in tmp_img_v  ]
-        
-        self.__create_mat__()
-        self.plot_mat_t = None
-        
-        self.rois = []
+        super(DefaultImage,self).__init__(img_v,roi_v,planes)
+        self.name = "DefaultImage"
     
     def __create_mat__(self):
 
@@ -43,11 +21,12 @@ class VicImage(PlotImage):
             
             self.plot_mat[:,:,ix] = img
             
-
+        self.orig_mat = self.plot_mat.copy()
+        
         self.plot_mat[:,:,0][ self.plot_mat[:,:,1] > 0.0 ] = 0.0
         self.plot_mat[:,:,0][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
         self.plot_mat[:,:,1][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
-            
+        
     def __threshold_mat__(self,imin,imax):
 
         #Have to profile this copy operation, could be bad
@@ -72,7 +51,6 @@ class VicImage(PlotImage):
             r['type'] = roi.Type()
             r['bbox'] = []
 
-            
             for iy in xrange(nbb):
                 bb = roi.BB()[iy]
                 r['bbox'].append(bb)

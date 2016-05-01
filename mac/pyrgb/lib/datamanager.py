@@ -1,13 +1,11 @@
-
 import numpy as np
 import time, re
 
-from ..lib.iomanager        import IOManager
-
-from ..lib.vic_image          import VicImage
-
 from .. import ROOT
 from .. import larcv
+
+from iomanager import IOManager
+from imagefactory import ImageFactory
 
 class DataManager(object):
 
@@ -16,6 +14,8 @@ class DataManager(object):
         self.iom = IOManager(argv)
         self.keys ={}
 
+        self.IF = ImageFactory()
+        
         # get keys from rootfile
         for i in xrange(larcv.kProductUnknown):
             product = larcv.ProductName(i)
@@ -54,20 +54,26 @@ class DataManager(object):
         self.subrun = imdata.subrun()
         self.event  = imdata.event()
         
-        print "imdata.event_key() {}".format(imdata.event_key())
-
         imdata  = imdata.Image2DArray()
-
-        print "imdata.size(): {}".format(imdata.size())
-        
         if imdata.size() == 0 : return (None,None,None)
-        image   = VicImage(imdata,roidata,planes)
+
+        image  = self.IF.get(imdata,roidata,planes,imgprod)
 
         if roiprod is None:
             return ( image.treshold_mat(imin,imax),
                      None,
-                     image.imgs )
+                     image )
     
         return ( image.treshold_mat(imin,imax),
                  image.parse_rois(),
-                 image.imgs )
+                 image )
+    
+
+
+
+
+
+
+
+
+

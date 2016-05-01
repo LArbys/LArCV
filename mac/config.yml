@@ -1,8 +1,12 @@
 modelfile : /Users/vgenty/Desktop/trial_fake/2_class_deploy.prototxt
 pretrainedmodel: /Users/vgenty/Desktop/snapshot_rmsprop_nu_alex_fake_iter_3100.caffemodel.h5
 meanfile: /Users/vgenty/Desktop/trial_fake/mean_valid.root
+meanproducer: fake_color
 
 tmpmodel: /tmp/test.prototxt
+
+imin : 0
+imax : 255
 
 imin_plane0: 0
 imin_plane1: 0

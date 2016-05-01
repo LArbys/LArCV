@@ -3,15 +3,15 @@
 import os,sys,copy,re
 from .. import QtGui, QtCore
 from .. import pg
+
 import numpy as np
 import time
 
-import datamanager
-from ..lib.storage   import Storage
+from ..lib.datamanager import DataManager
+from ..lib import storage as STORAGE
 
 from ..lib.hoverrect import HoverRect as HR
 
-from .. import cv2
 
 from caffelayout import CaffeLayout
 from ..rgb_caffe.testwrapper import TestWrapper
@@ -22,14 +22,9 @@ class RGBDisplay(QtGui.QWidget) :
     def __init__(self,argv):
         super(RGBDisplay,self).__init__()
         
-        ### Hold constants
-        self.st = Storage()
-        
         ### DataManager
-        self.dm = datamanager.DataManager(argv)
+        self.dm = DataManager(argv)
 
-        
-        
         self.resize( 1200, 700 )
         
         self.win = pg.GraphicsWindow()
@@ -299,7 +294,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.plotData()
 
 
-
     def setViewPlanes(self):
 
         self.views = []
@@ -326,18 +320,19 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.setViewPlanes()
         
-        pimg, self.rois, self.image = self.dm.get_event_image(event,imin,imax,
-                                                              self.image_producer,
-                                                              self.roi_producer,
-                                                              self.views,
-                                                              self.highres)
+        pimg, self.rois, plotimage = self.dm.get_event_image(event,imin,imax,
+                                                             self.image_producer,
+                                                             self.roi_producer,
+                                                             self.views,
+                                                             self.highres)
 
-
+        self.image = plotimage.imgs
+        
         if pimg is None:
             self.image = None
             return
 
-        self.caffe_test.set_image(pimg)
+        self.caffe_test.set_image(plotimage.orig_mat)
         self.pimg = pimg
         self.imi.setImage(pimg)
 
@@ -420,7 +415,7 @@ class RGBDisplay(QtGui.QWidget) :
                 #    y = bbox.bl().y
                 
                 #Set the text
-                ti = pg.TextItem(text=self.st.particle_types[ roi_p['type'] ])
+                ti = pg.TextItem(text=STORAGE.particle_types[ roi_p['type'] ])
                 ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
 
                 # print "ix: {} bbox x {} y {} wb {} hb {} dw_i {} dh_i {}".format(ix,x,y,w_b,h_b,dw_i,dh_i)
@@ -432,7 +427,7 @@ class RGBDisplay(QtGui.QWidget) :
                         h_b * dh_i,
                         ti,self.plt)
 
-                r1.setPen(pg.mkPen(self.st.colors[ix]))
+                r1.setPen(pg.mkPen(STORAGE.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)

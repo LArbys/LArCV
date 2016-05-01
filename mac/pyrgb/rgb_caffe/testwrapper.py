@@ -1,56 +1,82 @@
 import os,sys
 import numpy as np
 import yaml
-sys.path.insert(0,'/Users/vgenty/git/caffe/python')
-import caffe
-
+from ..lib.iomanager import IOManager
+from .. import larcv
 class TestWrapper(object):
 
     def __init__(self):
         self.name = "TestWrapper"
-        self.config = "/Users/vgenty/git/LArCV/mac/config.yml"
-        self.modelfile = None
-        self.net = None
-        self.loaded = False
-        self.pimg = None
 
+        self.config = None
+        self.net    = None
+
+        self.loaded  = False
+        self.pimg    = None
+        self.caffe   = None
+        self.iom     = None
+        
+    def set_config(self,config):
+        self.config = config
+    
     def load(self):
-        caffe.set_mode_cpu()
-        self.reload_config(self.config)
-        #caffe.set_device(0)
+        sys.path.insert(0,'/Users/vgenty/git/caffe/python')
 
-    def reload_config(self,config):
-        with open(config, 'r') as f:
+        import caffe
+        self.caffe = caffe
+        self.caffe.set_mode_cpu()
+        self.reload_config()
+
+    def reload_config(self):
+        with open(self.config, 'r') as f:
             self.config = yaml.load(f)
-        print self.config
+
         self.__generate_model__()
         self.__create_net__()
 
     def __create_net__(self):
         assert self.config is not None        
-        self.net = caffe.Net( self.config['tmpmodel'],
-                              self.config["pretrainedmodel"],
-                              caffe.TEST )
+        self.net = self.caffe.Net( self.config['tmpmodel'],
+                                   self.config["pretrainedmodel"],
+                                   self.caffe.TEST )
         
         
     def set_image(self,image):
         self.pimg = image
 
+    def prep_image(self):
+        assert self.pimg is not None
+        
+        im = self.pimg.astype(np.float32,copy=True)
+
+        #load the mean_file:
+        if self.iom is None:
+            self.iom = IOManager([self.config['meanfile']])
+            self.iom.read_entry(0)
+            means  = self.iom.get_data(larcv.kProductImage2D,self.config['meanproducer'])
+            self.mean_v = [ larcv.as_ndarray(img)[:,::-1] for img in means.Image2DArray() ]
+
+        for ix,mean in enumerate(self.mean_v):
+            assert mean.shape == im[:,:,ix].shape
+            im[:,:,ix] -= mean
+        
+        im[ im < self.config['imin'] ] = self.config['imin']
+        im[ im > self.config['imax'] ] = self.config['imax']
+        
+        return im
         
     def forward_result(self):
 
-        if self.loaded == False:
-            self.load()
+        if self.loaded == False: self.load()
+        self.loaded = True
 
-        im = self.pimg.astype(np.float32,copy=True)
         blob = {'data' : None, 'label' : None}
-
-        print "Not subtracting pixel means!"
-        #im_orig -= cfg.PIXEL_MEANS
+        
+        im = self.prep_image()
         
         blob['data'] = np.zeros((1, im.shape[0], im.shape[1], 3),dtype=np.float32)
         print blob['data'].shape
-        print im.shape
+
         blob['data'][0,:,:,:] = im
 
         channel_swap = (0, 3, 1, 2)
@@ -70,6 +96,7 @@ class TestWrapper(object):
         scores  =  self.net.blobs[ self.config['lastfc'] ].data
         softmax =  self.net.blobs[ self.config['loss']   ].data
 
+        self.scores = scores
         print "Scores:  {}".format(scores)
         print "Softmax: {}".format(softmax)
 
