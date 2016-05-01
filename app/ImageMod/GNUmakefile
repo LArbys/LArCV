@@ -1,7 +1,7 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = HistADC
+PACKAGE_NAME = ImageMod
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
@@ -20,7 +20,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights
+LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights 
 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE

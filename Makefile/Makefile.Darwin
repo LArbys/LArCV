@@ -90,3 +90,7 @@ FLDFLAGS        += -lstdc++ -bundle -undefined dynamic_lookup -O2 -bind_at_load 
 #LD              = MACOSX_DEPLOYMENT_TARGET=10.4 g++
 #MACOSX_DEPLOYMENT_TARGET=10.4 
 #-install_name (MACH-O) = -soname (EFL)
+
+ifeq ($(LARCV_OPENCV),1)
+CXXFLAGS += -DUSE_OPENCV
+endif

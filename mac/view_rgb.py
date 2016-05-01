@@ -7,6 +7,8 @@ import pyqtgraph as pg
 from pyrgb.display import rgbdisplay as rgbd
 
 
+inputs = sys.argv
+
 app = QtGui.QApplication([])
 rgbdisplay = rgbd.RGBDisplay(sys.argv[1:])
 rgbdisplay.show()

@@ -10,9 +10,6 @@
 #include <random>
 #include <iostream>
 
-#include "opencv/cv.h"
-#include "opencv2/opencv.hpp"
-
 namespace larcv {
   namespace hires {
     static HiResImageDividerProcessFactory __global_HiResImageDividerProcessFactory__;

@@ -7,7 +7,7 @@ LDFLAGS += $(shell root-config --libs)
 OSNAME = $(shell uname -s)
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-PROGRAMS = calculate_mean
+PROGRAMS = calculate_mean dump_eventid
 
 TARGETS = $(addsuffix .cc, $(PROGRAMS))
 

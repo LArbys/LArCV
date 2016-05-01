@@ -7,28 +7,25 @@ class VicImage(PlotImage):
     def __init__(self,img_v,roi_v,planes) :
         super(VicImage,self).__init__(img_v,roi_v,planes)
         self.name = "VicImage"
-
+        
       	ometa = None
-    	for img in self.imgs:
-    		if not ometa: ometa = larcv.ImageMeta(img.meta())
-	    	else: ometa = ometa.inclusive(img.meta())
+        for img in self.imgs:
+            if ometa == None: ometa = larcv.ImageMeta(img.meta())
+	    else:             ometa = ometa.inclusive(img.meta())
 
-		tmp_img_v=[]
-		for i in xrange(len(self.img_v)):
-		    meta=larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
-		    img=larcv.Image2D(meta)
-		    img.paint(0.)
-		    img.overlay(self.imgs[i])
-		    tmp_img_v.append(img)
-                    
-		self.imgs = tmp_img_v
-		self.img_v  = [ larcv.as_ndarray(img) for img in self.imgs  ]
+	tmp_img_v=[]
+        for i in xrange(len(self.img_v)):
+	    meta= larcv.ImageMeta( ometa.width(), ometa.height(), ometa.rows(), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
+	    img = larcv.Image2D(meta)
+	    img.paint(0.)
+	    img.overlay(self.imgs[i])
+	    tmp_img_v.append(img)
 
-		for img in self.img_v: print img.shape
-
+        self.imgs  = tmp_img_v
+        self.img_v = [ larcv.as_ndarray(img) for img in tmp_img_v  ]
+        
         self.__create_mat__()
         self.plot_mat_t = None
-
         
         self.rois = []
     
@@ -38,14 +35,14 @@ class VicImage(PlotImage):
         self.plot_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
         for ix,img in enumerate(self.img_v):
-
+            
             if ix not in self.planes:
                 continue
             
             img = img[:,::-1]
             
             self.plot_mat[:,:,ix] = img
-
+            
 
         self.plot_mat[:,:,0][ self.plot_mat[:,:,1] > 0.0 ] = 0.0
         self.plot_mat[:,:,0][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
@@ -64,8 +61,10 @@ class VicImage(PlotImage):
     def __create_rois__(self):
         
         for ix,roi in enumerate(self.roi_v) :
+
+            nbb = roi.BB().size()
             
-            if roi.BB().size() == 0: #there was no ROI continue...
+            if nbb == 0: #there was no ROI continue...
                 continue
 
             r = {}
@@ -73,8 +72,10 @@ class VicImage(PlotImage):
             r['type'] = roi.Type()
             r['bbox'] = []
 
-            for iy in xrange(3):
-                r['bbox'].append( roi.BB(iy) )
+            
+            for iy in xrange(nbb):
+                bb = roi.BB()[iy]
+                r['bbox'].append(bb)
                 
             self.rois.append(r)
 

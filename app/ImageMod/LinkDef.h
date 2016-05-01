@@ -10,6 +10,10 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::Binarize+;
+#pragma link C++ class larcv::ADCScaleAna+;
+#pragma link C++ class larcv::ADCScale+;
+#pragma link C++ class larcv::CombineImages+;
+#pragma link C++ class larcv::SliceImages+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

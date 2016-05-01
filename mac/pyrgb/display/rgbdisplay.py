@@ -22,22 +22,27 @@ class RGBDisplay(QtGui.QWidget) :
         
         ### Hold constants
         self.st = Storage()
-
+        
         ### DataManager
         self.dm = datamanager.DataManager(argv)
 
         self.resize( 1200, 700 )
-
+        
         self.win = pg.GraphicsWindow()
 
         self.plt  = self.win.addPlot()
+
+        self.plt_x = self.plt.getAxis('bottom')
+        self.plt_y = self.plt.getAxis('left')
         
         ### Main Layout
-        self.layout = QtGui.QGridLayout()
-        self.setLayout(self.layout)
+        self.layout  = QtGui.QGridLayout()
+        self.runinfo = QtGui.QLabel("Run: -1 Subrun: -1 Event: -1")
         
-        self.layout.addWidget( self.win, 0, 0, 1, 10 )
-
+        self.layout.addWidget( self.runinfo, 0, 0)
+        
+        self.layout.addWidget( self.win, 1, 0, 1, 10 )
+        self.setLayout(self.layout)
         
         ### -------------
         ### Input Widgets
@@ -45,11 +50,11 @@ class RGBDisplay(QtGui.QWidget) :
         
         ### Layouts
         self.lay_inputs = QtGui.QGridLayout()
-        self.layout.addLayout( self.lay_inputs, 1, 0 )
+        self.layout.addLayout( self.lay_inputs, 2, 0 )
         
         ### Navigation
         self.event = QtGui.QLineEdit("%d"%0)      # event number
-        self.lay_inputs.addWidget( QtGui.QLabel("Event"), 0, 0)
+        self.lay_inputs.addWidget( QtGui.QLabel("Entry"), 0, 0)
         self.lay_inputs.addWidget( self.event, 0, 1 )
 
         ### imin
@@ -136,7 +141,6 @@ class RGBDisplay(QtGui.QWidget) :
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcaffe.setFixedWidth(130)
         self.lay_inputs.addWidget( self.rgbcaffe, 0, 15 )
-    
         
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
@@ -167,8 +171,8 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.chosenImageProducer()
         self.chosenROIProducer()
-        
-        self.plotData()
+
+        self.pimg = None
 
         self.rgbcaffe.clicked.connect( self.expandWindow )
 
@@ -181,13 +185,16 @@ class RGBDisplay(QtGui.QWidget) :
         if re.search("Disable",self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
             self.resize( 1200, 900 )
-            self.layout.addLayout( self.caffe_layout.grid(True), 2, 0 )
+            self.layout.addLayout( self.caffe_layout.grid(True), 3, 0 )
             
         else:
             self.rgbcaffe.setText("Enable RGBCaffe")
             self.layout.removeItem(self.caffe_layout.grid(False))
             self.resize( 1200, 700 )
 
+
+    def setRunInfo(self,run,subrun,event):
+        self.runinfo.setText("Run: {} Subrun: {} Event: {}".format(run,subrun,event))
         
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
@@ -197,10 +204,68 @@ class RGBDisplay(QtGui.QWidget) :
     def chosenROIProducer(self):
         if self.roi_exists == True:
             self.roi_producer = str(self.comboBoxROI.currentText())
-        
-    def autoRange(self):
-        self.plt.autoRange()
 
+    def get_ticks(self):
+        
+        xmax,ymax,_ = self.pimg.shape
+        meta        = self.image[0].meta()
+        tr = meta.tr()
+        bl = meta.bl()
+
+        dy = int(tr.y - bl.y)
+        dx = int(tr.x - bl.x)
+
+        ymajor   = []
+        yminor   = []
+        yminor2  = []
+        xmajor   = []
+        xminor   = []
+        xminor2  = []
+        
+        for y in xrange(dy):
+            if y > ymax: break
+            t = int(bl.y)+y
+            label = (y,t)
+            if y%10 != 0:
+                yminor2.append(label)
+                continue
+
+            if y%25 != 0:
+                yminor.append(label)
+                continue
+            
+            ymajor.append( label )
+
+        for x in xrange(dx):
+            if x > xmax: break
+            t = int(bl.x)+x
+            label = (x,t)
+
+            if x%25 != 0:
+                xminor2.append(label)
+                continue
+            
+            if x%50 != 0:
+                xminor.append(label)
+                continue
+
+            xmajor.append( label )
+
+
+        return ([xmajor,xminor,xminor2],[ymajor,yminor,yminor2])
+    
+    def autoRange(self):
+
+
+        xticks, yticks = self.get_ticks()
+        
+        self.plt_y.setTicks(yticks)
+        self.plt_x.setTicks(xticks)
+
+        self.plt.autoRange()
+        self.setRunInfo(self.dm.run,
+                        self.dm.subrun,
+                        self.dm.event)
     
     def which_type(self):
         for button in self.kTypes:
@@ -227,6 +292,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.event.setText(str(event+1))
 
         self.plotData()
+
+
 
     def setViewPlanes(self):
 
@@ -265,12 +332,13 @@ class RGBDisplay(QtGui.QWidget) :
             self.image = None
             return
 
+        self.pimg = pimg
         self.imi.setImage(pimg)
 
         if self.rois is None:
             self.autoRange()
             return
-        
+
         xmin,xmax,ymin,ymax = (1e9,0,1e9,0)
         for roi in self.rois:
             for bb in roi['bbox']:
@@ -287,7 +355,7 @@ class RGBDisplay(QtGui.QWidget) :
             if ymax < bb.max_y(): ymax = bb.max_y()
             pixel_size = (bb.pixel_width(),bb.pixel_height())
 
-            
+
         if self.roi_exists == True:
             self.drawBBOX( self.which_type() )
 
@@ -308,10 +376,10 @@ class RGBDisplay(QtGui.QWidget) :
         
         for box in self.boxes:
             self.plt.removeItem(box)
-            
+
         if self.draw_bbox.isChecked() == False:
             return
-        
+            
         self.boxes = []
         
         for roi_p in self.rois:

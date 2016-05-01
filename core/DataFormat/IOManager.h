@@ -85,6 +85,13 @@ namespace larcv {
     }
 
     const EventBase& event_id() const { return ( _set_event_id.valid() ? _set_event_id : _event_id ); }
+
+    const std::vector<std::string> producer_list(const ProductType_t type) const
+    {
+      std::vector<std::string> res;
+      for(auto const& key_value : _key_list[type]) res.push_back(key_value.first);
+      return res;
+    }
     
   private:
     void   set_id();
