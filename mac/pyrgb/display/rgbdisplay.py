@@ -14,6 +14,8 @@ from ..lib.hoverrect import HoverRect as HR
 from .. import cv2
 
 from caffelayout import CaffeLayout
+from ..rgb_caffe.testwrapper import TestWrapper
+
 
 class RGBDisplay(QtGui.QWidget) :
 
@@ -26,6 +28,8 @@ class RGBDisplay(QtGui.QWidget) :
         ### DataManager
         self.dm = datamanager.DataManager(argv)
 
+        
+        
         self.resize( 1200, 700 )
         
         self.win = pg.GraphicsWindow()
@@ -179,14 +183,15 @@ class RGBDisplay(QtGui.QWidget) :
         ### -------------
         ### Caffe Widgets
         ### -------------
-        self.caffe_layout = CaffeLayout()
+        self.caffe_test   = TestWrapper()
+        self.caffe_layout = CaffeLayout(self.caffe_test)
+        
         
     def expandWindow(self):
         if re.search("Disable",self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
             self.resize( 1200, 900 )
             self.layout.addLayout( self.caffe_layout.grid(True), 3, 0 )
-            
         else:
             self.rgbcaffe.setText("Enable RGBCaffe")
             self.layout.removeItem(self.caffe_layout.grid(False))
@@ -332,6 +337,7 @@ class RGBDisplay(QtGui.QWidget) :
             self.image = None
             return
 
+        self.caffe_test.set_image(pimg)
         self.pimg = pimg
         self.imi.setImage(pimg)
 

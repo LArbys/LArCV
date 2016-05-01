@@ -1,0 +1,16 @@
+modelfile : /Users/vgenty/Desktop/trial_fake/2_class_deploy.prototxt
+pretrainedmodel: /Users/vgenty/Desktop/snapshot_rmsprop_nu_alex_fake_iter_3100.caffemodel.h5
+meanfile: /Users/vgenty/Desktop/trial_fake/mean_valid.root
+
+tmpmodel: /tmp/test.prototxt
+
+imin_plane0: 0
+imin_plane1: 0
+imin_plane2: 0
+
+imax_plane0: 255
+imax_plane1: 255
+imax_plane2: 255
+
+lastfc: fc8
+loss: loss

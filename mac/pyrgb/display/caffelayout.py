@@ -2,7 +2,7 @@ from .. import QtGui, QtCore
 
 class CaffeLayout(object):
 
-    def __init__(self):
+    def __init__(self,tw):
         self.name  = "CaffeLayout"
         
         self.caffe_inputs = QtGui.QGridLayout()
@@ -11,9 +11,10 @@ class CaffeLayout(object):
         self.line_deploy = QtGui.QLineEdit("path/to/deploy")
         self.open_deploy.clicked.connect(self.selectFile)
 
-
         self.forward = QtGui.QPushButton("Forward")
         self.forward.clicked.connect(self.network_forward)
+
+        self.tw = tw
 
     def selectFile(self):
         self.line_deploy.setText(QtGui.QFileDialog.getOpenFileName())
@@ -29,7 +30,7 @@ class CaffeLayout(object):
                 self.caffe_inputs.itemAt(i).widget().setParent(None)
             
         return self.caffe_inputs
-
+    
     def network_forward(self):
-        pass
+        self.tw.forward_result()
     
