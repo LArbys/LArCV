@@ -20,7 +20,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += $(shell larcv-config --libs) -lLArCVPMTWeights 
+LDFLAGS += $(shell larcv-config --libs)
 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
