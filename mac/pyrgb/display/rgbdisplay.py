@@ -18,23 +18,29 @@ class RGBDisplay(QtGui.QWidget) :
 
     def __init__(self,argv):
         super(RGBDisplay,self).__init__()
-
         
         ### Hold constants
         self.st = Storage()
-
+        
         ### DataManager
         self.dm = datamanager.DataManager(argv)
 
         self.resize( 1200, 700 )
-
+        
         self.win = pg.GraphicsWindow()
 
         self.plt  = self.win.addPlot()
+
+        self.plt_x = self.plt.getAxis('bottom')
+        self.plt_y = self.plt.getAxis('left')
         
         ### Main Layout
         self.layout = QtGui.QGridLayout()
-        self.layout.addWidget( self.win, 0, 0, 1, 10 )
+
+        self.runinfo    = QtGui.QLabel("Run: -1 Subrun: -1 Event: -1")
+        self.layout.addWidget( self.runinfo, 0, 0)
+        
+        self.layout.addWidget( self.win, 1, 0, 1, 10 )
         self.setLayout(self.layout)
         
         ### -------------
@@ -43,7 +49,7 @@ class RGBDisplay(QtGui.QWidget) :
         
         ### Layouts
         self.lay_inputs = QtGui.QGridLayout()
-        self.layout.addLayout( self.lay_inputs, 1, 0 )
+        self.layout.addLayout( self.lay_inputs, 2, 0 )
         
         ### Navigation
         self.event = QtGui.QLineEdit("%d"%0)      # event number
@@ -137,6 +143,9 @@ class RGBDisplay(QtGui.QWidget) :
         self.draw_bbox.setChecked(True)
         self.lay_inputs.addWidget( self.draw_bbox, 1, 14 )
 
+
+
+        
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
                         'kBOTH'  : (self.kBOTH ,[ i for i in xrange(10) ])}
@@ -166,27 +175,65 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.chosenImageProducer()
         self.chosenROIProducer()
+
+        self.pimg = None
+
+
+
+    def setRunInfo(self,run,subrun,event):
+        self.runinfo.setText("Run: {} Subrun: {} Event: {}".format(run,subrun,event))
         
-        self.plotData()
-
-
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
         self.highres=False
-        #if re.search("mcint",self.image_producer) is None and re.search("segment",self.image_producer) is None:
-        #    self.highres = False
-        #else:
-        #    self.highres = True
 
         
     def chosenROIProducer(self):
 
         if self.roi_exists == True:
             self.roi_producer = str(self.comboBoxROI.currentText())
-        
-    def autoRange(self):
-        self.plt.autoRange()
 
+    def get_ticks(self):
+        
+        xmax,ymax,_ = self.pimg.shape
+        meta        = self.image[0].meta()
+        tr = meta.tr()
+        bl = meta.bl()
+
+        dy = int(tr.y - bl.y)
+        dx = int(tr.x - bl.x)
+
+        ymajor = []
+        yminor = []
+        xmajor = []
+        xminor = []
+        
+        for y in xrange(dy):
+            if y > ymax: break
+            t = int(bl.y)+y
+            label = (y,t)
+            ymajor.append( label )
+
+        for x in xrange(dx):
+            if x > xmax: break
+            t = int(bl.x)+x
+            label = (x,t)
+            xmajor.append( label )
+
+
+        return ([xmajor],[ymajor])
+    def autoRange(self):
+
+
+        xticks, yticks = self.get_ticks()
+        
+        self.plt_y.setTicks(yticks)
+        self.plt_x.setTicks(xticks)
+
+        self.plt.autoRange()
+        self.setRunInfo(self.dm.run,
+                        self.dm.subrun,
+                        self.dm.event)
     
     def which_type(self):
         for button in self.kTypes:
@@ -214,6 +261,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.event.setText(str(event+1))
 
         self.plotData()
+
+
 
     def setViewPlanes(self):
 
@@ -252,6 +301,7 @@ class RGBDisplay(QtGui.QWidget) :
             self.image = None
             return
 
+        self.pimg = pimg
         self.imi.setImage(pimg)
 
         if self.rois is None:
