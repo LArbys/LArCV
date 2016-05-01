@@ -203,16 +203,22 @@ class RGBDisplay(QtGui.QWidget) :
         dy = int(tr.y - bl.y)
         dx = int(tr.x - bl.x)
 
-        ymajor = []
-        yminor = []
-        xmajor = []
-        xminor = []
+        ymajor   = []
+        yminor   = []
+        yminor2  = []
+        xmajor   = []
+        xminor   = []
+        xminor2  = []
         
         for y in xrange(dy):
             if y > ymax: break
             t = int(bl.y)+y
             label = (y,t)
             if y%10 != 0:
+                yminor2.append(label)
+                continue
+
+            if y%25 != 0:
                 yminor.append(label)
                 continue
             
@@ -222,6 +228,11 @@ class RGBDisplay(QtGui.QWidget) :
             if x > xmax: break
             t = int(bl.x)+x
             label = (x,t)
+
+            if x%25 != 0:
+                xminor2.append(label)
+                continue
+            
             if x%50 != 0:
                 xminor.append(label)
                 continue
@@ -229,7 +240,7 @@ class RGBDisplay(QtGui.QWidget) :
             xmajor.append( label )
 
 
-        return ([xmajor,xminor],[ymajor,yminor])
+        return ([xmajor,xminor,xminor2],[ymajor,yminor,yminor2])
     
     def autoRange(self):
 
