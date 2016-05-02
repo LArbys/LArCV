@@ -33,7 +33,7 @@ class DataManager(object):
         
         self.loaded = {}
         
-    def get_event_image(self,ii,imin,imax,imgprod,roiprod,planes,highres) :
+    def get_event_image(self,ii,imin,imax,imgprod,roiprod,planes) :
 
         #Load data in TChain
         self.iom.iom.read_entry(ii)

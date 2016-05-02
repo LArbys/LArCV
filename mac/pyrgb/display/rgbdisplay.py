@@ -231,7 +231,6 @@ class RGBDisplay(QtGui.QWidget) :
         
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
-        self.highres=False
 
     def chosenROIProducer(self):
         if self.roi_exists == True:
@@ -358,8 +357,7 @@ class RGBDisplay(QtGui.QWidget) :
         pimg, self.rois, plotimage = self.dm.get_event_image(event,imin,imax,
                                                              self.image_producer,
                                                              self.roi_producer,
-                                                             self.views,
-                                                             self.highres)
+                                                             self.views)
 
         self.image = plotimage.imgs
         
