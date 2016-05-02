@@ -1,10 +1,14 @@
 from cv2blur import CV2Blur
 from cv2nothing import CV2Nothing
+from cv2add import CV2Add
+from cv2multiply import CV2Multiply
 
 class CV2Selector(object):
         def __init__(self):
-		self.selections = { "nothing" : CV2Nothing(),
-                                    "blur"    : CV2Blur() }
+		self.selections = { "nothing"  : CV2Nothing(),
+                                    "blur"     : CV2Blur() ,
+                                    "add"      : CV2Add(),
+                                    "multiply" : CV2Multiply()}
                 
                 self.selection = None
 

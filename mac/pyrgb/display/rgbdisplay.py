@@ -191,7 +191,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.chosenImageProducer()
         self.chosenROIProducer()
 
-        self.pimg = None
+        self.pimg   = None
+        self.modimg = None
 
         self.rgbcaffe.clicked.connect( self.expandWindow )
         self.rgbcv2.clicked.connect( self.openCVEditor )
@@ -305,7 +306,8 @@ class RGBDisplay(QtGui.QWidget) :
 
         if self.cv2_enabled == True:
             self.plt.addItem(self.swindow)
-            self.swindow.setZValue(10)        
+            self.swindow.setZValue(10)
+        self.modimage = None
 
     def which_type(self):
 
@@ -377,7 +379,8 @@ class RGBDisplay(QtGui.QWidget) :
 
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)
-
+        self.modimage = None
+        
         if self.rois is None:
             self.autoRange()
             return
@@ -454,9 +457,6 @@ class RGBDisplay(QtGui.QWidget) :
                 w_b = bbox.max_x() - bbox.min_x()
                 h_b = bbox.max_y() - bbox.min_y()
                 
-                # print "bbox bl().x {} bbox bl().y {} imm bl().x {} imm bl().y {}".format(bbox.bl().x,bbox.bl().y,imm.bl().x,imm.bl().y) 
-                
-                #Set the text
                 ti = pg.TextItem(text=STORAGE.particle_types[ roi_p['type'] ])
                 ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
 
@@ -474,8 +474,27 @@ class RGBDisplay(QtGui.QWidget) :
                 self.boxes.append(r1)
 
     def regionChanged(self):
-        sl = self.swindow.getArraySlice(self.pimg,self.imi)
-        self.pimg[ sl[0] ] = self.cv2_display.paint(self.pimg[ sl[0] ])
+        
+        if self.modimage is None:
+            self.modimage = np.zeros( list(self.pimg.shape) )
+
+        sl = self.swindow.getArraySlice(self.pimg,self.imi)[0]
+        
+        # need mask if user doesn't want to overwrite
+        if self.cv2_display.overwrite == False:
+            idx = np.where( self.modimage == 1 )
+            pcopy = self.pimg.copy()
+
+        self.pimg[ sl ] = self.cv2_display.paint( self.pimg[ sl ] ) ##11,11,3
+
+        # use mask to updated only pixels not already updated
+        if self.cv2_display.overwrite == False:
+            self.pimg[ idx ] = pcopy[ idx ]
+            self.modimage[ sl ] = 1
+
+        if self.cv2_display.transform == False:
+            return
+        
         self.imi.setImage(self.pimg)
         
         

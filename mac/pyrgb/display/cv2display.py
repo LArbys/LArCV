@@ -9,9 +9,12 @@ class CV2Display(QtGui.QWidget):
         self.enabled = False
         self.cv2 = None
         self.imi = None
-	# this should save users from having to load
-	# opencv if they don't want to...
+        self.overwrite = False
+        self.transform = True
 
+        # this should save users from having to load
+	# opencv if they don't want to...
+        
         
     def enable(self):
 
@@ -42,17 +45,30 @@ class CV2Display(QtGui.QWidget):
         for selection in self.selector.selections: #its a dict
             self.comboBoxSelector.addItem(selection)
 
-        self.lay_inputs.addWidget(self.comboBoxSelector,1,0)
+        self.lay_inputs.addWidget(self.comboBoxSelector,0,1)
 
         self.setSelection()
-
-        self.option = QtGui.QLabel("<b>Options</b>")
-        self.lay_inputs.addWidget(self.option,0,1)
+        
+        self.tf = QtGui.QCheckBox("Transform")
+        self.tf.setChecked(True)
+        self.lay_inputs.addWidget( self.tf, 1, 0 )
+        self.tf.stateChanged.connect(self.setTransform)
+        self.setTransform()
+        
+        self.ow = QtGui.QCheckBox("Overwrite")
+        self.ow.setChecked(False)
+        self.lay_inputs.addWidget( self.ow, 1, 1 )
+        self.ow.stateChanged.connect(self.setOverwrite)
+        self.setOverwrite()
+        
+        # self.option = QtGui.QLabel("<b>Options</b>")
+        # self.lay_inputs.addWidget(self.option,0,1)
 
         self.changed = False
 
         self.menu = {}
         self.setMenu()
+
 
         self.loaded = QtGui.QPushButton("Reload!")
         self.lay_inputs.addWidget(self.loaded,2,0)
@@ -60,11 +76,27 @@ class CV2Display(QtGui.QWidget):
             
         self.enabled = True
 
+
+    def setTransform(self):
+        if self.tf.isChecked():
+            self.transform = True
+        else:
+            self.transform = False
+
+
+    def setOverwrite(self):
+        if self.ow.isChecked():
+            self.overwrite = True
+        else:
+            self.overwrite = False
+    
+    
     def reLoad(self):
 
         self.changed = True
         print "reloaded... {} {}".format(str(self.comboBoxSelector.currentText()),
-                                      self.selected)
+                                         self.selected)
+        
         if str(self.comboBoxSelector.currentText()) != self.selected:
                self.setSelection()
                self.setMenu()
@@ -72,7 +104,7 @@ class CV2Display(QtGui.QWidget):
         
     def setMenu(self):
 
-        c = 1
+        c = 2
         if len(self.menu) != 0:
             for item in self.menu:
                 #explicitly get rid of these fuckers
@@ -86,14 +118,14 @@ class CV2Display(QtGui.QWidget):
         self.menu = {}
         
         for op,ty in self.selector.selection.options.iteritems():
-            l = QtGui.QLabel(op)
-            o = self.set_type(ty)
-            t = type(ty)
+            l  = QtGui.QLabel(op)
+            t  = self.selector.selection.types[op] 
+            o  = self.set_type(ty,t)
             
             self.lay_inputs.addWidget(l,1,c)
             self.lay_inputs.addWidget(o,2,c)
             
-            self.menu[op] = (l,o,ty)
+            self.menu[op] = (l,o,t)
             
             c+=1
 
@@ -127,13 +159,14 @@ class CV2Display(QtGui.QWidget):
         self.imi.setImage(sl)
         return sl
 
-    def set_type(self,option):
+    def set_type(self,option,ty):
         qte = QtGui.QLineEdit()
-        qte.setFixedHeight(len(option)*10)
+        qte.setFixedHeight(5*10)
         qte.setFixedWidth(75)
+
         text = ""
 
-        if type(option) == tuple:
+        if ty is tuple:
             text = "("
             for o in option:
                 text += str(o) + ","
@@ -143,22 +176,29 @@ class CV2Display(QtGui.QWidget):
             qte.setText(text)
             return qte
 
-        raise exception("Please implement type: {} in set_type cv2display".format(type(option)))
+        if ty is int:
+            qte.setText(str(option))
+            return qte
+
+        if ty is float:
+            qte.setText(str(option))
+            return qte
+            
+        raise Exception("Please implement type: {} in set_type cv2display".format(type(option)))
 
     def convert(self,tu):
 
-        if type(tu[1]) == tuple:
+        if tu[1] is tuple:
             t = tu[0][1:-1].split(",")
             return tuple([int(i) for i in t])
 
-        if type(tu[1]) == int:
-            return int(tu[1])
+        if tu[1] is int:
+            return int(tu[0])
 
+        if tu[1] is float:
+            return float(tu[0])
 
-        if type(tu[1]) == float:
-            return float(tu[1])
-
-        if type(tu[1]) == list:
+        if tu[1] is list:
 
             t = tu[0].split(",")
 

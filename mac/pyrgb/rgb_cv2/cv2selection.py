@@ -6,6 +6,7 @@ class CV2Selection(object):
     def __init__(self):
     	self.name = "CV2Selection"
     	self.options = {}
+        self.types = {}
 
     def description(self):
     	return self.__description__()

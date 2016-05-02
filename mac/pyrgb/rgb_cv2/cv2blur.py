@@ -9,8 +9,11 @@ class CV2Blur(CV2Selection):
 
     	# default options
     	self.options['ksize']  = (5,5)
-    	self.options['anchor'] = (-1,-1)    	 
+    	self.options['anchor'] = (-1,-1)
 
+        self.types['ksize']  = tuple
+        self.types['anchor'] = tuple
+        
     def __description__(self):
     	return "No description provided!"
 
