@@ -205,6 +205,8 @@ class RGBDisplay(QtGui.QWidget) :
         ### OpenCV Widgets
         #wrapper for the opencv specific window
         self.cv2_display = CV2Display()
+        self.cv2_enabled = False
+
         
 
     def expandWindow(self):
@@ -222,9 +224,13 @@ class RGBDisplay(QtGui.QWidget) :
             self.rgbcv2.setText("Disable OpenCV")
             self.cv2_display.enable()
             self.cv2_display.show()
+            self.plt.addItem(self.swindow)
+            self.cv2_enabled = True
         else:
+            self.cv2_enabled = False
             self.rgbcv2.setText("Enable OpenCV")
             self.cv2_display.hide()
+            self.plt.removeItem(self.swindow)
 
     def setRunInfo(self,run,subrun,event):
         self.runinfo.setText("<b>Run:</b> {} <b>Subrun:</b> {} <b>Event:</b> {}".format(run,subrun,event))
@@ -297,8 +303,9 @@ class RGBDisplay(QtGui.QWidget) :
                         self.dm.subrun,
                         self.dm.event)
 
-        self.plt.addItem(self.swindow)
-        self.swindow.setZValue(10)         
+        if self.cv2_enabled == True:
+            self.plt.addItem(self.swindow)
+            self.swindow.setZValue(10)        
 
     def which_type(self):
 
