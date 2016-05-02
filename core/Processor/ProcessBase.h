@@ -46,6 +46,10 @@ namespace larcv {
 
     virtual void finalize(TFile* ana_file) = 0;
 
+    bool event_creator() const { return _event_creator; }
+
+    virtual bool is(const std::string& question) const { return false; }
+
   private:
 
     void _configure_(const PSet&);
