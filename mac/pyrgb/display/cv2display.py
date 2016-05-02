@@ -43,7 +43,7 @@ class CV2Display(QtGui.QWidget):
             self.comboBoxSelector.addItem(selection)
 
         self.lay_inputs.addWidget(self.comboBoxSelector,1,0)
-        self.comboBoxSelector.activated[str].connect(self.setSelection)
+
         self.setSelection()
 
         self.option = QtGui.QLabel("<b>Options</b>")
@@ -60,14 +60,31 @@ class CV2Display(QtGui.QWidget):
             
         self.enabled = True
 
-
     def reLoad(self):
+
         self.changed = True
+        print "reloaded... {} {}".format(str(self.comboBoxSelector.currentText()),
+                                      self.selected)
+        if str(self.comboBoxSelector.currentText()) != self.selected:
+               self.setSelection()
+               self.setMenu()
+
         
     def setMenu(self):
 
         c = 1
+        if len(self.menu) != 0:
+            for item in self.menu:
+                #explicitly get rid of these fuckers
+                self.lay_inputs.removeWidget(self.menu[item][0])
+                self.lay_inputs.removeWidget(self.menu[item][1])
+                self.menu[item][0].setParent(None)
+                self.menu[item][1].setParent(None)
+                
+
+        # now they are gone right...
         self.menu = {}
+        
         for op,ty in self.selector.selection.options.iteritems():
             l = QtGui.QLabel(op)
             o = self.set_type(ty)
@@ -84,7 +101,8 @@ class CV2Display(QtGui.QWidget):
             
     def setSelection(self):
         self.selector.select(str(self.comboBoxSelector.currentText()))
-
+        self.selected = str(self.comboBoxSelector.currentText())
+                            
     def paint(self,sl): #sl == slice of pimg
         if self.enabled == False:
             return 
@@ -107,6 +125,7 @@ class CV2Display(QtGui.QWidget):
         sl = self.selector.apply(sl)
 
         self.imi.setImage(sl)
+        return sl
 
     def set_type(self,option):
         qte = QtGui.QLineEdit()

@@ -474,5 +474,15 @@ class RGBDisplay(QtGui.QWidget) :
                 self.boxes.append(r1)
 
     def regionChanged(self):
-        self.cv2_display.paint(self.swindow.getArrayRegion(self.pimg,self.imi))
+        sl = self.swindow.getArraySlice(self.pimg,self.imi)
+        self.pimg[ sl[0] ] = self.cv2_display.paint(self.pimg[ sl[0] ])
+        self.imi.setImage(self.pimg)
+        
+        
 
+        
+
+
+        
+        
+        
