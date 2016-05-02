@@ -46,6 +46,8 @@ namespace larcv {
 
     virtual void finalize(TFile* ana_file) = 0;
 
+    bool event_creator() const { return _event_creator; }
+
   private:
 
     void _configure_(const PSet&);
