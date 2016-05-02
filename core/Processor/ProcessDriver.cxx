@@ -140,7 +140,7 @@ namespace larcv {
     auto process_instance_name_v = cfg.get<std::vector<std::string> >("ProcessName");
 
     if(process_instance_type_v.size() != process_instance_name_v.size()) {
-      LARCV_CRITICAL() << "Clustering: ProcessType and ProcessName config parameters have different length! "
+      LARCV_CRITICAL() << "ProcessType and ProcessName config parameters have different length! "
 		       << "(" << process_instance_type_v.size() << " vs. " << process_instance_name_v.size() << ")" << std::endl;
       throw larbys();
     }
@@ -170,16 +170,16 @@ namespace larcv {
       ptr->_id = id;
       ptr->_configure_(proc_config.get_pset(name));
       _proc_m[name] = id;
-      if(ptr->_event_creator) {
-	if(_has_event_creator) {
-	  LARCV_CRITICAL() << "Only 1 event creator is allowed to exist!" << std::endl;
-	  throw larbys();
-	}
-	if((i+1) != process_instance_type_v.size()) {
-	  LARCV_CRITICAL() << "Event creator must be set to the last of ProcessList!" << std::endl;
-	  throw larbys();
-	}
-	_has_event_creator=true;
+      if(ptr->event_creator()) {
+	     if(_has_event_creator) {
+	       LARCV_CRITICAL() << "Only 1 event creator is allowed to exist!" << std::endl;
+	       throw larbys();
+	     }
+	     if((i+1) != process_instance_type_v.size()) {
+	       LARCV_CRITICAL() << "Event creator must be set to the last of ProcessList!" << std::endl;
+	       throw larbys();
+	     }
+	     _has_event_creator=true;
       }
       _proc_v.push_back(ptr);
     }
@@ -391,7 +391,7 @@ namespace larcv {
 
     std::string msg(ss.str());
     if(!msg.empty()) 
-      LARCV_NORMAL() << "Simple time profiling requested and run..."
+      LARCV_NORMAL() << "Simple time profiling requested and run..." << std::endl
 		     << "  ================== " << name() << " Profile Report ==================" << std::endl
 		     << msg
 		     << std::endl;
