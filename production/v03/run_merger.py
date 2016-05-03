@@ -28,19 +28,23 @@ if len(sys.argv) == 5:
    vlist2 = ROOT.std.vector('string')()
 
    if sys.argv[3].endswith('.root'):
+      print sys.argv[3]
       vlist1.push_back(sys.argv[3])
    else:
       flist1 = [x for x in open(sys.argv[3],'r').read().split() if x.endswith('.root')]
       vlist1.reserve(len(flist1))
       for f in flist1:
+         print f
          vlist1.push_back(f)
 
    if sys.argv[4].endswith('.root'):
+      print sys.argv[4]
       vlist2.push_back(sys.argv[4])
    else:
       flist2 = [x for x in open(sys.argv[4],'r').read().split() if x.endswith('.root')]
       vlist2.reserve(len(flist2))
       for f in flist2:
+         print f
          vlist2.push_back(f)
    
    proc.override_input_file(vlist1,vlist2)
