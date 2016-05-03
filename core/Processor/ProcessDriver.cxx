@@ -127,7 +127,6 @@ namespace larcv {
     // Prepare IO manager
     LARCV_INFO() << "Configuring IO" << std::endl;
     _io = IOManager(io_config);
-
     // Set ProcessDriver
     LARCV_INFO() << "Retrieving self (ProcessDriver) config" << std::endl;
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));

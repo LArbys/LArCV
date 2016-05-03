@@ -29,13 +29,13 @@ namespace larcv {
   public:
 
     /// Default constructor
-    ThreadDatumFiller();
+    ThreadDatumFiller(std::string name="ThreadDatumFiller");
     
     /// Default destructor
     ~ThreadDatumFiller();
 
     /// copy ctor
-    ThreadDatumFiller(const ThreadDatumFiller& rhs) = delete;
+    //ThreadDatumFiller(const ThreadDatumFiller& rhs) = delete;
 
     void reset();
 

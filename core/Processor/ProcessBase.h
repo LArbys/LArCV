@@ -48,7 +48,7 @@ namespace larcv {
 
     bool event_creator() const { return _event_creator; }
 
-    virtual bool is(const std::string& question) const { return false; }
+    virtual bool is(const std::string& question) const { return !(question.empty()); }
 
   private:
 

@@ -6,16 +6,16 @@
 #include <random>
 
 namespace larcv {
-    ThreadDatumFiller::ThreadDatumFiller()
-    : larcv_base("ThreadDatumFiller")
+  ThreadDatumFiller::ThreadDatumFiller(std::string name)
+    : larcv_base(name)
     , _processing(false)
     , _thread_running(false)
-	, _random_access(false)	
+    , _random_access(false)	
     , _configured(false)
     , _enable_filter(false)
     , _num_processed(0)
     , _dim_v(4,0)
-    , _driver("ProcessDriver")
+    , _driver(name + "ProcessDriver")
     , _filler(nullptr)
     , _th()
     {}
@@ -68,31 +68,31 @@ namespace larcv {
   	void ThreadDatumFiller::configure(const PSet& orig_cfg) 
   	{
 
-    	reset();
-  		PSet cfg("ProcessDriver");
-  		for(auto const& value_key : orig_cfg.value_keys())
-  			cfg.add_value(value_key,orig_cfg.get<std::string>(value_key));
-
-  		for(auto const& pset_key : orig_cfg.pset_keys()) {
-  			if(pset_key == "IOManager"){
-      			LARCV_WARNING() << "IOManager configuration will be ignored..." << std::endl;
-  			}else{
-      			cfg.add_pset(orig_cfg.get_pset(pset_key));
-      		}
-  		}
-  		set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity",2)) );
-		_enable_filter = cfg.get<bool>("EnableFilter");
-    	_random_access = cfg.get<bool>("RandomAccess");
-    	_input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
-  		// Brew read-only configuration
-  		PSet io_cfg("IOManager");
-	  	io_cfg.add_value("Name","ThreadReader");
-  		io_cfg.add_value("IOMode","0");
-  		io_cfg.add_value("OutFileName","");
-  		io_cfg.add_value("StoreOnlyType","[]");
- 		io_cfg.add_value("StoreOnlyName","[]");
-
- 		cfg.add_pset(io_cfg);
+	  reset();
+	  PSet cfg(_driver.name());
+	  for(auto const& value_key : orig_cfg.value_keys())
+	    cfg.add_value(value_key,orig_cfg.get<std::string>(value_key));
+	  
+	  for(auto const& pset_key : orig_cfg.pset_keys()) {
+	    if(pset_key == "IOManager"){
+	      LARCV_WARNING() << "IOManager configuration will be ignored..." << std::endl;
+	    }else{
+	      cfg.add_pset(orig_cfg.get_pset(pset_key));
+	    }
+	  }
+	  set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity",2)) );
+	  _enable_filter = cfg.get<bool>("EnableFilter");
+	  _random_access = cfg.get<bool>("RandomAccess");
+	  _input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
+	  // Brew read-only configuration
+	  PSet io_cfg("IOManager");
+	  io_cfg.add_value("Name",name() + "IOManager");
+	  io_cfg.add_value("IOMode","0");
+	  io_cfg.add_value("OutFileName","");
+	  io_cfg.add_value("StoreOnlyType","[]");
+	  io_cfg.add_value("StoreOnlyName","[]");
+	  
+	  cfg.add_pset(io_cfg);
 
  		// Configure the driver
  		_driver.configure(cfg);

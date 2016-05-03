@@ -199,7 +199,8 @@ namespace larcv {
       _label = (float)(roi.Type());
       break;
     }
-
+    if(_label == (float)(kROICosmic)) _label=0.;
+    else _label=1.;
 
   }
    
