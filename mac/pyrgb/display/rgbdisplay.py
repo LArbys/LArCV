@@ -8,7 +8,7 @@ import numpy as np
 import time
 
 from ..lib.datamanager import DataManager
-from ..lib import storage as STORAGE
+from ..lib import storage as store
 
 from ..lib.hoverrect import HoverRect as HR
 
@@ -244,14 +244,13 @@ class RGBDisplay(QtGui.QWidget) :
             self.roi_producer = str(self.comboBoxROI.currentText())
 
     def get_ticks(self):
-        
-        xmax,ymax,_ = self.pimg.shape
+        #everywhere USE CENTIMETER      
         meta        = self.image[0].meta()
-        tr = meta.tr()
-        bl = meta.bl()
+        xmax,ymax = meta.max_x(), meta.max_y()
+        xmin,ymin = meta.min_x(), meta.min_y()
 
-        dy = int(tr.y - bl.y)
-        dx = int(tr.x - bl.x)
+        dx = meta.width()
+        dy = meta.height()
 
         ymajor   = []
         yminor   = []
@@ -260,34 +259,37 @@ class RGBDisplay(QtGui.QWidget) :
         xminor   = []
         xminor2  = []
         
-        for y in xrange(dy):
-            if y > ymax: break
-            t = int(bl.y)+y
-            label = (y,t)
-            if y%10 != 0:
-                yminor2.append(label)
-                continue
+        tmin = ymin*store.cm2tick
+        tmax = ymax*store.cm2tick
 
-            if y%25 != 0:
+        for ix,y in enumerate(np.arange(tmin,tmax,store.cm2tick)):
+
+            label = (ix,int(y))
+
+            # if y%10 != 0:
+            #     yminor2.append(label)
+            #     continue
+
+            if y%10 != 0:
                 yminor.append(label)
                 continue
             
             ymajor.append( label )
 
-        for x in xrange(dx):
-            if x > xmax: break
-            t = int(bl.x)+x
-            label = (x,t)
+        # for x in xrange(dx):
+        #     if x > xmax: break
+        #     t = int(bl.x)+x
+        #     label = (x,t)
 
-            if x%25 != 0:
-                xminor2.append(label)
-                continue
+        #     if x%25 != 0:
+        #         xminor2.append(label)
+        #         continue
             
-            if x%50 != 0:
-                xminor.append(label)
-                continue
+        #     if x%50 != 0:
+        #         xminor.append(label)
+        #         continue
 
-            xmajor.append( label )
+        #     xmajor.append( label )
 
 
         return ([xmajor,xminor,xminor2],[ymajor,yminor,yminor2])
@@ -457,7 +459,7 @@ class RGBDisplay(QtGui.QWidget) :
                 w_b = bbox.max_x() - bbox.min_x()
                 h_b = bbox.max_y() - bbox.min_y()
                 
-                ti = pg.TextItem(text=STORAGE.particle_types[ roi_p['type'] ])
+                ti = pg.TextItem(text=store.particle_types[ roi_p['type'] ])
                 ti.setPos( x*dw_i , ( y + h_b )*dh_i + 1 )
 
                 print x*dw_i,y*dh_i,w_b*dw_i,h_b*dh_i
@@ -466,9 +468,10 @@ class RGBDisplay(QtGui.QWidget) :
                         y   * dh_i,
                         w_b * dw_i,
                         h_b * dh_i,
-                        ti,self.plt)
+                        ti,
+                        self.plt)
 
-                r1.setPen(pg.mkPen(STORAGE.colors[ix]))
+                r1.setPen(pg.mkPen(store.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
