@@ -244,10 +244,13 @@ class RGBDisplay(QtGui.QWidget) :
             self.roi_producer = str(self.comboBoxROI.currentText())
 
     def get_ticks(self):
-        #everywhere USE CENTIMETER      
+        #everywhere USE ABSOLUTE COORDINATE (which is in tick/wire)     
         meta        = self.image[0].meta()
         xmax,ymax = meta.max_x(), meta.max_y()
         xmin,ymin = meta.min_x(), meta.min_y()
+
+        comp_y = meta.height() / meta.rows()
+        comp_x = meta.width() / meta.cols()
 
         dx = meta.width()
         dy = meta.height()
@@ -259,38 +262,33 @@ class RGBDisplay(QtGui.QWidget) :
         xminor   = []
         xminor2  = []
         
-        tmin = ymin*store.cm2tick
-        tmax = ymax*store.cm2tick
-
-        for ix,y in enumerate(np.arange(tmin,tmax,store.cm2tick)):
+        for ix,y in enumerate(np.arange(int(ymin),int(ymax),comp_y)):
 
             label = (ix,int(y))
 
-            # if y%10 != 0:
-            #     yminor2.append(label)
-            #     continue
+            if ix%10 != 0:
+                 yminor2.append(label)
+                 continue
 
-            if y%10 != 0:
+            if ix%25 != 0:
                 yminor.append(label)
                 continue
             
             ymajor.append( label )
 
-        # for x in xrange(dx):
-        #     if x > xmax: break
-        #     t = int(bl.x)+x
-        #     label = (x,t)
+        for ix,x in enumerate(np.arange(int(xmin),int(xmax),comp_x)):
 
-        #     if x%25 != 0:
-        #         xminor2.append(label)
-        #         continue
+            label = (ix,int(x))
+
+            if ix%100 != 0:
+                xminor2.append(label)
+                continue
+
+            if ix%200 != 0:
+                xminor.append(label)
+                continue
             
-        #     if x%50 != 0:
-        #         xminor.append(label)
-        #         continue
-
-        #     xmajor.append( label )
-
+            xmajor.append( label )
 
         return ([xmajor,xminor,xminor2],[ymajor,yminor,yminor2])
     
