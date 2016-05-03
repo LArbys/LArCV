@@ -58,7 +58,7 @@ namespace larcv {
     return true;
   }
 
-  void CosmicSegment::finalize(TFile* ana_file)
+  void CosmicSegment::finalize()
   {}
 
 }

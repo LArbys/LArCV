@@ -34,8 +34,8 @@ namespace larcv {
     return (_run_s.find(ptr->run()) == _run_s.end());
   }
 
-  void RunFilter::finalize(TFile* ana_file)
-  { if(!ana_file) return; }
+  void RunFilter::finalize()
+  { return; }
 
 }
 #endif

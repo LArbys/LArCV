@@ -23,7 +23,8 @@ namespace larcv {
     }
 
     unsigned int NumberTimeSamples()
-    { 
+    {
+      throw ::larcv::larbys("NumberTimeSamples function not available!");
       auto const* detp = ::lar::providerFrom<detinfo::DetectorPropertiesService>();
       return detp->NumberTimeSamples(); 
     }

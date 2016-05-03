@@ -16,6 +16,7 @@ namespace larcv {
     {
       LARCV_DEBUG() << "start" << std::endl;
       set_verbosity((::larcv::msg::Level_t)(cfg.get<unsigned short>("Verbosity")));
+      _max_time_tick = cfg.get<unsigned int>("MaxTimeTick");
       _time_padding  = cfg.get<unsigned int>("TimePadding");
       _wire_padding  = cfg.get<unsigned int>("WirePadding");
       _min_width     = cfg.get<unsigned int>("MinWidth");
@@ -42,7 +43,8 @@ namespace larcv {
 	for(auto const& tdc_ide_v : sch.TDCIDEMap()) {
 	  bool store=false;
 	  double tick = TPCTDC2Tick((double)(tdc_ide_v.first));
-	  if(tick<0 || tick >= NumberTimeSamples()) continue;
+	  //if(tick<0 || tick >= NumberTimeSamples()) continue;
+	  if(tick<0 || tick >= _max_time_tick) continue;
 	  tick += 0.5;
 	  for(auto const& ide : tdc_ide_v.second){
 	    unsigned int trackid = (ide.trackID < 0 ? (-1 * ide.trackID) : ide.trackID);
@@ -77,7 +79,8 @@ namespace larcv {
     {
       LARCV_DEBUG() << "start" << std::endl;
       const double drift_velocity = ::larcv::supera::DriftVelocity()*1.0e-3; // make it cm/ns
-      const int tick_max = ::larcv::supera::NumberTimeSamples();
+      //const int tick_max = ::larcv::supera::NumberTimeSamples();
+      const int tick_max = _max_time_tick;
       const double wireplaneoffset_cm = 0.0; //cm (made up)
       TVector3 xyz; xyz[0] = xyz[1] = xyz[2] = 0.;
 
@@ -128,7 +131,8 @@ namespace larcv {
     {
       LARCV_DEBUG() << "start" << std::endl;
       const double drift_velocity = ::larcv::supera::DriftVelocity()*1.0e-3; // make it cm/ns
-      const int tick_max = ::larcv::supera::NumberTimeSamples();
+      //const int tick_max = ::larcv::supera::NumberTimeSamples();
+      const int tick_max = _max_time_tick;
       double xyz[3] = {0.};
 
       // result is N planes' wire boundary + time boundary (N+1 elements)
@@ -210,7 +214,8 @@ namespace larcv {
 	for(auto const& tdc_ide_v : sch.TDCIDEMap()) {
 	  bool store=false;
 	  double tick = TPCTDC2Tick((double)(tdc_ide_v.first));
-	  if(tick<0 || tick >= NumberTimeSamples()) continue;
+	  //if(tick<0 || tick >= NumberTimeSamples()) continue;
+	  if(tick<0 || tick >= _max_time_tick) continue;
 	  tick += 0.5;
 	  for(auto const& ide : tdc_ide_v.second){
 	    unsigned int trackid = (ide.trackID < 0 ? (-1 * ide.trackID) : ide.trackID);

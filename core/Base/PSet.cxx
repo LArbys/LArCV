@@ -133,7 +133,7 @@ namespace larcv {
     if(key.empty()) throw larbys("Empty key cannot be registered!");
     //std::cout<<"value: @"<<value<<"@"<<std::endl;
     trim_space(value);
-    if(value.empty()) throw larbys("Empty value cannot be registered!");
+    //if(value.empty()) throw larbys("Empty value cannot be registered!");
     _data_value[key]=value;
   }
 

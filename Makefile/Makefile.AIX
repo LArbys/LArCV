@@ -1,5 +1,3 @@
-# Time-stamp: <2002-09-17 23:14:22 kamland0>
-
 CXX		= xlC
 LD              = xlC
 CXXFLAGS        += -std=c++0x -qarch=pwr3 -qmaxmem=-1 -q${OBJECT_MODE} -D_CORE_$(shell uname -s)_
@@ -9,3 +7,7 @@ FLDFLAGS        += -lC
 ARFLAGS		= -X${OBJECT_MODE}
 SOMAKER         = g++
 SOFLAGS         = -shared -Wl -g
+
+ifeq ($(LARCV_OPENCV),1)
+CXXFLAGS += -DUSE_OPENCV
+endif

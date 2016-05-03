@@ -10,9 +10,6 @@
 #include <random>
 #include <iostream>
 
-#include "opencv/cv.h"
-#include "opencv2/opencv.hpp"
-
 namespace larcv {
   namespace hires {
     static HiResImageDividerProcessFactory __global_HiResImageDividerProcessFactory__;
@@ -326,7 +323,7 @@ namespace larcv {
       return true;
     }
     
-    void HiResImageDivider::finalize(TFile* ana_file)
+    void HiResImageDivider::finalize()
     {
       LARCV_WARNING() << "Skipped events due to vertex-box not overlapping with ROI: " << fROISkippedEvent << " / " << fProcessedEvent << std::endl;
       LARCV_WARNING() << "Skipped ROI due to not within vertex-box: " << fROISkipped << " / " << fProcessedROI << std::endl;

@@ -20,7 +20,7 @@ namespace larcv {
   bool Empty_Class_Name::process(IOManager& mgr)
   {}
 
-  void Empty_Class_Name::finalize(TFile* ana_file)
+  void Empty_Class_Name::finalize()
   {}
 
 }

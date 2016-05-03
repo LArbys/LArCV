@@ -27,7 +27,8 @@ namespace larcv {
 
     public:
       
-      Cropper() : _time_padding(10)
+      Cropper() : _max_time_tick(9600)
+		, _time_padding(10)
 		, _wire_padding(10)
 		, _min_width(10)
 		, _min_height(14)
@@ -53,7 +54,8 @@ namespace larcv {
     private:
  
       std::vector<larcv::ImageMeta> WTRange2BB(const WTRangeArray_t&) const;
-      
+
+      unsigned int _max_time_tick; ///< Maximum tick number in time
       unsigned int _time_padding;  ///< Padding in time axis (height) for Cropper::Format function
       unsigned int _wire_padding;  ///< Padding in wire axis (width) for Cropper::Format function
       unsigned int _min_width;

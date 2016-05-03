@@ -44,7 +44,7 @@ namespace larcv {
 
     bool process(IOManager& mgr);
 
-    void finalize(TFile* ana_file);
+    void finalize();
 
     std::vector<TH1D*> m_hADC_v;
     std::string fHiResCropProducer;

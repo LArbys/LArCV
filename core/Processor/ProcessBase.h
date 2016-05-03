@@ -44,7 +44,19 @@ namespace larcv {
 
     virtual bool process(IOManager& mgr) = 0;
 
-    virtual void finalize(TFile* ana_file) = 0;
+    virtual void finalize() = 0;
+
+    virtual bool is(const std::string& question) const
+    { return !(question.empty()); }
+
+    bool event_creator() const
+    { return _event_creator; }
+
+    bool has_ana_file() const
+    { return _fout != nullptr; }
+
+    TFile& ana_file()
+    { if(!_fout) throw larbys("ana file does not exist"); return *_fout; }
 
   private:
 
@@ -62,6 +74,7 @@ namespace larcv {
     larcv::ProcessID_t _id; ///< unique algorithm identifier
     bool _profile;          ///< measure process time if profile flag is on
     std::string _typename;  ///< process type from factory
+    TFile* _fout;           ///< output analysis file
   };
 }
 

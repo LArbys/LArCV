@@ -42,9 +42,13 @@ int main(int argc, char** argv){
     input_strm.read_entry(entry);
     ++entry;
 
-    if(entry%entries_fraction==0)
+    if(nentries<10)
 
-      LARCV_NORMAL() << "Finished " << entry/entries_fraction * 10 << " %" << std::endl;
+      { LARCV_NORMAL() << "Processing entry " << entry << std::endl; }
+    
+    else if(entry%entries_fraction==0)
+
+      { LARCV_NORMAL() << "Processed " << entry/entries_fraction * 10 << " %" << std::endl; }
 
     auto event_image = (larcv::EventImage2D*)(input_strm.get_data(larcv::kProductImage2D,producer));
 
