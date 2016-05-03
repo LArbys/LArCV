@@ -44,10 +44,10 @@ namespace larcv {
 
   private:
 
-    std::string _image_producer;
-    size_t _row_compression;
-    size_t _col_compression;
-    Image2D::CompressionModes_t _mode;
+    std::vector<std::string> _image_producer_v;
+    std::vector<size_t     > _row_compression_v;
+    std::vector<size_t     > _col_compression_v;
+    std::vector<Image2D::CompressionModes_t> _mode_v;
 
   };
 
