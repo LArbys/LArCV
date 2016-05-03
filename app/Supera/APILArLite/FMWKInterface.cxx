@@ -17,7 +17,12 @@ namespace larcv {
     { return ::larutil::LArProperties::GetME()->DriftVelocity(); }
 
     unsigned int NumberTimeSamples()
-    { return ::larutil::DetectorProperties::GetME()->NumberTimeSamples(); }
+    {
+      // Till resolved, do not use this function
+      throw ::larcv::larbys("NumberTimeSamples function not available!");
+      //return ::larutil::DetectorProperties::GetME()->NumberTimeSamples();
+      //return 9600;
+    }
 
     unsigned int Nchannels()
     { return ::larutil::Geometry::GetME()->Nchannels(); }
