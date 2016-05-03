@@ -193,6 +193,10 @@ namespace larcv {
       throw larbys();
     }
 
+    // Initialize IO
+    LARCV_INFO() << "Initializing IO " << std::endl;
+    _io.initialize();
+
     // Handle invalid cases
     auto const nentries = _io.get_n_entries();
     auto const io_mode  = _io.io_mode();
@@ -207,10 +211,6 @@ namespace larcv {
       LARCV_CRITICAL() << "No entries found from IO (kREAD/kBOTH mode cannot be run)!" << std::endl;
       throw larbys();
     }
-
-    // Initialize IO
-    LARCV_INFO() << "Initializing IO " << std::endl;
-    _io.initialize();
 
     // Prepare analysis output file if needed
     if(!_fout_name.empty()) {
@@ -373,7 +373,7 @@ namespace larcv {
 
     for(auto& p : _proc_v) {
       LARCV_INFO() << "Finalizing: " << p->name() << std::endl;
-      _fout->cd();
+      if(_fout) _fout->cd();
       p->finalize();
     }
 
