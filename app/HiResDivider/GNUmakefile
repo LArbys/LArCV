@@ -12,7 +12,6 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
-INCFLAGS += -I$(OPENCV_INCDIR)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
