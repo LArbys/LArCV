@@ -374,6 +374,7 @@ namespace larcv {
     for(auto& p : _proc_v) {
       LARCV_INFO() << "Finalizing: " << p->name() << std::endl;
       if(_fout) _fout->cd();
+      p->_fout = _fout;
       p->finalize();
     }
 
