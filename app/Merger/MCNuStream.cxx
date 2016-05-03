@@ -100,7 +100,7 @@ namespace larcv {
     
   }
 
-  void MCNuStream::finalize(TFile* ana_file)
+  void MCNuStream::finalize()
   {}
 
 }

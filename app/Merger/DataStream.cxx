@@ -92,7 +92,7 @@ namespace larcv {
     return true;
   }
 
-  void DataStream::finalize(TFile* ana_file)
+  void DataStream::finalize()
   {}
 
 }

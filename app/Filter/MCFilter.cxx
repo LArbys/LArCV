@@ -39,7 +39,7 @@ namespace larcv {
     return false;
   }
 
-  void MCFilter::finalize(TFile* ana_file)
+  void MCFilter::finalize()
   {}
 
 }

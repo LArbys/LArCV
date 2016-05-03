@@ -131,7 +131,7 @@ namespace larcv {
 //       return m_weighted_images.at(plane);
 //     }
     
-    void PMTWeightImageBuilder::finalize(TFile* ana_file)
+    void PMTWeightImageBuilder::finalize()
     {}
 
   }

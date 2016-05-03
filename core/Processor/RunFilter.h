@@ -39,7 +39,7 @@ namespace larcv {
 
     bool process(IOManager& mgr);
 
-    void finalize(TFile* ana_file);
+    void finalize();
 
   private:
     std::set<size_t> _run_s; ///< a set of runs to be filtered out

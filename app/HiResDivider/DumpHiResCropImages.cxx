@@ -78,10 +78,10 @@ namespace larcv {
       return true;
     }
 #endif
-
+    return true;
   }
 
-  void DumpHiResCropImages::finalize(TFile* ana_file)
+  void DumpHiResCropImages::finalize()
   {}
 
   void DumpHiResCropImages::DumpBGRImage( IOManager& mgr, std::string producer, std::string imglabel,  bool ismc, bool augment ) {

@@ -46,9 +46,10 @@ namespace larcv {
       output_imgs->Emplace( std::move(img) );
 
     }
+    return true;
   }
 
-  void Binarize::finalize(TFile* ana_file)
+  void Binarize::finalize()
   {}
 
 }

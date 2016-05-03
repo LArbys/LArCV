@@ -40,7 +40,7 @@ namespace larcv {
 
     bool process(IOManager& mgr);
 
-    void finalize(TFile* ana_file);
+    void finalize();
 
   private:
 

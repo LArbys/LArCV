@@ -146,7 +146,7 @@ namespace larcv {
   void DatumFillerBase::batch_end()
   { this->child_batch_end(); }
 
-  void DatumFillerBase::finalize(TFile* fout)
+  void DatumFillerBase::finalize()
   { this->child_finalize(); }
 
 }

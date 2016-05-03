@@ -41,7 +41,7 @@ namespace larcv {
 
     bool process(IOManager& mgr);
 
-    void finalize(TFile* ana_file);
+    void finalize();
 
     bool is(const std::string& question) const;
 

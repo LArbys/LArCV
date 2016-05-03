@@ -122,7 +122,7 @@ namespace larcv {
     return true;
   }
 
-  void ADCScale::finalize(TFile* ana_file)
+  void ADCScale::finalize()
   {}
 
 }

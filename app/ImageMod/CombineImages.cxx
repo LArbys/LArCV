@@ -54,7 +54,7 @@ namespace larcv {
     return true;
   }
 
-  void CombineImages::finalize(TFile* ana_file)
+  void CombineImages::finalize()
   {}
 
 }

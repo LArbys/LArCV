@@ -193,16 +193,6 @@ namespace larcv {
       throw larbys();
     }
 
-    // Initialize process
-    for(auto& p : _proc_v) {
-      LARCV_INFO() << "Initializing: " << p->name() << std::endl;
-      p->initialize();
-    }
-
-    // Initialize IO
-    LARCV_INFO() << "Initializing IO " << std::endl;
-    _io.initialize();
-
     // Handle invalid cases
     auto const nentries = _io.get_n_entries();
     auto const io_mode  = _io.io_mode();
@@ -218,10 +208,20 @@ namespace larcv {
       throw larbys();
     }
 
+    // Initialize IO
+    LARCV_INFO() << "Initializing IO " << std::endl;
+    _io.initialize();
+
     // Prepare analysis output file if needed
     if(!_fout_name.empty()) {
       LARCV_NORMAL() << "Opening analysis output file " << _fout_name << std::endl;
       _fout = TFile::Open(_fout_name.c_str(),"RECREATE");
+    }
+
+    // Initialize process
+    for(auto& p : _proc_v) {
+      LARCV_INFO() << "Initializing: " << p->name() << std::endl;
+      p->initialize();
     }
 
     // Change state from to-be-initialized to to-process
@@ -373,7 +373,8 @@ namespace larcv {
 
     for(auto& p : _proc_v) {
       LARCV_INFO() << "Finalizing: " << p->name() << std::endl;
-      p->finalize(_fout);
+      _fout->cd();
+      p->finalize();
     }
 
     // Profile repor

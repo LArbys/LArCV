@@ -51,15 +51,11 @@ namespace larcv {
     return true;
   }
 
-  void ADCScaleAna::finalize(TFile* ana_file)
+  void ADCScaleAna::finalize()
   {
-    if(ana_file) {
+    if(has_ana_file())
 
-      ana_file->cd();
       for(auto& p : _hADC_v) if(p) p->Write();
-
-    }
-    
   }
 
 }

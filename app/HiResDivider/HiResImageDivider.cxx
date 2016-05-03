@@ -323,7 +323,7 @@ namespace larcv {
       return true;
     }
     
-    void HiResImageDivider::finalize(TFile* ana_file)
+    void HiResImageDivider::finalize()
     {
       LARCV_WARNING() << "Skipped events due to vertex-box not overlapping with ROI: " << fROISkippedEvent << " / " << fProcessedEvent << std::endl;
       LARCV_WARNING() << "Skipped ROI due to not within vertex-box: " << fROISkipped << " / " << fProcessedROI << std::endl;

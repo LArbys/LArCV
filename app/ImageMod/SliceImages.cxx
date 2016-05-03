@@ -42,7 +42,7 @@ namespace larcv {
     return true;
   }
 
-  void SliceImages::finalize(TFile* ana_file)
+  void SliceImages::finalize()
   {}
 
 }

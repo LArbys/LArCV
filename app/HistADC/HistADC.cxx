@@ -117,10 +117,9 @@ namespace larcv {
     return true;
   }
 
-  void HistADC::finalize(TFile* ana_file)
+  void HistADC::finalize()
   {
-    if ( ana_file ) {
-      ana_file->cd();
+    if ( has_ana_file() ) {
       //for(auto& p : m_hADC_v) if(p) p->Write();
       m_tree->Write();
     }

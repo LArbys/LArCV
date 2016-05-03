@@ -242,7 +242,7 @@ namespace larcv {
     return true;
   }
 
-  void ImageMerger::finalize(TFile* ana_file)
+  void ImageMerger::finalize()
   {}
 
 }
