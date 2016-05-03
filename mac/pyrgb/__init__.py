@@ -10,3 +10,5 @@ import numpy as np
 
 larcv.load_pyutil
 
+import cv2
+

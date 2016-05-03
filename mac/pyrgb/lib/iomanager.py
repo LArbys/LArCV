@@ -15,9 +15,8 @@ class IOManager(object):
 
         self.iom.initialize()
 
-    # you should just have access to it
-    # def iom(self):
-    #     return self.iom
+    def read_entry(self,entry):
+        self.iom.read_entry(entry)
 
-    def search_for_next_image(self):
-        return None
+    def get_data(self,product,producer):
+        return self.iom.get_data(product,producer)
