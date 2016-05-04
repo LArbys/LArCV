@@ -4,6 +4,7 @@
 #include "ThreadDatumFiller.h"
 #include "Base/LArCVBaseUtilFunc.h"
 #include <random>
+#include <unistd.h>
 
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
