@@ -10,7 +10,8 @@ import time
 from ..lib.datamanager import DataManager
 from ..lib import storage as store
 
-from ..lib.hoverrect import HoverRect as HR
+from ..lib.hoverrect import HoverRect
+from ..lib.roislider import ROISlider
 
 from cv2layout import CV2Layout
 from caffelayout import CaffeLayout
@@ -27,15 +28,6 @@ class RGBDisplay(QtGui.QWidget) :
         ### Size the canvas
         self.resize( 1200, 700 )
 
-        ### Sliding ROI which we will do OpenCV manipulations on
-        self.swindow = pg.ROI([0, 0], [10, 10])
-        self.swindow.addScaleHandle([0.0, 0.0], [0.5, 0.5])
-        self.swindow.addScaleHandle([0.0, 1.0], [0.5, 0.5])
-        self.swindow.addScaleHandle([1.0, 1.0], [0.5, 0.5])
-        self.swindow.addScaleHandle([1.0, 0.0], [0.5, 0.5])
-
-        self.swindow.sigRegionChanged.connect(self.regionChanged)
-
         ### Graphics window which will hold the image
         self.win  = pg.GraphicsWindow()
         self.plt  = self.win.addPlot()
@@ -46,6 +38,7 @@ class RGBDisplay(QtGui.QWidget) :
         
         ### Main Layout
         self.layout  = QtGui.QGridLayout()
+
         # run information up top
         self.runinfo = QtGui.QLabel("<b>Run:</b> -1 <b>Subrun:</b> -1 <b>Event:</b> -1")
         self.layout.addWidget( self.runinfo, 0, 0)
@@ -62,12 +55,12 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( QtGui.QLabel("Entry"), 0, 0)
         self.lay_inputs.addWidget( self.event, 0, 1 )
 
-        ### imin
+        ### imin -- threshold
         self.imin = QtGui.QLineEdit("%d"%(5)) 
         self.lay_inputs.addWidget( QtGui.QLabel("imin"), 0, 2)
         self.lay_inputs.addWidget( self.imin, 0, 3 )
 
-        ### imax
+        ### imax -- threshold
         self.imax = QtGui.QLineEdit("%d"%(400))
         self.lay_inputs.addWidget( QtGui.QLabel("imax"), 0, 4)
         self.lay_inputs.addWidget( self.imax, 0, 5 )
@@ -81,7 +74,6 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.next_plot = QtGui.QPushButton("Next Event")
         self.lay_inputs.addWidget( self.next_plot, 1, 4, 1 , 2 )
-        
 
         ### particle types
         #BNB
@@ -205,6 +197,10 @@ class RGBDisplay(QtGui.QWidget) :
         #wrapper for the opencv specific window
         self.cv2_layout = CV2Layout()
         self.cv2_enabled = False
+
+        #ROI box
+        self.swindow = ROISlider([0,0],[20,20])
+        self.swindow.sigRegionChanged.connect(self.regionChanged)
 
     def openCaffe(self):
         if re.search("Disable",self.rgbcaffe.text()) is None:
@@ -459,12 +455,12 @@ class RGBDisplay(QtGui.QWidget) :
 
                 print x*dw_i,y*dh_i,w_b*dw_i,h_b*dh_i
 
-                r1 = HR(x   * dw_i,
-                        y   * dh_i,
-                        w_b * dw_i,
-                        h_b * dh_i,
-                        ti,
-                        self.plt)
+                r1 = HoverRect(x   * dw_i,
+                               y   * dh_i,
+                               w_b * dw_i,
+                               h_b * dh_i,
+                               ti,
+                               self.plt)
 
                 r1.setPen(pg.mkPen(store.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
@@ -483,7 +479,7 @@ class RGBDisplay(QtGui.QWidget) :
             idx = np.where( self.modimage == 1 )
             pcopy = self.pimg.copy()
 
-        self.pimg[ sl ] = self.cv2_layout.paint( self.pimg[ sl ] ) ##11,11,3
+        self.pimg[ sl ] = self.cv2_layout.paint( self.pimg[ sl ] )
 
         # use mask to updated only pixels not already updated
         if self.cv2_layout.overwrite == False:
