@@ -12,11 +12,9 @@ from ..lib import storage as store
 
 from ..lib.hoverrect import HoverRect as HR
 
-
+from cv2layout import CV2Layout
 from caffelayout import CaffeLayout
 from ..rgb_caffe.testwrapper import TestWrapper
-
-from cv2display import CV2Display
 
 class RGBDisplay(QtGui.QWidget) :
 
@@ -194,8 +192,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.pimg   = None
         self.modimg = None
 
-        self.rgbcaffe.clicked.connect( self.expandWindow )
-        self.rgbcv2.clicked.connect( self.openCVEditor )
+        self.rgbcaffe.clicked.connect( self.openCaffe   )
+        self.rgbcv2.clicked.connect  ( self.openCVEditor)
 
         ### Caffe Widgets
         #wrapper for FORWARD function
@@ -205,12 +203,10 @@ class RGBDisplay(QtGui.QWidget) :
 
         ### OpenCV Widgets
         #wrapper for the opencv specific window
-        self.cv2_display = CV2Display()
+        self.cv2_layout = CV2Layout()
         self.cv2_enabled = False
 
-        
-
-    def expandWindow(self):
+    def openCaffe(self):
         if re.search("Disable",self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
             self.resize( 1200, 900 )
@@ -223,15 +219,16 @@ class RGBDisplay(QtGui.QWidget) :
     def openCVEditor(self):
         if re.search("Disable",self.rgbcv2.text()) is None:
             self.rgbcv2.setText("Disable OpenCV")
-            self.cv2_display.enable()
-            self.cv2_display.show()
+            self.resize( 1200, 900 )
+            self.layout.addLayout(self.cv2_layout.grid(True), 3, 0 )
             self.plt.addItem(self.swindow)
             self.cv2_enabled = True
         else:
-            self.cv2_enabled = False
             self.rgbcv2.setText("Enable OpenCV")
-            self.cv2_display.hide()
+            self.layout.removeItem(self.cv2_layout.grid(False))
+            self.resize( 1200, 700 )
             self.plt.removeItem(self.swindow)
+            self.cv2_enabled = False
 
     def setRunInfo(self,run,subrun,event):
         self.runinfo.setText("<b>Run:</b> {} <b>Subrun:</b> {} <b>Event:</b> {}".format(run,subrun,event))
@@ -482,18 +479,18 @@ class RGBDisplay(QtGui.QWidget) :
         sl = self.swindow.getArraySlice(self.pimg,self.imi)[0]
         
         # need mask if user doesn't want to overwrite
-        if self.cv2_display.overwrite == False:
+        if self.cv2_layout.overwrite == False:
             idx = np.where( self.modimage == 1 )
             pcopy = self.pimg.copy()
 
-        self.pimg[ sl ] = self.cv2_display.paint( self.pimg[ sl ] ) ##11,11,3
+        self.pimg[ sl ] = self.cv2_layout.paint( self.pimg[ sl ] ) ##11,11,3
 
         # use mask to updated only pixels not already updated
-        if self.cv2_display.overwrite == False:
+        if self.cv2_layout.overwrite == False:
             self.pimg[ idx ] = pcopy[ idx ]
             self.modimage[ sl ] = 1
 
-        if self.cv2_display.transform == False:
+        if self.cv2_layout.transform == False:
             return
         
         self.imi.setImage(self.pimg)
