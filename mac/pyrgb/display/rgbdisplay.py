@@ -17,6 +17,7 @@ try:
     from cv2layout import CV2Layout
 except:
     pass
+
 try:
     from caffelayout import CaffeLayout
     from ..rgb_caffe.testwrapper import TestWrapper
@@ -111,7 +112,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.views = []
         
         #Combo box to select the image producer
-        self.lay_inputs.addWidget( QtGui.QLabel("<center>Image2D</center>"), 0, 12)
+        self.lay_inputs.addWidget( QtGui.QLabel("<center>Image2D Pro</center>"), 0, 12)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
         self.high_res = False
@@ -121,7 +122,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
 
         #and another combo box to select ROI
-        self.lay_inputs.addWidget( QtGui.QLabel("<center>ROI</center>"), 0, 13)
+        self.lay_inputs.addWidget( QtGui.QLabel("<center>ROI Prod</center>"), 0, 13)
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer   = None
 
