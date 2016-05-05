@@ -14,7 +14,7 @@ modelfile: /home/taritree/working/larbys/resnet-18/training_attempts/ubtri/001/u
 pretrainedmodel: /home/taritree/working/larbys/resnet-18/training_attempts/ubtri/001/snapshot_rmsprop_iter_stage3.caffemodel
 
 # The mean file location on disk
-meanfile: /mnt/raid0/taritree/test_data/ccqe_supported_images_train_mean.bin
+meanfile: /home/taritree/working/larbys/lmdb2image2d/mean.root
 
 # Producer for the mean file
 meanproducer: tpc_12ch_mean
@@ -24,6 +24,9 @@ meanproducer: tpc_12ch_mean
 # real layer has input "data", we will try to guess the dimensions
 # based on image in the pgplot window
 model: /tmp/test.prototxt
+
+# Number of channels
+channels: 12
 
 # Thresholding parameter iMin and iMax
 imin : 0
@@ -39,7 +42,7 @@ imax_plane1: 255
 imax_plane2: 255
 
 # This is the name of the last FC layer which computer the score
-lastfc: fc2
+lastfc: probt
 
 # This layer doesn't have to be here but that's OK, what is the name of the loss layer
 loss: loss

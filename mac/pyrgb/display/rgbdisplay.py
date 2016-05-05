@@ -408,7 +408,11 @@ class RGBDisplay(QtGui.QWidget) :
             return
 
         if self.has_caffe:
-            self.caffe_test.set_image(plotimage.orig_mat)
+            # eventually we need to replace the modified images with the ones here
+            pushit = np.zeros( (plotimage.orig_mat[:,:,0].shape[0],plotimage.orig_mat[:,:,0].shape[1],nchs),dtype=np.float32)
+            for ix,img in enumerate(plotimage.img_v):
+                pushit[:,:,ix] = img
+            self.caffe_test.set_image(pushit)
         self.pimg = pimg
 
         # Emplace the image on the canvas

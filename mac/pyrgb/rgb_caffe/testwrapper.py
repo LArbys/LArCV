@@ -54,6 +54,11 @@ class TestWrapper(object):
             self.caffe.set_mode_gpu()
             self.caffe.set_device(set.config['gpuid'])
         
+        if "channels" in self.config:
+            self.nchannels = self.config["channels"]
+        else:
+            self.nchannels = 3
+
         self.__generate_model__()
         self.__create_net__()
         
@@ -78,8 +83,10 @@ class TestWrapper(object):
             self.iom.read_entry(0)
             means  = self.iom.get_data(larcv.kProductImage2D,self.config['meanproducer'])
             self.mean_v = [ larcv.as_ndarray(img) for img in means.Image2DArray() ]
+            print "Mean channels=",len(self.mean_v)," mean size=",self.mean_v[0].shape
 
         for ix,mean in enumerate(self.mean_v):
+            print "check mean shape againts: ",im[:,:,ix].shape
             assert mean.shape == im[:,:,ix].shape
             im[:,:,ix] -= mean
         
@@ -97,7 +104,9 @@ class TestWrapper(object):
         
         im = self.prep_image()
         
-        blob['data'] = np.zeros((1, im.shape[0], im.shape[1], 3),dtype=np.float32)
+        print "FORWARD ON IMAGE: ",im.shape
+
+        blob['data'] = np.zeros((1, im.shape[0], im.shape[1], im.shape[2]),dtype=np.float32)
         print blob['data'].shape
 
         blob['data'][0,:,:,:] = im
@@ -114,22 +123,23 @@ class TestWrapper(object):
         
         forward_kwargs = {'data': blob['data'] ,'label': blob['label']}
         
+        
         blobs_out = self.net.forward(**forward_kwargs)
         
         scores  =  self.net.blobs[ self.config['lastfc'] ].data
-        #softmax =  self.net.blobs[ self.config['loss']   ].data
 
         self.scores = scores
         print "Scores:  {}".format(scores)
-        #print "Softmax: {}".format(softmax)
-
+        
         
     def __generate_model__(self):
+        
         print "\t>> Got an image of shape: {}".format(self.pimg.shape)
         td = ""
         td += "input: \"data\"\n"
-        td += "input_shape: { dim: 1 dim: 3 dim: %s dim: %s } \n"%(self.pimg.shape[0],
-                                                                   self.pimg.shape[1])
+        td += "input_shape: { dim: 1 dim: %d dim: %s dim: %s } \n"%(self.nchannels,
+                                                                    self.pimg.shape[0],
+                                                                    self.pimg.shape[1])
         td += "input: \"label\"\n"
         td += "input_shape: { dim: 1 }"
         
