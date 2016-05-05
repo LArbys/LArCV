@@ -12,12 +12,11 @@ class FakeColorImage(PlotImage):
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
-        for ix,img in enumerate(self.img_v):
+        for p,fill_ch in enumerate(self.planes):
+
+            if fill_ch==-1: continue            
             
-            if ix not in self.planes:
-                continue
-            
-            self.orig_mat[:,:,ix] = img
+            self.orig_mat[:,:,p] = self.img_v[fill_ch]
             
         self.plot_mat = self.orig_mat.copy()
 

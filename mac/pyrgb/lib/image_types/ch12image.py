@@ -6,40 +6,17 @@ from .. import QtGui
 class Ch12Image(PlotImage):
 
     def __init__(self,img_v,roi_v,planes) :
-
-        self.temp_window = pg.GraphicsWindow()
-        self.temp_window.resize(50,25)
-        self.layout = QtGui.QGridLayout()
-        self.label = QtGui.QLabel("12 Channel")
-        self.channel = QtGui.QLineEdit("Slice (0-4)")
-        self.temp_window.setLayout(self.layout)
-
-        self.lay_inputs = QtGui.QGridLayout()
-        self.layout.addLayout( self.lay_inputs,0,0 )
-
-        self.lay_inputs.addWidget(self.label,0,0)
-        self.lay_inputs.addWidget(self.channel,1,0)
-
+        super(Ch12Image,self).__init__(img_v,roi_v,planes)
         self.name = "Ch12Image"
 
-        super(Ch12Image,self).__init__(img_v,roi_v,planes)
-
-        #image will probably be 12 channels under a single product name
-
-
-
     def __create_mat__(self):
-
-        print "\t>>temporary hack for taritree"
-        split = [ [self.img_v[i+j] for i in xrange(0,12,4)] for j in xrange(4) ]
 
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
         for p,fill_ch in enumerate(self.planes):
             
-            if fill_ch==-1:
-                continue
+            if fill_ch==-1: continue
             
             self.orig_mat[:,:,p] = self.img_v[fill_ch]
             
