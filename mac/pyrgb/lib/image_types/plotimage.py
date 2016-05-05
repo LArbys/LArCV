@@ -52,7 +52,6 @@ class PlotImage(object):
         self.__threshold_mat__(imin,imax)
         return self.plot_mat_t
     
-
     def parse_rois(self):
         self.__create_rois__()
         return self.rois

@@ -107,7 +107,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.views = []
         
         #Combo box to select the image producer
-        self.lay_inputs.addWidget( QtGui.QLabel("Image2D"), 0, 12)
+        self.lay_inputs.addWidget( QtGui.QLabel("<center>Image2D</center>"), 0, 12)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
         self.high_res = False
@@ -117,7 +117,7 @@ class RGBDisplay(QtGui.QWidget) :
         self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
 
         #and another combo box to select ROI
-        self.lay_inputs.addWidget( QtGui.QLabel("ROI"), 0, 13)
+        self.lay_inputs.addWidget( QtGui.QLabel("<center>ROI</center>"), 0, 13)
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer   = None
 
@@ -149,7 +149,7 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.lay_inputs.addWidget( self.rgbcaffe, 0, 15 )
         self.lay_inputs.addWidget( self.rgbcv2, 1, 15 )
-        
+
         #Particle types
         self.kTypes = { 'kBNB'  :  (self.kBNB  ,[2]), 
                         'kOTHER' : (self.kOTHER,[ i for i in xrange(10) if i != 2]),
@@ -184,8 +184,8 @@ class RGBDisplay(QtGui.QWidget) :
         self.pimg   = None
         self.modimg = None
 
-        self.rgbcaffe.clicked.connect( self.openCaffe   )
-        self.rgbcv2.clicked.connect  ( self.openCVEditor)
+        self.rgbcaffe.clicked.connect(self.openCaffe)
+        self.rgbcv2.clicked.connect(self.openCVEditor)
 
         ### Caffe Widgets
         #wrapper for FORWARD function
