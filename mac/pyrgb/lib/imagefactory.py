@@ -11,7 +11,7 @@ class ImageFactory(object):
         if improd == "fake_color": 
         	return FakeColorImage(imdata,roidata,planes)
 
-        if improd == "tpc_12ch":   
+        if improd in ["tpc_12ch","tpc_12ch_mean"]:   
         	return Ch12Image(imdata,roidata,planes)
         
         return DefaultImage(imdata,roidata,planes)

@@ -20,12 +20,12 @@ meanfile: /Users/vgenty/Desktop/trial_fake/mean_valid.root
 meanproducer: fake_color
 
 # Wrapper layer will make a copy of model file (has to sit somewhere on disk...)
-# the will all it's own input layer on top so make sure the first
+# then we put our own input layer on top so make sure the first
 # real layer has input "data", we will try to guess the dimensions
 # based on image in the pgplot window
 model: /tmp/test.prototxt
 
-# Thresholding parameter iMin and iMax
+# Thresholding parameter iMin and iMax -- user is going to do this now
 imin : 0
 imax : 255
 

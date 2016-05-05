@@ -3,6 +3,7 @@ import numpy as np
 import yaml
 from ..lib.iomanager import IOManager
 from .. import larcv
+
 class TestWrapper(object):
 
     def __init__(self):
@@ -21,15 +22,14 @@ class TestWrapper(object):
         # pointer to the current image
         self.pimg    = None
 
-        # caffe itself
-        self.caffe   = None
-
         # iomanager instance
         self.iom     = None
 
         # did config change since last running?
         self.config_changed = None
         
+        self.caffe = None
+
     def set_config(self,config):
         self.config_changed = True
         self.config = config
@@ -45,9 +45,9 @@ class TestWrapper(object):
         self.load_config()
         print self.config['cafferoot']
         sys.path.insert(0,self.config['cafferoot'])
-
         import caffe
         self.caffe = caffe
+
         if self.config['usecpu'] :
             self.caffe.set_mode_cpu()
         else:
@@ -74,22 +74,30 @@ class TestWrapper(object):
 
     def prep_image(self):
         assert self.pimg is not None
-        
+        print "\t>> Hey, if you are reading me self.pimg is already thresholded"
+        print "\t>> this means we are subtracting the MEAN from thresholded image"
+        print "\t>> so I hope you are temporarily OK with that"
+
         im = self.pimg.astype(np.float32,copy=True)
 
         #load the mean_file:
         if self.iom is None:
             self.iom = IOManager([self.config['meanfile']])
+            self.iom.set_verbosity(0)
             self.iom.read_entry(0)
             means  = self.iom.get_data(larcv.kProductImage2D,self.config['meanproducer'])
             self.mean_v = [ larcv.as_ndarray(img) for img in means.Image2DArray() ]
             print "Mean channels=",len(self.mean_v)," mean size=",self.mean_v[0].shape
+            for ix,m in enumerate(self.mean_v): 
+                print "means of mean {} : {}".format(ix,m.mean())
+
 
         for ix,mean in enumerate(self.mean_v):
             print "check mean shape againts: ",im[:,:,ix].shape
             assert mean.shape == im[:,:,ix].shape
             im[:,:,ix] -= mean
         
+        #image is already thresholded according to the user
         im[ im < self.config['imin'] ] = self.config['imin']
         im[ im > self.config['imax'] ] = self.config['imax']
         

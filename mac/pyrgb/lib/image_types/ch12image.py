@@ -1,7 +1,5 @@
 from plotimage import PlotImage
 from .. import np
-from .. import pg
-from .. import QtGui
 
 class Ch12Image(PlotImage):
 
@@ -20,22 +18,26 @@ class Ch12Image(PlotImage):
             
             self.orig_mat[:,:,p] = self.img_v[fill_ch]
             
-        self.plot_mat = self.orig_mat.copy()
+        self.orig_mat = self.orig_mat[:,::-1,:]
 
-        self.plot_mat = self.plot_mat[:,::-1,:]
+    def __threshold_mat__(self,imin,imax):
+
+        self.orig_mat[ self.orig_mat < imin ] = 0
+        self.orig_mat[ self.orig_mat > imax ] = imax
+
+    def __set_plot_mat__(self):
+
+        self.plot_mat = self.orig_mat.copy()
 
         self.plot_mat[:,:,0][ self.plot_mat[:,:,1] > 0.0 ] = 0.0
         self.plot_mat[:,:,0][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
         self.plot_mat[:,:,1][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
 
-    def __threshold_mat__(self,imin,imax):
+        return self.plot_mat
 
-        #Have to profile this copy operation, could be bad
-        self.plot_mat_t = self.plot_mat.copy()
-
-        #I don't know how to slice
-        self.plot_mat_t[ self.plot_mat_t < imin ] = 0
-        self.plot_mat_t[ self.plot_mat_t > imax ] = imax
+    #revert back to how image was in ROOTFILE for caffe...
+    def __revert_image__(self): 
+        self.orig_mat = self.orig_mat[:,::-1,:]    
 
     def __create_rois__(self):
         

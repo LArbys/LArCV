@@ -17,19 +17,20 @@ class FakeColorImage(PlotImage):
             if fill_ch==-1: continue            
             
             self.orig_mat[:,:,p] = self.img_v[fill_ch]
-            
+
+    def __set_plot_mat__(self):
+        
         self.plot_mat = self.orig_mat.copy()
 
-        self.plot_mat = self.plot_mat[:,:,(2,1,0)]
-        
+        return self.plot_mat
+
     def __threshold_mat__(self,imin,imax):
 
-        #Have to profile this copy operation, could be bad
-        self.plot_mat_t = self.plot_mat.copy()
+        self.orig_mat[ self.orig_mat < imin ] = 0
+        self.orig_mat[ self.orig_mat > imax ] = imax
 
-        #I don't know how to slice
-        self.plot_mat_t[ self.plot_mat_t < imin ] = 0
-        self.plot_mat_t[ self.plot_mat_t > imax ] = imax
+    def __revert_image__(self): 
+        pass 
 
     def __create_rois__(self):
         
