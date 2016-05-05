@@ -457,6 +457,9 @@ class RGBDisplay(QtGui.QWidget):
         if self.modimage is None:
             self.modimage = np.zeros(list(self.image.orig_mat.shape))
 
+        if self.image.reverted == True:
+            self.image.revert_image()
+
         sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
         # need mask if user doesn't want to overwrite
