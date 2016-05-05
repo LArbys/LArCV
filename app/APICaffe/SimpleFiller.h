@@ -57,6 +57,7 @@ namespace larcv {
     std::vector<size_t> _caffe_idx_to_img_idx;
     double _adc_gaus_mean;
     double _adc_gaus_sigma;
+    bool _adc_gaus_pixelwise;
   };
 
   /**
