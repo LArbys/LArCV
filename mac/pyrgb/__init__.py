@@ -10,5 +10,8 @@ import numpy as np
 
 larcv.load_pyutil
 
-import cv2
+try:
+    import cv2
+except:
+    print "NO CV2"
 

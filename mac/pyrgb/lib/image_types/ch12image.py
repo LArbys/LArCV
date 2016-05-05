@@ -36,22 +36,17 @@ class Ch12Image(PlotImage):
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
-        try: 
-            ch = int( str(self.channel.text()) )
-        except ValueError:
-            print "\t>> Channel no good defaulting to zero!"
-            ch = 0
-
-        for ix,img in enumerate(split[ch]):
+        for p,fill_ch in enumerate(self.planes):
             
-            if ix not in self.planes: continue
+            if fill_ch==-1:
+                continue
             
-            self.orig_mat[:,:,ix] = img
+            self.orig_mat[:,:,p] = self.img_v[fill_ch]
             
         self.plot_mat = self.orig_mat.copy()
 
         self.plot_mat = self.plot_mat[:,::-1,:]
-        
+
         self.plot_mat[:,:,0][ self.plot_mat[:,:,1] > 0.0 ] = 0.0
         self.plot_mat[:,:,0][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
         self.plot_mat[:,:,1][ self.plot_mat[:,:,2] > 0.0 ] = 0.0
