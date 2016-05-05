@@ -141,6 +141,11 @@ class RGBDisplay(QtGui.QWidget) :
         #RGBCaffe will open and close bottom of the window
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcv2   = QtGui.QPushButton("Enable OpenCV")
+        try:
+            import cv2
+        except:
+            print "No OpenCV. Disabling."
+            self.rgbcv2.setEnabled(False)
         
         self.rgbcaffe.setFixedWidth(130)
         self.rgbcv2.setFixedWidth(130)
