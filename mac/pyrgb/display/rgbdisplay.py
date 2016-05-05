@@ -64,65 +64,71 @@ class RGBDisplay(QtGui.QWidget) :
 
         ### imin -- threshold
         self.imin = QtGui.QLineEdit("%d"%(5)) 
-        self.lay_inputs.addWidget( QtGui.QLabel("imin"), 0, 2)
-        self.lay_inputs.addWidget( self.imin, 0, 3 )
+        self.lay_inputs.addWidget( QtGui.QLabel("imin"), 1, 0)
+        self.lay_inputs.addWidget( self.imin, 1, 1 )
 
         ### imax -- threshold
         self.imax = QtGui.QLineEdit("%d"%(400))
-        self.lay_inputs.addWidget( QtGui.QLabel("imax"), 0, 4)
-        self.lay_inputs.addWidget( self.imax, 0, 5 )
+        self.lay_inputs.addWidget( QtGui.QLabel("imax"), 2, 0)
+        self.lay_inputs.addWidget( self.imax, 2, 1 )
         
         ### select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
-        self.lay_inputs.addWidget( self.axis_plot, 1, 0, 1 , 2  )
+        self.lay_inputs.addWidget( self.axis_plot, 0, 7  )
 
-        self.previous_plot = QtGui.QPushButton("Prev. Event")
-        self.lay_inputs.addWidget( self.previous_plot, 1, 2, 1, 2 )
+        self.previous_plot = QtGui.QPushButton("Prev Event")
+        self.lay_inputs.addWidget( self.previous_plot, 0, 2 )
 
         self.next_plot = QtGui.QPushButton("Next Event")
-        self.lay_inputs.addWidget( self.next_plot, 1, 4, 1 , 2 )
+        self.lay_inputs.addWidget( self.next_plot, 0, 3 )
 
         ### particle types
         #BNB
         self.kBNB   = QtGui.QRadioButton("BNB")
-        self.lay_inputs.addWidget( self.kBNB, 0, 9 )
+        self.lay_inputs.addWidget( self.kBNB, 0, 6 )
         self.kBNB.setChecked(True)
 
         #Particle
         self.kOTHER = QtGui.QRadioButton("Particle")
-        self.lay_inputs.addWidget( self.kOTHER, 0, 10 )
+        self.lay_inputs.addWidget( self.kOTHER, 1, 6 )
 
         #Both
         self.kBOTH  = QtGui.QRadioButton("Both")
-        self.lay_inputs.addWidget( self.kBOTH, 0, 11 )
+        self.lay_inputs.addWidget( self.kBOTH, 2, 6 )
 
         #Check boxes for drawing plane1/2/3 -- perhaps should
         #become tied to current image being shown (N planes...)
         # tmw -- changing it so that one can select the channel to show in the RGB channels
+        self.p0label = QtGui.QLabel("R:")
+        self.lay_inputs.addWidget( self.p0label,0,4 )
         self.p0 = QtGui.QComboBox()
-        self.lay_inputs.addWidget( self.p0, 1, 9 )
+        self.lay_inputs.addWidget( self.p0, 0, 5 )
         
+        self.p1label = QtGui.QLabel("G:")
+        self.lay_inputs.addWidget( self.p1label,1,4 )
         self.p1 = QtGui.QComboBox()
-        self.lay_inputs.addWidget( self.p1, 1, 10 )
+        self.lay_inputs.addWidget( self.p1, 1, 5 )
 
+        self.p2label = QtGui.QLabel("B:")
+        self.lay_inputs.addWidget( self.p2label,2,4 )
         self.p2 = QtGui.QComboBox()
-        self.lay_inputs.addWidget( self.p2, 1, 11 )
+        self.lay_inputs.addWidget( self.p2, 2, 5 )
 
         self.planes = [ self.p0, self.p1, self.p2 ]
         self.views = []
         
         #Combo box to select the image producer
-        self.lay_inputs.addWidget( QtGui.QLabel("<center>Image2D Pro</center>"), 0, 12)
+        self.lay_inputs.addWidget( QtGui.QLabel("Image2D Prod"), 1, 2)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
         self.high_res = False
         for prod in self.dm.keys['image2d'] :
             self.comboBoxImage.addItem(prod)
             
-        self.lay_inputs.addWidget( self.comboBoxImage, 1, 12 )
+        self.lay_inputs.addWidget( self.comboBoxImage, 1, 3 )
 
         #and another combo box to select ROI
-        self.lay_inputs.addWidget( QtGui.QLabel("<center>ROI Prod</center>"), 0, 13)
+        self.lay_inputs.addWidget( QtGui.QLabel("<center>ROI Prod</center>"), 2, 2)
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer   = None
 
@@ -134,16 +140,16 @@ class RGBDisplay(QtGui.QWidget) :
             self.roi_exists = False
             self.comboBoxROI.addItem("None")
 
-        self.lay_inputs.addWidget( self.comboBoxROI, 1, 13 )
+        self.lay_inputs.addWidget( self.comboBoxROI, 2, 3 )
         
         #Auto range function        
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget( self.auto_range, 0, 14 )
+        self.lay_inputs.addWidget( self.auto_range, 1, 7 )
 
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
-        self.lay_inputs.addWidget( self.draw_bbox, 1, 14 )
+        self.lay_inputs.addWidget( self.draw_bbox, 2, 7 )
 
         #RGBCaffe will open and close bottom of the window
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
