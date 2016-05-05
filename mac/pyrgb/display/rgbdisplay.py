@@ -217,12 +217,12 @@ class RGBDisplay(QtGui.QWidget):
         # wrapper for FORWARD function
         try:
             self.caffe_test = TestWrapper()
-            self.caffe_layout = CaffeLayout(self.caffe_test)
+            self.caffe_layout = CaffeLayout(self.caffe_test,self)
             self.caffe_enabled = True
         except:
-             print "Caffe Disabled"
-             self.caffe_enabled = False
-             self.rgbcaffe.setEnabled(False)
+            print "Caffe Disabled"
+            self.caffe_enabled = False
+            self.rgbcaffe.setEnabled(False)
 
         # OpenCV Widgets
         # wrapper for the opencv specific window
@@ -426,23 +426,27 @@ class RGBDisplay(QtGui.QWidget):
         if hasroi:
             self.rois = self.image.parse_rois()
 
-        if self.caffe_enabled:
-            # we need to merge the origin set of channels, to the modified ones
-            # first grab the original image
-            pushit = np.zeros( (self.image.orig_mat[:,:,0].shape[0],self.image.orig_mat[:,:,0].shape[1],nchs),dtype=np.float32)
-            for ix,img in enumerate(self.image.img_v):
-                pushit[:,:,ix] = img
-            # revert?
-            self.image.revert_image()
-            # copy the modified channels into the pushit image
-            for ix,ch in enumerate(self.views):
-                pushit[:,:,ch] = self.image.orig_mat[:,:,ix]
-            self.caffe_test.set_image(pushit)
-
+#<<<<<<< HEAD
+#        if self.caffe_enabled:
+#            # we need to merge the origin set of channels, to the modified ones
+#            # first grab the original image
+#            pushit = np.zeros( (self.image.orig_mat[:,:,0].shape[0],self.image.orig_mat[:,:,0].shape[1],nchs),dtype=np.float32)
+#            for ix,img in enumerate(self.image.img_v):
+#                pushit[:,:,ix] = img
+#            # revert?
+#            self.image.revert_image()
+#            # copy the modified channels into the pushit image
+#            for ix,ch in enumerate(self.views):
+#                pushit[:,:,ch] = self.image.orig_mat[:,:,ix]
+#            self.caffe_test.set_image(pushit)
+#
+#=======
+#>>>>>>> origin/rgb_caffemod
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)
         self.modimage = None
 
+        # no ROI's -- finish early
         if self.rois is None:
             self.autoRange()
             return
@@ -464,7 +468,37 @@ class RGBDisplay(QtGui.QWidget):
 
         self.autoRange()
 
-    # For now this is fine....
+    def regionChanged(self):
+
+        if self.modimage is None:
+            self.modimage = np.zeros(list(self.image.orig_mat.shape))
+
+        if self.image.reverted == True:
+            self.image.revert_image()
+
+        sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
+
+        # need mask if user doesn't want to overwrite
+        if self.cv2_layout.overwrite == False:
+            idx = np.where(self.modimage == 1)
+            pcopy = self.image.orig_mat.copy()
+
+        self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
+
+        # use mask to updated only pixels not already updated
+        if self.cv2_layout.overwrite == False:
+            self.image.orig_mat[idx] = pcopy[idx]
+            self.modimage[sl] = 1
+
+        if self.cv2_layout.transform == False:
+            return
+
+        self.pimg = self.image.set_plot_mat()  # don't re-threshold it, it already is
+
+        self.imi.setImage(self.pimg)
+
+        # For now this is fine....
+
     def drawBBOX(self, kType):
 
         # set the planes to be drawn
@@ -533,29 +567,15 @@ class RGBDisplay(QtGui.QWidget):
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
 
-    def regionChanged(self):
+    def load_current_image(self):
+        print "Loading current image!"
+        # revert the image back to Image2D.nd_array style (possibly
+        # changed to put in viewer)
+        self.image.revert_image()
 
-        if self.modimage is None:
-            self.modimage = np.zeros(list(self.image.orig_mat.shape))
+        # put the image back into it's original location in self.image.img_v
+        # for the network
+        self.image.emplace_image()
 
-        sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
-
-        # need mask if user doesn't want to overwrite
-        if self.cv2_layout.overwrite == False:
-            idx = np.where(self.modimage == 1)
-            pcopy = self.image.orig_mat.copy()
-
-        self.image.orig_mat[sl] = self.cv2_layout.paint(
-            self.image.orig_mat[sl])
-
-        # use mask to updated only pixels not already updated
-        if self.cv2_layout.overwrite == False:
-            self.image.orig_mat[idx] = pcopy[idx]
-            self.modimage[sl] = 1
-
-        if self.cv2_layout.transform == False:
-            return
-
-        self.pimg = self.image.set_plot_mat()  # don't re-threshold it, it already is
-
-        self.imi.setImage(self.pimg)
+        # send off to the network
+        return self.image.img_v
