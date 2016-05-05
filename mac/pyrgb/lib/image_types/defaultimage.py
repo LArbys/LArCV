@@ -17,7 +17,8 @@ class DefaultImage(PlotImage):
             if fill_ch==-1: continue            
             
             self.orig_mat[:,:,p] = self.img_v[fill_ch]
-
+            self.idx[fill_ch] = p
+            
         self.orig_mat = self.orig_mat[:,::-1,:]        
 
     def __threshold_mat__(self,imin,imax):

@@ -9,6 +9,9 @@ class FakeColorImage(PlotImage):
     
     def __create_mat__(self):
 
+        #lets start keeping track of which index in self.img_v corresponds
+        #to which channen in the plot image
+
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
@@ -17,6 +20,8 @@ class FakeColorImage(PlotImage):
             if fill_ch==-1: continue            
             
             self.orig_mat[:,:,p] = self.img_v[fill_ch]
+
+            self.idx[fill_ch] = p
 
     def __set_plot_mat__(self):
         
