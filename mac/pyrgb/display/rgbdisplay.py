@@ -427,14 +427,17 @@ class RGBDisplay(QtGui.QWidget):
             self.rois = self.image.parse_rois()
 
         if self.caffe_enabled:
-            # pushit = np.zeros((self.image.orig_mat[:, :, 0].shape[0],
-            #                    self.image.orig_mat[:, :, 0].shape[1],
-            #                    nchs),
-            #                   dtype=np.float32)
-            # for ix, img in enumerate(self.image.):
-            #     pushit[:, :, ix] = self.origin
+            # we need to merge the origin set of channels, to the modified ones
+            # first grab the original image
+            pushit = np.zeros( (self.image.orig_mat[:,:,0].shape[0],self.image.orig_mat[:,:,0].shape[1],nchs),dtype=np.float32)
+            for ix,img in enumerate(self.image.img_v):
+                pushit[:,:,ix] = img
+            # revert?
             self.image.revert_image()
-            self.caffe_test.set_image(self.image.orig_mat)
+            # copy the modified channels into the pushit image
+            for ix,ch in enumerate(self.views):
+                pushit[:,:,ch] = self.image.orig_mat[:,:,ix]
+            self.caffe_test.set_image(pushit)
 
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)
