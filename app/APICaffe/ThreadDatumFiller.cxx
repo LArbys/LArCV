@@ -5,6 +5,8 @@
 #include "Base/LArCVBaseUtilFunc.h"
 #include <random>
 #include <sstream>
+#include <unistd.h>
+
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
     : larcv_base(name)
