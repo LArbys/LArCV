@@ -33,6 +33,12 @@ class DataManager(object):
         
         self.loaded = {}
 
+    def get_nchannels(self,ii,imgprod) :
+        # Sorry Vic I hacked this
+        self.iom.read_entry(ii)
+        imdata  = self.iom.get_data(larcv.kProductImage2D,imgprod)
+        return imdata.Image2DArray().size()
+
     def get_event_image(self,ii,imin,imax,imgprod,roiprod,planes) :
 
         #Load data in TChain

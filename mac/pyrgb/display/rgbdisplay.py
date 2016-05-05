@@ -91,16 +91,14 @@ class RGBDisplay(QtGui.QWidget) :
 
         #Check boxes for drawing plane1/2/3 -- perhaps should
         #become tied to current image being shown (N planes...)
-        self.p0 = QtGui.QCheckBox("Plane 0")
-        self.p0.setChecked(True)
+        # tmw -- changing it so that one can select the channel to show in the RGB channels
+        self.p0 = QtGui.QComboBox()
         self.lay_inputs.addWidget( self.p0, 1, 9 )
         
-        self.p1 = QtGui.QCheckBox("Plane 1")
-        self.p1.setChecked(True)
+        self.p1 = QtGui.QComboBox()
         self.lay_inputs.addWidget( self.p1, 1, 10 )
 
-        self.p2 = QtGui.QCheckBox("Plane 2")
-        self.p2.setChecked(True)
+        self.p2 = QtGui.QComboBox()
         self.lay_inputs.addWidget( self.p2, 1, 11 )
 
         self.planes = [ self.p0, self.p1, self.p2 ]
@@ -334,8 +332,10 @@ class RGBDisplay(QtGui.QWidget) :
 
         self.views = []
         for ix, p in enumerate( self.planes ):
-            if p.isChecked():
-                self.views.append(ix)
+            if p.currentIndex()!=0:
+                self.views.append( int(p.currentText())  )
+            else:
+                self.views.append( -1 ) # sentinal for don't fill this channel
 
                 
     def plotData(self):
@@ -354,12 +354,35 @@ class RGBDisplay(QtGui.QWidget) :
         imin  = int( self.imin.text() )
         imax  = int( self.imax.text() )
 
+        # update channel combo boxes
+        nchs = self.dm.get_nchannels(event,self.image_producer)
+        print "Set the RGB drop boxes: ",nchs," current count=",self.p0.count()
+        if self.p0.count()!=(nchs+1):
+            self.p0.clear()
+            self.p1.clear()
+            self.p2.clear()
+            # the none channel must be zero. else we have to know the number of channels
+            self.p0.insertItem(0,"(none)")
+            self.p1.insertItem(0,"(none)")
+            self.p2.insertItem(0,"(none)")
+            for ch in range(0,nchs):
+                self.p0.insertItem( ch+1, "%d"%(ch) )
+                self.p1.insertItem( ch+1, "%d"%(ch) )
+                self.p2.insertItem( ch+1, "%d"%(ch) )
+            if nchs>0:
+                self.p0.setCurrentIndex(1)
+            if nchs>1:
+                self.p1.setCurrentIndex(nchs/3+1)
+            if nchs>2:
+                self.p2.setCurrentIndex(nchs/3*2+1)
+
         self.setViewPlanes()
-        
+
         pimg, self.rois, plotimage = self.dm.get_event_image(event,imin,imax,
                                                              self.image_producer,
                                                              self.roi_producer,
                                                              self.views)
+
 
         self.image = plotimage.imgs
         
