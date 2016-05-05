@@ -9,7 +9,7 @@ class ImageFactory(object):
     def get(self,imdata,roidata,planes,improd,**kwargs):
 
         if improd == "fake_color": return FakeColorImage(imdata,roidata,planes)
-        if improd == "tpc_12ch":   
+        if improd == "tpc_12ch_mean":   
             ch12 = Ch12Image(imdata,roidata,planes)
             ch12.temp_window.show()
             return ch12
