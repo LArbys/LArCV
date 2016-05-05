@@ -35,7 +35,7 @@ class DataManager(object):
 
     def get_nchannels(self,ii,imgprod) :
         # Sorry Vic I hacked this
-        # it's ok
+        # --> it's ok
         self.iom.read_entry(ii)
         imdata  = self.iom.get_data(larcv.kProductImage2D,imgprod)
         return imdata.Image2DArray().size()

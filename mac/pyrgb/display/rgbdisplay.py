@@ -217,13 +217,12 @@ class RGBDisplay(QtGui.QWidget):
         # wrapper for FORWARD function
         try:
             self.caffe_test = TestWrapper()
-            # wrapper for the caffe specific layout
             self.caffe_layout = CaffeLayout(self.caffe_test)
             self.caffe_enabled = True
         except:
-            print "Caffe Disabled"
-            self.caffe_enabled = False
-            self.rgbcaffe.setEnabled(False)
+             print "Caffe Disabled"
+             self.caffe_enabled = False
+             self.rgbcaffe.setEnabled(False)
 
         # OpenCV Widgets
         # wrapper for the opencv specific window
@@ -421,19 +420,21 @@ class RGBDisplay(QtGui.QWidget):
 
         # have to externally threshold it to make sure opencv+caffe works
         self.image.threshold_mat(self.iimin, self.iimax)
+        # return the matrix with zeroed out values to avoid overlap
         self.pimg = self.image.set_plot_mat()
 
         if hasroi:
             self.rois = self.image.parse_rois()
 
         if self.caffe_enabled:
-            pushit = np.zeros((self.image.orig_mat[:, :, 0].shape[0],
-                               self.image.orig_mat[:, :, 0].shape[1],
-                               nchs),
-                              dtype=np.float32)
-            for ix, img in enumerate(self.image.img_v):
-                pushit[:, :, ix] = img
-            self.caffe_test.set_image(pushit)
+            # pushit = np.zeros((self.image.orig_mat[:, :, 0].shape[0],
+            #                    self.image.orig_mat[:, :, 0].shape[1],
+            #                    nchs),
+            #                   dtype=np.float32)
+            # for ix, img in enumerate(self.image.):
+            #     pushit[:, :, ix] = self.origin
+            self.image.revert_image()
+            self.caffe_test.set_image(self.image.orig_mat)
 
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)

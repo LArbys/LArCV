@@ -36,6 +36,7 @@ class DefaultImage(PlotImage):
         return self.plot_mat
 
     #revert back to how image was in ROOTFILE
+    
     def __revert_image__(self): 
         self.orig_mat = self.orig_mat[:,::-1,:]    
 
