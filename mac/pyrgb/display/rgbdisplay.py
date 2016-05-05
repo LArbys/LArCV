@@ -135,7 +135,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # and another combo box to select ROI
         # self.lay_inputs.addWidget(QtGui.QLabel(
-            # "<center>ROI Prod</center>"), 2, 2)
+        # "<center>ROI Prod</center>"), 2, 2)
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer = None
 
@@ -219,10 +219,10 @@ class RGBDisplay(QtGui.QWidget):
             self.caffe_test = TestWrapper()
             # wrapper for the caffe specific layout
             self.caffe_layout = CaffeLayout(self.caffe_test)
-            self.has_caffe = True
+            self.caffe_enabled = True
         except:
             print "Caffe Disabled"
-            self.has_caffe = False
+            self.caffe_enabled = False
             self.rgbcaffe.setEnabled(False)
 
         # OpenCV Widgets
@@ -271,7 +271,7 @@ class RGBDisplay(QtGui.QWidget):
 
     def get_ticks(self):
         # everywhere USE ABSOLUTE COORDINATE (which is in tick/wire)
-        meta = self.image[0].meta()
+        meta = self.image.imgs[0].meta()
         xmax, ymax = meta.max_x(), meta.max_y()
         xmin, ymin = meta.min_x(), meta.min_y()
 
@@ -383,8 +383,8 @@ class RGBDisplay(QtGui.QWidget):
 
         # From QT
         event = int(self.event.text())
-        imin = int(self.imin.text())
-        imax = int(self.imax.text())
+        self.iimin = int(self.imin.text())
+        self.iimax = int(self.imax.text())
 
         # update channel combo boxes
         nchs = self.dm.get_nchannels(event, self.image_producer)
@@ -411,28 +411,29 @@ class RGBDisplay(QtGui.QWidget):
 
         self.setViewPlanes()
 
-        pimg, self.rois, plotimage = self.dm.get_event_image(event, imin, imax,
-                                                             self.image_producer,
-                                                             self.roi_producer,
-                                                             self.views)
+        self.image, hasroi = self.dm.get_event_image(event,
+                                                     self.image_producer,
+                                                     self.roi_producer,
+                                                     self.views)
 
-        self.image = plotimage.imgs
-
-        if pimg is None:
-            self.image = None
+        if self.image == None:
             return
 
-        if self.has_caffe:
-            # eventually we need to replace the modified images with the ones
-            # here
-            pushit = np.zeros((plotimage.orig_mat[:, :, 0].shape[0],
-                               plotimage.orig_mat[:, :, 0].
-                               shape[1], nchs),
-                            dtype=np.float32)
-            for ix, img in enumerate(plotimage.img_v):
+        # have to externally threshold it to make sure opencv+caffe works
+        self.image.threshold_mat(self.iimin, self.iimax)
+        self.pimg = self.image.set_plot_mat()
+
+        if hasroi:
+            self.rois = self.image.parse_rois()
+
+        if self.caffe_enabled:
+            pushit = np.zeros((self.image.orig_mat[:, :, 0].shape[0],
+                               self.image.orig_mat[:, :, 0].shape[1],
+                               nchs),
+                              dtype=np.float32)
+            for ix, img in enumerate(self.image.img_v):
                 pushit[:, :, ix] = img
             self.caffe_test.set_image(pushit)
-        self.pimg = pimg
 
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)
@@ -453,18 +454,6 @@ class RGBDisplay(QtGui.QWidget):
                     ymin = bb.min_y()
                 if ymax < bb.max_y():
                     ymax = bb.max_y()
-        pixel_size = (None, None)
-        for img in self.image:
-            bb = img.meta()
-            if xmin > bb.min_x():
-                xmin = bb.min_x()
-            if xmax < bb.max_x():
-                xmax = bb.max_x()
-            if ymin > bb.min_y():
-                ymin = bb.min_y()
-            if ymax < bb.max_y():
-                ymax = bb.max_y()
-            pixel_size = (bb.pixel_width(), bb.pixel_height())
 
         if self.roi_exists == True:
             self.drawBBOX(self.which_type())
@@ -507,7 +496,7 @@ class RGBDisplay(QtGui.QWidget):
                 if ix not in self.views:
                     continue
 
-                imm = self.image[ix].meta()
+                imm = self.image.imgs[ix].meta()
 
                 # x,y below are relative coordinate of bounding-box w.r.t.
                 # image in original unit
@@ -543,23 +532,26 @@ class RGBDisplay(QtGui.QWidget):
     def regionChanged(self):
 
         if self.modimage is None:
-            self.modimage = np.zeros(list(self.pimg.shape))
+            self.modimage = np.zeros(list(self.image.orig_mat.shape))
 
-        sl = self.swindow.getArraySlice(self.pimg, self.imi)[0]
+        sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
         # need mask if user doesn't want to overwrite
         if self.cv2_layout.overwrite == False:
             idx = np.where(self.modimage == 1)
-            pcopy = self.pimg.copy()
+            pcopy = self.image.orig_mat.copy()
 
-        self.pimg[sl] = self.cv2_layout.paint(self.pimg[sl])
+        self.image.orig_mat[sl] = self.cv2_layout.paint(
+            self.image.orig_mat[sl])
 
         # use mask to updated only pixels not already updated
         if self.cv2_layout.overwrite == False:
-            self.pimg[idx] = pcopy[idx]
+            self.image.orig_mat[idx] = pcopy[idx]
             self.modimage[sl] = 1
 
         if self.cv2_layout.transform == False:
             return
+
+        self.pimg = self.image.set_plot_mat()  # don't re-threshold it, it already is
 
         self.imi.setImage(self.pimg)

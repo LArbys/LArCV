@@ -48,11 +48,24 @@ class PlotImage(object):
     def __create_rois__(self):
         """create ROIs meaningfully"""
 
-    def treshold_mat(self,imin,imax):
+    @abc.abstractmethod
+    def __set_plot_mat__(self):
+        """ set how the image will be displayed """
+
+    @abc.abstractmethod
+    def __revert_image__(self):
+        """ revert orig_mat backto it's normal state for caffe"""
+
+    def threshold_mat(self,imin,imax): #it's void
         self.__threshold_mat__(imin,imax)
-        return self.plot_mat_t
     
+    def set_plot_mat(self):
+        return self.__set_plot_mat__()
+
     def parse_rois(self):
         self.__create_rois__()
         return self.rois
     
+    def revert_image(self):
+        self.__revert_image__()
+        
