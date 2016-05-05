@@ -13,9 +13,15 @@ from ..lib import storage as store
 from ..lib.hoverrect import HoverRect
 from ..lib.roislider import ROISlider
 
-from cv2layout import CV2Layout
-from caffelayout import CaffeLayout
-from ..rgb_caffe.testwrapper import TestWrapper
+try:
+    from cv2layout import CV2Layout
+except:
+    pass
+try:
+    from caffelayout import CaffeLayout
+    from ..rgb_caffe.testwrapper import TestWrapper
+except:
+    pass
 
 class RGBDisplay(QtGui.QWidget) :
 
@@ -192,9 +198,15 @@ class RGBDisplay(QtGui.QWidget) :
 
         ### Caffe Widgets
         #wrapper for FORWARD function
-        self.caffe_test   = TestWrapper() 
-        #wrapper for the caffe specific layout
-        self.caffe_layout = CaffeLayout(self.caffe_test)
+        try:
+            self.caffe_test   = TestWrapper() 
+            #wrapper for the caffe specific layout
+            self.caffe_layout = CaffeLayout(self.caffe_test)
+            self.has_caffe = True
+        except:
+            print "Caffe Disabled"
+            self.has_caffe = False
+            self.rgbcaffe.setEnabled(False)
 
         ### OpenCV Widgets
         #wrapper for the opencv specific window
@@ -395,7 +407,8 @@ class RGBDisplay(QtGui.QWidget) :
             self.image = None
             return
 
-        self.caffe_test.set_image(plotimage.orig_mat)
+        if self.has_caffe:
+            self.caffe_test.set_image(plotimage.orig_mat)
         self.pimg = pimg
 
         # Emplace the image on the canvas
