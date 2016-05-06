@@ -15,14 +15,6 @@ class Ch12Image(PlotImage):
 
     def __create_mat__(self):
 
-        # this 12 ch data (from the lmdb) was made before the current convention
-        # thus it stores its data in time order (rather than reverse time order)
-        # it also has transposed the matrix
-        # to make sure the final orientation that is sent to caffe 
-        # is correct while also keeping to this display's conventions
-        #  we 1) do not time reverse it, 2) then transpose
-        # tmw has checked that this is correct
-        
         # working copy
         if not hasattr(self,'work_mat'):
             self.work_mat = np.zeros(list(self.img_v[0].shape)+[len(self.img_v)])
@@ -60,7 +52,6 @@ class Ch12Image(PlotImage):
 
     def __set_plot_mat__(self, imin, imax):
 
-        
         self.plot_mat = self.orig_mat.copy()
 
         # do contrast thresholding
