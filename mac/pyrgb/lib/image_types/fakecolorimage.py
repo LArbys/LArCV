@@ -23,16 +23,18 @@ class FakeColorImage(PlotImage):
 
             self.idx[fill_ch] = p
 
-    def __set_plot_mat__(self):
+    def __set_plot_mat__(self,imin,imax):
         
         self.plot_mat = self.orig_mat.copy()
 
+        #threshold the image
+        self.plot_mat = self.plot_mat[ self.plot_mat < imin ] = 0
+        self.plot_mat = self.plot_mat[ self.plot_max > imax ] = imax
+
+
+        #make sure pixels do not block each other
+        #not yet
         return self.plot_mat
-
-    def __threshold_mat__(self,imin,imax):
-
-        self.orig_mat[ self.orig_mat < imin ] = 0
-        self.orig_mat[ self.orig_mat > imax ] = imax
 
     def __revert_image__(self): 
         pass 

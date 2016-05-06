@@ -47,9 +47,9 @@ class PlotImage(object):
     def __create_mat__(self):
         """create load nd_array into 3 channel image"""
 
-    @abc.abstractmethod
-    def __threshold_mat__(self, imin, imax):
-        """transform threshold orig_mat with imin and imax"""
+    # @abc.abstractmethod
+    # def __threshold_mat__(self, imin, imax):
+    #     """transform threshold orig_mat with imin and imax"""
 
     @abc.abstractmethod
     def __create_rois__(self):
@@ -66,13 +66,17 @@ class PlotImage(object):
         """ the image correctly. So you physically invert it, apply opencv"""
         """ then revert back to send to the network"""
 
-    # void -- threshold original_mat
-    def threshold_mat(self, imin, imax):
-        self.__threshold_mat__(imin, imax)
+    # # void -- threshold original_mat
+    # def threshold_mat(self, imin, imax):
+    #     self.__threshold_mat__(imin, imax)
 
-    # return the image that is actually shown
-    def set_plot_mat(self):
-        return self.__set_plot_mat__()
+    # return the miage that is actually shown
+    def set_plot_mat(self,imin,imax):
+        return self.__set_plot_mat__(imin,imax)
+
+    # rswap channels that are shown
+    def swap_plot_mat(self,imin,imax,planes):
+        return self.__swap_mat_channels__(imin,imax,planes)
 
     # create the ROIs if they exists and return them
     def parse_rois(self):

@@ -109,15 +109,18 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.p0label, 0, 4)
         self.p0 = QtGui.QComboBox()
         self.lay_inputs.addWidget(self.p0, 0, 5)
+        self.p0.activated.connect( self.changeChannelViewed )
 
         self.p1label = QtGui.QLabel("G:")
         self.lay_inputs.addWidget(self.p1label, 1, 4)
         self.p1 = QtGui.QComboBox()
+        self.p1.activated.connect( self.changeChannelViewed )
         self.lay_inputs.addWidget(self.p1, 1, 5)
 
         self.p2label = QtGui.QLabel("B:")
         self.lay_inputs.addWidget(self.p2label, 2, 4)
         self.p2 = QtGui.QComboBox()
+        self.p2.activated.connect( self.changeChannelViewed )
         self.lay_inputs.addWidget(self.p2, 2, 5)
 
         self.planes = [self.p0, self.p1, self.p2]
@@ -367,7 +370,7 @@ class RGBDisplay(QtGui.QWidget):
             else:
                 self.views.append(-1)  # sentinal for don't fill this channel
 
-    def plotData(self):
+    def plotData(self,refresh):
 
         self.image = None
 
@@ -385,7 +388,6 @@ class RGBDisplay(QtGui.QWidget):
 
         # update channel combo boxes
         nchs = self.dm.get_nchannels(event, self.image_producer)
-        print "Set the RGB drop boxes: ", nchs, " current count=", self.p0.count()
         if self.p0.count() != (nchs + 1):
             self.p0.clear()
             self.p1.clear()
@@ -417,29 +419,13 @@ class RGBDisplay(QtGui.QWidget):
             return
 
         # have to externally threshold it to make sure opencv+caffe works
-        self.image.threshold_mat(self.iimin, self.iimax)
+        # self.image.threshold_mat(self.iimin, self.iimax)
         # return the matrix with zeroed out values to avoid overlap
-        self.pimg = self.image.set_plot_mat()
+        self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)
 
         if hasroi:
             self.rois = self.image.parse_rois()
 
-#<<<<<<< HEAD
-#        if self.caffe_enabled:
-#            # we need to merge the origin set of channels, to the modified ones
-#            # first grab the original image
-#            pushit = np.zeros( (self.image.orig_mat[:,:,0].shape[0],self.image.orig_mat[:,:,0].shape[1],nchs),dtype=np.float32)
-#            for ix,img in enumerate(self.image.img_v):
-#                pushit[:,:,ix] = img
-#            # revert?
-#            self.image.revert_image()
-#            # copy the modified channels into the pushit image
-#            for ix,ch in enumerate(self.views):
-#                pushit[:,:,ch] = self.image.orig_mat[:,:,ix]
-#            self.caffe_test.set_image(pushit)
-#
-#=======
-#>>>>>>> origin/rgb_caffemod
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)
         self.modimage = None
@@ -494,7 +480,7 @@ class RGBDisplay(QtGui.QWidget):
         if self.cv2_layout.transform == False:
             return
 
-        self.pimg = self.image.set_plot_mat()  # don't re-threshold it, it already is
+        self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)  
 
         self.imi.setImage(self.pimg) # send it back to the viewer
 
@@ -567,6 +553,11 @@ class RGBDisplay(QtGui.QWidget):
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
+
+    def changeChannelViewed(self):
+        self.setViewPlanes()
+        self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
+        self.imi.setImage(self.pimg)
 
     def load_current_image(self):
         print "Loading current image!"

@@ -40,18 +40,19 @@ class DataManager(object):
         imdata  = self.iom.get_data(larcv.kProductImage2D,imgprod)
         return imdata.Image2DArray().size()
 
-    def get_event_image(self,ii,imgprod,roiprod,planes) :
+    def get_event_image(self,ii,imgprod,roiprod,planes, refresh=True) :
 
         #Load data in TChain
         self.iom.read_entry(ii)
-
+        
         hasroi = False
         if roiprod is not None:
             roidata = self.iom.iom.get_data(larcv.kProductROI,roiprod)
             roidata = roidata.ROIArray()
             hasroi = True
 
-        imdata  = self.iom.get_data(larcv.kProductImage2D,imgprod)
+
+        imdata  = self.iom.get_data(larcv.kProductImage2D,imgprod) # goes to disk
 
         self.run    = imdata.run()
         self.subrun = imdata.subrun()
