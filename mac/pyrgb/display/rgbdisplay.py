@@ -345,9 +345,7 @@ class RGBDisplay(QtGui.QWidget):
 
         event = int(self.event.text())
 
-        if event == 0:
-            print "idiot.."
-            return
+        if event == 0: return
 
         self.event.setText(str(event - 1))
 
@@ -473,8 +471,11 @@ class RGBDisplay(QtGui.QWidget):
         if self.modimage is None:
             self.modimage = np.zeros(list(self.image.orig_mat.shape))
 
+        #did we flip it for caffe?
         if self.image.reverted == True:
+            print "Caffe reverted the image, fipping it back"
             self.image.revert_image()
+            self.image.reverted = False # i reverted it back
 
         sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
@@ -571,7 +572,9 @@ class RGBDisplay(QtGui.QWidget):
         print "Loading current image!"
         # revert the image back to Image2D.nd_array style (possibly
         # changed to put in viewer)
-        self.image.revert_image()
+        if self.image.reverted == False:
+            self.image.revert_image()
+            print "reverted image for caffe"
 
         # put the image back into it's original location in self.image.img_v
         # for the network
