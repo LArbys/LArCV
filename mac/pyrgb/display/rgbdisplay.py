@@ -488,7 +488,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # use mask to updated only pixels not already updated
         if self.cv2_layout.overwrite == False:
-            self.image.orig_mat[idx] = pcopy[idx]
+            self.image.orig_mat[idx] = pcopy[idx] # reverts prev. modified pixels, preventing double change
             self.modimage[sl] = 1
 
         if self.cv2_layout.transform == False:
@@ -496,7 +496,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.pimg = self.image.set_plot_mat()  # don't re-threshold it, it already is
 
-        self.imi.setImage(self.pimg)
+        self.imi.setImage(self.pimg) # send it back to the viewer
 
         # For now this is fine....
 

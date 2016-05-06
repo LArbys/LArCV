@@ -70,7 +70,7 @@ class PlotImage(object):
     def threshold_mat(self, imin, imax):
         self.__threshold_mat__(imin, imax)
 
-    # return the miage that is actually shown
+    # return the image that is actually shown
     def set_plot_mat(self):
         return self.__set_plot_mat__()
 

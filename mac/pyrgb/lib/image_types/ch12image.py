@@ -2,13 +2,25 @@ from plotimage import PlotImage
 from .. import np
 
 class Ch12Image(PlotImage):
+    # notes
+    # orig_mat is the ndarray representation of image2d data
+    # plot_mat is modified to have overlays
+    # when loading, we manip orig_mat to have the orientation we want
+    # before going to caffe, __revert_image__ is called to rearrange the image
 
     def __init__(self,img_v,roi_v,planes) :
         super(Ch12Image,self).__init__(img_v,roi_v,planes)
         self.name = "Ch12Image"
 
     def __create_mat__(self):
-
+        # this 12 ch data (from the lmdb) was made before the current convention
+        # thus it stores its data in time order (rather than reverse time order)
+        # it also has transposed the matrix
+        # to make sure the final orientation that is sent to caffe 
+        # is correct while also keeping to this display's conventions
+        #  we 1) do not time reverse it, 2) then transpose
+        # tmw has checked that this is correct
+        
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
@@ -20,12 +32,14 @@ class Ch12Image(PlotImage):
 
             self.idx[fill_ch] = p
 
-        self.orig_mat = self.orig_mat[:,::-1,:]
+        self.orig_mat = np.transpose( self.orig_mat, (1,0,2) )
+        
 
     def __threshold_mat__(self,imin,imax):
 
         self.orig_mat[ self.orig_mat < imin ] = 0
         self.orig_mat[ self.orig_mat > imax ] = imax
+
 
     def __set_plot_mat__(self):
 
@@ -39,7 +53,7 @@ class Ch12Image(PlotImage):
 
     #revert back to how image was in ROOTFILE for caffe...
     def __revert_image__(self): 
-        self.orig_mat = self.orig_mat[:,::-1,:]    
+        self.orig_mat = np.transpose( self.orig_mat, (1,0,2) )
 
     def __create_rois__(self):
         

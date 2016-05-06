@@ -112,8 +112,8 @@ class TestWrapper(object):
             im[:,:,ix] -= mean
         
         #image is already thresholded according to the user
-        im[ im < self.config['imin'] ] = self.config['imin']
-        im[ im > self.config['imax'] ] = self.config['imax']
+        #im[ im < self.config['imin'] ] = self.config['imin']
+        #im[ im > self.config['imax'] ] = self.config['imax']
         
         return im
         
