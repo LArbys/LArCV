@@ -74,6 +74,10 @@ class PlotImage(object):
     def set_plot_mat(self,imin,imax):
         return self.__set_plot_mat__(imin,imax)
 
+    # rswap channels that are shown
+    def swap_plot_mat(self,imin,imax,planes):
+        return self.__swap_mat_channels__(imin,imax,planes)
+
     # create the ROIs if they exists and return them
     def parse_rois(self):
         self.__create_rois__()
