@@ -370,7 +370,7 @@ class RGBDisplay(QtGui.QWidget):
             else:
                 self.views.append(-1)  # sentinal for don't fill this channel
 
-    def plotData(self,refresh):
+    def plotData(self):
 
         self.image = None
 
