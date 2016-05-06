@@ -417,9 +417,9 @@ class RGBDisplay(QtGui.QWidget):
             return
 
         # have to externally threshold it to make sure opencv+caffe works
-        self.image.threshold_mat(self.iimin, self.iimax)
+        # self.image.threshold_mat(self.iimin, self.iimax)
         # return the matrix with zeroed out values to avoid overlap
-        self.pimg = self.image.set_plot_mat()
+        self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)
 
         if hasroi:
             self.rois = self.image.parse_rois()
@@ -478,7 +478,7 @@ class RGBDisplay(QtGui.QWidget):
         if self.cv2_layout.transform == False:
             return
 
-        self.pimg = self.image.set_plot_mat()  # don't re-threshold it, it already is
+        self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)  
 
         self.imi.setImage(self.pimg)
 
