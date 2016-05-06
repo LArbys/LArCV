@@ -81,12 +81,8 @@ class PlotImage(object):
 
     # revert the image back to send to caffe!
     def revert_image(self):
-        if self.reverted == False:
-            self.reverted = True
-        else:
-            self.reverted = False
-
         self.__revert_image__()
+        self.reverted = True
 
     # insert thresholded image into self.img_v !
     # since self.orig_mat is a brand new object is this needed? you tell me
