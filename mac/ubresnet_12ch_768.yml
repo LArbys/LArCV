@@ -46,3 +46,6 @@ lastfc: probt
 
 # This layer doesn't have to be here but that's OK, what is the name of the loss layer
 loss: loss
+
+# For Debug: save the data given to the network in a numpy binary file
+save_datablob: True

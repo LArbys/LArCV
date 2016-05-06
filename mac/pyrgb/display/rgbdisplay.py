@@ -424,6 +424,22 @@ class RGBDisplay(QtGui.QWidget):
         if hasroi:
             self.rois = self.image.parse_rois()
 
+#<<<<<<< HEAD
+#        if self.caffe_enabled:
+#            # we need to merge the origin set of channels, to the modified ones
+#            # first grab the original image
+#            pushit = np.zeros( (self.image.orig_mat[:,:,0].shape[0],self.image.orig_mat[:,:,0].shape[1],nchs),dtype=np.float32)
+#            for ix,img in enumerate(self.image.img_v):
+#                pushit[:,:,ix] = img
+#            # revert?
+#            self.image.revert_image()
+#            # copy the modified channels into the pushit image
+#            for ix,ch in enumerate(self.views):
+#                pushit[:,:,ch] = self.image.orig_mat[:,:,ix]
+#            self.caffe_test.set_image(pushit)
+#
+#=======
+#>>>>>>> origin/rgb_caffemod
         # Emplace the image on the canvas
         self.imi.setImage(self.pimg)
         self.modimage = None
@@ -472,7 +488,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # use mask to updated only pixels not already updated
         if self.cv2_layout.overwrite == False:
-            self.image.orig_mat[idx] = pcopy[idx]
+            self.image.orig_mat[idx] = pcopy[idx] # reverts prev. modified pixels, preventing double change
             self.modimage[sl] = 1
 
         if self.cv2_layout.transform == False:
@@ -480,7 +496,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)  
 
-        self.imi.setImage(self.pimg)
+        self.imi.setImage(self.pimg) # send it back to the viewer
 
         # For now this is fine....
 

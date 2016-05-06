@@ -111,7 +111,6 @@ class TestWrapper(object):
             assert mean.shape == im[:,:,ix].shape
             im[:,:,ix] -= mean
         
-        #image is already thresholded according to the user
         im[ im < self.config['imin'] ] = self.config['imin']
         im[ im > self.config['imax'] ] = self.config['imax']
         
@@ -152,6 +151,16 @@ class TestWrapper(object):
 
         self.scores = scores
         print "Scores:  {}".format(scores)
+
+        if "save_datablob" in self.config and self.config["save_datablob"]==True:
+            print "SAVING DATA BLOB TO FILE"
+            # we dump the data array the network has in it's blob to a numpy binary file
+            # this is useful for sanity-checks
+            if not hasattr(self,'data_numpy_outfile'):
+                self.data_numpy_outfile = file('saved_data_blobs.npz','w')
+            data_blob = self.net.blobs["data"].data
+            np.savez( self.data_numpy_outfile, data_blob )
+                
         
         
     def __generate_model__(self):
