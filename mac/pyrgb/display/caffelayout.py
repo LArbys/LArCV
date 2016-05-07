@@ -14,8 +14,7 @@ class CaffeLayout(QtGui.QGridLayout):
         self.caffe_label = QtGui.QLabel("<b>Caffe Integration</b>")
         self.open_deploy = QtGui.QPushButton("Open")
         self.load_config = QtGui.QPushButton("Load")
-        self.line_deploy = QtGui.QLineEdit(
-            "absolute path to configuration YAML")
+        self.line_deploy = QtGui.QLineEdit("absolute path to configuration YAML")
         self.load_config.clicked.connect(self.loadConfig)
         self.open_deploy.clicked.connect(self.selectFile)
 

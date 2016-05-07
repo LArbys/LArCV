@@ -108,19 +108,19 @@ class RGBDisplay(QtGui.QWidget):
         self.p0label = QtGui.QLabel("R:")
         self.lay_inputs.addWidget(self.p0label, 0, 4)
         self.p0 = QtGui.QComboBox()
+        self.p0.currentIndexChanged.connect( self.changeChannelViewed )
         self.lay_inputs.addWidget(self.p0, 0, 5)
-        self.p0.activated.connect( self.changeChannelViewed )
 
         self.p1label = QtGui.QLabel("G:")
         self.lay_inputs.addWidget(self.p1label, 1, 4)
         self.p1 = QtGui.QComboBox()
-        self.p1.activated.connect( self.changeChannelViewed )
+        self.p1.currentIndexChanged.connect( self.changeChannelViewed )
         self.lay_inputs.addWidget(self.p1, 1, 5)
 
         self.p2label = QtGui.QLabel("B:")
         self.lay_inputs.addWidget(self.p2label, 2, 4)
         self.p2 = QtGui.QComboBox()
-        self.p2.activated.connect( self.changeChannelViewed )
+        self.p2.currentIndexChanged.connect( self.changeChannelViewed )
         self.lay_inputs.addWidget(self.p2, 2, 5)
 
         self.planes = [self.p0, self.p1, self.p2]
@@ -240,7 +240,7 @@ class RGBDisplay(QtGui.QWidget):
         if re.search("Disable", self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
             self.resize(1200, 900)
-            self.layout.addLayout(self.caffe_layout.grid(True), 3, 0)
+            self.layout.addLayout(self.caffe_layout.grid(True), 5, 0)
         else:
             self.rgbcaffe.setText("Enable RGBCaffe")
             self.layout.removeItem(self.caffe_layout.grid(False))
@@ -250,7 +250,7 @@ class RGBDisplay(QtGui.QWidget):
         if re.search("Disable", self.rgbcv2.text()) is None:
             self.rgbcv2.setText("Disable OpenCV")
             self.resize(1200, 900)
-            self.layout.addLayout(self.cv2_layout.grid(True), 3, 0)
+            self.layout.addLayout(self.cv2_layout.grid(True), 5, 0)
             self.plt.addItem(self.swindow)
             self.cv2_enabled = True
         else:
@@ -362,15 +362,21 @@ class RGBDisplay(QtGui.QWidget):
         self.plotData()
 
     def setViewPlanes(self):
-
         self.views = []
         for ix, p in enumerate(self.planes):
             if p.currentIndex() != 0:
-                self.views.append(int(p.currentText()))
+                idx = p.currentText()
+                if idx == '': idx = -1 #when first loading the image it's empty, catch it
+                self.views.append(int(idx))
             else:
                 self.views.append(-1)  # sentinal for don't fill this channel
 
     def plotData(self):
+
+        if hasattr(self.image,"preset_layout"):
+            self.image.reset_presets()
+            self.image.preset_layout.setParent(None)
+            self.layout.removeItem(self.image.preset_layout)
 
         self.image = None
 
@@ -385,6 +391,17 @@ class RGBDisplay(QtGui.QWidget):
         event = int(self.event.text())
         self.iimin = int(self.imin.text())
         self.iimax = int(self.imax.text())
+
+        self.image, hasroi = self.dm.get_event_image(event,
+                                                     self.image_producer,
+                                                     self.roi_producer,
+                                                     self.views)
+
+        if self.image == None: return
+
+        self.image.planes = self.planes
+        if hasattr(self.image,"preset_layout"):
+            self.layout.addLayout(self.image.preset_layout,4,0)
 
         # update channel combo boxes
         nchs = self.dm.get_nchannels(event, self.image_producer)
@@ -409,14 +426,6 @@ class RGBDisplay(QtGui.QWidget):
                 self.p2.setCurrentIndex(nchs / 3 * 2 + 1)
 
         self.setViewPlanes()
-
-        self.image, hasroi = self.dm.get_event_image(event,
-                                                     self.image_producer,
-                                                     self.roi_producer,
-                                                     self.views)
-
-        if self.image == None:
-            return
 
         # have to externally threshold it to make sure opencv+caffe works
         # self.image.threshold_mat(self.iimin, self.iimax)
@@ -454,22 +463,23 @@ class RGBDisplay(QtGui.QWidget):
 
     def regionChanged(self):
 
+        #the boxed changed but we don't intend to transform the image
+        if self.cv2_layout.transform == False:
+            return
+
+        #the box has changed location, if we don't have a mask, create on
         if self.modimage is None:
             self.modimage = np.zeros(list(self.image.orig_mat.shape))
 
-        #did we flip it for caffe?
-        if self.image.reverted == True:
-            print "Caffe reverted the image, fipping it back"
-            self.image.revert_image()
-            self.image.reverted = False # i reverted it back
-
+        #get the slice for the movable box
         sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
-        # need mask if user doesn't want to overwrite
+        #need mask if user doesn't want to overwrite their manipulations
         if self.cv2_layout.overwrite == False:
             idx = np.where(self.modimage == 1)
             pcopy = self.image.orig_mat.copy()
 
+        #do the manipulation
         self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
 
         # use mask to updated only pixels not already updated
@@ -477,14 +487,11 @@ class RGBDisplay(QtGui.QWidget):
             self.image.orig_mat[idx] = pcopy[idx] # reverts prev. modified pixels, preventing double change
             self.modimage[sl] = 1
 
-        if self.cv2_layout.transform == False:
-            return
-
+        # we manipulated orig_mat, threshold for contrast, make sure pixels do not block
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)  
 
+        # return the plot image to the screen
         self.imi.setImage(self.pimg) # send it back to the viewer
-
-        # For now this is fine....
 
     def drawBBOX(self, kType):
 
@@ -518,7 +525,7 @@ class RGBDisplay(QtGui.QWidget):
 
             for ix, bbox in enumerate(roi_p['bbox']):
 
-                if ix not in self.views:
+                if ix not in self.views: 
                     continue
 
                 imm = self.image.imgs[ix].meta()
@@ -560,16 +567,18 @@ class RGBDisplay(QtGui.QWidget):
         self.imi.setImage(self.pimg)
 
     def load_current_image(self):
+
         print "Loading current image!"
+        
         # revert the image back to Image2D.nd_array style (possibly
         # changed to put in viewer)
-        if self.image.reverted == False:
-            self.image.revert_image()
-            print "reverted image for caffe"
+        self.image.revert_image()
 
-        # put the image back into it's original location in self.image.img_v
-        # for the network
+        #make caffe_image which would be different than image2d
         self.image.emplace_image()
 
+        #revert it back
+        self.image.revert_image()
+
         # send off to the network
-        return self.image.img_v
+        return self.image.caffe_image

@@ -20,7 +20,7 @@ class TestWrapper(object):
         self.loaded  = False
 
         # pointer to the current image
-        self.pimg_v    = None
+        self.pimg    = None
 
         # iomanager instance
         self.iom     = None
@@ -69,30 +69,14 @@ class TestWrapper(object):
                                    self.caffe.TEST )
         
         
-    def set_image(self,img_v):
-        self.pimg_v = img_v
+    def set_image(self,img):
+        self.pimg = img
 
     def prep_image(self):
 
-        print "in prepimage! mean value is {}".format(self.pimg_v[2].mean())
+        assert self.pimg is not None
 
-        assert self.pimg_v is not None
-        print len(self.pimg_v)
-        print self.pimg_v
-        print self.pimg_v[0].shape
-        print "\t>> Hey, if you are reading me self.pimg is already thresholded"
-        print "\t>> this means we are subtracting the MEAN from thresholded image"
-        print "\t>> so I hope you are temporarily OK with that"
-
-        pushit = np.zeros( (self.pimg_v[0].shape[0],
-                            self.pimg_v[0].shape[1],
-                            len(self.pimg_v)),
-                            dtype=np.float32)
-
-        for ix,img in enumerate(self.pimg_v): 
-            pushit[:,:,ix] = img
-
-        im = pushit.astype(np.float32,copy=True)
+        im = self.pimg.astype(np.float32,copy=True)
 
         #load the mean_file:
         if self.iom is None:
@@ -165,12 +149,12 @@ class TestWrapper(object):
         
     def __generate_model__(self):
         
-        print "\t>> Got an image of shape: {}".format(self.pimg_v[0].shape)
+        print "\t>> Got an image of shape: {}".format(self.pimg.shape)
         td = ""
         td += "input: \"data\"\n"
         td += "input_shape: { dim: 1 dim: %d dim: %s dim: %s } \n"%(self.nchannels,
-                                                                    self.pimg_v[0].shape[0],
-                                                                    self.pimg_v[0].shape[1])
+                                                                    self.pimg.shape[0],
+                                                                    self.pimg.shape[1])
         td += "input: \"label\"\n"
         td += "input_shape: { dim: 1 }"
         
