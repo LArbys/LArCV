@@ -91,8 +91,7 @@ class PlotImage(object):
     # insert thresholded image into self.img_v !
     # since self.orig_mat is a brand new object is this needed? you tell me
     def emplace_image(self):
-        for i in self.img_v:
-            print "{}".format(i.mean())
+        for i in self.img_v: print "{}".format(i.mean())
         for ch, ix in self.idx.iteritems():
             print ch, ix
             assert self.img_v[ch].shape == self.orig_mat[:, :, ix].shape

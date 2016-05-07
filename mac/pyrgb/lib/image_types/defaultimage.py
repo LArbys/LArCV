@@ -19,8 +19,7 @@ class DefaultImage(PlotImage):
 
         for p, fill_ch in enumerate(self.planes):
             self.work_mat[:, :, p] = self.img_v[fill_ch]
-            if fill_ch == -1:
-                continue
+            if fill_ch == -1: continue
             self.orig_mat[:, :, p] = self.img_v[fill_ch]
             self.idx[fill_ch] = p
 
@@ -42,14 +41,13 @@ class DefaultImage(PlotImage):
 
         return self.plot_mat
 
-    # revert back to how image was in ROOTFILE
+
     def __swap_mat_channels__(self, imin, imax, newchs):
         print "swap channels to: ", newchs
         # store the current state of the orig_mat into the working matrix
         for p, ch in enumerate(self.planes):
             if ch != -1:
-                self.work_mat[:, :, ch] = self.orig_mat[
-                    :, :, p]  # don't put a blank in there
+                self.work_mat[:, :, ch] = self.orig_mat[:, :, p]  # don't put a blank in there
         # swap the planes
         self.planes = newchs
         # put work mat values into orig_mat
@@ -57,13 +55,14 @@ class DefaultImage(PlotImage):
             if ch != -1:
                 self.orig_mat[:, :, p] = self.work_mat[:, :, ch]
             else:
-                self.orig_mat[:, :, p] = np.zeros(
-                    (self.orig_mat.shape[0], self.orig_mat.shape[1]))
+                self.orig_mat[:, :, p] = np.zeros((self.orig_mat.shape[0], self.orig_mat.shape[1]))
         # make the viewing plot_mat and return
         return self.__set_plot_mat__(imin, imax)
 
+    # revert back to how image was in ROOTFILE
     def __revert_image__(self):
         self.orig_mat = self.orig_mat[:, ::-1, :]
+        self.work_mat = self.work_mat[:, ::-1, :]
 
     def __create_rois__(self):
 

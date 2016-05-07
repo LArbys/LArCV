@@ -18,7 +18,7 @@ class Ch12Image(PlotImage):
         # working copy
         if not hasattr(self,'work_mat'):
             self.work_mat = np.zeros(list(self.img_v[0].shape)+[len(self.img_v)])
-
+            
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
