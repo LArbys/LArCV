@@ -36,7 +36,7 @@ namespace larcv {
 
       if(!_hADC_v[plane]) _hADC_v[plane] = new TH1D(Form("hADC_%s_Plane%02hu",_image_producer.c_str(),plane),
 						    Form("ADC Values for Plane %hu",plane),
-						    100,0,200);
+						    100,0,500);
       auto& ptr = _hADC_v[plane];
 
       auto const& adc_v = img.as_vector();
