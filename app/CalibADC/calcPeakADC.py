@@ -9,7 +9,7 @@ ioman = larcv.IOManager(larcv.IOManager.kREAD,"IO")
 ioman.add_in_file("supera_mc_cosmics.root")
 ioman.initialize()
 
-out = rt.TFile("out.root","recreate")
+out = rt.TFile("mc.root","recreate")
 
 h = rt.TH1D("htest","",1000,0,200)
 ttree = rt.TTree("adc","")
