@@ -4,6 +4,8 @@ cafferoot: /Users/vgenty/git/caffe/python
 # CPU or GPU?
 usecpu : True
 
+save_datablob : True
+
 # GPU number
 gpuid : 0
 
