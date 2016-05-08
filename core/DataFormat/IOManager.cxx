@@ -129,6 +129,7 @@ namespace larcv {
 	LARCV_ERROR() << "Found 0 entries from input files..." << std::endl;
 	return false;
       }
+      LARCV_NORMAL() << "Prepared input with " << _in_tree_entries << " entries..." << std::endl;
     }
 
     // Now handle "store-only" configuration

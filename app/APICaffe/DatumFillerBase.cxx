@@ -4,7 +4,7 @@
 #include "DatumFillerBase.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
-
+#include <sstream>
 namespace larcv {
 
   DatumFillerBase::DatumFillerBase(const std::string name)
@@ -144,7 +144,21 @@ namespace larcv {
   }
 
   void DatumFillerBase::batch_end()
-  { this->child_batch_end(); }
+  { 
+    if(logger().level() <= msg::kINFO) {
+      std::vector<size_t> ctr_v;
+      for(auto const& v : _labels) {
+	if(v>=ctr_v.size()) ctr_v.resize(v+1,0);
+	ctr_v[v] += 1;
+      }
+      std::stringstream ss;
+      ss << "Used: ";
+      for(size_t i=0;i<ctr_v.size();++i)
+	ss << ctr_v[i] << " of class " << i << " ... ";
+      LARCV_INFO() << ss.str() << std::endl;
+    }
+    this->child_batch_end(); 
+  }
 
   void DatumFillerBase::finalize()
   { this->child_finalize(); }

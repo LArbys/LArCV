@@ -4,6 +4,8 @@
 #include "ThreadDatumFiller.h"
 #include "Base/LArCVBaseUtilFunc.h"
 #include <random>
+#include <sstream>
+#include <unistd.h>
 
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
@@ -86,6 +88,9 @@ namespace larcv {
 	  _input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
 	  // Brew read-only configuration
 	  PSet io_cfg("IOManager");
+	  std::stringstream ss;
+	  ss << logger().level();
+	  io_cfg.add_value("Verbosity",ss.str());
 	  io_cfg.add_value("Name",name() + "IOManager");
 	  io_cfg.add_value("IOMode","0");
 	  io_cfg.add_value("OutFileName","");
@@ -214,8 +219,10 @@ namespace larcv {
     	std::random_device rd;
     	std::mt19937 gen(rd());
     	std::uniform_int_distribution<> dis(0,_driver.io().get_n_entries()-1);
+	if(_random_access) 
+	  LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
 
-  		LARCV_INFO() << "Entering process loop" << std::endl;
+	LARCV_INFO() << "Entering process loop" << std::endl;
     	while(valid_ctr < nentries) {
       		size_t entry = last_entry+1;
       		if(entry == kINVALID_SIZE) entry = 0;
