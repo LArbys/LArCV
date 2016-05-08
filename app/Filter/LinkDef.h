@@ -10,8 +10,12 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::MCFilter+;
+#pragma link C++ class larcv::ROISizeFilter+;
+#pragma link C++ class larcv::QSumFilter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 

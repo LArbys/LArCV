@@ -83,8 +83,8 @@ namespace larcv {
       if(!_logger_m) _logger_m = new std::map<std::string,larcv::logger>();
       auto iter = _logger_m->find(name);
       if(iter == _logger_m->end()) {
-	iter = _logger_m->emplace(name,logger(name)).first;
-	iter->second.set(msg::kNORMAL);
+        iter = _logger_m->emplace(name,logger(name)).first;
+        iter->second.set(msg::kNORMAL);
       }
       return iter->second;
     };
@@ -128,11 +128,17 @@ namespace larcv {
 //
 // Compiler macro for saving us from text typing
 //
+/// Compiler macro for DEBUG message
 #define LARCV_DEBUG()    if( logger().debug   () ) logger().send(::larcv::msg::kDEBUG,    __FUNCTION__, __LINE__, __FILE__)
+/// Compiler macro for INFO message
 #define LARCV_INFO()     if( logger().info    () ) logger().send(::larcv::msg::kINFO,     __FUNCTION__, __LINE__          )
+/// Compiler macro for NORMAL message
 #define LARCV_NORMAL()   if( logger().normal  () ) logger().send(::larcv::msg::kNORMAL,   __FUNCTION__                    )
+/// Compiler macro for WARNING message
 #define LARCV_WARNING()  if( logger().warning () ) logger().send(::larcv::msg::kWARNING,  __FUNCTION__                    )
+/// Compiler macro for ERROR message
 #define LARCV_ERROR()    if( logger().error   () ) logger().send(::larcv::msg::kERROR,    __FUNCTION__, __LINE__          )
+/// Compiler macro for CRITICAL message
 #define LARCV_CRITICAL()                           logger().send(::larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__)
   
 /** @} */ // end of doxygen group logger

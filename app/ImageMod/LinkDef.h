@@ -15,8 +15,16 @@
 #pragma link C++ class larcv::CombineImages+;
 #pragma link C++ class larcv::SliceImages+;
 #pragma link C++ class larcv::Compressor+;
+#pragma link C++ class larcv::SegmentAna+;
+#pragma link C++ class larcv::StepDigitizer+;
+#pragma link C++ class larcv::ADCThreshold+;
+#pragma link C++ class larcv::SimpleDigitizer+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
+
+
 
 
 

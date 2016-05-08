@@ -20,7 +20,7 @@ namespace larcv {
 
   /**
      \struct Point2D
-     Simple 2D point struct
+     Simple 2D point struct (unit of "x" and "y" are not defined here and app specific)
   */
   struct Point2D {
     double x, y;
@@ -45,16 +45,18 @@ namespace larcv {
   /// Namespace for larcv message related types
   namespace msg {
 
+    /// Message level
     enum Level_t { kDEBUG, kINFO, kNORMAL, kWARNING, kERROR, kCRITICAL, kMSG_TYPE_MAX };
 
+    /// Formatted message prefix per message level
     const std::string kStringPrefix[kMSG_TYPE_MAX] =
       {
-	"     \033[94m[DEBUG]\033[00m ",  ///< kDEBUG message prefix
-	"      \033[92m[INFO]\033[00m ",  ///< kINFO message prefix
-	"    \033[95m[NORMAL]\033[00m ",  ///< kNORMAL message prefix
-	"   \033[93m[WARNING]\033[00m ", ///< kWARNING message prefix
-	"     \033[91m[ERROR]\033[00m ", ///< kERROR message prefix
-	"  \033[5;1;33;41m[CRITICAL]\033[00m "  ///< kCRITICAL message prefix
+        "     \033[94m[DEBUG]\033[00m ",  ///< kDEBUG message prefix
+        "      \033[92m[INFO]\033[00m ",  ///< kINFO message prefix
+        "    \033[95m[NORMAL]\033[00m ",  ///< kNORMAL message prefix
+        "   \033[93m[WARNING]\033[00m ", ///< kWARNING message prefix
+        "     \033[91m[ERROR]\033[00m ", ///< kERROR message prefix
+        "  \033[5;1;33;41m[CRITICAL]\033[00m "  ///< kCRITICAL message prefix
       };
     ///< Prefix of message
   }

@@ -22,9 +22,8 @@
 namespace larcv {
   
   /**
-     \class EventChStatus
-     User defined class EventChStatus ... these comments are used to generate
-     doxygen documentation!
+    \class EventChStatus
+    Event-wise class to store a collection of larcv::ChStatus (one per plane)
   */
   class EventChStatus : public EventBase {
     
@@ -36,18 +35,24 @@ namespace larcv {
     /// Default destructor
     virtual ~EventChStatus(){}
 
+    /// Clears an array of larcv::ChStatus
     void clear();
 
+    /// Getter for a const reference of core data
     const std::map<larcv::PlaneID_t,larcv::ChStatus>& ChStatusMap() const { return _status_m; }
 
+    /// Get larcv::ChStatus for a specified plane
     const ChStatus& Status(larcv::PlaneID_t id) const;
 
+    /// Insert larcv::ChStatus into a collection
     void Insert(const ChStatus& status);
     
 #ifndef __CINT__
+    /// Emplace larcv::ChStatus into a collection
     void Emplace(ChStatus&& status);
 #endif
 
+    /// Dump contents in string representation
     std::string dump() const;
     
   private:

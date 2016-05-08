@@ -20,9 +20,8 @@
 #include "DataProductFactory.h"
 namespace larcv {
   /**
-     \class EventROI
-     User defined class EventROI ... these comments are used to generate
-     doxygen documentation!
+    \class EventROI
+    Event-wise class to store a collection of larcv::ROI
   */
   class EventROI : public EventBase {
     
@@ -34,16 +33,24 @@ namespace larcv {
     /// Default destructor
     ~EventROI(){}
 
+    /// larcv::ROI array clearer
     void clear();
 
+    /// larcv::ROI array const reference getter
     const std::vector<larcv::ROI>& ROIArray() const { return _part_v; }
 
+    /// larcv::ROI array index accessor
     const ROI& at(ROIIndex_t id) const;
 
+    /// larcv::ROI inserter
     void Append(const ROI& img);
+
+    /// larcv::ROI array to replace what is stored
     void Set(const std::vector<larcv::ROI>& part_v);
 #ifndef __CINT__
+    /// Emplacer for larcv::ROI
     void Emplace(ROI&& img);
+    /// Emplacer for larcv::ROI array
     void Emplace(std::vector<larcv::ROI>&& part_v);
 #endif
 

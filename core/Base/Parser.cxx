@@ -58,24 +58,24 @@ namespace larcv {
       //std::cout<<value<<std::endl;
       std::vector<std::string> res;
       if(value.find("[") != 0 || (value.rfind("]")+1) != value.size()) {
-	std::string msg;
-	msg = "Invalid vector expression: " + value;
-	throw larbys(msg);
+        std::string msg;
+        msg = "Invalid vector expression: " + value;
+        throw larbys(msg);
       }
       size_t index = 1;
       while((index+1) < value.size()) {
-	size_t next_index = value.find(",",index);
-	if(next_index >= value.size()) break;
-	std::string cand = value.substr(index,next_index-index);
-	res.emplace_back(cand);
-	index = next_index + 1;
+        size_t next_index = value.find(",",index);
+        if(next_index >= value.size()) break;
+        std::string cand = value.substr(index,next_index-index);
+        res.emplace_back(cand);
+        index = next_index + 1;
       }
       if( (index+1) < value.size() )
-	res.push_back(value.substr(index,value.size()-index-1));
+        res.push_back(value.substr(index,value.size()-index-1));
 
       for(auto& s : res) {
-	if(s.find("\"")==0) s=s.substr(1,s.size()-1);
-	if(s.rfind("\"")+1 == s.size()) s = s.substr(0,s.size()-1);
+        if(s.find("\"")==0) s=s.substr(1,s.size()-1);
+        if(s.rfind("\"")+1 == s.size()) s = s.substr(0,s.size()-1);
       }
       //for(auto const& s : res) std::cout<<s<<std::endl;
       return res;
@@ -87,7 +87,7 @@ namespace larcv {
       std::vector<float> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<float>(v) );
+        res.push_back( FromString<float>(v) );
       return res;
     }
     
@@ -97,7 +97,7 @@ namespace larcv {
       std::vector<double> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<double>(v) );
+        res.push_back( FromString<double>(v) );
       return res;
     }
     
@@ -107,7 +107,7 @@ namespace larcv {
       std::vector<short> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<short>(v) );
+        res.push_back( FromString<short>(v) );
       return res;
     }
     
@@ -117,7 +117,7 @@ namespace larcv {
       std::vector<int> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<int>(v) );
+        res.push_back( FromString<int>(v) );
       return res;
     }
     
@@ -127,7 +127,7 @@ namespace larcv {
       std::vector<long> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<long>(v) );
+        res.push_back( FromString<long>(v) );
       return res;
     }
     
@@ -137,7 +137,7 @@ namespace larcv {
       std::vector<unsigned short> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<unsigned short>(v) );
+        res.push_back( FromString<unsigned short>(v) );
       return res;
     }
     
@@ -147,7 +147,7 @@ namespace larcv {
       std::vector<unsigned int> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<unsigned int>(v) );
+        res.push_back( FromString<unsigned int>(v) );
       return res;
     }
     
@@ -157,7 +157,7 @@ namespace larcv {
       std::vector<unsigned long> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<unsigned long>(v) );
+        res.push_back( FromString<unsigned long>(v) );
       return res;
     }
 
@@ -167,7 +167,7 @@ namespace larcv {
       std::vector<bool> res;
       res.reserve(str_v.size());
       for(auto const& v : str_v)
-	res.push_back( FromString<bool>(v) );
+        res.push_back( FromString<bool>(v) );
       return res;
     }
     
