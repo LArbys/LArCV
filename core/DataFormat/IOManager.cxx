@@ -462,8 +462,8 @@ namespace larcv {
 	throw larbys();
       }
       id = register_producer(type,producer);
-      for(size_t i=0; i<_in_tree_entries; ++i) _out_tree_v[id]->Fill();
-      LARCV_NORMAL() << "Created TTree " << _out_tree_v[id]->GetName() << " (id=" << id <<") w/ " << _in_tree_entries << " entries..." << std::endl;
+      for(size_t i=0; i<_in_tree_index; ++i) _out_tree_v[id]->Fill();
+      LARCV_NORMAL() << "Created TTree " << _out_tree_v[id]->GetName() << " (id=" << id <<") w/ " << _in_tree_index << " entries..." << std::endl;
     }
     return get_data(id);
   }

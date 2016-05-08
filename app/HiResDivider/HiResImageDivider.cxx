@@ -142,7 +142,6 @@ namespace larcv {
       // 2) (how to choose which one we clip?)
 
       larcv::EventImage2D input_event_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer)));
-      larcv::EventImage2D input_pmtweighted_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTWeightedProducer)));
       larcv::EventImage2D input_seg_images;
       larcv::EventROI event_roi;
 
@@ -191,11 +190,12 @@ namespace larcv {
       const size_t input_run    = event_id.run();
       const size_t input_subrun = event_id.subrun();
       const size_t input_event  = event_id.event();
+      bool store_entry = false;
       LARCV_INFO() << "Reading-in (run,subrun,event) = (" << input_run << "," << input_subrun << "," << input_event << ")" << std::endl;
       
       // now we loop through and make divisions
       for ( auto const& idiv : divlist ) {
-
+	
 	if ( idiv==-1 )
 	  continue;
 
@@ -210,6 +210,8 @@ namespace larcv {
 	LARCV_DEBUG() << "Crop " << fInputImageProducer << " Images." << std::endl;
 	cropEventImages( input_event_images, vertex_div, *output_event_images );
 
+	larcv::EventImage2D* output_seg_images = nullptr;
+	larcv::EventImage2D* output_pmtweighted_images = nullptr;
 	//
 	// Image is cropped based on DivisionDef which is found from ROI's vertex
 	// However ROI's vertex do not necessarily overlap with the same ROI's 2D bounding box
@@ -258,7 +260,7 @@ namespace larcv {
 	    full_seg_images.Emplace( std::move(seg_image) );
 	  }
 	  LARCV_DEBUG() << "Crop " << fInputSegmentationProducer << " Images." << std::endl;
-	  auto output_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputSegmentationProducer));
+	  output_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputSegmentationProducer));
 	  output_seg_images->clear();
 	  cropEventImages( full_seg_images, vertex_div, *output_seg_images );
 	  
@@ -267,9 +269,9 @@ namespace larcv {
 	// Output PMT weighted
 	if ( fCropPMTWeighted )  {
 	  LARCV_DEBUG() << "Load " << fInputPMTWeightedProducer << " Images." << std::endl;
-
+	  larcv::EventImage2D input_pmtweighted_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputPMTWeightedProducer)));
 	  LARCV_DEBUG() << "Allocate " << fOutputPMTWeightedProducer << " Images." << std::endl;
-	  auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
+	  output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
 	  output_pmtweighted_images->clear();
 	  LARCV_DEBUG() << "Crop " << fInputPMTWeightedProducer << " Images." << std::endl;
 	  cropEventImages( input_pmtweighted_images, vertex_div, *output_pmtweighted_images );	
@@ -279,7 +281,6 @@ namespace larcv {
 	//
 	// 0) Retrieve output image array and input ROI array (for the latter "if exists")
 	// 1) Loop over ROI array (or single ROI for "cosmic" = input does not exist), ask overlap in 2D plane ImageMeta with each image
-	auto output_pmtweighted_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fOutputPMTWeightedProducer));
 	auto output_rois = (larcv::EventROI*)(mgr.get_data(kProductROI,fOutputROIProducer));
 	output_rois->clear();
 	
@@ -292,7 +293,7 @@ namespace larcv {
 	    try {
 	      //LARCV_INFO() << "Creating particle ROI for: " << roi.dump() << std::endl;
 	      for(auto const& bb : aroi.BB()) {
-		auto const& img_meta = output_pmtweighted_images->at(bb.plane()).meta();
+		auto const& img_meta = output_event_images->at(bb.plane()).meta();
 		out_meta_v.push_back(img_meta.overlap(bb));
 	      }
 	    }catch(const larbys& err){
@@ -303,24 +304,33 @@ namespace larcv {
 	    }
 	  
 	    ::larcv::ROI out_roi(aroi);
-	    out_roi.SetBB(out_meta_v);
-	    
+	    out_roi.SetBB(out_meta_v);	    
 	    output_rois->Emplace(std::move(out_roi));
 	  }
 	}else{
 	  std::vector<larcv::ImageMeta> out_meta_v;
-	  for(auto const& img : output_pmtweighted_images->Image2DArray()) out_meta_v.push_back(img.meta());
+	  for(auto const& img : output_event_images->Image2DArray()) out_meta_v.push_back(img.meta());
 	  roi.SetBB(out_meta_v);
 	  output_rois->Emplace(std::move(roi));
 	}
 
-	mgr.set_id(input_run,input_subrun,input_event);
-	LARCV_INFO() << "Storing entry for a division..." << std::endl;
-	mgr.save_entry();
+	if(output_rois->ROIArray().empty()) {
+	  output_event_images->clear();
+	  if(output_pmtweighted_images) output_pmtweighted_images->clear();
+	  if(output_seg_images) output_seg_images->clear();	  
+	}else{
+	  store_entry = true;
+
+	  if(this->event_creator() && store_entry) {
+	    mgr.set_id(input_run,input_subrun,input_event);
+	    LARCV_INFO() << "Storing entry for a division..." << std::endl;
+	    mgr.save_entry();
+	  }
+	}
 
       }//end of divlist loop
-      LARCV_INFO() << "Done storing divisions";
-      return true;
+      LARCV_INFO() << "Done storing divisions" << std::endl;
+      return store_entry;
     }
     
     void HiResImageDivider::finalize()

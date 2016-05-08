@@ -21,9 +21,8 @@ namespace larcv {
   class IOManager;
   class DataProductFactory;
   /**
-     \class EventBase
-     User defined class EventBase ... these comments are used to generate
-     doxygen documentation!
+    \class EventBase
+    Base class for an event data product (what is stored in output file), holding run/subrun/event ID + producer name.
   */
   class EventBase{
     friend class IOManager;
@@ -31,11 +30,12 @@ namespace larcv {
   public:
     
     /// Default constructor
-    EventBase() : _run    (kINVALID_SIZE)
-		, _subrun (kINVALID_SIZE)
-		, _event  (kINVALID_SIZE)
+    EventBase() : 
+      _run      (kINVALID_SIZE)
+		  , _subrun (kINVALID_SIZE)
+		  , _event  (kINVALID_SIZE)
     {}
-
+    /// Copy ctor
     EventBase(const EventBase& rhs) : _producer(rhs._producer)
 				    , _run(rhs._run)
 				    , _subrun(rhs._subrun)
@@ -44,23 +44,26 @@ namespace larcv {
 				      
     /// Default destructor
     virtual ~EventBase(){}
-
+    /// Set all run/subrun/event to kINVALID_SIZE
     virtual void clear();
-
+    /// Producer name getter
     const std::string & producer() const { return _producer; }
+    /// Run number getter
     size_t run()    const { return _run;    }
+    /// SubRun number getter
     size_t subrun() const { return _subrun; }
+    /// Event number getter
     size_t event()  const { return _event;  }
-
+    /// Make sure run/subrun/event ID is set
     bool valid() const
     { return !(_run == kINVALID_SIZE || _subrun == kINVALID_SIZE || _event == kINVALID_SIZE); }
-
+    /// Comparison opearator for run/subrun/event id
     inline bool operator==(const EventBase& rhs) const
     { return (_run == rhs.run() && _subrun == rhs.subrun() && _event == rhs.event()); }
-
+    /// Comparison opearator for run/subrun/event id
     inline bool operator!=(const EventBase& rhs) const
     { return !((*this) == rhs); }
-
+    /// Comparison opearator for run/subrun/event id (for sorted container like std::set and/or std::map)
     inline bool operator<(const EventBase& rhs) const
     {
       if(_run < rhs.run()) return true;
