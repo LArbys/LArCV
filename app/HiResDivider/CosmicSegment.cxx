@@ -52,6 +52,7 @@ namespace larcv {
       auto const& thres = _adc_threshold_v[i];
       
       img.binary_threshold(thres,(float)kROIUnknown,(float)kROICosmic);
+
     }
 
     event_output->Emplace(std::move(image_v));
