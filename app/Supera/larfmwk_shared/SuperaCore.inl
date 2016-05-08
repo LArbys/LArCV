@@ -446,15 +446,15 @@ namespace larcv {
 				LARCV_ERROR() << "Event image too small to format ROI!" << std::endl;
 				throw larbys();
 			}
-			double min_x  = part_image.min_x();
-			double max_y  = part_image.max_y();
-			double width  = part_image.width();
-			double height = part_image.height();
-			size_t rows   = part_image.rows();
-			size_t cols   = part_image.cols();
+			double min_x  = (part_image.min_x() < event_image.min_x() ? event_image.min_x() : part_image.min_x() );
+			double max_y  = (part_image.max_y() > event_image.max_y() ? event_image.max_y() : part_image.max_y() );
+			double width  = (part_image.width() + min_x > event_image.max_x() ? event_image.max_x() - min_x : part_image.width());
+			double height = (max_y - part_image.height() < event_image.min_y() ? max_y - event_image.min_y() : part_image.height());
+			size_t rows   = height / part_image.pixel_height();
+			size_t cols   = width  / part_image.pixel_width();
 
-			if (modular_col > 1 && part_image.cols() % modular_col) {
-				int npixels = (modular_col - (part_image.cols() % modular_col));
+			if (modular_col > 1 && cols % modular_col) {
+				int npixels = (modular_col - (cols % modular_col));
 				if (event_image.width() < (width + npixels * part_image.pixel_width()))  npixels -= modular_col;
 				cols += npixels;
 				width += part_image.pixel_width() * npixels;
@@ -472,8 +472,8 @@ namespace larcv {
 				}
 			}
 
-			if (modular_row > 1 && part_image.rows() % modular_row) {
-				int npixels = (modular_row - (part_image.rows() % modular_row));
+			if (modular_row > 1 && rows % modular_row) {
+				int npixels = (modular_row - (rows % modular_row));
 				if (event_image.height() < (height + npixels * part_image.pixel_height()))  npixels -= modular_row;
 				rows += npixels;
 				height += part_image.pixel_height() * npixels;
