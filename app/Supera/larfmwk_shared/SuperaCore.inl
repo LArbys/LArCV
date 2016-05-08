@@ -463,7 +463,7 @@ namespace larcv {
 				width += part_image.pixel_width() * npixels;
 				if (npixels > 0) {
 					// If expanded, make sure it won't go across event_image boundary
-					if ( (min_x + width) < event_image.max_x() ) {
+					if ( (min_x + width) > event_image.max_x() ) {
 						LARCV_INFO() << "X: " << min_x << " => " << min_x + width
 						             << " exceeds event boundary " << event_image.max_x() << std::endl;
 						min_x = event_image.max_x() - width;
