@@ -1,12 +1,11 @@
-from .. import QtGui, QtCore
+from .. import QtGui
 
-class CaffeLayout(object):
+class CaffeLayout(QtGui.QGridLayout):
 
     def __init__(self,tw):
+        super(CaffeLayout,self).__init__()
+    
         self.name  = "CaffeLayout"
-        
-        self.caffe_inputs = QtGui.QGridLayout()
-
         self.caffe_label = QtGui.QLabel("<b>Caffe Integration</b>")
         self.open_deploy = QtGui.QPushButton("Open")
         self.load_config = QtGui.QPushButton("Load")
@@ -27,19 +26,19 @@ class CaffeLayout(object):
         
     def grid(self,enable):
         if enable == True:
-            self.caffe_inputs.addWidget(self.caffe_label,0,0)
-            self.caffe_inputs.addWidget(self.line_deploy,1,0)
-            self.caffe_inputs.addWidget(self.open_deploy,1,1)
-            self.caffe_inputs.addWidget(self.load_config,1,2)
-            self.caffe_inputs.addWidget(self.forward,1,3)
-            self.caffe_inputs.addWidget(self.loaded_config,2,0)
-            self.caffe_inputs.addWidget(self.scores,3,0)
+            self.addWidget(self.caffe_label,0,0)
+            self.addWidget(self.line_deploy,1,0)
+            self.addWidget(self.open_deploy,1,1)
+            self.addWidget(self.load_config,1,2)
+            self.addWidget(self.forward,1,3)
+            self.addWidget(self.loaded_config,2,0)
+            self.addWidget(self.scores,3,0)
                 
         else:
-            for i in reversed(range(self.caffe_inputs.count())):
-                self.caffe_inputs.itemAt(i).widget().setParent(None)
+            for i in reversed(range(self.count())):
+                self.itemAt(i).widget().setParent(None)
                 
-        return self.caffe_inputs
+        return self
 
     def loadConfig(self):
         cfg = str( self.line_deploy.text() )

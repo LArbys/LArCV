@@ -22,6 +22,7 @@ namespace larcv {
     _min_adc_v = cfg.get<std::vector<float> >("MinADC");    
     _adc_gaus_mean = cfg.get<double>("GausSmearingMean",1.0);
     _adc_gaus_sigma = cfg.get<double>("GuasSmearingSigma",-1.0);
+    _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
   }
 
   void SimpleFiller::child_initialize()
@@ -144,16 +145,17 @@ namespace larcv {
 
     std::random_device rd;
     std::mt19937 gen(rd());
+    std::normal_distribution<> d(_adc_gaus_mean,_adc_gaus_sigma);
+
+    const bool apply_smearing = _adc_gaus_sigma > 0.;
 
     for(size_t ch=0;ch<_num_channels;++ch) {
 
         size_t input_ch = _slice_v[ch];
 
-        float mult_factor = -1.;
-        if(_adc_gaus_sigma>0.) {
-          std::normal_distribution<> d(_adc_gaus_mean,_adc_gaus_sigma);
-          mult_factor = (float)(d(gen));
-        }
+        float mult_factor = 1.;
+	if(apply_smearing)
+	  mult_factor = (float)(d(gen));
 
         auto& input_img = image_v[input_ch].as_vector();
         auto const& min_adc = _min_adc_v[ch];
@@ -166,11 +168,12 @@ namespace larcv {
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
                 auto const& input_idx = _caffe_idx_to_img_idx[caffe_idx];
-                val = input_img[input_idx] - mean_img[input_idx] - min_adc;
-                if(mult_factor>0.) val *= mult_factor;
+		val = input_img[input_idx];
+		if(apply_smearing) val *= (_adc_gaus_pixelwise ? d(gen) : mult_factor);
+                val -= (mean_img[input_idx] + min_adc);
                 val = ( val < 0. ? 0. : val);
                 _entry_data[output_idx] = ( val > _max_adc_v[ch] ? max_adc : val);
-
+		
                 ++output_idx;
                 ++caffe_idx;
             }
@@ -179,14 +182,13 @@ namespace larcv {
           auto const& mean_adc = mean_adc_v[ch];
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
-
-                val = input_img[_caffe_idx_to_img_idx[caffe_idx]] - mean_adc - min_adc;
-                if(mult_factor>0.) val *= mult_factor;
-                val = ( val < 0. ? 0. : val);
-                _entry_data[output_idx] = ( val > max_adc ? max_adc : val);
-
-                ++output_idx;
-                ++caffe_idx;
+	      val = input_img[_caffe_idx_to_img_idx[caffe_idx]];
+	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? d(gen) : mult_factor);
+	      val -= (mean_adc + min_adc);
+	      val = ( val < 0. ? 0. : val);
+	      _entry_data[output_idx] = ( val > max_adc ? max_adc : val);
+	      ++output_idx;
+	      ++caffe_idx;
             }
           }          
         }
@@ -197,8 +199,10 @@ namespace larcv {
     for(auto const& roi : roi_v) {
       if(roi.MCSTIndex() != kINVALID_USHORT) continue;
       _label = (float)(roi.Type());
+      LARCV_INFO() << roi.dump() << std::endl;
       break;
     }
+
     if(_label == (float)(kROICosmic)) _label=0.;
     else _label=1.;
 
