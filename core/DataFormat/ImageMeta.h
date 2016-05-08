@@ -59,17 +59,27 @@ namespace larcv {
 
     ImageIndex_t image_index() const  { return _image_id; }
     void image_index(ImageIndex_t id) { _image_id = id;   }
-
+    /// Top-left corner point
     const Point2D& tl   () const { return _origin;                                          }
+    /// Bottom-left corner point
     const Point2D  bl   () const { return Point2D(_origin.x,          _origin.y - _height); }
+    /// Top-right corner point
     const Point2D  tr   () const { return Point2D(_origin.x + _width, _origin.y          ); }
+    /// Bottom-right corner point
     const Point2D  br   () const { return Point2D(_origin.x + _width, _origin.y - _height); }
+    /// PlaneID_t getter
     PlaneID_t plane     () const { return _plane;     }
+    /// Width accessor
     double width        () const { return _width;     }
+    /// Height accessor
     double height       () const { return _height;    }
+    /// # rows accessor
     size_t rows         () const { return _row_count; }
+    /// # columns accessor
     size_t cols         () const { return _col_count; }
+    /// Pixel horizontal size
     double pixel_width  () const { return (_col_count ? _width  / (double)_col_count : 0.); } 
+    /// Pixel vertical size
     double pixel_height () const { return (_row_count ? _height / (double)_row_count : 0.); }
 
     /// Provide 1-D array index from row and column

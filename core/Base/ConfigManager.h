@@ -36,17 +36,17 @@ namespace larcv {
       
     /// Default destructor
     ~ConfigManager(){}
-
+    /// Shared static reference getter
     static const ConfigManager& get() 
     {
       if(!_me) _me = new ConfigManager;
       return *_me;
     }
-
+    /// Adder of configuration from a file
     void AddConfigFile(const std::string cfg_file);
-
+    /// Adder of configuration from parsed string
     void AddConfigString(const std::string cfg_str);
-
+    /// Configuration retrieval method
     const PSet& GetConfig(const std::string cfg);
 
   private:

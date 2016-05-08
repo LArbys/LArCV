@@ -255,7 +255,8 @@ namespace larcv {
       // If not read mode save entry
       if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) _io.save_entry();    
       // Bump up entry record
-    }else _io.clear_entry();
+    }
+    _io.clear_entry();
     ++_current_entry;
 
     return good_status;

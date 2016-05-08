@@ -21,9 +21,8 @@
 namespace larcv {
   
   /**
-     \class EventImage2D
-     User defined class EventImage2D ... these comments are used to generate
-     doxygen documentation!
+    \class EventImage2D
+    Event-wise class to store a collection of larcv::Image2D
   */
   class EventImage2D : public EventBase {
     
@@ -35,16 +34,23 @@ namespace larcv {
     /// Default destructor
     virtual ~EventImage2D(){}
 
+    /// Clears an array of larcv::Image2D
     void clear();
 
+    /// Const reference getter to an array of larcv::Image2D
     const std::vector<larcv::Image2D>& Image2DArray() const { return _image_v; }
 
+    /// larcv::Image2D const reference getter for a specified index number
     const Image2D& at(ImageIndex_t id) const;
 
+    /// Inserter into larcv::Image2D array
     void Append(const Image2D& img);
 #ifndef __CINT__
+    /// Emplace into larcv::Image2D array
     void Emplace(Image2D&& img);
+    /// Emplace into larcv::Image2D array
     void Emplace(std::vector<larcv::Image2D>&& image_v);
+    /// std::move to retrieve content larcv::Image2D array
     void Move(std::vector<larcv::Image2D>& image_v)
     { image_v = std::move(_image_v); }
 #endif

@@ -21,8 +21,8 @@
 namespace larcv {
     
   /**
-     \class larcv_base
-     Very base class of all everything else defined in this framework.
+    \class larcv_base
+    Framework base class equipped with a logger class
   */
   class larcv_base {
     
@@ -47,6 +47,7 @@ namespace larcv {
     void set_verbosity(::larcv::msg::Level_t level)
     { _logger->set(level); }
 
+    /// Name getter, defined in a logger instance attribute
     const std::string& name() const
     { return logger().name(); }
     

@@ -5,7 +5,7 @@
  * 
  * \brief Class def header for exception classes in LArUtil package
  *
- * @author kazuhiro
+ * @author kazuhiro tmw
  */
 
 /** \addtogroup LArCV

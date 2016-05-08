@@ -5,7 +5,8 @@
 
 namespace larcv {
 
-  ROIType_t PdgCode2ROIType(int pdgcode);
+	/// Return larcv::ROI type from PdgCode
+	ROIType_t PdgCode2ROIType(int pdgcode);
 
 }
 #endif
