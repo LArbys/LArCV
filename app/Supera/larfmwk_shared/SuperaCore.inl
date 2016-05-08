@@ -216,8 +216,7 @@ namespace larcv {
 				}
 
 				if (pri_bb_v.size() != int_roi.first.BB().size()) {
-					LARCV_NORMAL() << "Requested to register Interaction..." << std::endl
-					               << int_roi.first.dump() << std::endl;
+					LARCV_NORMAL() << "Requested to register Interaction: " << int_roi.first.dump();
 					LARCV_NORMAL() << "No overlap found in image region and Interaction ROI. Skipping..." << std::endl;
 					continue;
 				}
@@ -288,8 +287,7 @@ namespace larcv {
 						}
 					}
 					if (sec_bb_v.size() != sec_roi.BB().size()) {
-						LARCV_INFO() << "Requested to register Secondary..." << std::endl
-						             << sec_roi.dump() << std::endl;
+						LARCV_INFO() << "Requested to register Secondary: " << sec_roi.dump();
 						LARCV_INFO() << "No overlap found in image region and Particle ROI. Skipping..." << std::endl;
 						continue;
 					}
@@ -385,8 +383,8 @@ namespace larcv {
 					                 Form("tpc_int%02d", roi.MCTIndex()))
 					                                         );
 
-					LARCV_INFO() << "Cropping an interaction image (high resolution) @ plane " << p << std::endl
-					             << roi_meta.dump() << std::endl;
+					LARCV_INFO() << "Cropping ROI: " << roi_meta.dump();
+
 					auto hires_img = _full_image.crop(roi_meta);
 					int_img_v->Emplace(std::move(hires_img));
 				}
@@ -395,9 +393,8 @@ namespace larcv {
 				auto comp_meta = ::larcv::ImageMeta(_full_image.meta());
 				comp_meta.update(_event_image_rows[p], _event_image_cols[p]);
 
-				LARCV_INFO() << "Compressing an event image! " << std::endl
-				             << "From: " << _full_image.meta().dump() << std::endl
-				             << "To: " << comp_meta.dump() << std::endl;
+				LARCV_INFO() << "Event compress from : " << _full_image.meta().dump();
+				LARCV_INFO() << "Event compress to   : " << comp_meta.dump();
 
 				::larcv::Image2D img(std::move(comp_meta),
 				                     std::move(_full_image.copy_compress(_event_image_rows[p], _event_image_cols[p])));
@@ -443,8 +440,8 @@ namespace larcv {
 		        const size_t modular_row,
 		        const size_t modular_col)
 		{
-			LARCV_INFO() << "Before format (plane " << part_image.plane() << ") ... " << std::endl
-			             << part_image.dump() << std::endl;
+
+			LARCV_INFO() << "Before format  " << part_image.dump();
 			if (event_image.rows() < modular_row || event_image.cols() < modular_col) {
 				LARCV_ERROR() << "Event image too small to format ROI!" << std::endl;
 				throw larbys();
@@ -482,10 +479,15 @@ namespace larcv {
 				height += part_image.pixel_height() * npixels;
 				if (npixels > 0) {
 					// If expanded, make sure it won't go across event_image boundary
-					if ( (max_y - height) < event_image.min_y() )
-					{ max_y = event_image.min_y() + height; }
-					else if (max_y > event_image.max_y())
-					{ max_y = event_image.max_y(); }
+					if ( (max_y - height) < event_image.min_y() ) {
+						LARCV_INFO() << "Y: " << max_y - height << " => " << max_y
+			        			     << " exceeds event boundary " << event_image.min_y() << std::endl;
+						max_y = event_image.min_y() + height; 
+					} else if (max_y > event_image.max_y()) {
+						LARCV_INFO() << "Y: " << max_y - height << " => " << max_y
+			        			     << " exceeds event boundary " << event_image.max_y() << std::endl;
+						max_y = event_image.max_y(); 
+					}
 				}
 			}
 
@@ -494,13 +496,13 @@ namespace larcv {
 			                     min_x, max_y,
 			                     part_image.plane());
 
-			LARCV_INFO() << "After format (plane " << res.plane() << ") ... " << std::endl
-			             << res.dump() << std::endl;
+			LARCV_INFO() << "Event image   " << event_image.dump();
+
+			LARCV_INFO() << "After format  " << res.dump();
 
 			res = event_image.overlap(res);
 
-			LARCV_INFO() << "After format (plane " << res.plane() << ") ... " << std::endl
-			             << res.dump() << std::endl;
+			LARCV_INFO() << "After overlap " << res.dump();
 			return res;
 		}
 
@@ -627,9 +629,8 @@ namespace larcv {
 			const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
 			img.paint(0.);
 
-			LARCV_INFO() << "Filling an image..." << std::endl
-			             << meta.dump()
-			             << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
+			LARCV_INFO() << "Filling an image: " << meta.dump();
+			LARCV_INFO() << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
 
 			for (auto const& wire : wires) {
 
