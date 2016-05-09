@@ -37,7 +37,8 @@ class Ch12Image(PlotImage):
         for p,fill_ch in enumerate(self.planes):
             self.idx[fill_ch] = p
 
-        #self.orig_mat = self.orig_mat[:, ::-1, :]
+        self.work_mat = self.work_mat[::-1, :, :] # for janet
+        self.orig_mat = self.orig_mat[::-1, :, :] # for janet
         self.work_mat = np.transpose( self.work_mat, (1,0,2) )
         self.orig_mat = np.transpose( self.orig_mat, (1,0,2) )
 
@@ -82,6 +83,9 @@ class Ch12Image(PlotImage):
     def __revert_image__(self): 
         self.orig_mat = np.transpose( self.orig_mat, (1,0,2) )
         self.work_mat = np.transpose( self.work_mat, (1,0,2) )
+        self.work_mat = self.work_mat[::-1, :, :]
+        self.orig_mat = self.orig_mat[::-1, :, :]
+
 
     def __create_rois__(self):
         

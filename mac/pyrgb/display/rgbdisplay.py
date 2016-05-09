@@ -73,7 +73,7 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.imin, 1, 1)
 
         ### imax -- threshold
-        self.imax = QtGui.QLineEdit("%d" % (400))
+        self.imax = QtGui.QLineEdit("%d" % (80))
         self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
         self.lay_inputs.addWidget(self.imax, 2, 1)
         self.imax.editingFinished.connect( self.changeChannelViewed )
