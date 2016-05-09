@@ -67,6 +67,7 @@ class PlotImage(object):
 
         # the N-D images we will send to caffe
         self.caffe_image = None
+
         
     def __create_mat(self):
 
@@ -85,6 +86,12 @@ class PlotImage(object):
         # we have to keep thi standard betweek all Image2D i'm sorry!
         self.work_mat = self.work_mat[:,::-1,:]
         self.orig_mat = self.orig_mat[:,::-1,:]
+
+        self.iimin = np.min(self.orig_mat)
+        print "Getting iimin %d"%self.iimin
+        
+        self.iimax = np.max(self.orig_mat)
+        print "Getting iimax %d"%self.iimax
 
     # do you want to make any changes to work_mat before it goes to caffe? If not just return a
     # copy of work_mat
@@ -121,7 +128,6 @@ class PlotImage(object):
 
     # swap channels that are shown
     def swap_plot_mat(self,imin,imax,newchs):
-
 
         print "swap channels to: ", newchs
 

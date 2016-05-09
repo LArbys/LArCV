@@ -150,10 +150,15 @@ class RGBDisplay(QtGui.QWidget):
 
         self.lay_inputs.addWidget(self.comboBoxROI, 2, 3)
 
+        #Lock imin/imax between events
+        self.user_contrast = QtGui.QCheckBox("User Contrast")
+        self.lay_inputs.addWidget(self.user_contrast, 1, 7)
+        self.user_contrast.setChecked(True)
+        
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget(self.auto_range, 1, 7)
-
+        self.lay_inputs.addWidget(self.auto_range, 2, 7)
+        
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
@@ -175,9 +180,9 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.rgbcv2, 1, 15)
 
         # Particle types
-        self.kTypes = {'kBNB':  (self.kBNB, [2]),
+        self.kTypes = {'kBNB':   (self.kBNB, [2]),
                        'kOTHER': (self.kOTHER, [i for i in xrange(10) if i != 2]),
-                       'kBOTH': (self.kBOTH, [i for i in xrange(10)])}
+                       'kBOTH':  (self.kBOTH, [i for i in xrange(10)])}
 
         # The current image array, useful for getting meta
         self.image = None
@@ -401,9 +406,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # From QT, the threshold
         event = int(self.event.text())
-        self.iimin = int(self.imin.text())
-        self.iimax = int(self.imax.text())
-
+            
         # get the image from the datamanager
         self.image, hasroi = self.dm.get_event_image(event,
                                                      self.image_producer,
@@ -412,7 +415,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # whoops no image, return
         if self.image == None: return
-
+        
         self.image.planes = self.planes
         if hasattr(self.image,"preset_layout"):
             self.layout.addLayout(self.image.preset_layout,4,0)
@@ -440,6 +443,8 @@ class RGBDisplay(QtGui.QWidget):
                 self.p2.setCurrentIndex(nchs / 3 * 2 + 1)
 
         self.setViewPlanes()
+
+        self.setContrast()
 
         # threshold for contrast, this image goes to the screen
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)
@@ -580,6 +585,9 @@ class RGBDisplay(QtGui.QWidget):
         # fill self.views -- the indicies of the chosen channels
         self.setViewPlanes()
 
+        # get the contrast
+        self.setContrast()
+        
         # swap what is in work_mat to orig_mat and do the thresholding
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
 
@@ -605,3 +613,19 @@ class RGBDisplay(QtGui.QWidget):
 
         # send off to the network (through caffe_layout.py)
         return self.image.caffe_image
+
+    def setContrast(self):
+
+        assert self.image is not None
+
+        if self.user_contrast.isChecked() == True:
+            self.iimin = float(self.imin.text())
+            self.iimax = float(self.imax.text())
+        else: # get it from the max and min value of image
+            self.iimin = self.image.iimin
+            self.imin.setText(str(self.iimin))
+            print "Setting self.imin text {}=>{}".format(self.image.iimin,self.iimin)
+            self.iimax = self.image.iimax
+            self.imax.setText(str(self.iimax))
+            print "Setting self.imax text {}=>{}".format(self.image.iimax,self.iimax)
+            
