@@ -19,8 +19,10 @@
 #pragma link C++ class larcv::StepDigitizer+;
 #pragma link C++ class larcv::ADCThreshold+;
 #pragma link C++ class larcv::SimpleDigitizer+;
+#pragma link C++ class larcv::ResizeImage+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

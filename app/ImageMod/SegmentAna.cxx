@@ -47,7 +47,7 @@ namespace larcv {
 
       auto const& adc_image_orig = adc_image_v[i];
       auto adc_image = adc_image_orig;
-      adc_image.compress(adc_image.meta().rows()/6,adc_image.meta().cols(),Image2D::kSum);
+      //adc_image.compress(adc_image.meta().rows()/6,adc_image.meta().cols(),Image2D::kSum);
       auto const& seg_image = seg_image_v[i];
 
       auto const& adc_vec = adc_image.as_vector();
