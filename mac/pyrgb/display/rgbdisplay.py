@@ -392,6 +392,7 @@ class RGBDisplay(QtGui.QWidget):
         # Add image
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
+        self.plt.invertY()
 
         # From QT
         event = int(self.event.text())
@@ -575,7 +576,7 @@ class RGBDisplay(QtGui.QWidget):
         
     def setChannelPresets(self):
         option = self.channel_presets.currentText()
-        if option=="TPC":
+        if option=="TPC View":
             self.p0.setCurrentIndex( 1 )
             self.p1.setCurrentIndex( 5 )
             self.p2.setCurrentIndex( 9 )
