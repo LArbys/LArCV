@@ -153,11 +153,11 @@ class RGBDisplay(QtGui.QWidget):
         #Lock imin/imax between events
         self.user_contrast = QtGui.QCheckBox("User Contrast")
         self.lay_inputs.addWidget(self.user_contrast, 1, 7)
-        self.user_contrast.setChecked(True)
+        self.user_contrast.setChecked(False)
         
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget(self.auto_range, 2, 7)
+        self.lay_inputs.addWidget(self.auto_range, 0, 8)
         
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
@@ -176,8 +176,8 @@ class RGBDisplay(QtGui.QWidget):
         self.rgbcaffe.setFixedWidth(130)
         self.rgbcv2.setFixedWidth(130)
 
-        self.lay_inputs.addWidget(self.rgbcaffe, 0, 15)
-        self.lay_inputs.addWidget(self.rgbcv2, 1, 15)
+        self.lay_inputs.addWidget(self.rgbcaffe, 1, 8)
+        self.lay_inputs.addWidget(self.rgbcv2, 2, 8)
 
         # Particle types
         self.kTypes = {'kBNB':   (self.kBNB, [2]),
@@ -615,9 +615,11 @@ class RGBDisplay(QtGui.QWidget):
         return self.image.caffe_image
 
     def setContrast(self):
-
+        
         assert self.image is not None
 
+        self.image.set_imin_imax()
+        
         if self.user_contrast.isChecked() == True:
             self.iimin = float(self.imin.text())
             self.iimax = float(self.imax.text())

@@ -54,6 +54,10 @@ class PlotImage(object):
         # orig_mat here and exchange them when we change the channel number 
         self.work_mat = np.zeros(list(self.img_v[0].shape) + [len(self.img_v)])
 
+        # min and max of orig_mat
+        self.iimin = 0.0
+        self.iimax = 0.0
+        
         # create orig_mat and work_mat for the first time i put 2 underlines
         # before to make sure I only call this method internally. __XX__ style is for
         # ABC
@@ -68,7 +72,6 @@ class PlotImage(object):
         # the N-D images we will send to caffe
         self.caffe_image = None
 
-        
     def __create_mat(self):
 
         # load all the images into working matrix
@@ -87,12 +90,10 @@ class PlotImage(object):
         self.work_mat = self.work_mat[:,::-1,:]
         self.orig_mat = self.orig_mat[:,::-1,:]
 
+    def set_imin_imax(self):
         self.iimin = np.min(self.orig_mat)
-        print "Getting iimin %d"%self.iimin
-        
         self.iimax = np.max(self.orig_mat)
-        print "Getting iimax %d"%self.iimax
-
+        
     # do you want to make any changes to work_mat before it goes to caffe? If not just return a
     # copy of work_mat
     @abc.abstractmethod
@@ -133,7 +134,7 @@ class PlotImage(object):
 
         # store the original matrix into the working matrix
         self.__store_orig_mat()
-        
+
         # swap the planes
         self.views = newchs
         
