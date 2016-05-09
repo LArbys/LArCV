@@ -30,10 +30,11 @@ class Ch12Image(PlotImage):
         #compressed images all have the same shape
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
 
-        for p, fill_ch in enumerate(self.planes):
-            self.work_mat[:,:,p] = self.img_v[fill_ch]
-            if fill_ch == -1: continue
-            self.orig_mat[:, :, p] = self.img_v[fill_ch]
+        for ch in range(0,len(self.img_v)):
+            self.work_mat[:,:,ch] = self.img_v[ch]
+            if ch in self.planes:
+                self.orig_mat[:, :, self.planes.index(ch)] = self.img_v[ch]
+        for p,fill_ch in enumerate(self.planes):
             self.idx[fill_ch] = p
 
         #self.orig_mat = self.orig_mat[:, ::-1, :]
@@ -49,6 +50,9 @@ class Ch12Image(PlotImage):
                 self.work_mat[:,:,ch] = self.orig_mat[:,:,p] # don't put a blank in there
         # swap the planes
         self.planes = newchs
+        # fill idx, which is needed to put orig_mat back into img_v when we go to the network
+        for p,ch in enumerate(self.planes):
+            self.idx[ch] = p
         # put work mat values into orig_mat
         for p,ch in enumerate(self.planes):
             if ch!=-1:
@@ -77,6 +81,7 @@ class Ch12Image(PlotImage):
     # revert back to how image was in ROOTFILE for caffe...
     def __revert_image__(self): 
         self.orig_mat = np.transpose( self.orig_mat, (1,0,2) )
+        self.work_mat = np.transpose( self.work_mat, (1,0,2) )
 
     def __create_rois__(self):
         

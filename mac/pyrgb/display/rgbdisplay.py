@@ -76,6 +76,7 @@ class RGBDisplay(QtGui.QWidget):
         self.imax = QtGui.QLineEdit("%d" % (400))
         self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
         self.lay_inputs.addWidget(self.imax, 2, 1)
+        self.imax.editingFinished.connect( self.changeChannelViewed )
 
         # select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
@@ -556,6 +557,8 @@ class RGBDisplay(QtGui.QWidget):
 
     def changeChannelViewed(self):
         self.setViewPlanes()
+        self.iimin = int(self.imin.text())
+        self.iimax = int(self.imax.text())
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
         self.imi.setImage(self.pimg)
 
@@ -570,6 +573,9 @@ class RGBDisplay(QtGui.QWidget):
         # put the image back into it's original location in self.image.img_v
         # for the network
         self.image.emplace_image()
-
+        
         # send off to the network
         return self.image.img_v
+    
+    def unrevert_image(self):
+        self.image.unrevert_image()
