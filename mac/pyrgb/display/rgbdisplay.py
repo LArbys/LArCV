@@ -87,6 +87,15 @@ class RGBDisplay(QtGui.QWidget):
 
         self.next_plot = QtGui.QPushButton("Next Event")
         self.lay_inputs.addWidget(self.next_plot, 0, 2)
+        
+        # for janet. in future, make config
+        self.channel_presets = QtGui.QComboBox()
+        self.lay_inputs.addWidget(self.channel_presets, 2, 7)
+        self.channel_presets.addItem("TPC View")
+        self.channel_presets.addItem("PMT Weighted")
+        self.channel_presets.addItem("MIP")
+        self.channel_presets.addItem("HIP")
+        self.channel_presets.activated.connect( self.setChannelPresets )
 
         # particle types
         # BNB
@@ -236,6 +245,8 @@ class RGBDisplay(QtGui.QWidget):
         # ROI box
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
+
+        
 
     def openCaffe(self):
         if re.search("Disable", self.rgbcaffe.text()) is None:
@@ -561,6 +572,28 @@ class RGBDisplay(QtGui.QWidget):
         self.iimax = int(self.imax.text())
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
         self.imi.setImage(self.pimg)
+        
+    def setChannelPresets(self):
+        option = self.channel_presets.currentText()
+        if option=="TPC":
+            self.p0.setCurrentIndex( 1 )
+            self.p1.setCurrentIndex( 5 )
+            self.p2.setCurrentIndex( 9 )
+        elif option=="PMT Weighted":
+            self.p0.setCurrentIndex( 2 )
+            self.p1.setCurrentIndex( 6 )
+            self.p2.setCurrentIndex( 10 )
+        elif option=="MIP":
+            self.p0.setCurrentIndex( 3 )
+            self.p1.setCurrentIndex( 7 )
+            self.p2.setCurrentIndex( 11 )
+        elif option=="HIP":
+            self.p0.setCurrentIndex( 4 )
+            self.p1.setCurrentIndex( 8 )
+            self.p2.setCurrentIndex( 12 )
+        else:
+            print "Not an option"
+        self.changeChannelViewed()
 
     def load_current_image(self):
         print "Loading current image!"
