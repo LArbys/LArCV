@@ -52,6 +52,7 @@ class DataManager(object):
 
         # there may be no ROI
         hasroi = False
+        roidata = None
         if roiprod is not None:
             roidata = self.iom.iom.get_data(larcv.kProductROI,roiprod)
             roidata = roidata.ROIArray()

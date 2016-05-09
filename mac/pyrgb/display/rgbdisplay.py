@@ -140,7 +140,7 @@ class RGBDisplay(QtGui.QWidget):
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer = None
 
-        if 'partroi' in self.dm.keys.keys():
+        if len(self.dm.keys['partroi']) > 0:
             self.roi_exists = True
             for prod in self.dm.keys['partroi']:
                 self.comboBoxROI.addItem(prod)
@@ -452,7 +452,7 @@ class RGBDisplay(QtGui.QWidget):
         self.modimage = None
 
         # no ROI's -- finish early
-        if self.rois is None:
+        if hasroi == False:
             self.autoRange()
             return
 
