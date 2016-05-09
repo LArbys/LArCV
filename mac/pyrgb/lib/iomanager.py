@@ -1,6 +1,7 @@
 from .. import larcv
 
-# thin iomanager wrap
+# thin iomanager wrapper
+
 class IOManager(object):
 
     def __init__(self,infiles) :

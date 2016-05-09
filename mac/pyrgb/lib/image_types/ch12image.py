@@ -10,7 +10,7 @@ class Ch12Image(PlotImage):
 
         self.name = "Ch12Image"
 
-        # Custom presets
+        # Custom presets for convenience
         self.raw_adc = QtGui.QPushButton("Raw ADC")
         self.pmt_weighted = QtGui.QPushButton("PMT Weighted")
         self.mip = QtGui.QPushButton("MIP")
@@ -37,11 +37,12 @@ class Ch12Image(PlotImage):
     # if image2d is different than training, this is your chance the fix
     # it before it goes to caffe
     
-    #in this cafe taritree transposes the axis    
+    #in this instance transposes the axis, looked at during the dump
     def __caffe_copy_image__(self):
         work_copy = self.work_mat.copy()
         return np.transpose(work_copy, (1, 0, 2))
-        
+
+    # connectors for the presets
     def setRawADC(self):
         self.planes[0].setCurrentIndex(1)
         self.planes[1].setCurrentIndex(5)

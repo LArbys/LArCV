@@ -13,7 +13,7 @@ class PlotImage(object):
     # plot_mat is modified to have overlays
     # when loading, we manip orig_mat to have the orientation we want
     # before going to caffe, __revert_image__ is called to rearrange the image
-
+    
     def __init__(self, img_v, roi_v, planes):
 
         self.imgs = [img_v[i] for i in xrange(img_v.size())]
@@ -21,9 +21,13 @@ class PlotImage(object):
         if roi_v is not None:
             self.roi_v = [roi_v[i] for i in xrange(roi_v.size())]
 
+        # list of QWidgets which user can choose the channel to go into RGB
         self.planes = None
+
+        # actual numbers of the planes
         self.views  = planes
 
+        # pyqtgraph sucks I have to make a union of all the images
         ometa = None
         for img in self.imgs:
             if ometa == None:
@@ -43,15 +47,25 @@ class PlotImage(object):
         self.imgs = tmp_img_v
         self.img_v = [larcv.as_ndarray(img) for img in tmp_img_v]
 
+        # self.orig_mat is always 3 planes
         self.orig_mat = np.zeros(list(self.img_v[0].shape) + [3])
+
+        # self.work_mat is N images in a matrix, we store our manipulations of
+        # orig_mat here and exchange them when we change the channel number 
         self.work_mat = np.zeros(list(self.img_v[0].shape) + [len(self.img_v)])
 
+        # create orig_mat and work_mat for the first time i put 2 underlines
+        # before to make sure I only call this method internally. __XX__ style is for
+        # ABC
         self.__create_mat()
 
+        # list of the ROIs or bounding boxes we will see on the screen
         self.rois = []
 
+        # deprecated I think
         self.reverted = False
 
+        # the N-D images we will send to caffe
         self.caffe_image = None
         
     def __create_mat(self):
@@ -67,9 +81,13 @@ class PlotImage(object):
             else:
                 self.orig_mat[:, :, p] = np.zeros((self.orig_mat.shape[0], self.orig_mat.shape[1]))
 
+        # pyqtgraph quirk -- flip the middle axis so it's displayed upright for now
+        # we have to keep thi standard betweek all Image2D i'm sorry!
         self.work_mat = self.work_mat[:,::-1,:]
         self.orig_mat = self.orig_mat[:,::-1,:]
 
+    # do you want to make any changes to work_mat before it goes to caffe? If not just return a
+    # copy of work_mat
     @abc.abstractmethod
     def __caffe_copy_image__(self):
        """make a copy of work_mat, and do something to it so that it matches"""
@@ -78,6 +96,7 @@ class PlotImage(object):
        """as in the case of the 12 channel image"""
 
 
+    # apply thresholding for contrast and make sure RGB pixels do not overlap
     def set_plot_mat(self,imin,imax):
 
         self.plot_mat = self.orig_mat.copy()
@@ -93,16 +112,20 @@ class PlotImage(object):
 
         return self.plot_mat
 
+    # take what's in orig_mat and put it in work_mat
     def __store_orig_mat(self):
          # store the current state of the orig_mat into the working matrix
         for p, ch in enumerate(self.views):
             if ch != -1:
                 self.work_mat[:, :, ch] = self.orig_mat[:, :, p]  # don't put a blank in there
 
-    # rswap channels that are shown
+    # swap channels that are shown
     def swap_plot_mat(self,imin,imax,newchs):
+
+
         print "swap channels to: ", newchs
-        
+
+        # store the original matrix into the working matrix
         self.__store_orig_mat()
         
         # swap the planes
@@ -121,8 +144,10 @@ class PlotImage(object):
     # create the ROIs if they exists and return them
     def parse_rois(self):
 
+        # loop over larcv::ROI
         for ix, roi in enumerate(self.roi_v):
 
+            # how many bbox are there?
             nbb = roi.BB().size()
 
             if nbb == 0:  # there was no ROI continue...
@@ -130,7 +155,10 @@ class PlotImage(object):
             
             r = {}
 
+            # particle type
             r['type'] = roi.Type()
+
+            # the bounding boxes
             r['bbox'] = []
 
             for iy in xrange(nbb):
@@ -141,25 +169,27 @@ class PlotImage(object):
 
         return self.rois
 
+    # internal method to make the copy of work_mat[...]
     def __caffe_copy_image(self):
         assert self.reverted == True
         return self.__caffe_copy_image__()
 
+    # revert the image, flip operation on the second dimension
     def revert_image(self):
         self.work_mat = self.work_mat[:,::-1,:]
         self.orig_mat = self.orig_mat[:,::-1,:]
         self.reverted = True
 
-    # insert thresholded image into self.img_v !
-    # since self.orig_mat is a brand new object is this needed? you tell me
+    # insert thresholded image into self.img_v 
     def emplace_image(self):
 
-        #original mat may have changed, lets store it 
+        # original mat may have changed, lets store it 
         self.__store_orig_mat()
 
-        #get the image for caffe
+        # get the image for caffe
         self.caffe_image = self.__caffe_copy_image()
 
+    # reset the presets if there are any in this product
     def reset_presets(self):
         for key,val in self.presets.iteritems():
             self.preset_layout.removeWidget(val)

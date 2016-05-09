@@ -1,4 +1,6 @@
-## Types of particles
+# A non class to hold various constants
+
+# Types of particles
 particle_types  = [
     "Unknown",
     "Cosmic",
@@ -12,7 +14,7 @@ particle_types  = [
     "Proton"
 ]
 
-### Plane colors
+# Plane colors
 colors = { 0 : 'r', 1 : 'g' , 2 : 'b' }
 
 cm2tick   = 17.94

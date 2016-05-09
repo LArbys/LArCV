@@ -1,5 +1,7 @@
 from .. import QtGui
 
+# subclass of ractangle item, this allows me to
+# overlay the particle type if the user decides to hover over it
 
 class HoverRect(QtGui.QGraphicsRectItem) :
     def __init__(self,x,y,w,h,text,plt):

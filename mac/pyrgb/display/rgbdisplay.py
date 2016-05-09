@@ -101,8 +101,6 @@ class RGBDisplay(QtGui.QWidget):
         self.kBOTH = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget(self.kBOTH, 2, 6)
 
-        # Check boxes for drawing plane1/2/3 -- perhaps should
-        # become tied to current image being shown (N planes...)
         # tmw -- changing it so that one can select the channel to show in the
         # RGB channels
         self.p0label = QtGui.QLabel("R:")
@@ -236,6 +234,7 @@ class RGBDisplay(QtGui.QWidget):
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
 
+    # caffe toggles, if/els statement is for opening and closing the pane
     def openCaffe(self):
         if re.search("Disable", self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
@@ -246,6 +245,7 @@ class RGBDisplay(QtGui.QWidget):
             self.layout.removeItem(self.caffe_layout.grid(False))
             self.resize(1200, 700)
 
+    # opencv editor, if/els statement is for opening and closing the pane
     def openCVEditor(self):
         if re.search("Disable", self.rgbcv2.text()) is None:
             self.rgbcv2.setText("Disable OpenCV")
@@ -260,17 +260,21 @@ class RGBDisplay(QtGui.QWidget):
             self.plt.removeItem(self.swindow)
             self.cv2_enabled = False
 
+    # put the runinfo right above the graphics window
     def setRunInfo(self, run, subrun, event):
         self.runinfo.setText(
             "<b>Run:</b> {} <b>Subrun:</b> {} <b>Event:</b> {}".format(run, subrun, event))
 
+    # which image producer
     def chosenImageProducer(self):
         self.image_producer = str(self.comboBoxImage.currentText())
 
+    # which ROI producer
     def chosenROIProducer(self):
         if self.roi_exists == True:
             self.roi_producer = str(self.comboBoxROI.currentText())
 
+    # set the ticks axis to be absolute coordinates
     def get_ticks(self):
         # everywhere USE ABSOLUTE COORDINATE (which is in tick/wire)
         meta = self.image.imgs[0].meta()
@@ -320,6 +324,7 @@ class RGBDisplay(QtGui.QWidget):
 
         return ([xmajor, xminor, xminor2], [ymajor, yminor, yminor2])
 
+    # autorange button
     def autoRange(self):
 
         xticks, yticks = self.get_ticks()
@@ -335,8 +340,10 @@ class RGBDisplay(QtGui.QWidget):
         if self.cv2_enabled == True:
             self.plt.addItem(self.swindow)
             self.swindow.setZValue(10)
+            
         self.modimage = None
 
+    #which type of ROI do you want, BNB/particle/both?
     def which_type(self):
 
         for button in self.kTypes:
@@ -344,6 +351,7 @@ class RGBDisplay(QtGui.QWidget):
                 return self.kTypes[button][1]
         return None
 
+    # go to the previous event
     def previousEvent(self):
 
         event = int(self.event.text())
@@ -354,6 +362,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.plotData()
 
+    # go to the next event
     def nextEvent(self):
 
         event = int(self.event.text())
@@ -362,22 +371,25 @@ class RGBDisplay(QtGui.QWidget):
         self.plotData()
 
     def setViewPlanes(self):
+        # the list of chosen views 
         self.views = []
         for ix, p in enumerate(self.planes):
             if p.currentIndex() != 0:
                 idx = p.currentText()
-                if idx == '': idx = -1 #when first loading the image it's empty, catch it
+                if idx == '': idx = -1 # when first loading the image it's empty, catch it
                 self.views.append(int(idx))
             else:
                 self.views.append(-1)  # sentinal for don't fill this channel
 
     def plotData(self):
 
+        # if there are presets clear them out
         if hasattr(self.image,"preset_layout"):
             self.image.reset_presets()
             self.image.preset_layout.setParent(None)
             self.layout.removeItem(self.image.preset_layout)
 
+        # Clear the image pointer
         self.image = None
 
         # Clear out plot
@@ -387,16 +399,18 @@ class RGBDisplay(QtGui.QWidget):
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
 
-        # From QT
+        # From QT, the threshold
         event = int(self.event.text())
         self.iimin = int(self.imin.text())
         self.iimax = int(self.imax.text())
 
+        # get the image from the datamanager
         self.image, hasroi = self.dm.get_event_image(event,
                                                      self.image_producer,
                                                      self.roi_producer,
                                                      self.views)
 
+        # whoops no image, return
         if self.image == None: return
 
         self.image.planes = self.planes
@@ -427,9 +441,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.setViewPlanes()
 
-        # have to externally threshold it to make sure opencv+caffe works
-        # self.image.threshold_mat(self.iimin, self.iimax)
-        # return the matrix with zeroed out values to avoid overlap
+        # threshold for contrast, this image goes to the screen
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)
 
         if hasroi:
@@ -463,28 +475,29 @@ class RGBDisplay(QtGui.QWidget):
 
     def regionChanged(self):
 
-        #the boxed changed but we don't intend to transform the image
+        # the boxed changed but we don't intend to transform the image
         if self.cv2_layout.transform == False:
             return
 
-        #the box has changed location, if we don't have a mask, create on
+        # the box has changed location, if we don't have a mask, create on
         if self.modimage is None:
             self.modimage = np.zeros(list(self.image.orig_mat.shape))
 
-        #get the slice for the movable box
+        # get the slice for the movable box
         sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
-        #need mask if user doesn't want to overwrite their manipulations
+        # need mask if user doesn't want to overwrite their manipulations
         if self.cv2_layout.overwrite == False:
             idx = np.where(self.modimage == 1)
             pcopy = self.image.orig_mat.copy()
 
-        #do the manipulation
+        # do the manipulation
         self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
 
         # use mask to updated only pixels not already updated
         if self.cv2_layout.overwrite == False:
-            self.image.orig_mat[idx] = pcopy[idx] # reverts prev. modified pixels, preventing double change
+            # reverts prev. modified pixels, preventing double change
+            self.image.orig_mat[idx] = pcopy[idx]
             self.modimage[sl] = 1
 
         # we manipulated orig_mat, threshold for contrast, make sure pixels do not block
@@ -561,24 +574,34 @@ class RGBDisplay(QtGui.QWidget):
                 self.plt.addItem(r1)
                 self.boxes.append(r1)
 
+    # user scrolled to another channel
     def changeChannelViewed(self):
+
+        # fill self.views -- the indicies of the chosen channels
         self.setViewPlanes()
+
+        # swap what is in work_mat to orig_mat and do the thresholding
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
+
+        # set the image for the screen
         self.imi.setImage(self.pimg)
 
+    # you probably hit "forward" so load the current image into the wrapper
+    # through caffe_layout.py
     def load_current_image(self):
 
         print "Loading current image!"
         
-        # revert the image back to Image2D.nd_array style (possibly
-        # changed to put in viewer)
+        # revert the image back to Image2D.nd_array style
         self.image.revert_image()
 
-        #make caffe_image which would be different than image2d
+        # make caffe_image which would be different than image2d, i.e.
+        # do some operation on work_mat if you want
         self.image.emplace_image()
 
-        #revert it back
+        # revert work_mat/orig_mat back since we made a copy into
+        # self.image.caffe_copy
         self.image.revert_image()
 
-        # send off to the network
+        # send off to the network (through caffe_layout.py)
         return self.image.caffe_image
