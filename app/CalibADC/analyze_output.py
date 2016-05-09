@@ -4,6 +4,11 @@ import numpy as np
 
 inputfile = "mc.root"
 nplanes = 3
+# data
+#upperbounds = [400,250,400]
+# MC
+upperbounds = [250,300,400]
+
 
 fin = rt.TFile(inputfile)
 
@@ -34,9 +39,9 @@ for p in range(0,nplanes):
             fit.SetParameter(1,hch.GetMean())
             fit.SetParameter(2,hch.GetRMS())
             if p in [0,2]:
-                hch.Fit( fit, "RQ", "", 75, 400 )
+                hch.Fit( fit, "RQ", "", 75, upperbounds[p] )
             else:
-                hch.Fit( fit, "RQ", "", 60, 250 )
+                hch.Fit( fit, "RQ", "", 60, upperbounds[p] )
             m = fit.GetParameter(1)
             s = fit.GetParameter(2)
             if m<0:
