@@ -41,7 +41,7 @@ class Ch12Image(PlotImage):
     def __caffe_copy_image__(self):
         work_copy = self.work_mat.copy()
         return np.transpose(work_copy, (1, 0, 2))
-
+        
     def setRawADC(self):
         self.planes[0].setCurrentIndex(1)
         self.planes[1].setCurrentIndex(5)

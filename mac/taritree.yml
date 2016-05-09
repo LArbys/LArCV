@@ -16,7 +16,8 @@ modelfile: /Users/vgenty/Desktop/ub_trimese_resnet_headlessdeploy.prototxt
 pretrainedmodel: /Users/vgenty/Desktop/snapshot_rmsprop_iter_stage3.caffemodel
 
 # The mean file location on disk
-meanfile: /Users/vgenty/Desktop/mean.root
+#meanfile: /Users/vgenty/Desktop/mean.root
+meanfile: /tmp/mean.root
 
 # Producer for the mean file
 meanproducer: tpc_12ch_mean

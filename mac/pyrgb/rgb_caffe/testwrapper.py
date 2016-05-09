@@ -95,8 +95,8 @@ class TestWrapper(object):
             assert mean.shape == im[:,:,ix].shape
             im[:,:,ix] -= mean
         
-        im[ im < self.config['imin'] ] = self.config['imin']
-        im[ im > self.config['imax'] ] = self.config['imax']
+        #im[ im < self.config['imin'] ] = self.config['imin']
+        #im[ im > self.config['imax'] ] = self.config['imax']
         
         return im
         
@@ -128,7 +128,6 @@ class TestWrapper(object):
         
         forward_kwargs = {'data': blob['data'] ,'label': blob['label']}
         
-        
         blobs_out = self.net.forward(**forward_kwargs)
         
         scores  =  self.net.blobs[ self.config['lastfc'] ].data
@@ -144,7 +143,6 @@ class TestWrapper(object):
                 self.data_numpy_outfile = file('saved_data_blobs.npz','w')
             data_blob = self.net.blobs["data"].data
             np.savez( self.data_numpy_outfile, data_blob )
-                
         
         
     def __generate_model__(self):
