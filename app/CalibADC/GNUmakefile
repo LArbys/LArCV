@@ -12,6 +12,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
+INCFLAGS += `root-config --cflags`
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
@@ -27,3 +28,12 @@ include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
 pkg_build:
 pkg_clean:
+
+
+all: analyze_output
+
+analyze_output: analyze_output.o
+	$(CXX) $(CXXFLAGS) -o analyze_output analyze_output.o $(LDFLAGS) `root-config --libs`
+
+analyze_output.o: analyze_output.cc
+	$(CXX) $(CXXFLAGS) $(INCFLAGS) -c analyze_output.cc -o analyze_output.o

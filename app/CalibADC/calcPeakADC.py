@@ -15,7 +15,7 @@ with open("ext.list",'r') as f:
 #ioman.add_in_file("supera_mc_cosmics.root")
 ioman.initialize()
 
-out = rt.TFile("adc_scales_cosmic_data.root","recreate")
+out = rt.TFile("test.root","recreate")
 
 h = rt.TH1D("htest","",1000,0,200)
 ttree = rt.TTree("adc","")
@@ -42,6 +42,8 @@ for entry in range(0,num_entries):
     x = np.linspace(0,wfm0.shape[1],wfm0.shape[1])
     for img in event_images.Image2DArray():
         wfms = larcv.as_ndarray(img)
+        if img.meta().plane()!=1:
+            continue
 
         for w in range(0,wfms.shape[0]):
             y = wfms[w,:]
@@ -75,9 +77,9 @@ for entry in range(0,num_entries):
             for peak in peaks:
                 peakmax[0] = peak[1]
                 ttree.Fill()
-            #if len(peaks)>0:
-            #    pylab.plot(x,y)
-            #    pylab.show()
+            if len(peaks)>0:
+                pylab.plot(x,y)
+                pylab.show()
 
 out.Write()
 
