@@ -17,7 +17,7 @@ namespace larcv {
     _image_producer = cfg.get<std::string>         ( "ImageProducer" );
     _gaus_mean_v    = cfg.get<std::vector<double> >( "ADCScaleMean"  );
     _gaus_sigma_v   = cfg.get<std::vector<double> >( "ADCScaleSigma" );
-
+    _per_pixel      = cfg.get<bool>( "PixelWise", true );
     if(_gaus_mean_v.size() != _gaus_sigma_v.size()) {
       LARCV_CRITICAL() << "ADCScale Mean & Sigma must be of same length!" << std::endl;
       throw larbys();
@@ -65,16 +65,21 @@ namespace larcv {
 	// Throw warning: @ this code it "should be" index = plane id
 	if(tpc_image.meta().plane() != i)
 	  LARCV_WARNING() << "Image index != plane ID is detected... " << std::endl;
-	
-	auto const& img_vec = tpc_image.as_vector();
-	
-	for(size_t i=0; i<img_vec.size(); ++i) {
+
+	if(_per_pixel) {
+	  auto const& img_vec = tpc_image.as_vector();
 	  
-	  if(img_vec[i] < 1.) continue;
+	  for(size_t i=0; i<img_vec.size(); ++i) {
+	    
+	    if(img_vec[i] < 1.) continue;
+	    float factor = d(gen);
+	    size_t col = i / tpc_image.meta().rows();
+	    size_t row = i - col * tpc_image.meta().rows();
+	    tpc_image.set_pixel(row,col,img_vec[i] * factor);
+	  }
+	}else{
 	  float factor = d(gen);
-	  size_t col = i / tpc_image.meta().rows();
-	  size_t row = i - col * tpc_image.meta().rows();
-	  tpc_image.set_pixel(row,col,img_vec[i] * factor);
+	  tpc_image *= factor;
 	}
       }
       event_image->Emplace(std::move(tpc_image_v));

@@ -50,6 +50,7 @@ namespace larcv {
     std::vector<double> _gaus_mean_v;
     std::vector<double> _gaus_sigma_v;
     std::vector<size_t> _gaus_pool_size_v;
+    bool _per_pixel;
     #ifndef __CINT__
     #ifndef __CLING__
     std::vector<larcv::RandomGaus > _randg_v;
