@@ -13,7 +13,12 @@ namespace larcv {
   {}
     
   void calcPeakADC::configure(const PSet& cfg)
-  {}
+  {
+    fThreshold = cfg.get<float>("PeakThreshold");
+    fDeadtime  = cfg.get<float>("Deadtime");
+    fNewCols   = cfg.get<int>("NewCols",-1);
+    fNewRows   = cfg.get<int>("NewRows",-1);
+  }
 
   void calcPeakADC::initialize()
   {
@@ -25,14 +30,15 @@ namespace larcv {
 
   bool calcPeakADC::process(IOManager& mgr)
   {
-    std::cout << "calcPeakADC::process" << std::endl;
+
     auto event_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, "tpc" );
     for ( auto const& img_src : event_images->Image2DArray() ) {
       larcv::Image2D img( img_src );
-      img.compress( 504, 864 );
+      if ( fNewCols>0 || fNewRows>0 )
+	img.compress( fNewRows, fNewCols ); //504, 864
       int wfms = img.meta().cols();
       int ticks = img.meta().rows();
-      std::cout << "img (wmfs,ticks) = (" << wfms << " x " << ticks << ")" << std::endl;
+      //std::cout << "img (wmfs,ticks) = (" << wfms << " x " << ticks << ")" << std::endl;
       
       for (int w=0; w<wfms; w++) {
 	bool inpeak = false;
@@ -42,11 +48,11 @@ namespace larcv {
 
 	for (int t=0; t<ticks; t++) {
 	  float y = img.pixel( t, w );
-	  if (y < 40) // below thresh, skip
+	  if (y < fThreshold) // below thresh, skip
 	    continue;
 
 	  if (!inpeak) {
-	    if (peakcenters.size()==0 || peakcenters.at(peakcenters.size()-1)+20<t ) {
+	    if (peakcenters.size()==0 || peakcenters.at(peakcenters.size()-1)+fDeadtime<t ) {
 	      inpeak = true;
 	      pmax = y;
 	      peakcenter = t;

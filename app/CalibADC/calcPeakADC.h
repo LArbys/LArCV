@@ -45,8 +45,14 @@ namespace larcv {
 
     void finalize();
 
+    // params
+    float fThreshold;
+    float fDeadtime;
+    int fNewCols;
+    int fNewRows;
+    
+    // ana output
     TTree* ttree;
-
     float peakmax;
     int wireid;
     int planeid;
