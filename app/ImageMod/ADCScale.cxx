@@ -42,16 +42,19 @@ namespace larcv {
   }
 
   void ADCScale::initialize()
-  {}
+  {
+    _image_id = kINVALID_SIZE;
+  }
 
   bool ADCScale::process(IOManager& mgr)
   {
-    static const ProducerID_t id = mgr.producer_id(kProductImage2D,_image_producer);
+    if(_image_id == kINVALID_SIZE)
+      _image_id = mgr.producer_id(kProductImage2D,_image_producer);
 
     // Smear ADCs if random gaussian is provided
     if(!_gaus_mean_v.empty()) {
 
-      auto event_image = (EventImage2D*)(mgr.get_data(id));
+      auto event_image = (EventImage2D*)(mgr.get_data(_image_id));
       std::vector<larcv::Image2D> tpc_image_v;
       event_image->Move(tpc_image_v);
       
@@ -79,7 +82,20 @@ namespace larcv {
 	  }
 	}else{
 	  float factor = d(gen);
+	  LARCV_INFO() << "Applying scaling factor " << factor << " to image " << i << std::endl;
+	  /*
+	  float min=1e9;
+	  float max=0;
+	  for(auto const& v : tpc_image.as_vector()) { if(v<min) min = v; if (v>max) max = v; }
+	  LARCV_INFO() << "BEFORE: min = " << min << " ... max = " << max << std::endl;
+	  */
 	  tpc_image *= factor;
+	  /*
+	  min = 1e9;
+	  max = 0;
+	  for(auto const& v : tpc_image.as_vector()) { if(v<min) min = v; if (v>max) max = v; }
+	  LARCV_INFO() << "AFTER: min = " << min << " ... max = " << max << std::endl;
+	  */
 	}
       }
       event_image->Emplace(std::move(tpc_image_v));

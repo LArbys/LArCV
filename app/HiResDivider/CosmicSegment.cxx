@@ -20,23 +20,25 @@ namespace larcv {
   }
 
   void CosmicSegment::initialize()
-  {}
+  {
+    _input_id  = kINVALID_SIZE;
+    _output_id = kINVALID_SIZE;
+  }
 
   bool CosmicSegment::process(IOManager& mgr)
   {
     // Set IDs to be used
-    static ProducerID_t input_id = mgr.producer_id(kProductImage2D,_input_producer);
-    static ProducerID_t output_id = kINVALID_PRODUCER;
-    if(output_id == kINVALID_PRODUCER) {
+    if(_input_id  == kINVALID_SIZE) _input_id  = mgr.producer_id(kProductImage2D,_input_producer);
+    if(_output_id == kINVALID_PRODUCER) {
       mgr.get_data(kProductImage2D,_output_producer);
-      output_id = mgr.producer_id(kProductImage2D,_output_producer);
+      _output_id = mgr.producer_id(kProductImage2D,_output_producer);
     }
 
     // Get input
-    auto event_input = (EventImage2D*)(mgr.get_data(input_id));
+    auto event_input = (EventImage2D*)(mgr.get_data(_input_id));
 
     // Get output
-    auto event_output = (EventImage2D*)(mgr.get_data(output_id));
+    auto event_output = (EventImage2D*)(mgr.get_data(_output_id));
 
     auto image_v = event_input->Image2DArray();
 

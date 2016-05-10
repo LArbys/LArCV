@@ -60,6 +60,8 @@ namespace larcv {
     _label = kINVALID_FLOAT;
     _current_entry = kINVALID_SIZE;
     _entry_data_size = 0;
+    _image_producer_id = kINVALID_PRODUCER;
+    _roi_producer_id   = kINVALID_PRODUCER;
     this->child_initialize();
   }
 

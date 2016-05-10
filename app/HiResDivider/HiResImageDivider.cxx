@@ -147,7 +147,7 @@ namespace larcv {
 
       // If it exists, we get the ROI which will guide us on how to use the image
       // This does not exist for cosmics, in which case we create
-      static const ProducerID_t roi_producer_id = mgr.producer_id(::larcv::kProductROI,fInputROIProducer);
+      ProducerID_t roi_producer_id = mgr.producer_id(::larcv::kProductROI,fInputROIProducer);
       larcv::ROI roi;
       if(roi_producer_id != kINVALID_PRODUCER) {
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for MC ROI..." << std::endl;

@@ -46,7 +46,7 @@ namespace larcv {
   private:
 
     std::string _image_producer;
-
+    ProducerID_t _image_id;
     std::vector<double> _gaus_mean_v;
     std::vector<double> _gaus_sigma_v;
     std::vector<size_t> _gaus_pool_size_v;

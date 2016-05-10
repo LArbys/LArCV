@@ -45,6 +45,8 @@ namespace larcv {
 
     std::string _input_producer;
     std::string _output_producer;
+    ProducerID_t _input_id;
+    ProducerID_t _output_id;
     std::vector<float> _adc_threshold_v;
   };
 
