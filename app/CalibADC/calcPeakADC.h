@@ -45,7 +45,6 @@ namespace larcv {
 
     void finalize();
 
-    TFile* out;
     TTree* ttree;
 
     float peakmax;

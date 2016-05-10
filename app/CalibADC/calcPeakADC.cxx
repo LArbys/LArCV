@@ -17,7 +17,6 @@ namespace larcv {
 
   void calcPeakADC::initialize()
   {
-    out = new TFile("output_calcpeakadc.root","recreate");
     ttree = new TTree("adc","");
     ttree->Branch("planeid",&planeid,"planeid/I");
     ttree->Branch("wireid",&wireid,"wireid/I");
@@ -26,10 +25,14 @@ namespace larcv {
 
   bool calcPeakADC::process(IOManager& mgr)
   {
+    std::cout << "calcPeakADC::process" << std::endl;
     auto event_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, "tpc" );
-    for ( auto const& img : event_images->Image2DArray() ) {
-      int wfms = img.meta().rows();
-      int ticks = img.meta().cols();
+    for ( auto const& img_src : event_images->Image2DArray() ) {
+      larcv::Image2D img( img_src );
+      img.compress( 504, 864 );
+      int wfms = img.meta().cols();
+      int ticks = img.meta().rows();
+      std::cout << "img (wmfs,ticks) = (" << wfms << " x " << ticks << ")" << std::endl;
       
       for (int w=0; w<wfms; w++) {
 	bool inpeak = false;
@@ -38,12 +41,12 @@ namespace larcv {
 	std::vector<int> peakcenters;
 
 	for (int t=0; t<ticks; t++) {
-	  float y = img.pixel( w, t );
+	  float y = img.pixel( t, w );
 	  if (y < 40) // below thresh, skip
 	    continue;
 
 	  if (!inpeak) {
-	    if (peakcenters.size()==0 || peakcenters.at(-1)+20<t ) {
+	    if (peakcenters.size()==0 || peakcenters.at(peakcenters.size()-1)+20<t ) {
 	      inpeak = true;
 	      pmax = y;
 	      peakcenter = t;

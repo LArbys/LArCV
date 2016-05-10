@@ -19,6 +19,7 @@ if len(sys.argv) > 1:
    
    flist=ROOT.std.vector('std::string')()
    for x in xrange(len(sys.argv)-2):
+      print "adding: ",sys.argv[x+2]
       flist.push_back(sys.argv[x+2])
 
    proc.override_input_file(flist)
