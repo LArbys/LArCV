@@ -67,8 +67,11 @@ class PlotImage(object):
             else:
                 self.orig_mat[:, :, p] = np.zeros((self.orig_mat.shape[0], self.orig_mat.shape[1]))
 
-        self.work_mat = self.work_mat[:,::-1,:]
-        self.orig_mat = self.orig_mat[:,::-1,:]
+        #self.work_mat = self.work_mat[:,::-1,:]
+        #self.orig_mat = self.orig_mat[:,::-1,:]
+        self.work_mat = np.transpose( self.work_mat, (1,0,2) )
+        self.orig_mat = np.transpose( self.orig_mat, (1,0,2) )
+
 
     @abc.abstractmethod
     def __caffe_copy_image__(self):
@@ -146,9 +149,19 @@ class PlotImage(object):
         return self.__caffe_copy_image__()
 
     def revert_image(self):
-        self.work_mat = self.work_mat[:,::-1,:]
-        self.orig_mat = self.orig_mat[:,::-1,:]
-        self.reverted = True
+#<<<<<<< HEAD
+#        self.work_mat = self.work_mat[:,::-1,:]
+#        self.orig_mat = self.orig_mat[:,::-1,:]
+#        self.reverted = True
+#=======
+        if not self.reverted:
+            self.__revert_image__()
+            self.reverted = True
+
+    def unrevert_image(self):
+        if self.reverted:
+            self.__revert_image__()
+            self.reverted = False
 
     # insert thresholded image into self.img_v !
     # since self.orig_mat is a brand new object is this needed? you tell me

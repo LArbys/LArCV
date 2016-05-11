@@ -7,11 +7,12 @@ class ImageFactory(object):
         self.name = "ImageFactory"
 
     def get(self,imdata,roidata,planes,improd,**kwargs):
-
+        print "get: ",improd
         if improd == "fake_color": 
-        	return FakeColorImage(imdata,roidata,planes)
+            return FakeColorImage(imdata,roidata,planes)
 
         if improd in ["tpc_12ch","tpc_12ch_mean"]:   
-        	return Ch12Image(imdata,roidata,planes)
+            print "12 ch data"
+            return Ch12Image(imdata,roidata,planes)
         
         return DefaultImage(imdata,roidata,planes)

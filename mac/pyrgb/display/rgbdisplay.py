@@ -73,9 +73,10 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.imin, 1, 1)
 
         ### imax -- threshold
-        self.imax = QtGui.QLineEdit("%d" % (400))
+        self.imax = QtGui.QLineEdit("%d" % (80))
         self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
         self.lay_inputs.addWidget(self.imax, 2, 1)
+        self.imax.editingFinished.connect( self.changeChannelViewed )
 
         # select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
@@ -86,6 +87,23 @@ class RGBDisplay(QtGui.QWidget):
 
         self.next_plot = QtGui.QPushButton("Next Event")
         self.lay_inputs.addWidget(self.next_plot, 0, 2)
+        
+        # for janet. in future, make config
+        self.channel_presets = QtGui.QComboBox()
+        self.lay_inputs.addWidget(self.channel_presets, 2, 7)
+        self.channel_presets.addItem("TPC View")
+        self.channel_presets.addItem("PMT Weighted")
+        self.channel_presets.addItem("MIP")
+        self.channel_presets.addItem("HIP")
+        self.channel_presets.activated.connect( self.setChannelPresets )
+
+        # for taritree: false color
+        self.draw_false_color = QtGui.QCheckBox("Draw False Color")
+        self.draw_false_color.setChecked(False)
+        self.falsecolor = False
+        self.draw_false_color.stateChanged.connect( self.toggleFalseColor )
+        self.false_color_map = pg.ColorMap( [0.0, 10.0, 20.0, 80.0], [(0,0,0),(0,0,255),(0,255,0),(255,0,0)] )
+        self.lay_inputs.addWidget(self.draw_false_color, 2, 8)
 
         # particle types
         # BNB
@@ -235,6 +253,8 @@ class RGBDisplay(QtGui.QWidget):
         # ROI box
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
+
+        
 
     def openCaffe(self):
         if re.search("Disable", self.rgbcaffe.text()) is None:
@@ -386,6 +406,7 @@ class RGBDisplay(QtGui.QWidget):
         # Add image
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
+        self.plt.invertY()
 
         # From QT
         event = int(self.event.text())
@@ -431,6 +452,13 @@ class RGBDisplay(QtGui.QWidget):
         # self.image.threshold_mat(self.iimin, self.iimax)
         # return the matrix with zeroed out values to avoid overlap
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)
+        if self.falsecolor:
+            mipval = 20.0
+            scale = 255.0/mipval
+            # we plot the first channel using some color scale
+            #chimg = self.pimg[:,:,int(self.planes[0].currentText())]
+            chimg = self.pimg[:,:,0]
+            self.pimg = self.false_color_map.map( chimg, mode='float' )
 
         if hasroi:
             self.rois = self.image.parse_rois()
@@ -563,8 +591,33 @@ class RGBDisplay(QtGui.QWidget):
 
     def changeChannelViewed(self):
         self.setViewPlanes()
+        self.iimin = int(self.imin.text())
+        self.iimax = int(self.imax.text())
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
         self.imi.setImage(self.pimg)
+        self.draw_false_color.setChecked(False)
+        
+    def setChannelPresets(self):
+        option = self.channel_presets.currentText()
+        if option=="TPC View":
+            self.p0.setCurrentIndex( 1 )
+            self.p1.setCurrentIndex( 5 )
+            self.p2.setCurrentIndex( 9 )
+        elif option=="PMT Weighted":
+            self.p0.setCurrentIndex( 2 )
+            self.p1.setCurrentIndex( 6 )
+            self.p2.setCurrentIndex( 10 )
+        elif option=="MIP":
+            self.p0.setCurrentIndex( 3 )
+            self.p1.setCurrentIndex( 7 )
+            self.p2.setCurrentIndex( 11 )
+        elif option=="HIP":
+            self.p0.setCurrentIndex( 4 )
+            self.p1.setCurrentIndex( 8 )
+            self.p2.setCurrentIndex( 12 )
+        else:
+            print "Not an option"
+        self.changeChannelViewed()
 
     def load_current_image(self):
 
@@ -576,9 +629,16 @@ class RGBDisplay(QtGui.QWidget):
 
         #make caffe_image which would be different than image2d
         self.image.emplace_image()
-
-        #revert it back
-        self.image.revert_image()
-
+        
         # send off to the network
-        return self.image.caffe_image
+        return self.image.img_v
+    
+    def unrevert_image(self):
+        self.image.unrevert_image()
+        
+    def toggleFalseColor(self,on):
+        if on:
+            self.falsecolor = True
+            self.plotData()
+        else:
+            self.falsecolor = False

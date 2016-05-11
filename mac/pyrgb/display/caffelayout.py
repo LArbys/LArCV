@@ -54,3 +54,4 @@ class CaffeLayout(QtGui.QGridLayout):
         self.tw.set_image(self.display.load_current_image())
         self.tw.forward_result()
         self.scores.setText("<b>Scores:</b> {}".format(self.tw.scores))
+        self.display.unrevert_image()

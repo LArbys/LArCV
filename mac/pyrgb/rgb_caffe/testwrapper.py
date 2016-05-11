@@ -144,7 +144,7 @@ class TestWrapper(object):
                 self.data_numpy_outfile = file('saved_data_blobs.npz','w')
             data_blob = self.net.blobs["data"].data
             np.savez( self.data_numpy_outfile, data_blob )
-                
+
         
         
     def __generate_model__(self):
