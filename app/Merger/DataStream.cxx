@@ -79,9 +79,9 @@ namespace larcv {
 	
 	LARCV_INFO() << "Binary-thresholding" << std::endl;
 	copy_img.binary_threshold(_adc_threshold,(float)kROIUnknown,(float)kROICosmic);
-	
+
 	LARCV_INFO() << "emplacing back" << std::endl;
-	_tpc_segment_v.emplace_back(std::move(img));
+	_tpc_segment_v.emplace_back(std::move(copy_img));
 
       }
     }

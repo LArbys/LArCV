@@ -17,7 +17,7 @@ namespace larcv {
     _image_producer = cfg.get<std::string>         ( "ImageProducer" );
     _gaus_mean_v    = cfg.get<std::vector<double> >( "ADCScaleMean"  );
     _gaus_sigma_v   = cfg.get<std::vector<double> >( "ADCScaleSigma" );
-
+    _per_pixel      = cfg.get<bool>( "PixelWise", true );
     if(_gaus_mean_v.size() != _gaus_sigma_v.size()) {
       LARCV_CRITICAL() << "ADCScale Mean & Sigma must be of same length!" << std::endl;
       throw larbys();
@@ -42,16 +42,19 @@ namespace larcv {
   }
 
   void ADCScale::initialize()
-  {}
+  {
+    _image_id = kINVALID_SIZE;
+  }
 
   bool ADCScale::process(IOManager& mgr)
   {
-    static const ProducerID_t id = mgr.producer_id(kProductImage2D,_image_producer);
+    if(_image_id == kINVALID_SIZE)
+      _image_id = mgr.producer_id(kProductImage2D,_image_producer);
 
     // Smear ADCs if random gaussian is provided
     if(!_gaus_mean_v.empty()) {
 
-      auto event_image = (EventImage2D*)(mgr.get_data(id));
+      auto event_image = (EventImage2D*)(mgr.get_data(_image_id));
       std::vector<larcv::Image2D> tpc_image_v;
       event_image->Move(tpc_image_v);
       
@@ -65,16 +68,34 @@ namespace larcv {
 	// Throw warning: @ this code it "should be" index = plane id
 	if(tpc_image.meta().plane() != i)
 	  LARCV_WARNING() << "Image index != plane ID is detected... " << std::endl;
-	
-	auto const& img_vec = tpc_image.as_vector();
-	
-	for(size_t i=0; i<img_vec.size(); ++i) {
+
+	if(_per_pixel) {
+	  auto const& img_vec = tpc_image.as_vector();
 	  
-	  if(img_vec[i] < 1.) continue;
+	  for(size_t i=0; i<img_vec.size(); ++i) {
+	    
+	    if(img_vec[i] < 1.) continue;
+	    float factor = d(gen);
+	    size_t col = i / tpc_image.meta().rows();
+	    size_t row = i - col * tpc_image.meta().rows();
+	    tpc_image.set_pixel(row,col,img_vec[i] * factor);
+	  }
+	}else{
 	  float factor = d(gen);
-	  size_t col = i / tpc_image.meta().rows();
-	  size_t row = i - col * tpc_image.meta().rows();
-	  tpc_image.set_pixel(row,col,img_vec[i] * factor);
+	  LARCV_INFO() << "Applying scaling factor " << factor << " to image " << i << std::endl;
+	  /*
+	  float min=1e9;
+	  float max=0;
+	  for(auto const& v : tpc_image.as_vector()) { if(v<min) min = v; if (v>max) max = v; }
+	  LARCV_INFO() << "BEFORE: min = " << min << " ... max = " << max << std::endl;
+	  */
+	  tpc_image *= factor;
+	  /*
+	  min = 1e9;
+	  max = 0;
+	  for(auto const& v : tpc_image.as_vector()) { if(v<min) min = v; if (v>max) max = v; }
+	  LARCV_INFO() << "AFTER: min = " << min << " ... max = " << max << std::endl;
+	  */
 	}
       }
       event_image->Emplace(std::move(tpc_image_v));

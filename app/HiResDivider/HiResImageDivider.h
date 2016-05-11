@@ -89,7 +89,9 @@ namespace larcv {
       bool isInteresting( const larcv::ROI& roi );
       bool isAbovePixelThreshold( const larcv::EventImage2D& imgs );
       int findVertexDivision( const larcv::ROI& roi );
+      /*
       bool keepNonVertexDivision( const larcv::ROI& roi );
+      */
       void cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images  );
 
       void generateSingleCosmicDivision( std::vector< int >& divlist, const EventImage2D& input_event_images, larcv::ROI& roi );

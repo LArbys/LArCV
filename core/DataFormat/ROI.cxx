@@ -2,6 +2,7 @@
 #define __ROI_CXX__
 
 #include "ROI.h"
+#include "UtilFunc.h"
 #include <set>
 #include <sstream>
 namespace larcv {
@@ -39,7 +40,7 @@ namespace larcv {
       buf << "    ";
     }
     else {
-      ss  << "      \033[95m" << "Particle (PdgCode,TrackID) = (" << PdgCode() << "," << TrackID() << ")\033[00m "
+      ss  << "      \033[95m" << "Particle " << ROIType2String(Type()) << " (PdgCode,TrackID) = (" << PdgCode() << "," << TrackID() << ")\033[00m "
 	  << "... with Parent (" << ParentPdgCode() << "," << ParentTrackID() << ")" << std::endl;
       buf << "      ";
     }
