@@ -55,6 +55,7 @@ namespace larcv {
     std::vector<float> _max_adc_v;
     std::vector<float> _min_adc_v;
     std::vector<size_t> _caffe_idx_to_img_idx;
+    std::vector<size_t> _roitype_to_class;
     double _adc_gaus_mean;
     double _adc_gaus_sigma;
     bool _adc_gaus_pixelwise;
