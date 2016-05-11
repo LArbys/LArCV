@@ -54,13 +54,13 @@ namespace larcv {
       cv::Mat pmtimg;
       larcv::Image2D const& pmtsrc = input_pmtraw_images->at(0);
       pmtimg = cv::Mat::zeros( pmtsrc.meta().rows(), pmtsrc.meta().cols(), CV_8UC3 );
-      for (int r=0; r<pmtsrc.meta().rows(); r++) {
-	for (int c=0; c<pmtsrc.meta().cols(); c++) {
+      for (size_t r=0; r<pmtsrc.meta().rows(); r++) {
+	for (size_t c=0; c<pmtsrc.meta().cols(); c++) {
 	  float adc = pmtsrc.pixel( r, c ) - 2047.0;
 	  int val = std::min( 255, (int)(adc) );
 	  //std::cout << "(" << r << "," << c << ") " << pmtsrc.pixel( r, c ) << std::endl;
 	  val = std::max( 0, val );
-	  for (int i=0; i<3; i++) {
+	  for (size_t i=0; i<3; i++) {
 	    pmtimg.at< cv::Vec3b >(r,c)[i] = val;
 	  }
 	  if ( r==190 || r==310 )
@@ -91,14 +91,14 @@ namespace larcv {
     auto input_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,producer));
     
     cv::Mat img;
-    for (int p=0; p<3; p++) {
+    for (size_t p=0; p<3; p++) {
       larcv::Image2D const& src = input_images->at(p);
       
       if ( p==0 )
 	img = cv::Mat::zeros( src.meta().rows(), src.meta().cols(), CV_8UC3 );
       
-      for (int r=0; r<src.meta().rows(); r++) {
-	for (int c=0; c<src.meta().cols(); c++) {
+      for (size_t r=0; r<src.meta().rows(); r++) {
+	for (size_t c=0; c<src.meta().cols(); c++) {
 	  unsigned short pix = src.pixel( r, c );
 	  int val = std::min( 255, (int)(pix) );
 	  if ( augment )

@@ -57,11 +57,11 @@ namespace larcv {
       for (int p=0; p<fNPlanes; p++) {
 	planebounds[p] = new int[2];
 	char bname1[100];
-	sprintf( bname1, "plane%d_wirebounds", p );
+	sprintf( bname1, "plane%d_wirebounds", (int)p );
 	t->SetBranchAddress( bname1, planebounds[p] );
 
 	char bname2[100];
-	sprintf( bname2, "plane%d_nwires", p );
+	sprintf( bname2, "plane%d_nwires", (int)p );
 	t->SetBranchAddress( bname2, &(planenwires[p]) );
 	//std::cout << "setup plane=" << p << " branches" << std::endl;
       }
@@ -80,12 +80,12 @@ namespace larcv {
       size_t entry = 0;
       size_t bytes = t->GetEntry(entry);
       while ( bytes>0 ) {
-	for (int p=0; p<3; p++) {
+	for (size_t p=0; p<3; p++) {
 	  if ( fMaxWireInRegion<planenwires[p] )
 	    fMaxWireInRegion = planenwires[p];
 	}
 	int plane0[2], plane1[2], plane2[2];
-	for (int i=0; i<2; i++) {
+	for (size_t i=0; i<2; i++) {
 	  plane0[i] = (int)planebounds[0][i];
 	  plane1[i] = (int)planebounds[1][i];
 	  plane2[i] = (int)planebounds[2][i];
@@ -475,11 +475,12 @@ namespace larcv {
       }
       return -1;
     }
-    
+
+    /*
     bool HiResImageDivider::keepNonVertexDivision( const larcv::ROI& roi ) {
       return true;
     }
-    
+    */    
     void HiResImageDivider::cropEventImages( const larcv::EventImage2D& event_images, const larcv::hires::DivisionDef& div, larcv::EventImage2D& output_images ) { 
 
       // Output Image Container
