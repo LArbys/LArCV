@@ -13,8 +13,8 @@ namespace larcv {
     unsigned char* px_ptr = (unsigned char*)img.data;
     int cn = img.channels();
     
-    for(int i=0;i<meta.rows();i++) {
-      for (int j=0;j<meta.cols();j++) {
+    for(size_t i=0;i<meta.rows();i++) {
+      for (size_t j=0;j<meta.cols();j++) {
 	
 	float q = larcv_img.pixel(i,j);
 	px_ptr[i*img.cols*cn + j*cn + 0] = (unsigned char)(((int)(q+0.5)));
