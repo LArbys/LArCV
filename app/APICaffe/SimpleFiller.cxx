@@ -170,10 +170,10 @@ namespace larcv {
                 auto const& input_idx = _caffe_idx_to_img_idx[caffe_idx];
 		val = input_img[input_idx];
 		if(apply_smearing) val *= (_adc_gaus_pixelwise ? d(gen) : mult_factor);
-                val -= (mean_img[input_idx] + min_adc);
-                val = ( val < 0. ? 0. : val);
-                _entry_data[output_idx] = ( val > _max_adc_v[ch] ? max_adc : val);
-		
+                val -= mean_img[input_idx];
+		if( val < min_adc ) val = 0.;
+		if( val > max_adc ) val = max_adc;
+                _entry_data[output_idx] = val;
                 ++output_idx;
                 ++caffe_idx;
             }
@@ -182,11 +182,13 @@ namespace larcv {
           auto const& mean_adc = mean_adc_v[ch];
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
-	      val = input_img[_caffe_idx_to_img_idx[caffe_idx]];
+	      auto const& input_idx = _caffe_idx_to_img_idx[caffe_idx];
+	      val = input_img[input_idx];
 	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? d(gen) : mult_factor);
-	      val -= (mean_adc + min_adc);
-	      val = ( val < 0. ? 0. : val);
-	      _entry_data[output_idx] = ( val > max_adc ? max_adc : val);
+	      val -= mean_adc;
+	      if( val < min_adc ) val = 0.;
+	      if( val > max_adc ) val = max_adc;
+	      _entry_data[output_idx] = val;
 	      ++output_idx;
 	      ++caffe_idx;
             }
