@@ -55,7 +55,8 @@ namespace larcv {
     kROIMuminus,   ///< Muon
     kROIKminus,    ///< Kaon
     kROIPiminus,   ///< Charged Pion
-    kROIProton     ///< Proton
+    kROIProton,    ///< Proton
+    kROITypeMax    ///< enum element counter
   };
 
   /// "ID" of MCParticles in terms of its G4 track ID (unless mixing multiple MC samples)

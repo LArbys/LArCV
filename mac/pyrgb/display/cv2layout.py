@@ -47,6 +47,7 @@ class CV2Layout(QtGui.QGridLayout):
         self.loaded = QtGui.QPushButton("Reload!")
         self.loaded.clicked.connect(self.reLoad)
 
+    # add widgets to self and return 
     def grid(self, enable):
 
         if self.enabled == False:  # don't load cv2 unless necessary
@@ -95,7 +96,7 @@ class CV2Layout(QtGui.QGridLayout):
 
         if len(self.menu) != 0:
             for item in self.menu:
-                # explicitly get rid of these fuckers
+                # explicitly get rid of these guys
                 self.removeWidget(self.menu[item][0])
                 self.removeWidget(self.menu[item][1])
                 self.menu[item][0].setParent(None)
@@ -119,6 +120,7 @@ class CV2Layout(QtGui.QGridLayout):
         self.selector.select(str(self.comboBoxSelector.currentText()))
         self.selected = str(self.comboBoxSelector.currentText())
 
+    # does the modification -- calls the selector.apply() function
     def paint(self, sl):  # sl == slice of pimg
 
         # lets tell selector about our options

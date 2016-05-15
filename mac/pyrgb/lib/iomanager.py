@@ -1,6 +1,7 @@
 from .. import larcv
 
-# thin iomanager wrap
+# thin iomanager wrapper
+
 class IOManager(object):
 
     def __init__(self,infiles) :
@@ -20,3 +21,7 @@ class IOManager(object):
 
     def get_data(self,product,producer):
         return self.iom.get_data(product,producer)
+
+    def set_verbosity(self,verb):
+        assert type(verb) is int
+        self.iom.set_verbosity(verb)

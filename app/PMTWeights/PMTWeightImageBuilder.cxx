@@ -87,7 +87,7 @@ namespace larcv {
     
       // normalize charge
       if ( totalq > 0 ) {
-	for (int ipmt=0; ipmt<32; ipmt++) {
+	for (size_t ipmt=0; ipmt<32; ipmt++) {
 	  pmtq.set_pixel( ipmt, 0, pmtq.pixel( ipmt, 0 )/totalq );
 	}
       }
@@ -108,9 +108,9 @@ namespace larcv {
 	larcv::Image2D const& weights = pmtw_image_array.at( p );
 	larcv::Image2D weighted( tpcimg );
 
-	for (int c=0; c<weighted.meta().cols(); c++) {
+	for (size_t c=0; c<weighted.meta().cols(); c++) {
 	  float w = weights.pixel(c,0);
-	  for (int r=0; r<weighted.meta().rows(); r++) {
+	  for (size_t r=0; r<weighted.meta().rows(); r++) {
 	    weighted.set_pixel(r,c, w*tpcimg.pixel(r,c));
 	  }
 	}

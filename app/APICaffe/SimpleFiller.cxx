@@ -2,6 +2,7 @@
 #define __SIMPLEFILLER_CXX__
 
 #include "SimpleFiller.h"
+#include "DataFormat/UtilFunc.h"
 #include <random>
 namespace larcv {
 
@@ -23,6 +24,22 @@ namespace larcv {
     _adc_gaus_mean = cfg.get<double>("GausSmearingMean",1.0);
     _adc_gaus_sigma = cfg.get<double>("GuasSmearingSigma",-1.0);
     _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
+    auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
+    if(type_to_class.empty()) {
+      LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
+      throw larbys();
+    }
+    _roitype_to_class.clear();
+    _roitype_to_class.resize(kROITypeMax,kINVALID_SIZE);
+    for(size_t i=0; i<type_to_class.size(); ++i) {
+      auto const& type = type_to_class[i];
+      if(type >= kROITypeMax) {
+	LARCV_CRITICAL() << "ClassTypeList contains type " << type << " which is not a valid ROIType_t!" << std::endl;
+	throw larbys();
+      }
+      _roitype_to_class[type] = i;
+    }
+
   }
 
   void SimpleFiller::child_initialize()
@@ -106,7 +123,7 @@ namespace larcv {
       LARCV_WARNING() << "set_dimension() must be called prior to check_dimension()" << std::endl;
       return;
     }
-    bool valid_ch   = (image_v.size() == _num_channels);
+    bool valid_ch   = (image_v.size() > _max_ch);
     bool valid_rows = true;
     for(auto const& img : image_v) {
       valid_rows = ( _rows == img.meta().rows() );
@@ -197,17 +214,24 @@ namespace larcv {
     }
 
     // labels
-    _label = (float)(kROICosmic);
+    ROIType_t roi_type = kROICosmic;
     for(auto const& roi : roi_v) {
       if(roi.MCSTIndex() != kINVALID_USHORT) continue;
-      _label = (float)(roi.Type());
+      roi_type = roi.Type();
+      if(roi_type == kROIUnknown) roi_type = PDG2ROIType(roi.PdgCode());
       LARCV_INFO() << roi.dump() << std::endl;
       break;
     }
 
-    if(_label == (float)(kROICosmic)) _label=0.;
-    else _label=1.;
+    // Convert type to class
+    size_t caffe_class = _roitype_to_class[roi_type];
 
+    if(caffe_class == kINVALID_SIZE) {
+      LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;
+      throw larbys();
+    }
+
+    _label = (float)(_roitype_to_class[roi_type]);
   }
    
 }

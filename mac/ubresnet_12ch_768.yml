@@ -1,5 +1,5 @@
 # Where is your caffe?
-cafferoot: /Users/vgenty/git/caffe/python
+cafferoot: /home/taritree/working/larbys/caffe_larbys/python
 
 # CPU or GPU?
 usecpu : True
@@ -8,24 +8,27 @@ usecpu : True
 gpuid : 0
 
 # Deploy version of the model, please remove ROOTDataLayer or whatever
-modelfile: /Users/vgenty/Desktop/trial_fake/2_class_deploy.prototxt
+modelfile: /home/taritree/working/larbys/resnet-18/training_attempts/ubtri/001/ub_trimese_resnet_headlessdeploy.prototxt
 
 # Pretrained caffe model
-pretrainedmodel: /Users/vgenty/Desktop/snapshot_rmsprop_nu_alex_fake_iter_3100.caffemodel.h5
+pretrainedmodel: /home/taritree/working/larbys/resnet-18/training_attempts/ubtri/001/snapshot_rmsprop_iter_stage3.caffemodel
 
 # The mean file location on disk
-meanfile: /Users/vgenty/Desktop/trial_fake/mean_valid.root
+meanfile: /home/taritree/working/larbys/lmdb2image2d/mean.root
 
 # Producer for the mean file
-meanproducer: fake_color
+meanproducer: tpc_12ch_mean
 
 # Wrapper layer will make a copy of model file (has to sit somewhere on disk...)
-# then we put our own input layer on top so make sure the first
+# the will all it's own input layer on top so make sure the first
 # real layer has input "data", we will try to guess the dimensions
 # based on image in the pgplot window
 model: /tmp/test.prototxt
 
-# Thresholding parameter iMin and iMax -- user is going to do this now
+# Number of channels
+channels: 12
+
+# Thresholding parameter iMin and iMax
 imin : 0
 imax : 255
 
@@ -39,7 +42,10 @@ imax_plane1: 255
 imax_plane2: 255
 
 # This is the name of the last FC layer which computer the score
-lastfc: fc8
+lastfc: probt
 
 # This layer doesn't have to be here but that's OK, what is the name of the loss layer
 loss: loss
+
+# For Debug: save the data given to the network in a numpy binary file
+save_datablob: True
