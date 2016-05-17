@@ -29,16 +29,20 @@ class PlotImage(object):
 
         # pyqtgraph sucks I have to make a union of all the images
         ometa = None
+        comp_x,comp_y = (1,1)
         for img in self.imgs:
             if ometa == None:
-                ometa = larcv.ImageMeta(img.meta())
+                ometa  = larcv.ImageMeta(img.meta())
+                comp_x = ometa.width() / ometa.cols()
+                comp_y = ometa.height() / ometa.rows()
             else:
                 ometa = ometa.inclusive(img.meta())
 
         tmp_img_v = []
         for i in xrange(len(self.imgs)):
-            meta = larcv.ImageMeta(ometa.width(), ometa.height(), ometa.rows(
-            ), ometa.cols(), ometa.min_x(), ometa.max_y(), i)
+            meta = larcv.ImageMeta(ometa.cols() * comp_x, ometa.rows() * comp_y,
+                                   ometa.rows(), ometa.cols(),
+                                   ometa.min_x(), ometa.max_y(), i)
             img = larcv.Image2D(meta)
             img.paint(0.)
             img.overlay(self.imgs[i])
