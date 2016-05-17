@@ -24,6 +24,7 @@ namespace larcv {
     _adc_gaus_mean = cfg.get<double>("GausSmearingMean",1.0);
     _adc_gaus_sigma = cfg.get<double>("GuasSmearingSigma",-1.0);
     _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
+    _mirror_image = cfg.get<bool>("EnableMirror",false);
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
     if(type_to_class.empty()) {
       LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
@@ -45,9 +46,18 @@ namespace larcv {
   void SimpleFiller::child_initialize()
   { _entry_data.clear(); }
 
-  void SimpleFiller::child_batch_begin() {}
+  void SimpleFiller::child_batch_begin() 
+  {
+    _mirrored.clear();
+    _mirrored.reserve(_nentries);
+  }
 
-  void SimpleFiller::child_batch_end()   {}
+  void SimpleFiller::child_batch_end()   
+  {
+    size_t mirror_ctr=0;
+    for(auto const& v : _mirrored) if(v) ++mirror_ctr;
+    LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
+  }
 
   void SimpleFiller::child_finalize()    {}
 
@@ -108,10 +118,12 @@ namespace larcv {
     }
     // Define caffe idx to Image2D idx
     _caffe_idx_to_img_idx.resize(_rows*_cols,0);
+    _mirror_caffe_idx_to_img_idx.resize(_rows*_cols,0);
     size_t caffe_idx = 0;
     for(size_t row=0; row<_rows; ++row) {
       for(size_t col=0; col<_cols; ++col) {
         _caffe_idx_to_img_idx[caffe_idx] = col*_rows + row;
+	_mirror_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + row;
         ++caffe_idx;
       }
     }
@@ -162,7 +174,14 @@ namespace larcv {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> d(_adc_gaus_mean,_adc_gaus_sigma);
+    std::normal_distribution<> gaus(_adc_gaus_mean,_adc_gaus_sigma);
+    std::uniform_int_distribution<> irand(0,1);
+    bool mirror_image = false;
+    if(_mirror_image && irand(gen)) {
+      _mirrored.push_back(true);
+      mirror_image = true;
+    }
+    else { _mirrored.push_back(false); }
 
     const bool apply_smearing = _adc_gaus_sigma > 0.;
 
@@ -172,7 +191,7 @@ namespace larcv {
 
         float mult_factor = 1.;
 	if(apply_smearing)
-	  mult_factor = (float)(d(gen));
+	  mult_factor = (float)(gaus(gen));
 
         auto& input_img = image_v[input_ch].as_vector();
         auto const& min_adc = _min_adc_v[ch];
@@ -184,24 +203,24 @@ namespace larcv {
           auto const& mean_img = mean_image_v[input_ch].as_vector();
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
-                auto const& input_idx = _caffe_idx_to_img_idx[caffe_idx];
-		val = input_img[input_idx];
-		if(apply_smearing) val *= (_adc_gaus_pixelwise ? d(gen) : mult_factor);
-                val -= mean_img[input_idx];
-		if( val < min_adc ) val = 0.;
-		if( val > max_adc ) val = max_adc;
-                _entry_data[output_idx] = val;
-                ++output_idx;
-                ++caffe_idx;
+	      auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
+	      val = input_img[input_idx];
+	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
+	      val -= mean_img[input_idx];
+	      if( val < min_adc ) val = 0.;
+	      if( val > max_adc ) val = max_adc;
+	      _entry_data[output_idx] = val;
+	      ++output_idx;
+	      ++caffe_idx;
             }
           }
         }else{
           auto const& mean_adc = mean_adc_v[ch];
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
-	      auto const& input_idx = _caffe_idx_to_img_idx[caffe_idx];
+	      auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
 	      val = input_img[input_idx];
-	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? d(gen) : mult_factor);
+	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
 	      val -= mean_adc;
 	      if( val < min_adc ) val = 0.;
 	      if( val > max_adc ) val = max_adc;

@@ -47,6 +47,8 @@ namespace larcv {
 
     void fill_entry_data(const std::vector<larcv::Image2D>&,const std::vector<larcv::ROI>&);
 
+    const std::vector<bool>& mirrored() const { return _mirrored; }
+
   private:
     void assert_dimension(const std::vector<larcv::Image2D>&);
 
@@ -55,7 +57,10 @@ namespace larcv {
     std::vector<float> _max_adc_v;
     std::vector<float> _min_adc_v;
     std::vector<size_t> _caffe_idx_to_img_idx;
+    std::vector<size_t> _mirror_caffe_idx_to_img_idx;
     std::vector<size_t> _roitype_to_class;
+    std::vector<bool>   _mirrored;
+    bool   _mirror_image;
     double _adc_gaus_mean;
     double _adc_gaus_sigma;
     bool _adc_gaus_pixelwise;
