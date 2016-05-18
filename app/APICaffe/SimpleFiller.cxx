@@ -25,6 +25,10 @@ namespace larcv {
     _adc_gaus_sigma = cfg.get<double>("GuasSmearingSigma",-1.0);
     _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
     _mirror_image = cfg.get<bool>("EnableMirror",false);
+    _crop_image     = cfg.get<bool>("EnableCrop",false);
+    _randomize_crop = cfg.get<bool>("RandomizeCrop",false);
+    _crop_cols      = cfg.get<int>("CroppedCols");
+    _crop_rows      = cfg.get<int>("CroppedRows");
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
     if(type_to_class.empty()) {
       LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
@@ -81,8 +85,16 @@ namespace larcv {
         << ") exceeds available # of channels in the input image" << std::endl;
       throw larbys();
     }
-    _rows = image_v.front().meta().rows();
-    _cols = image_v.front().meta().cols();
+    if ( !_crop_image ) {
+      // set the dimensions from the image
+      _rows = image_v.front().meta().rows();
+      _cols = image_v.front().meta().cols();
+    }
+    else {
+      // gonna crop (if speicifed dim is smaller than image dim)
+      _rows = std::min( (int)image_v.front().meta().rows(), _crop_rows );
+      _cols = std::min( (int)image_v.front().meta().cols(), _crop_cols );
+    }
 
     // Make sure mean image/adc has right number of channels
     auto const& mean_adc_v = this->mean_adc();
@@ -116,7 +128,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Max adc array dimension do not match with channel size!" << std::endl;
       throw larbys();      
     }
-    // Define caffe idx to Image2D idx
+    // Define caffe idx to Image2D idx (assuming no crop)
     _caffe_idx_to_img_idx.resize(_rows*_cols,0);
     _mirror_caffe_idx_to_img_idx.resize(_rows*_cols,0);
     size_t caffe_idx = 0;
@@ -138,12 +150,14 @@ namespace larcv {
     bool valid_ch   = (image_v.size() > _max_ch);
     bool valid_rows = true;
     for(auto const& img : image_v) {
-      valid_rows = ( _rows == img.meta().rows() );
+      if ( !_crop_image )
+	valid_rows = ( _rows == img.meta().rows() );
       if(!valid_rows) break;
     }
     bool valid_cols = true;
     for(auto const& img : image_v) {
-    valid_cols = ( _cols == img.meta().cols() );
+      if ( !_crop_image )
+	valid_cols = ( _cols == img.meta().cols() );
       if(!valid_cols) break;
     }
     if(!valid_rows) {
@@ -185,6 +199,18 @@ namespace larcv {
 
     const bool apply_smearing = _adc_gaus_sigma > 0.;
 
+    // the same cropping position is used across channels
+    int coldiff = std::max(0,(int)(image_v.front().meta().cols()-_crop_cols));
+    int rowdiff = std::max(0,(int)(image_v.front().meta().rows()-_crop_rows));
+    std::uniform_int_distribution<> irand_col(0,coldiff);
+    std::uniform_int_distribution<> irand_row(0,rowdiff);
+    int row_offset = 0;
+    int col_offset = 0;
+    if ( _crop_image ) {
+      if ( coldiff>0 ) col_offset = irand_col(gen);
+      if ( rowdiff>0 ) row_offset = irand_row(gen);
+    }
+
     for(size_t ch=0;ch<_num_channels;++ch) {
 
         size_t input_ch = _slice_v[ch];
@@ -201,9 +227,17 @@ namespace larcv {
         float val=0;
         if(use_mean_image) {
           auto const& mean_img = mean_image_v[input_ch].as_vector();
+	  // col,row in output image coordinates
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
-	      auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
+	      size_t input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]); // passing value. bad?
+	      if ( _crop_image ) {
+		// the above indexing doesn't apply when cropping
+		if ( !mirror_image )
+		  input_idx = (col+col_offset)*_rows + (row+row_offset);
+		else
+		  input_idx = (_cols-(col+col_offset)-1)*_rows + (row+row_offset);
+	      }
 	      val = input_img[input_idx];
 	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
 	      val -= mean_img[input_idx];
@@ -218,7 +252,15 @@ namespace larcv {
           auto const& mean_adc = mean_adc_v[ch];
           for(size_t col=0; col<_cols; ++col) {
             for(size_t row=0; row<_rows; ++row) {
-	      auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
+	      //auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
+	      size_t input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
+	      if ( _crop_image ) {
+		// the above indexing doesn't apply when cropping
+		if ( !mirror_image )
+		  input_idx = (col+col_offset)*_rows + (row+row_offset);
+		else
+		  input_idx = (_cols-(col+col_offset)-1)*_rows + (row+row_offset);
+	      }
 	      val = input_img[input_idx];
 	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
 	      val -= mean_adc;

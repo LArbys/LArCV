@@ -64,6 +64,10 @@ namespace larcv {
     double _adc_gaus_mean;
     double _adc_gaus_sigma;
     bool _adc_gaus_pixelwise;
+    bool _crop_image;
+    bool _randomize_crop;
+    int _crop_cols;
+    int _crop_rows;
   };
 
   /**
