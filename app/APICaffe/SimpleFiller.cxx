@@ -206,14 +206,9 @@ namespace larcv {
     std::uniform_int_distribution<> irand_row(0,rowdiff);
     int row_offset = 0;
     int col_offset = 0;
-    int img_rows = 0;
-    int img_cols = 0;
     if ( _crop_image ) {
       if ( coldiff>0 ) col_offset = irand_col(gen);
       if ( rowdiff>0 ) row_offset = irand_row(gen);
-      //LARCV_DEBUG() << "Cropping. col offset=" << col_offset << " row offset=" << row_offset << std::endl;
-      img_rows = image_v.front().meta().rows();
-      img_cols = image_v.front().meta().cols();
     }
 
     for(size_t ch=0;ch<_num_channels;++ch) {
@@ -233,15 +228,15 @@ namespace larcv {
         if(use_mean_image) {
           auto const& mean_img = mean_image_v[input_ch].as_vector();
 	  // col,row in output image coordinates
-	  for(size_t row=0; row<_rows; ++row) {
-	    for(size_t col=0; col<_cols; ++col) {
+          for(size_t col=0; col<_cols; ++col) {
+            for(size_t row=0; row<_rows; ++row) {
 	      size_t input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]); // passing value. bad?
 	      if ( _crop_image ) {
 		// the above indexing doesn't apply when cropping
 		if ( !mirror_image )
-		  input_idx = (col+col_offset)*img_rows + (row+row_offset);
+		  input_idx = (col+col_offset)*_rows + (row+row_offset);
 		else
-		  input_idx = (img_cols-(col+col_offset)-1)*img_rows + (row+row_offset);
+		  input_idx = (_cols-(col+col_offset)-1)*_rows + (row+row_offset);
 	      }
 	      val = input_img[input_idx];
 	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
@@ -255,16 +250,16 @@ namespace larcv {
           }
         }else{
           auto const& mean_adc = mean_adc_v[ch];
-	  for(size_t row=0; row<_rows; ++row) {
-	    for(size_t col=0; col<_cols; ++col) {
+          for(size_t col=0; col<_cols; ++col) {
+            for(size_t row=0; row<_rows; ++row) {
 	      //auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
 	      size_t input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
 	      if ( _crop_image ) {
 		// the above indexing doesn't apply when cropping
 		if ( !mirror_image )
-		  input_idx = (col+col_offset)*img_rows + (row+row_offset);
+		  input_idx = (col+col_offset)*_rows + (row+row_offset);
 		else
-		  input_idx = (img_cols-(col+col_offset)-1)*img_rows + (row+row_offset);
+		  input_idx = (_cols-(col+col_offset)-1)*_rows + (row+row_offset);
 	      }
 	      val = input_img[input_idx];
 	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
