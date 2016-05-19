@@ -54,7 +54,7 @@ namespace larcv {
     ProductType_t product_type(const size_t id) const;
     void configure(const PSet& cfg);
     bool initialize();
-    bool read_entry(const size_t index);
+    bool read_entry(const size_t index,bool force_reload=false);
     bool save_entry();
     void finalize();
     void clear_entry();
