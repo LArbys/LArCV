@@ -30,10 +30,7 @@ namespace larcv {
     }
 
   void ThreadDatumFiller::set_next_index(size_t index)
-  { 
-    if(thread_running()) throw larbys("Cannot set next index while thread is running!");
-    _optional_next_index = index; 
-  }
+  { _optional_next_index = index; }
 
 	void ThreadDatumFiller::reset() 
  	{
