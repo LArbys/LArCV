@@ -43,6 +43,10 @@ namespace larcv {
     std::vector<larcv::Image2D> res_image_v;
     
     if(image_v.size() != _origin_x_v.size()) {
+      if(image_v.empty()) {
+	LARCV_INFO() << "Skipping an empty image event..." << std::endl;
+	return false;
+      }
       LARCV_CRITICAL() << "Image array size does not match with input parameter array size!" << std::endl;
       throw larbys();
     }
