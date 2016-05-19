@@ -20,7 +20,7 @@ namespace larcv {
     , _driver(name + "ProcessDriver")
     , _filler(nullptr)
     , _th()
-    , _optional_next_index = kINVALID_SIZE;
+    , _optional_next_index(kINVALID_SIZE)
     {}
 
     ThreadDatumFiller::~ThreadDatumFiller()
@@ -30,9 +30,9 @@ namespace larcv {
     }
 
   void ThreadDatumFiller::set_next_index(size_t index)
-  {
-    if(thread_running()) throw larcv("Thread is still running!");
-    _optional_next_index = index;
+  { 
+    if(thread_running()) throw larbys("Cannot set next index while thread is running!");
+    _optional_next_index = index; 
   }
 
 	void ThreadDatumFiller::reset() 
@@ -198,8 +198,8 @@ namespace larcv {
    			LARCV_CRITICAL() << "Must call configure() before run process!" << std::endl;
    			throw larbys();
    		}
- 		LARCV_INFO() << "Instantiating thread..." << std::endl;
-		std::thread t(&ThreadDatumFiller::_batch_process_,this,nentries);
+      LARCV_INFO() << "Instantiating thread..." << std::endl;
+		  std::thread t(&ThreadDatumFiller::_batch_process_,this,nentries);
     	_th = std::move(t);
     	usleep(100);
     	return true;
@@ -227,8 +227,8 @@ namespace larcv {
     	std::random_device rd;
     	std::mt19937 gen(rd());
     	std::uniform_int_distribution<> dis(0,_driver.io().get_n_entries()-1);
-	if(_random_access) 
-	  LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
+      if(_random_access) 
+      LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
 
       LARCV_INFO() << "Entering process loop" << std::endl;
       while(valid_ctr < nentries) {
@@ -253,14 +253,15 @@ namespace larcv {
 	  LARCV_INFO() << "Filter enabled: bad event found" << std::endl;
 	  continue;
 	}
-      		_batch_entries[valid_ctr] = entry;
-      		++valid_ctr;
-			LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << std::endl;
+
+          _batch_entries[valid_ctr] = entry;
+          ++valid_ctr;
+          LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << std::endl;
     	}
     	_num_processed += valid_ctr;
-
     	_filler->batch_end();
     	_thread_running = false;
+      _optional_next_index = kINVALID_SIZE;
     	LARCV_DEBUG() << " end" << std::endl;
     	return true;
     }

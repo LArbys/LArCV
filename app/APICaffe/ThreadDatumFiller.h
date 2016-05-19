@@ -77,6 +77,7 @@ namespace larcv {
     std::thread _th;
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;
+    
   };
 }
 
