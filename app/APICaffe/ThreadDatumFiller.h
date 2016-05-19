@@ -45,8 +45,6 @@ namespace larcv {
 
     bool batch_process(size_t nentries);
 
-    void set_next_index(size_t index);
-
     bool thread_running() const { return _thread_running; }
 
     size_t process_ctr() const { return _num_processed; }
@@ -76,7 +74,6 @@ namespace larcv {
     DatumFillerBase* _filler;
     std::thread _th;
     std::vector<std::string> _input_fname_v;
-    size_t _optional_next_index;
     
   };
 }
