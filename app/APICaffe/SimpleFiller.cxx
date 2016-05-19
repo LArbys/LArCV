@@ -155,7 +155,8 @@ namespace larcv {
       throw larbys();
     }
     if(!valid_ch) {
-      LARCV_CRITICAL() << "# of channels have changed in the input image!" << std::endl;
+      LARCV_CRITICAL() << "# of channels have changed in the input image! Image vs. MaxCh ("
+		       << image_v.size() << " vs. " << _max_ch << ")" << std::endl;
       throw larbys();
     }
   }
@@ -184,6 +185,30 @@ namespace larcv {
     else { _mirrored.push_back(false); }
 
     const bool apply_smearing = _adc_gaus_sigma > 0.;
+
+    // the same cropping position is used across channels
+    int row_offset = 0;
+    int col_offset = 0;
+    int img_rows = 0;
+    int img_cols = 0;
+    if ( _crop_image ) {
+
+      int coldiff = std::max(0,(int)(image_v.front().meta().cols()-_crop_cols));
+      int rowdiff = std::max(0,(int)(image_v.front().meta().rows()-_crop_rows));
+
+      if ( coldiff>0 ) {
+	std::uniform_int_distribution<> irand_col(0,coldiff);
+	col_offset = irand_col(gen);
+      }
+
+      if ( rowdiff>0 ) {
+	std::uniform_int_distribution<> irand_row(0,rowdiff);
+	row_offset = irand_row(gen);
+      }
+      //LARCV_DEBUG() << "Cropping. col offset=" << col_offset << " row offset=" << row_offset << std::endl;
+      img_rows = image_v.front().meta().rows();
+      img_cols = image_v.front().meta().cols();
+    }
 
     for(size_t ch=0;ch<_num_channels;++ch) {
 

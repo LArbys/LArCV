@@ -20,6 +20,7 @@ namespace larcv {
     , _driver(name + "ProcessDriver")
     , _filler(nullptr)
     , _th()
+    , _optional_next_index = kINVALID_SIZE;
     {}
 
     ThreadDatumFiller::~ThreadDatumFiller()
@@ -27,6 +28,12 @@ namespace larcv {
    		if(_th.joinable()) _th.join();
    		if(_processing) _driver.finalize();
     }
+
+  void ThreadDatumFiller::set_next_index(size_t index)
+  {
+    if(thread_running()) throw larcv("Thread is still running!");
+    _optional_next_index = index;
+  }
 
 	void ThreadDatumFiller::reset() 
  	{
@@ -39,6 +46,7 @@ namespace larcv {
  		_configured = false;
  		_processing = false;
  		_num_processed = 0;
+		_optional_next_index = kINVALID_SIZE;
  	}
 
 	void ThreadDatumFiller::configure(const std::string config_file)
@@ -222,26 +230,29 @@ namespace larcv {
 	if(_random_access) 
 	  LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
 
-	LARCV_INFO() << "Entering process loop" << std::endl;
-    	while(valid_ctr < nentries) {
-      		size_t entry = last_entry+1;
-      		if(entry == kINVALID_SIZE) entry = 0;
-
-      		if(_random_access) {
-      			entry = dis(gen);
-      			while(entry == last_entry) entry = dis(gen);
-      		}
-      		else if(entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries(); 
-
-      		LARCV_INFO() << "Processing entry: " << entry << std::endl; 
-
-      		last_entry = entry;
-      		bool good_status = _driver.process_entry(entry);
-      		if(_enable_filter && !good_status) {
-      			LARCV_INFO() << "Filter enabled: bad event found" << std::endl;
-      			continue;
-			}
-
+      LARCV_INFO() << "Entering process loop" << std::endl;
+      while(valid_ctr < nentries) {
+	size_t entry = last_entry+1;
+	if(_optional_next_index!=kINVALID_SIZE) {
+	  entry = _optional_next_index;
+	  _optional_next_index=kINVALID_SIZE;
+	}
+	if(entry == kINVALID_SIZE) entry = 0;
+	
+	if(_random_access) {
+	  entry = dis(gen);
+	  while(entry == last_entry) entry = dis(gen);
+	}
+	else if(entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries(); 
+	
+	LARCV_INFO() << "Processing entry: " << entry << std::endl; 
+	
+	last_entry = entry;
+	bool good_status = _driver.process_entry(entry,true);
+	if(_enable_filter && !good_status) {
+	  LARCV_INFO() << "Filter enabled: bad event found" << std::endl;
+	  continue;
+	}
       		_batch_entries[valid_ctr] = entry;
       		++valid_ctr;
 			LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << std::endl;

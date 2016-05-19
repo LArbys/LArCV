@@ -64,6 +64,8 @@ namespace larcv {
     double _adc_gaus_mean;
     double _adc_gaus_sigma;
     bool _adc_gaus_pixelwise;
+    size_t _crop_cols, _crop_rows;
+    bool  _crop_image;
   };
 
   /**

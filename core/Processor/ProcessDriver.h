@@ -48,7 +48,7 @@ namespace larcv {
 
     bool process_entry();
     
-    bool process_entry(size_t entry);
+    bool process_entry(size_t entry,bool force_reload=false);
 
     void batch_process(size_t start_entry=0, size_t num_entries=0);
 
