@@ -45,8 +45,10 @@ namespace larcv {
 
     void finalize();
 
-
+  private:
     std::vector<float> fChannelThresholds;
+    std::vector<float> fLowADCs;
+    std::vector<float> fHighADCs;
     std::string fInputImageProducer;
     std::string fOutputImageProducer;
 
