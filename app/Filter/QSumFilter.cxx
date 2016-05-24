@@ -33,6 +33,10 @@ namespace larcv {
     auto const& image_v = ev_image->Image2DArray();
 
     if(image_v.size() != _min_qsum_v.size()) {
+      if(image_v.empty()) {
+	LARCV_INFO() << "Skipping an empty image event..." << std::endl;
+	return false;
+      }
       LARCV_CRITICAL() << "# planes do not agree between data and configuration parameters!" << std::endl;
       throw larbys();
     }

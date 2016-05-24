@@ -26,9 +26,14 @@ namespace larcv {
     _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
     _mirror_image = cfg.get<bool>("EnableMirror",false);
     _crop_image     = cfg.get<bool>("EnableCrop",false);
-    _randomize_crop = cfg.get<bool>("RandomizeCrop",false);
-    _crop_cols      = cfg.get<int>("CroppedCols");
-    _crop_rows      = cfg.get<int>("CroppedRows");
+    if(_crop_image) {
+      _randomize_crop = cfg.get<bool>("RandomizeCrop",false);
+      _crop_cols      = cfg.get<int>("CroppedCols");
+      _crop_rows      = cfg.get<int>("CroppedRows");
+    }else{
+      _crop_cols = _crop_rows = 0;
+      _randomize_crop = false;
+    }
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
     if(type_to_class.empty()) {
       LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
