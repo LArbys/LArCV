@@ -14,6 +14,7 @@ namespace larcv {
     
   void calcPeakADC::configure(const PSet& cfg)
   {
+    fImageProducer = cfg.get<std::string>("ImageProducerName");
     fThreshold = cfg.get<float>("PeakThreshold");
     fDeadtime  = cfg.get<float>("Deadtime");
     fNewCols   = cfg.get<int>("NewCols",-1);
@@ -31,8 +32,10 @@ namespace larcv {
   bool calcPeakADC::process(IOManager& mgr)
   {
 
-    auto event_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, "tpc" );
+    auto event_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, fImageProducer );
     for ( auto const& img_src : event_images->Image2DArray() ) {
+    //for ( int p=0; p<=8; p+=4 ) { // hack for 12 channel data
+      auto const& img_src = event_images->Image2DArray().at(p);
       larcv::Image2D img( img_src );
       if ( fNewCols>0 || fNewRows>0 )
 	img.compress( fNewRows, fNewCols ); //504, 864
@@ -42,7 +45,7 @@ namespace larcv {
       
       for (int w=0; w<wfms; w++) {
 	bool inpeak = false;
-	int pmax = -1;
+	float pmax = -1;
 	int peakcenter = -1;
 	std::vector<int> peakcenters;
 
