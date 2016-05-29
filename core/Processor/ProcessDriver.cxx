@@ -409,6 +409,14 @@ namespace larcv {
     reset();
   }
 
+  size_t ProcessDriver::get_tree_index( size_t entry ) const {
+    if (entry<_access_entry_v.size() )
+      return _access_entry_v.at(entry);
+    else
+      throw larbys();
+    return 0;
+  }
+  
 }
 
 #endif

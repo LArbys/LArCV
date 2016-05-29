@@ -215,14 +215,20 @@ namespace larcv {
       int coldiff = std::max(0,(int)(image_v.front().meta().cols()-_crop_cols));
       int rowdiff = std::max(0,(int)(image_v.front().meta().rows()-_crop_rows));
 
-      if ( coldiff>0 ) {
-	std::uniform_int_distribution<> irand_col(0,coldiff);
-	col_offset = irand_col(gen);
-      }
+      if ( _randomize_crop ) {
+	if ( coldiff>0 ) {
+	  std::uniform_int_distribution<> irand_col(0,coldiff);
+	  col_offset = irand_col(gen);
+	}
 
-      if ( rowdiff>0 ) {
-	std::uniform_int_distribution<> irand_row(0,rowdiff);
-	row_offset = irand_row(gen);
+	if ( rowdiff>0 ) {
+	  std::uniform_int_distribution<> irand_row(0,rowdiff);
+	  row_offset = irand_row(gen);
+	}
+      }
+      else {
+	if ( coldiff>0 ) col_offset = (int)coldiff/2;
+	if ( rowdiff>0 ) row_offset = (int)rowdiff/2;
       }
       //LARCV_DEBUG() << "Cropping. col offset=" << col_offset << " row offset=" << row_offset << std::endl;
       img_rows = image_v.front().meta().rows();

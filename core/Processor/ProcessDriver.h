@@ -64,6 +64,8 @@ namespace larcv {
 
     const IOManager& io() const { return _io; }
 
+    size_t get_tree_index( size_t entry ) const;
+
   private:
 
     bool _process_entry_();

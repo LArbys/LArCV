@@ -17,6 +17,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 
+#include <string>
 #include "TTree.h"
 #include "TFile.h"
 
@@ -50,6 +51,7 @@ namespace larcv {
     float fDeadtime;
     int fNewCols;
     int fNewRows;
+    std::string fImageProducer;
     
     // ana output
     TTree* ttree;
