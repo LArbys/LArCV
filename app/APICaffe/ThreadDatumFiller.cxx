@@ -245,7 +245,7 @@ namespace larcv {
 	}
 	else if(entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries(); 
 	
-	LARCV_INFO() << "Processing entry: " << entry << std::endl; 
+	LARCV_INFO() << "Processing entry: " << entry << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl; 
 	
 	last_entry = entry;
 	bool good_status = _driver.process_entry(entry,true);
@@ -253,17 +253,17 @@ namespace larcv {
 	  LARCV_INFO() << "Filter enabled: bad event found" << std::endl;
 	  continue;
 	}
-
-          _batch_entries[valid_ctr] = entry;
-          ++valid_ctr;
-          LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << std::endl;
-    	}
-    	_num_processed += valid_ctr;
-    	_filler->batch_end();
-    	_thread_running = false;
+	
+	_batch_entries[valid_ctr] = _driver.get_tree_index( entry );
+	++valid_ctr;
+	LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << std::endl;
+      }
+      _num_processed += valid_ctr;
+      _filler->batch_end();
+      _thread_running = false;
       _optional_next_index = kINVALID_SIZE;
-    	LARCV_DEBUG() << " end" << std::endl;
-    	return true;
+      LARCV_DEBUG() << " end" << std::endl;
+      return true;
     }
 }
 
