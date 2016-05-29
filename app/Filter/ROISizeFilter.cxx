@@ -40,6 +40,10 @@ namespace larcv {
       auto const& bb_v = roi.BB();
 
       if(bb_v.size() != _min_height.size()) {
+	if(bb_v.empty()) {
+	  LARCV_INFO() << "Skipping an event with empty images..." << std::endl;
+	  return false;
+	}
 	LARCV_CRITICAL() << "# planes in data is " << bb_v.size()
 			 << " while configuration is " << _min_height.size() << "!\n";
 	throw larbys();

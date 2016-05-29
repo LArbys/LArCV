@@ -16,22 +16,29 @@ proc.configure(sys.argv[1])
 ctr=0
 while 1:
 
-	proc.batch_process(36);
-        sleep_ctr=0
-	while proc.thread_running():
-		time.sleep(0.001)
-                sleep_ctr+=1
-                if sleep_ctr%1000 ==0:
-                   print 'queueing...'
-	print 'Data dim:',
-	for v in proc.dim():
-		print v,
-	print
-	print 'Data size:',proc.data().size()
-	print 'Label size:',proc.labels().size()
-	print 'Batch size:',proc.processed_entries().size()
-	print 'Total process counter:',proc.process_ctr()
+   proc.set_next_index(0);
+   
+   proc.batch_process(36);
+   sleep_ctr=0
+   while proc.thread_running():
+      time.sleep(0.005)
+      sleep_ctr+=1
+      if sleep_ctr%1000 ==0:
+         print 'queueing...'
+	 print 'Data dim:',
+   for v in proc.dim():
+      print v,
+   print
+   print 'Data size:',proc.data().size()
+   print 'Label size:',proc.labels().size()
+   print 'Batch size:',proc.processed_entries().size()
+   print 'Total process counter:',proc.process_ctr()
+   
+   entries = proc.processed_entries()
+   for x in entries: print x,
+   print
 
-	ctr+=1
-	if ctr == 10: break
+   ctr+=1
+   if ctr == 10: break
 
+   

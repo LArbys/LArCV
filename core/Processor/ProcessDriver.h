@@ -48,7 +48,7 @@ namespace larcv {
 
     bool process_entry();
     
-    bool process_entry(size_t entry);
+    bool process_entry(size_t entry,bool force_reload=false);
 
     void batch_process(size_t start_entry=0, size_t num_entries=0);
 
@@ -63,6 +63,8 @@ namespace larcv {
     const ProcessBase* process_ptr(ProcessID_t id) const;
 
     const IOManager& io() const { return _io; }
+
+    size_t get_tree_index( size_t entry ) const;
 
   private:
 

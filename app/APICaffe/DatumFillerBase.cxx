@@ -32,7 +32,7 @@ namespace larcv {
       mean_io.add_in_file(mean_image_fname);
       mean_io.initialize();
       mean_io.read_entry(0);
-      auto event_image = (EventImage2D*)(mean_io.get_data(kProductImage2D,mean_image_producer));
+      auto const event_image = (EventImage2D*)(mean_io.get_data(kProductImage2D,mean_image_producer));
       if(!event_image || event_image->Image2DArray().empty()) {
         LARCV_CRITICAL() << "Failed to retrieve mean image array!" << std::endl;
         throw larbys();
@@ -97,8 +97,8 @@ namespace larcv {
       }
     }
 
-    auto event_image = (EventImage2D*)(mgr.get_data(_image_producer_id));
-    auto event_roi = (EventROI*)(mgr.get_data(_roi_producer_id));
+    auto const event_image = (EventImage2D*)(mgr.get_data(_image_producer_id));
+    auto const event_roi = (EventROI*)(mgr.get_data(_roi_producer_id));
 
     auto const& roi_v   = event_roi->ROIArray();
     auto const& image_v = event_image->Image2DArray();

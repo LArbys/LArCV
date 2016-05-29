@@ -287,7 +287,7 @@ namespace larcv {
     return _process_entry_();
   }
   
-  bool ProcessDriver::process_entry(size_t entry)
+  bool ProcessDriver::process_entry(size_t entry, bool force_reload)
   {
     LARCV_DEBUG() << "Called" << std::endl;
     // Public method to process "specified" entry
@@ -306,7 +306,7 @@ namespace larcv {
 	return false;
       }
       // if exist then move read pointer      
-      _io.read_entry(_access_entry_v[entry]);
+      _io.read_entry(_access_entry_v[entry],force_reload);
       _current_entry = entry;
     }
     // Execute processes
@@ -409,6 +409,14 @@ namespace larcv {
     reset();
   }
 
+  size_t ProcessDriver::get_tree_index( size_t entry ) const {
+    if (entry<_access_entry_v.size() )
+      return _access_entry_v.at(entry);
+    else
+      throw larbys();
+    return 0;
+  }
+  
 }
 
 #endif

@@ -26,9 +26,14 @@ namespace larcv {
     _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
     _mirror_image = cfg.get<bool>("EnableMirror",false);
     _crop_image     = cfg.get<bool>("EnableCrop",false);
-    _randomize_crop = cfg.get<bool>("RandomizeCrop",false);
-    _crop_cols      = cfg.get<int>("CroppedCols");
-    _crop_rows      = cfg.get<int>("CroppedRows");
+    if(_crop_image) {
+      _randomize_crop = cfg.get<bool>("RandomizeCrop",false);
+      _crop_cols      = cfg.get<int>("CroppedCols");
+      _crop_rows      = cfg.get<int>("CroppedRows");
+    }else{
+      _crop_cols = _crop_rows = 0;
+      _randomize_crop = false;
+    }
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
     if(type_to_class.empty()) {
       LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
@@ -169,7 +174,8 @@ namespace larcv {
       throw larbys();
     }
     if(!valid_ch) {
-      LARCV_CRITICAL() << "# of channels have changed in the input image!" << std::endl;
+      LARCV_CRITICAL() << "# of channels have changed in the input image! Image vs. MaxCh ("
+		       << image_v.size() << " vs. " << _max_ch << ")" << std::endl;
       throw larbys();
     }
   }
@@ -200,21 +206,27 @@ namespace larcv {
     const bool apply_smearing = _adc_gaus_sigma > 0.;
 
     // the same cropping position is used across channels
-    int coldiff = std::max(0,(int)(image_v.front().meta().cols()-_crop_cols));
-    int rowdiff = std::max(0,(int)(image_v.front().meta().rows()-_crop_rows));
-    std::uniform_int_distribution<> irand_col(0,coldiff);
-    std::uniform_int_distribution<> irand_row(0,rowdiff);
     int row_offset = 0;
     int col_offset = 0;
     int img_rows = 0;
     int img_cols = 0;
     if ( _crop_image ) {
-      if (_randomize_crop) {
-	if ( coldiff>0 ) col_offset = irand_col(gen);
-	if ( rowdiff>0 ) row_offset = irand_row(gen);
+
+      int coldiff = std::max(0,(int)(image_v.front().meta().cols()-_crop_cols));
+      int rowdiff = std::max(0,(int)(image_v.front().meta().rows()-_crop_rows));
+
+      if ( _randomize_crop ) {
+	if ( coldiff>0 ) {
+	  std::uniform_int_distribution<> irand_col(0,coldiff);
+	  col_offset = irand_col(gen);
+	}
+
+	if ( rowdiff>0 ) {
+	  std::uniform_int_distribution<> irand_row(0,rowdiff);
+	  row_offset = irand_row(gen);
+	}
       }
       else {
-	// fixed position crop
 	if ( coldiff>0 ) col_offset = (int)coldiff/2;
 	if ( rowdiff>0 ) row_offset = (int)rowdiff/2;
       }
