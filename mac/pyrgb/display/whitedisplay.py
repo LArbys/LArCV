@@ -51,6 +51,9 @@ class WhiteDisplay(QtGui.QWidget):
         self.plt_x = self.plt.getAxis('bottom')
         self.plt_y = self.plt.getAxis('left')
 
+        
+        self.NEU = None
+        
         # Main Layout
         self.layout = QtGui.QGridLayout()
 
@@ -495,7 +498,10 @@ class WhiteDisplay(QtGui.QWidget):
         if self.roi_exists == True:
             self.drawBBOX(self.which_type())
         
-        NEU = 0
+
+        NEU = 1
+        self.NEU = NEU
+
         if NEU == 1:
         
             if event > 14000:
@@ -583,7 +589,7 @@ class WhiteDisplay(QtGui.QWidget):
             _class['Muminus'] = 'Muminus'
 
             ti = pg.TextItem(fill='r',html='<font color="white" size="6"><b>{}: {}</b></font>'.format(_class[a['class']],np.round(prob,3)),anchor=(0,0))
-            ti.setPos(bbminx,bbmaxy+36)
+            ti.setPos(bbminx,bbmaxy+34)
             
             r1 = HoverRect(bbminx,
                            bbminy,
@@ -611,9 +617,9 @@ class WhiteDisplay(QtGui.QWidget):
 
         # save to file
         if NEU == 1:
-            exporter.export('nu_color_{}_dark.png'.format(event))
+            exporter.export('nu_color_{}_blue.png'.format(event))
         else:
-            exporter.export('par_color_{}_dark.png'.format(event))
+            exporter.export('par_color_{}_blue.png'.format(event))
 
     def regionChanged(self):
 
@@ -671,14 +677,35 @@ class WhiteDisplay(QtGui.QWidget):
 
         # clear boxes explicitly
         self.boxes = []
+        
+        def union(xx,yy) :
+            xmin = 99999
+            xmax = 0
+            
+            ymin = 99999
+            ymax = 0
+            
+            for ix in xrange(len(xx)):
+                x = xx[ix]
+                y = yy[ix]
 
+                if x < xmin: xmin = x
+                if x > xmax: xmax = x
+            
+                if y < ymin: ymin = y
+                if y > ymax: ymax = y
+        
+            return (xmin,ymin,xmax,ymax)
+
+        xx = []
+        yy = []
         
         # and makew new boxes
         for roi_p in self.rois:
 
             if roi_p['type'] not in kType:
                 continue
-
+                            
             for ix, bbox in enumerate(roi_p['bbox']):
 
                 if ix not in self.views: 
@@ -689,6 +716,7 @@ class WhiteDisplay(QtGui.QWidget):
                 
                 imm = self.image.imgs[ix].meta()
                 
+            
                 # x,y below are relative coordinate of bounding-box w.r.t.
                 # image in original unit
                 x = bbox.min_x() - imm.min_x()
@@ -707,6 +735,15 @@ class WhiteDisplay(QtGui.QWidget):
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
 
                 print x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i
+                
+                
+                if len(roi_p['bbox']) == 3 and self.NEU==0:
+                    print "aho1"
+                    xx.append( x*dw_i )
+                    xx.append( ( x+w_b )*dw_i )
+                    yy.append( y*dh_i )
+                    yy.append( ( y+h_b )*dh_i )
+                    continue
 
                 r1 = HoverRect(x * dw_i,
                                y * dh_i,
@@ -715,6 +752,20 @@ class WhiteDisplay(QtGui.QWidget):
                                ti,
                                self.plt)
 
+                r1.setPen(pg.mkPen(color='y',width=3))
+                r1.setBrush(pg.mkBrush(None))
+                self.plt.addItem(r1)
+                self.boxes.append(r1)
+
+            if len(roi_p['bbox']) == 3 and self.NEU==0:
+                print "AHO"
+                xmin,ymin,xmax,ymax = union(xx,yy)
+                r1 = HoverRect(xmin,
+                               ymin,
+                               xmax-xmin,
+                               ymax-ymin,
+                               ti,
+                               self.plt)
                 r1.setPen(pg.mkPen(color='y',width=3))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
