@@ -464,9 +464,14 @@ class WhiteDisplay(QtGui.QWidget):
 
             
         # Emplace the image on the canvas
-        self.imi.setImage(self.pimg,levels=[[10,100],  #aho hack levels
-                                            [10,100],  #aho hack levels
-                                            [10,100]]) #aho hack levels
+
+        #self.imi.setImage(self.pimg,levels=[[10,100],  #aho hack levels
+        #                                    [10,100],  #aho hack levels
+        #                                    [10,100]]) #aho hack levels
+        # Emplace the image on the canvas
+        #self.imi.setImage(self.pimg,levels=[[100,200],[100,200],[0,150]])
+        self.imi.setImage(self.pimg,levels=[[100,200],[100,200],[0,150]])
+
         self.modimage = None
 
         # no ROI's -- finish early
@@ -490,7 +495,7 @@ class WhiteDisplay(QtGui.QWidget):
         if self.roi_exists == True:
             self.drawBBOX(self.which_type())
         
-        NEU = 1
+        NEU = 0
         if NEU == 1:
         
             if event > 14000:
@@ -710,7 +715,7 @@ class WhiteDisplay(QtGui.QWidget):
                                ti,
                                self.plt)
 
-                r1.setPen(pg.mkPen('b',width=3))
+                r1.setPen(pg.mkPen(color='y',width=3))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)

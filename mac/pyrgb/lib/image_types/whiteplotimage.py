@@ -114,14 +114,14 @@ class WhitePlotImage(object):
     def set_plot_mat(self,imin,imax):
 
         self.plot_mat = self.orig_mat.copy()
-        NEU = 1
+        NEU = 0
         if NEU ==1:
             #NU
             imin = 0.2
             imax = 10
         else:
             #PAR
-            imin = 5
+            imin = 10
             imax = 400
 
         # do contrast thresholding
@@ -138,8 +138,11 @@ class WhitePlotImage(object):
         self.plot_mat /= mm
         
         #NU
-        R = .1
-        G = .2
+        #R = .1
+        #G = .2
+        R = .12
+        #G = .35
+        G = .45
 
         #red
         RR = self.plot_mat[:,:,0]
@@ -159,18 +162,36 @@ class WhitePlotImage(object):
         #get the new maximum
         newmax = [ np.max(self.plot_mat[:,:,i]) for i in xrange(3) ]
 
+
         for i in xrange(3):
             self.plot_mat[:,:,i] /= newmax[i]
             self.plot_mat[:,:,i] *= 255
 
-        
-        self.plot_mat[:, :, 2][self.plot_mat[:, :, 0] > 0] = 0.0
-        self.plot_mat[:, :, 2][self.plot_mat[:, :, 1] > 0] = 0.0
-        self.plot_mat[:, :, 1][self.plot_mat[:, :, 0] > 0] = 0.0
-        
-            
+        self.plot_mat[:, :, 2][self.plot_mat[:, :, 0] > 0.0] = 0.0
+        self.plot_mat[:, :, 2][self.plot_mat[:, :, 1] > 0.0] = 0.0
+        self.plot_mat[:, :, 1][self.plot_mat[:, :, 0] > 0.0] = 0.0
+                    
         condition = np.where((self.plot_mat[:,:,0] == 0.0) & (self.plot_mat[:,:,1] == 0.0) & (self.plot_mat[:,:,2] == 0.0))
         
+
+        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+        div1  = 130.0
+        div1b = 120.0
+        div2 = 100.0
+        div3 = 70.0
+        div4 = 50.0
+        self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div1] *= 10.0
+        self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div1b] *= 20.0
+        self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div2] *= 10.0
+        self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div3] *= 20.0
+        self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div4] *= 30.0
+        
+        
+        
+        #98 gives a goof value for blue background, don't change
         self.plot_mat[:,:,0][condition] = 98
         self.plot_mat[:,:,1][condition] = 98
         self.plot_mat[:,:,2][condition] = 98
