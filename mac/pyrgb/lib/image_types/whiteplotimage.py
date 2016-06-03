@@ -30,7 +30,8 @@ class WhitePlotImage(object):
         # pyqtgraph sucks I have to make a union of all the images
         ometa = None
         comp_x,comp_y = (1,1)
-        for img in self.imgs:
+        #for img in self.imgs
+        for img in [self.imgs[2] for _ in xrange(3)]:
             if ometa == None:
                 ometa  = larcv.ImageMeta(img.meta())
                 comp_x = ometa.width() / ometa.cols()
@@ -39,7 +40,8 @@ class WhitePlotImage(object):
                 ometa = ometa.inclusive(img.meta())
 
         tmp_img_v = []
-        for i in xrange(len(self.imgs)):
+        #for i in xrange(len(self.imgs)):
+        for i in [2,2,2]:
             meta = larcv.ImageMeta(ometa.cols() * comp_x, ometa.rows() * comp_y,
                                    ometa.rows(), ometa.cols(),
                                    ometa.min_x(), ometa.max_y(), i)
@@ -77,7 +79,7 @@ class WhitePlotImage(object):
         self.caffe_image = None
 
     def __create_mat(self):
-
+        print self.work_mat.shape
         # load all the images into working matrix
         for ix, img in enumerate(self.img_v):
             self.work_mat[:, :, ix] = self.img_v[2]
@@ -112,9 +114,15 @@ class WhitePlotImage(object):
     def set_plot_mat(self,imin,imax):
 
         self.plot_mat = self.orig_mat.copy()
-        
-        imin = 0.2
-        imax = 10
+        NEU = 1
+        if NEU ==1:
+            #NU
+            imin = 0.2
+            imax = 10
+        else:
+            #PAR
+            imin = 5
+            imax = 400
 
         # do contrast thresholding
         self.plot_mat[self.plot_mat < imin] = 0
@@ -129,9 +137,10 @@ class WhitePlotImage(object):
         
         self.plot_mat /= mm
         
+        #NU
         R = .1
         G = .2
-        
+
         #red
         RR = self.plot_mat[:,:,0]
         RR = np.where(RR >= G,RR,0.0)

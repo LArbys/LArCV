@@ -128,9 +128,10 @@ class WhiteDisplay(QtGui.QWidget):
         self.planes = [self.p0, self.p1, self.p2]
         self.views = []
         
-        
         #aho hack
-        self.detection_boxes = pd.read_csv('/home/vgenty/nus.txt',delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2','gt'])
+        self.nu_dboxes = pd.read_csv('/home/vgenty/nus.txt',delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2','gt'])
+        self.cosmo_dboxes = pd.read_csv('/home/vgenty/dets.txt',delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2'])
+        self.particle_dboxes = pd.read_csv('/home/vgenty/single_dets.txt',delimiter=' ',header=None,names=['entry','class','prob','x1','y1','x2','y2','gt'])
 
         # Combo box to select the image producer
         self.lay_inputs.addWidget(QtGui.QLabel("Image2D & ROI Prod."), 0, 3)
@@ -488,54 +489,126 @@ class WhiteDisplay(QtGui.QWidget):
 
         if self.roi_exists == True:
             self.drawBBOX(self.which_type())
+        
+        NEU = 1
+        if NEU == 1:
+        
+            if event > 14000:
+                a = self.nu_dboxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
+            elif event == 416:
+                a = self.cosmo_dboxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
+            else:
+                a = self.cosmo_dboxes.query('entry == {}'.format(event))
+        
+            if event > 1400 or event == 416:
+                # x,y below are relative coordinate of bounding-box w.r.t.
+                # image in original unit
+                print a
+                bbminx = a['x1']
+                bbminy = a['y1']
+                bbmaxx = a['x2']
+                bbmaxy = a['y2']
+                
+                w_b = bbmaxx - bbminx
+                h_b = bbmaxy - bbminy
+                
+                ti = pg.TextItem(fill='r',html='<font color="white" size="5"><b>Nu: {}</b></font>'.format(np.round(a['prob'],3)),anchor=(0,0))
+                ti.setPos(bbminy-1,756-bbmaxx + w_b + 35)
+
+                    
+                r1 = HoverRect(bbminy,
+                               756-bbmaxx,
+                               h_b,
+                               w_b,
+                               ti,
+                               self.plt)
+                
+        
+                r1.setPen(pg.mkPen('r',width=3))
+                r1.setBrush(pg.mkBrush(None))
+                self.plt.addItem(r1)
+                self.plt.addItem(ti)
+            else:
+                for iy,b in a.iterrows():
+                    bbminx = b['x1']
+                    bbminy = b['y1']
+                    bbmaxx = b['x2']
+                    bbmaxy = b['y2']
+                    
+                    w_b = bbmaxx - bbminx
+                    h_b = bbmaxy - bbminy
+                    
+                    ti = pg.TextItem(fill='r',html='<font color="white" size="5"><b>Nu: {0:.3f}</b></font>'.format(b['prob']),anchor=(0,0))
+                    ti.setPos(bbminy-1,756-bbmaxx + w_b + 35)
+                    
+                    r1 = HoverRect(bbminy,
+                                   756-bbmaxx,
+                                   h_b,
+                                   w_b,
+                                   ti,
+                                   self.plt)
+        
+                    r1.setPen(pg.mkPen('r',width=3))
+                    r1.setBrush(pg.mkBrush(None))
+                    self.plt.addItem(r1)
+                    self.plt.addItem(ti)
+        
             
-        a = self.detection_boxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
+            
+            
+        else: #not neu
+            print self.particle_dboxes
+            a = self.particle_dboxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
+            print a
+            bbminx = a['x1']
+            bbminy = a['y1']
+            bbmaxx = a['x2']
+            bbmaxy = a['y2']
+            
+            w_b = bbmaxx - bbminx
+            h_b = bbmaxy - bbminy
 
-        
-        # x,y below are relative coordinate of bounding-box w.r.t.
-        # image in original unit
-        print a
-        bbminx = a['x1']
-        bbminy = a['y1']
-        bbmaxx = a['x2']
-        bbmaxy = a['y2']
+            #0:.3f
+            prob = float(a['prob'])
+            _class = {}
+            _class['Eminus'] = 'Eminus'
+            _class['Gamms']  = 'Gamma'
+            _class['Proton'] = 'Proton'
+            _class['Piminus'] = 'Piminus'
+            _class['Muminus'] = 'Muminus'
 
-        #print "image meta dump is"
-        #imm = self.image.imgs[ix].meta()
-        #print imm.dump()
+            ti = pg.TextItem(fill='r',html='<font color="white" size="6"><b>{}: {}</b></font>'.format(_class[a['class']],np.round(prob,3)),anchor=(0,0))
+            ti.setPos(bbminx,bbmaxy+36)
+            
+            r1 = HoverRect(bbminx,
+                           bbminy,
+                           w_b,
+                           h_b,
+                           ti,
+                           self.plt)
+            
+            r1.setPen(pg.mkPen('r',width=3))
+            r1.setBrush(pg.mkBrush(None))
+            self.plt.addItem(r1)
+            self.plt.addItem(ti)
 
-        w_b = bbmaxx - bbminx
-        h_b = bbmaxy - bbminy
-        
-        ti = pg.TextItem(fill='r',html='<font color="white" size="5"><b>Nu: {}</b></font>'.format(a['prob']),anchor=(0,0))
-        ti.setPos(bbminy-1,756-bbmaxx + w_b + 35)
-        
-        r1 = HoverRect(bbminy,
-                       756-bbmaxx,
-                       h_b,
-                       w_b,
-                       ti,
-                       self.plt)
-        
-        r1.setPen(pg.mkPen('r',width=3))
-        r1.setBrush(pg.mkBrush(None))
-        self.plt.addItem(r1)
-        self.plt.addItem(ti)
-
-        
+             
         self.autoRange()
         for loc in ['left','bottom','top','right']:
             self.plt.hideAxis(loc)
-
+            
+             
         exporter = pg.exporters.ImageExporter(self.plt)
-        
-        # set export parameters if needed
+
         #exporter.parameters()['width']  = 700   # (note this also affects height parameter)
         exporter.parameters()['height'] = 700   # (note this also affects height parameter)
 
 
         # save to file
-        exporter.export('nu_color_{}.png'.format(event))
+        if NEU == 1:
+            exporter.export('nu_color_{}_dark.png'.format(event))
+        else:
+            exporter.export('par_color_{}_dark.png'.format(event))
 
     def regionChanged(self):
 
