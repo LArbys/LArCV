@@ -30,6 +30,8 @@ except:
 
 import pandas as pd
 
+import pyqtgraph.exporters
+
 class WhiteDisplay(QtGui.QWidget):
 
     def __init__(self, argv):
@@ -39,7 +41,7 @@ class WhiteDisplay(QtGui.QWidget):
         self.dm = WhiteDataManager(argv)
 
         # Size the canvas
-        self.resize(1200, 700)
+        self.resize(700, 700)
 
         # Graphics window which will hold the image
         self.win = pg.GraphicsWindow()
@@ -164,7 +166,8 @@ class WhiteDisplay(QtGui.QWidget):
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
         self.lay_inputs.addWidget(self.auto_range, 0, 8)
-        
+
+
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
@@ -482,10 +485,12 @@ class WhiteDisplay(QtGui.QWidget):
                 if ymax < bb.max_y():
                     ymax = bb.max_y()
 
+
+        if self.roi_exists == True:
+            self.drawBBOX(self.which_type())
             
         a = self.detection_boxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
-        ix=2
-        imm = self.image.imgs[ix].meta()
+
         
         # x,y below are relative coordinate of bounding-box w.r.t.
         # image in original unit
@@ -495,15 +500,15 @@ class WhiteDisplay(QtGui.QWidget):
         bbmaxx = a['x2']
         bbmaxy = a['y2']
 
-        print "image meta dump is"
-        print imm.dump()
+        #print "image meta dump is"
+        #imm = self.image.imgs[ix].meta()
+        #print imm.dump()
 
         w_b = bbmaxx - bbminx
         h_b = bbmaxy - bbminy
         
-        ti = pg.TextItem(text='Neutrino')
-        #ti.setPos(, (y + h_b) * dh_i + 1)
-        ti.setPos(0,0)
+        ti = pg.TextItem(fill='r',html='<font color="white" size="5"><b>Nu: {}</b></font>'.format(a['prob']),anchor=(0,0))
+        ti.setPos(bbminy-1,756-bbmaxx + w_b + 35)
         
         r1 = HoverRect(bbminy,
                        756-bbmaxx,
@@ -511,18 +516,26 @@ class WhiteDisplay(QtGui.QWidget):
                        w_b,
                        ti,
                        self.plt)
-
-        r1.setPen(pg.mkPen('r'))
+        
+        r1.setPen(pg.mkPen('r',width=3))
         r1.setBrush(pg.mkBrush(None))
         self.plt.addItem(r1)
+        self.plt.addItem(ti)
 
-
-        if self.roi_exists == True:
-            self.drawBBOX(self.which_type())
-            
-
-
+        
         self.autoRange()
+        for loc in ['left','bottom','top','right']:
+            self.plt.hideAxis(loc)
+
+        exporter = pg.exporters.ImageExporter(self.plt)
+        
+        # set export parameters if needed
+        #exporter.parameters()['width']  = 700   # (note this also affects height parameter)
+        exporter.parameters()['height'] = 700   # (note this also affects height parameter)
+
+
+        # save to file
+        exporter.export('nu_color_{}.png'.format(event))
 
     def regionChanged(self):
 
@@ -624,7 +637,7 @@ class WhiteDisplay(QtGui.QWidget):
                                ti,
                                self.plt)
 
-                r1.setPen(pg.mkPen(store.colors[ix]))
+                r1.setPen(pg.mkPen('b',width=3))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
                 self.boxes.append(r1)

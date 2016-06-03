@@ -135,7 +135,6 @@ class WhitePlotImage(object):
         #red
         RR = self.plot_mat[:,:,0]
         RR = np.where(RR >= G,RR,0.0)
-        #self.plot_mat[:,:,0] = np.where(RR <  R, RR, 0.0)
         self.plot_mat[:,:,0] = RR
 
         #green
@@ -147,7 +146,6 @@ class WhitePlotImage(object):
         BB = self.plot_mat[:,:,2]
         BB = np.where(BB < R,BB,0.0)
         self.plot_mat[:,:,2] = BB
-
 
         #get the new maximum
         newmax = [ np.max(self.plot_mat[:,:,i]) for i in xrange(3) ]
@@ -164,9 +162,9 @@ class WhitePlotImage(object):
             
         condition = np.where((self.plot_mat[:,:,0] == 0.0) & (self.plot_mat[:,:,1] == 0.0) & (self.plot_mat[:,:,2] == 0.0))
         
-        self.plot_mat[:,:,0][condition] = 255
-        self.plot_mat[:,:,1][condition] = 255
-        self.plot_mat[:,:,2][condition] = 255
+        self.plot_mat[:,:,0][condition] = 98
+        self.plot_mat[:,:,1][condition] = 98
+        self.plot_mat[:,:,2][condition] = 98
     
         return self.plot_mat
 
