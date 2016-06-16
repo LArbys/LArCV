@@ -1,4 +1,4 @@
-b# thanks taritree
+# thanks taritree
 
 import os
 import sys
@@ -138,6 +138,7 @@ class RGBDisplay(QtGui.QWidget):
         # and another combo box to select ROI
         # self.lay_inputs.addWidget(QtGui.QLabel(
         # "<center>ROI Prod</center>"), 2, 2)
+
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer = None
 
@@ -155,7 +156,9 @@ class RGBDisplay(QtGui.QWidget):
         self.user_contrast = QtGui.QCheckBox("User Contrast")
         self.lay_inputs.addWidget(self.user_contrast, 1, 7)
         self.user_contrast.setChecked(False)
-        
+        self.enableContrast()
+        self.user_contrast.clicked.connect(self.enableContrast)
+
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
         self.lay_inputs.addWidget(self.auto_range, 0, 8)
@@ -632,11 +635,11 @@ class RGBDisplay(QtGui.QWidget):
             self.iimax = float(self.imax.text())
         else: # get it from the max and min value of image
             self.iimin = self.image.iimin
-            self.imin.setText(str(self.iimin))
-            print "Setting self.imin text {}=>{}".format(self.image.iimin,self.iimin)
             self.iimax = self.image.iimax
+            self.imin.setText(str(self.iimin))
             self.imax.setText(str(self.iimax))
-            print "Setting self.imax text {}=>{}".format(self.image.iimax,self.iimax)
+            #print "Setting self.imin text {}=>{}".format(self.image.iimin,self.iimin)
+            #print "Setting self.imax text {}=>{}".format(self.image.iimax,self.iimax)
 
     def saveImage(self):
         exporter = pg.exporters.ImageExporter(self.plt)
@@ -646,3 +649,14 @@ class RGBDisplay(QtGui.QWidget):
         exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
         print "Saved image {}".format(self.savecounter)
         self.savecounter += 1
+    
+
+    def enableContrast(self):
+
+        if self.user_contrast.isChecked() == True:
+            self.imin.setDisabled(False)
+            self.imax.setDisabled(False)
+        else :
+            self.imin.setDisabled(True)
+            self.imax.setDisabled(True)
+
