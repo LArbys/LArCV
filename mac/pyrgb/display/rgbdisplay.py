@@ -6,6 +6,7 @@ import copy
 import re
 from .. import QtGui, QtCore
 from .. import pg
+from .. import larcv
 
 import numpy as np
 import time
@@ -572,7 +573,7 @@ class RGBDisplay(QtGui.QWidget):
                 w_b = bbox.max_x() - bbox.min_x()
                 h_b = bbox.max_y() - bbox.min_y()
 
-                ti = pg.TextItem(text=store.particle_types[roi_p['type']])
+                ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type']))
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
 
                 print x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i
