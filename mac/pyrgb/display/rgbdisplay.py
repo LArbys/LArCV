@@ -1,4 +1,4 @@
-# thanks taritree
+b# thanks taritree
 
 import os
 import sys
@@ -27,6 +27,7 @@ try:
 except:
     pass
 
+import pyqtgraph.exporters
 
 class RGBDisplay(QtGui.QWidget):
 
@@ -159,6 +160,12 @@ class RGBDisplay(QtGui.QWidget):
         self.auto_range = QtGui.QPushButton("AutoRange")
         self.lay_inputs.addWidget(self.auto_range, 0, 8)
         
+        # Save image
+        self.savecounter = int(0)
+        self.saveimage = QtGui.QPushButton("Save Image")
+        self.saveimage.clicked.connect(self.saveImage)
+        self.lay_inputs.addWidget(self.saveimage,2,7)
+
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
@@ -630,4 +637,12 @@ class RGBDisplay(QtGui.QWidget):
             self.iimax = self.image.iimax
             self.imax.setText(str(self.iimax))
             print "Setting self.imax text {}=>{}".format(self.image.iimax,self.iimax)
-            
+
+    def saveImage(self):
+        exporter = pg.exporters.ImageExporter(self.plt)
+        #not sure what it the best way to do this...
+        #exporter.parameters()['width']  = 700   # (note this also affects height parameter)
+        exporter.parameters()['height'] = 700 
+        exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
+        print "Saved image {}".format(self.savecounter)
+        self.savecounter += 1
