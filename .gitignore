@@ -21,6 +21,7 @@
 *.bin
 *.root
 build
+app/PlayGround/*
 app/Supera/APILArLite/Cropper.*
 app/Supera/APILArLite/MCParticleTree.*
 app/Supera/APILArLite/SuperaTypes.h
