@@ -114,7 +114,7 @@ class WhitePlotImage(object):
     def set_plot_mat(self,imin,imax):
 
         self.plot_mat = self.orig_mat.copy()
-        NEU = 0
+        NEU = 1
         if NEU ==1:
             #NU
             imin = 0.2
@@ -123,7 +123,8 @@ class WhitePlotImage(object):
             #PAR
             imin = 10
             imax = 400
-
+        
+            
         # do contrast thresholding
         self.plot_mat[self.plot_mat < imin] = 0
         self.plot_mat[self.plot_mat > imax] = imax
@@ -137,13 +138,14 @@ class WhitePlotImage(object):
         
         self.plot_mat /= mm
         
-        #NU
-        #R = .1
-        #G = .2
-        R = .12
-        #G = .35
-        G = .45
+        if NEU == 1:
+            R = .05
+            G = .2
 
+        else:
+            R = .12
+            G = .45
+        
         #red
         RR = self.plot_mat[:,:,0]
         RR = np.where(RR >= G,RR,0.0)
@@ -173,21 +175,45 @@ class WhitePlotImage(object):
                     
         condition = np.where((self.plot_mat[:,:,0] == 0.0) & (self.plot_mat[:,:,1] == 0.0) & (self.plot_mat[:,:,2] == 0.0))
         
+        
+        if NEU == 1:
+            print ""
+            div0 = 150.0
+            div1 = 100.0
+            #div2 = 50.0
+            #div3 = 25.0
+            #div3a = 10.0
+            self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div0] *= 2.0
+            self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div1] *= 10.0
+            #self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div2] *= 10.0
+            #self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div3] *= 10.0
+            #self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div3a] *= 10.0
 
-        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
-        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
-        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
-        #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
-        div1  = 130.0
-        div1b = 120.0
-        div2 = 100.0
-        div3 = 70.0
-        div4 = 50.0
-        self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div1] *= 10.0
-        self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div1b] *= 20.0
-        self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div2] *= 10.0
-        self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div3] *= 20.0
-        self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div4] *= 30.0
+            
+            div4 = 100
+            div5 = 50
+            div6 = 25
+            self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div4] *= 4.0
+            self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div5] *= 4.0
+            #self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div5] *= 100.0
+            #self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div6] *= 100.0
+        
+        if NEU == 0:
+
+            #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+            #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+            #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+            #hey this is vic trying to get rid of the blackness by artifically fucking with the colors at different scale
+            div1  = 130.0
+            div1b = 120.0
+            div2 = 100.0
+            div3 = 70.0
+            div4 = 50.0
+            self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div1] *= 10.0
+            self.plot_mat[:,:,0][self.plot_mat[:,:, 0] < div1b] *= 20.0
+            self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div2] *= 10.0
+            self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div3] *= 20.0
+            self.plot_mat[:,:,1][self.plot_mat[:,:, 1] < div4] *= 30.0
         
         
         
