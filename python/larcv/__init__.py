@@ -9,3 +9,5 @@ from ROOT import larcv
 k=larcv.logger # this line to load C++ functions
 if 'LARCV_NUMPY' in os.environ and os.environ['LARCV_NUMPY'] == '1':
     larcv.load_pyutil
+if 'LARCV_OPENCV' in os.environ and os.environ['LARCV_OPENCV'] == '1':
+    larcv.load_cvutil
