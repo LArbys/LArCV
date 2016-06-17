@@ -6,6 +6,9 @@ from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 from pyrgb.display import whitedisplay as whited
 
+pg.setConfigOption('background', 'w')
+pg.setConfigOption('foreground', 'k')
+
 inputs = sys.argv
 
 app = QtGui.QApplication([])

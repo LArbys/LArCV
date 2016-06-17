@@ -132,10 +132,20 @@ class WhiteDisplay(QtGui.QWidget):
         self.views = []
         
         #aho hack
-        self.nu_dboxes = pd.read_csv('/home/vgenty/nus.txt',delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2','gt'])
-        self.cosmo_dboxes = pd.read_csv('/home/vgenty/dets.txt',delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2'])
-        self.particle_dboxes = pd.read_csv('/home/vgenty/single_dets.txt',delimiter=' ',header=None,names=['entry','class','prob','x1','y1','x2','y2','gt'])
+        try:
+            self.nu_dboxes = pd.read_csv('/home/vgenty/nus.txt',
+                                         delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2','gt'])
+            self.cosmo_dboxes = pd.read_csv('/home/vgenty/dets.txt',
+                                            delimiter=' ',header=None,names=['entry','prob','x1','y1','x2','y2'])
+            self.particle_dboxes = pd.read_csv('/home/vgenty/single_dets.txt',
+                                               delimiter=' ',header=None,names=['entry','class','prob','x1','y1','x2','y2','gt'])
 
+        except IOError:
+            self.nu_dboxes = None
+            self.cosmo_dboxes = None
+            self.particle_dboxes = None
+
+            
         # Combo box to select the image producer
         self.lay_inputs.addWidget(QtGui.QLabel("Image2D & ROI Prod."), 0, 3)
         self.comboBoxImage = QtGui.QComboBox()
@@ -502,8 +512,8 @@ class WhiteDisplay(QtGui.QWidget):
         NEU = 1
         self.NEU = NEU
 
-        if NEU == 1:
-        
+        if NEU == 1 and self.nu_dboxes is not None:
+            
             if event > 14000:
                 a = self.nu_dboxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
             elif event == 416:
@@ -567,7 +577,8 @@ class WhiteDisplay(QtGui.QWidget):
             
             
             
-        else: #not neu
+        elif self.particle_dboxes is not None: #not neu
+            
             print self.particle_dboxes
             a = self.particle_dboxes.query('entry == {}'.format(event)).sort_values(by='prob',ascending=False).iloc[0]
             print a
@@ -613,7 +624,6 @@ class WhiteDisplay(QtGui.QWidget):
 
         #exporter.parameters()['width']  = 700   # (note this also affects height parameter)
         exporter.parameters()['height'] = 700   # (note this also affects height parameter)
-
 
         # save to file
         if NEU == 1:
