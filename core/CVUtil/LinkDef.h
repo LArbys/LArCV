@@ -9,8 +9,14 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#ifndef __CINT__
+#pragma link C++ function larcv::as_mat(const larcv::Image2D&)+;
+#pragma link C++ function larcv::imread(const string file_name)+;
+#pragma link C++ function larcv::imread_gray(const string file_name)+;
+//#pragma link C++ function larcv::as_mat(const larcv::Image2D&)+;
+#endif
+#pragma link C++ class larcv::load_cvutil+;
 //ADD_NEW_CLASS ... do not change this line
-
 #endif
 
 
