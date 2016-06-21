@@ -26,6 +26,7 @@ namespace larcv {
   {
     auto my_event_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,"imread"));
     LARCV_NORMAL() << my_event_image2d << std::endl;
+    return true;
   }
 
   void DoNothing::finalize()
