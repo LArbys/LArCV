@@ -5,7 +5,7 @@
  * 
  * \brief Class def header for a class SegDatumFillerBase
  *
- * @author kazuhiro
+ * @author vic
  */
 
 /** \addtogroup Package_Name

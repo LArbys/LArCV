@@ -49,7 +49,7 @@ namespace larcv {
 	LARCV_CRITICAL() << "ClassTypeList contains type " << type << " which is not a valid ROIType_t!" << std::endl;
 	throw larbys();
       }
-      _roitype_to_class[type] = i; // enum roi to caffe 0 based index
+      _roitype_to_class[type] = i+1; // enum roi to caffe 0 based index (0==background??)
     }
 
   }
@@ -190,10 +190,17 @@ namespace larcv {
 				   const std::vector<larcv::Image2D>& seg_image_v)
 
   {
+
     this->assert_dimension(image_v);
+    this->assert_dimension(seg_image_v);
+
     const size_t batch_size = _rows * _cols * _num_channels;
+
     if(_entry_data.empty()) _entry_data.resize(batch_size,0.);
+    if(_seg_entry_data.empty()) _seg_entry_data.resize(batch_size,0.);
+
     for(auto& v : _entry_data) v = 0.;
+    for(auto& v : _seg_entry_data) v = 0.;
 
     auto const& mean_image_v = mean_image();
     auto const& mean_adc_v = mean_adc();
@@ -252,7 +259,10 @@ namespace larcv {
 	  mult_factor = (float)(gaus(gen));
 
         auto& input_img     = image_v[input_ch].as_vector();
-        auto& seg_input_img = seg_image_v[input_ch].as_vector();
+
+        LARCV_DEBUG() << "input_ch: " << input_ch << seg_image_v.at(input_ch).as_vector().size();
+
+	auto& seg_input_img = seg_image_v[input_ch].as_vector();
 
         auto const& min_adc = _min_adc_v[ch];
         auto const& max_adc = _max_adc_v[ch];
@@ -280,14 +290,16 @@ namespace larcv {
 
 	      if( val < min_adc ) val = 0.;
 	      if( val > max_adc ) val = max_adc;
-
+	      
 	      _entry_data[output_idx] = val;
-	      _seg_entry_data[output_idx] = (float) _roitype_to_class[ seg_input_img[input_idx] ];
+	      LARCV_DEBUG() << seg_input_img.at(input_idx) << ",";
+	      _seg_entry_data[output_idx] = val > 0 ? (float) _roitype_to_class[ seg_input_img.at(input_idx) ] : 0;
 
 	      ++output_idx;
 	      ++caffe_idx;
 
             }
+	    LARCV_DEBUG() << "\n";
           }
         }else{
           auto const& mean_adc = mean_adc_v[ch];
@@ -312,7 +324,8 @@ namespace larcv {
 	      if( val > max_adc ) val = max_adc;
 
 	      _entry_data[output_idx] = val;
-	      _seg_entry_data[output_idx] = (float) _roitype_to_class[ seg_input_img[input_idx] ];
+
+	      _seg_entry_data[output_idx] = val > 0 ? (float) _roitype_to_class[ seg_input_img[input_idx] ] : 0;
 
 	      ++output_idx;
 	      ++caffe_idx;

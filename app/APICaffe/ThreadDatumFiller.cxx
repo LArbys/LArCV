@@ -117,9 +117,13 @@ namespace larcv {
 		ProcessID_t last_process_id=0;
 		ProcessID_t datum_filler_id=kINVALID_SIZE;
 		for(auto const& process_name : _driver.process_names()) {
+
 			ProcessID_t id = _driver.process_id(process_name);
+
 			if(id > last_process_id) last_process_id = id;
-				auto ptr = _driver.process_ptr(id);
+
+			auto ptr = _driver.process_ptr(id);
+
 			if(ptr->is("DatumFiller")) {
 				if(datum_filler_id != kINVALID_SIZE) {
 					LARCV_CRITICAL() << "Duplicate DatumFillers: id=" << datum_filler_id
@@ -129,16 +133,19 @@ namespace larcv {
 				datum_filler_id = id;
 			}
 		}
+
 		if(datum_filler_id == kINVALID_SIZE) {
 			LARCV_CRITICAL() << "DatumFiller not found in process list..." << std::endl;
 			throw larbys();
 		}
+
 		if(datum_filler_id != last_process_id){
 			LARCV_CRITICAL() << "DatumFiller not the last process..." << std::endl;
 			throw larbys();
 		}
 		// Retrieve the filler ptr
-		_filler = (DatumFillerBase*)(_driver.process_ptr(datum_filler_id));
+		//_filler = (DatumFillerBase*)(_driver.process_ptr(datum_filler_id));
+		_filler = (SegDatumFillerBase*)(_driver.process_ptr(datum_filler_id));
 		_configured = true;
   	}
 

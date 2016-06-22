@@ -15,7 +15,7 @@ namespace larcv {
   {}
     
   bool SegDatumFillerBase::is(const std::string& question) const
-  { return (question == "SegDatumFiller"); }
+  { return (question == "DatumFiller"); }
 
   void SegDatumFillerBase::configure(const PSet& cfg)
   {
@@ -53,6 +53,7 @@ namespace larcv {
 
   void SegDatumFillerBase::initialize()
   {
+
     if(_nentries == kINVALID_SIZE) {
       LARCV_CRITICAL() << "# entries not set... must be set @ initialize! " << std::endl;
       throw larbys();

@@ -16,6 +16,7 @@
 
 #include "Processor/ProcessDriver.h"
 #include "DatumFillerBase.h"
+#include "SegDatumFillerBase.h"
 #include <thread>
 
 namespace larcv {
@@ -60,7 +61,9 @@ namespace larcv {
     const std::vector<float>& data() const;
 
     const std::vector<float>& labels() const;
-
+    
+    const ProcessDriver* pd() { return &_driver; }
+    
   private:
 
     bool _batch_process_(size_t nentries);
@@ -73,7 +76,10 @@ namespace larcv {
     std::vector<size_t> _batch_entries;
     std::vector<int> _dim_v;
     ProcessDriver _driver;
-    DatumFillerBase* _filler;
+
+    //    DatumFillerBase* _filler;
+    SegDatumFillerBase* _filler;
+
     std::thread _th;
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;
