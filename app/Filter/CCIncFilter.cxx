@@ -44,7 +44,7 @@ namespace larcv {
     bool has_proton = false;
     bool has_shower = false;
     bool fv_vertex = false;
-    bool has_mc = false;
+    //bool has_mc = false;
 
     for(auto const& roi : ev_roi->ROIArray()) {
 

@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __MCFILTER_H__
-#define __MCFILTER_H__
+#ifndef __COSMICFILTER_H__
+#define __COSMICFILTER_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
