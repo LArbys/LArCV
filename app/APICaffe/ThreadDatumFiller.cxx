@@ -7,6 +7,11 @@
 #include <sstream>
 #include <unistd.h>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/ndarrayobject.h>
+
+#include "PyUtil/PyUtils.h"
+
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
     : larcv_base(name)
@@ -93,6 +98,7 @@ namespace larcv {
 	  set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity",2)) );
 	  _enable_filter = cfg.get<bool>("EnableFilter");
 	  _random_access = cfg.get<bool>("RandomAccess");
+	  _use_threading = cfg.get<bool>("UseThread");
 	  _input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
 	  // Brew read-only configuration
 	  PSet io_cfg("IOManager");
@@ -172,6 +178,41 @@ namespace larcv {
 	   	return _filler->data();    	
     }
 
+  PyObject* ThreadDatumFiller::data_ndarray() const
+  {
+    if(!_processing) {
+      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
+      throw larbys();
+    }
+    if(_thread_running) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+
+    //SetPyUtil();
+    // PyOS_sighandler_t sighandler = PyOS_getsig(SIGINT);
+    // import_array();
+    _import_array();
+    // PyOS_setsig(SIGINT,sighandler);
+
+    auto const& vec = _filler->data();
+    if (vec.size()>=INT_MAX) {
+      LARCV_CRITICAL() << "Length of data vector too long to specify ndarray. Use by batch call." << std::endl;
+      throw larbys();
+    }
+    int nd = 1;
+    npy_intp dims[1];
+    dims[0] = (int)vec.size();
+    
+    PyArrayObject *array = (PyArrayObject *) PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT, (char*)&(vec[0]) );
+    // float *a =  (float*)PyArray_DATA( array );
+    // for (size_t i = 0; i < (size_t)dims[0]; i++) {
+    //   a[i] = vec.at(i);
+    // }
+    
+    return PyArray_Return(array);
+  }
+
     const std::vector<float>& ThreadDatumFiller::labels() const
     {
     	if(!_processing) {
@@ -198,10 +239,16 @@ namespace larcv {
    			LARCV_CRITICAL() << "Must call configure() before run process!" << std::endl;
    			throw larbys();
    		}
-      LARCV_INFO() << "Instantiating thread..." << std::endl;
+		if ( _use_threading ) {
+		  LARCV_INFO() << "Instantiating thread..." << std::endl;
 		  std::thread t(&ThreadDatumFiller::_batch_process_,this,nentries);
-    	_th = std::move(t);
-    	usleep(100);
+		  _th = std::move(t);
+		  usleep(100);
+		}
+		else {
+		  LARCV_INFO() << "No Thread..." << std::endl;
+		  _batch_process_( nentries );
+		}
     	return true;
    	}
 
