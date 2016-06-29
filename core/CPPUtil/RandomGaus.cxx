@@ -12,6 +12,8 @@ namespace larcv {
     , _sigma(sigma)
   {if(_pool.empty()) throw larbys("Empty pool is meaningless!"); }
 
+  RandomGaus::~RandomGaus() { if(_th.joinable()) _th.join(); }
+
   void RandomGaus::reset(double mean, double sigma)
   { _mean=mean; _sigma=sigma; }
 
