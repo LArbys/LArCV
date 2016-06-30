@@ -5,8 +5,6 @@ from ..lib import storage as store
 from ..lib.iomanager import IOManager
 from .. import larcv
 
-import copy
-
 class ROIToolLayout(QtGui.QGridLayout):
 
     def __init__(self,plt,images,event):
@@ -29,16 +27,12 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.input_prod_label = QtGui.QLabel("Producer:")
         self.output_prod_label = QtGui.QLabel("Producer:")
         
-        self.input_roi       = QtGui.QLineEdit("(Optional) Input ROI filename")
-        self.input_roi_producer  = QtGui.QLineEdit("(Optional) Input ROI producer")
-        # self.input_roi       = QtGui.QLineEdit("aho.root")
-        # self.input_roi_producer  = QtGui.QLineEdit("boke")
+        self.input_roi = QtGui.QLineEdit("Input ROI filename")
+        self.input_roi_producer  = QtGui.QLineEdit("Input ROI producer")
         self.input_prod = None
         
-        self.output_roi       = QtGui.QLineEdit("(Required) Output ROI filename")
-        self.output_roi_producer  = QtGui.QLineEdit("(Required) Output ROI producer")
-        # self.output_roi       = QtGui.QLineEdit("aho2.root")
-        # self.output_roi_producer  = QtGui.QLineEdit("doji")
+        self.output_roi = QtGui.QLineEdit("Output ROI filename")
+        self.output_roi_producer = QtGui.QLineEdit("Output ROI producer")
         self.output_prod = None
 
         self.load_files = QtGui.QPushButton("Load Files")
@@ -49,6 +43,16 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.capture_roi = QtGui.QPushButton("Capture ROIs")
         self.store_roi = QtGui.QPushButton("Store ROIs")
         self.reset_roi = QtGui.QPushButton("Reset ROIs")
+
+
+        self.fixed_roi_box = QtGui.QCheckBox("Fixed ROI")
+        self.fixed_roi_box.setChecked(False)
+        
+        self.fixed_w_label = QtGui.QLabel("W:")
+        self.fixed_h_label = QtGui.QLabel("H:")
+
+        self.fixed_w = QtGui.QLineEdit("30")
+        self.fixed_h = QtGui.QLineEdit("30")
         
         self.add_roi.clicked.connect(self.addROI)
         self.remove_roi.clicked.connect(self.removeROI)
@@ -63,24 +67,24 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # Pointer to the current plot windows for placing ROI
         self.plt = plt
-
+        
         # Pointer to current list of images for computing ROI
         self.images = images
 
         # Pointer to the current list of events
         self.event = event
-    
+        
         # The iomanager
         self.in_iom = None
         self.ou_iom = None
-
-        self.user_rois       = {}
+        
+        self.user_rois = {}
         self.user_rois_larcv = {}
 
     def storeROI(self):
 
         if self.ou_iom is None:
-            "Print load a file first please!!!!"
+            "Please load a file first please!!!!"
             return
 
         # get the maximum key
@@ -90,24 +94,27 @@ class ROIToolLayout(QtGui.QGridLayout):
             if int(event) > max_: max_ = event
             
         max_+=1
+
         for event in xrange(max_):
 
             roiarray = self.ou_iom.get_data(larcv.kProductROI,self.output_prod)
+
+            # event == TTree entry in the image file so I place that in the event number here.
             self.ou_iom.set_id(1,0,event)
-            
+
+            # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
                 self.ou_iom.save_entry()
                 continue
-            
-            print "event ",event
-            print "rois\n",rois
 
+            # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
             for larcv_roi in self.user_rois_larcv[event]:
                 roiarray.Append(larcv_roi)
 
-            # save it to disk
+            # Save them to the tree
             self.ou_iom.save_entry()
-            
+
+        # Put it on the disk
         self.ou_iom.finalize()
         
     def load(self):
@@ -117,48 +124,54 @@ class ROIToolLayout(QtGui.QGridLayout):
         
         self.input_prod  = str(self.input_roi_producer.text())
         self.output_prod = str(self.output_roi_producer.text())
-        
+
+        # No ROOT file in the input, don't make a read iomanager
         if ".root" not in input_:
             input_ = []
-            iomode = 1
             self.input_roi.setText("No input provided!")
             self.input_roi_producer.setText("None")
             self.input_prod = None
         else:
             self.in_iom = IOManager([input_],None,0)
             self.in_iom.set_verbosity(0)
-            
+
+        # No ROOT file in the output, return and complain
         if ".root" not in output_:
             self.output_roi.setText("Not a valid ROOT file output name!")
             self.output_roi_producer.setText("Give me an output ROI producer!")
             self.output_prod = None
-            return
-
-        print " input is",input_," and output is",output_
-
-        self.ou_iom = IOManager([],output_,1)
-        self.ou_iom.set_verbosity(0)
+        else:
+            self.ou_iom = IOManager([],output_,1)
+            self.ou_iom.set_verbosity(0)
     
     def captureROI(self):
 
-        #self.user_rois[int(self.event.text())] = copy.deepcopy(self.rois) # make this this shit is right
-        self.user_rois[int(self.event.text())] = self.rois # not allowed to copy qwidgets
-
-        larcv_rois = []
-        for roisg in self.rois:
-            larcv_rois.append(self.roi2larcv(roisg))
-
+        # Get the rois on screen
+        self.user_rois[int(self.event.text())] = self.rois # not allowed to ``copy" qwidgets (w/ copy.deepcopy)
+        
+        larcv_rois = [self.roi2larcv(roisg) for roisg in self.rois]
+        
         self.user_rois_larcv[int(self.event.text())] = larcv_rois # not allowed to copy qwidgets
+        
         print "---"
         print self.user_rois
         print self.user_rois_larcv
         print "---"
         
     def addROI(self) :
+
+        ww = 50
+        hh = 50
+        allow_resize=True
         
-        coords = [ [0,0,30,30] for _ in xrange(3) ]
+        if self.fixed_roi_box.isChecked():
+            ww = int(self.fixed_w.text())
+            hh = int(self.fixed_h.text())
+            allow_resize=False
+            
+        coords = [ [0,0,ww,hh] for _ in xrange(3) ]
         
-        roisg = ROISliderGroup(coords,3,store.colors)
+        roisg = ROISliderGroup(coords,3,store.colors,allow_resize)
 
         self.rois.append(roisg)
 
@@ -186,10 +199,13 @@ class ROIToolLayout(QtGui.QGridLayout):
         
     def reloadROI(self):
 
+        # Clear out the image ROIs
         self.clearROI()
 
+        # Get the event number (this is TTree entry for the displayed image)
         event = int(self.event.text())
-        print "processing event",event,"self.user_rois.keys()",self.user_rois.keys()
+        
+        print "processing event: ",event," and self.user_rois.keys():",self.user_rois.keys()
         
         if event not in self.user_rois.keys():
 
@@ -217,8 +233,6 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         if enable == True:
             self.enabled = True
-
-
             
             self.addWidget(self.title, 0, 0)
 
@@ -248,14 +262,24 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget(self.clear_roi, 1, 5)
             self.addWidget(self.reset_roi, 2, 5)
             self.addWidget(self.store_roi, 3, 5)
+
+
+
+            self.addWidget(self.fixed_w_label,1,6)
+            self.addWidget(self.fixed_h_label,2,6)
+            self.addWidget(self.fixed_roi_box,0,7)
+            self.addWidget(self.fixed_w,1,7)
+            self.addWidget(self.fixed_h,2,7)
+        
             
 
         else:
 
+            self.enabled = False
+            
             for i in reversed(range(self.count())):
                 self.itemAt(i).widget().setParent(None)
 
-            self.enabled = False
 
         return self
 
@@ -340,7 +364,7 @@ class ROIToolLayout(QtGui.QGridLayout):
             coords = []
             
             for ix,bbox in enumerate(roi.BB()):
-
+                
                 coord = self.img2roicord(self.images.imgs[ix].meta(),bbox)
                 coords.append(coord)
                 
