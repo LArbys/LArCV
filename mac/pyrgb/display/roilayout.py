@@ -24,6 +24,11 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.title  = QtGui.QLabel("<b>ROI Tool</b>")
 
+        self.input_label = QtGui.QLabel("Input:")
+        self.output_label = QtGui.QLabel("Output:")
+        self.input_prod_label = QtGui.QLabel("Producer:")
+        self.output_prod_label = QtGui.QLabel("Producer:")
+        
         self.input_roi       = QtGui.QLineEdit("(Optional) Input ROI filename")
         self.input_roi_producer  = QtGui.QLineEdit("(Optional) Input ROI producer")
         # self.input_roi       = QtGui.QLineEdit("aho.root")
@@ -212,21 +217,37 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         if enable == True:
             self.enabled = True
-            self.addWidget(self.title, 0, 0)
-            self.addWidget(self.input_roi, 1, 0)
-            self.addWidget(self.output_roi, 2, 0)
-            self.addWidget(self.input_roi_producer, 1, 1)
-            self.addWidget(self.output_roi_producer, 2, 1)
-            
-            self.addWidget(self.load_files, 3, 0)
-            
-            self.addWidget(self.add_roi, 1, 2)
-            self.addWidget(self.remove_roi, 2, 2)
-            self.addWidget(self.capture_roi, 3, 2)
 
-            self.addWidget(self.clear_roi, 1, 3)
-            self.addWidget(self.reset_roi, 2, 3)
-            self.addWidget(self.store_roi, 3, 3)
+
+            
+            self.addWidget(self.title, 0, 0)
+
+            # in/out labels
+            self.addWidget(self.input_label, 1, 0)
+            self.addWidget(self.output_label, 2, 0)
+
+            # actual input/output
+            self.addWidget(self.input_roi, 1, 1)
+            self.addWidget(self.output_roi, 2, 1)
+
+            # producer label
+            self.addWidget(self.input_prod_label, 1, 2)
+            self.addWidget(self.output_prod_label, 2, 2)
+
+            # actual producer input/output
+            self.addWidget(self.input_roi_producer, 1, 3)
+            self.addWidget(self.output_roi_producer, 2, 3)
+
+            # big button to load files into docket
+            self.addWidget(self.load_files, 3, 0,1,4)
+            
+            self.addWidget(self.add_roi, 1, 4)
+            self.addWidget(self.remove_roi, 2, 4)
+            self.addWidget(self.capture_roi, 3, 4)
+
+            self.addWidget(self.clear_roi, 1, 5)
+            self.addWidget(self.reset_roi, 2, 5)
+            self.addWidget(self.store_roi, 3, 5)
             
 
         else:
