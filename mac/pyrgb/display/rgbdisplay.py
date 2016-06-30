@@ -28,6 +28,8 @@ try:
 except:
     pass
 
+from roilayout import ROIToolLayout
+
 import pyqtgraph.exporters
 
 class RGBDisplay(QtGui.QWidget):
@@ -162,7 +164,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget(self.auto_range, 0, 8)
+        self.lay_inputs.addWidget(self.auto_range, 0, 9)
         
         # Save image
         self.savecounter = int(0)
@@ -178,6 +180,8 @@ class RGBDisplay(QtGui.QWidget):
         # RGBCaffe will open and close bottom of the window
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcv2 = QtGui.QPushButton("Enable OpenCV")
+        self.rgbroi = QtGui.QPushButton("Enable ROITool")
+        
         try:
             import cv2
         except:
@@ -186,10 +190,12 @@ class RGBDisplay(QtGui.QWidget):
 
         self.rgbcaffe.setFixedWidth(130)
         self.rgbcv2.setFixedWidth(130)
+        self.rgbroi.setFixedWidth(130)
 
-        self.lay_inputs.addWidget(self.rgbcaffe, 1, 8)
-        self.lay_inputs.addWidget(self.rgbcv2, 2, 8)
-
+        self.lay_inputs.addWidget(self.rgbcaffe, 0, 8)
+        self.lay_inputs.addWidget(self.rgbcv2, 1, 8)
+        self.lay_inputs.addWidget(self.rgbroi, 2, 8)
+        
         # Particle types
         self.kTypes = {'kBNB':   (self.kBNB, [2]),
                        'kOTHER': (self.kOTHER, [i for i in xrange(10) if i != 2]),
@@ -229,6 +235,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.rgbcaffe.clicked.connect(self.openCaffe)
         self.rgbcv2.clicked.connect(self.openCVEditor)
+        self.rgbroi.clicked.connect(self.openROITool)
 
         # Caffe Widgets
         # wrapper for FORWARD function
@@ -246,6 +253,10 @@ class RGBDisplay(QtGui.QWidget):
         self.cv2_layout = CV2Layout()
         self.cv2_enabled = False
 
+        # ROITool
+        self.roitool_layout = ROIToolLayout()
+        self.roitool_enabled = False
+        
         # ROI box
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
@@ -259,6 +270,16 @@ class RGBDisplay(QtGui.QWidget):
         else:
             self.rgbcaffe.setText("Enable RGBCaffe")
             self.layout.removeItem(self.caffe_layout.grid(False))
+            self.resize(1200, 700)
+
+    def openROITool(self):
+        if re.search("Disable", self.rgbroi.text()) is None:
+            self.rgbroi.setText("Disable ROITool")
+            self.resize(1200, 900)
+            self.layout.addLayout(self.roitool_layout.grid(True), 5, 0)
+        else:
+            self.rgbroi.setText("Enable ROITool")
+            self.layout.removeItem(self.roitool_layout.grid(False))
             self.resize(1200, 700)
 
     # opencv editor, if/els statement is for opening and closing the pane
