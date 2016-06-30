@@ -287,6 +287,9 @@ class ROIToolLayout(QtGui.QGridLayout):
         row_count = 0
         col_count = 0
 
+        # vic isn't sure why this is needed
+        origin_y += height
+        
         print "roi2img ROI: ",(width,height,row_count,col_count,origin_x,origin_y)
         return (width,height,row_count,col_count,origin_x,origin_y)
 
@@ -305,8 +308,8 @@ class ROIToolLayout(QtGui.QGridLayout):
         w_b = bbox.max_x() - bbox.min_x()
         h_b = bbox.max_y() - bbox.min_y()
 
-        print "img2roi ROI: ",(x*dw_i,  (y+h_b)*dh_i,  w_b*dw_i,  h_b*dh_i)
-        return (x*dw_i,  (y+h_b)*dh_i,  w_b*dw_i,  h_b*dh_i)
+        print "img2roi ROI: ",(x*dw_i,  y*dh_i,  w_b*dw_i,  h_b*dh_i)
+        return (x*dw_i,  y*dh_i,  w_b*dw_i,  h_b*dh_i)
 
     
     def larcv2roi(self,rois):
