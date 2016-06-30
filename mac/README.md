@@ -19,7 +19,7 @@ also... this is beta... so please contact me (`vgenty@larbys.com`) or open a tic
 2. Toggle the ROITool menu by clicking the **Enable ROITool**
 ![alt text](http://www.nevis.columbia.edu/~vgenty/public/_____2.png "2")
  
-3. If this your first time, or you want to start a new scan specify the output file path and output file ROI producer (this will be the producer name in the LArCV file). I have chosen `output.root` with producer `ahoproducer`.
+3. If this your first time, or you want to start a new scan specify the output file path and output file ROI producer (this will be the producer name in the LArCV file). I have chosen `output.root` with producer `ahoproducer`. Click **Load Files**.
 
 ![alt text](http://www.nevis.columbia.edu/~vgenty/public/_____3.png "3")
 
