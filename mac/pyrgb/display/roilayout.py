@@ -22,25 +22,30 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.input_roi  = QtGui.QLineEdit("(Optional) Input ROI filename")
         self.output_roi = QtGui.QLineEdit("(Required) Output ROI filename")
 
-        self.add_roi = QtGui.QPushButton("Add ROI")
-        self.remove_roi = QtGui.QPushButton("Remove ROI")
-
+        self.add_roi = QtGui.QPushButton("Add ROIs")
+        self.remove_roi = QtGui.QPushButton("Remove ROIs")
+        self.capture_roi = QtGui.QPushButton("Capture ROIs")
+        
         self.add_roi.clicked.connect(self.addROI)
         self.remove_roi.clicked.connect(self.removeROI)
+        self.capture_roi.clicked.connect(self.captureROI)
 
         self.rois = []
 
         self.plt = plt
 
+    def captureROI(self):
+        for roisg in self.rois:
+            for ix,roi in enumerate(roisg.rois):
+                print "{}: at pos {} with size {}".format(store.colors[ix],roi.pos(),roi.size())
+        
     def addROI(self) :
         roisg = ROISliderGroup(30,30,3,store.colors)
         self.rois.append(roisg)
         for roi in roisg.rois: self.plt.addItem(roi)
 
-
     def removeROI(self) :
         for roi in self.rois[-1].rois: self.plt.removeItem(roi)
-
         rois = rois[:-1]
         
     # add widgets to self and return 
@@ -55,6 +60,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             self.addWidget(self.add_roi, 1, 1)
             self.addWidget(self.remove_roi, 2, 1)
+            self.addWidget(self.capture_roi, 3, 1)
 
         else:
             for i in reversed(range(self.count())):

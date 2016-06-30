@@ -43,5 +43,5 @@ class ROISliderGroup:
         for roi in self.rois:
             if roi == sender: continue
             roi.setSize(size)
-
+            
     # no real need yet for __iter__ and next()
