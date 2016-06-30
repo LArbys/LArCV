@@ -24,16 +24,16 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.title  = QtGui.QLabel("<b>ROI Tool</b>")
 
-        #self.input_roi       = QtGui.QLineEdit("(Optional) Input ROI filename")
-        #self.input_roi_producer  = QtGui.QLineEdit("(Optional) Input ROI producer")
-        self.input_roi       = QtGui.QLineEdit("aho.root")
-        self.input_roi_producer  = QtGui.QLineEdit("boke")
+        self.input_roi       = QtGui.QLineEdit("(Optional) Input ROI filename")
+        self.input_roi_producer  = QtGui.QLineEdit("(Optional) Input ROI producer")
+        # self.input_roi       = QtGui.QLineEdit("aho.root")
+        # self.input_roi_producer  = QtGui.QLineEdit("boke")
         self.input_prod = None
         
-        #self.output_roi       = QtGui.QLineEdit("(Required) Output ROI filename")
-        #self.output_roi_producer  = QtGui.QLineEdit("(Required) Output ROI producer")
-        self.output_roi       = QtGui.QLineEdit("aho2.root")
-        self.output_roi_producer  = QtGui.QLineEdit("doji")
+        self.output_roi       = QtGui.QLineEdit("(Required) Output ROI filename")
+        self.output_roi_producer  = QtGui.QLineEdit("(Required) Output ROI producer")
+        # self.output_roi       = QtGui.QLineEdit("aho2.root")
+        # self.output_roi_producer  = QtGui.QLineEdit("doji")
         self.output_prod = None
 
         self.load_files = QtGui.QPushButton("Load Files")
