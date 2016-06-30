@@ -254,7 +254,7 @@ class RGBDisplay(QtGui.QWidget):
         self.cv2_enabled = False
 
         # ROITool
-        self.roitool_layout = ROIToolLayout()
+        self.roitool_layout = ROIToolLayout(self.plt)
         self.roitool_enabled = False
         
         # ROI box
