@@ -37,6 +37,7 @@ also... this is beta... so please contact me (`vgenty@larbys.com`) or open a tic
 
 
 What do all the buttons do?
+
 *) **Add ROIs** : adds a set of 3 ROI boxes to the plane for you to move around
 *) **Remove ROIs** : remove the most recent ROI group (3 rois) from the image
 *) **Capture ROIs** : store current set of ROIs on the screen into memory
