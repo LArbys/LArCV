@@ -41,20 +41,21 @@ namespace larcv {
 
     void finalize();
 
+    void reset();
+
     std::string _image_name;       ///< Image2D producer name
     TTree* _image_tree;                  ///< TTree for analysis later
     unsigned short _image_index;   ///< Image index value
     float  _max_pixel;             ///< Analysis variable: Max pixel value
-    float  _pixel_sum;             ///< Analysis variable: Sum of pixel values
     int    _pixel_count;           ///< Analysis variable: Pixel count above a certain threshold
     float  _pixel_count_threshold; ///< Analysis variable: Threshold to increment a pixel count
 
     std::vector<float> _dist_v ; 
     std::vector<float> _pix_intens_v;
+    float _max_dist ;
 
     TTree* _pixel_tree;
     float _pixel_intens;
-    float _dist ; 
     int _plane ; ///<
 
     int _event ;

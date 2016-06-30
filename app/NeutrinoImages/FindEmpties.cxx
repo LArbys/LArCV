@@ -14,15 +14,12 @@ namespace larcv {
     _image_tree = nullptr;
     _pixel_tree = nullptr;
 
-    _max_pixel   = 0.;
-    _pixel_sum   = 0.;
-    _pixel_count = 0;
     _image_index = 0;
-
     _plane = -1; 
-    _dist         = 0;
-
+    _pixel_count = 0;
+    _max_pixel   = 0.;
     _pixel_intens = 0. ;
+    _max_dist = -1. ;
 
     _event = 0 ;
   
@@ -43,58 +40,59 @@ namespace larcv {
     if(!_image_tree){
     _image_tree = new TTree("image_tree","image_tree");
     // Create variable holder in TTree
-    _image_tree->Branch( "max_pixel",   &_max_pixel,   "max_pixel/F"   );
-    _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/I" );
-    _image_tree->Branch( "pixel_sum",   &_pixel_sum,   "pixel_sum/F"   );
     _image_tree->Branch( "image_index", &_image_index, "image_index/s" );
     _image_tree->Branch( "plane", &_plane, "plane/I" );
+    _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/I" );
+    _image_tree->Branch( "max_pixel",   &_max_pixel,   "max_pixel/F"   );
 
     _image_tree->Branch( "pix_intens_v","std::vector<float>",&_pix_intens_v);
     _image_tree->Branch( "dist_v","std::vector<float>",&_dist_v);
+    _image_tree->Branch( "max_dist","std::vector<float>",&_max_dist);
     }
 
     if(!_pixel_tree){
       _pixel_tree = new TTree("pixel_tree","pixel_tree");
       _pixel_tree->Branch( "pixel_intens",   &_pixel_intens,   "pixel_intens/F"   );
-      _pixel_tree->Branch( "dist", &_dist, "dist/F" );
       _pixel_tree->Branch( "plane", &_plane, "plane/I" );
     }
 
   }
 
+  void FindEmpties::reset(){
+  
+    _image_index = 0;
+    _plane = -1; 
+    _pixel_count = 0;
+    _max_pixel   = 0.;
+    _max_dist = -1. ;
+
+    _dist_v.clear();
+    _pix_intens_v.clear();
+
+    _pixel_intens = 0. ;
+    }
+
   bool FindEmpties::process(IOManager& mgr)
   {
-    // get EventImage2D (image2d collection)
     auto my_event_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_name));
-    //LARCV_NORMAL() << my_event_image2d << std::endl;
-
-    // get a direct reference to std::vector<larcv::Image2D> (i.e. array of Image2D)
     auto const& img2d_v = my_event_image2d->Image2DArray();
 
-    std::cout<<"Event number: "<<_event <<std::endl;
+    std::cout<<"\nEvent number: "<<_event <<std::endl;
     _event ++ ;
 
-    // Loop over each Image2D and fill analysis variable
     for(size_t index=0; index < img2d_v.size(); ++index) {
+        
+      reset() ;
 
-      _dist_v.clear();
-      _pix_intens_v.clear();
-
-      // Initialize analysis variables
       _image_index = index;
-      _pixel_sum   = _max_pixel = 0.;
-      _pixel_count = 0;
       int max_pixel_index = -1;
       
-      // Access Image2D
       auto const& img2d = img2d_v[index];
       auto const& pixel_array = img2d.as_vector(); 
 
       _plane = img2d.meta().plane() ; 
       auto const & meta = img2d.meta() ;
 
-      // Method 2: using our way
-      //for(auto const& v : pixel_array) {
       for(size_t i = 0; i < pixel_array.size(); i++){
         auto const & v = pixel_array[i] ;
 
@@ -110,23 +108,26 @@ namespace larcv {
         int pix_row = max_pixel_index % meta.rows() ; 
 	int pix_col = max_pixel_index / meta.rows() ; 
 
-	//std::cout<<"pixel width and height: "<<meta.pixel_width()<<", "<<meta.pixel_height() <<std::endl ;
-
+        float dist = -1; 
         /// At this point, have foudn max pixel
         for(int r = 0; r < meta.rows(); r++){ 
           for(int c = 0; c < meta.cols(); c++){ 
 	    
             _pixel_intens = img2d.pixel(r,c);
-	    if(_pixel_intens > 0.0 ){
-	      _dist = sqrt( pow((r - pix_row) * meta.pixel_height(),2) 
+	    if( _pixel_intens > 0.01 ){
+	      dist = sqrt( pow((r - pix_row) * meta.pixel_height(),2) 
 	                  + pow((c - pix_col) * meta.pixel_width(),2) ) ; 
+	      if ( dist > _max_dist )
+	        _max_dist = dist ;
+	        
 	      //_pixel_tree->Fill();
-	      _dist_v.emplace_back(_dist);
+	      _dist_v.emplace_back(dist);
 	      _pix_intens_v.emplace_back(_pixel_intens);
 	      
-	     }
+	       }
            }
          }
+	 std::cout<<"Max distance : "<<_max_dist <<std::endl ;
       
       LARCV_DEBUG() << "pixel max value: " << _max_pixel << std::endl;
       _image_tree->Fill();
