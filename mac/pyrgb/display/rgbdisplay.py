@@ -254,7 +254,7 @@ class RGBDisplay(QtGui.QWidget):
         self.cv2_enabled = False
 
         # ROITool
-        self.roitool_layout = ROIToolLayout(self.plt)
+        self.roitool_layout = ROIToolLayout(self.plt,self.image,self.event)
         self.roitool_enabled = False
         
         # ROI box
@@ -407,6 +407,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.plotData()
 
+        
     def setViewPlanes(self):
         # the list of chosen views 
         self.views = []
@@ -419,6 +420,7 @@ class RGBDisplay(QtGui.QWidget):
                 self.views.append(-1)  # sentinal for don't fill this channel
 
     def plotData(self):
+
 
         # if there are presets clear them out
         if hasattr(self.image,"preset_layout"):
@@ -488,6 +490,15 @@ class RGBDisplay(QtGui.QWidget):
         self.imi.setImage(self.pimg)
         self.modimage = None
 
+        #this is extremely hacky, we need a central layout manager that can alert the layouts that
+        #the event is changed. For now lets directly tell ROILayout
+
+        #start vichack
+        self.roitool_layout.event = self.event
+        self.roitool_layout.images = self.image
+        self.roitool_layout.reloadROI()
+        #end vichack
+        
         # no ROI's -- finish early
         if hasroi == False:
             self.autoRange()
@@ -580,8 +591,7 @@ class RGBDisplay(QtGui.QWidget):
 
                 imm = self.image.imgs[ix].meta()
 
-                # x,y below are relative coordinate of bounding-box w.r.t.
-                # image in original unit
+                # x,y  relative coordinate of bounding-box w.r.t. image in original unit
                 x = bbox.min_x() - imm.min_x()
                 y = bbox.min_y() - imm.min_y()
 
@@ -597,7 +607,7 @@ class RGBDisplay(QtGui.QWidget):
                 ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type']))
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
 
-                print x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i
+                print str(self.event.text()),x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i,"\n"
 
                 r1 = HoverRect(x * dw_i,
                                y * dh_i,
@@ -605,7 +615,7 @@ class RGBDisplay(QtGui.QWidget):
                                h_b * dh_i,
                                ti,
                                self.plt)
-
+                
                 r1.setPen(pg.mkPen(store.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)

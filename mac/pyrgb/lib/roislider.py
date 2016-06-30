@@ -17,12 +17,16 @@ class ROISlider(pg.ROI):
     
 class ROISliderGroup:
 
-    def __init__(self,width,height,N,pencolors):
+    def __init__(self,coords,N,pencolors):
         N = int(N)
         self.rois = []
 
         for ix in xrange(N):
-            roi = ROISlider([0, 0], [width, height],pencolors[ix])
+
+            coord = coords[ix]
+            x,y,w,h = coord
+            
+            roi = ROISlider([x,y], [w, h],pencolors[ix])
 
             #can't use sigRegionChangeFinished since we encounter an infinite loop
             #upon progammatic change of ROI size
