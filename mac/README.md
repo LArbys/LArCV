@@ -31,7 +31,7 @@ also... this is beta... so please contact me (`vgenty@larbys.com`) or open a tic
 
 ![alt text](http://www.nevis.columbia.edu/~vgenty/public/_____5.png "5")
 
-6. We can reload the ROI's for a particular event by reloading from the same data file. 
+6. We can reload the ROI's for a particular event by reloading from the same data file. You have to hit **Replot** to load the ROIs from disk!
 
 ![alt text](http://www.nevis.columbia.edu/~vgenty/public/_____6.png "6")
 
