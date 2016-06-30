@@ -605,7 +605,7 @@ namespace larcv {
 					::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
 					for (auto const& edep : tick_ides.second) {
 						if (edep.energy < energy) continue;
-						if (edep.trackID >= track2type_v.size()) continue;
+						if (edep.trackID >= (int)(track2type_v.size())) continue;
 						auto temp_roi_type = track2type_v[edep.trackID];
 						if (temp_roi_type ==::larcv::kROIUnknown) continue;
 						energy = edep.energy;

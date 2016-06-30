@@ -18,47 +18,50 @@
 
 standard_supera: {
     module_type:      "Supera"
-    SkipEmptyImage:   false
+    SkipEmptyImage:   true
     UseMC:            true
-    StoreChStatus:    true
-    OutFileName:      "supera.root"
-    ProducerKey:      "bnb_mc"
+    StoreChStatus:    false
+    OutFileName:      "out.root"
     DigitProducer:    "digitfilter"
     WireProducer:     "caldata"
     SimChProducer:    "largeant"
-    #SimChProducer:    ""
+    ChStatusProducer: "bnb_mc"
+    OpDigitProducer:  "saturation"
     MCRecoProducer:   "mcreco"
     GenProducer:      "generator"
     MinTime:          2400
     MinWire:          0
+    ShiftTPCTick:     0
     #EventImageRows:   [6048,6048,6048]
+    #EventImageRows:   [1008,1008,1008]
     #EventImageCols:   [3456,3456,3456]
-    #EventCompRows:    [1,1,1]
+    #EventCompRows:    [6,6,6]
     #EventCompCols:    [1,1,1]
-    EventImageRows:   [864,864,864]
+    EventImageRows:   [756,756,756]
     EventImageCols:   [864,864,864]
-    EventCompRows:    [7,7,7]
+    EventCompRows:    [8,8,8]
     EventCompCols:    [4,4,4]
-    Verbosity:        3
+    Verbosity:        2
 
     # MCParticleTree configuration
     MCParticleTree: {
-        Verbosity: 3
+        Verbosity: 2
+        SpecialPDGList: [2212]
+        SpecialPDGMinEnergyInit:    [1000.]
+        SpecialPDGMinEnergyDeposit: [50.]
         MCShowerMinEnergyInit:    5
-        MCShowerMinEnergyDeposit: 10
+        MCShowerMinEnergyDeposit: 30
         MCTrackMinEnergyInit:     5
-        MCTrackMinEnergyDeposit:  10
+        MCTrackMinEnergyDeposit:  30
         MinNPlanes:               3
         # Cropper configuration
         Cropper: {
-            Verbosity:    3
-            TimePadding:  5
-            WirePadding:  5
+            Verbosity:    2
+                MaxTimeTick:  8448
+            TimePadding:  10
+            WirePadding:  10
             MinWidth:     2
             MinHeight:    2
-            TargetWidth:  247 # currently irrelevant
-            TargetHeight: 247 # currently irrelevant
-            CompressionFactor: 0 # currently irrelevant
         }
     }
 }
@@ -162,8 +165,8 @@ physics.producers.generator.RandomTimeOffset: 1600.
 #physics.producers.generator.TopVolume: "volCryostat"
 physics.producers.generator.TopVolume: "volTPCActive"
 physics.producers.generator.BeamName: "booster"
-physics.producers.generator.FluxCopyMethod: "IFDH"
-physics.producers.generator.MaxFluxFileMB:  2000
+#physics.producers.generator.FluxCopyMethod: "IFDH"
+#physics.producers.generator.MaxFluxFileMB:  2000
 
 #physics.producers.largeant.KeepParticlesInVolumes: ["volCryostat"]
 
