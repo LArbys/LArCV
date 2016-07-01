@@ -17,7 +17,7 @@ class ROISlider(pg.ROI):
     
 class ROISliderGroup:
 
-    def __init__(self,coords,N,pencolors,allow_resize):
+    def __init__(self,coords,N,pencolors,allow_resize=True):
         N = int(N)
         self.rois = []
 
