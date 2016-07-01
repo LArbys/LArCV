@@ -100,12 +100,17 @@ class ROIToolLayout(QtGui.QGridLayout):
             roiarray = self.ou_iom.get_data(larcv.kProductROI,self.output_prod)
 
             # event == TTree entry in the image file so I place that in the event number here.
-            self.ou_iom.set_id(1,0,event)
+
 
             # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
+
+                self.ou_iom.set_id(1,0,event)
                 self.ou_iom.save_entry()
+                
                 continue
+
+            self.ou_iom.set_id(1,1,event)
 
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
             for larcv_roi in self.user_rois_larcv[event]:
