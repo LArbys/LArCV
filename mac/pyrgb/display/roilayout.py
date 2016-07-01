@@ -104,12 +104,20 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
-
+                
                 self.ou_iom.set_id(1,0,event)
                 self.ou_iom.save_entry()
                 
                 continue
 
+            # User accidentally hit capture ROIs when no ROI drawn
+            if len(self.user_rois[event]) == 0:
+                print "a"
+                self.ou_iom.set_id(1,0,event)
+                self.ou_iom.save_entry()
+
+                continue
+            
             self.ou_iom.set_id(1,1,event)
 
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
