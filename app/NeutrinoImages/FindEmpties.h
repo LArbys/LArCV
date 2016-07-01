@@ -1,14 +1,14 @@
 /**
  * \file FindEmpties.h
  *
- * \ingroup Package_Name
+ * \ingroup NeutrinoImages 
  * 
  * \brief Class def header for a class FindEmpties
  *
- * @author kazuhiro
+ * @author ahack
  */
 
-/** \addtogroup Package_Name
+/** \addtogroup NeutrinoImages 
 
     @{*/
 #ifndef __FINDEMPTIES_H__
@@ -16,6 +16,7 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
+
 namespace larcv {
 
   /**
@@ -46,6 +47,7 @@ namespace larcv {
     std::string _image_name;       ///< Image2D producer name
     TTree* _image_tree;                  ///< TTree for analysis later
     unsigned short _image_index;   ///< Image index value
+    int _plane ;                   ///< Plane
     float  _max_pixel;             ///< Analysis variable: Max pixel value
     int    _pixel_count;           ///< Analysis variable: Pixel count above a certain threshold
     float  _pixel_count_threshold; ///< Analysis variable: Threshold to increment a pixel count
@@ -56,7 +58,6 @@ namespace larcv {
 
     TTree* _pixel_tree;
     float _pixel_intens;
-    int _plane ; ///<
 
     int _event ;
 
