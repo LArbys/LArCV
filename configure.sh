@@ -93,7 +93,7 @@ if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
     printf "\033[93mLArSoft\033[00m\n"
     echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
     echo "    Preparing APILArSoft package for build (making sym links)"
-    target=$LARCV_BASEDIR/Supera/larfmwk_shared/*
+    target=$LARCV_APPDIR/Supera/larfmwk_shared/*
     for f in $target
     do
 	ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
@@ -118,6 +118,5 @@ fi
 echo
 echo "Finish configuration. To build, type:"
 echo "> cd \$LARCV_BUILDDIR"
-echo "> cmake \$LARCV_BASEDIR -DCMAKE_CXX_COMPILER=$LARCV_CXX"
 echo "> make "
 echo

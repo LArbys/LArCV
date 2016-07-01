@@ -28,6 +28,7 @@
 #include "lardata/RawData/RawDigit.h"
 #include "lardata/MCBase/MCTrack.h"
 #include "lardata/MCBase/MCShower.h"
+#include "lardata/RawData/OpDetWaveform.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 // larcv
@@ -57,8 +58,8 @@ public:
 
 private:
 
-  ::larcv::supera::SuperaCore<recob::Wire,
-			      simb::MCTruth, sim::MCTrack, sim::MCShower, sim::SimChannel> _core;
+  ::larcv::supera::SuperaCore< raw::OpDetWaveform, recob::Wire,
+			       simb::MCTruth, sim::MCTrack, sim::MCShower, sim::SimChannel> _core;
   ::larcv::logger _logger;
 
 };
@@ -85,8 +86,11 @@ bool Supera::filter(art::Event & e)
 
   art::Handle<std::vector<recob::Wire> > wire_h;
   e.getByLabel(_core.producer_wire(),wire_h);
-
   if(!wire_h.isValid()) { throw ::larcv::larbys("Could not load wire data!"); }
+
+  art::Handle<std::vector<raw::OpDetWaveform> > opdigit_h;
+  e.getByLabel(_core.producer_opdigit(),opdigit_h);
+  if(!opdigit_h.isValid()) { throw ::larcv::larbys("Could not load opdigit data!"); }
 
   //
   // Fill Channel Status
@@ -135,14 +139,14 @@ bool Supera::filter(art::Event & e)
     if(_core.producer_simch().empty()) {
 
       std::vector<sim::SimChannel> empty_simch;
-      status = _core.process_event(*wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+      status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
 
     }else{
 
       art::Handle<std::vector<sim::SimChannel> > simch_h;
       e.getByLabel(_core.producer_simch(), simch_h);
       if(!simch_h.isValid()) throw ::larcv::larbys("SimChannel requested but not available");
-      status = _core.process_event(*wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+      status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
 
     }
   }else{
@@ -150,7 +154,7 @@ bool Supera::filter(art::Event & e)
     std::vector<sim::MCTrack>    empty_mctrack;
     std::vector<sim::MCShower>   empty_mcshower;
     std::vector<sim::SimChannel> empty_simch;
-    status = _core.process_event(*wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);
+    status = _core.process_event(*opdigit_h, *wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);
   }
   return status;
 }
