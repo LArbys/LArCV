@@ -167,12 +167,13 @@ namespace larcv {
 				}
 
 				// OpDigit
-				auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, "pmt"));
-				::larcv::ImageMeta op_meta(32, 1500, 1500, 32, 0, 1499);
-				::larcv::Image2D op_img(op_meta);
-				fill(op_img, opdigit_v);
-				opdigit_image_v->Emplace(std::move(op_img));
-
+				if(opdigit_v.size()) {
+					auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, "pmt"));
+					::larcv::ImageMeta op_meta(32, 1500, 1500, 32, 0, 1499);
+					::larcv::Image2D op_img(op_meta);
+					fill(op_img, opdigit_v);
+					opdigit_image_v->Emplace(std::move(op_img));
+				}
 				_larcv_io.save_entry();
 				return true;
 			}
@@ -605,7 +606,7 @@ namespace larcv {
 					::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
 					for (auto const& edep : tick_ides.second) {
 						if (edep.energy < energy) continue;
-						if (edep.trackID >= (int)(track2type_v.size())) continue;
+						if (edep.trackID >= track2type_v.size()) continue;
 						auto temp_roi_type = track2type_v[edep.trackID];
 						if (temp_roi_type ==::larcv::kROIUnknown) continue;
 						energy = edep.energy;
