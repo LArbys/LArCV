@@ -98,7 +98,7 @@ namespace larcv {
 	  set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity",2)) );
 	  _enable_filter = cfg.get<bool>("EnableFilter");
 	  _random_access = cfg.get<bool>("RandomAccess");
-	  _use_threading = cfg.get<bool>("UseThread");
+	  _use_threading = cfg.get<bool>("UseThread",true);
 	  _input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
 	  // Brew read-only configuration
 	  PSet io_cfg("IOManager");
