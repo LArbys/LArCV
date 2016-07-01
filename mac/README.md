@@ -3,9 +3,6 @@
 Documentation to do...  
 .  
 .  
-.  
-.  
-
 ###Branches
 ###roi_feature 
 ------
@@ -13,7 +10,10 @@ documentation for feature branch [LArbys/LArCV/tree/roi_feature](https://github.
 
 also... this is beta... so please contact me (`vgenty@larbys.com`) or open a ticket with issues 
 #####How is the data stored
-A
+ROIs placed on the image are stored in an EventROI data product in the output ROOT file, separate from the file containing the displayed image. For the output LArCV file, I set the "id" of the event to `(1,0,event)` where `event` is the TTree entry number for the file containg the Image2D. It's the same number listed under the display in the `Entry` box. 
+
+#####How you should scan
+I would start from the beginning and go one by one, placing a set of ROIs (1 per plane) of fixed size (user can choose this in the far right panel) per image. If I don't see what I want, move to the next event. If I put ROIs to my likeing on an image, make sure to his **Capture ROIs** to save that event's ROIs to memory. If I get tired I would stop at a certain point, hit **Capture ROIs** then ***Store ROIs***. To pick up where I left off I would **start a brand new ROOT file**. Then offline I would concatenate the two files. The only way to match up the ROI to the Image2D is via the "id" I give it (described above).
 
 #####How to run
 1. Open up RGBViewer in this branch
