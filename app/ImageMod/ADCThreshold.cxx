@@ -48,7 +48,7 @@ namespace larcv {
       _buffer.resize(adc_v.size(),0.);
 
       for(size_t i=0; i<adc_v.size(); ++i) {
-	if(adc_v[i] < min_adc) _buffer[i] = min_adc;
+	if(adc_v[i] < min_adc) _buffer[i] = 0.;
 	else if(adc_v[i] > max_adc) _buffer[i] = max_adc;
 	else _buffer[i] = adc_v[i];
       }
