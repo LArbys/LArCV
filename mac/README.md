@@ -14,8 +14,21 @@ ROIs placed on the image are stored in an EventROI data product in the output RO
 
 #####How you should scan
 
-I would start from the beginning and go one by one, placing a set of ROIs (1 per plane) of fixed size (user can choose this in the far right panel) per image. If I don't see what I want, move to the next event. If I put ROIs to my likeing on an image, make sure to press **Capture ROIs** to save that event's ROIs to memory. If I get tired I would stop at a certain point, hit **Capture ROIs** then ***Store ROIs***. To pick up where I left off I would **start a brand new ROOT file** and move where I stopped. Then offline I would **concatenate** the two files. The only way to match up the ROI to the Image2D is via the "id" I give it (described above). As an example please take a look at [mac/concat_roi.py](https://github.com/LArbys/LArCV/blob/roi_feature/mac/mac/concat_roi.py). I have two files for which I did two scans (`god.root` and `god2.root`). In the first file I placed an ROI on the first event and stopped my scan. In the second file I skipped the first two events, and on the third event (TTree entry 2) I placed an ROI. With this example I produce a new file `god3.root` which contains ROIs for both scans. The first and third event have ROIs. The second one is empty. Take a look and complain that this step is annoying :)
+I would start from the beginning and go one by one, placing a set of ROIs (1 per plane) of fixed size (user can choose this in the far right panel) per image. If I don't see what I want, move to the next event. If I put ROIs to my likeing on an image, make sure to press **Capture ROIs** to save that event's ROIs to memory. If I get tired I would stop at a certain point, hit **Capture ROIs** then ***Store ROIs***. To pick up where I left off I would **start a brand new ROOT file** and move where I stopped. Then offline I would **concatenate** the two files.  
+  
+ The point of concatenation is to combine files when you start and stop a scan. The only way to match up the ROI to the Image2D is via the "id" I give it (described above). As an example please take a look at [mac/concat_roi.py](https://github.com/LArbys/LArCV/blob/roi_feature/mac/mac/concat_roi.py). I have two files for which I did two scans ([god.root](http://www.nevis.columbia.edu/~vgenty/public/god.root) and [god2.root](http://www.nevis.columbia.edu/~vgenty/public/god2.root)). In the first file I placed an ROI on the first event and stopped my scan. In the second file I skipped the first two events, and on the third event (TTree entry 2) I placed an ROI. With this example I produce a new file `god3.root` which contains ROIs for both scans. The first and third event have ROIs. The second one is empty.
 
+#####What do all the buttons do?
+* **Load Files** : start IOManager to do I/O for the given input/output LArCV files.
+* **Add ROIs** : adds a set of 3 ROI boxes to the plane for you to move around
+* **Remove ROIs** : remove the most recent ROI group (3 rois) from the image
+* **Capture ROIs** : store current set of ROIs on the screen into memory
+* **Clear ROIs** : clear all the ROIs from the current image
+* **Reset ROIs** : clear all ROIs in memory
+* **Store ROIs** : store to LArCV file
+* **Fixed ROI** : mark this check box if you want to pre-configure how big your ROI box will be in pixel width and height. If this box is un-checked, the user can manually set the size of the ROI boxes by dragging.
+* **W** : fixed pixel width
+* **H** : fixed pixel height
 
 #####How to run
 1. Open up RGBViewer in this branch
@@ -41,11 +54,4 @@ I would start from the beginning and go one by one, placing a set of ROIs (1 per
 ![alt text](http://www.nevis.columbia.edu/~vgenty/public/_____6.png "6")
 
 
-What do all the buttons do?
 
-* **Add ROIs** : adds a set of 3 ROI boxes to the plane for you to move around
-* **Remove ROIs** : remove the most recent ROI group (3 rois) from the image
-* **Capture ROIs** : store current set of ROIs on the screen into memory
-* **Clear ROIs** : clear all the ROIs from the current image
-* **Reset ROIs** : clear all ROIs in memory
-* **Store ROIs** : store to LArCV file
