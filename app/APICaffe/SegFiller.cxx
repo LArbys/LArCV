@@ -265,7 +265,8 @@ namespace larcv {
         float mult_factor = 1.;
 	if(apply_smearing)
 	  mult_factor = (float)(gaus(gen));
-
+	
+	std::cout << "mult_factor set @: " << mult_factor << "\n";
         auto& input_img     = image_v[input_ch].as_vector();
 
         LARCV_DEBUG() << "input_ch: " << input_ch << seg_image_v.at(input_ch).as_vector().size();
