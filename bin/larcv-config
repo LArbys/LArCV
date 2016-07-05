@@ -34,6 +34,11 @@ while test $# -gt 0; do
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
 	      out+=" -lLArCVCVUtil "
+	  fi
+	  if [ $LARCV_NUMPY -eq 1 ]; then
+	      out+=`python-config --ldflags`
+	  fi
+	  if [ $LARCV_OPENCV -eq 1 ]; then
 	      out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs "
 	  fi
 	  ;;

@@ -7,10 +7,9 @@
 #include <sstream>
 #include <unistd.h>
 
+#include "PyUtil/PyUtils.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
-
-#include "PyUtil/PyUtils.h"
 
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
@@ -98,7 +97,7 @@ namespace larcv {
 	  set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity",2)) );
 	  _enable_filter = cfg.get<bool>("EnableFilter");
 	  _random_access = cfg.get<bool>("RandomAccess");
-	  _use_threading = cfg.get<bool>("UseThread");
+	  _use_threading = cfg.get<bool>("UseThread",true);
 	  _input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
 	  // Brew read-only configuration
 	  PSet io_cfg("IOManager");
@@ -192,7 +191,8 @@ namespace larcv {
     //SetPyUtil();
     // PyOS_sighandler_t sighandler = PyOS_getsig(SIGINT);
     // import_array();
-    _import_array();
+    //_import_array();
+    SetPyUtil();
     // PyOS_setsig(SIGINT,sighandler);
 
     auto const& vec = _filler->data();
