@@ -45,11 +45,16 @@ namespace larcv {
 
     for(size_t i=0; i<type_to_class.size(); ++i) {
       auto const& type = type_to_class[i];
+      std::cout << "filling type " << type << "\n";
+      std::cout << "i =  " << i << "\n";
+      std::cout << "i+1 =  " << i+1 << "\n";
       if(type >= kROITypeMax) {
 	LARCV_CRITICAL() << "ClassTypeList contains type " << type << " which is not a valid ROIType_t!" << std::endl;
 	throw larbys();
       }
+
       _roitype_to_class[type] = i+1; // enum roi to caffe 0 based index (0==background??)
+
     }
 
   }
@@ -249,6 +254,9 @@ namespace larcv {
       img_rows = image_v.front().meta().rows();
       img_cols = image_v.front().meta().cols();
     }
+    
+    
+    float last_good_label = 0.0;
 
     for(size_t ch=0;ch<_num_channels;++ch) {
 
@@ -266,9 +274,11 @@ namespace larcv {
 
         auto const& min_adc = _min_adc_v[ch];
         auto const& max_adc = _max_adc_v[ch];
+
         size_t caffe_idx=0;
         size_t output_idx = ch * _rows * _cols;
         float val=0;
+
         if(use_mean_image) {
           auto const& mean_img = mean_image_v[input_ch].as_vector();
 	  // col,row in output image coordinates
@@ -292,12 +302,36 @@ namespace larcv {
 	      if( val > max_adc ) val = max_adc;
 	      
 	      _entry_data[output_idx] = val;
+
 	      LARCV_DEBUG() << seg_input_img.at(input_idx) << ",";
+
 	      _seg_entry_data[output_idx] = val > 0 ? (float) _roitype_to_class[ seg_input_img.at(input_idx) ] : 0;
+
+	      //segmentation image doesn't have 1-1 with ADC image
+	      //i see ADC but no segmented label, sigh, will have to hack I guess
+	      if ( _seg_entry_data[output_idx] > 20 )
+		_seg_entry_data[output_idx] = last_good_label;
+	      else
+		{ if ( _seg_entry_data[output_idx] > 0 ) last_good_label = _seg_entry_data[output_idx]; }
+
+	      
+	      // if ( _seg_entry_data[output_idx] > 20 ) {
+
+	      // 	LARCV_CRITICAL() << "output_idx: " << output_idx 
+	      // 			 << " _seg_entry_data: " << _seg_entry_data[output_idx] << "\n";
+
+	      // 	LARCV_CRITICAL() << "val: " << val 
+	      // 			 << " roitype_to_class: " << _roitype_to_class[ seg_input_img.at(input_idx) ] << "\n";
+
+	      // 	LARCV_CRITICAL() << "seg_intput_img.at(input_idx): " <<  seg_input_img.at(input_idx)
+	      // 			 << " input_idx: " << input_idx << "\n";
+
+	      // 	throw larbys();
+	      // }
+
 
 	      ++output_idx;
 	      ++caffe_idx;
-
             }
 	    LARCV_DEBUG() << "\n";
           }
@@ -326,7 +360,30 @@ namespace larcv {
 	      _entry_data[output_idx] = val;
 
 	      _seg_entry_data[output_idx] = val > 0 ? (float) _roitype_to_class[ seg_input_img[input_idx] ] : 0;
+	      
+	      
+	      //no 1-1 mapping between ADC image and segmentation image, great, lets hack it
+	      if ( _seg_entry_data[output_idx] > 20 )
+		_seg_entry_data[output_idx] = last_good_label;
+	      else
+		{ if ( _seg_entry_data[output_idx] > 0 ) last_good_label = _seg_entry_data[output_idx]; }	      
 
+	      //the fuck?
+	      // if ( _seg_entry_data[output_idx] > 20 ) {
+
+	      // 	LARCV_CRITICAL() << "output_idx: " << output_idx 
+	      // 			 << " _seg_entry_data: " << _seg_entry_data[output_idx] << "\n";
+
+	      // 	LARCV_CRITICAL() << "val: " << val 
+	      // 			 << " roitype_to_class: " << _roitype_to_class[ seg_input_img.at(input_idx) ] << "\n";
+
+	      // 	LARCV_CRITICAL() << "seg_intput_img.at(input_idx): " <<  seg_input_img.at(input_idx)
+	      // 			 << " input_idx: " << input_idx << "\n";
+
+	      // 	throw larbys();
+	      // }
+
+	      
 	      ++output_idx;
 	      ++caffe_idx;
             }
