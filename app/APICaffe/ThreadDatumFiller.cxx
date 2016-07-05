@@ -7,10 +7,9 @@
 #include <sstream>
 #include <unistd.h>
 
+#include "PyUtil/PyUtils.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
-
-#include "PyUtil/PyUtils.h"
 
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
@@ -192,7 +191,8 @@ namespace larcv {
     //SetPyUtil();
     // PyOS_sighandler_t sighandler = PyOS_getsig(SIGINT);
     // import_array();
-    _import_array();
+    //_import_array();
+    SetPyUtil();
     // PyOS_setsig(SIGINT,sighandler);
 
     auto const& vec = _filler->data();
