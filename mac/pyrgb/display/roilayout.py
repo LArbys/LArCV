@@ -45,6 +45,13 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.reset_roi = QtGui.QPushButton("Reset ROIs")
 
 
+        self.roi_p1 = QtGui.QCheckBox("R:")
+        self.roi_p1.setChecked(True)
+        self.roi_p2 = QtGui.QCheckBox("G:")
+        self.roi_p2.setChecked(True)
+        self.roi_p3 = QtGui.QCheckBox("B:")
+        self.roi_p3.setChecked(True)
+        
         self.fixed_roi_box = QtGui.QCheckBox("Fixed ROI")
         self.fixed_roi_box.setChecked(False)
         
@@ -81,6 +88,9 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.user_rois = {}
         self.user_rois_larcv = {}
 
+
+        self.checked_planes = []
+        
     def storeROI(self):
 
         if self.ou_iom is None:
@@ -110,14 +120,15 @@ class ROIToolLayout(QtGui.QGridLayout):
                 
                 continue
 
-            # User accidentally hit capture ROIs when no ROI drawn
+            # User accidentally hit capture ROIs when no ROI drawn, save a blank and continue
             if len(self.user_rois[event]) == 0:
-                print "a"
+
                 self.ou_iom.set_id(1,0,event)
                 self.ou_iom.save_entry()
 
                 continue
-            
+
+            # It's a fine ROI, put a 1 in the subrun to indicate one exists
             self.ou_iom.set_id(1,1,event)
 
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
@@ -150,8 +161,8 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # No ROOT file in the output, return and complain
         if ".root" not in output_:
-            self.output_roi.setText("Not a valid ROOT file output name!")
-            self.output_roi_producer.setText("Give me an output ROI producer!")
+            self.output_roi.setText("No valid output ROOT file!")
+            self.output_roi_producer.setText("Give output ROI producer!")
             self.output_prod = None
         else:
             self.ou_iom = IOManager([],output_,1)
@@ -163,7 +174,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.user_rois[int(self.event.text())] = self.rois # not allowed to ``copy" qwidgets (w/ copy.deepcopy)
         
         larcv_rois = [self.roi2larcv(roisg) for roisg in self.rois]
-        
+
         self.user_rois_larcv[int(self.event.text())] = larcv_rois # not allowed to copy qwidgets
         
         print "---"
@@ -181,10 +192,14 @@ class ROIToolLayout(QtGui.QGridLayout):
             ww = int(self.fixed_w.text())
             hh = int(self.fixed_h.text())
             allow_resize=False
+
             
-        coords = [ [0,0,ww,hh] for _ in xrange(3) ]
+        if self.getCheckedPlanes() == False:
+            return
         
-        roisg = ROISliderGroup(coords,3,store.colors,allow_resize)
+        coords = [ [0,0,ww,hh] for _ in xrange(3)]
+        
+        roisg = ROISliderGroup(coords,self.checked_planes,3,store.colors,allow_resize)
 
         self.rois.append(roisg)
 
@@ -218,7 +233,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         # Get the event number (this is TTree entry for the displayed image)
         event = int(self.event.text())
         
-        print "processing event: ",event," and self.user_rois.keys():",self.user_rois.keys()
+        #print "processing event: ",event," and self.user_rois.keys():",self.user_rois.keys()
         
         if event not in self.user_rois.keys():
 
@@ -227,6 +242,9 @@ class ROIToolLayout(QtGui.QGridLayout):
                     self.in_iom.read_entry(event)
                     roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
                     self.user_rois_larcv[event] = [roi for roi in roiarray.ROIArray()]
+
+                    print "reloading ",self.user_rois_larcv[event]," from file"
+                    
                     self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])
                 else:
                     return
@@ -238,7 +256,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         for roisg in self.rois:
             for roi in roisg.rois:
-                print type(roi),roi
+                #print type(roi),roi
                 self.plt.addItem(roi)
     
     # add widgets to self and return 
@@ -277,12 +295,16 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget(self.store_roi, 3, 5)
 
 
+            self.addWidget(self.roi_p1,1,6)
+            self.addWidget(self.roi_p2,2,6)
+            self.addWidget(self.roi_p3,3,6)
 
-            self.addWidget(self.fixed_w_label,1,6)
-            self.addWidget(self.fixed_h_label,2,6)
-            self.addWidget(self.fixed_roi_box,0,7)
-            self.addWidget(self.fixed_w,1,7)
-            self.addWidget(self.fixed_h,2,7)
+            self.addWidget(self.fixed_w_label,1,7)
+            self.addWidget(self.fixed_h_label,2,7)
+
+            self.addWidget(self.fixed_roi_box,0,8)
+            self.addWidget(self.fixed_w,1,8)
+            self.addWidget(self.fixed_h,2,8)
         
             
 
@@ -306,13 +328,13 @@ class ROIToolLayout(QtGui.QGridLayout):
             size = bbox.size()
             pos = bbox.pos()
 
-            print "ix",ix,"size",size,"pos",pos
+            #print "ix",ix,"size",size,"pos",pos
 
             width,height,row_count,col_count,origin_x,origin_y = self.roi2imgcord(self.images.imgs[ix].meta(),size,pos)
             
             bbox_meta = larcv.ImageMeta(width,height,
                                         row_count,col_count,
-                                        origin_x,origin_y,ix)
+                                        origin_x,origin_y,bbox.plane)
 
             larcv_roi.AppendBB(bbox_meta)
 
@@ -348,7 +370,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         # vic isn't sure why this is needed
         origin_y += height
         
-        print "roi2img ROI: ",(width,height,row_count,col_count,origin_x,origin_y)
+        #print "roi2img ROI: ",(width,height,row_count,col_count,origin_x,origin_y)
         return (width,height,row_count,col_count,origin_x,origin_y)
 
     def img2roicord(self,imm,bbox):
@@ -366,30 +388,54 @@ class ROIToolLayout(QtGui.QGridLayout):
         w_b = bbox.max_x() - bbox.min_x()
         h_b = bbox.max_y() - bbox.min_y()
 
-        print "img2roi ROI: ",(x*dw_i,  y*dh_i,  w_b*dw_i,  h_b*dh_i)
+        #print "img2roi ROI: ",(x*dw_i,  y*dh_i,  w_b*dw_i,  h_b*dh_i)
         return (x*dw_i,  y*dh_i,  w_b*dw_i,  h_b*dh_i)
 
     
     def larcv2roi(self,rois):
+
         converted_rois = []
 
         for roi in rois:
-            coords = []
+
+            coords = [None for _ in xrange(3)]
+
+            bbs = roi.BB()
+
+            planes = []
             
-            for ix,bbox in enumerate(roi.BB()):
+            for ix,bbox in enumerate(bbs):
+
+                pl = int(bbox.plane())
                 
                 coord = self.img2roicord(self.images.imgs[ix].meta(),bbox)
-                coords.append(coord)
                 
-            roisg = ROISliderGroup(coords,len(coords),store.colors)
+                coords[pl] = coord
+                planes.append(pl)
+                
+            roisg = ROISliderGroup(coords,planes,len(coords),store.colors)
             
             converted_rois.append(roisg)
             
 
         return converted_rois
         
+        
+    def getCheckedPlanes(self):
 
+        self.checked_planes = []
+            
+        if self.roi_p1.isChecked() == True:
+            self.checked_planes.append(0)
+
+        if self.roi_p2.isChecked() == True:
+            self.checked_planes.append(1)
+
+        if self.roi_p3.isChecked() == True:
+            self.checked_planes.append(2)
+            
+        if len(self.checked_planes) == 0:
+            return False
+
+        return True
         
-        
-        
-    
