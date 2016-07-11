@@ -243,7 +243,7 @@ namespace larcv {
 		  LARCV_INFO() << "Instantiating thread..." << std::endl;
 		  std::thread t(&ThreadDatumFiller::_batch_process_,this,nentries);
 		  _th = std::move(t);
-		  usleep(100);
+		  usleep(1000);
 		}
 		else {
 		  LARCV_INFO() << "No Thread..." << std::endl;
