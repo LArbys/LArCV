@@ -32,21 +32,23 @@ namespace larcv {
     _event = 0 ;
 
     if(!_image_tree){
-    _image_tree = new TTree("image_tree","Tree for simple analysis");
-    _image_tree->Branch( "image_index", &_image_index, "image_index/s" );
-    _image_tree->Branch( "plane", &_plane, "plane/I");
-    _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/I" );
-    _image_tree->Branch( "max_pixel",   &_max_pixel,   "max_pixel/F"   );
-    _image_tree->Branch( "pix_intens_v","std::vector<float>",&_pix_intens_v);
-    _image_tree->Branch( "dist_v","std::vector<float>",&_dist_v);
-    _image_tree->Branch( "max_dist",   &_max_dist,   "max_dist/F"   );
+      _image_tree = new TTree("image_tree","Tree for simple analysis");
+      _image_tree->Branch( "image_index", &_image_index, "image_index/s" );
+      _image_tree->Branch( "plane", &_plane, "plane/I");
+      _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/I" );
+      _image_tree->Branch( "max_pixel",   &_max_pixel,   "max_pixel/F"   );
+      _image_tree->Branch( "pix_intens_v","std::vector<float>",&_pix_intens_v);
+      _image_tree->Branch( "dist_v","std::vector<float>",&_dist_v);
+      _image_tree->Branch( "max_dist",   &_max_dist,   "max_dist/F"   );
     }
 
 
     if(!_pixel_tree){
       _pixel_tree = new TTree("pixel_tree","pixel_tree");
-      _pixel_tree->Branch( "pixel_intens",   &_pixel_intens,   "pixel_intens/F"   );  
+      _pixel_tree->Branch( "event", &_event, "event/s" );
       _pixel_tree->Branch( "plane", &_plane, "plane/I" );
+      _pixel_tree->Branch( "pixel_intens",   &_pixel_intens,   "pixel_intens/F"   );  
+      _pixel_tree->Branch( "pixel_dist",   &_pixel_dist,   "pixel_dist/F"   );  
     }   
     
   }
@@ -74,6 +76,7 @@ namespace larcv {
     _event++; 
 
     for(size_t index=0; index < img2d_v.size(); ++index) {
+      std::cout<<"Plane : "<<index<<std::endl;
      
       reset() ;
 
@@ -100,11 +103,11 @@ namespace larcv {
           }   
 
        int pix_row = max_pixel_index % meta.rows() ; 
-        int pix_col = max_pixel_index / meta.rows() ; 
+       int pix_col = max_pixel_index / meta.rows() ; 
 
         std::map<int,int> intens_count ;
 
-        float dist = -1; 
+        _pixel_dist = -1; 
         /// At this point, have foudn max pixel
         for(int r = 0; r < meta.rows(); r++){
           for(int c = 0; c < meta.cols(); c++){
@@ -114,28 +117,28 @@ namespace larcv {
             if (_pixel_intens >  1)
               intens_count[int(_pixel_intens)] ++ ;
 
-            if( _pixel_intens > 0.01 ){
-              dist = sqrt( pow((r - pix_row) * meta.pixel_height(),2)
+            if( _pixel_intens > 0.1 ){
+              _pixel_dist = sqrt( pow((r - pix_row) * meta.pixel_height(),2)
                           + pow((c - pix_col) * meta.pixel_width(),2) ) ;
-              if ( dist > _max_dist )
-                _max_dist = dist ;
-
-              //_pixel_tree->Fill();
-              _dist_v.emplace_back(dist);
+              if ( _pixel_dist > _max_dist )
+                _max_dist = _pixel_dist ;
+              
+              _dist_v.emplace_back(_pixel_dist);
               _pix_intens_v.emplace_back(_pixel_intens);
+
+              _pixel_tree->Fill();
 
                }
            }
          }
 
 
-         std::cout<<"pix values: "<<intens_count.size()<<std::endl;
          for(auto const & m : intens_count)
-           std::cout<<m.first<<" : "<<m.second <<", " ;
+           std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
 
-     std::cout<<"Numbers: "<< _image_index<<", "<< _plane<<", "<<_pixel_count <<", "
-                      <<_max_pixel<<", "<< _dist_v.size()<<", "<< _pix_intens_v.size()<<", "
-                      <<_max_dist <<std::endl;
+   //  std::cout<<"Numbers: "<< _image_index<<", "<< _plane<<", "<<_pixel_count <<", "
+   //                   <<_max_pixel<<", "<< _dist_v.size()<<", "<< _pix_intens_v.size()<<", "
+   //                   <<_max_dist <<std::endl;
 
       //LARCV_DEBUG() << "pixel max value: " << _max_pixel << std::endl;
       _image_tree->Fill();

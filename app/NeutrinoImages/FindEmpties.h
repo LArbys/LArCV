@@ -5,7 +5,7 @@
  * 
  * \brief Class def header for a class FindEmpties
  *
- * @author kazuhiro
+ * @author ahack 
  */
 
 /** \addtogroup Package_Name
@@ -57,6 +57,7 @@ namespace larcv {
 
     TTree* _pixel_tree;
     float _pixel_intens ;
+    float _pixel_dist ;
 
     int _event; 
   };
