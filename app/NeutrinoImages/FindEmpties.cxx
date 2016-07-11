@@ -80,6 +80,7 @@ namespace larcv {
 
     for(size_t index=0; index < img2d_v.size(); ++index) {
       //std::cout<<"Plane : "<<index<<std::endl;
+      if (index != 0 ) continue ;
      
       reset() ;
 
@@ -119,8 +120,6 @@ namespace larcv {
 
             _pixel_intens = img2d.pixel(r,c);
 
-	   //if(_pixel_intens > 0.5 && index == 0) std::cout<<"Intensity at ("<<r<<", "<<c<<"): "<<_pixel_intens<<std::endl ;
-
             if (_pixel_intens >  1)
               intens_count[int(_pixel_intens)] ++ ;
 
@@ -139,12 +138,12 @@ namespace larcv {
            }
          }
 
-         for(auto const & m : intens_count)
-         //  std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
+	 if ( _plane == 0 && _pixel_count < 6 && _pixel_less_count < 60 && (_max_dist < 1002 || _max_dist > 3390) )
+	   return false ;
 
-   //  std::cout<<"Numbers: "<< _image_index<<", "<< _plane<<", "<<_pixel_count <<", "
-   //                   <<_max_pixel<<", "<< _dist_v.size()<<", "<< _pix_intens_v.size()<<", "
-   //                   <<_max_dist <<std::endl;
+
+         //for(auto const & m : intens_count)
+         //  std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
 
       //LARCV_DEBUG() << "pixel max value: " << _max_pixel << std::endl;
       _image_tree->Fill();
