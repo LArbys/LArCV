@@ -16,6 +16,7 @@ namespace larcv {
     _image_index = 0;
     _plane = -1;
     _pixel_count = 0;
+    _pixel_less_count = 0;
     _max_pixel   = 0.;
     _pixel_intens = 0;
     _max_dist = -1. ;
@@ -33,9 +34,11 @@ namespace larcv {
 
     if(!_image_tree){
       _image_tree = new TTree("image_tree","Tree for simple analysis");
+      _image_tree->Branch( "event", &_event, "event/s" );
       _image_tree->Branch( "image_index", &_image_index, "image_index/s" );
       _image_tree->Branch( "plane", &_plane, "plane/I");
       _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/I" );
+      _image_tree->Branch( "pixel_less_count", &_pixel_less_count, "pixel_less_count/I" );
       _image_tree->Branch( "max_pixel",   &_max_pixel,   "max_pixel/F"   );
       _image_tree->Branch( "pix_intens_v","std::vector<float>",&_pix_intens_v);
       _image_tree->Branch( "dist_v","std::vector<float>",&_dist_v);
@@ -58,6 +61,7 @@ namespace larcv {
     _image_index = 0;
     _plane = -1; 
     _pixel_count = 0;
+    _pixel_less_count = 0;
     _max_pixel   = 0.;
     _dist_v.clear();
     _pix_intens_v.clear();
@@ -72,11 +76,10 @@ namespace larcv {
     auto my_event_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_name));
     auto const& img2d_v = my_event_image2d->Image2DArray();
 
-    std::cout<<"\nEvent number: "<<_event <<std::endl;
-    _event++; 
+    std::cout<<"\n\nEvent number: "<<_event <<std::endl;
 
     for(size_t index=0; index < img2d_v.size(); ++index) {
-      std::cout<<"Plane : "<<index<<std::endl;
+      //std::cout<<"Plane : "<<index<<std::endl;
      
       reset() ;
 
@@ -98,6 +101,8 @@ namespace larcv {
           _max_pixel = v;
           max_pixel_index = i;
           }   
+
+	if(v > 0.5 && v <=_pixel_count_threshold) _pixel_less_count++ ;
         if(v > _pixel_count_threshold) _pixel_count++;
 
           }   
@@ -114,10 +119,12 @@ namespace larcv {
 
             _pixel_intens = img2d.pixel(r,c);
 
+	   //if(_pixel_intens > 0.5 && index == 0) std::cout<<"Intensity at ("<<r<<", "<<c<<"): "<<_pixel_intens<<std::endl ;
+
             if (_pixel_intens >  1)
               intens_count[int(_pixel_intens)] ++ ;
 
-            if( _pixel_intens > 0.1 ){
+            if( _pixel_intens > 0.5 ){
               _pixel_dist = sqrt( pow((r - pix_row) * meta.pixel_height(),2)
                           + pow((c - pix_col) * meta.pixel_width(),2) ) ;
               if ( _pixel_dist > _max_dist )
@@ -132,9 +139,8 @@ namespace larcv {
            }
          }
 
-
          for(auto const & m : intens_count)
-           std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
+         //  std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
 
    //  std::cout<<"Numbers: "<< _image_index<<", "<< _plane<<", "<<_pixel_count <<", "
    //                   <<_max_pixel<<", "<< _dist_v.size()<<", "<< _pix_intens_v.size()<<", "
@@ -143,13 +149,19 @@ namespace larcv {
       //LARCV_DEBUG() << "pixel max value: " << _max_pixel << std::endl;
       _image_tree->Fill();
     }
+
+    _event++; 
+
     return true;
   }
 
   void FindEmpties::finalize()
   {
     // If an analysis output file is configured to exist, write TTree into an output
-    if(has_ana_file()) _image_tree->Write();
+    if(has_ana_file()){
+      _image_tree->Write();
+      _pixel_tree->Write();
+      }
   }
 
 }
