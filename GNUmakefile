@@ -3,15 +3,25 @@ ifndef LARCV_BASEDIR
 ERROR_MESSAGE := $(error LARCV_BASEDIR is not set... run configure.sh!)
 endif
 
+OSNAME          = $(shell uname -s)
+HOST            = $(shell uname -n)
+OSNAMEMODE      = $(OSNAME)
+
+include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
+
 all:
 	@echo
 	@echo Building core...
 	@echo
-	@make --directory=$(LARCV_COREDIR)
+	@make $(ARGS) --directory=$(LARCV_COREDIR)
 	@echo
 	@echo Building app...
 	@echo
-	@make --directory=$(LARCV_APPDIR)
+	@make $(ARGS) --directory=$(LARCV_APPDIR)
+	@echo 
+	@echo Linking libs...
+	@$(SOMAKER) $(SOFLAGS) -o liblarcv.so $(shell python $(LARCV_BASEDIR)/bin/libarg.py)
+	@echo 
 
 clean:
 	@echo
@@ -22,4 +32,8 @@ clean:
 	@echo Cleaning app...
 	@echo
 	@make clean --directory=$(LARCV_APPDIR)
-
+	@echo
+	@echo Cleaning lib...
+	@echo
+	@rm -f $(LARCV_LIBDIR)/liblarcv.so
+	@echo

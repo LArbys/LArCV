@@ -17,11 +17,11 @@ $(shell mkdir -p $(PACKAGE_INCDIR))
 DICT    = $(PACKAGE_BUILDDIR)/$(PACKAGE_NAME)Dict
 OBJECTS = $(addprefix $(PACKAGE_BUILDDIR)/, $(SOURCES:.cxx=.o))
 
-all: pre_build main_build pkg_build
+all: pre_build main_build pkg_build install_headers
 
 pre_build:
 
-main_build: pre_build .depend $(DICT).cxx $(LARCV_LIBDIR)/$(SHLIB) $(LARCV_LIBDIR)/$(ROOTMAP)
+main_build: pre_build .depend $(DICT).cxx 
 
 # default rule for making .o files from .cxx files
 # special rule for $(DICT).o
@@ -41,19 +41,20 @@ ifdef LARCV_ROOT6
 $(DICT).cxx: $(HEADERS) LinkDef.h
 	@echo '<< generating dict >>'
 #	@echo rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
-	@rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
+#	@rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
+	@rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml liblarcv.so -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
 
-# rule for making shareable library
-$(LARCV_LIBDIR)/$(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
-	@echo '<< generating $(SHLIB) >>'
-#	@$(SOMAKER) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
-#	@echo $(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS)
-	@$(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS)
+install_headers: $(OBJECTS)
 	@echo '<< installing headers >>'
 	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
 
-# if ROOTMAP defined, define rule for making it
-$(LARCV_LIBDIR)/$(ROOTMAP): $(LARCV_LIBDIR)/$(SHLIB)
+
+# rule for making shareable library
+$(LARCV_LIBDIR)/$(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
+#	@echo '<< generating $(SHLIB) >>'
+#	@$(SOMAKER) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
+#	@echo $(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS)
+#	@$(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS)
 
 else
 
@@ -68,14 +69,13 @@ $(LARCV_LIBDIR)/$(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
 	@echo '<< generating $(SHLIB) >>'
 #	@echo $(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
 	@$(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
-	@echo '<< installing $(SHLIB) >>'
+	@echo '<< installing headers >>'
+	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
 
 # if ROOTMAP defined, define rule for making it
 $(LARCV_LIBDIR)/$(ROOTMAP): $(LARCV_LIBDIR)/$(SHLIB)
 	@echo "<< generating rootmap >>"
 	@rlibmap -f  -o $(LARCV_LIBDIR)/$(ROOTMAP) -l $(LARCV_LIBDIR)/$(SHLIB) -c LinkDef.h
-	@echo '<< installing headers >>'
-	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
 
 endif
 
