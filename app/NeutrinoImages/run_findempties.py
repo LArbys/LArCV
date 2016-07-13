@@ -15,17 +15,17 @@ proc.configure(sys.argv[1])
 if len(sys.argv) > 1:
    
    flist=ROOT.std.vector('std::string')()
-   #for x in xrange(len(sys.argv)-2):
-   #   flist.push_back(sys.argv[x+2])
+   for x in xrange(len(sys.argv)-2):
+      flist.push_back(sys.argv[x+2])
 
-   flist.push_back(sys.argv[2])
+   #flist.push_back(sys.argv[2])
    proc.override_input_file(flist)
 
 print "Initializing ... "
 proc.initialize()
 
 print "Processing ... "
-proc.batch_process(0,100)
+proc.batch_process(0,10000)
 
 print "Finalizing ... "
 proc.finalize()
