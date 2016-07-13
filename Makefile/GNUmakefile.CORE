@@ -17,14 +17,13 @@ $(shell mkdir -p $(PACKAGE_INCDIR))
 DICT    = $(PACKAGE_BUILDDIR)/$(PACKAGE_NAME)Dict
 OBJECTS = $(addprefix $(PACKAGE_BUILDDIR)/, $(SOURCES:.cxx=.o))
 
-all: pre_build main_build pkg_build install_headers
+all: pre_build main_build pkg_build 
 
 pre_build:
 
-main_build: pre_build .depend $(DICT).cxx 
+main_build: .depend pre_build $(DICT).o $(OBJECTS) install_header
 
 # default rule for making .o files from .cxx files
-# special rule for $(DICT).o
 $(PACKAGE_BUILDDIR)/%.o: %.cxx %.h
 	@echo '<< compiling' $< '>>'
 #	@echo $(CXX) $(CXXFLAGS) $(LARCV_BASIC_ROOTINC) $(INCFLAGS) -c $< -o $@
@@ -41,21 +40,13 @@ ifdef LARCV_ROOT6
 $(DICT).cxx: $(HEADERS) LinkDef.h
 	@echo '<< generating dict >>'
 #	@echo rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
-#	@rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
-	@rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml liblarcv.so -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h	
+	@rootcling -f $(DICT).cxx -s $(LARCV_LIBDIR)/$(SHLIB) -rml liblarcv.so -rmf $(LARCV_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h
 
-install_headers: $(OBJECTS)
+# install headers
+install_header: $(OBJECTS) $(DICT).o
 	@echo '<< installing headers >>'
 	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
-
-
-# rule for making shareable library
-$(LARCV_LIBDIR)/$(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
-#	@echo '<< generating $(SHLIB) >>'
-#	@$(SOMAKER) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
-#	@echo $(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS)
-#	@$(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS)
-
+	
 else
 
 # root class dictionary
@@ -105,9 +96,10 @@ clearCINT:
 ###################################################
 # auto-generate dependencies using g++ -M
 .depend: $(SOURCES) $(HEADERS)
-	@#rm .depend
+#	@rm .depend
 	@echo '<< checking dependencies>>'
-	@$(CXX) -M $(addprefix '-MT ', $(OBJECTS)) $(LARCV_BASIC_ROOTINC) $(INCFLAGS) $(SOURCES) > .depend
+	@$(CXX) -M $(CXXFLAGS) $(LARCV_BASIC_ROOTINC) $(INCFLAGS) $(SOURCES) > .depend
+
 -include .depend
 
 #ALWAYS:
