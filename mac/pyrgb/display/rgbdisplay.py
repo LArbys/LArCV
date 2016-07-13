@@ -1,4 +1,4 @@
-# thanks taritree
+#thanks taritree
 
 import os
 import sys
@@ -415,6 +415,14 @@ class RGBDisplay(QtGui.QWidget):
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
 
+        # colorscale:
+        self.pos = np.array([0.0, 0.5, 1.0])
+        self.colormaps = np.array([[0,0,100,255], [128,255,255,255], [255,0,0,255]], dtype=np.ubyte)
+        self.map = pg.ColorMap(self.pos, self.colormaps)
+        self.lut = self.map.getLookupTable(0.0, 1.0, 256)
+        self.imi.setLookupTable(self.lut)
+        self.imi.setLevels([0,1])
+
         # From QT, the threshold
         event = int(self.event.text())
             
@@ -464,7 +472,8 @@ class RGBDisplay(QtGui.QWidget):
             self.rois = self.image.parse_rois()
 
         # Emplace the image on the canvas
-        self.imi.setImage(self.pimg)
+        #self.imi.setImage(self.pimg)
+        self.setImage(self.pimg)
         self.modimage = None
 
         # no ROI's -- finish early
@@ -520,7 +529,8 @@ class RGBDisplay(QtGui.QWidget):
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)  
 
         # return the plot image to the screen
-        self.imi.setImage(self.pimg) # send it back to the viewer
+        #self.imi.setImage(self.pimg) # send it back to the viewer
+        self.setImage(self.pimg) # send it back to the viewer
 
     def drawBBOX(self, kType):
 
@@ -603,7 +613,8 @@ class RGBDisplay(QtGui.QWidget):
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
 
         # set the image for the screen
-        self.imi.setImage(self.pimg)
+        #self.imi.setImage(self.pimg)
+        self.setImage(self.pimg)
 
     # you probably hit "forward" so load the current image into the wrapper
     # through caffe_layout.py
@@ -650,7 +661,12 @@ class RGBDisplay(QtGui.QWidget):
         exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
         print "Saved image {}".format(self.savecounter)
         self.savecounter += 1
-    
+
+    def setImage( self, img ):
+        """Wrapper for hacking"""
+        flatten = np.sum( img, axis=2 )
+        self.imi.setImage( flatten )
+        
 
     def enableContrast(self):
 
