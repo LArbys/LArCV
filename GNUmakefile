@@ -7,19 +7,19 @@ all:
 	@echo
 	@echo Building core...
 	@echo
-	@make --directory=$(LARCV_COREDIR)
+	@+make --directory=$(LARCV_COREDIR)
 	@echo
 	@echo Building app...
 	@echo
-	@make --directory=$(LARCV_APPDIR)
+	@+make --directory=$(LARCV_APPDIR)
 
 clean:
 	@echo
 	@echo Cleaning core...
 	@echo
-	@make clean --directory=$(LARCV_COREDIR)
+	@+make clean --directory=$(LARCV_COREDIR)
 	@echo
 	@echo Cleaning app...
 	@echo
-	@make clean --directory=$(LARCV_APPDIR)
+	@+make clean --directory=$(LARCV_APPDIR)
 
