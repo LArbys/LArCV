@@ -14,7 +14,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         # Sliding ROI which we will do OpenCV manipulations on
         self.name = "ROIToolLayout"
         # store a copy of pointer to data-manager
-        self.dm = None 
+        self.dm = dm
 
         self.enabled = False
         self.cv2 = None
@@ -103,6 +103,8 @@ class ROIToolLayout(QtGui.QGridLayout):
         
         self.user_rois = {}
         self.user_rois_larcv = {}
+        self.user_rois_src_rse = {} # stores run,subrun,event
+        self.user_rois_previous_rse = [] # tracks rse that already have
 
 
         # set state of roi behavior
@@ -130,7 +132,6 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             # event == TTree entry in the image file so I place that in the event number here.
 
-
             # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
                 
@@ -147,8 +148,15 @@ class ROIToolLayout(QtGui.QGridLayout):
 
                 continue
 
-            # It's a fine ROI, put a 1 in the subrun to indicate one exists
-            self.ou_iom.set_id(1,1,event)
+            # It's a fine ROI
+            # if event has a stored run, subrun, event. put it in here
+            if event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
+                rse = self.user_rois_src_rse[event]
+                print "storing ROIs for ",rse
+                self.ou_iom.set_id( rse[0], rse[1], rse[2] )
+            # no RSE, put a 1 in the subrun to indicate one exists
+            else:
+                self.ou_iom.set_id(1,1,event)
 
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
             for larcv_roi in self.user_rois_larcv[event]:
@@ -194,11 +202,16 @@ class ROIToolLayout(QtGui.QGridLayout):
         
         larcv_rois = [self.roi2larcv(roisg) for roisg in self.rois]
 
+        # save by index
         self.user_rois_larcv[int(self.event.text())] = larcv_rois # not allowed to copy qwidgets
-        
+        # save event info if we have it
+        if self.dm is not None:
+            self.user_rois_src_rse[int(self.event.text())] = ( self.dm.run, self.dm.subrun, self.dm.event )
+            
         print "--- Captured ROIs in Memory ---"
         print self.user_rois
         print self.user_rois_larcv
+        print self.user_rois_src_rse
         print "-------------------------------"
         
     def addROI(self) :
@@ -360,6 +373,7 @@ class ROIToolLayout(QtGui.QGridLayout):
             bbox_meta = larcv.ImageMeta(width,height,
                                         row_count,col_count,
                                         origin_x,origin_y,bbox.plane)
+            
 
             larcv_roi.AppendBB(bbox_meta)
 
