@@ -43,6 +43,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.remove_roi = QtGui.QPushButton("Remove ROI")
         self.clear_roi = QtGui.QPushButton("Clear ROIs")
         self.capture_roi = QtGui.QPushButton("Capture ROIs")
+        self.empty_roi   = QtGui.QPushButton("Add Empty ROI")
         self.store_roi = QtGui.QPushButton("Store ROIs")
         self.reset_roi = QtGui.QPushButton("Reset ROIs")
 
@@ -81,6 +82,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.clear_roi.clicked.connect(self.clearROI)
         self.reset_roi.clicked.connect(self.resetROI)
         self.capture_roi.clicked.connect(self.captureROI)
+        self.empty_roi.clicked.connect(self.makeEmptyROI)
         self.store_roi.clicked.connect(self.storeROI)
         self.same_roi_time.stateChanged.connect(self.toggleSameROItime)
 
@@ -134,16 +136,22 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
-                
-                self.ou_iom.set_id(1,0,event)
+                if event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
+                    rse = self.user_rois_src_rse[event]
+                    self.ou_iom.set_id( rse[0], rse[1], rse[2] )
+                else:
+                    self.ou_iom.set_id(1,0,event)
                 self.ou_iom.save_entry()
                 
                 continue
 
             # User accidentally hit capture ROIs when no ROI drawn, save a blank and continue
             if len(self.user_rois[event]) == 0:
-
-                self.ou_iom.set_id(1,0,event)
+                if event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
+                    rse = self.user_rois_src_rse[event]
+                    self.ou_iom.set_id( rse[0], rse[1], rse[2] )
+                else:
+                    self.ou_iom.set_id(1,0,event)
                 self.ou_iom.save_entry()
 
                 continue
@@ -213,6 +221,19 @@ class ROIToolLayout(QtGui.QGridLayout):
         print self.user_rois_larcv
         print self.user_rois_src_rse
         print "-------------------------------"
+
+    def makeEmptyROI(self):
+        print "Making a blank entry intentionally"""
+        event = int(self.event.text())
+        self.user_rois[event] = []
+        self.user_rois_larcv[event] = None
+        self.user_rois_src_rse[event] = ( self.dm.run, self.dm.subrun, self.dm.event )
+        print "--- Captured ROIs in Memory ---"
+        print self.user_rois
+        print self.user_rois_larcv
+        print self.user_rois_src_rse
+        print "-------------------------------"
+        
         
     def addROI(self) :
 
@@ -336,12 +357,15 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget(self.fixed_w_label,1,7)
             self.addWidget(self.fixed_h_label,2,7)
 
+            self.addWidget(self.empty_roi, 3, 7)
+
             self.addWidget(self.fixed_roi_box,0,8)
             self.addWidget(self.fixed_w,1,8)
             self.addWidget(self.fixed_h,2,8)
 
             self.addWidget(self.same_roi_time,0,7)
             self.addWidget(self.save_roi_RSE, 0,6)
+
 
             # positions
             self.addWidget(self.uplane_pos, 0, 1, 1, 4 ) # i don't know where to put this. maybe add text to image? remove it?
