@@ -64,6 +64,11 @@ class ROIToolLayout(QtGui.QGridLayout):
         # tmw -- add option to save ROI by 
         self.save_roi_RSE = QtGui.QCheckBox("Save ROI RSE")
         self.save_roi_RSE.setChecked(False)
+
+        # tmw -- labels to track position of the boxes
+        self.uplane_pos = QtGui.QLabel("")
+        self.vplane_pos = QtGui.QLabel("")
+        self.yplane_pos = QtGui.QLabel("")
         
         self.fixed_w_label = QtGui.QLabel("W:")
         self.fixed_h_label = QtGui.QLabel("H:")
@@ -191,10 +196,10 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.user_rois_larcv[int(self.event.text())] = larcv_rois # not allowed to copy qwidgets
         
-        print "---"
+        print "--- Captured ROIs in Memory ---"
         print self.user_rois
         print self.user_rois_larcv
-        print "---"
+        print "-------------------------------"
         
     def addROI(self) :
 
@@ -213,7 +218,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         
         coords = [ [0,0,ww,hh] for _ in xrange(3)]
         
-        roisg = ROISliderGroup(coords,self.checked_planes,3,store.colors,allow_resize)
+        roisg = ROISliderGroup(coords,self.checked_planes,3,store.colors,allow_resize, func_setlabel=self.setROILabel )
 
         self.rois.append(roisg)
 
@@ -324,7 +329,9 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             self.addWidget(self.same_roi_time,0,7)
             self.addWidget(self.save_roi_RSE, 0,6)
-            
+
+            # positions
+            self.addWidget(self.uplane_pos, 0, 1, 1, 4 ) # i don't know where to put this. maybe add text to image? remove it?
 
         else:
 
@@ -387,7 +394,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # vic isn't sure why this is needed
         origin_y += height
-        
+
         #print "roi2img ROI: ",(width,height,row_count,col_count,origin_x,origin_y)
         return (width,height,row_count,col_count,origin_x,origin_y)
 
@@ -465,3 +472,18 @@ class ROIToolLayout(QtGui.QGridLayout):
                 roiset.useSameTimes()
             else:
                 roiset.useDifferentTimes()
+                
+    def setROILabel(self,rois):
+        if len(rois)>=3:
+            try:
+                text = ""
+                for plane,label,roi in [("U",self.uplane_pos,rois[0]),("V",self.vplane_pos,rois[1]),("Y",self.yplane_pos,rois[2])]:
+                    size = roi.size()
+                    pos  = roi.pos()
+                    width,height,row_count,col_count,origin_x,origin_y = self.roi2imgcord(self.images.imgs[-1].meta(),size,pos)
+                    #label.setText("%s: [%.1f,%.1f],[%.1f,%.1f]"%(plane,origin_x,origin_x+width,origin_y-height,origin_y))
+                    text += "%s: [%.1f,%.1f],[%.1f,%.1f]"%(plane,origin_x,origin_x+width,origin_y-height,origin_y)+"  "
+                self.uplane_pos.setText(text)
+            except:
+                pass
+

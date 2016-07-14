@@ -20,12 +20,15 @@ class ROISlider(pg.ROI):
     
 class ROISliderGroup:
 
-    def __init__(self,coords,planes,N,pencolors,allow_resize=True):
+    def __init__(self,coords,planes,N,pencolors,allow_resize=True,func_setlabel=None):
         N = int(N)
         self.rois = []
         self.planes = planes
-        self.use_same_times = False
-    
+        self.use_same_times = False   # forces all plane ROIs to have the same time coordinates (Y-axis)
+
+        # optional labels for U,V,Y: report back the positions of the boxes
+        self.setROIlabel = func_setlabel
+
         for ix in self.planes:
 
             coord = coords[ix]
@@ -43,6 +46,7 @@ class ROISliderGroup:
             # works, but is annoying. Will just tell user what to do in the README
             #roi.sigRegionChangeStarted.connect(self.resizeROI)
             roi.sigRegionChangeFinished.connect(self.resizeROI)
+            roi.sigRegionChangeFinished.connect(self.reportPositions)
 
             self.rois.append(roi)
 
@@ -75,5 +79,12 @@ class ROISliderGroup:
                 roi.setSize( [s[0], sender_shape[1] ], finish=False, update=False )
                 #print roi.pos(),
             #print
-
+    
+    def reportPositions(self):
+        # this is a function pointer to the owner ROIToolkit class. 
+        if self.setROIlabel is not None:
+            self.setROIlabel( self.rois )
+                
+                
     # no real need yet for __iter__ and next()
+                
