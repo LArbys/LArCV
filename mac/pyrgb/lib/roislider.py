@@ -24,6 +24,7 @@ class ROISliderGroup:
         N = int(N)
         self.rois = []
         self.planes = planes
+        self.use_same_times = False
     
         for ix in self.planes:
 
@@ -40,16 +41,39 @@ class ROISliderGroup:
             #roi.sigRegionChanged.connect(self.resizeROI)
 
             # works, but is annoying. Will just tell user what to do in the README
-            roi.sigRegionChangeStarted.connect(self.resizeROI)
+            #roi.sigRegionChangeStarted.connect(self.resizeROI)
+            roi.sigRegionChangeFinished.connect(self.resizeROI)
 
             self.rois.append(roi)
 
+    def useSameTimes(self):
+        self.use_same_times = True
+
+    def useDifferentTimes(self):
+        self.use_same_times = False
             
     def resizeROI(self):
-        sender = self.rois[0].sender()
-        size = sender.size()
-        for roi in self.rois:
-            if roi == sender: continue
-            roi.setSize(size)
-            
+        if not self.use_same_times:
+            sender = self.rois[0].sender()
+            size = sender.size()
+            for roi in self.rois:
+                if roi == sender: continue
+                roi.setSize(size, finish=False)
+        else:
+            #print "same-time resize. ROI set "%(self)," : "
+            sender = self.rois[0].sender()
+            sender_pos = sender.pos()
+            sender_shape = sender.size()
+            tstart = sender_pos[1]
+            tend   = sender_pos[1]+sender_shape[1]
+            #print "  ",sender
+            #print "  ",
+            for roi in self.rois:
+                pos = roi.pos()
+                roi.setPos( [pos[0],tstart], finish=False, update=False )
+                s   = roi.size()
+                roi.setSize( [s[0], sender_shape[1] ], finish=False, update=False )
+                #print roi.pos(),
+            #print
+
     # no real need yet for __iter__ and next()

@@ -7,12 +7,14 @@ from .. import larcv
 
 class ROIToolLayout(QtGui.QGridLayout):
 
-    def __init__(self,plt,images,event):
+    def __init__(self,plt,images,event, dm=None):
 
         super(ROIToolLayout, self).__init__()
 
         # Sliding ROI which we will do OpenCV manipulations on
         self.name = "ROIToolLayout"
+        # store a copy of pointer to data-manager
+        self.dm = None 
 
         self.enabled = False
         self.cv2 = None
@@ -54,6 +56,14 @@ class ROIToolLayout(QtGui.QGridLayout):
         
         self.fixed_roi_box = QtGui.QCheckBox("Fixed ROI")
         self.fixed_roi_box.setChecked(False)
+
+        # tmw -- add same ROI time
+        self.same_roi_time = QtGui.QCheckBox("Same ROI time")
+        self.same_roi_time.setChecked(False)
+
+        # tmw -- add option to save ROI by 
+        self.save_roi_RSE = QtGui.QCheckBox("Save ROI RSE")
+        self.save_roi_RSE.setChecked(False)
         
         self.fixed_w_label = QtGui.QLabel("W:")
         self.fixed_h_label = QtGui.QLabel("H:")
@@ -67,6 +77,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.reset_roi.clicked.connect(self.resetROI)
         self.capture_roi.clicked.connect(self.captureROI)
         self.store_roi.clicked.connect(self.storeROI)
+        self.same_roi_time.stateChanged.connect(self.toggleSameROItime)
 
         self.load_files.clicked.connect(self.load)
                                         
@@ -88,6 +99,9 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.user_rois = {}
         self.user_rois_larcv = {}
 
+
+        # set state of roi behavior
+        self.toggleSameROItime()
 
         self.checked_planes = []
         
@@ -206,6 +220,8 @@ class ROIToolLayout(QtGui.QGridLayout):
         for roi in roisg.rois:
             self.plt.addItem(roi)
 
+        self.toggleSameROItime()
+
     def removeROI(self) :
         for roi in self.rois[-1].rois:
             self.plt.removeItem(roi)
@@ -305,7 +321,9 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget(self.fixed_roi_box,0,8)
             self.addWidget(self.fixed_w,1,8)
             self.addWidget(self.fixed_h,2,8)
-        
+
+            self.addWidget(self.same_roi_time,0,7)
+            self.addWidget(self.save_roi_RSE, 0,6)
             
 
         else:
@@ -439,3 +457,11 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         return True
         
+    
+    def toggleSameROItime(self):
+        print "same time rois: ",self.same_roi_time.isChecked()
+        for roiset in self.rois:
+            if self.same_roi_time.isChecked():
+                roiset.useSameTimes()
+            else:
+                roiset.useDifferentTimes()
