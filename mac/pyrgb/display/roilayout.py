@@ -477,6 +477,10 @@ class ROIToolLayout(QtGui.QGridLayout):
                 planes.append(pl)
                 
             roisg = ROISliderGroup(coords,planes,len(coords),store.colors)
+            if self.same_roi_time.isChecked():
+                roisg.useSameTimes()
+            else:
+                roisg.useDifferentTimes()
             
             converted_rois.append(roisg)
             
