@@ -79,6 +79,15 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
         self.lay_inputs.addWidget(self.imax, 2, 1)
 
+        # False color mode
+        self.use_false_color = QtGui.QCheckBox("Use False Color")
+        self.use_false_color.setChecked(False)
+        self.use_false_color.stateChanged.connect( self.enableFalseColor )
+        self.false_color_widget = pyqtgraph.GradientWidget(orientation='right')
+        #self.false_color_widget.sigGradientChangeFinished.connect( self.applyGradientFalseColorMap )
+        self.layout.addWidget(self.false_color_widget, 1, 10, 1, 1)
+        self.layout.addWidget(self.use_false_color, 0, 8, 1, 2)
+
         # select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
         self.lay_inputs.addWidget(self.axis_plot, 2, 2)
@@ -415,14 +424,6 @@ class RGBDisplay(QtGui.QWidget):
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
 
-        # colorscale:
-        self.pos = np.array([0.0, 0.5, 1.0])
-        self.colormaps = np.array([[0,0,100,255], [128,255,255,255], [255,0,0,255]], dtype=np.ubyte)
-        self.map = pg.ColorMap(self.pos, self.colormaps)
-        self.lut = self.map.getLookupTable(0.0, 1.0, 256)
-        self.imi.setLookupTable(self.lut)
-        self.imi.setLevels([0,1])
-
         # From QT, the threshold
         event = int(self.event.text())
             
@@ -664,8 +665,11 @@ class RGBDisplay(QtGui.QWidget):
 
     def setImage( self, img ):
         """Wrapper for hacking"""
-        flatten = np.sum( img, axis=2 )
-        self.imi.setImage( flatten )
+        if not self.use_false_color.isChecked():
+            self.imi.setImage( img )
+        else:
+            flatten = np.sum( img, axis=2 )
+            self.imi.setImage( flatten )
         
 
     def enableContrast(self):
@@ -676,4 +680,26 @@ class RGBDisplay(QtGui.QWidget):
         else :
             self.imin.setDisabled(True)
             self.imax.setDisabled(True)
+
+    def applyGradientFalseColorMap(self):
+        """ connected to false color widget signal: sigGradientChangeFinished.
+            job is to set the color map of the image plot (self.imi)"""
+        self.lut = self.map.getLookupTable(0.0, 1.0, 256)
+        self.imi.setLookupTable(self.lut)
+
+    def enableFalseColor(self):
+        """ connected to false color check box: self.use_false_color. 
+            when checkbox toggled, this is called to activate false color drawing.
+            you can find how that is being done in setImage. """
+        # colorscale:
+        if self.use_false_color.isChecked():
+            pass
+        else:
+            pass
+        #pos = np.array([0.0, 0.5, 1.0])
+        #colormaps = np.array([[0,0,100,255], [128,255,255,255], [255,0,0,255]], dtype=np.ubyte)
+        #self.map = pg.ColorMap(self.pos, self.colormaps)
+        #self.lut = self.map.getLookupTable(0.0, 1.0, 256)
+        #self.imi.setLookupTable(self.lut)
+        #self.imi.setLevels([0,1])
 
