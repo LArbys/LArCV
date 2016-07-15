@@ -5,8 +5,7 @@ dirs=[]
 for d in os.listdir(os.environ['LARCV_BUILDDIR']):
     if not len([x for x in os.listdir('%s/%s' % (os.environ['LARCV_BUILDDIR'],d)) if x.endswith('.o')]): continue
     dirs.append(d)
-#dirs=[x.replace('-lLArCV','') for x in commands.getoutput('larcvapp-config --libs').split() if x.startswith('-lLArCV')]
-libs=[x for x in commands.getoutput('larcvapp-config --libs').split() if not x.startswith('-lLArCV')]
+libs=[x for x in commands.getoutput('larcv-config --libs').split() if not x.startswith('-llarcv')]
 libs+= commands.getoutput('root-config --libs').split()
 if 'LARLITE_BASEDIR' in os.environ:
     libs+= commands.getoutput('larlite-config --libs').split()
