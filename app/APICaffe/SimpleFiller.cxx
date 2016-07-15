@@ -22,7 +22,7 @@ namespace larcv {
     _max_adc_v = cfg.get<std::vector<float> >("MaxADC");
     _min_adc_v = cfg.get<std::vector<float> >("MinADC");    
     _adc_gaus_mean = cfg.get<double>("GausSmearingMean",1.0);
-    _adc_gaus_sigma = cfg.get<double>("GuasSmearingSigma",-1.0);
+    _adc_gaus_sigma = cfg.get<double>("GausSmearingSigma",-1.0);
     _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
     _mirror_image = cfg.get<bool>("EnableMirror",false);
     _crop_image     = cfg.get<bool>("EnableCrop",false);

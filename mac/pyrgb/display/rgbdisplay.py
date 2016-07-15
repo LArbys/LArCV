@@ -1,4 +1,4 @@
-# thanks taritree
+#thanks taritree
 
 import os
 import sys
@@ -80,6 +80,19 @@ class RGBDisplay(QtGui.QWidget):
         self.imax = QtGui.QLineEdit("%d" % (400))
         self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
         self.lay_inputs.addWidget(self.imax, 2, 1)
+
+        # False color mode
+        self.use_false_color = QtGui.QCheckBox("Use False Color")
+        self.use_false_color.setChecked(False)
+        self.use_false_color.stateChanged.connect( self.enableFalseColor )
+        self.false_color_widget = pyqtgraph.GradientWidget(orientation='right')
+        # initial map
+        state = { 'mode':'rgb', 'ticks':[ (0.0, (0,0,100,255)), (0.5, (128,255,255,255)), (1.0, (255, 0, 0, 255) ) ] }
+        self.false_color_widget.restoreState( state )
+        self.false_color_widget.sigGradientChangeFinished.connect( self.applyGradientFalseColorMap )
+        self.layout.addWidget(self.false_color_widget, 1, 10, 1, 1)
+        self.layout.addWidget(self.use_false_color, 0, 8, 1, 2)
+        self.false_color_widget.hide()
 
         # select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
@@ -487,7 +500,8 @@ class RGBDisplay(QtGui.QWidget):
             self.rois = self.image.parse_rois()
 
         # Emplace the image on the canvas
-        self.imi.setImage(self.pimg)
+        #self.imi.setImage(self.pimg)
+        self.setImage(self.pimg)
         self.modimage = None
 
         #this is extremely hacky, we need a central layout manager that can alert the layouts that
@@ -552,7 +566,8 @@ class RGBDisplay(QtGui.QWidget):
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)  
 
         # return the plot image to the screen
-        self.imi.setImage(self.pimg) # send it back to the viewer
+        #self.imi.setImage(self.pimg) # send it back to the viewer
+        self.setImage(self.pimg) # send it back to the viewer
 
     def drawBBOX(self, kType):
 
@@ -634,7 +649,8 @@ class RGBDisplay(QtGui.QWidget):
         self.pimg = self.image.swap_plot_mat( self.iimin, self.iimax, self.views )
 
         # set the image for the screen
-        self.imi.setImage(self.pimg)
+        #self.imi.setImage(self.pimg)
+        self.setImage(self.pimg)
 
     # you probably hit "forward" so load the current image into the wrapper
     # through caffe_layout.py
@@ -681,7 +697,21 @@ class RGBDisplay(QtGui.QWidget):
         exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
         print "Saved image {}".format(self.savecounter)
         self.savecounter += 1
-    
+
+    def setImage( self, img ):
+        """Wrapper for hacking"""
+        if img is None:
+            # sometimes no image to set yet
+            return
+
+        if not self.use_false_color.isChecked():
+            self.imi.setImage( img )
+        else:
+            self.applyGradientFalseColorMap()
+            #print "flatten image and set it"
+            flatten = np.sum( img, axis=2 )
+            self.imi.setImage( flatten )
+        
 
     def enableContrast(self):
 
@@ -691,4 +721,35 @@ class RGBDisplay(QtGui.QWidget):
         else :
             self.imin.setDisabled(True)
             self.imax.setDisabled(True)
+
+    def applyGradientFalseColorMap(self):
+        """ connected to false color widget signal: sigGradientChangeFinished.
+            job is to set the color map of the image plot (self.imi)"""
+        if self.use_false_color.isChecked():
+            #print "Set false color scale"
+            self.lut = self.false_color_widget.colorMap().getLookupTable(0.0, 1.0, 256)
+            try:
+                self.imi.setLookupTable(self.lut)
+            except:
+                pass
+
+    def enableFalseColor(self):
+        """ connected to false color check box: self.use_false_color. 
+            when checkbox toggled, this is called to activate false color drawing.
+            you can find how that is being done in setImage. """
+        # colorscale:
+        if self.use_false_color.isChecked():
+            self.false_color_widget.show()
+            self.applyGradientFalseColorMap()
+            self.setImage( self.pimg )
+        else:
+            # attempt to reset it
+            #print "restore false color scale"
+            self.false_color_widget.hide()
+            try:
+                self.imi.setLookupTable(None)
+                self.imi.setLevels( [[0,255],[0,255],[0,255]] )
+            except:
+                pass
+            self.setImage( self.pimg )
 

@@ -185,7 +185,7 @@ namespace larcv {
 
 	result[col*rows + row] = value;
 	if ( mode==kAverage ) 
-	  result[col*rows + row] /= (float)(cols_factor*cols_factor);
+	  result[col*rows + row] /= (float)(rows_factor*cols_factor);
       }
     }
     return result;
