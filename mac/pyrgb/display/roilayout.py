@@ -60,11 +60,11 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # tmw -- add same ROI time
         self.same_roi_time = QtGui.QCheckBox("Same ROI time")
-        self.same_roi_time.setChecked(False)
+        self.same_roi_time.setChecked(True)
 
         # tmw -- add option to save ROI by 
         self.save_roi_RSE = QtGui.QCheckBox("Save ROI RSE")
-        self.save_roi_RSE.setChecked(False)
+        self.save_roi_RSE.setChecked(True)
 
         # tmw -- labels to track position of the boxes
         self.uplane_pos = QtGui.QLabel("")
