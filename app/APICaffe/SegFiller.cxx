@@ -35,13 +35,14 @@ namespace larcv {
     }
     _roitype_to_class.clear();
     _roitype_to_class.resize(kROITypeMax,kINVALID_SIZE);
+    _roitype_to_class[larcv::kROIUnknown] = 0;
     for(size_t i=0; i<type_to_class.size(); ++i) {
       auto const& type = type_to_class[i];
       if(type >= kROITypeMax) {
         LARCV_CRITICAL() << "ClassTypeList contains type " << type << " which is not a valid ROIType_t!" << std::endl;
         throw larbys();
       }
-      _roitype_to_class[type] = i;
+      _roitype_to_class[type] = i+1;
     }
   }
 
@@ -241,17 +242,27 @@ namespace larcv {
 
     size_t caffe_idx=0;
     size_t output_idx = _rows * _cols;
+    float label_value = kINVALID_SIZE;
 
     for(size_t row=0; row<_rows; ++row) {
       for(size_t col=0; col<_cols; ++col) {
-      
+
+
         if(mirror_image)
 
-          _entry_label_data[output_idx] = input_label[_mirror_caffe_idx_to_img_idx[caffe_idx]];
+          label_value = input_label[_mirror_caffe_idx_to_img_idx[caffe_idx]];
 
         else
 
-          _entry_label_data[output_idx] = input_label[_caffe_idx_to_img_idx[caffe_idx]];
+          label_value = input_label[_caffe_idx_to_img_idx[caffe_idx]];
+
+	size_t class_value = _roitype_to_class[(size_t)label_value];
+	if(class_value == kINVALID_SIZE) {
+	  LARCV_CRITICAL() << "Found invalid ROI type in the label image: " << label_value << std::endl;
+	  throw larbys();
+	}
+
+	_entry_label_data[output_idx] = float(class_value);
 
         ++output_idx;
         ++caffe_idx;
