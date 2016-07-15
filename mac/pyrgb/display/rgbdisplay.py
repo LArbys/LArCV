@@ -84,9 +84,13 @@ class RGBDisplay(QtGui.QWidget):
         self.use_false_color.setChecked(False)
         self.use_false_color.stateChanged.connect( self.enableFalseColor )
         self.false_color_widget = pyqtgraph.GradientWidget(orientation='right')
-        #self.false_color_widget.sigGradientChangeFinished.connect( self.applyGradientFalseColorMap )
+        # initial map
+        state = { 'mode':'rgb', 'ticks':[ (0.0, (0,0,100,255)), (0.5, (128,255,255,255)), (1.0, (255, 0, 0, 255) ) ] }
+        self.false_color_widget.restoreState( state )
+        self.false_color_widget.sigGradientChangeFinished.connect( self.applyGradientFalseColorMap )
         self.layout.addWidget(self.false_color_widget, 1, 10, 1, 1)
         self.layout.addWidget(self.use_false_color, 0, 8, 1, 2)
+        self.false_color_widget.hide()
 
         # select choice options
         self.axis_plot = QtGui.QPushButton("Replot")
@@ -665,9 +669,15 @@ class RGBDisplay(QtGui.QWidget):
 
     def setImage( self, img ):
         """Wrapper for hacking"""
+        if img is None:
+            # sometimes no image to set yet
+            return
+
         if not self.use_false_color.isChecked():
             self.imi.setImage( img )
         else:
+            self.applyGradientFalseColorMap()
+            #print "flatten image and set it"
             flatten = np.sum( img, axis=2 )
             self.imi.setImage( flatten )
         
@@ -684,8 +694,13 @@ class RGBDisplay(QtGui.QWidget):
     def applyGradientFalseColorMap(self):
         """ connected to false color widget signal: sigGradientChangeFinished.
             job is to set the color map of the image plot (self.imi)"""
-        self.lut = self.map.getLookupTable(0.0, 1.0, 256)
-        self.imi.setLookupTable(self.lut)
+        if self.use_false_color.isChecked():
+            #print "Set false color scale"
+            self.lut = self.false_color_widget.colorMap().getLookupTable(0.0, 1.0, 256)
+            try:
+                self.imi.setLookupTable(self.lut)
+            except:
+                pass
 
     def enableFalseColor(self):
         """ connected to false color check box: self.use_false_color. 
@@ -693,13 +708,17 @@ class RGBDisplay(QtGui.QWidget):
             you can find how that is being done in setImage. """
         # colorscale:
         if self.use_false_color.isChecked():
-            pass
+            self.false_color_widget.show()
+            self.applyGradientFalseColorMap()
+            self.setImage( self.pimg )
         else:
-            pass
-        #pos = np.array([0.0, 0.5, 1.0])
-        #colormaps = np.array([[0,0,100,255], [128,255,255,255], [255,0,0,255]], dtype=np.ubyte)
-        #self.map = pg.ColorMap(self.pos, self.colormaps)
-        #self.lut = self.map.getLookupTable(0.0, 1.0, 256)
-        #self.imi.setLookupTable(self.lut)
-        #self.imi.setLevels([0,1])
+            # attempt to reset it
+            #print "restore false color scale"
+            self.false_color_widget.hide()
+            try:
+                self.imi.setLookupTable(None)
+                self.imi.setLevels( [[0,255],[0,255],[0,255]] )
+            except:
+                pass
+            self.setImage( self.pimg )
 
