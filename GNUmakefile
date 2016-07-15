@@ -13,11 +13,11 @@ all:
 	@echo
 	@echo Building core...
 	@echo
-	@make $(ARGS) --directory=$(LARCV_COREDIR)
+	@$(MAKE) $(ARGS) --directory=$(LARCV_COREDIR)
 	@echo
 	@echo Building app...
 	@echo
-	@make $(ARGS) --directory=$(LARCV_APPDIR)
+	@$(MAKE) $(ARGS) --directory=$(LARCV_APPDIR)
 	@echo 
 	@echo Linking libs...
 	@$(SOMAKER) $(SOFLAGS) -o liblarcv.so $(shell python $(LARCV_BASEDIR)/bin/libarg.py)
@@ -27,11 +27,11 @@ clean:
 	@echo
 	@echo Cleaning core...
 	@echo
-	@make clean --directory=$(LARCV_COREDIR)
+	@$(MAKE) clean --directory=$(LARCV_COREDIR)
 	@echo
 	@echo Cleaning app...
 	@echo
-	@make clean --directory=$(LARCV_APPDIR)
+	@$(MAKE) clean --directory=$(LARCV_APPDIR)
 	@echo
 	@echo Cleaning lib...
 	@echo
