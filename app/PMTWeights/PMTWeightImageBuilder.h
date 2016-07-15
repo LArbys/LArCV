@@ -18,6 +18,7 @@
 #include "Processor/ProcessFactory.h"
 
 #include <string>
+#include <map>
 
 #include "PMTWireWeights.h"
 
@@ -57,6 +58,12 @@ namespace larcv {
       bool fCheckSat;
       int fPMTImageIndex;
       float fHGpedestal;
+      bool fSaveWeightMask;
+      std::string fWeightMaskProducerName;
+      bool fDebugSaveDistWeightMatrix;
+
+      bool fResizedMat;
+      std::map< int, larcv::Image2D> resizedWeightMat;
 
     };
 
