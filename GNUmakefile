@@ -9,31 +9,45 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-all:
+CORE_SUBDIRS := Base DataFormat Processor CPPUtil
+ifeq ($(LARCV_NUMPY),1)
+CORE_SUBDIRS += PyUtil
+endif
+ifeq ($(LARCV_OPENCV),1)
+  CORE_SUBDIRS += CVUtil
+endif
+
+APP_SUBDIRS := ImageMod Filter PMTWeights HiResDivider Merger APICaffe
+ifdef LARLITE_BASEDIR
+APP_SUBDIRS += Supera/APILArLite
+endif
+
+.phony: all clean
+
+all: obj lib
+
+clean: clean_app clean_core
+	@rm -f $(LARCV_LIBDIR)/liblarcv.so
+clean_core:
+	@for i in $(CORE_SUBDIRS); do ( echo "" && echo "Cleaning $$i..." && cd $(LARCV_COREDIR)/$$i && rm -rf $(LARCV_BUILDDIR)/$$i && rm -rf $(LARCV_BUILDDIR)/lib/*$ii.* ) || exit $$?; done
+clean_app:
+	@for i in $(APP_SUBDIRS); do ( echo "" && echo "Cleaning $$i..." && cd $(LARCV_APPDIR)/$$i && rm -rf $(LARCV_BUILDDIR)/$$i && rm -rf $(LARCV_BUILDDIR)/lib/*$ii.* ) || exit $$?; done
+
+obj:
 	@echo
 	@echo Building core...
 	@echo
-	@$(MAKE) $(ARGS) --directory=$(LARCV_COREDIR)
-	@echo
+	@for i in $(CORE_SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $(LARCV_COREDIR)/$$i && $(MAKE) ) || exit $$?; done
 	@echo Building app...
-	@echo
-	@$(MAKE) $(ARGS) --directory=$(LARCV_APPDIR)
-	@echo 
-	@echo Linking libs...
-	@$(SOMAKER) $(SOFLAGS) -o liblarcv.so $(shell python $(LARCV_BASEDIR)/bin/libarg.py)
+	@for i in $(APP_SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $(LARCV_APPDIR)/$$i && $(MAKE) ) || exit $$?; done
+
+lib: obj
+	@ echo
+	@ if [[ `python $(LARCV_BASEDIR)/bin/libarg.py` ]]; then \
+	    echo Linking library...; \
+	    $(SOMAKER) $(SOFLAGS) $(shell python $(LARCV_BASEDIR)/bin/libarg.py); \
+	  else \
+	   echo Nothing to be done for lib...; \
+	fi
 	@echo 
 
-clean:
-	@echo
-	@echo Cleaning core...
-	@echo
-	@$(MAKE) clean --directory=$(LARCV_COREDIR)
-	@echo
-	@echo Cleaning app...
-	@echo
-	@$(MAKE) clean --directory=$(LARCV_APPDIR)
-	@echo
-	@echo Cleaning lib...
-	@echo
-	@rm -f $(LARCV_LIBDIR)/liblarcv.so
-	@echo

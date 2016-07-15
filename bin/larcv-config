@@ -30,7 +30,11 @@ while test $# -gt 0; do
       --libs)
 	  out="-L${LARCV_LIBDIR} -lLArCVBase -lLArCVDataFormat -lLArCVProcessor -lLArCVCPPUtil "
 	  if [ $LARCV_NUMPY -eq 1 ]; then
-	      out+=" -lLArCVPyUtil "
+	      out+=" -L"
+	      out+=`python-config --prefix`
+	      out+="/lib/ "
+	      out+=`python-config --ldflags`
+              out+=" -lLArCVPyUtil "
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
 	      out+=" -lLArCVCVUtil "

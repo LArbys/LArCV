@@ -1,8 +1,10 @@
-#ifndef __SIMPLEFILLER_CXX__
-#define __SIMPLEFILLER_CXX__
+#ifndef __SimpleFiller_CXX__
+#define __SimpleFiller_CXX__
 
 #include "SimpleFiller.h"
 #include "DataFormat/UtilFunc.h"
+#include "DataFormat/EventImage2D.h"
+#include "DataFormat/EventROI.h"
 #include <random>
 
 namespace larcv {
@@ -13,28 +15,18 @@ namespace larcv {
     : DatumFillerBase(name)
     , _slice_v()
     , _max_ch(0)
-    , _max_adc_v()
-    , _min_adc_v()
-  {}
+  { 
+    _image_product_type = kProductImage2D;
+    _label_product_type = kProductROI;
+  }
 
   void SimpleFiller::child_configure(const PSet& cfg)
   {
     _slice_v = cfg.get<std::vector<size_t> >("Channels",_slice_v);
-    _max_adc_v = cfg.get<std::vector<float> >("MaxADC");
-    _min_adc_v = cfg.get<std::vector<float> >("MinADC");    
-    _adc_gaus_mean = cfg.get<double>("GausSmearingMean",1.0);
-    _adc_gaus_sigma = cfg.get<double>("GuasSmearingSigma",-1.0);
-    _adc_gaus_pixelwise = cfg.get<bool>("PixelWiseSmearing");
     _mirror_image = cfg.get<bool>("EnableMirror",false);
     _crop_image     = cfg.get<bool>("EnableCrop",false);
-    if(_crop_image) {
-      _randomize_crop = cfg.get<bool>("RandomizeCrop",false);
-      _crop_cols      = cfg.get<int>("CroppedCols");
-      _crop_rows      = cfg.get<int>("CroppedRows");
-    }else{
-      _crop_cols = _crop_rows = 0;
-      _randomize_crop = false;
-    }
+    if(_crop_image)
+      _cropper.configure(cfg);
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
     if(type_to_class.empty()) {
       LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
@@ -45,8 +37,8 @@ namespace larcv {
     for(size_t i=0; i<type_to_class.size(); ++i) {
       auto const& type = type_to_class[i];
       if(type >= kROITypeMax) {
-	LARCV_CRITICAL() << "ClassTypeList contains type " << type << " which is not a valid ROIType_t!" << std::endl;
-	throw larbys();
+        LARCV_CRITICAL() << "ClassTypeList contains type " << type << " which is not a valid ROIType_t!" << std::endl;
+        throw larbys();
       }
       _roitype_to_class[type] = i;
     }
@@ -54,25 +46,62 @@ namespace larcv {
   }
 
   void SimpleFiller::child_initialize()
-  { _entry_data.clear(); }
+  { 
+    _entry_image_data.clear(); 
+    _entry_label_data.clear();
+  }
 
   void SimpleFiller::child_batch_begin() 
   {
     _mirrored.clear();
-    _mirrored.reserve(_nentries);
+    _mirrored.reserve(entries());
   }
 
   void SimpleFiller::child_batch_end()   
   {
-    size_t mirror_ctr=0;
-    for(auto const& v : _mirrored) if(v) ++mirror_ctr;
-    LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
+    if(logger().level() <= msg::kINFO) {
+      std::vector<size_t> ctr_v;
+      for(auto const& v : data(false)) {
+        if(v>=ctr_v.size()) ctr_v.resize(v+1,0);
+        ctr_v[v] += 1;
+      }
+      std::stringstream ss;
+      ss << "Used: ";
+      for(size_t i=0;i<ctr_v.size();++i)
+        ss << ctr_v[i] << " of class " << i << " ... ";
+      LARCV_INFO() << ss.str() << std::endl;
+
+      size_t mirror_ctr=0;
+      for(auto const& v : _mirrored) if(v) ++mirror_ctr;
+        LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
+
+    }
   }
 
   void SimpleFiller::child_finalize()    {}
 
-  void SimpleFiller::set_dimension(const std::vector<larcv::Image2D>& image_v)
+  const std::vector<int> SimpleFiller::dim(bool image) const
   {
+    std::vector<int> res;
+    if(!image) {
+      res.push_back(entries());
+      return res;
+    }
+
+    res.resize(4);
+    res[0] = entries();
+    res[1] = _num_channels;
+    res[2] = _rows;
+    res[3] = _cols;
+    return res;
+  }
+
+  size_t SimpleFiller::compute_label_size(const EventBase* label_data)
+  { return 1; }
+
+  size_t SimpleFiller::compute_image_size(const EventBase* image_data)
+  {
+    auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
     if(image_v.empty()) {
       LARCV_CRITICAL() << "Input image is empty!" << std::endl;
       throw larbys();
@@ -98,42 +127,10 @@ namespace larcv {
     }
     else {
       // gonna crop (if speicifed dim is smaller than image dim)
-      _rows = std::min( (int)image_v.front().meta().rows(), _crop_rows );
-      _cols = std::min( (int)image_v.front().meta().cols(), _crop_cols );
+      _rows = std::min( image_v.front().meta().rows(), _cropper.rows() );
+      _cols = std::min( image_v.front().meta().cols(), _cropper.cols() );
     }
 
-    // Make sure mean image/adc has right number of channels
-    auto const& mean_adc_v = this->mean_adc();
-    auto const& mean_image_v = this->mean_image();
-    if(mean_adc_v.size() && mean_adc_v.size() != _slice_v.size()) {
-      LARCV_CRITICAL() << "Mean adc array dimension do not match with channel size!" << std::endl;
-      throw larbys();
-    }
-    if(mean_image_v.size()) {
-      if(mean_image_v.size() != image_v.size()) {
-        LARCV_CRITICAL() << "Mean image array dimension do not match with input data image!" << std::endl;
-        throw larbys();        
-      }
-      for(auto const& img : mean_image_v) {
-        if(img.meta().rows() != _rows) {
-          LARCV_CRITICAL() << "Mean image row count do not match! " << std::endl;
-          throw larbys();
-        }
-        if(img.meta().cols() != _cols) {
-          LARCV_CRITICAL() << "Mean image col count do not match! " << std::endl;
-          throw larbys();
-        }
-      }
-    }
-    // Make sure min/max adc vector size makes sense
-    if(_min_adc_v.size() && _min_adc_v.size() != _slice_v.size()) {
-      LARCV_CRITICAL() << "Min adc array dimension do not match with channel size!" << std::endl;
-      throw larbys();      
-    }
-    if(_max_adc_v.size() && _max_adc_v.size() != _slice_v.size()) {
-      LARCV_CRITICAL() << "Max adc array dimension do not match with channel size!" << std::endl;
-      throw larbys();      
-    }
     // Define caffe idx to Image2D idx (assuming no crop)
     _caffe_idx_to_img_idx.resize(_rows*_cols,0);
     _mirror_caffe_idx_to_img_idx.resize(_rows*_cols,0);
@@ -141,10 +138,12 @@ namespace larcv {
     for(size_t row=0; row<_rows; ++row) {
       for(size_t col=0; col<_cols; ++col) {
         _caffe_idx_to_img_idx[caffe_idx] = col*_rows + row;
-	_mirror_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + row;
+        _mirror_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + row;
         ++caffe_idx;
       }
     }
+
+    return (_rows * _cols * _num_channels);
   }
 
   void SimpleFiller::assert_dimension(const std::vector<larcv::Image2D>& image_v)
@@ -157,13 +156,13 @@ namespace larcv {
     bool valid_rows = true;
     for(auto const& img : image_v) {
       if ( !_crop_image )
-	valid_rows = ( _rows == img.meta().rows() );
+        valid_rows = ( _rows == img.meta().rows() );
       if(!valid_rows) break;
     }
     bool valid_cols = true;
     for(auto const& img : image_v) {
       if ( !_crop_image )
-	valid_cols = ( _cols == img.meta().cols() );
+        valid_cols = ( _cols == img.meta().cols() );
       if(!valid_cols) break;
     }
     if(!valid_rows) {
@@ -176,26 +175,21 @@ namespace larcv {
     }
     if(!valid_ch) {
       LARCV_CRITICAL() << "# of channels have changed in the input image! Image vs. MaxCh ("
-		       << image_v.size() << " vs. " << _max_ch << ")" << std::endl;
+      << image_v.size() << " vs. " << _max_ch << ")" << std::endl;
       throw larbys();
     }
   }
 
-  void SimpleFiller::fill_entry_data( const std::vector<larcv::Image2D>& image_v,
-                                      const std::vector<larcv::ROI>& roi_v)
+  void SimpleFiller::fill_entry_data( const EventBase* image_data, const EventBase* label_data)
   {
+    auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
     this->assert_dimension(image_v);
-    const size_t batch_size = _rows * _cols * _num_channels;
-    if(_entry_data.empty()) _entry_data.resize(batch_size,0.);
-    for(auto& v : _entry_data) v = 0.;
 
-    auto const& mean_image_v = mean_image();
-    auto const& mean_adc_v = mean_adc();
-    bool use_mean_image = !(mean_image_v.empty());
+    if(_entry_image_data.empty()) _entry_image_data.resize(entry_image_size(),0.);
+    for(auto& v : _entry_image_data) v = 0.;
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> gaus(_adc_gaus_mean,_adc_gaus_sigma);
     std::uniform_int_distribution<> irand(0,1);
     bool mirror_image = false;
     if(_mirror_image && irand(gen)) {
@@ -204,102 +198,38 @@ namespace larcv {
     }
     else { _mirrored.push_back(false); }
 
-    const bool apply_smearing = _adc_gaus_sigma > 0.;
-
-    // the same cropping position is used across channels
-    int row_offset = 0;
-    int col_offset = 0;
-    int img_rows = 0;
-    int img_cols = 0;
-    if ( _crop_image ) {
-
-      int coldiff = std::max(0,(int)(image_v.front().meta().cols()-_crop_cols));
-      int rowdiff = std::max(0,(int)(image_v.front().meta().rows()-_crop_rows));
-
-      if ( _randomize_crop ) {
-	if ( coldiff>0 ) {
-	  std::uniform_int_distribution<> irand_col(0,coldiff);
-	  col_offset = irand_col(gen);
-	}
-
-	if ( rowdiff>0 ) {
-	  std::uniform_int_distribution<> irand_row(0,rowdiff);
-	  row_offset = irand_row(gen);
-	}
-      }
-      else {
-	if ( coldiff>0 ) col_offset = (int)coldiff/2;
-	if ( rowdiff>0 ) row_offset = (int)rowdiff/2;
-      }
-      //LARCV_DEBUG() << "Cropping. col offset=" << col_offset << " row offset=" << row_offset << std::endl;
-      img_rows = image_v.front().meta().rows();
-      img_cols = image_v.front().meta().cols();
-    }
-
     for(size_t ch=0;ch<_num_channels;++ch) {
 
         size_t input_ch = _slice_v[ch];
 
-        float mult_factor = 1.;
-	if(apply_smearing)
-	  mult_factor = (float)(gaus(gen));
+        auto const& input_img2d = image_v[input_ch];
 
-        auto& input_img = image_v[input_ch].as_vector();
-        auto const& min_adc = _min_adc_v[ch];
-        auto const& max_adc = _max_adc_v[ch];
+        if(_crop_image) _cropper.set_crop_region(input_img2d.meta().rows(), input_img2d.meta().cols());
+
+        auto const& input_image = (_crop_image ? _cropper.crop(input_img2d) : input_img2d.as_vector());
+
         size_t caffe_idx=0;
         size_t output_idx = ch * _rows * _cols;
-        float val=0;
-        if(use_mean_image) {
-          auto const& mean_img = mean_image_v[input_ch].as_vector();
-	  // col,row in output image coordinates
-	  for(size_t row=0; row<_rows; ++row) {
-	    for(size_t col=0; col<_cols; ++col) {
-	      size_t input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]); // passing value. bad?
-	      if ( _crop_image ) {
-		// the above indexing doesn't apply when cropping
-		if ( !mirror_image )
-		  input_idx = (col+col_offset)*img_rows + (row+row_offset);
-		else
-		  input_idx = (img_cols-(col+col_offset)-1)*img_rows + (row+row_offset);
-	      }
-	      val = input_img[input_idx];
-	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
-	      val -= mean_img[input_idx];
-	      if( val < min_adc ) val = 0.;
-	      if( val > max_adc ) val = max_adc;
-	      _entry_data[output_idx] = val;
-	      ++output_idx;
-	      ++caffe_idx;
-            }
-          }
-        }else{
-          auto const& mean_adc = mean_adc_v[ch];
-	  for(size_t row=0; row<_rows; ++row) {
-	    for(size_t col=0; col<_cols; ++col) {
-	      //auto const& input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
-	      size_t input_idx = (mirror_image ? _mirror_caffe_idx_to_img_idx[caffe_idx] : _caffe_idx_to_img_idx[caffe_idx]);
-	      if ( _crop_image ) {
-		// the above indexing doesn't apply when cropping
-		if ( !mirror_image )
-		  input_idx = (col+col_offset)*img_rows + (row+row_offset);
-		else
-		  input_idx = (img_cols-(col+col_offset)-1)*img_rows + (row+row_offset);
-	      }
-	      val = input_img[input_idx];
-	      if(apply_smearing) val *= (_adc_gaus_pixelwise ? gaus(gen) : mult_factor);
-	      val -= mean_adc;
-	      if( val < min_adc ) val = 0.;
-	      if( val > max_adc ) val = max_adc;
-	      _entry_data[output_idx] = val;
-	      ++output_idx;
-	      ++caffe_idx;
-            }
-          }          
+
+        for(size_t row=0; row<_rows; ++row) {
+          for(size_t col=0; col<_cols; ++col) {
+          
+            if(mirror_image)
+
+              _entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
+
+            else
+
+              _entry_image_data[output_idx] = input_image[_caffe_idx_to_img_idx[caffe_idx]];
+
+            ++output_idx;
+            ++caffe_idx;
         }
+      }
     }
 
     // labels
+    auto const& roi_v = ((EventROI*)label_data)->ROIArray();
     ROIType_t roi_type = kROICosmic;
     for(auto const& roi : roi_v) {
       if(roi.MCSTIndex() != kINVALID_USHORT) continue;
@@ -317,7 +247,9 @@ namespace larcv {
       throw larbys();
     }
 
-    _label = (float)(_roitype_to_class[roi_type]);
+    _entry_label_data.resize(1);
+    _entry_label_data[0] = (float)(_roitype_to_class[roi_type]);
+
   }
    
 }
