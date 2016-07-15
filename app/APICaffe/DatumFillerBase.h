@@ -45,14 +45,16 @@ namespace larcv {
 
     bool is(const std::string& question) const;
 
-    size_t rows() const { return _rows; }
-    size_t cols() const { return _cols; }
-    size_t channels() const { return _num_channels; }
+    size_t entries() const { return _nentries; }
 
-    const std::vector<larcv::Image2D>& mean_image() const { return _mean_image_v; }
-    const std::vector<float>& mean_adc()            const { return _mean_adc_v;   }
-    const std::vector<float>& data()                const { return _data;         }
-    const std::vector<float>& labels()              const { return _labels;       }
+    const std::vector<float>& data(bool image=true) const
+    { return (image ? _image_data : _label_data); }
+
+    virtual const std::vector<int> dim(bool image=true) const = 0;
+
+    size_t entry_image_size() const { return _entry_image_size; }
+
+    size_t entry_label_size() const { return _entry_label_size; }
 
     virtual void child_configure(const PSet&) = 0;
 
@@ -66,31 +68,37 @@ namespace larcv {
 
   protected:
 
-    virtual void set_dimension(const std::vector<larcv::Image2D>&) = 0;
-    virtual void fill_entry_data(const std::vector<larcv::Image2D>&,const std::vector<larcv::ROI>&) = 0;
-    const std::vector<float>& entry_data() const { return _entry_data; }
-    std::vector<float> _entry_data;
+    virtual void fill_entry_data (const larcv::EventBase* image, const larcv::EventBase* label) = 0;
 
-    size_t _nentries;
-    size_t _num_channels;
-    size_t _rows;
-    size_t _cols;
-    float  _label;
+    virtual size_t compute_image_size(const larcv::EventBase* image) = 0;
+
+    virtual size_t compute_label_size(const larcv::EventBase* image) = 0;
+
+    const std::vector<float>& entry_data(bool image=true) const 
+    { return (image ? _entry_image_data : _entry_label_data); }
+
+    std::vector<float> _entry_image_data;
+    std::vector<float> _entry_label_data;
+    ProductType_t _image_product_type;
+    ProductType_t _label_product_type;
 
   private:
+
     void batch_begin();
+
     void batch_end();
+
+    size_t _nentries;
     
     std::string _image_producer;
-    std::string _roi_producer;
-    std::vector<float> _data;
-    std::vector<float> _labels;
+    std::string _label_producer;
     ProducerID_t _image_producer_id;
-    ProducerID_t _roi_producer_id;
+    ProducerID_t _label_producer_id;
+    std::vector<float> _image_data;
+    std::vector<float> _label_data;
     size_t _current_entry;
-    size_t _entry_data_size;
-    std::vector<larcv::Image2D> _mean_image_v;
-    std::vector<float> _mean_adc_v;
+    size_t _entry_image_size;
+    size_t _entry_label_size;
   };
 
 }

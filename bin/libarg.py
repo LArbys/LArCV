@@ -8,6 +8,9 @@ for d in os.listdir(os.environ['LARCV_BUILDDIR']):
 #dirs=[x.replace('-lLArCV','') for x in commands.getoutput('larcvapp-config --libs').split() if x.startswith('-lLArCV')]
 libs=[x for x in commands.getoutput('larcvapp-config --libs').split() if not x.startswith('-lLArCV')]
 libs+= commands.getoutput('root-config --libs').split()
+if 'LARLITE_BASEDIR' in os.environ:
+    libs+= commands.getoutput('larlite-config --libs').split()
+    
 objs_list=[]
 dict_list=[]
 for l in dirs:
