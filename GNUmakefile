@@ -43,7 +43,7 @@ obj:
 
 lib: obj
 	@ echo
-	@ if [[ `python $(LARCV_BASEDIR)/bin/libarg.py` ]]; then \
+	@ if [ `python ${LARCV_BASEDIR}/bin/libarg.py build` ]; then \
 	    echo Linking library...; \
 	    $(SOMAKER) $(SOFLAGS) $(shell python $(LARCV_BASEDIR)/bin/libarg.py); \
 	  else \

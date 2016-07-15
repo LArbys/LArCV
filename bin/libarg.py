@@ -57,5 +57,6 @@ for d in dict_list:
 for l in libs:
     cmd += '%s ' % l
 
-print cmd
+if 'build' in sys.argv: print 1
+else: print cmd
 sys.exit(1)
