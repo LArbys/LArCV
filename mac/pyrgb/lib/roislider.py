@@ -12,10 +12,14 @@ class ROISlider(pg.ROI):
 
         # add the toggles to the edge of the ROI slider
         if allow_resize == True:
-            self.addScaleHandle([0.0, 0.0], [0.5, 0.5])
-            self.addScaleHandle([0.0, 1.0], [0.5, 0.5])
-            self.addScaleHandle([1.0, 1.0], [0.5, 0.5])
-            self.addScaleHandle([1.0, 0.0], [0.5, 0.5])
+            #self.addScaleHandle([0.0, 0.0], [0.5, 0.5])
+            #self.addScaleHandle([0.0, 1.0], [0.5, 0.5])
+            #self.addScaleHandle([1.0, 1.0], [0.5, 0.5])
+            #self.addScaleHandle([1.0, 0.0], [0.5, 0.5])
+            self.addScaleHandle([0.0, 0.0], [1.0, 1.0])
+            self.addScaleHandle([0.0, 1.0], [1.0, 0.0])
+            self.addScaleHandle([1.0, 1.0], [0.0, 0.0])
+            self.addScaleHandle([1.0, 0.0], [0.0, 1.0])
 
     
 class ROISliderGroup:
