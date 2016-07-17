@@ -29,7 +29,7 @@ Data format and image processing tools, routines, and framework for LAr TPC-deri
 2. go into the LArCV directory
 3. run the build configuration script
 
-      source setup.sh
+      source configure.sh
       
 4. build
 
