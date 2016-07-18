@@ -124,6 +124,8 @@ namespace larcv {
 
 			auto ptr = _driver.process_ptr(id);
 
+			LARCV_INFO() << "Process " << process_name << " = DatumFiller: " << ptr->is("DatumFiller") << std::endl;
+
 			if(ptr->is("DatumFiller")) {
 				if(datum_filler_id != kINVALID_SIZE) {
 					LARCV_CRITICAL() << "Duplicate DatumFillers: id=" << datum_filler_id

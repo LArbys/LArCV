@@ -43,7 +43,8 @@ namespace larcv {
 
     void finalize();
 
-    bool is(const std::string& question) const;
+    virtual bool is(const std::string question) const
+    { return (question == "DatumFiller"); }
 
     size_t entries() const { return _nentries; }
 

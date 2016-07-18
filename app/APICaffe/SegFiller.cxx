@@ -28,6 +28,18 @@ namespace larcv {
     _crop_image     = cfg.get<bool>("EnableCrop",false);
     if(_crop_image)
       _cropper.configure(cfg);
+    auto type_def = cfg.get<std::vector<unsigned short> >("ClassTypeDef");
+    if(type_def.size() != kROITypeMax) {
+      LARCV_CRITICAL() << "ClassTypeDef length is " << type_def.size() 
+		       << " but it needs to be length kROITypeMax (" << kROITypeMax << ")!" << std::endl;
+      throw larbys();
+    }
+    for(auto const& v : type_def) {
+      if(v >= kROITypeMax) {
+	LARCV_CRITICAL() << "ClassTypeDef contains invalid value (" << v << ") for ROIType_t!" << std::endl;
+	throw larbys();
+      }
+    }
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
     if(type_to_class.empty()) {
       LARCV_CRITICAL() << "ClassTypeList needed to define classes!" << std::endl;
@@ -43,6 +55,10 @@ namespace larcv {
         throw larbys();
       }
       _roitype_to_class[type] = i+1;
+    }
+    for(size_t i=0; i<_roitype_to_class.size(); ++i) {
+      if(_roitype_to_class[i] != kINVALID_SIZE) continue;
+      _roitype_to_class[i] = _roitype_to_class[type_def[i]];
     }
   }
 
@@ -179,6 +195,7 @@ namespace larcv {
 
   void SegFiller::fill_entry_data( const EventBase* image_data, const EventBase* label_data)
   {
+    LARCV_DEBUG() << "Start" << std::endl;
     auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
     this->assert_dimension(image_v);
 
@@ -188,7 +205,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Segmentation image channel (" << _seg_channel << ") does not exist in data!" << std::endl;
       throw larbys();
     }
-
+    
     if(_entry_image_data.empty()) _entry_image_data.resize(entry_image_size(),0.);
     for(auto& v : _entry_image_data) v = 0.;
 
@@ -202,23 +219,32 @@ namespace larcv {
     if(_mirror_image && irand(gen)) {
       _mirrored.push_back(true);
       mirror_image = true;
+      LARCV_INFO() << "Mirroring the image..." << std::endl;
     }
     else { _mirrored.push_back(false); }
 
     for(size_t ch=0;ch<_num_channels;++ch) {
-
+        
         size_t input_ch = _slice_v[ch];
+
+	LARCV_INFO() << "Filling for an image channel " << input_ch << std::endl;
 
         auto const& input_img2d = image_v[input_ch];
 
-        if(!ch && _crop_image)
+        if(!ch && _crop_image) {
+
+	  LARCV_INFO() << "First image: setting cropping region (" 
+		       << _cropper.rows() << "x" << _cropper.cols() << std::endl;
           _cropper.set_crop_region(input_img2d.meta().rows(), input_img2d.meta().cols());
 
+	}
+
         auto const& input_image = (_crop_image ? _cropper.crop(input_img2d) : input_img2d.as_vector());
+	LARCV_INFO() << "Input image size: " << input_image.size() << " pixels" << std::endl;
 
         size_t caffe_idx=0;
         size_t output_idx = ch * _rows * _cols;
-
+	LARCV_INFO() << "Start filling image from output data index " << output_idx << " for " << _rows * _cols << " pixels" << std::endl;
         for(size_t row=0; row<_rows; ++row) {
           for(size_t col=0; col<_cols; ++col) {
           
@@ -237,16 +263,20 @@ namespace larcv {
     }
 
     // Label
+    LARCV_INFO() << "Filling for a label channel " 
+		 << _seg_channel << " (input length " << label_v.size() << ")" << std::endl;
     auto const& input_lbl2d = label_v[_seg_channel];
+
     auto const& input_label = (_crop_image ? _cropper.crop(input_lbl2d) : input_lbl2d.as_vector());
+    LARCV_INFO() << "Input image size: " << input_label.size() << " pixels" << std::endl;
 
     size_t caffe_idx=0;
-    size_t output_idx = _rows * _cols;
+    size_t output_idx = 0;
     float label_value = kINVALID_SIZE;
+    LARCV_INFO() << "Start filling label from output data index " << output_idx << " for " << _rows * _cols << " pixels" << std::endl;
 
     for(size_t row=0; row<_rows; ++row) {
       for(size_t col=0; col<_cols; ++col) {
-
 
         if(mirror_image)
 
@@ -268,7 +298,7 @@ namespace larcv {
         ++caffe_idx;
       }
     }
-
+    LARCV_DEBUG() << "End" << std::endl;
   }
    
 }

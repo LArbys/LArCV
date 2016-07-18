@@ -46,8 +46,7 @@ namespace larcv {
 
     virtual void finalize() = 0;
 
-    virtual bool is(const std::string& question) const
-    { return !(question.empty()); }
+    virtual bool is(const std::string question) const;
 
     bool event_creator() const
     { return _event_creator; }

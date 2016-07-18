@@ -11,9 +11,6 @@ namespace larcv {
     , _image_producer_id(kINVALID_PRODUCER)
     , _label_producer_id(kINVALID_PRODUCER)
   {}
-    
-  bool DatumFillerBase::is(const std::string& question) const
-  { return (question == "DatumFiller"); }
 
   void DatumFillerBase::configure(const PSet& cfg)
   {
