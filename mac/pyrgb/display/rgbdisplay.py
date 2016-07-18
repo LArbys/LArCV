@@ -263,7 +263,12 @@ class RGBDisplay(QtGui.QWidget):
 
         # OpenCV Widgets
         # wrapper for the opencv specific window
-        self.cv2_layout = CV2Layout()
+        try:
+            self.cv2_layout = CV2Layout()
+        except:
+            print "no CV2"
+            self.cv2_layout = None
+            pass
         self.cv2_enabled = False
 
         # ROITool
@@ -297,6 +302,9 @@ class RGBDisplay(QtGui.QWidget):
 
     # opencv editor, if/els statement is for opening and closing the pane
     def openCVEditor(self):
+        if self.cv2_layout is None:
+            return
+
         if re.search("Disable", self.rgbcv2.text()) is None:
             self.rgbcv2.setText("Disable OpenCV")
             self.resize(1200, 900)
@@ -538,7 +546,7 @@ class RGBDisplay(QtGui.QWidget):
     def regionChanged(self):
 
         # the boxed changed but we don't intend to transform the image
-        if self.cv2_layout.transform == False:
+        if self.cv2_layout is not None and self.cv2_layout.transform == False:
             return
 
         # the box has changed location, if we don't have a mask, create on
@@ -549,15 +557,16 @@ class RGBDisplay(QtGui.QWidget):
         sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
         # need mask if user doesn't want to overwrite their manipulations
-        if self.cv2_layout.overwrite == False:
+        if self.cv2_layout is not None and self.cv2_layout.overwrite == False:
             idx = np.where(self.modimage == 1)
             pcopy = self.image.orig_mat.copy()
 
         # do the manipulation
-        self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
+        if self.cv2_layout is not None:
+            self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
 
         # use mask to updated only pixels not already updated
-        if self.cv2_layout.overwrite == False:
+        if self.cv2_layout is not None and self.cv2_layout.overwrite == False:
             # reverts prev. modified pixels, preventing double change
             self.image.orig_mat[idx] = pcopy[idx]
             self.modimage[sl] = 1
