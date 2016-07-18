@@ -10,8 +10,11 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::FindEmpties+;
+#pragma link C++ class larcv::RmEmptyEvts+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 

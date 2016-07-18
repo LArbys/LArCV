@@ -11,7 +11,12 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
+INCFLAGS += $(shell larlite-config --includes)
+INCFLAGS += $(shell basictool-config --includes)
+INCFLAGS += $(shell recotool-config --includes)
 INCFLAGS += $(shell larcv-config --includes)
+
+$(info INC $(INCFLAGS))
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
@@ -21,8 +26,14 @@ OSNAMEMODE      = $(OSNAME)
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
 LDFLAGS += $(shell larcv-config --libs) 
+LDFLAGS += $(shell larlite-config --libs)
+LDFLAGS += $(shell basictool-config --libs)
+LDFLAGS += $(shell recotool-config --libs)
+
+$(info LD $(LDFLAGS))
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
 pkg_build:
 pkg_clean:
+

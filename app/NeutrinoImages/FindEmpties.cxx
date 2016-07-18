@@ -68,7 +68,6 @@ namespace larcv {
      
     }
 
-
     if(!_pixel_tree){
       _pixel_tree = new TTree("pixel_tree","pixel_tree");
       _pixel_tree->Branch( "event", &_event, "event/s" );
@@ -108,7 +107,8 @@ namespace larcv {
     auto my_event_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_name));
     auto const& img2d_v = my_event_image2d->Image2DArray();
 
-    std::cout<<"\n\nEvent number: "<<_event <<std::endl;
+    //std::cout<<"\n\nEvent number: "<<_event <<std::endl;
+    //std::cout<<std::endl ;
 
     for(size_t index=0; index < img2d_v.size(); ++index) {
       //std::cout<<"Plane : "<<index<<std::endl;
@@ -119,7 +119,7 @@ namespace larcv {
       auto const& img2d = img2d_v[index];
       auto const& pixel_array = img2d.as_vector(); 
       auto const& meta = img2d.meta() ;
-      std::cout<<"Pixel width and height :" <<meta.pixel_height() <<", "<<meta.pixel_width() <<std::endl ;
+      //std::cout<<"Pixel width and height :" <<meta.pixel_height() <<", "<<meta.pixel_width() <<std::endl ;
 
       auto img = as_mat(img2d) ; 
       ::cv::cvtColor(img, img, CV_RGB2GRAY);
@@ -205,7 +205,7 @@ namespace larcv {
           }   
 
 	if(v > 0.5 && v <=_pixel_count_threshold) _pixel_less_count++ ;
-        if(v > _pixel_count_threshold) _pixel_count++;
+        if(v > 0.5 ) _pixel_count++;
 
           }   
 
@@ -223,7 +223,7 @@ namespace larcv {
 
             if (_pixel_intens >  1){
               intens_count[int(_pixel_intens)] ++ ;
-	      std::cout<<"Row and column? "<<meta.pos_y(r)<<", "<<meta.pos_x(c) <<std::endl ;
+	      //std::cout<<"Row and column? "<<meta.pos_y(r)<<", "<<meta.pos_x(c) <<std::endl ;
 	      }
 
             if( _pixel_intens > 0.5 ){
@@ -245,12 +245,19 @@ namespace larcv {
 	  // return false ;
 
 
-         for(auto const & m : intens_count)
-           std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
+        // for(auto const & m : intens_count)
+        //   std::cout<<"Intensity "<<m.first<<" has  "<<m.second <<" entries; " <<std::endl; 
 
       //LARCV_DEBUG() << "pixel max value: " << _max_pixel << std::endl;
       _image_tree->Fill();
+
+      if ( _pixel_count == 0) 
+        std::cout<<"0 Pixels for event: "<<_event<<",  in plane :"<<index <<std::endl ;
+
+      //std::cout<<_pixel_count<<" count for event: "<<_event<<",  in plane :"<<index <<std::endl ;
+
     }
+    
 
     _event++; 
 
