@@ -19,7 +19,7 @@ namespace larcv {
   {
     _image_tree = nullptr; 
     _plane = -1; 
-    _event = 0 ; 
+    _event = -1 ; 
 
     /// From LinearEnergy algorithm in larlite ShowerReco3D
     //_caloAlg = ::calo::CalorimetryAlg();
@@ -53,6 +53,7 @@ namespace larcv {
       _image_tree->Branch( "dist_to_wall", &_dist_to_wall, "dist_to_wall/F");
       _image_tree->Branch( "e_dep", &_e_dep, "e_dep/F");
       _image_tree->Branch( "e_vis", &_e_vis, "e_vis/F");
+      _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/F");
     }
   }
 
@@ -66,12 +67,15 @@ namespace larcv {
     _dist_to_wall = -999;
     _e_dep = -999.;
     _e_vis = 0.;
+    _pixel_count = 0;
 
   }
 
   bool RmEmptyEvts::process(IOManager& mgr)
   {
 
+
+   std::cout<<"\nNEW PROCESS, "<<std::endl ;
     auto ev_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_name));
     auto ev_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_name));
     auto const& img2d_v = ev_image2d->Image2DArray();
@@ -83,9 +87,11 @@ namespace larcv {
 
     auto t2cm = geomHelper->TimeToCm();
 
-    for(size_t index=0; index < img2d_v.size(); ++index) {
+    //for(size_t index=0; index < img2d_v.size(); ++index) {
+    int index = 2;
 
-      if (index != 2) continue ;
+//      if (index != 2) continue ;
+      _event++; 
 
       reset() ;
 
@@ -97,6 +103,8 @@ namespace larcv {
       _vtx_x = roi.X();
       _vtx_y = roi.Y();
       _vtx_z = roi.Z();
+      std::cout<<"Event is : "<<_event <<", "<<_vtx_x<<", "<<_vtx_y<<", "<<_vtx_z<<std::endl ;
+
 
       const ::geoalgo::Point_t vtx(_vtx_x, _vtx_y, _vtx_z) ;
       _dist_to_wall = sqrt(GeoAlg.SqDist(tpc, vtx)) ;
@@ -108,33 +116,27 @@ namespace larcv {
 
       for(size_t i = 0; i < pixel_array.size(); i++){
         auto const & v = pixel_array[i] ;
-	if(v > 0.9 )
+	if(v > 0.9 ){
 	  _e_vis += v ;
+          _pixel_count ++ ;
+          }
            /////////////////////////////////////////////////////////////
-           // store calculated energy
-//           double E  = 0.;
-//           double dQ = 0.;
+        //   double E  = 0.;
+        //   double dQ = 0.;
         //   for (auto const &h : hits) {
-
         //     // lifetime correction
         //     double hit_tick = h.t / t2cm;
         //     double lifetimeCorr = exp( hit_tick * _timetick / _tau );
-
         //     dQ = _caloAlg.ElectronsFromADCArea(h.charge, pl);
         //     E += dQ * lifetimeCorr * _e_to_eV * _eV_to_MeV;
-
         //     }
-
-        //   E /= _recomb_factor;
-
-           // correct for plane-dependent shower reco energy calibration
+        //    E /= _recomb_factor;
            ///////////////////////////////////////////////////
 	}
 
       _image_tree->Fill();
-   }
+  // }
 
-   _event++; 
   
   return true; 
 

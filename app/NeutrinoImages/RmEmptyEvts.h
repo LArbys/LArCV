@@ -57,6 +57,7 @@ namespace larcv {
     float _dist_to_wall ;
     float _e_dep ;
     float _e_vis ;
+    float _pixel_count ;
 
     calo::CalorimetryAlg _caloAlg ;
     float _e_to_eV  ; // ionization energy of Ar in eV
