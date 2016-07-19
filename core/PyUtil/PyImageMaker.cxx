@@ -18,6 +18,13 @@ namespace larcv {
   void PyImageMaker::initialize()
   {
     _run = _subrun = _event = kINVALID_SIZE;
+    _image_v.clear();
+  }
+  
+  void PyImageMaker::append_ndarray(PyObject* img)
+  { 
+    LARCV_INFO() << "Appending an image (current size=" << _image_v.size() << ")" << std::endl;
+    _image_v.emplace_back(std::move(as_image2d(img))); 
   }
 
   bool PyImageMaker::process(IOManager& mgr)
@@ -33,6 +40,8 @@ namespace larcv {
       LARCV_CRITICAL() << "Image2D by " << _producer_name << " is not empty!" << std::endl;
       throw larbys();
     }
+
+    LARCV_INFO() << "Moving " << _image_v.size() << " images into EventImage2D..." << std::endl;
     
     image_v->Emplace(std::move(_image_v));
 

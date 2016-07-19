@@ -43,8 +43,7 @@ namespace larcv {
 
     void finalize();
 
-    void append_ndarray(PyObject* img)
-    { _image_v.emplace_back(std::move(as_image2d(img))); }
+    void append_ndarray(PyObject* img);
 
     void set_id(size_t run, size_t subrun, size_t event)
     { _run = run; _subrun = subrun; _event = event; }
