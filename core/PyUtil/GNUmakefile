@@ -23,7 +23,6 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += -L$(LARCV_LIBDIR) -lLArCVBase -lLArCVDataFormat -lLArCVProcessor
 LDFLAGS += -L$(shell python-config --prefix)/lib/
 LDFLAGS += $(shell python-config --ldflags)
 
