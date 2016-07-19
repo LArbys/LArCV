@@ -1,0 +1,58 @@
+#ifndef __PYIMAGEMAKER_CXX__
+#define __PYIMAGEMAKER_CXX__
+
+#include "PyImageMaker.h"
+#include "DataFormat/EventImage2D.h"
+
+namespace larcv {
+
+  static PyImageMakerProcessFactory __global_PyImageMakerProcessFactory__;
+
+  PyImageMaker::PyImageMaker(const std::string name)
+    : ProcessBase(name)
+  {}
+    
+  void PyImageMaker::configure(const PSet& cfg)
+  { _producer_name = cfg.get<std::string>("ImageProducer"); }
+
+  void PyImageMaker::initialize()
+  {
+    _run = _subrun = _event = kINVALID_SIZE;
+  }
+
+  bool PyImageMaker::process(IOManager& mgr)
+  {
+    auto image_v = (EventImage2D*)(mgr.get_data(kProductImage2D,_producer_name));
+
+    if(!image_v) {
+      LARCV_CRITICAL() << "Could not create Image2D with name " << _producer_name << std::endl;
+      throw larbys();
+    }
+
+    if(image_v->Image2DArray().size()) {
+      LARCV_CRITICAL() << "Image2D by " << _producer_name << " is not empty!" << std::endl;
+      throw larbys();
+    }
+    
+    image_v->Emplace(std::move(_image_v));
+
+    _image_v.clear();
+
+    auto const& id = mgr.event_id();
+    if(id.run() != kINVALID_SIZE || id.subrun() != kINVALID_SIZE || id.event() != kINVALID_SIZE) {
+      if(id.run()    != _run    ) LARCV_WARNING() << "Overwriting run number: " << id.run()    << " => " << _run    << std::endl;
+      if(id.subrun() != _subrun ) LARCV_WARNING() << "Overwriting run number: " << id.subrun() << " => " << _subrun << std::endl;
+      if(id.event()  != _event  ) LARCV_WARNING() << "Overwriting run number: " << id.event()  << " => " << _event  << std::endl;
+    }
+
+    mgr.set_id(_run,_subrun,_event);
+
+    _run = _subrun = _event = kINVALID_SIZE;
+    return true;
+  }
+
+  void PyImageMaker::finalize()
+  {}
+
+}
+#endif

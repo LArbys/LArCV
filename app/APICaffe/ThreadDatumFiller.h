@@ -64,6 +64,8 @@ namespace larcv {
 
     const std::vector<size_t>& processed_entries() const { return _batch_entries; }
 
+    const std::vector<larcv::EventBase>& processed_events() const { return _batch_events; }
+
     const std::vector<int> dim(bool image=true) const;
 
     const std::vector<float>& data() const;
@@ -85,6 +87,7 @@ namespace larcv {
     bool _enable_filter;
     size_t _num_processed;
     std::vector<size_t> _batch_entries;
+    std::vector<larcv::EventBase> _batch_events;
     std::vector<int> _dim_v;
     ProcessDriver _driver;
 
