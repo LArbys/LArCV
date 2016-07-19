@@ -39,7 +39,7 @@ namespace larcv {
       throw larbys();
     }
     _roitype_to_class.clear();
-    _ntypes = type_def.size() + 1;
+    _ntypes = type_to_class.size() + 1;
     _roitype_to_class.resize(kROITypeMax, kINVALID_SIZE);
     _roitype_to_class[larcv::kROIUnknown] = 0;
     for (size_t i = 0; i < type_to_class.size(); ++i) {

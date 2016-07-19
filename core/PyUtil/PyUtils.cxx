@@ -29,7 +29,7 @@ namespace larcv {
     SetPyUtil();
     double **carray;
     //Create C arrays from numpy objects:
-    const int dtype = NPY_DOUBLE;
+    const int dtype = NPY_FLOAT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
     npy_intp dims[3];
     if (PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr) < 0) {
@@ -38,11 +38,12 @@ namespace larcv {
     }
 
     std::vector<float> res_data(dims[0]*dims[1],0.);
-    for(size_t i=0; i<dims[0]; ++i) {
-      for(size_t j=0; j<dims[1]; ++j) {
+    for(int i=0; i<dims[0]; ++i) {
+      for(int j=0; j<dims[1]; ++j) {
 	res_data[i * dims[1] + j] = (float)(carray[i][j]);
       }
     }
+    PyArray_Free(pyarray,(void *)carray);
 
     Image2D res(std::move(meta),std::move(res_data));
     return res;
@@ -53,7 +54,7 @@ namespace larcv {
     SetPyUtil();
     double **carray;
     //Create C arrays from numpy objects:
-    const int dtype = NPY_DOUBLE;
+    const int dtype = NPY_FLOAT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
     npy_intp dims[3];
     if (PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr) < 0) {
@@ -62,12 +63,13 @@ namespace larcv {
     }
 
     std::vector<float> res_data(dims[0]*dims[1],0.);
-    for(size_t i=0; i<dims[0]; ++i) {
-      for(size_t j=0; j<dims[1]; ++j) {
+    for(int i=0; i<dims[0]; ++i) {
+      for(int j=0; j<dims[1]; ++j) {
 	res_data[i * dims[1] + j] = (float)(carray[i][j]);
       }
     }
-    
+    PyArray_Free(pyarray,(void *)carray);
+
     ImageMeta meta((double)(dims[0]), (double)(dims[1]),
 		   (size_t)(dims[1]), (size_t)(dims[0]),
 		   0., 0.,
