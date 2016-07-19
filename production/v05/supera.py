@@ -18,6 +18,12 @@ my_proc = fmwk.ana_processor()
 for x in xrange(len(sys.argv)-3):
     my_proc.add_input_file(sys.argv[x+3])
 
+# Check if output file
+if os.path.exists(sys.argv[2]):
+    print "Output file exists. Please remove first."
+    print "Specified output file: ",sys.argv[2]
+    sys.exit(-1)
+
 # Specify IO mode
 my_proc.set_io_mode(fmwk.storage_manager.kREAD)
 
