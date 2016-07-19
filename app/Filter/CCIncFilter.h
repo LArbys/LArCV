@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __MCSINGLEPARTICLEFILTER_H__
-#define __MCSINGLEPARTICLEFILTER_H__
+#ifndef __CCINCFILTER_H__
+#define __CCINCFILTER_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"

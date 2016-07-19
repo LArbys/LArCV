@@ -50,4 +50,3 @@ lib: obj
 	   echo Nothing to be done for lib...; \
 	fi
 	@echo 
-

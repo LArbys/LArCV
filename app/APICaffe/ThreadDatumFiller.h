@@ -18,6 +18,15 @@
 #include "DatumFillerBase.h"
 #include <thread>
 
+struct _object;
+typedef _object PyObject;
+
+#ifndef __CLING__
+#ifndef __CINT__
+#include <Python.h>
+#endif
+#endif
+
 namespace larcv {
   /**
      \class ThreadDatumFiller
@@ -59,6 +68,8 @@ namespace larcv {
 
     const std::vector<float>& data() const;
 
+    PyObject* data_ndarray() const;
+
     const std::vector<float>& labels() const;
     
     const ProcessDriver* pd() { return &_driver; }
@@ -68,6 +79,7 @@ namespace larcv {
     bool _batch_process_(size_t nentries);
     bool _processing;
     bool _thread_running;
+    bool _use_threading;
     bool _random_access;
     bool _configured;
     bool _enable_filter;

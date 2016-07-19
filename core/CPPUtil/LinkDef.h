@@ -10,7 +10,7 @@
 #pragma link off all functions;
 
 // Classes
-#pragma link C++ namespace larcv::RandomGaus+;
+//#pragma link C++ namespace larcv::RandomGaus+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif

@@ -10,7 +10,8 @@
 #pragma link off all functions;
 
 //#pragma link C++ class larcv::ProcessBase+;
-#pragma link C++ class larcv::ProcessDriver+;
+#pragma link C++ class larcv::ProcessBase;
+#pragma link C++ class larcv::ProcessDriver;
 #pragma link C++ class larcv::RunFilter+;
 //ADD_NEW_CLASS ... do not change this line
 

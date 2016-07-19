@@ -47,7 +47,7 @@ namespace larcv {
     std::vector<std::string> _image_producer_v;
     std::vector<size_t     > _row_compression_v;
     std::vector<size_t     > _col_compression_v;
-    std::vector<Image2D::CompressionModes_t> _mode_v;
+    std::vector<larcv::Image2D::CompressionModes_t> _mode_v;
 
   };
 

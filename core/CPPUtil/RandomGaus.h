@@ -15,9 +15,11 @@
 #ifndef __LARCVUTIL_RANDOM_GAUS_H__
 #define __LARCVUTIL_RANDOM_GAUS_H__
 
+#ifndef __CINT__
 #include <random>
-#include <cmath>
 #include <thread>
+#endif 
+#include <cmath>
 #include <vector>
 #include <exception>
 
@@ -40,7 +42,7 @@ namespace larcv {
     {}
 
     /// dtor, make sure to join generator thread
-    ~RandomGaus(){ if(_th.joinable()) _th.join(); }
+    ~RandomGaus(); 
     /// Reset gaussian parameters
     void reset(double mean, double sigma);
     /// Start thread to fill gaussian random numbers
@@ -53,7 +55,9 @@ namespace larcv {
     std::vector<float> _pool;
     double _mean;
     double _sigma;
+    #ifndef __CINT__
     std::thread _th;
+    #endif
   }; 
 }
 

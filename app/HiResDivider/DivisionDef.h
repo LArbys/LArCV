@@ -60,7 +60,7 @@ namespace larcv {
       DivisionDef() : fID(0,0,0,0,0,0,0,0) {};
       ~DivisionDef() {};
 
-      const larcv::ImageMeta& getPlaneMeta( PlaneID_t plane ) const;
+      const larcv::ImageMeta& getPlaneMeta( larcv::PlaneID_t plane ) const;
       bool isInsideDetRegion( float x, float y, float z ) const;
 
       inline bool operator<(const DivisionDef& rhs) const { return fID < rhs.fID; }
@@ -69,10 +69,10 @@ namespace larcv {
 
     protected:
 
-      void setPlaneMeta( PlaneID_t plane, int wirebounds[],int tickbounds[] );
+      void setPlaneMeta( larcv::PlaneID_t plane, int wirebounds[],int tickbounds[] );
       
       int mNPlanes;
-      std::map< PlaneID_t, larcv::ImageMeta > m_planeMeta; // key is plane id
+      std::map< larcv::PlaneID_t, larcv::ImageMeta > m_planeMeta; // key is plane id
       float fDetBounds[3][2];
 
       size_t fDivisionIDX;
