@@ -46,6 +46,7 @@ namespace larcv {
     std::string _roi_producer;
     ProductType_t _ref_type;
     std::string _ref_producer;
+    int _roi_type;
 
   };
 
