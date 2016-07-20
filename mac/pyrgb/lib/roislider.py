@@ -1,4 +1,5 @@
 from .. import pg
+import numpy as np
 
 class ROISlider(pg.ROI):
 
@@ -24,20 +25,44 @@ class ROISlider(pg.ROI):
     
 class ROISliderGroup:
 
-    def __init__(self,coords,planes,N,pencolors,allow_resize=True,func_setlabel=None):
+    def __init__(self,coords,planes,N,pencolors,allow_resize=True,func_setlabel=None,vertices=None):
+        """
+        coords: list of list.
+           outer list is planes, inner list is (x,y,w,h) or (x,y) lower left and width and height
+        pos: list of list
+           out list is also planes, inner list is (x,y) of vertex
+        """
         N = int(N)
         self.rois = []
         self.planes = planes
         self.use_same_times = False   # forces all plane ROIs to have the same time coordinates (Y-axis)
+        self.fix_vertex_to_bb = True  # forces vertex to be mid point of bbox (if we're not specifying it)
 
         # optional labels for U,V,Y: report back the positions of the boxes
         self.setROIlabel = func_setlabel
 
+        # scatter plot of vertex: default is in the center
+        self.vertexplot = pg.ScatterPlotItem(pxMode=False)
+
+        if vertices is not None:
+            print "bbox specified vertices"
+            self.pos  = np.asarray( vertices )
+            self.fix_vertex_to_bb = False
+        else:
+            print "default vertices"
+            self.pos = np.zeros( (3,2), dtype=np.float )
+
+        assert( self.pos.shape == (3,2) )
+        self.vertices   = [{'pos': self.pos[0,:], 'data': 1, 'pen':(255,0,0,255), 'symbol':'+', 'size':10},
+                           {'pos': self.pos[1,:], 'data': 1, 'pen':(0,255,0,255), 'symbol':'+', 'size':10},
+                           {'pos': self.pos[2,:], 'data': 1, 'pen':(0,0,255,255), 'symbol':'+', 'size':10}]
+        self.vertexplot.addPoints( self.vertices )
+
         for ix in self.planes:
 
             coord = coords[ix]
-            x,y,w,h = coord
-            
+            x,y,w,h = coord                
+
             roi = ROISlider([x,y], [w, h],pencolors[ix],allow_resize,ix)
 
             # can't use sigRegionChangeFinished since we encounter an infinite loop
@@ -54,11 +79,28 @@ class ROISliderGroup:
 
             self.rois.append(roi)
 
+            if self.fix_vertex_to_bb:
+                # use center of boxes
+                print "center vertex"
+                self.centerVertices()
+
+
     def useSameTimes(self):
         self.use_same_times = True
 
     def useDifferentTimes(self):
         self.use_same_times = False
+
+    def centerVertices(self):
+        for ix,roi in enumerate(self.rois):
+            roipos = roi.pos()
+            roish  = roi.size()
+            # use center of boxes
+            vx1 = roipos[0]+0.5*roish[0]
+            vx2 = roipos[1]+0.5*roish[1]
+            self.vertices[ix]["pos"][0] = vx1
+            self.vertices[ix]["pos"][1] = vx2
+        self.vertexplot.setData( self.vertices )
             
     def resizeROI(self):
         if not self.use_same_times:
@@ -83,12 +125,21 @@ class ROISliderGroup:
                 roi.setSize( [s[0], sender_shape[1] ], finish=False, update=False )
                 #print roi.pos(),
             #print
+        # setting vertex position
+        if self.fix_vertex_to_bb:
+            self.centerVertices()
     
     def reportPositions(self):
         # this is a function pointer to the owner ROIToolkit class. 
         if self.setROIlabel is not None:
             self.setROIlabel( self.rois )
                 
-                
+    def setVertex(self,plane, pos):
+        # if called, that means user wishes to set vertex position
+        self.fix_vertex_to_bb = False
+        self.vertices[plane]["pos"][plane][0] = pos[0]
+        self.vertices[plane]["pos"][plane][1] = pos[1]
+        self.vertexplot.setData( self.vertices )
+
     # no real need yet for __iter__ and next()
                 

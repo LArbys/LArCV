@@ -282,6 +282,9 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.toggleSameROItime()
 
+        print "draw makers",roisg.vertexplot
+        self.plt.addItem( roisg.vertexplot )
+
     def removeROI(self) :
         for roi in self.rois[-1].rois:
             self.plt.removeItem(roi)
@@ -331,9 +334,13 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.rois = self.user_rois[event]
 
         for roisg in self.rois:
+            # add bboxes for the planes
             for roi in roisg.rois:
                 #print type(roi),roi
                 self.plt.addItem(roi)
+            # add vertex markers
+            print "draw makers",roisg.vertexplot
+            self.plt.addItem( roisg.vertexplot )
     
     # add widgets to self and return 
     def grid(self, enable):
