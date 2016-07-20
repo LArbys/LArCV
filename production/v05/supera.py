@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys
+import sys,os
 
 if len(sys.argv) < 4:
     msg  = '\n'
