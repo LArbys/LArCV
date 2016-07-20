@@ -293,7 +293,7 @@ class RGBDisplay(QtGui.QWidget):
     def openROITool(self):
         if re.search("Disable", self.rgbroi.text()) is None:
             self.rgbroi.setText("Disable ROITool")
-            self.resize(1200, 900)
+            self.resize(1200, 1000)
             self.layout.addLayout(self.roitool_layout.grid(True), 5, 0)
         else:
             self.rgbroi.setText("Enable ROITool")
@@ -387,8 +387,8 @@ class RGBDisplay(QtGui.QWidget):
 
         xticks, yticks = self.get_ticks()
 
-        self.plt_y.setTicks(yticks)
-        self.plt_x.setTicks(xticks)
+        #self.plt_y.setTicks(yticks)
+        #self.plt_x.setTicks(xticks)
 
         self.plt.autoRange()
         self.setRunInfo(self.dm.run,
@@ -458,6 +458,8 @@ class RGBDisplay(QtGui.QWidget):
         # Add image
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
+        self.roitool_layout.plt = self.plt
+        self.roitool_layout.imi = self.imi
 
         # From QT, the threshold
         event = int(self.event.text())
@@ -762,3 +764,5 @@ class RGBDisplay(QtGui.QWidget):
                 pass
             self.setImage( self.pimg )
 
+    def plotClicked(self):
+        print "plot clicked"

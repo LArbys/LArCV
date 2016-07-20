@@ -5,6 +5,7 @@ from ..lib import storage as store
 from ..lib.iomanager import IOManager
 from .. import larcv
 import os
+from crosshairs import CrossHairs
 
 class ROIToolLayout(QtGui.QGridLayout):
 
@@ -117,6 +118,15 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.toggleSameROItime()
 
         self.checked_planes = []
+
+        # ugly, but vertex setting buttons
+        self.set_uvertex = QtGui.QPushButton("set U vertex")
+        self.set_vvertex = QtGui.QPushButton("set V vertex")
+        self.set_yvertex = QtGui.QPushButton("set Y vertex")
+        self.set_uvertex.clicked.connect( self.enableUCrossHairs )
+        self.set_vvertex.clicked.connect( self.enableVCrossHairs )
+        self.set_yvertex.clicked.connect( self.enableYCrossHairs )
+        self.crosshairs = None # going to be a list of cross hairs
         
     def storeROI(self):
 
@@ -285,6 +295,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         print "draw makers",roisg.vertexplot
         self.plt.addItem( roisg.vertexplot )
 
+
     def removeROI(self) :
         for roi in self.rois[-1].rois:
             self.plt.removeItem(roi)
@@ -397,6 +408,11 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             # positions
             self.addWidget(self.uplane_pos, 0, 1, 1, 4 ) # i don't know where to put this. maybe add text to image? remove it?
+
+            # vertex buttons
+            self.addWidget( self.set_uvertex, 4, 0 )
+            self.addWidget( self.set_vvertex, 4, 1 )
+            self.addWidget( self.set_yvertex, 4, 2 )
 
         else:
 
@@ -557,3 +573,26 @@ class ROIToolLayout(QtGui.QGridLayout):
             except:
                 pass
 
+    def enablePlaneCrossHairs(self,plane):
+        print "Enable plane=",plane," cross hairs for vertex selection."
+        print "image pointer in roitool: ",self.plt,self.crosshairs
+        if self.crosshairs is None and self.plt is not None and self.imi is not None:
+            print "create cross hairs"
+            self.crosshairs = [ CrossHairs(self,self.plt,self.imi,x) for x in range(0,3) ]
+        if self.crosshairs is not None:
+            print "add cross hairs to image"
+            self.crosshairs[plane].active = True
+            self.plt.addItem( self.crosshairs[plane].vLine,  ignoreBounds=True )
+            self.plt.addItem( self.crosshairs[plane].hLine,  ignoreBounds=True )
+            #self.plt.addItem( self.crosshairs[plane].label )
+
+    def enableUCrossHairs(self):
+        self.set_uvertex.setEnabled(False)
+        self.enablePlaneCrossHairs(0)
+    def enableVCrossHairs(self):
+        self.set_vvertex.setEnabled(False)
+        self.enablePlaneCrossHairs(1)
+    def enableYCrossHairs(self):
+        self.set_yvertex.setEnabled(False)
+        self.enablePlaneCrossHairs(2)
+    
