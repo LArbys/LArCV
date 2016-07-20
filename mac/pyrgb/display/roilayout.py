@@ -4,6 +4,7 @@ from ..lib.roislider import ROISliderGroup
 from ..lib import storage as store
 from ..lib.iomanager import IOManager
 from .. import larcv
+import os
 
 class ROIToolLayout(QtGui.QGridLayout):
 
@@ -108,6 +109,9 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.user_rois_src_rse = {} # stores run,subrun,event
         self.user_rois_previous_rse = [] # tracks rse that already have
 
+        # imported ROI: provided by load files
+        #self.imported_larcv_rois = {} # dictionary with key of (run,subrun,event) and value of larcv::ROI
+        self.imported_rse_dict = {} # dictionary with key of (run,subrun,event) and index
 
         # set state of roi behavior
         self.toggleSameROItime()
@@ -191,17 +195,34 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.input_roi_producer.setText("None")
             self.input_prod = None
         else:
-            self.in_iom = IOManager([input_],None,0)
-            self.in_iom.set_verbosity(0)
+            if os.path.exists( input_ ):
+                self.in_iom = IOManager([input_],None,0)
+                self.in_iom.set_verbosity(2)
+                # load up rois
+                idx = 0
+                for in_entry in range(0,self.in_iom.get_n_entries()):
+                    self.in_iom.read_entry(in_entry)
+                    event_rois = self.in_iom.get_data( larcv.kProductROI, self.input_prod )
+                    rse = ( event_rois.run(), event_rois.subrun(), event_rois.event() )
+                    self.imported_rse_dict[rse] = idx
+                    idx += 1
+                print "Number of events with ROIs: ",len(self.imported_rse_dict)
+            else:
+                print "Could not find input file: ",input_
+                return
 
-        # No ROOT file in the output, return and complain
-        if ".root" not in output_:
-            self.output_roi.setText("No valid output ROOT file!")
-            self.output_roi_producer.setText("Give output ROI producer!")
-            self.output_prod = None
+
+        if self.ou_iom is None:
+            # No ROOT file in the output, return and complain
+            if ".root" not in output_:
+                self.output_roi.setText("No valid output ROOT file!")
+                self.output_roi_producer.setText("Give output ROI producer!")
+                self.output_prod = None
+            else:
+                self.ou_iom = IOManager([],output_,1)
+                self.ou_iom.set_verbosity(0)
         else:
-            self.ou_iom = IOManager([],output_,1)
-            self.ou_iom.set_verbosity(0)
+            print "Already loaded output file."
     
     def captureROI(self):
 
@@ -289,24 +310,24 @@ class ROIToolLayout(QtGui.QGridLayout):
         event = int(self.event.text())
         
         #print "processing event: ",event," and self.user_rois.keys():",self.user_rois.keys()
-        
+
+        # Get (run,subrun,event) if we can
+        rse = ( self.dm.run, self.dm.subrun, self.dm.event )
+
+        # If no user ROIs, look through imported ROIs
         if event not in self.user_rois.keys():
 
-            if self.in_iom is not None:
-                if event < self.in_iom.get_n_entries():
-                    self.in_iom.read_entry(event)
-                    roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                    self.user_rois_larcv[event] = [roi for roi in roiarray.ROIArray()]
-
-                    print "reloading ",self.user_rois_larcv[event]," from file"
-                    
-                    self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])
-                else:
-                    return
-
+            if rse in self.imported_rse_dict:
+                idx = self.imported_rse_dict[rse]
+                self.in_iom.read_entry(idx)  
+                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
+                self.user_rois_larcv[event] = [roi for roi in roiarray.ROIArray()]
+                print "reloading ",self.user_rois_larcv[event]," from file"
+                self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])  
             else:
                 return
             
+        # set to active rois
         self.rois = self.user_rois[event]
 
         for roisg in self.rois:
