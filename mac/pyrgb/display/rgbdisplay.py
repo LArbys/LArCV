@@ -28,6 +28,8 @@ try:
 except:
     pass
 
+from roilayout import ROIToolLayout
+
 import pyqtgraph.exporters
 
 class RGBDisplay(QtGui.QWidget):
@@ -63,21 +65,47 @@ class RGBDisplay(QtGui.QWidget):
         # Layouts
         self.lay_inputs = QtGui.QGridLayout()
         self.layout.addLayout(self.lay_inputs, 2, 0)
+        
+        
+        # -------------------------------------------------------
+        # erez - July-21, 2016
+        # -------------------------------------------------------
+        # Navigation - run / sub / event from run-info
+        self.run = QtGui.QLineEdit("%d" % 5187)      # run
+        self.lay_inputs.addWidget(QtGui.QLabel("run"), 0, 0)
+        self.lay_inputs.addWidget(self.run, 0, 1)
+        
+        self.subrun = QtGui.QLineEdit("%d" % 96)      # subrun
+        self.lay_inputs.addWidget(QtGui.QLabel("subrun"), 1, 0)
+        self.lay_inputs.addWidget(self.subrun, 1, 1)
+       
+        self.event_num = QtGui.QLineEdit("%d" % 4812)      # event
+        self.lay_inputs.addWidget(QtGui.QLabel("event"), 2, 0)
+        self.lay_inputs.addWidget(self.event_num, 2, 1)
 
-        # Navigation
-        self.event = QtGui.QLineEdit("%d" % 0)      # event number
-        self.lay_inputs.addWidget(QtGui.QLabel("Entry"), 0, 0)
-        self.lay_inputs.addWidget(self.event, 0, 1)
+
+        # select choice option
+        self.go_rse_plot = QtGui.QPushButton("Go R/S/E")
+        self.lay_inputs.addWidget(self.go_rse_plot, 0, 2)
+        # -------------------------------------------------------
+        
+        
+        
+        
+        # Navigation between entries
+        self.event = QtGui.QLineEdit("%d" % 0)      # entries number
+        self.lay_inputs.addWidget(QtGui.QLabel("entry"), 3, 0)
+        self.lay_inputs.addWidget(self.event, 3, 1)
 
         ### imin -- threshold
         self.imin = QtGui.QLineEdit("%d" % (5))
-        self.lay_inputs.addWidget(QtGui.QLabel("imin"), 1, 0)
-        self.lay_inputs.addWidget(self.imin, 1, 1)
+        self.lay_inputs.addWidget(QtGui.QLabel("imin"), 4, 0)
+        self.lay_inputs.addWidget(self.imin, 4, 1)
 
         ### imax -- threshold
         self.imax = QtGui.QLineEdit("%d" % (400))
-        self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
-        self.lay_inputs.addWidget(self.imax, 2, 1)
+        self.lay_inputs.addWidget(QtGui.QLabel("imax"), 5, 0)
+        self.lay_inputs.addWidget(self.imax, 5, 1)
 
         # False color mode
         self.use_false_color = QtGui.QCheckBox("Use False Color")
@@ -93,14 +121,16 @@ class RGBDisplay(QtGui.QWidget):
         self.false_color_widget.hide()
 
         # select choice options
+
+
         self.axis_plot = QtGui.QPushButton("Replot")
-        self.lay_inputs.addWidget(self.axis_plot, 2, 2)
+        self.lay_inputs.addWidget(self.axis_plot, 3, 2)
 
         self.previous_plot = QtGui.QPushButton("Prev Event")
-        self.lay_inputs.addWidget(self.previous_plot, 1, 2)
+        self.lay_inputs.addWidget(self.previous_plot, 2, 2)
 
         self.next_plot = QtGui.QPushButton("Next Event")
-        self.lay_inputs.addWidget(self.next_plot, 0, 2)
+        self.lay_inputs.addWidget(self.next_plot, 1, 2)
 
         # particle types
         # BNB
@@ -175,7 +205,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget(self.auto_range, 0, 8)
+        self.lay_inputs.addWidget(self.auto_range, 0, 9)
         
         # Save image
         self.savecounter = int(0)
@@ -191,6 +221,8 @@ class RGBDisplay(QtGui.QWidget):
         # RGBCaffe will open and close bottom of the window
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcv2 = QtGui.QPushButton("Enable OpenCV")
+        self.rgbroi = QtGui.QPushButton("Enable ROITool")
+        
         try:
             import cv2
         except:
@@ -199,10 +231,12 @@ class RGBDisplay(QtGui.QWidget):
 
         self.rgbcaffe.setFixedWidth(130)
         self.rgbcv2.setFixedWidth(130)
+        self.rgbroi.setFixedWidth(130)
 
-        self.lay_inputs.addWidget(self.rgbcaffe, 1, 8)
-        self.lay_inputs.addWidget(self.rgbcv2, 2, 8)
-
+        self.lay_inputs.addWidget(self.rgbcaffe, 0, 8)
+        self.lay_inputs.addWidget(self.rgbcv2, 1, 8)
+        self.lay_inputs.addWidget(self.rgbroi, 2, 8)
+        
         # Particle types
         self.kTypes = {'kBNB':   (self.kBNB, [2]),
                        'kOTHER': (self.kOTHER, [i for i in xrange(10) if i != 2]),
@@ -217,6 +251,7 @@ class RGBDisplay(QtGui.QWidget):
         # Previous and Next event
         self.previous_plot.clicked.connect(self.previousEvent)
         self.next_plot.clicked.connect(self.nextEvent)
+        self.go_rse_plot.clicked.connect(self.go_rse_Event) # erez, july-21,2016
 
         # Radio buttons for choosing type of ROI
         self.kBNB.clicked.connect(
@@ -242,6 +277,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.rgbcaffe.clicked.connect(self.openCaffe)
         self.rgbcv2.clicked.connect(self.openCVEditor)
+        self.rgbroi.clicked.connect(self.openROITool)
 
         # Caffe Widgets
         # wrapper for FORWARD function
@@ -256,9 +292,18 @@ class RGBDisplay(QtGui.QWidget):
 
         # OpenCV Widgets
         # wrapper for the opencv specific window
-        self.cv2_layout = CV2Layout()
+        try:
+            self.cv2_layout = CV2Layout()
+        except:
+            print "no CV2"
+            self.cv2_layout = None
+            pass
         self.cv2_enabled = False
 
+        # ROITool
+        self.roitool_layout = ROIToolLayout(self.plt,self.image,self.event,self.run,self.subrun,self.event_num,dm=self.dm)
+        self.roitool_enabled = False
+        
         # ROI box
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
@@ -274,8 +319,21 @@ class RGBDisplay(QtGui.QWidget):
             self.layout.removeItem(self.caffe_layout.grid(False))
             self.resize(1200, 700)
 
+    def openROITool(self):
+        if re.search("Disable", self.rgbroi.text()) is None:
+            self.rgbroi.setText("Disable ROITool")
+            self.resize(1200, 900)
+            self.layout.addLayout(self.roitool_layout.grid(True), 5, 0)
+        else:
+            self.rgbroi.setText("Enable ROITool")
+            self.layout.removeItem(self.roitool_layout.grid(False))
+            self.resize(1200, 700)
+
     # opencv editor, if/els statement is for opening and closing the pane
     def openCVEditor(self):
+        if self.cv2_layout is None:
+            return
+
         if re.search("Disable", self.rgbcv2.text()) is None:
             self.rgbcv2.setText("Disable OpenCV")
             self.resize(1200, 900)
@@ -399,6 +457,44 @@ class RGBDisplay(QtGui.QWidget):
 
         self.plotData()
 
+# -------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # erez july-21,2016 go to R/S/E defined event
+    def go_rse_Event(self):
+    
+    
+        wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
+        print wanted_rse
+#        input = self.dm.iom
+
+#        event = 0 # if we don't find this event, we plot the first event
+#        for entry in range(input.get_n_entries()):
+#            read_entry = input.read_entry(entry)
+#            event_base = input.get_data(larcv.kProductROI,"protonBDT")
+#            curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
+#            if curren_rse == wanted_rse:
+#                print "found wanted R/S/E in entry ", entry
+#                event = entry
+#                break
+#        print "loading image of event ",event
+#        self.event.setText(str(event))
+
+#        get_rse_image(self,wanted_rse,imgprod,roiprod,planes, refresh=True)
+        self.wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
+        self.NavigationType = "R/S/E"
+        self.plotData()
+                
+                
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------
+
+
+
     def setViewPlanes(self):
         # the list of chosen views 
         self.views = []
@@ -411,6 +507,7 @@ class RGBDisplay(QtGui.QWidget):
                 self.views.append(-1)  # sentinal for don't fill this channel
 
     def plotData(self):
+
 
         # if there are presets clear them out
         if hasattr(self.image,"preset_layout"):
@@ -430,12 +527,26 @@ class RGBDisplay(QtGui.QWidget):
 
         # From QT, the threshold
         event = int(self.event.text())
-            
-        # get the image from the datamanager
-        self.image, hasroi = self.dm.get_event_image(event,
+        
+        # -----------------------------------------------------------------------------
+        # Erez, July-21, 2016
+        # -----------------------------------------------------------------------------
+        if self.NavigationType == "R/S/E" : # my way
+            self.image, hasroi = self.dm.get_rse_image(self.wanted_rse,
+                                                         self.image_producer,
+                                                         self.roi_producer,
+                                                         self.views)
+        
+       
+        else: # original way
+            # get the image from the datamanager
+            self.image, hasroi = self.dm.get_event_image(event,
                                                      self.image_producer,
                                                      self.roi_producer,
                                                      self.views)
+        # -----------------------------------------------------------------------------
+
+
 
         # whoops no image, return
         if self.image == None: return
@@ -481,6 +592,15 @@ class RGBDisplay(QtGui.QWidget):
         self.setImage(self.pimg)
         self.modimage = None
 
+        #this is extremely hacky, we need a central layout manager that can alert the layouts that
+        #the event is changed. For now lets directly tell ROILayout
+
+        #start vichack
+        self.roitool_layout.event = self.event
+        self.roitool_layout.images = self.image
+        self.roitool_layout.reloadROI()
+        #end vichack
+        
         # no ROI's -- finish early
         if hasroi == False:
             self.autoRange()
@@ -506,7 +626,7 @@ class RGBDisplay(QtGui.QWidget):
     def regionChanged(self):
 
         # the boxed changed but we don't intend to transform the image
-        if self.cv2_layout.transform == False:
+        if self.cv2_layout is not None and self.cv2_layout.transform == False:
             return
 
         # the box has changed location, if we don't have a mask, create on
@@ -517,15 +637,16 @@ class RGBDisplay(QtGui.QWidget):
         sl = self.swindow.getArraySlice(self.image.orig_mat, self.imi)[0]
 
         # need mask if user doesn't want to overwrite their manipulations
-        if self.cv2_layout.overwrite == False:
+        if self.cv2_layout is not None and self.cv2_layout.overwrite == False:
             idx = np.where(self.modimage == 1)
             pcopy = self.image.orig_mat.copy()
 
         # do the manipulation
-        self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
+        if self.cv2_layout is not None:
+            self.image.orig_mat[sl] = self.cv2_layout.paint( self.image.orig_mat[sl] )
 
         # use mask to updated only pixels not already updated
-        if self.cv2_layout.overwrite == False:
+        if self.cv2_layout is not None and self.cv2_layout.overwrite == False:
             # reverts prev. modified pixels, preventing double change
             self.image.orig_mat[idx] = pcopy[idx]
             self.modimage[sl] = 1
@@ -574,8 +695,7 @@ class RGBDisplay(QtGui.QWidget):
 
                 imm = self.image.imgs[ix].meta()
 
-                # x,y below are relative coordinate of bounding-box w.r.t.
-                # image in original unit
+                # x,y  relative coordinate of bounding-box w.r.t. image in original unit
                 x = bbox.min_x() - imm.min_x()
                 y = bbox.min_y() - imm.min_y()
 
@@ -591,7 +711,7 @@ class RGBDisplay(QtGui.QWidget):
                 ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type']))
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
 
-                print x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i
+                print str(self.event.text()),x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i,"\n"
 
                 r1 = HoverRect(x * dw_i,
                                y * dh_i,
@@ -599,7 +719,7 @@ class RGBDisplay(QtGui.QWidget):
                                h_b * dh_i,
                                ti,
                                self.plt)
-
+                
                 r1.setPen(pg.mkPen(store.colors[ix]))
                 r1.setBrush(pg.mkBrush(None))
                 self.plt.addItem(r1)
@@ -663,7 +783,8 @@ class RGBDisplay(QtGui.QWidget):
         #not sure what it the best way to do this...
         #exporter.parameters()['width']  = 700   # (note this also affects height parameter)
         exporter.parameters()['height'] = 700 
-        exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
+        exporter.export('R{}_S{}_E{}.png'.format(str(self.run.text()),str(self.subrun.text()),str(self.event.text())))
+#        exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
         print "Saved image {}".format(self.savecounter)
         self.savecounter += 1
 
