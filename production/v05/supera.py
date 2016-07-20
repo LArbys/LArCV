@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys
+import sys,os
 
 if len(sys.argv) < 4:
     msg  = '\n'
@@ -10,6 +10,12 @@ if len(sys.argv) < 4:
 import ROOT
 from ROOT import larlite as fmwk
 #from larlite import larlite as fmwk
+
+if os.path.exists(sys.argv[2]):
+    print "Output file exists. Please remove."
+    print "Output file specified: ",sys.argv[2]
+    print "Giving up."
+    sys.exit(1)
 
 # Create ana_processor instance
 my_proc = fmwk.ana_processor()
