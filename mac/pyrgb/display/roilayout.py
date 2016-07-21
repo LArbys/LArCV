@@ -26,20 +26,8 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.title  = QtGui.QLabel("<b>ROI Tool</b>")
 
-        self.input_label = QtGui.QLabel("Input:")
-        self.output_label = QtGui.QLabel("Output:")
-        self.input_prod_label = QtGui.QLabel("Producer:")
-        self.output_prod_label = QtGui.QLabel("Producer:")
-        
-        self.input_roi = QtGui.QLineEdit("Input ROI filename")
-        self.input_roi_producer  = QtGui.QLineEdit("Input ROI producer")
-        self.input_prod = None
-        
-        self.output_roi = QtGui.QLineEdit("Output ROI filename")
-        self.output_roi_producer = QtGui.QLineEdit("Output ROI producer")
-        self.output_prod = None
-
-        self.load_files = QtGui.QPushButton("Load Files")
+        # ROI File Interace
+        self._makeFileFrame()
         
         self.add_roi = QtGui.QPushButton("Add ROIs")
         self.remove_roi = QtGui.QPushButton("Remove ROI")
@@ -353,6 +341,51 @@ class ROIToolLayout(QtGui.QGridLayout):
             print "draw makers",roisg.vertexplot
             self.plt.addItem( roisg.vertexplot )
     
+    # File Frame Widget
+    def _makeFileFrame(self):
+        if hasattr(self,'fileframe'):
+            return # already made
+
+        self.fileframe  = QtGui.QFrame()
+        self.filelayout = QtGui.QGridLayout()
+        self.input_label = QtGui.QLabel("Input:")
+        self.input_label.setFixedWidth(45)
+        self.output_label = QtGui.QLabel("Output:")
+        self.output_label.setFixedWidth(45)
+        self.input_prod_label = QtGui.QLabel("Producer:")
+        self.output_prod_label = QtGui.QLabel("Producer:")
+        self.input_prod_label.setFixedWidth(60)
+        self.output_prod_label.setFixedWidth(60)
+        
+        self.input_roi = QtGui.QLineEdit("ROI filename")
+        self.input_roi_producer  = QtGui.QLineEdit("ROI producer")
+        self.input_prod = None
+        
+        self.output_roi = QtGui.QLineEdit("ROI filename")
+        self.output_roi_producer = QtGui.QLineEdit("ROI producer")
+        self.output_prod = None
+
+        self.load_files = QtGui.QPushButton("Load Files")
+
+        # in/out labels for file and producer
+        self.filelayout.addWidget( self.input_label, 0, 0 )
+        self.filelayout.addWidget( self.input_roi, 0, 1 )
+        self.filelayout.addWidget( self.input_prod_label, 0, 2 )
+        self.filelayout.addWidget( self.input_roi_producer, 0, 3 )
+
+        self.filelayout.addWidget( self.output_label, 1, 0 )
+        self.filelayout.addWidget( self.output_roi, 1, 1 )
+        self.filelayout.addWidget( self.output_prod_label, 1, 2 )
+        self.filelayout.addWidget( self.output_roi_producer, 1, 3 )
+
+        self.filelayout.addWidget( self.load_files, 2, 0, 1, 4 )
+        self.fileframe.setLayout( self.filelayout )
+        self.fileframe.setLineWidth(2)
+        self.fileframe.setFrameShape( QtGui.QFrame.Box )
+        return
+    
+
+
     # add widgets to self and return 
     def grid(self, enable):
 
@@ -361,24 +394,8 @@ class ROIToolLayout(QtGui.QGridLayout):
             
             self.addWidget(self.title, 0, 0)
 
-            # in/out labels
-            self.addWidget(self.input_label, 1, 0)
-            self.addWidget(self.output_label, 2, 0)
-
-            # actual input/output
-            self.addWidget(self.input_roi, 1, 1)
-            self.addWidget(self.output_roi, 2, 1)
-
-            # producer label
-            self.addWidget(self.input_prod_label, 1, 2)
-            self.addWidget(self.output_prod_label, 2, 2)
-
-            # actual producer input/output
-            self.addWidget(self.input_roi_producer, 1, 3)
-            self.addWidget(self.output_roi_producer, 2, 3)
-
-            # big button to load files into docket
-            self.addWidget(self.load_files, 3, 0,1,4)
+            # Inputs for loading input and output ROI file and producers
+            self.addWidget(self.fileframe, 1, 0, 3, 4)
             
             self.addWidget(self.add_roi, 1, 4)
             self.addWidget(self.remove_roi, 2, 4)
