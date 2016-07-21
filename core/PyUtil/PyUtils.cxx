@@ -27,7 +27,7 @@ namespace larcv {
   larcv::Image2D as_image2d(PyObject* pyarray,ImageMeta meta)
   {
     SetPyUtil();
-    double **carray;
+    float **carray;
     //Create C arrays from numpy objects:
     const int dtype = NPY_FLOAT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
@@ -52,7 +52,7 @@ namespace larcv {
   larcv::Image2D as_image2d(PyObject* pyarray)
   {
     SetPyUtil();
-    double **carray;
+    float **carray;
     //Create C arrays from numpy objects:
     const int dtype = NPY_FLOAT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
