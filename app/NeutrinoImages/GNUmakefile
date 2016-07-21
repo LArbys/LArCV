@@ -16,8 +16,6 @@ INCFLAGS += $(shell basictool-config --includes)
 INCFLAGS += $(shell recotool-config --includes)
 INCFLAGS += $(shell larcv-config --includes)
 
-$(info INC $(INCFLAGS))
-
 # platform-specific options
 OSNAME          = $(shell uname -s)
 HOST            = $(shell uname -n)
@@ -30,7 +28,6 @@ LDFLAGS += $(shell larlite-config --libs)
 LDFLAGS += $(shell basictool-config --libs)
 LDFLAGS += $(shell recotool-config --libs)
 
-$(info LD $(LDFLAGS))
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
