@@ -58,13 +58,12 @@ namespace larcv {
     float _e_dep ;
     float _e_vis ;
     float _pixel_count ;
+    float _child_e_ratio ;
+    float _nu_e_ratio ;
+    float _worst_ratio ;
 
-    calo::CalorimetryAlg _caloAlg ;
-    float _e_to_eV  ; // ionization energy of Ar in eV
-    float _eV_to_MeV ; // eV -> MeV conversion
-    float _timetick ;
-    double _tau ;
-    double _recomb_factor ;
+    std::vector<float> _child_pdg_v ;
+    std::vector<float> _child_ratio_v ;
 
   };
 

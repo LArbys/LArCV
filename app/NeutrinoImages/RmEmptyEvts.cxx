@@ -21,11 +21,6 @@ namespace larcv {
     _plane = -1; 
     _event = -1 ; 
 
-    /// From LinearEnergy algorithm in larlite ShowerReco3D
-    //_caloAlg = ::calo::CalorimetryAlg();
-    //_caloAlg.setUseModBox(true);
-    _e_to_eV = 23.6;  // ionization energy of Ar in eV
-    _eV_to_MeV = 1e-6; // eV -> MeV conversion
   }
     
   void RmEmptyEvts::configure(const PSet& cfg)
@@ -36,12 +31,6 @@ namespace larcv {
 
   void RmEmptyEvts::initialize()
   {
-
-    double MeV_to_fC = 1. / ( _e_to_eV * _eV_to_MeV );
-    double MIP = 2.3; // MeV/cm
-    _recomb_factor = larutil::LArProperties::GetME()->ModBoxInverse( MIP ) / ( MIP * MeV_to_fC );
-    _timetick = larutil::DetectorProperties::GetME()->SamplingRate() * 1.e-3;
-    _tau = larutil::LArProperties::GetME()->ElectronLifetime(); 
 
     if(!_image_tree){
       _image_tree = new TTree("image_tree","Tree for simple analysis");
@@ -54,6 +43,11 @@ namespace larcv {
       _image_tree->Branch( "e_dep", &_e_dep, "e_dep/F");
       _image_tree->Branch( "e_vis", &_e_vis, "e_vis/F");
       _image_tree->Branch( "pixel_count", &_pixel_count, "pixel_count/F");
+      _image_tree->Branch( "child_e_ratio", &_child_e_ratio, "child_e_ratio/F");
+      _image_tree->Branch( "nu_e_ratio", &_nu_e_ratio, "nu_e_ratio/F");
+      _image_tree->Branch( "child_pdg_v", &_child_pdg_v, "child_pdg_v/F");
+      _image_tree->Branch( "child_ratio_v", &_child_ratio_v, "child_ratio_v/F");
+      _image_tree->Branch( "worst_ratio", &_worst_ratio, "worst_ratio/F");
     }
   }
 
@@ -68,18 +62,29 @@ namespace larcv {
     _e_dep = -999.;
     _e_vis = 0.;
     _pixel_count = 0;
+    _child_e_ratio = 0.;
+    _nu_e_ratio = 0.;
+    _worst_ratio = 100000.;
+
+    _child_pdg_v.clear() ;
+    _child_ratio_v.clear() ;
 
   }
 
   bool RmEmptyEvts::process(IOManager& mgr)
   {
 
-
-   std::cout<<"\nNEW PROCESS, "<<std::endl ;
     auto ev_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_name));
     auto ev_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_name));
+
+    if (!ev_roi || !ev_image2d ) return false; 
+
     auto const& img2d_v = ev_image2d->Image2DArray();
     auto const& roi_v   = ev_roi->ROIArray();
+
+    _event++; 
+
+    if(!img2d_v.size() || !roi_v.size() ) return true ;
 
     const ::geoalgo::AABox_t tpc(0,-116,0,256.35,116,1036.8);
     ::geoalgo::GeoAlgo GeoAlg ;
@@ -87,55 +92,89 @@ namespace larcv {
 
     auto t2cm = geomHelper->TimeToCm();
 
-    //for(size_t index=0; index < img2d_v.size(); ++index) {
     int index = 2;
-
-//      if (index != 2) continue ;
-      _event++; 
 
       reset() ;
 
       _plane = index ;
 
-      auto const& img2d = img2d_v[index];
-      auto const& roi   = roi_v[index]; 
+      auto img2d = img2d_v[index];
+      auto roi   = roi_v[0]; 
 
       _vtx_x = roi.X();
       _vtx_y = roi.Y();
       _vtx_z = roi.Z();
-      std::cout<<"Event is : "<<_event <<", "<<_vtx_x<<", "<<_vtx_y<<", "<<_vtx_z<<std::endl ;
-
 
       const ::geoalgo::Point_t vtx(_vtx_x, _vtx_y, _vtx_z) ;
       _dist_to_wall = sqrt(GeoAlg.SqDist(tpc, vtx)) ;
-
-      _e_dep = roi.EnergyDeposit();
 
       auto const& pixel_array = img2d.as_vector();
       auto const& meta = img2d.meta() ;
 
       for(size_t i = 0; i < pixel_array.size(); i++){
         auto const & v = pixel_array[i] ;
-	if(v > 0.9 ){
-	  _e_vis += v ;
-          _pixel_count ++ ;
-          }
-           /////////////////////////////////////////////////////////////
-        //   double E  = 0.;
-        //   double dQ = 0.;
-        //   for (auto const &h : hits) {
-        //     // lifetime correction
-        //     double hit_tick = h.t / t2cm;
-        //     double lifetimeCorr = exp( hit_tick * _timetick / _tau );
-        //     dQ = _caloAlg.ElectronsFromADCArea(h.charge, pl);
-        //     E += dQ * lifetimeCorr * _e_to_eV * _eV_to_MeV;
-        //     }
-        //    E /= _recomb_factor;
-           ///////////////////////////////////////////////////
+	if( v > 0.5 ) _pixel_count ++ ;
 	}
 
+      //Store rest mass of particles 
+      std::map<int,float> pdg_m ;
+      pdg_m[11] = 0.511;
+      pdg_m[22] = 0.;
+      pdg_m[12] = 0.;
+      pdg_m[14] = 0.;
+      pdg_m[2212] = 938.272;
+      pdg_m[2112] = 939.565;
+      pdg_m[13] = 105.658;
+      pdg_m[111]  = 134.977;
+      pdg_m[211]  = 139.570;
+      pdg_m[321]  = 493.648;
+
+      _nu_e_ratio = roi_v.at(0).EnergyDeposit() / roi_v.at(0).EnergyInit() ;
+      _e_dep = roi_v.at(0).EnergyDeposit() ;
+
+      float e_dep = 0.;
+      float e_init = 0. ;
+
+//      std::cout<<"\n\nEvent is : "<<_event<<", "<<_dist_to_wall<<std::endl ;//("<<_vtx_x<<", "<<_vtx_y<<", "<<_vtx_z<<")"<<std::endl ;
+      _child_pdg_v.reserve(roi_v.size() - 1);
+      _child_ratio_v.reserve(roi_v.size() - 1);
+
+      for( int j = 1; j < roi_v.size(); j++){
+
+        auto r = roi_v[j];
+
+        if ( r.MCTIndex() == kINVALID_INDEX )
+          std::cout<<"Track status ? "<<r.MCTIndex() <<std::endl; 
+
+        //std::cout<<"PDG: "<<r.PdgCode()<<", "<<r.ParentPdgCode()
+	//         <<", ratio: "<<r.EnergyDeposit()/(r.EnergyInit() - pdg_m[std::abs(r.PdgCode())])
+	//	 << ", ("<<r.EnergyDeposit()<<", "<<r.EnergyInit()<<")"<<std::endl ; 
+
+	_child_pdg_v.emplace_back(r.PdgCode()) ;
+
+
+	e_dep += r.EnergyDeposit();
+	e_init += r.EnergyInit() - pdg_m[std::abs(r.PdgCode())] ;
+
+	_child_ratio_v.emplace_back(e_dep/e_init) ;
+
+	if( (e_dep / e_init) < _worst_ratio )
+	  _worst_ratio = e_dep/e_init ;
+
+//        geoalgo::HalfLine roi_HL(r.X(),r.Y(),r.Z(),r.Px(),r.Py(),r.Pz());
+//	geoalgo::Point_t vtx(r.X(),r.Y(),r.Z());
+//        auto i_pt = GeoAlg.Intersection(tpc,roi_HL) ;
+//	float t_dist = 0;
+//	if (i_pt.size() )
+//	  t_dist = sqrt ( pow(i_pt.at(0)[0] - r.X(),2) + pow(i_pt.at(0)[1] - r.Y(),2) + pow(i_pt.at(0)[2] - r.Z(),2) ) ;
+
+      }
+
+      _child_e_ratio = ( e_dep / e_init ) ;
+
+      //std::cout<<"Fractional energy deposition: "<<_child_e_ratio<<", vs "<<_nu_e_ratio<<std::endl ;
       _image_tree->Fill();
-  // }
+
 
   
   return true; 
