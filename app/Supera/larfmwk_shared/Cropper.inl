@@ -373,7 +373,7 @@ namespace larcv {
       res.Shape(::larcv::kShapeShower);
       res.Type(::larcv::PdgCode2ROIType(mcs.PdgCode()));
       res.EnergyDeposit(mcs.DetProfile().E());
-      res.EnergyDeposit(0);
+      //res.EnergyDeposit(0);
       res.EnergyInit(mcs.Start().E());
       res.Position(mcs.Start().X(),mcs.Start().Y(),mcs.Start().Z(),mcs.Start().T());
       res.Momentum(mcs.Start().Px(),mcs.Start().Py(),mcs.Start().Pz());
@@ -403,7 +403,7 @@ namespace larcv {
       res.Shape(::larcv::kShapeShower);
       res.Type(::larcv::PdgCode2ROIType(mcs.PdgCode()));
       res.EnergyDeposit(mcs.DetProfile().E());
-      res.EnergyDeposit(0);
+      //res.EnergyDeposit(0);
       res.EnergyInit(mcs.Start().E());
       res.Position(mcs.Start().X(),mcs.Start().Y(),mcs.Start().Z(),mcs.Start().T());
       res.Momentum(mcs.Start().Px(),mcs.Start().Py(),mcs.Start().Pz());
