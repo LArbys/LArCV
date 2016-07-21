@@ -53,9 +53,9 @@ class ROISliderGroup:
             self.pos = np.zeros( (3,2), dtype=np.float )
 
         assert( self.pos.shape == (3,2) )
-        self.vertices   = [{'pos': self.pos[0,:], 'data': 1, 'pen':(255,0,0,255), 'symbol':'+', 'size':10},
-                           {'pos': self.pos[1,:], 'data': 1, 'pen':(0,255,0,255), 'symbol':'+', 'size':10},
-                           {'pos': self.pos[2,:], 'data': 1, 'pen':(0,0,255,255), 'symbol':'+', 'size':10}]
+        self.vertices   = [{'pos': self.pos[0,:], 'data': 1, 'pen':(255,0,0,255),'brush':(255,0,0,255), 'symbol':'+', 'size':10},
+                           {'pos': self.pos[1,:], 'data': 1, 'pen':(0,255,0,255),'brush':(0,255,0,255), 'symbol':'+', 'size':10},
+                           {'pos': self.pos[2,:], 'data': 1, 'pen':(0,0,255,255),'brush':(0,0,255,255), 'symbol':'+', 'size':10}]
         self.vertexplot.addPoints( self.vertices )
 
         for ix in self.planes:
@@ -65,15 +65,6 @@ class ROISliderGroup:
 
             roi = ROISlider([x,y], [w, h],pencolors[ix],allow_resize,ix)
 
-            # can't use sigRegionChangeFinished since we encounter an infinite loop
-            # upon progammatic change of ROI size
-            #roi.sigRegionChangeFinished.connect(self.resizeROI)
-            
-            # huge python complaint!
-            #roi.sigRegionChanged.connect(self.resizeROI)
-
-            # works, but is annoying. Will just tell user what to do in the README
-            #roi.sigRegionChangeStarted.connect(self.resizeROI)
             roi.sigRegionChangeFinished.connect(self.resizeROI)
             roi.sigRegionChangeFinished.connect(self.reportPositions)
 
@@ -136,9 +127,14 @@ class ROISliderGroup:
                 
     def setVertex(self,plane, pos):
         # if called, that means user wishes to set vertex position
+        print pos,self.vertices[plane]["pos"].shape
         self.fix_vertex_to_bb = False
-        self.vertices[plane]["pos"][plane][0] = pos[0]
-        self.vertices[plane]["pos"][plane][1] = pos[1]
+        self.vertices[plane]["pos"][0] = pos[0]
+        if self.use_same_times:
+            for vert in self.vertices:
+                vert["pos"][1] = pos[1]
+        else:
+            self.vertices[plane]["pos"][1] = pos[1]
         self.vertexplot.setData( self.vertices )
 
     # no real need yet for __iter__ and next()

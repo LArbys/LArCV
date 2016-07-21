@@ -127,6 +127,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.set_vvertex.clicked.connect( self.enableVCrossHairs )
         self.set_yvertex.clicked.connect( self.enableYCrossHairs )
         self.crosshairs = None # going to be a list of cross hairs
+        self.plt.scene().sigMouseClicked.connect( self.mouseClicked )
         
     def storeROI(self):
 
@@ -294,7 +295,6 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         print "draw makers",roisg.vertexplot
         self.plt.addItem( roisg.vertexplot )
-
 
     def removeROI(self) :
         for roi in self.rois[-1].rois:
@@ -576,8 +576,9 @@ class ROIToolLayout(QtGui.QGridLayout):
     def enablePlaneCrossHairs(self,plane):
         print "Enable plane=",plane," cross hairs for vertex selection."
         print "image pointer in roitool: ",self.plt,self.crosshairs
-        if self.crosshairs is None and self.plt is not None and self.imi is not None:
-            print "create cross hairs"
+        #if self.crosshairs is None and self.plt is not None and self.imi is not None:
+        if self.crosshairs is None and self.plt is not None:
+            print "create cross hairs on if plt and img exists"
             self.crosshairs = [ CrossHairs(self,self.plt,self.imi,x) for x in range(0,3) ]
         if self.crosshairs is not None:
             print "add cross hairs to image"
@@ -585,14 +586,26 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.plt.addItem( self.crosshairs[plane].vLine,  ignoreBounds=True )
             self.plt.addItem( self.crosshairs[plane].hLine,  ignoreBounds=True )
             #self.plt.addItem( self.crosshairs[plane].label )
+            # disable other vertex finders
+            self.set_uvertex.setEnabled(False)
+            self.set_vvertex.setEnabled(False)
+            self.set_yvertex.setEnabled(False)
 
     def enableUCrossHairs(self):
-        self.set_uvertex.setEnabled(False)
         self.enablePlaneCrossHairs(0)
     def enableVCrossHairs(self):
-        self.set_vvertex.setEnabled(False)
         self.enablePlaneCrossHairs(1)
     def enableYCrossHairs(self):
-        self.set_yvertex.setEnabled(False)
         self.enablePlaneCrossHairs(2)
     
+    def mouseClicked(self,evt):
+        if self.crosshairs is not None:
+            for ch in self.crosshairs:
+                didsomething = ch.mouseClicked(evt)
+                if didsomething:
+                    self.set_uvertex.setEnabled(True)
+                    self.set_vvertex.setEnabled(True)
+                    self.set_yvertex.setEnabled(True)
+                    for roig in self.rois:
+                        roig.setVertex( ch.plane, ch.getvertex() )
+        

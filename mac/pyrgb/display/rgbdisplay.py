@@ -46,6 +46,8 @@ class RGBDisplay(QtGui.QWidget):
         # Graphics window which will hold the image
         self.win = pg.GraphicsWindow()
         self.plt = self.win.addPlot()
+        self.imi = pg.ImageItem(np.zeros((100,100))) # dummy
+        self.plt.addItem( self.imi )
 
         # Handles to the axis which we will update with wire/tick
         self.plt_x = self.plt.getAxis('bottom')
@@ -273,6 +275,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # ROITool
         self.roitool_layout = ROIToolLayout(self.plt,self.image,self.event,dm=self.dm)
+        self.roitool_layout.imi = self.imi
         self.roitool_enabled = False
         
         # ROI box
@@ -387,8 +390,8 @@ class RGBDisplay(QtGui.QWidget):
 
         xticks, yticks = self.get_ticks()
 
-        #self.plt_y.setTicks(yticks)
-        #self.plt_x.setTicks(xticks)
+        self.plt_y.setTicks(yticks)
+        self.plt_x.setTicks(xticks)
 
         self.plt.autoRange()
         self.setRunInfo(self.dm.run,
