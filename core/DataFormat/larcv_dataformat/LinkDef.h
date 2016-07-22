@@ -42,7 +42,7 @@
 #pragma link C++ class larcv::Pixel2DCluster+;
 #pragma link C++ class larcv::EventPixel2D+;
 
-#pragma link C++ class larcv::Vector2D+;
+#pragma link C++ class larcv::Point2D+;
 #pragma link C++ class larcv::LineSegment2D+;
 #pragma link C++ class larcv::AABox2D+;
 
