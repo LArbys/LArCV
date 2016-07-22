@@ -37,6 +37,13 @@ namespace larcv {
     };
   }
 
+  /// Pooling type
+  enum PoolType_t {
+    kPoolSum,     ///< sum channels
+    kPoolAverage, ///< average over channels
+    kPoolMax      ///< max channel
+  };
+
   /// Object appearance type in LArTPC  
   enum ShapeType_t {
     kShapeShower,  ///< Shower
@@ -74,6 +81,8 @@ namespace larcv {
     kProductImage2D,  ///< Image2D, EventImage2D
     kProductROI,      ///< ROI, EventROI
     kProductChStatus, ///< ChStatus, EventChStatus
+    kProductPixel2D,  ///< Pixel2D, Pixel2DCluster
+    kProductGeo2D,    ///< Vector2D, LineSegment2D
     kProductUnknown   ///< LArbys
   };
 
