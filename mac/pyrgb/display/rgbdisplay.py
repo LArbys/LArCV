@@ -713,7 +713,7 @@ class RGBDisplay(QtGui.QWidget):
         self.savecounter += 1
 
     def setImage( self, img ):
-        """Wrapper for hacking"""
+        """Wrapper for hacking. """
         if img is None:
             # sometimes no image to set yet
             return
