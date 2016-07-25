@@ -3,6 +3,8 @@
 
 #include "SegImageAna.h"
 #include "DataFormat/EventImage2D.h"
+#include "DataFormat/EventROI.h"
+
 namespace larcv {
 
   static SegImageAnaProcessFactory __global_SegImageAnaProcessFactory__;
@@ -16,6 +18,7 @@ namespace larcv {
     _image_producer   = cfg.get<std::string>("ImageProducer");
     _label_producer   = cfg.get<std::string>("LabelProducer");
     _segment_producer = cfg.get<std::string>("SegmentProducer");
+    _roi_producer = cfg.get<std::string>("ROIProducer");
 
     _image_channel = cfg.get<size_t>("ImageChannel");
     _label_channel = cfg.get<size_t>("LabelChannel");
@@ -50,8 +53,11 @@ namespace larcv {
       }
       _roitype_to_class[type] = i + 1;
     }
+
     for (size_t i = 0; i < _roitype_to_class.size(); ++i) {
+
       if (_roitype_to_class[i] != kINVALID_SIZE) continue;
+
       _roitype_to_class[i] = _roitype_to_class[type_def[i]];
     }
   
@@ -69,11 +75,13 @@ namespace larcv {
     _tree->Branch("npx_thresh",     &_npx_thresh,   "npx_thresh/i"   );
     _tree->Branch("npx_total",      &_npx_total,    "npx_total/i"    );
     _tree->Branch("npx_correct",    &_npx_correct,  "npx_correct/i"  );
+    _tree->Branch("roi_type",       &_roi_type,     "roi_type/i"     );
     _tree->Branch("prob_correct",   &_prob_correct, "prob_correct/D" );
     _tree->Branch("npx_total_v",    &_npx_total_v    );
     _tree->Branch("npx_predicted_v",&_npx_predicted_v);
     _tree->Branch("npx_correct_v",  &_npx_correct_v  );
     _tree->Branch("prob_correct_v", &_prob_correct_v );
+
   }
 
   bool SegImageAna::process(IOManager & mgr)
@@ -81,6 +89,9 @@ namespace larcv {
     auto event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
     auto event_label = (EventImage2D*)(mgr.get_data(kProductImage2D,_label_producer));
     auto event_segment = (EventImage2D*)(mgr.get_data(kProductImage2D,_segment_producer));
+    auto event_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
+    
+    _roi_type = (int)(event_roi->ROIArray()[1].Type());
 
     if(!event_image) {
       LARCV_CRITICAL() << "Image by " << _image_producer << " not found..." << std::endl;
@@ -153,7 +164,7 @@ namespace larcv {
       float prediction_sum   =  0.;
       float prob     =  0.;
       for(size_t type_index = 0; type_index < _ntypes; ++type_index) {
-        float score = segment_v[type_index].as_vector()[i];
+        float score = std::exp( segment_v[type_index].as_vector()[i] );
         prediction_sum += score;
         if(truth_type == type_index) prob = score;
         if(score > prediction_max) {
@@ -161,7 +172,9 @@ namespace larcv {
           prediction_type = type_index;
         }
       }
-      prob /= prediction_sum;
+      prob /= prediction_sum;             //softmax per pixel (across classes)
+      prediction_max /= prediction_sum;   //max softmax score per pixel (across classes)
+
       // Increment a counter for a predicted type
       _npx_predicted_v[prediction_type] += 1;
       // Increment a counter for a correct prediction
@@ -176,9 +189,19 @@ namespace larcv {
     }
 
     //normalize probability
-    _prob_correct /= (float)(_npx_thresh);
-    for(size_t type=0; type<_ntypes; ++type) 
-      _prob_correct_v[type] /= (float)(_npx_total_v[type]);
+    if ( _npx_thresh > 0 )
+      _prob_correct /= (float)(_npx_thresh);
+    else
+      _prob_correct = 0;
+
+    for(size_t type=0; type<_ntypes; ++type)  {
+
+	if (_npx_total_v[type] > 0 )
+	  _prob_correct_v[type] /= (float)(_npx_total_v[type]);
+	else
+	  _prob_correct_v[type] = 0.0;
+      }
+    
 
     _tree->Fill();
     return true;

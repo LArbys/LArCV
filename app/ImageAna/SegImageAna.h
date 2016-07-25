@@ -46,6 +46,8 @@ namespace larcv {
     std::string _image_producer;   ///< Input Image2D producer name
     std::string _label_producer;   ///< Segmentation ground-truth (label) Image2D producer name
     std::string _segment_producer; ///< Segmentation prediction (by CNN) Image2D producer name
+    std::string _roi_producer;     ///< Some MCTruth info might be interesting
+
     size_t _image_channel;         ///< Which channel to use from input Image2D (assuming 1 channel)
     size_t _label_channel;         ///< Which channel to use from input label Image2D (assuming 1 channel)
     std::vector<size_t> _roitype_to_class; ///< Attribute to convert ROIType_t to class type defined by caffe
@@ -56,6 +58,8 @@ namespace larcv {
     int _npx_thresh;     ///< # pixels above PI threshold
     int _npx_total;      ///< # pixels total
     int _npx_correct;    ///< # pixels where prediction got it right
+    int _roi_type;       ///< # enum for ROIType
+
     double _prob_correct; ///< Probability of getting the right pixel value in the whole image
     std::vector<int> _npx_total_v;       ///< # of total pixel for a specific type (based on ground truth)
     std::vector<int> _npx_predicted_v;   ///< # of predicted pixel for a specific type
