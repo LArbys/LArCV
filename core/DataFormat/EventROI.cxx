@@ -41,8 +41,7 @@ namespace larcv{
 
   void EventROI::Emplace(std::vector<larcv::ROI>&& part_v)
   {
-    _part_v.clear();
-    std::swap(_part_v,part_v);
+    _part_v = std::move(part_v);
     for(size_t i=0; i<_part_v.size(); ++i) _part_v[i].Index((ROIIndex_t)i);
   }
 }
