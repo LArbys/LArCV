@@ -406,8 +406,10 @@ class ROIToolLayout(QtGui.QGridLayout):
         self._button_savelabel.clicked.connect( self._labeltool.saveLabeling )
         self._button_showlabel = QtGui.QPushButton("Show Labels")
         self._button_showlabel.clicked.connect( self.displayLabels )
+        self._button_undolabel = QtGui.QPushButton("Undo")
         self._button_savelabel.setEnabled(False)
         self._button_showlabel.setEnabled(False)
+        self._button_undolabel.setEnabled(False)
         self._menu_setLabelPID = QtGui.QComboBox()
         for idx,label in enumerate(self._labelparticles):
             self._menu_setLabelPID.insertItem( idx, label )
@@ -423,6 +425,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self._labellayout.addWidget( self._menu_setLabelPID, 0, 1 )
         self._labellayout.addWidget( self._button_showlabel, 0, 2 )
         self._labellayout.addWidget( self._button_savelabel, 0, 3 )
+        self._labellayout.addWidget( self._button_undolabel, 0, 4 )
         self._labelframe.setLayout( self._labellayout )
         self._labelframe.setLineWidth(2)
         self._labelframe.setFrameShape( QtGui.QFrame.Box )        
@@ -474,7 +477,7 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget( self.set_yvertex, 4, 2 )
 
             # Label mode buttons
-            self.addWidget( self._labelframe, 4, 3, 1, 4 )
+            self.addWidget( self._labelframe, 4, 3, 1, 5 )
 
         else:
 
@@ -682,6 +685,7 @@ class ROIToolLayout(QtGui.QGridLayout):
             self._button_toggleLabelMode.setText("Disable Label Mode")
             self._button_savelabel.setEnabled(True)
             self._button_showlabel.setEnabled(True)
+            self._button_undolabel.setEnabled(True)
             self._label_mode = True
             self._labeltool.goIntoLabelingMode( self._labelparticles[self._menu_setLabelPID.currentIndex()], self.plt, self.imi, self.images )
         else:
@@ -689,18 +693,22 @@ class ROIToolLayout(QtGui.QGridLayout):
             self._button_toggleLabelMode.setText("Enable Label Mode")
             self._button_savelabel.setEnabled(False)
             self._button_showlabel.setEnabled(False)
+            self._button_undolabel.setEnabled(True)
             self._label_mode = False
 
     def setLabelIndex(self,currentindex):
         """ called when label particle combo box changes """
         self._currentlabel = self._menu_setLabelPID.getCurrentIndex()
         if self._label_mode:
-            pass
+            self._labeltool.switchLabel( self._currentlabel )
 
     def displayLabels(self):
         if self.imi is None or self.plt is None:
             return
         self._labeltool.drawLabeling( self.plt, self.imi, self.images )
         self._button_toggleLabelMode.setText("Enable Label Mode")
+        self._button_savelabel.setEnabled(False)
+        self._button_showlabel.setEnabled(False)
+        self._button_undolabel.setEnabled(False)
         self._label_mode = False
             
