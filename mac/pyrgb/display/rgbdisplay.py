@@ -84,9 +84,19 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.event_num, 2, 1)
 
 
+        # Yes or no to navigate using R/S/E
+        self.rse_navigation = QtGui.QCheckBox("R/S/E navigation")
+        self.rse_navigation.setChecked(False)#True)
+        self.lay_inputs.addWidget(self.rse_navigation, 0, 2)
+        self.rse_navigation.stateChanged.connect( self.prepare_rse_navigation )
+
+
+
         # select choice option
         self.go_rse_plot = QtGui.QPushButton("Go R/S/E")
-        self.lay_inputs.addWidget(self.go_rse_plot, 0, 2)
+        self.lay_inputs.addWidget(self.go_rse_plot, 1, 2)
+        
+        
         # -------------------------------------------------------
         
         
@@ -124,13 +134,13 @@ class RGBDisplay(QtGui.QWidget):
 
 
         self.axis_plot = QtGui.QPushButton("Replot")
-        self.lay_inputs.addWidget(self.axis_plot, 3, 2)
+        self.lay_inputs.addWidget(self.axis_plot, 4, 2)
 
         self.previous_plot = QtGui.QPushButton("Prev Event")
-        self.lay_inputs.addWidget(self.previous_plot, 2, 2)
+        self.lay_inputs.addWidget(self.previous_plot, 3, 2)
 
         self.next_plot = QtGui.QPushButton("Next Event")
-        self.lay_inputs.addWidget(self.next_plot, 1, 2)
+        self.lay_inputs.addWidget(self.next_plot, 2, 2)
 
         # particle types
         # BNB
@@ -308,7 +318,39 @@ class RGBDisplay(QtGui.QWidget):
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
 
+        # -----------------------------------------------------------------------------
+        # Erez, July-21, 2016 - get an image using R/S/E navigation
+        # -----------------------------------------------------------------------------
+        self.event_base_and_images = {}
+        self.rse_map = {}
+        print "len(self.event_base_and_images): ",len(self.event_base_and_images)
+
+
+
+
+
+
     # caffe toggles, if/els statement is for opening and closing the pane
+    
+    # -------------------------
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # -------------------------
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    # erez
+    def prepare_rse_navigation(self):
+
+
+        self.NavigationType = "RSE navigation"
+        print "preparing R/S/E navigation...."
+        self.dm.get_all_images(self.image_producer,self.event_base_and_images,self.rse_map)
+    
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # -------------------------
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # -------------------------
+    
+    
     def openCaffe(self):
         if re.search("Disable", self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
@@ -468,23 +510,7 @@ class RGBDisplay(QtGui.QWidget):
     
         wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
         print wanted_rse
-#        input = self.dm.iom
-
-#        event = 0 # if we don't find this event, we plot the first event
-#        for entry in range(input.get_n_entries()):
-#            read_entry = input.read_entry(entry)
-#            event_base = input.get_data(larcv.kProductROI,"protonBDT")
-#            curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
-#            if curren_rse == wanted_rse:
-#                print "found wanted R/S/E in entry ", entry
-#                event = entry
-#                break
-#        print "loading image of event ",event
-#        self.event.setText(str(event))
-
-#        get_rse_image(self,wanted_rse,imgprod,roiprod,planes, refresh=True)
         self.wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
-        self.NavigationType = "R/S/E"
         self.plotData()
                 
                 
@@ -531,11 +557,13 @@ class RGBDisplay(QtGui.QWidget):
         # -----------------------------------------------------------------------------
         # Erez, July-21, 2016
         # -----------------------------------------------------------------------------
-        if self.NavigationType == "R/S/E" : # my way
-            self.image, hasroi = self.dm.get_rse_image(self.wanted_rse,
-                                                         self.image_producer,
-                                                         self.roi_producer,
-                                                         self.views)
+        if self.NavigationType == "RSE navigation" : # my way
+            self.image, hasroi = self.dm.get_rse_image(self.event_base_and_images,
+                                                       self.rse_map,
+                                                       self.wanted_rse,
+                                                       self.image_producer,
+                                                       self.roi_producer,
+                                                       self.views)
         
        
         else: # original way

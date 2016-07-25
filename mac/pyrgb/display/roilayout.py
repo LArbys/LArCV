@@ -31,7 +31,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.input_prod_label = QtGui.QLabel("Producer:")
         self.output_prod_label = QtGui.QLabel("Producer:")
         
-        self.input_roi = QtGui.QLineEdit("/Users/erezcohen/LArCV/ROI/data_samples/protons/output_proton_roi.root")#"Input ROI filename")
+        self.input_roi = QtGui.QLineEdit("/Users/erezcohen/LArCV_old/ROI/data_samples/protons/output_proton_roi.root")#"Input ROI filename")
         self.input_roi_producer  = QtGui.QLineEdit("protonBDT")#"Input ROI producer")
         self.input_prod = None
         
@@ -298,7 +298,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.clearROI()
 
-
+#
 #        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #        # previous identification - using event index, which is actually = tree entry
 #        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -349,9 +349,9 @@ class ROIToolLayout(QtGui.QGridLayout):
                 roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
                 self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
                 # print "reloading ",self.user_rois_larcv[entry]," from file"
-                print "loading entry ",entry," from file"
-                print wanted_rse[0],wanted_rse[1],wanted_rse[2]
-        
+                #                print "loading entry ",entry," from file"
+                #                print wanted_rse[0],wanted_rse[1],wanted_rse[2]
+
                 if entry not in self.user_rois.keys():
             
                     if self.in_iom is not None:
