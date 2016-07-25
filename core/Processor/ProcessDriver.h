@@ -46,6 +46,8 @@ namespace larcv {
 
     void override_output_file(const std::string fname);
 
+    void override_ana_file(const std::string fname);
+
     bool process_entry();
     
     bool process_entry(size_t entry,bool force_reload=false);
