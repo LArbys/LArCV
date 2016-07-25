@@ -275,7 +275,7 @@ class RGBDisplay(QtGui.QWidget):
 
         # ROITool
         self.roitool_layout = ROIToolLayout(self.plt,self.image,self.event,dm=self.dm)
-        self.roitool_layout.imi = self.imi
+        self.roitool_layout.setImageAndPlotWidgets( self.plt, self.imi )
         self.roitool_enabled = False
         
         # ROI box
@@ -461,8 +461,7 @@ class RGBDisplay(QtGui.QWidget):
         # Add image
         self.imi = pg.ImageItem()
         self.plt.addItem(self.imi)
-        self.roitool_layout.plt = self.plt
-        self.roitool_layout.imi = self.imi
+        self.roitool_layout.setImageAndPlotWidgets( self.plt, self.imi )
 
         # From QT, the threshold
         event = int(self.event.text())
@@ -521,8 +520,7 @@ class RGBDisplay(QtGui.QWidget):
         #the event is changed. For now lets directly tell ROILayout
 
         #start vichack
-        self.roitool_layout.event = self.event
-        self.roitool_layout.images = self.image
+        self.roitool_layout.setImages( self.event, self.image )
         self.roitool_layout.reloadROI()
         #end vichack
         

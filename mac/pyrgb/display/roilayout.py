@@ -120,7 +120,18 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # pixel labeling tools/variables
         # enable label mode to set label
-        self._makeLabelTools()
+        self.labeltools = LabelingTool()
+        
+    def setImageAndPlotWidgets( self, plotitem, imageitem ):
+        self.imi = imageitem
+        self.plt = plotitem
+        self.labeltools.setWidgets( self.plt, self.imi )
+
+    def setImages( self, event, images ):
+        """ parent widget of the ROI tool sends in new event and images through this function. """
+        self.event = event
+        self.images = images
+        self.labeltools.setImage( event, self.images )
         
     def storeROI(self):
 
@@ -286,8 +297,9 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         self.toggleSameROItime()
 
-        print "draw makers",roisg.vertexplot
-        self.plt.addItem( roisg.vertexplot )
+        if not roisg.fix_vertex_to_bb:
+            print "draw makers",roisg.vertexplot
+            self.plt.addItem( roisg.vertexplot )
 
     def removeROI(self) :
         for roi in self.rois[-1].rois:
@@ -343,8 +355,9 @@ class ROIToolLayout(QtGui.QGridLayout):
                 #print type(roi),roi
                 self.plt.addItem(roi)
             # add vertex markers
-            print "draw makers",roisg.vertexplot
-            self.plt.addItem( roisg.vertexplot )
+            if not self.roisg.fix_vertex_to_bb:
+                print "draw makers",roisg.vertexplot
+                self.plt.addItem( roisg.vertexplot )
     
     # File Frame Widget
     def _makeFileFrame(self):
@@ -389,48 +402,6 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.fileframe.setFrameShape( QtGui.QFrame.Box )
         return
     
-    def _makeLabelTools(self):
-        """ makes widget frame, class for labeling tools """
-        self._labelparticles = ["electron","muon","proton","pion","gamma","background"]
-        self._labelcolors    = {"electron":(255,128,0),
-                                "muon":(0,255,255),
-                                "proton":(255,0,255),
-                                "pion":(0,128,255),
-                                "gamma":(255,255,0),
-                                "background":(0,0,0)}
-        self._labeltool = LabelingTool( self._labelparticles, self._labelcolors )
-
-        self._button_toggleLabelMode = QtGui.QPushButton("Enable Label Mode")
-        self._button_toggleLabelMode.clicked.connect( self.toggleLabelMode )
-        self._button_savelabel = QtGui.QPushButton("Save Labeling")
-        self._button_savelabel.clicked.connect( self._labeltool.saveLabeling )
-        self._button_showlabel = QtGui.QPushButton("Show Labels")
-        self._button_showlabel.clicked.connect( self.displayLabels )
-        self._button_undolabel = QtGui.QPushButton("Undo")
-        self._button_savelabel.setEnabled(False)
-        self._button_showlabel.setEnabled(False)
-        self._button_undolabel.setEnabled(False)
-        self._menu_setLabelPID = QtGui.QComboBox()
-        for idx,label in enumerate(self._labelparticles):
-            self._menu_setLabelPID.insertItem( idx, label )
-        self._menu_setLabelPID.setCurrentIndex( 0 )
-        self._label_mode = False
-        self._currentlabel = self._menu_setLabelPID.currentIndex()
-        self._menu_setLabelPID.currentIndexChanged.connect( self.setLabelIndex )
-
-
-        self._labelframe = QtGui.QFrame()
-        self._labellayout = QtGui.QGridLayout()
-        self._labellayout.addWidget( self._button_toggleLabelMode, 0, 0 )
-        self._labellayout.addWidget( self._menu_setLabelPID, 0, 1 )
-        self._labellayout.addWidget( self._button_showlabel, 0, 2 )
-        self._labellayout.addWidget( self._button_savelabel, 0, 3 )
-        self._labellayout.addWidget( self._button_undolabel, 0, 4 )
-        self._labelframe.setLayout( self._labellayout )
-        self._labelframe.setLineWidth(2)
-        self._labelframe.setFrameShape( QtGui.QFrame.Box )        
-
-
     # add widgets to self and return 
     def grid(self, enable):
 
@@ -477,7 +448,7 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget( self.set_yvertex, 4, 2 )
 
             # Label mode buttons
-            self.addWidget( self._labelframe, 4, 3, 1, 5 )
+            self.addWidget( self.labeltools.getframe(), 4, 3, 1, self.labeltools.getframewidth() )
 
         else:
 
@@ -673,42 +644,7 @@ class ROIToolLayout(QtGui.QGridLayout):
                     self.set_yvertex.setEnabled(True)
                     for roig in self.rois:
                         roig.setVertex( ch.plane, ch.getvertex() )
+                        if roig.vertexplot not in self.plt.listDataItems():
+                            self.plt.addItem( roig.vertexplot )
         
-    def toggleLabelMode(self):
-        """ function called when label mode button is pressed/released."""
-        if self.imi is None or self.plt is None:
-            print "Warning: No image nor plot loaded yet for labeling."
-            return
-
-        if not self._label_mode:
-            print "[Activating label mode]"
-            self._button_toggleLabelMode.setText("Disable Label Mode")
-            self._button_savelabel.setEnabled(True)
-            self._button_showlabel.setEnabled(True)
-            self._button_undolabel.setEnabled(True)
-            self._label_mode = True
-            self._labeltool.goIntoLabelingMode( self._labelparticles[self._menu_setLabelPID.currentIndex()], self.plt, self.imi, self.images )
-        else:
-            print "[Deactivating label mode]"
-            self._button_toggleLabelMode.setText("Enable Label Mode")
-            self._button_savelabel.setEnabled(False)
-            self._button_showlabel.setEnabled(False)
-            self._button_undolabel.setEnabled(True)
-            self._label_mode = False
-
-    def setLabelIndex(self,currentindex):
-        """ called when label particle combo box changes """
-        self._currentlabel = self._menu_setLabelPID.getCurrentIndex()
-        if self._label_mode:
-            self._labeltool.switchLabel( self._currentlabel )
-
-    def displayLabels(self):
-        if self.imi is None or self.plt is None:
-            return
-        self._labeltool.drawLabeling( self.plt, self.imi, self.images )
-        self._button_toggleLabelMode.setText("Enable Label Mode")
-        self._button_savelabel.setEnabled(False)
-        self._button_showlabel.setEnabled(False)
-        self._button_undolabel.setEnabled(False)
-        self._label_mode = False
-            
+                        

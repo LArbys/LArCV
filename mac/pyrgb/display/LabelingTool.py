@@ -21,17 +21,37 @@ class LabelingTool:
     kDISPLAY = 2
     kINACTIVE = 3
     
-    def __init__(self,labels,color_codes):
+    #def __init__(self,labels,color_codes):
+    def __init__(self):
         """
         labels: a list of strings. index of labels used in code.
         color_codes: dictionary mapping label names to color
         """
         self.state = LabelingTool.kUNINIT
-        self.labels = labels
-        self.colors = color_codes
+        self._makeFrame()
         if "background" not in self.labels:
             raise ValueError("Labels in labeling tool must have 'background' label!")
-            
+        # critical variables
+        self.plotitem = None
+        self.imageitem = None
+        self.images = None
+
+        self.stored_labels = {} # eventkey, dict of label matrices, gross
+
+    def setWidgets( self, plotitem, imageitem ):
+        self.plotitem = plotitem
+        self.imageitem = imageitem
+        # revert the state to uninit: we have to assume the image has changes as well
+        self.reset()
+
+    def setImage( self, eventkey, image ):
+        self.images  = image
+        self.nplanes = len(self.images.imgs) # attempt to not be hardcoded, but probably fragile
+        # now initilize label containers
+        if self.state==LabelingTool.kDRAWING:
+            self.restoreImage()
+        self._initialize( eventkey, self.images )
+        self.setButtonStates()
 
     def goIntoLabelingMode(self, label, plotitem, imageitem, src_images ):
         """
@@ -45,13 +65,6 @@ class LabelingTool:
         confusing, but what can we do for now?
 
         """
-        if self.state==LabelingTool.kUNINIT:
-            self.initialize(src_images)
-
-        if self.state not in [LabelingTool.kINACTIVE,LabelTool.kDISPLAY]:
-            # can transition into drawing mode only from the above states
-            print "Moving to drawing state must be from inactive or display"
-            return
             
         if self.shape()!=src_images.plot_mat.shape[:2]:
             raise ValueError("Image shape passed into LabelingTool is not the same shape as before")
@@ -59,6 +72,9 @@ class LabelingTool:
         if label not in self.labels:
             raise ValueError("Label not recognized")
 
+        # set the state
+        self.state = LabelingTool.kDRAWING
+        self.plane = self._menu_labelplane.currentIndex()
 
         # first keep pointer to data from the image item
         self.orig_img = src_images
@@ -70,9 +86,9 @@ class LabelingTool:
         fmax = np.max( working )*1.1
         self.current_idx_label = self.labels.index( label )
         if label!="background":
-            working[ self.labelmat==self.current_idx_label ] = fmax
+            working[ self.labelmat[self.plane]==self.current_idx_label ] = fmax
         else:
-            working[ self.labelmat!=self.current_idx_label ] = fmax
+            working[ self.labelmat[self.plane]!=self.current_idx_label ] = fmax
         working /= fmax # normalize
 
         # now set the image
@@ -88,53 +104,67 @@ class LabelingTool:
             imageitem.setDrawKernel(kern, mask=kern, center=(0,0), mode='set')
 
         self.current_img = imageitem.image
-        self.state = LabelingTool.kDRAWING
 
-    def initialize(self, src_images ):
+
+    def _initialize(self, eventkey, src_images ):
         """ we setup the numpy array to store the labels now that we know image shape we are dealing with."""
         labelmatshape = src_images.plot_mat.shape[:2]
-        self.labelmat = np.ones( labelmatshape, dtype=np.int )*self.labels.index("background")
+        if eventkey not in self.stored_labels:
+            self.stored_labels[eventkey] = {}
+            for plane in xrange(0,self.nplanes):
+                self.stored_labels[eventkey][plane] = np.ones( labelmatshape, dtype=np.int )*self.labels.index("background")
+        self.labelmat = self.stored_labels[eventkey]
+
+        # we are inactive. ready to draw.
         self.state = LabelingTool.kINACTIVE
+
+    def reset(self):
+        """ reset the state. clear current label container and reset state to uninitiated. """
+        self.state = LabelingTool.kUNINIT
 
     def shape( self ):
         if self.state==LabelingTool.kUNINIT:
             return None
-        return self.labelmat.shape
+        return self.labelmat[0].shape
 
     def drawLabeling(self,plotitem,imageitem,src_images):
         """ put labeling colors onto current image """
-        if self.state==LabelingTool.kDRAWING:
-            # transitioning from drawing state, save labeling
-            self.saveLabeling()
 
         # set state to display
         self.state=LabelingTool.kDISPLAY
         self.orig_img = src_images
         self.imageitem = imageitem
+        self.plotitem  = plotitem
         working = np.copy( self.orig_img.plot_mat )
         fmax = np.max( working )*1.1
         working /= fmax # normalize
 
-        for idx,label in enumerate(self.labels):
-            if label=="background":
-                continue
-            color = np.array( self.colors[label] )/255.0
-            working[ self.labelmat==idx ] = color
+        drawplanes = []
+        if self._menu_labelplane.currentIndex()!=3:
+            drawplanes.append( self._menu_labelplane.currentIndex() )
+        else:
+            drawplanes = [0,1,2]
+
+        for plane in drawplanes:
+            for idx,label in enumerate(self.labels):
+                if label=="background":
+                    continue
+                color = np.array( self.colors[label] )/255.0
+                working[ self.labelmat[plane]==idx ] = color
 
         self.imageitem.setImage( image=working, levels=[[0.0,1.0],[0.0,1.0],[0.0,1.0]] )
-        self.imageitem.setDrawKernel(None) # turn off draw mode?
+        self.imageitem.setDrawKernel(None) # turn off draw mode
 
     def saveLabeling(self):
         """ take current image, find labeled pixels, store them in self.labelmat """
         if self.state!=LabelingTool.kDRAWING:
-            print "Label Tool not in Drawing state"
             return
         # use current img
-        print "Saving labels"
+        print "Saving labels[ plane=",self.plane," label=",self.labels[self.current_idx_label]," ]"
         marked = (self.current_img >= 1.0).all(axis=2)
         print marked.shape
         print np.count_nonzero( marked )
-        self.labelmat[ marked ] = self.current_idx_label
+        self.labelmat[self.plane][ marked ] = self.current_idx_label
         return
     
     def undo(self):
@@ -166,10 +196,160 @@ class LabelingTool:
         self.undo() # redraws (but now with new label highlighted using current_idx_label)
         
 
-    def deactivateLabelMode(self):
+    def restoreImage(self):
         """ deactivate label mode """
-        self.state = LabelingTool.kINACTIVE
         # restore image
         self.imageitem.setImage( image=self.orig_img.plot_mat, autoLevels=True )
+        self.imageitem.setDrawKernel(None)
         return
 
+
+    def _makeFrame(self):
+        """ makes all the widgets involved in the labeling tools. parent widgets will use these buttons."""
+        # This has hardcoded labels and colors
+        # Maybe inheritance can allow this to be customized, extended? Worry about it later if we need it.
+        if hasattr(self,'frame'):
+            return self.frame
+        self.labels = ["electron","muon","proton","pion","gamma","background"]
+        self.colors    = {"electron":(255,128,0),
+                          "muon":(0,255,255),
+                          "proton":(255,0,255),
+                          "pion":(0,128,255),
+                          "gamma":(255,255,0),
+                          "background":(0,0,0)}
+
+        self._button_toggleLabelMode = QtGui.QPushButton("Enable Label Mode")
+        self._button_toggleLabelMode.clicked.connect( self.toggleLabelMode )
+        self._button_savelabel = QtGui.QPushButton("Save Labeling")
+        self._button_savelabel.clicked.connect( self.saveLabels )
+        self._button_showlabel = QtGui.QPushButton("Show Labels")
+        self._button_showlabel.clicked.connect( self.displayLabels )
+        self._button_undolabel = QtGui.QPushButton("Undo")
+        self._button_savelabel.setEnabled(False)
+        self._button_showlabel.setEnabled(False)
+        self._button_undolabel.setEnabled(False)
+        self._menu_setLabelPID = QtGui.QComboBox()
+        for idx,label in enumerate(self.labels):
+            self._menu_setLabelPID.insertItem( idx, label )
+        self._menu_setLabelPID.setCurrentIndex( 0 )
+        self._label_mode = False
+        self._currentlabel = self._menu_setLabelPID.currentIndex()
+        self._menu_setLabelPID.currentIndexChanged.connect( self.setLabelIndex )
+
+        self._menu_labelplane = QtGui.QComboBox()
+        for idx,plane in enumerate(["U","V","Y"]):
+            self._menu_labelplane.insertItem( idx, plane )
+        self._menu_labelplane.setCurrentIndex( 0 )
+        self._menu_labelplane.currentIndexChanged.connect( self.setLabelPlane )
+
+        self.frame = QtGui.QFrame()
+        self._labellayout = QtGui.QGridLayout()
+        self._labellayout.addWidget( self._button_toggleLabelMode, 0, 0 )
+        self._labellayout.addWidget( self._menu_setLabelPID, 0, 1 )
+        self._labellayout.addWidget( self._button_showlabel, 0, 2 )
+        self._labellayout.addWidget( self._button_savelabel, 0, 3 )
+        self._labellayout.addWidget( self._button_undolabel, 0, 4 )
+        self._labellayout.addWidget( self._menu_labelplane,  0, 5 )
+        self.frame.setLayout( self._labellayout )
+        self.frame.setLineWidth(2)
+        self.frame.setFrameShape( QtGui.QFrame.Box )        
+        self.framewidth = 6
+
+    def getframe(self):
+        return self.frame
+    
+    def getframewidth(self):
+        return self.framewidth
+
+    # --------------------------------------------------------------------------------------------
+    # button functions
+
+    def toggleLabelMode(self):
+        """ function called when label mode button is pressed/released.
+            actions dependent on state
+            [UNINIT] Do nothing
+            [INACTIVE] Start drawing mode
+            [DISPLAY] Return to drawing mode
+            [DRAWING] Set to inactive
+        """
+        if self.imageitem is None or self.plotitem is None:
+            print "Warning: No image nor plot loaded yet for labeling. Doing nothing."
+            return
+
+        if self.state in [LabelingTool.kUNINIT]:
+            print "Labeling tool in unitialized state. do nothing."
+            return
+
+        if self.state in [LabelingTool.kINACTIVE]:
+            print "[Activating label mode]"
+            self.state = LabelingTool.kDRAWING
+            self.setButtonStates()
+            self.goIntoLabelingMode( self.labels[self._menu_setLabelPID.currentIndex()], self.plotitem, self.imageitem, self.images )
+        elif self.state in [LabelingTool.kDRAWING,LabelingTool.kDISPLAY]:
+            print "[Deactivating label mode]"
+            self.saveLabeling()
+            self.restoreImage()
+            self.state = LabelingTool.kINACTIVE
+            self.setButtonStates()
+
+    def setLabelIndex(self,currentindex):
+        """ called when label particle combo box changes """
+        if self._currentlabel == self._menu_setLabelPID.currentIndex():
+            # do nothing
+            return
+        self._currentlabel = self._menu_setLabelPID.currentIndex()
+        if self.state==LabelingTool.kDRAWING:
+            self.switchLabel( self._currentlabel )
+        elif self.state==LabelingTool.kDISPLAY:
+            self.drawLabeling( self.plotitem, self.imageitem, self.orig_img )
+
+    def displayLabels(self):
+        """ called when show labels button pressed """
+        # if transitioning from drawing state, save labeling
+        if self.state==LabelingTool.kDRAWING:
+            self.saveLabeling()
+            self.state = LabelingTool.kDISPLAY
+            self.drawLabeling( self.plotitem, self.imageitem, self.orig_img )
+            self.setButtonStates()
+        elif self.state==LabelingTool.kDISPLAY:
+            self.state = LabelingTool.kDRAWING
+            self.setButtonStates()
+            self.goIntoLabelingMode( self.labels[self._menu_setLabelPID.currentIndex()], self.plotitem, self.imageitem, self.images )
+
+    def saveLabels(self):
+        """ called when save labels button hit """
+        print "[put labels to memory]"
+        self.saveLabeling()
+        
+    def setLabelPlane(self,plane):
+        if self.state==self.kDISPLAY:
+            # redraw with new plane
+            self.drawLabeling( self.plotitem, self.imageitem, self.orig_img )
+        elif self.state==self.kDRAWING:
+            self.saveLabeling()
+            self.goIntoLabelingMode( self.labels[self._menu_setLabelPID.currentIndex()], self.plotitem, self.imageitem, self.images )
+
+    def setButtonStates(self):
+        if self.state in [LabelingTool.kDRAWING]:
+            self._button_toggleLabelMode.setText("Disable Label Mode")
+            self._button_savelabel.setEnabled(True)
+            self._button_showlabel.setEnabled(True)
+            self._button_undolabel.setEnabled(True)
+            if self._menu_labelplane.currentIndex()==3:
+                self._menu_labelplane.setCurrentIndex(0)
+            self._menu_labelplane.removeItem(3) # remove the all plane option
+        elif self.state in [LabelingTool.kDISPLAY]:
+            self._button_toggleLabelMode.setText("Disable Label Mode") # go to inactive state, restore image
+            self._button_showlabel.setText("Label mode") # got to labeling/drawing state
+            self._button_savelabel.setEnabled(True)
+            self._button_showlabel.setEnabled(True)
+            self._button_undolabel.setEnabled(True)
+            self._menu_labelplane.insertItem(3,"all") # remove the all plane option
+        elif self.state in [LabelingTool.kINACTIVE,LabelingTool.kUNINIT]:
+            self._button_toggleLabelMode.setText("Enable Label Mode")
+            self._button_showlabel.setText("Show Labels")
+            self._button_savelabel.setEnabled(False)
+            self._button_showlabel.setEnabled(False)
+            self._button_undolabel.setEnabled(False)
+        else:
+            raise ValueError("Got into an unknown state.")
