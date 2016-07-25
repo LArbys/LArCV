@@ -67,21 +67,40 @@ class RGBDisplay(QtGui.QWidget):
         # Layouts
         self.lay_inputs = QtGui.QGridLayout()
         self.layout.addLayout(self.lay_inputs, 2, 0)
-
-        # Navigation
-        self.event = QtGui.QLineEdit("%d" % 0)      # event number
-        self.lay_inputs.addWidget(QtGui.QLabel("Entry"), 0, 0)
-        self.lay_inputs.addWidget(self.event, 0, 1)
-
+        
+               
+        
+        # -------------------------------------------------------
+        # Navigation box
+        self._makeNavFrame()
+        self.lay_inputs.addWidget( self._navframe, 0, 0, self.navheight-1, self.navwidth  )
+        
+        # -------------------------------------------------------
+        # Thresholding
+        threshstart = self.navwidth+1
         ### imin -- threshold
         self.imin = QtGui.QLineEdit("%d" % (5))
-        self.lay_inputs.addWidget(QtGui.QLabel("imin"), 1, 0)
-        self.lay_inputs.addWidget(self.imin, 1, 1)
+        iminlabel = QtGui.QLabel("imin")
+        iminlabel.setFixedWidth(30)
+        self.lay_inputs.addWidget(iminlabel, 0, threshstart)
+        self.lay_inputs.addWidget(self.imin, 0, threshstart+1)
 
         ### imax -- threshold
         self.imax = QtGui.QLineEdit("%d" % (400))
-        self.lay_inputs.addWidget(QtGui.QLabel("imax"), 2, 0)
-        self.lay_inputs.addWidget(self.imax, 2, 1)
+        imaxlabel = QtGui.QLabel("imax")
+        imaxlabel.setFixedWidth(30)
+        self.lay_inputs.addWidget(imaxlabel, 1, threshstart)
+        self.lay_inputs.addWidget(self.imax, 1, threshstart+1)
+
+        ### use user constrast -- threshold
+        #Lock imin/imax between events
+        self.user_contrast = QtGui.QCheckBox("User Contrast")
+        self.lay_inputs.addWidget(self.user_contrast, 2, threshstart, 1, 2)
+        self.user_contrast.setChecked(False)
+        self.enableContrast()
+        self.user_contrast.clicked.connect(self.enableContrast)
+        
+        # --------------------------------------------------------
 
         # False color mode
         self.use_false_color = QtGui.QCheckBox("Use False Color")
@@ -96,66 +115,53 @@ class RGBDisplay(QtGui.QWidget):
         self.layout.addWidget(self.use_false_color, 0, 8, 1, 2)
         self.false_color_widget.hide()
 
-        # select choice options
-        self.axis_plot = QtGui.QPushButton("Replot")
-        self.lay_inputs.addWidget(self.axis_plot, 2, 2)
-
-        self.previous_plot = QtGui.QPushButton("Prev Event")
-        self.lay_inputs.addWidget(self.previous_plot, 1, 2)
-
-        self.next_plot = QtGui.QPushButton("Next Event")
-        self.lay_inputs.addWidget(self.next_plot, 0, 2)
-
-        # particle types
-        # BNB
-        self.kBNB = QtGui.QRadioButton("BNB")
-        self.lay_inputs.addWidget(self.kBNB, 0, 6)
-        self.kBNB.setChecked(True)
-
-        # Particle
-        self.kOTHER = QtGui.QRadioButton("Particle")
-        self.lay_inputs.addWidget(self.kOTHER, 1, 6)
-
-        # Both
-        self.kBOTH = QtGui.QRadioButton("Both")
-        self.lay_inputs.addWidget(self.kBOTH, 2, 6)
-
+        # --------------------------------------------------------
         # tmw -- changing it so that one can select the channel to show in the
         # RGB channels
+        rgbstart = threshstart+2
+        rgblabelwidth = 10
         self.p0label = QtGui.QLabel("R:")
-        self.lay_inputs.addWidget(self.p0label, 0, 4)
+        self.p0label.setFixedWidth(rgblabelwidth)
+        self.lay_inputs.addWidget(self.p0label, 0, rgbstart)
         self.p0 = QtGui.QComboBox()
         self.p0.currentIndexChanged.connect( self.changeChannelViewed )
-        self.lay_inputs.addWidget(self.p0, 0, 5)
+        self.lay_inputs.addWidget(self.p0, 0, rgbstart+1)
 
         self.p1label = QtGui.QLabel("G:")
-        self.lay_inputs.addWidget(self.p1label, 1, 4)
+        self.p1label.setFixedWidth(rgblabelwidth)
+        self.lay_inputs.addWidget(self.p1label, 1, rgbstart)
         self.p1 = QtGui.QComboBox()
         self.p1.currentIndexChanged.connect( self.changeChannelViewed )
-        self.lay_inputs.addWidget(self.p1, 1, 5)
+        self.lay_inputs.addWidget(self.p1, 1, rgbstart+1)
 
         self.p2label = QtGui.QLabel("B:")
-        self.lay_inputs.addWidget(self.p2label, 2, 4)
+        self.p2label.setFixedWidth(rgblabelwidth)
+        self.lay_inputs.addWidget(self.p2label, 2, rgbstart)
         self.p2 = QtGui.QComboBox()
         self.p2.currentIndexChanged.connect( self.changeChannelViewed )
-        self.lay_inputs.addWidget(self.p2, 2, 5)
+        self.lay_inputs.addWidget(self.p2, 2, rgbstart+1)
 
         self.planes = [self.p0, self.p1, self.p2]
         self.views = []
 
+        # ------------------------------------------------
+        # Producers
+
         # Combo box to select the image producer
-        self.lay_inputs.addWidget(QtGui.QLabel("Image2D & ROI Prod."), 0, 3)
+        combostart = rgbstart+2
+        self.lay_inputs.addWidget(QtGui.QLabel("Image2D & ROI Prod."), 0, combostart)
         self.comboBoxImage = QtGui.QComboBox()
         self.image_producer = None
         self.high_res = False
         for prod in self.dm.keys['image2d']:
             self.comboBoxImage.addItem(prod)
 
-        self.lay_inputs.addWidget(self.comboBoxImage, 1, 3)
+        self.lay_inputs.addWidget(self.comboBoxImage, 1, combostart)
 
         # and another combo box to select ROI
         # self.lay_inputs.addWidget(QtGui.QLabel(
         # "<center>ROI Prod</center>"), 2, 2)
+
 
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer = None
@@ -168,31 +174,47 @@ class RGBDisplay(QtGui.QWidget):
             self.roi_exists = False
             self.comboBoxROI.addItem("None")
 
-        self.lay_inputs.addWidget(self.comboBoxROI, 2, 3)
+        self.lay_inputs.addWidget(self.comboBoxROI, 2, combostart)
 
-        #Lock imin/imax between events
-        self.user_contrast = QtGui.QCheckBox("User Contrast")
-        self.lay_inputs.addWidget(self.user_contrast, 1, 7)
-        self.user_contrast.setChecked(False)
-        self.enableContrast()
-        self.user_contrast.clicked.connect(self.enableContrast)
+        # --------------------------------------------------
+        # particle types
+        parstart = combostart+1
+        # BNB
+        self.kBNB = QtGui.QRadioButton("BNB")
+        self.lay_inputs.addWidget(self.kBNB, 0, parstart)
+        self.kBNB.setChecked(True)
 
+        # Particle
+        self.kOTHER = QtGui.QRadioButton("Particle")
+        self.lay_inputs.addWidget(self.kOTHER, 1, parstart)
+
+        # Both
+        self.kBOTH = QtGui.QRadioButton("Both")
+        self.lay_inputs.addWidget(self.kBOTH, 2, parstart)
+
+        # --------------------------------------------------------
+        # Options
+        optstart = parstart + 1
         # Auto range function
         self.auto_range = QtGui.QPushButton("AutoRange")
-        self.lay_inputs.addWidget(self.auto_range, 0, 9)
+        self.lay_inputs.addWidget(self.auto_range, 0, optstart)
         
         # Save image
         self.savecounter = int(0)
         self.saveimage = QtGui.QPushButton("Save Image")
         self.saveimage.clicked.connect(self.saveImage)
-        self.lay_inputs.addWidget(self.saveimage,2,7)
+        self.lay_inputs.addWidget(self.saveimage,1,optstart)
 
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
-        self.lay_inputs.addWidget(self.draw_bbox, 0, 7)
+        self.lay_inputs.addWidget(self.draw_bbox, 2, optstart)
 
+        # -------------------------------------------------------
+        # Utilities
+        utilstart = optstart + 1
         # RGBCaffe will open and close bottom of the window
+        #utillabel     = QtGui.QLabel("Utilities")
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcv2 = QtGui.QPushButton("Enable OpenCV")
         self.rgbroi = QtGui.QPushButton("Enable ROITool")
@@ -207,9 +229,10 @@ class RGBDisplay(QtGui.QWidget):
         self.rgbcv2.setFixedWidth(130)
         self.rgbroi.setFixedWidth(130)
 
-        self.lay_inputs.addWidget(self.rgbcaffe, 0, 8)
-        self.lay_inputs.addWidget(self.rgbcv2, 1, 8)
-        self.lay_inputs.addWidget(self.rgbroi, 2, 8)
+        #self.lay_inputs.addWidget(utillabel, 0, utilstart)
+        self.lay_inputs.addWidget(self.rgbcaffe, 0, utilstart)
+        self.lay_inputs.addWidget(self.rgbcv2, 1, utilstart)
+        self.lay_inputs.addWidget(self.rgbroi, 2, utilstart)
         
         # Particle types
         self.kTypes = {'kBNB':   (self.kBNB, [2]),
@@ -218,13 +241,6 @@ class RGBDisplay(QtGui.QWidget):
 
         # The current image array, useful for getting meta
         self.image = None
-
-        # (Re)Plot button
-        self.axis_plot.clicked.connect(self.plotData)
-
-        # Previous and Next event
-        self.previous_plot.clicked.connect(self.previousEvent)
-        self.next_plot.clicked.connect(self.nextEvent)
 
         # Radio buttons for choosing type of ROI
         self.kBNB.clicked.connect(
@@ -274,7 +290,7 @@ class RGBDisplay(QtGui.QWidget):
         self.cv2_enabled = False
 
         # ROITool
-        self.roitool_layout = ROIToolLayout(self.plt,self.image,self.event,dm=self.dm)
+        self.roitool_layout = ROIToolLayout(self.plt,self.image,self.event,self.run,self.subrun,self.event_num,dm=self.dm)
         self.roitool_layout.setImageAndPlotWidgets( self.plt, self.imi )
         self.roitool_enabled = False
         
@@ -282,7 +298,39 @@ class RGBDisplay(QtGui.QWidget):
         self.swindow = ROISlider([0, 0], [20, 20])
         self.swindow.sigRegionChanged.connect(self.regionChanged)
 
+        # -----------------------------------------------------------------------------
+        # Erez, July-21, 2016 - get an image using R/S/E navigation
+        # -----------------------------------------------------------------------------
+        self.event_base_and_images = {}
+        self.rse_map = {}
+        print "len(self.event_base_and_images): ",len(self.event_base_and_images)
+
+
+
+
+
+
     # caffe toggles, if/els statement is for opening and closing the pane
+    
+    # -------------------------
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # -------------------------
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    # erez
+    def prepare_rse_navigation(self):
+
+
+        self.NavigationType = "RSE navigation"
+        print "preparing R/S/E navigation...."
+        self.dm.get_all_images(self.image_producer,self.event_base_and_images,self.rse_map)
+    
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # -------------------------
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~
+    # -------------------------
+    
+    
     def openCaffe(self):
         if re.search("Disable", self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
@@ -431,7 +479,26 @@ class RGBDisplay(QtGui.QWidget):
 
         self.plotData()
 
-        
+# -------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    # erez july-21,2016 go to R/S/E defined event
+    def go_rse_Event(self):
+    
+    
+        wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
+        print wanted_rse
+        self.wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
+        self.plotData()
+                
+                
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------
+
     def setViewPlanes(self):
         # the list of chosen views 
         self.views = []
@@ -465,12 +532,28 @@ class RGBDisplay(QtGui.QWidget):
 
         # From QT, the threshold
         event = int(self.event.text())
-            
-        # get the image from the datamanager
-        self.image, hasroi = self.dm.get_event_image(event,
+        
+        # -----------------------------------------------------------------------------
+        # Erez, July-21, 2016
+        # -----------------------------------------------------------------------------
+        if self.NavigationType == "RSE navigation" : # my way
+            self.image, hasroi = self.dm.get_rse_image(self.event_base_and_images,
+                                                       self.rse_map,
+                                                       self.wanted_rse,
+                                                       self.image_producer,
+                                                       self.roi_producer,
+                                                       self.views)
+        
+       
+        else: # original way
+            # get the image from the datamanager
+            self.image, hasroi = self.dm.get_event_image(event,
                                                      self.image_producer,
                                                      self.roi_producer,
                                                      self.views)
+        # -----------------------------------------------------------------------------
+
+
 
         # whoops no image, return
         if self.image == None: return
@@ -706,7 +789,8 @@ class RGBDisplay(QtGui.QWidget):
         #not sure what it the best way to do this...
         #exporter.parameters()['width']  = 700   # (note this also affects height parameter)
         exporter.parameters()['height'] = 700 
-        exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
+        exporter.export('R{}_S{}_E{}.png'.format(str(self.run.text()),str(self.subrun.text()),str(self.event.text())))
+#        exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
         print "Saved image {}".format(self.savecounter)
         self.savecounter += 1
 
@@ -765,5 +849,77 @@ class RGBDisplay(QtGui.QWidget):
                 pass
             self.setImage( self.pimg )
 
-    def plotClicked(self):
-        print "plot clicked"
+    def _makeNavFrame(self):
+        self._navframe = QtGui.QFrame()
+        self._navlayout = QtGui.QGridLayout()
+
+        labelwidth = 40
+        inputwidth = 60
+
+        # Navigation between entries
+        self.event = QtGui.QLineEdit("%d" % 0)      # entries number
+        entry_label = QtGui.QLabel("entry")
+        entry_label.setFixedWidth(labelwidth)
+        
+        # -------------------------------------------------------
+        # erez - July-21, 2016
+        # -------------------------------------------------------
+        # Navigation - run / sub / event from run-info
+        self.run = QtGui.QLineEdit("%d" % 5187)      # run
+        self.subrun = QtGui.QLineEdit("%d" % 96)      # subrun
+        self.event_num = QtGui.QLineEdit("%d" % 4812)      # event
+        run_label = QtGui.QLabel("run")
+        run_label.setFixedWidth(labelwidth)
+        event_label = QtGui.QLabel("event")
+        event_label.setFixedWidth(labelwidth)
+        subrun_label = QtGui.QLabel("subrun")
+        subrun_label.setFixedWidth(labelwidth)
+        for input in [ self.run, self.subrun, self.event_num, self.event ]:
+            input.setFixedWidth( inputwidth )
+        
+        self._navlayout.addWidget( run_label, 0, 0 )
+        self._navlayout.addWidget( subrun_label, 1, 0 )
+        self._navlayout.addWidget( event_label, 2, 0 )
+        self._navlayout.addWidget( entry_label, 3, 0 )
+
+        self._navlayout.addWidget( self.run, 0, 1 )
+        self._navlayout.addWidget( self.subrun, 1, 1 )
+        self._navlayout.addWidget( self.event_num, 2, 1 )
+        self._navlayout.addWidget( self.event,  3, 1 )
+
+        # Yes or no to navigate using R/S/E
+        self.rse_navigation = QtGui.QCheckBox("R/S/E navigation")
+        self.rse_navigation.setChecked(False)#True)
+        self.rse_navigation.stateChanged.connect( self.prepare_rse_navigation )
+        self._navlayout.addWidget( self.rse_navigation, 0, 2, 1, 2 )
+
+        # select choice options
+        self.axis_plot = QtGui.QPushButton("Go/Replot")
+        self.previous_plot = QtGui.QPushButton("Prev Event")
+        self.next_plot = QtGui.QPushButton("Next Event")
+
+        # prev, next, replot
+        self._navlayout.addWidget( self.previous_plot, 1, 2, 1, 2 )
+        self._navlayout.addWidget( self.next_plot,     2, 2, 1, 2 )
+        self._navlayout.addWidget( self.axis_plot,     3, 2, 1, 2 )
+
+        # select choice option: redundant, because we have the RSE checkbox
+        #self.go_rse_plot = QtGui.QPushButton("Go R/S/E")
+        #self.lay_inputs.addWidget(self.go_rse_plot, 1, 2)
+
+        self.navheight = 4
+        self.navwidth  = 4
+
+        # [ signal connect ]
+
+        # (Re)Plot button
+        self.axis_plot.clicked.connect(self.plotData)
+
+        # Previous and Next event
+        self.previous_plot.clicked.connect(self.previousEvent)
+        self.next_plot.clicked.connect(self.nextEvent)
+        #self.go_rse_plot.clicked.connect(self.go_rse_Event) # erez, july-21,2016
+
+        # set frame
+        self._navframe.setLayout( self._navlayout )
+
