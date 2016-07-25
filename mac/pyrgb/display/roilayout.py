@@ -355,7 +355,7 @@ class ROIToolLayout(QtGui.QGridLayout):
                 #print type(roi),roi
                 self.plt.addItem(roi)
             # add vertex markers
-            if not self.roisg.fix_vertex_to_bb:
+            if not roisg.fix_vertex_to_bb:
                 print "draw makers",roisg.vertexplot
                 self.plt.addItem( roisg.vertexplot )
     
