@@ -20,6 +20,10 @@ class LabelingTool:
     kDRAWING = 1
     kDISPLAY = 2
     kINACTIVE = 3
+    statenames = { kUNINIT:"Unint",
+                   kDRAWING:"Labeling Mode",
+                   kDISPLAY:"Display Mode",
+                   kINACTIVE:"Inactive" }
     
     #def __init__(self,labels,color_codes):
     def __init__(self):
@@ -194,10 +198,10 @@ class LabelingTool:
         self.current_idx_label = self.labels.index( newlabel )
         if newlabel!="background":
             kern = np.array( [[[ 1,1,1 ]]] )
-            imageitem.setDrawKernel(kern, mask=kern, center=(0,0), mode='add')
+            self.imageitem.setDrawKernel(kern, mask=kern, center=(0,0), mode='add')
         else:
             kern = np.array( [[[ 0,0,0]]] )
-            imageitem.setDrawKernel(kern, mask=kern, center=(0,0), mode='set')            
+            self.imageitem.setDrawKernel(kern, mask=kern, center=(0,0), mode='set')            
         self.undo() # redraws (but now with new label highlighted using current_idx_label)
         
 
@@ -223,7 +227,7 @@ class LabelingTool:
                           "gamma":(255,255,0),
                           "background":(0,0,0)}
 
-        self._button_toggleLabelMode = QtGui.QPushButton("Enable Label Mode")
+        self._button_toggleLabelMode = QtGui.QPushButton("Enable Label Tool")
         self._button_toggleLabelMode.clicked.connect( self.toggleLabelMode )
         self._button_savelabel = QtGui.QPushButton("Save Labeling")
         self._button_savelabel.clicked.connect( self.saveLabels )
@@ -247,6 +251,8 @@ class LabelingTool:
             self._menu_labelplane.insertItem( idx, plane )
         self._menu_labelplane.setCurrentIndex( 0 )
         self._menu_labelplane.currentIndexChanged.connect( self.setLabelPlane )
+        
+        self._label_state = QtGui.QLabel("%s"%(LabelingTool.statenames[self.state]))
 
         self.frame = QtGui.QFrame()
         self._labellayout = QtGui.QGridLayout()
@@ -256,10 +262,11 @@ class LabelingTool:
         self._labellayout.addWidget( self._button_savelabel, 0, 3 )
         self._labellayout.addWidget( self._button_undolabel, 0, 4 )
         self._labellayout.addWidget( self._menu_labelplane,  0, 5 )
+        self._labellayout.addWidget( self._label_state,  0, 6 )
         self.frame.setLayout( self._labellayout )
         self.frame.setLineWidth(2)
         self.frame.setFrameShape( QtGui.QFrame.Box )        
-        self.framewidth = 6
+        self.framewidth = 7
 
     def getframe(self):
         return self.frame
@@ -337,7 +344,8 @@ class LabelingTool:
 
     def setButtonStates(self):
         if self.state in [LabelingTool.kDRAWING]:
-            self._button_toggleLabelMode.setText("Disable Label Mode")
+            self._button_toggleLabelMode.setText("Disable Label Tool")
+            self._button_showlabel.setText("Show Labels") # got to labeling/drawing state
             self._button_savelabel.setEnabled(True)
             self._button_showlabel.setEnabled(True)
             self._button_undolabel.setEnabled(True)
@@ -346,16 +354,17 @@ class LabelingTool:
             self._menu_labelplane.removeItem(3) # remove the all plane option
         elif self.state in [LabelingTool.kDISPLAY]:
             self._button_toggleLabelMode.setText("Disable Label Mode") # go to inactive state, restore image
-            self._button_showlabel.setText("Label mode") # got to labeling/drawing state
+            self._button_showlabel.setText("Draw Labels") # got to labeling/drawing state
             self._button_savelabel.setEnabled(True)
             self._button_showlabel.setEnabled(True)
             self._button_undolabel.setEnabled(True)
             self._menu_labelplane.insertItem(3,"all") # remove the all plane option
         elif self.state in [LabelingTool.kINACTIVE,LabelingTool.kUNINIT]:
-            self._button_toggleLabelMode.setText("Enable Label Mode")
+            self._button_toggleLabelMode.setText("Enable Label Tool")
             self._button_showlabel.setText("Show Labels")
             self._button_savelabel.setEnabled(False)
             self._button_showlabel.setEnabled(False)
             self._button_undolabel.setEnabled(False)
         else:
             raise ValueError("Got into an unknown state.")
+        self._label_state.setText("%s"%(LabelingTool.statenames[self.state]))

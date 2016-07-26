@@ -114,7 +114,8 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.ou_iom = None
         
         self.user_rois = {}
-        self.user_rois_larcv = {}
+        self.user_rois_larcv = {}     # stores LArCV ROIs
+        self.user_vertices_larcv = {} # stores list of Vertex2D tuples per event
         self.user_rois_src_rse = {} # stores run,subrun,event
         self.user_rois_previous_rse = [] # tracks rse that already have
 
@@ -155,6 +156,13 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.labeltools.setImage( event, self.images )
         
     def storeROI(self):
+        """ responsible for outputing data used by the ROI tool.
+            this includes:
+               - ROI
+               - Vertices
+               - Pixel Labels
+            bad: hardcoding producer names
+        """
 
         if self.ou_iom is None:
             "Please load a file first please!!!!"
@@ -171,8 +179,11 @@ class ROIToolLayout(QtGui.QGridLayout):
         for event in xrange(max_):
 
             roiarray = self.ou_iom.get_data(larcv.kProductROI,self.output_prod)
+            vertex_array = self.ou_iom.get_data(larcv.kProductPixel2D,self.output_prod)
 
             # event == TTree entry in the image file so I place that in the event number here.
+
+            
 
             # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
@@ -209,6 +220,13 @@ class ROIToolLayout(QtGui.QGridLayout):
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
             for larcv_roi in self.user_rois_larcv[event]:
                 roiarray.Append(larcv_roi)
+
+            # There are vertices, too
+            for larcv_vertex2d in self.user_vertices_larcv[event]:
+                if larcv_vertex2d != (None,None,None):
+                    print "storing ",larcv_vertex2d
+                    for p,vert in enumerate( larcv_vertex2d ):
+                        vertex_array.Append( p, vert )
 
             # Save them to the tree
             self.ou_iom.save_entry()
@@ -253,9 +271,11 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.user_rois[int(self.event.text())] = self.rois # not allowed to ``copy" qwidgets (w/ copy.deepcopy)
         
         larcv_rois = [self.roi2larcv(roisg) for roisg in self.rois]
+        larcv_vertices = [self.roi2vertex2d(roisg) for roisg in self.rois]
 
         # save by index
         self.user_rois_larcv[int(self.event.text())] = larcv_rois # not allowed to copy qwidgets
+        self.user_vertices_larcv[int(self.event.text())] = larcv_vertices
         # save event info if we have it
         if self.dm is not None:
             self.user_rois_src_rse[int(self.event.text())] = ( self.dm.run, self.dm.subrun, self.dm.event )
@@ -499,6 +519,27 @@ class ROIToolLayout(QtGui.QGridLayout):
             larcv_roi.AppendBB(bbox_meta)
 
         return larcv_roi
+
+    def roi2vertex2d(self,bboxes):
+        """ extract vertex information if any, and put it into a vertex 2D.
+        inputs
+        ------
+        bboxes: instance of ROISliderGroup
+
+        outputs
+        -------
+        tuple of pixel2D instances. One for each plane.
+
+        if no vertex asigned to ROI, return (None,None,None)
+        """
+        if not bboxes.fix_vertex_to_bb:
+            return (None,None,None)
+
+        return ( larcv.Pixel2D( bboxes.vertices[0]["pos"][0], bboxes.vertices[0]["pos"][1] ),
+                 larcv.Pixel2D( bboxes.vertices[1]["pos"][0], bboxes.vertices[1]["pos"][1] ),
+                 larcv.Pixel2D( bboxes.vertices[2]["pos"][0], bboxes.vertices[2]["pos"][1] ) )
+                                
+            
     
     def roi2imgcord(self,imm,size,pos):
 

@@ -7,6 +7,8 @@
 
 namespace larcv {
 
+  static EventPixel2DFactory __global_EventPixel2DFactory__;
+
   void EventPixel2D::clear()
   {
     _pixel_m.clear(); _cluster_m.clear();
