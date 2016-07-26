@@ -547,9 +547,9 @@ class ROIToolLayout(QtGui.QGridLayout):
         if not bboxes.fix_vertex_to_bb:
             return (None,None,None)
 
-        return ( larcv.Pixel2D( bboxes.vertices[0]["pos"][0], bboxes.vertices[0]["pos"][1] ),
-                 larcv.Pixel2D( bboxes.vertices[1]["pos"][0], bboxes.vertices[1]["pos"][1] ),
-                 larcv.Pixel2D( bboxes.vertices[2]["pos"][0], bboxes.vertices[2]["pos"][1] ) )
+        return ( larcv.Pixel2D( int(bboxes.vertices[0]["pos"][0]), int(bboxes.vertices[0]["pos"][1]) ),
+                 larcv.Pixel2D( int(bboxes.vertices[1]["pos"][0]), int(bboxes.vertices[1]["pos"][1]) ),
+                 larcv.Pixel2D( int(bboxes.vertices[2]["pos"][0]), int(bboxes.vertices[2]["pos"][1]) ) )
                                 
     def labelimg2pixelcluster(self,labelimg):
         """ extract labels from labelingtool's labelmat. It's just a numpy array. """
