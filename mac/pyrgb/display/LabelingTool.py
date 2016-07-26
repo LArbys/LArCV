@@ -67,7 +67,9 @@ class LabelingTool:
         """
             
         if self.shape()!=src_images.plot_mat.shape[:2]:
-            raise ValueError("Image shape passed into LabelingTool is not the same shape as before")
+            #raise ValueError("Image shape passed into LabelingTool is not the same shape as before")
+            print "Warning: Image shape passed into LabelingTool is not the same shape as before"
+            self._initialize( None, src_images, reinit=True )
 
         if label not in self.labels:
             raise ValueError("Label not recognized")
@@ -106,13 +108,16 @@ class LabelingTool:
         self.current_img = imageitem.image
 
 
-    def _initialize(self, eventkey, src_images ):
+    def _initialize(self, eventkey, src_images, reinit=False ):
         """ we setup the numpy array to store the labels now that we know image shape we are dealing with."""
         labelmatshape = src_images.plot_mat.shape[:2]
-        if eventkey not in self.stored_labels:
+        if eventkey is None:
+            eventkey = self.current_eventkey
+        if eventkey not in self.stored_labels or reinit==True:
             self.stored_labels[eventkey] = {}
             for plane in xrange(0,self.nplanes):
                 self.stored_labels[eventkey][plane] = np.ones( labelmatshape, dtype=np.int )*self.labels.index("background")
+        self.current_eventkey = eventkey
         self.labelmat = self.stored_labels[eventkey]
 
         # we are inactive. ready to draw.
@@ -225,6 +230,7 @@ class LabelingTool:
         self._button_showlabel = QtGui.QPushButton("Show Labels")
         self._button_showlabel.clicked.connect( self.displayLabels )
         self._button_undolabel = QtGui.QPushButton("Undo")
+        self._button_undolabel.clicked.connect( self.undo )
         self._button_savelabel.setEnabled(False)
         self._button_showlabel.setEnabled(False)
         self._button_undolabel.setEnabled(False)
@@ -297,7 +303,7 @@ class LabelingTool:
         if self._currentlabel == self._menu_setLabelPID.currentIndex():
             # do nothing
             return
-        self._currentlabel = self._menu_setLabelPID.currentIndex()
+        self._currentlabel = self.labels[self._menu_setLabelPID.currentIndex()]
         if self.state==LabelingTool.kDRAWING:
             self.switchLabel( self._currentlabel )
         elif self.state==LabelingTool.kDISPLAY:

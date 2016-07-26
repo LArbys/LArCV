@@ -319,11 +319,17 @@ class RGBDisplay(QtGui.QWidget):
     
     # erez
     def prepare_rse_navigation(self):
-
-
-        self.NavigationType = "RSE navigation"
-        print "preparing R/S/E navigation...."
-        self.dm.get_all_images(self.image_producer,self.event_base_and_images,self.rse_map)
+        if len(self.rse_map)==0:
+            print "preparing R/S/E navigation...."
+            self.dm.get_all_images(self.image_producer,self.event_base_and_images,self.rse_map)
+            rselist = self.rse_map.keys()
+            rselist.sort()
+            print rselist
+            if self.run.text()=="-1" and self.subrun.text()=="-1" and self.event_num.text()=="-1" and len(rselist)>0:
+                self.run.setText("%d"%(rselist[0][0]))
+                self.subrun.setText("%d"%(rselist[0][1]))
+                self.event_num.setText("%d"%(rselist[0][2]))
+                self.event.setText("%d"%(self.rse_map[rselist[0]]))
     
     # ~~~~~~~~~~~~~~~~~~~~~~~~~
     # -------------------------
@@ -446,6 +452,10 @@ class RGBDisplay(QtGui.QWidget):
                         self.dm.subrun,
                         self.dm.event)
 
+        self.run.setText( "%d"%(self.dm.run) )
+        self.subrun.setText( "%d"%(self.dm.subrun) )
+        self.event_num.setText( "%d"%(self.dm.event) )
+
         if self.cv2_enabled == True:
             self.plt.addItem(self.swindow)
             self.swindow.setZValue(10)
@@ -478,26 +488,6 @@ class RGBDisplay(QtGui.QWidget):
         self.event.setText(str(event + 1))
 
         self.plotData()
-
-# -------------------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-# -------------------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    # erez july-21,2016 go to R/S/E defined event
-    def go_rse_Event(self):
-    
-    
-        wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
-        print wanted_rse
-        self.wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
-        self.plotData()
-                
-                
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-# -------------------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-# -------------------------
 
     def setViewPlanes(self):
         # the list of chosen views 
@@ -536,7 +526,9 @@ class RGBDisplay(QtGui.QWidget):
         # -----------------------------------------------------------------------------
         # Erez, July-21, 2016
         # -----------------------------------------------------------------------------
-        if self.NavigationType == "RSE navigation" : # my way
+        if self.rse_navigation.isChecked() : # my way
+            #self.wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
+            self.wanted_rse = ( int(self.run.text()), int(self.subrun.text()), int(self.event_num.text()) )
             self.image, hasroi = self.dm.get_rse_image(self.event_base_and_images,
                                                        self.rse_map,
                                                        self.wanted_rse,
@@ -548,9 +540,9 @@ class RGBDisplay(QtGui.QWidget):
         else: # original way
             # get the image from the datamanager
             self.image, hasroi = self.dm.get_event_image(event,
-                                                     self.image_producer,
-                                                     self.roi_producer,
-                                                     self.views)
+                                                         self.image_producer,
+                                                         self.roi_producer,
+                                                         self.views)
         # -----------------------------------------------------------------------------
 
 
@@ -779,8 +771,8 @@ class RGBDisplay(QtGui.QWidget):
         else: # get it from the max and min value of image
             self.iimin = self.image.iimin
             self.iimax = self.image.iimax
-            self.imin.setText(str(self.iimin))
-            self.imax.setText(str(self.iimax))
+            self.imin.setText("%.2f"%(self.iimin))
+            self.imax.setText("%.2f"%(self.iimax))
             #print "Setting self.imin text {}=>{}".format(self.image.iimin,self.iimin)
             #print "Setting self.imax text {}=>{}".format(self.image.iimax,self.iimax)
 
@@ -865,9 +857,9 @@ class RGBDisplay(QtGui.QWidget):
         # erez - July-21, 2016
         # -------------------------------------------------------
         # Navigation - run / sub / event from run-info
-        self.run = QtGui.QLineEdit("%d" % 5187)      # run
-        self.subrun = QtGui.QLineEdit("%d" % 96)      # subrun
-        self.event_num = QtGui.QLineEdit("%d" % 4812)      # event
+        self.run = QtGui.QLineEdit("%d" % -1)      # run
+        self.subrun = QtGui.QLineEdit("%d" % -1)      # subrun
+        self.event_num = QtGui.QLineEdit("%d" % -1)      # event
         run_label = QtGui.QLabel("run")
         run_label.setFixedWidth(labelwidth)
         event_label = QtGui.QLabel("event")

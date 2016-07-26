@@ -384,37 +384,39 @@ class ROIToolLayout(QtGui.QGridLayout):
         # Get (run,subrun,event) if we can (alternative way to get rse: maybe more robust since it comes from data)
         #rse = ( self.dm.run, self.dm.subrun, self.dm.event )
 
+        if self.in_iom is not None:
 
-        for entry in range(self.in_iom.get_n_entries()):
-            read_entry = self.in_iom.read_entry(entry)
-            event_base = self.in_iom.get_data(larcv.kProductROI,"protonBDT")
-            curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
+            for entry in range(self.in_iom.get_n_entries()):
+                read_entry = self.in_iom.read_entry(entry)
+                event_base = self.in_iom.get_data(larcv.kProductROI,"protonBDT")
+                curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
 
-            if curren_rse == wanted_rse:
-                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
-                # print "reloading ",self.user_rois_larcv[entry]," from file"
-                #                print "loading entry ",entry," from file"
-                #                print wanted_rse[0],wanted_rse[1],wanted_rse[2]
+                if curren_rse == wanted_rse:
+                    roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
+                    self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
+                    # print "reloading ",self.user_rois_larcv[entry]," from file"
+                    #                print "loading entry ",entry," from file"
+                    #                print wanted_rse[0],wanted_rse[1],wanted_rse[2]
 
-                if entry not in self.user_rois.keys():
-            
-                    if self.in_iom is not None:
-                        if entry < self.in_iom.get_n_entries():
-                            self.in_iom.read_entry(entry)
-                            roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                            self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
-                            self.user_rois[entry] = self.larcv2roi(self.user_rois_larcv[entry])
+                    if entry not in self.user_rois.keys():
+
+                        if self.in_iom is not None:
+                            if entry < self.in_iom.get_n_entries():
+                                self.in_iom.read_entry(entry)
+                                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
+                                self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
+                                self.user_rois[entry] = self.larcv2roi(self.user_rois_larcv[entry])
+                            else:
+                                return
                         else:
                             return
-                    else:
-                        return
 
-                self.rois = self.user_rois[entry]
-                for roisg in self.rois:
-                    for roi in roisg.rois:
-                        self.plt.addItem(roi)
-                return
+                    self.rois = self.user_rois[entry]
+                    for roisg in self.rois:
+                        for roi in roisg.rois:
+                            self.plt.addItem(roi)
+                    return
+        # end of get input file
         # -----------------------------------------------------------------------------
     
     # add widgets to self and return 
