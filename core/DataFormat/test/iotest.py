@@ -7,6 +7,10 @@ larcv.logger.force_level(0)
 # Constants
 #
 MSG_LEVEL=larcv.msg.kERROR
+if 'debug' in sys.argv:
+    MSG_LEVEL = larcv.msg.kDEBUG
+if 'info' in sys.argv:
+    MSG_LEVEL = larcv.msg.kINFO
 OUT_FNAME="iotest.root"
 NUM_EVENT=1000
 
