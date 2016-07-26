@@ -14,6 +14,9 @@ namespace larcv {
     , _fout       ( nullptr )
   {}
 
+  bool ProcessBase::is(const std::string question) const
+  { return false; }
+
   void ProcessBase::_configure_(const PSet& cfg)
   {
     _profile = cfg.get<bool>("Profile",_profile);

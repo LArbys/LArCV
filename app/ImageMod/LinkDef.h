@@ -20,9 +20,11 @@
 #pragma link C++ class larcv::ADCThreshold+;
 #pragma link C++ class larcv::SimpleDigitizer+;
 #pragma link C++ class larcv::ResizeImage+;
-#pragma link C++ class larcv::CosmicROIFiller+;
+#pragma link C++ class alrcv::CosmicROIFiller+;
+#pragma link C++ class larcv::MeanSubtraction+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

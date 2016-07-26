@@ -28,19 +28,18 @@ while test $# -gt 0; do
 	  out="{$LARCV_LIBDIR} "
 	  ;;
       --libs)
-	  out="-L${LARCV_LIBDIR} -lLArCVBase -lLArCVDataFormat -lLArCVProcessor -lLArCVCPPUtil "
+	  out=""
 	  if [ $LARCV_NUMPY -eq 1 ]; then
-	      out+=" -lLArCVPyUtil "
-	  fi
-	  if [ $LARCV_OPENCV -eq 1 ]; then
-	      out+=" -lLArCVCVUtil "
-	  fi
-	  if [ $LARCV_NUMPY -eq 1 ]; then
+	      out+=" -L"
+	      out+=`python-config --prefix`
+	      out+="/lib/ "
 	      out+=`python-config --ldflags`
+	      out+=" "
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
 	      out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs "
 	  fi
+	  out+=" -L${LARCV_LIBDIR} -llarcv "
 	  ;;
       --help)
 	  ### Print a help message

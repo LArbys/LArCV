@@ -64,14 +64,18 @@ namespace larcv {
 
     const std::vector<size_t>& processed_entries() const { return _batch_entries; }
 
-    const std::vector<int>& dim();
+    const std::vector<larcv::EventBase>& processed_events() const { return _batch_events; }
+
+    const std::vector<int> dim(bool image=true) const;
 
     const std::vector<float>& data() const;
 
     PyObject* data_ndarray() const;
 
     const std::vector<float>& labels() const;
-
+    
+    const ProcessDriver* pd() { return &_driver; }
+    
   private:
 
     bool _batch_process_(size_t nentries);
@@ -83,9 +87,12 @@ namespace larcv {
     bool _enable_filter;
     size_t _num_processed;
     std::vector<size_t> _batch_entries;
+    std::vector<larcv::EventBase> _batch_events;
     std::vector<int> _dim_v;
     ProcessDriver _driver;
+
     DatumFillerBase* _filler;
+
     std::thread _th;
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;

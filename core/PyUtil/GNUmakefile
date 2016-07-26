@@ -11,6 +11,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
+INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += $(shell python-config --includes)
 INCFLAGS += -I$(shell python -c "import numpy; print numpy.get_include()")
 INCFLAGS += -I$(LARCV_COREDIR)
@@ -22,7 +23,6 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += -L$(LARCV_LIBDIR) -lLArCVBase -lLArCVDataFormat
 LDFLAGS += -L$(shell python-config --prefix)/lib/
 LDFLAGS += $(shell python-config --ldflags)
 

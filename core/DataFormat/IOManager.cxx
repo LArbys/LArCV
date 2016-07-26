@@ -336,10 +336,12 @@ namespace larcv {
     if(_in_tree_index != index) {
       _in_tree_index = index;
       _event_id.clear();
+      _set_event_id.clear();
     }else if(force_reload){
       _in_tree_index = index;
       for(auto& v : _in_tree_index_v) v = kINVALID_SIZE;
       _event_id.clear();
+      _set_event_id.clear();
     }
     LARCV_DEBUG() << "Current input tree index: " << _in_tree_index << std::endl;
     return true;
@@ -429,6 +431,8 @@ namespace larcv {
       if(!p) break;
       p->clear();
     }
+    if(_set_event_id.valid()) _last_event_id = _set_event_id;
+    else _last_event_id = _event_id;
     _event_id.clear();
     _set_event_id.clear();
   }

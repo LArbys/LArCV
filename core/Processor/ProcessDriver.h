@@ -46,9 +46,13 @@ namespace larcv {
 
     void override_output_file(const std::string fname);
 
+    void override_ana_file(const std::string fname);
+
     bool process_entry();
     
     bool process_entry(size_t entry,bool force_reload=false);
+
+    const EventBase& event_id() const { return _io.last_event_id(); }
 
     void batch_process(size_t start_entry=0, size_t num_entries=0);
 

@@ -1,9 +1,9 @@
 /**
- * \file SimpleFiller.h
+ * \file SegFiller.h
  *
  * \ingroup Package_Name
  * 
- * \brief Class def header for a class SimpleFiller
+ * \brief Class def header for a class SegFiller
  *
  * @author kazuhiro
  */
@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __SIMPLEFILLER_H__
-#define __SIMPLEFILLER_H__
+#ifndef __SegFiller_H__
+#define __SegFiller_H__
 
 #include "Processor/ProcessFactory.h"
 #include "DatumFillerBase.h"
@@ -21,18 +21,18 @@ namespace larcv {
 
   /**
      \class ProcessBase
-     User defined class SimpleFiller ... these comments are used to generate
+     User defined class SegFiller ... these comments are used to generate
      doxygen documentation!
   */
-  class SimpleFiller : public DatumFillerBase {
+  class SegFiller : public DatumFillerBase {
 
   public:
     
     /// Default constructor
-    SimpleFiller(const std::string name="SimpleFiller");
+    SegFiller(const std::string name="SegFiller");
     
     /// Default destructor
-    ~SimpleFiller(){}
+    ~SegFiller(){}
 
     void child_configure(const PSet&);
 
@@ -60,6 +60,7 @@ namespace larcv {
 
     void assert_dimension(const std::vector<larcv::Image2D>&);
 
+    size_t _seg_channel;
     size_t _rows;
     size_t _cols;
     size_t _num_channels;
@@ -77,17 +78,17 @@ namespace larcv {
   };
 
   /**
-     \class larcv::SimpleFillerFactory
-     \brief A concrete factory class for larcv::SimpleFiller
+     \class larcv::SegFillerFactory
+     \brief A concrete factory class for larcv::SegFiller
   */
-  class SimpleFillerProcessFactory : public ProcessFactoryBase {
+  class SegFillerProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SimpleFillerProcessFactory() { ProcessFactory::get().add_factory("SimpleFiller",this); }
+    SegFillerProcessFactory() { ProcessFactory::get().add_factory("SegFiller",this); }
     /// dtor
-    ~SimpleFillerProcessFactory() {}
+    ~SegFillerProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SimpleFiller(instance_name); }
+    ProcessBase* create(const std::string instance_name) { return new SegFiller(instance_name); }
   };
 
 }

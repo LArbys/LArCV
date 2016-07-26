@@ -122,9 +122,15 @@ namespace larcv {
 		ProcessID_t last_process_id=0;
 		ProcessID_t datum_filler_id=kINVALID_SIZE;
 		for(auto const& process_name : _driver.process_names()) {
+
 			ProcessID_t id = _driver.process_id(process_name);
+
 			if(id > last_process_id) last_process_id = id;
-				auto ptr = _driver.process_ptr(id);
+
+			auto ptr = _driver.process_ptr(id);
+
+			LARCV_INFO() << "Process " << process_name << " = DatumFiller: " << ptr->is("DatumFiller") << std::endl;
+
 			if(ptr->is("DatumFiller")) {
 				if(datum_filler_id != kINVALID_SIZE) {
 					LARCV_CRITICAL() << "Duplicate DatumFillers: id=" << datum_filler_id
@@ -134,10 +140,12 @@ namespace larcv {
 				datum_filler_id = id;
 			}
 		}
+
 		if(datum_filler_id == kINVALID_SIZE) {
 			LARCV_CRITICAL() << "DatumFiller not found in process list..." << std::endl;
 			throw larbys();
 		}
+
 		if(datum_filler_id != last_process_id){
 			LARCV_CRITICAL() << "DatumFiller not the last process..." << std::endl;
 			throw larbys();
@@ -147,7 +155,7 @@ namespace larcv {
 		_configured = true;
   	}
 
-    const std::vector<int>& ThreadDatumFiller::dim()
+    const std::vector<int> ThreadDatumFiller::dim(bool image) const
     {
     	if(!_processing) {
     		LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
@@ -157,11 +165,7 @@ namespace larcv {
 	   		LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
 	   		throw larbys();
 	   	}
-	   	_dim_v[0] = _filler->_nentries;
-	   	_dim_v[1] = _filler->_num_channels;
-	   	_dim_v[2] = _filler->_rows;
-	   	_dim_v[3] = _filler->_cols;
-	   	return _dim_v;
+	   	return _filler->dim(image);
     }
 
     const std::vector<float>& ThreadDatumFiller::data() const
@@ -223,7 +227,7 @@ namespace larcv {
 	   		LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
 	   		throw larbys();
 	   	}
-	   	return _filler->labels();
+	   	return _filler->data(false);
     }
 
    	bool ThreadDatumFiller::batch_process(size_t nentries)
@@ -265,7 +269,9 @@ namespace larcv {
 
     	size_t last_entry = kINVALID_SIZE-1;
     	if(_batch_entries.size()) last_entry = _batch_entries.back();
-    		_batch_entries.resize(nentries,0);
+	_batch_entries.resize(nentries,0);
+	_batch_events.clear();
+	_batch_events.reserve(nentries);
 
     	_filler->_nentries = nentries;
     	_filler->batch_begin();
@@ -274,43 +280,46 @@ namespace larcv {
     	std::random_device rd;
     	std::mt19937 gen(rd());
     	std::uniform_int_distribution<> dis(0,_driver.io().get_n_entries()-1);
-      if(_random_access) 
-      LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
+    	if(_random_access) 
+    		LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
 
-      LARCV_INFO() << "Entering process loop" << std::endl;
-      while(valid_ctr < nentries) {
-	size_t entry = last_entry+1;
-	if(_optional_next_index!=kINVALID_SIZE) {
-	  entry = _optional_next_index;
-	  _optional_next_index=kINVALID_SIZE;
-	}
-	if(entry == kINVALID_SIZE) entry = 0;
+    	LARCV_INFO() << "Entering process loop" << std::endl;
+    	while(valid_ctr < nentries) {
+			size_t entry = last_entry+1;
+			if(_optional_next_index!=kINVALID_SIZE) {
+	  			entry = _optional_next_index;
+	  			_optional_next_index=kINVALID_SIZE;
+			}
+			if(entry == kINVALID_SIZE) entry = 0;
 	
-	if(_random_access) {
-	  entry = dis(gen);
-	  while(entry == last_entry) entry = dis(gen);
-	}
-	else if(entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries(); 
+			if(_random_access) {
+	  			entry = dis(gen);
+	  			while(entry == last_entry) entry = dis(gen);
+			}
+			else if(entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries(); 
 	
-	LARCV_INFO() << "Processing entry: " << entry << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl; 
+			LARCV_INFO() << "Processing entry: " << entry 
+				     << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
 	
-	last_entry = entry;
-	bool good_status = _driver.process_entry(entry,true);
-	if(_enable_filter && !good_status) {
-	  LARCV_INFO() << "Filter enabled: bad event found" << std::endl;
-	  continue;
-	}
-	
-	_batch_entries[valid_ctr] = _driver.get_tree_index( entry );
-	++valid_ctr;
-	LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << std::endl;
-      }
-      _num_processed += valid_ctr;
-      _filler->batch_end();
-      _thread_running = false;
-      _optional_next_index = kINVALID_SIZE;
-      LARCV_DEBUG() << " end" << std::endl;
-      return true;
+			last_entry = entry;
+			bool good_status = _driver.process_entry(entry,true);
+			if(_enable_filter && !good_status) {
+	  			LARCV_INFO() << "Filter enabled: bad event found" << std::endl;
+	  			continue;
+			}
+			LARCV_INFO() << "Finished processing event id: " << _driver.event_id().event_key() << std::endl;
+
+			_batch_entries[valid_ctr] = _driver.get_tree_index( entry );
+			_batch_events.push_back(_driver.event_id());
+			++valid_ctr;
+			LARCV_INFO() << "Processed good event: valid entry counter = " << valid_ctr << " : " << _batch_events.size() << std::endl;
+      	}
+      	_num_processed += valid_ctr;
+      	_filler->batch_end();
+      	_thread_running = false;
+      	_optional_next_index = kINVALID_SIZE;
+      	LARCV_DEBUG() << " end" << std::endl;
+      	return true;
     }
 }
 

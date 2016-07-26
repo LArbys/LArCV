@@ -1,7 +1,7 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = HistADC
+PACKAGE_NAME = ImageAna
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
