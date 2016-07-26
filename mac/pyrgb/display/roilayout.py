@@ -563,7 +563,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         clusters = {}
         for iplane in xrange(0,3):
             clusters[iplane] = larcv.Pixel2DCluster()
-            if iplane >= len(labelimg[iplane]):
+            if iplane >= len(labelimg):
                 continue
             labelmat = labelimg[iplane]
             idx_bg = self.labeltools.labels.index("background")
