@@ -122,8 +122,8 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # TMW
         # imported ROI: provided by load files
-        #self.imported_larcv_rois = {} # dictionary with key of (run,subrun,event) and value of larcv::ROI
-        #self.imported_rse_dict = {} # dictionary with key of (run,subrun,event) and index
+        self.imported_larcv_rois = {} # dictionary with key of (run,subrun,event) and value of larcv::ROI
+        self.imported_rse_dict = {} # dictionary with key of (run,subrun,event) and index
 
         # set state of roi behavior
         self.toggleSameROItime()
@@ -255,14 +255,30 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.output_prod = str(self.output_roi_producer.text())
 
         # No ROOT file in the input, don't make a read iomanager
-        if ".root" not in input_:
-            input_ = []
-            self.input_roi.setText("No input provided!")
-            self.input_roi_producer.setText("give producer")
-            self.input_prod = None
+        if self.in_iom is None:
+            if ".root" not in input_:
+                input_ = []
+                self.input_roi.setText("No input provided!")
+                self.input_roi_producer.setText("give producer")
+                self.input_prod = None
+            else:
+                if os.path.exists( input_ ):
+                    self.in_iom = IOManager([input_],None,0)
+                    self.in_iom.set_verbosity(2)
+
+                    # load up rois
+                    idx = 0
+                    for in_entry in range(0,self.in_iom.get_n_entries()):
+                        self.in_iom.read_entry(in_entry)
+                        event_rois = self.in_iom.get_data( larcv.kProductROI, self.input_prod )
+                        rse = ( event_rois.run(), event_rois.subrun(), event_rois.event() )
+                        self.imported_rse_dict[rse] = idx
+                        idx += 1
+                    print "Number of events with ROIs: ",len(self.imported_rse_dict)
+                else:
+                    print "Could not find input file: ",input_
         else:
-            self.in_iom = IOManager([input_],None,0)
-            self.in_iom.set_verbosity(2)
+            print "input roi file already loaded."
 
         if self.ou_iom is not None:
             print "Already loaded output file."
@@ -404,52 +420,41 @@ class ROIToolLayout(QtGui.QGridLayout):
         return
         
     def reloadROI(self):
-
+        print "reload ROI"
         self.clearROI()
+        print "post-clear num rois: ",len(self.rois)
 
+        event = int(self.event.text())
+        rse = ( self.dm.run, self.dm.subrun, self.dm.event  )
 
-        # -----------------------------------------------------------------------------
-        # erez identification - using run / subrun / event
-        # -----------------------------------------------------------------------------
-        # Get the wanted r/s/e from the GUI widgets
-        wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
-        # Get (run,subrun,event) if we can (alternative way to get rse: maybe more robust since it comes from data)
-        #rse = ( self.dm.run, self.dm.subrun, self.dm.event )
+        # If no user ROIs, look through imported ROIs
+        if event not in self.user_rois.keys():
 
-        if self.in_iom is not None:
+            if rse in self.imported_rse_dict:
+                print "rse in imported list ",rse
+                idx = self.imported_rse_dict[rse]
+                self.in_iom.read_entry(idx)  
+                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
+                self.user_rois_larcv[event] = [roi for roi in roiarray.ROIArray()]
+                print "reloading ",self.user_rois_larcv[event]," from file"
+                self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])  
+            else:
+                print rse," not in user_rois nor in imported dict."
+                return
+            
+        # set to active rois
+        self.rois = self.user_rois[event]
+        print "active rois: ",len(self.rois)
 
-            for entry in range(self.in_iom.get_n_entries()):
-                read_entry = self.in_iom.read_entry(entry)
-                event_base = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
-
-                if curren_rse == wanted_rse:
-                    roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                    self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
-                    # print "reloading ",self.user_rois_larcv[entry]," from file"
-                    #                print "loading entry ",entry," from file"
-                    #                print wanted_rse[0],wanted_rse[1],wanted_rse[2]
-
-                    if entry not in self.user_rois.keys():
-
-                        if self.in_iom is not None:
-                            if entry < self.in_iom.get_n_entries():
-                                self.in_iom.read_entry(entry)
-                                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                                self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
-                                self.user_rois[entry] = self.larcv2roi(self.user_rois_larcv[entry])
-                            else:
-                                return
-                        else:
-                            return
-
-                    self.rois = self.user_rois[entry]
-                    for roisg in self.rois:
-                        for roi in roisg.rois:
-                            self.plt.addItem(roi)
-                    return
-        # end of get input file
-        # -----------------------------------------------------------------------------
+        for roisg in self.rois:
+            # add bboxes for the planes
+            for roi in roisg.rois:
+                #print type(roi),roi
+                self.plt.addItem(roi)
+            # add vertex markers
+            if not roisg.fix_vertex_to_bb:
+                print "draw makers",roisg.vertexplot
+                self.plt.addItem( roisg.vertexplot )
     
     # add widgets to self and return 
     def grid(self, enable):
