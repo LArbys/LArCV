@@ -14,7 +14,7 @@ namespace larcv {
     case kProductROI:      return "partroi";
     case kProductChStatus: return "chstatus";
     case kProductPixel2D:  return "pixel2d";
-    case kProductGeo2D:    return "geo2d";
+      //case kProductGeo2D:    return "geo2d";
     default:
       std::stringstream ss;
       ss << "Unsupported type (" << type << ")! Implement DataFormat/ProductMap.cxx!" << std::endl;
