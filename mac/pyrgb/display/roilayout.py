@@ -180,6 +180,8 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             roiarray = self.ou_iom.get_data(larcv.kProductROI,self.output_prod)
             vertex_array = self.ou_iom.get_data(larcv.kProductPixel2D,self.output_prod)
+            if len(self.labeltools.stored_labels)>0:
+                label_array  = self.ou_iom.get_data(larcv.kProductPixel2D,"labels")
 
             # event == TTree entry in the image file so I place that in the event number here.
 
@@ -228,6 +230,17 @@ class ROIToolLayout(QtGui.QGridLayout):
                     for p,vert in enumerate( larcv_vertex2d ):
                         vertex_array.Append( p, vert )
 
+            # Are there labeling images?
+            if event in self.labeltools.stored_labels:
+                pixelclusters = self.labelimg2pixelcluster( self.labeltools.stored_labels[event] )
+                for p,pixelcluster in enumerate( pixelclusters ):
+                    label_array.Append( p, pixelcluster )
+            elif event not in self.labeltools.stored_labels and len(self.labeltools.stored_labels)>0:
+                # make empty pixelclusters
+                for p in xrange(0,3):
+                    pc = larcv.Pixel2DCluster()
+                    label_array.Append( p, pc )
+                
             # Save them to the tree
             self.ou_iom.save_entry()
 
@@ -539,8 +552,31 @@ class ROIToolLayout(QtGui.QGridLayout):
                  larcv.Pixel2D( bboxes.vertices[1]["pos"][0], bboxes.vertices[1]["pos"][1] ),
                  larcv.Pixel2D( bboxes.vertices[2]["pos"][0], bboxes.vertices[2]["pos"][1] ) )
                                 
+    def labelimg2pixelcluster(self,labelimg):
+        """ extract labels from labelingtool's labelmat. It's just a numpy array. """
+        if not hasattr(self,'translator'):
+            self.translator = {self.labelingtools.labels.index("electron"):larcv.kROIEminus,
+                               self.labelingtools.labels.index("muon"):larcv.kROIMuminus,
+                               self.labelingtools.labels.index("pion"):larcv.kROIPiminus,
+                               self.labelingtools.labels.index("proton"):larcv.kROIProton,
+                               self.labelingtools.labels.index("gamma"):larcv.kROIGamma}
+        
+        clusters = {}
+        for iplane in xrange(0,3):
+            clusters[iplane] = larcv.Pixel2DCluster()
+            labelmat = labelimg[iplane]
+            idx_bg = self.labelingtools.labels.index("background")
+            idxlabels = (labelmat != idx_bg).nonzero()
+            for ivert in xrange(0,len(idxlabels[0])):
+                vert = larcv.Pixel2D( idxlabels[0][ivert], idxlabels[1][ivert] )
+                label = labelmat[ idxlabels[0][ivert], idxlabels[1][ivert] ]
+                print "storing (",vert.X(),",",vert.Y(),") label=", self.labelingtools.labels[label]
+                vert.Intensity( float(self.translator[ label ] ) )
+                clusters[iplane] += vert
+
+        return ( clusters[0], clusters[1], clusters[2] )
             
-    
+
     def roi2imgcord(self,imm,size,pos):
 
         x = pos[0]
