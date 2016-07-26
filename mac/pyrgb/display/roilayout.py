@@ -151,7 +151,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
     def setImages( self, event, images ):
         """ parent widget of the ROI tool sends in new event and images through this function. """
-        self.event = event
+        self.eventindex = event
         self.images = images
         self.labeltools.setImage( event, self.images )
         
@@ -420,7 +420,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             for entry in range(self.in_iom.get_n_entries()):
                 read_entry = self.in_iom.read_entry(entry)
-                event_base = self.in_iom.get_data(larcv.kProductROI,"protonBDT")
+                event_base = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
                 curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
 
                 if curren_rse == wanted_rse:
