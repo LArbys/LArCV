@@ -219,7 +219,7 @@ class ROIToolLayout(QtGui.QGridLayout):
                     roiarray.Append(larcv_roi)
 
             # There are vertices, too
-            if event in self.user_rois_larcv and len(self.user_vertices_larcv[event])>0:
+            if event in self.user_vertices_larcv and len(self.user_vertices_larcv[event])>0:
                 for larcv_vertex2d in self.user_vertices_larcv[event]:
                     if larcv_vertex2d != (None,None,None):
                         print "storing ",larcv_vertex2d
@@ -563,6 +563,8 @@ class ROIToolLayout(QtGui.QGridLayout):
         clusters = {}
         for iplane in xrange(0,3):
             clusters[iplane] = larcv.Pixel2DCluster()
+            if iplane >= len(labelimg[iplane]):
+                continue
             labelmat = labelimg[iplane]
             idx_bg = self.labeltools.labels.index("background")
             idxlabels = (labelmat != idx_bg).nonzero()
