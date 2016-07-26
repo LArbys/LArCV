@@ -169,11 +169,16 @@ class LabelingTool:
         if self.state!=LabelingTool.kDRAWING:
             return
         # use current img
-        print "Saving labels[ plane=",self.plane," label=",self.labels[self.current_idx_label]," ]"
+        print "Saving labels event=",self.current_eventkey," plane=",self.plane," label=",self.labels[self.current_idx_label]," ]"
         marked = (self.current_img >= 1.0).all(axis=2)
         print marked.shape
         print np.count_nonzero( marked )
         self.labelmat[self.plane][ marked ] = self.current_idx_label
+        # debug: print indices of marked pixels
+        #nz = np.nonzero( marked )
+        #print nz
+        #for x in range(0,len(nz[0])):
+        #    print nz[0][x], nz[1][x]
         return
     
     def undo(self):

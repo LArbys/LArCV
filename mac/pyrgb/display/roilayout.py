@@ -185,8 +185,8 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             # event == TTree entry in the image file so I place that in the event number here.
 
+            # STORE ROIs
             
-
             # If this event doesn't have an ROI, save a blank and continue
             if event not in self.user_rois.keys():
                 if event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
@@ -194,48 +194,47 @@ class ROIToolLayout(QtGui.QGridLayout):
                     self.ou_iom.set_id( rse[0], rse[1], rse[2] )
                 else:
                     self.ou_iom.set_id(1,0,event)
-                self.ou_iom.save_entry()
-                
-                continue
 
-            # User accidentally hit capture ROIs when no ROI drawn, save a blank and continue
-            if len(self.user_rois[event]) == 0:
+            elif len(self.user_rois[event]) == 0:
+                # User accidentally hit capture ROIs when no ROI drawn, save a blank and continue
                 if event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
                     rse = self.user_rois_src_rse[event]
                     self.ou_iom.set_id( rse[0], rse[1], rse[2] )
                 else:
                     self.ou_iom.set_id(1,0,event)
-                self.ou_iom.save_entry()
-
-                continue
 
             # It's a fine ROI
             # if event has a stored run, subrun, event. put it in here
-            if event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
+            elif event in self.user_rois_src_rse and self.save_roi_RSE.isChecked():
                 rse = self.user_rois_src_rse[event]
                 print "storing ROIs for ",rse
                 self.ou_iom.set_id( rse[0], rse[1], rse[2] )
             # no RSE, put a 1 in the subrun to indicate one exists
-            else:
+            elif event not in self.user_rois_src_rse or not self.save_roi_RSE.isChecked():
                 self.ou_iom.set_id(1,1,event)
 
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
-            for larcv_roi in self.user_rois_larcv[event]:
-                roiarray.Append(larcv_roi)
+            if event in self.user_rois_larcv and len(self.user_rois_larcv[event])>0:
+                for larcv_roi in self.user_rois_larcv[event]:
+                    roiarray.Append(larcv_roi)
 
             # There are vertices, too
-            for larcv_vertex2d in self.user_vertices_larcv[event]:
-                if larcv_vertex2d != (None,None,None):
-                    print "storing ",larcv_vertex2d
-                    for p,vert in enumerate( larcv_vertex2d ):
-                        vertex_array.Append( p, vert )
+            if event in self.user_rois_larcv and len(self.user_vertices_larcv[event])>0:
+                for larcv_vertex2d in self.user_vertices_larcv[event]:
+                    if larcv_vertex2d != (None,None,None):
+                        print "storing ",larcv_vertex2d
+                        for p,vert in enumerate( larcv_vertex2d ):
+                            vertex_array.Append( p, vert )
 
             # Are there labeling images?
             if event in self.labeltools.stored_labels:
+                print "storing labels for event=",event,
                 pixelclusters = self.labelimg2pixelcluster( self.labeltools.stored_labels[event] )
                 for p,pixelcluster in enumerate( pixelclusters ):
+                    print " plane=",0,":",pixelcluster.size()," ",
                     label_array.Append( p, pixelcluster )
             elif event not in self.labeltools.stored_labels and len(self.labeltools.stored_labels)>0:
+                print "inserting empty pixelclusters"
                 # make empty pixelclusters
                 for p in xrange(0,3):
                     pc = larcv.Pixel2DCluster()
@@ -555,22 +554,22 @@ class ROIToolLayout(QtGui.QGridLayout):
     def labelimg2pixelcluster(self,labelimg):
         """ extract labels from labelingtool's labelmat. It's just a numpy array. """
         if not hasattr(self,'translator'):
-            self.translator = {self.labelingtools.labels.index("electron"):larcv.kROIEminus,
-                               self.labelingtools.labels.index("muon"):larcv.kROIMuminus,
-                               self.labelingtools.labels.index("pion"):larcv.kROIPiminus,
-                               self.labelingtools.labels.index("proton"):larcv.kROIProton,
-                               self.labelingtools.labels.index("gamma"):larcv.kROIGamma}
+            self.translator = {self.labeltools.labels.index("electron"):larcv.kROIEminus,
+                               self.labeltools.labels.index("muon"):larcv.kROIMuminus,
+                               self.labeltools.labels.index("pion"):larcv.kROIPiminus,
+                               self.labeltools.labels.index("proton"):larcv.kROIProton,
+                               self.labeltools.labels.index("gamma"):larcv.kROIGamma}
         
         clusters = {}
         for iplane in xrange(0,3):
             clusters[iplane] = larcv.Pixel2DCluster()
             labelmat = labelimg[iplane]
-            idx_bg = self.labelingtools.labels.index("background")
+            idx_bg = self.labeltools.labels.index("background")
             idxlabels = (labelmat != idx_bg).nonzero()
             for ivert in xrange(0,len(idxlabels[0])):
                 vert = larcv.Pixel2D( idxlabels[0][ivert], idxlabels[1][ivert] )
                 label = labelmat[ idxlabels[0][ivert], idxlabels[1][ivert] ]
-                print "storing (",vert.X(),",",vert.Y(),") label=", self.labelingtools.labels[label]
+                print "storing (",vert.X(),",",vert.Y(),") label=", self.labeltools.labels[label]
                 vert.Intensity( float(self.translator[ label ] ) )
                 clusters[iplane] += vert
 
