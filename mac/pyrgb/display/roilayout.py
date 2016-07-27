@@ -131,9 +131,17 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.checked_planes = []
 
         # ugly, but vertex setting buttons
+        self.frame_vertex = QtGui.QFrame()
+        self.frame_vertex_layout = QtGui.QGridLayout()
         self.set_uvertex = QtGui.QPushButton("set U vertex")
         self.set_vvertex = QtGui.QPushButton("set V vertex")
         self.set_yvertex = QtGui.QPushButton("set Y vertex")
+        self.frame_vertex_layout.addWidget( self.set_uvertex, 0, 0 )
+        self.frame_vertex_layout.addWidget( self.set_vvertex, 0, 1 )
+        self.frame_vertex_layout.addWidget( self.set_yvertex, 0, 2 )
+        self.frame_vertex.setLayout( self.frame_vertex_layout )
+        self.frame_vertex.setLineWidth(2)
+        self.frame_vertex.setFrameShape( QtGui.QFrame.Box )
         self.set_uvertex.clicked.connect( self.enableUCrossHairs )
         self.set_vvertex.clicked.connect( self.enableVCrossHairs )
         self.set_yvertex.clicked.connect( self.enableYCrossHairs )
@@ -497,12 +505,11 @@ class ROIToolLayout(QtGui.QGridLayout):
             self.addWidget(self.uplane_pos, 0, 1, 1, 4 ) # i don't know where to put this. maybe add text to image? remove it?
 
             # vertex buttons
-            self.addWidget( self.set_uvertex, 4, 0 )
-            self.addWidget( self.set_vvertex, 4, 1 )
-            self.addWidget( self.set_yvertex, 4, 2 )
+            self.addWidget( self.frame_vertex, 4, 0, 1, 3 )
 
             # Label mode buttons
-            self.addWidget( self.labeltools.getframe(), 4, 3, 1, self.labeltools.getframewidth() )
+            #self.addWidget( self.labeltools.getframe(), 4, 3, 1, self.labeltools.getframewidth() )
+            self.addWidget( self.labeltools.getframe(), 4, 3, 1, 6 )
 
         else:
 

@@ -258,7 +258,7 @@ class LabelingTool:
         self._menu_labelplane.setCurrentIndex( 0 )
         self._menu_labelplane.currentIndexChanged.connect( self.setLabelPlane )
         
-        self._label_state = QtGui.QLabel("%s"%(LabelingTool.statenames[self.state]))
+        self._label_state = QtGui.QLabel("state: %s"%(LabelingTool.statenames[self.state]))
 
         self._menu_kernsize = QtGui.QComboBox()
         self.kern_options = ["1","3","9","box"]
@@ -266,6 +266,11 @@ class LabelingTool:
             self._menu_kernsize.insertItem( n, opt )
         self._menu_kernsize.setCurrentIndex(1)
         self._menu_kernsize.currentIndexChanged.connect( self.setKernSizeType )
+
+        self._label_thresh = QtGui.QLabel("Thresh:")
+        self._label_thresh.setFixedWidth(60)
+        self._input_thresh = QtGui.QLineEdit( "0.1" )
+        self._input_thresh.setFixedWidth(40)
 
         self.frame = QtGui.QFrame()
         self._labellayout = QtGui.QGridLayout()
@@ -276,11 +281,13 @@ class LabelingTool:
         self._labellayout.addWidget( self._button_undolabel, 0, 4 )
         self._labellayout.addWidget( self._menu_labelplane,  0, 5 )
         self._labellayout.addWidget( self._menu_kernsize,    0, 6 )
-        self._labellayout.addWidget( self._label_state,  0, 7 )
+        self._labellayout.addWidget( self._label_thresh,     0, 7 )
+        self._labellayout.addWidget( self._input_thresh,     0, 8 )
+        self._labellayout.addWidget( self._label_state,  0, 9 )
         self.frame.setLayout( self._labellayout )
         self.frame.setLineWidth(2)
         self.frame.setFrameShape( QtGui.QFrame.Box )        
-        self.framewidth = 8
+        self.framewidth = 10
 
     def getframe(self):
         return self.frame
@@ -407,5 +414,5 @@ class LabelingTool:
             self._menu_kernsize.setEnabled(False)
         else:
             raise ValueError("Got into an unknown state.")
-        self._label_state.setText("%s"%(LabelingTool.statenames[self.state]))
+        self._label_state.setText("state: %s"%(LabelingTool.statenames[self.state]))
         
