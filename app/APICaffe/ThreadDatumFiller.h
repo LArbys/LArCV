@@ -2,7 +2,7 @@
  * \file ThreadDatumFiller.h
  *
  * \ingroup APICaffe
- * 
+ *
  * \brief Class def header for a class ThreadDatumFiller
  *
  * @author kazuhiro
@@ -16,6 +16,7 @@
 
 #include "Processor/ProcessDriver.h"
 #include "DatumFillerBase.h"
+#include "APICaffeTypes.h"
 #include <thread>
 
 struct _object;
@@ -34,12 +35,12 @@ namespace larcv {
      doxygen documentation!
   */
   class ThreadDatumFiller : public larcv_base {
-    
+
   public:
 
     /// Default constructor
-    ThreadDatumFiller(std::string name="ThreadDatumFiller");
-    
+    ThreadDatumFiller(std::string name = "ThreadDatumFiller");
+
     /// Default destructor
     ~ThreadDatumFiller();
 
@@ -56,7 +57,9 @@ namespace larcv {
 
     void set_next_index(size_t index);
 
-    bool thread_running() const { return _thread_running; }
+    bool thread_config() const { return _use_threading; }
+
+    bool thread_running() const { return (_thread_state != kThreadStateIdle); }
 
     size_t process_ctr() const { return _num_processed; }
 
@@ -76,7 +79,7 @@ namespace larcv {
 
     bool _batch_process_(size_t nentries);
     bool _processing;
-    bool _thread_running;
+    ThreadFillerState_t _thread_state;
     bool _use_threading;
     bool _random_access;
     bool _configured;
@@ -89,10 +92,10 @@ namespace larcv {
     std::thread _th;
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;
-    
+
   };
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 
