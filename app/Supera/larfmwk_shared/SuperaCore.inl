@@ -19,6 +19,7 @@ namespace larcv {
 			_configured = false;
 			_use_mc = false;
 			_store_chstatus = false;
+			_default_roi_type = kROIUnknown;
 			//_larcv_io.set_verbosity(::larcv::msg::kDEBUG);
 		}
 
@@ -35,6 +36,8 @@ namespace larcv {
 			_use_mc = main_cfg.get<bool>("UseMC");
 			_store_chstatus = main_cfg.get<bool>("StoreChStatus");
 			_larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
+
+			_default_roi_type = main_cfg.get<unsigned short>("DefaultROIType");
 
 			_producer_digit    = main_cfg.get<std::string>("DigitProducer");
 			_producer_simch    = main_cfg.get<std::string>("SimChProducer");
@@ -147,7 +150,14 @@ namespace larcv {
 			}
 
 			if (!_use_mc) {
-				// No MC: take an event picture and done
+				// No MC: take an event picture + ROI and done
+
+				larcv::ROI roi(_default_roi_type,larcv::kShapeUnknown);
+				for(auto const& plane_meta : image_meta_m)
+					roi.AppendBB(plane_meta.second);
+
+				auto event_roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI, "tpc"));
+				event_roi_v->Emplace(std::move(roi));
 
 				for (size_t p = 0; p < ::larcv::supera::Nplanes(); ++p) {
 
