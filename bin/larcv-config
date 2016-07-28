@@ -36,6 +36,9 @@ while test $# -gt 0; do
 	      out+=" -lLArCVCVUtil "
 	  fi
 	  if [ $LARCV_NUMPY -eq 1 ]; then
+	      out+=" -L"
+	      out+=`python-config --prefix`
+	      out+="/lib "
 	      out+=`python-config --ldflags`
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
