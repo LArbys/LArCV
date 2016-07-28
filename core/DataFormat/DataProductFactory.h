@@ -21,6 +21,7 @@
 #include "ProductMap.h"
 #include "EventBase.h"
 #include "DataFormatTypes.h"
+#include <sstream>
 namespace larcv {
 
   class EventBase;
@@ -82,6 +83,20 @@ namespace larcv {
       auto ptr = (*iter).second->create();
       ptr->_producer = producer;
       return ptr;
+    }
+
+    /// List registered products
+    void list() const {
+      std::stringstream ss;
+      ss << "    Listing registered products:" << std::endl;
+      for(auto const& type_factory : _factory_map) {
+	ss << "    Type: " << type_factory.first
+	   << " ... Name: " << ProductName(type_factory.first)
+	   << " ... Factory @ " << type_factory.second
+	   << std::endl;
+      }
+      ss << std::endl;
+      LARCV_NORMAL() << ss.str() << std::endl;
     }
 
   private:
