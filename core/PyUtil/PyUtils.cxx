@@ -14,11 +14,10 @@ namespace larcv {
     if(!once) { import_array(); once=true; }
   }
 
-  PyObject* as_ndarray(const std::vector<float>& data)
+  PyObject* as_ndarray(const std::vector<float>& vec)
   {
     SetPyUtil();
 
-    auto const& vec = _filler->data();
     if (vec.size()>=INT_MAX) {
       LARCV_CRITICAL() << "Length of data vector too long to specify ndarray. Use by batch call." << std::endl;
       throw larbys();
