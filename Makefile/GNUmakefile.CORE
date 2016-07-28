@@ -21,7 +21,7 @@ all: pre_build main_build pkg_build
 
 pre_build:
 
-main_build: .depend pre_build $(DICT).o $(OBJECTS) install_header $(LARCV_LIBDIR)/$(ROOTMAP)
+main_build: .depend pre_build $(DICT).o $(OBJECTS) $(LARCV_LIBDIR)/$(ROOTMAP) install_header
 
 # default rule for making .o files from .cxx files
 $(PACKAGE_BUILDDIR)/%.o: %.cxx %.h
