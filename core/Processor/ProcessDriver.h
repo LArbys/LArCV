@@ -54,6 +54,8 @@ namespace larcv {
 
     void finalize();
 
+    void random_access(bool doit) { _random_access = doit; }
+
     ProcessID_t process_id(std::string name) const;
 
     std::vector<std::string> process_names() const;

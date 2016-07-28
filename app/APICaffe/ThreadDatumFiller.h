@@ -53,9 +53,11 @@ namespace larcv {
 
     void configure(const PSet& cfg);
 
-    bool batch_process(size_t nentries);
+    bool batch_process(size_t nentries=0);
 
     void set_next_index(size_t index);
+
+    void set_next_batch(const std::vector<size_t>& index_v);
 
     bool thread_config() const { return _use_threading; }
 
@@ -92,7 +94,7 @@ namespace larcv {
     std::thread _th;
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;
-
+    std::vector<size_t> _optional_next_index_v;
   };
 }
 
