@@ -13,6 +13,24 @@ namespace larcv {
     static bool once=false;
     if(!once) { import_array(); once=true; }
   }
+
+  PyObject* as_ndarray(const std::vector<float>& data)
+  {
+    SetPyUtil();
+
+    auto const& vec = _filler->data();
+    if (vec.size()>=INT_MAX) {
+      LARCV_CRITICAL() << "Length of data vector too long to specify ndarray. Use by batch call." << std::endl;
+      throw larbys();
+    }
+    int nd = 1;
+    npy_intp dims[1];
+    dims[0] = (int)vec.size();
+    
+    PyArrayObject *array = (PyArrayObject *) PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT, (char*)&(vec[0]) );
+    
+    return PyArray_Return(array);
+  }
   
   PyObject* as_ndarray(const Image2D& img)
   {

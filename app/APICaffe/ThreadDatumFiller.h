@@ -16,15 +16,9 @@
 
 #include "Processor/ProcessDriver.h"
 #include "DatumFillerBase.h"
-#include <thread>
 
-struct _object;
-typedef _object PyObject;
-
-#ifndef __CLING__
 #ifndef __CINT__
-#include <Python.h>
-#endif
+#include <thread>
 #endif
 
 namespace larcv {
@@ -39,7 +33,7 @@ namespace larcv {
 
     /// Default constructor
     ThreadDatumFiller(std::string name="ThreadDatumFiller");
-    
+
     /// Default destructor
     ~ThreadDatumFiller();
 
@@ -70,8 +64,6 @@ namespace larcv {
 
     const std::vector<float>& data() const;
 
-    PyObject* data_ndarray() const;
-
     const std::vector<float>& labels() const;
     
     const ProcessDriver* pd() { return &_driver; }
@@ -92,8 +84,9 @@ namespace larcv {
     ProcessDriver _driver;
 
     DatumFillerBase* _filler;
-
+    #ifndef __CINT__
     std::thread _th;
+    #endif
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;
     

@@ -7,10 +7,6 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "PyUtil/PyUtils.h"
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/ndarrayobject.h>
-
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
     : larcv_base(name)
@@ -180,42 +176,6 @@ namespace larcv {
 	   	}
 	   	return _filler->data();    	
     }
-
-  PyObject* ThreadDatumFiller::data_ndarray() const
-  {
-    if(!_processing) {
-      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
-      throw larbys();
-    }
-    if(_thread_running) {
-      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
-      throw larbys();
-    }
-
-    //SetPyUtil();
-    // PyOS_sighandler_t sighandler = PyOS_getsig(SIGINT);
-    // import_array();
-    //_import_array();
-    SetPyUtil();
-    // PyOS_setsig(SIGINT,sighandler);
-
-    auto const& vec = _filler->data();
-    if (vec.size()>=INT_MAX) {
-      LARCV_CRITICAL() << "Length of data vector too long to specify ndarray. Use by batch call." << std::endl;
-      throw larbys();
-    }
-    int nd = 1;
-    npy_intp dims[1];
-    dims[0] = (int)vec.size();
-    
-    PyArrayObject *array = (PyArrayObject *) PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT, (char*)&(vec[0]) );
-    // float *a =  (float*)PyArray_DATA( array );
-    // for (size_t i = 0; i < (size_t)dims[0]; i++) {
-    //   a[i] = vec.at(i);
-    // }
-    
-    return PyArray_Return(array);
-  }
 
     const std::vector<float>& ThreadDatumFiller::labels() const
     {
