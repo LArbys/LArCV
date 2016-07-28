@@ -37,7 +37,7 @@ namespace larcv {
 			_store_chstatus = main_cfg.get<bool>("StoreChStatus");
 			_larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
 
-			_default_roi_type = main_cfg.get<unsigned short>("DefaultROIType");
+			_default_roi_type = (ROIType_t)(main_cfg.get<unsigned short>("DefaultROIType"));
 
 			_producer_digit    = main_cfg.get<std::string>("DigitProducer");
 			_producer_simch    = main_cfg.get<std::string>("SimChProducer");
