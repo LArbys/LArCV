@@ -11,6 +11,8 @@
 
 #pragma link C++ class larcv::MCFilter+;
 #pragma link C++ class larcv::ROISizeFilter+;
+#pragma link C++ class larcv::CCIncFilter+;
+#pragma link C++ class larcv::CosmicFilter+;
 #pragma link C++ class larcv::QSumFilter+;
 #pragma link C++ class larcv::MCSingleParticleFilter+;
 //ADD_NEW_CLASS ... do not change this line

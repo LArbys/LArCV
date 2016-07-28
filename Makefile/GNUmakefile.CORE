@@ -63,7 +63,7 @@ $(LARCV_LIBDIR)/$(ROOTMAP): $(OBJECTS) $(DICT).o
 	@rlibmap -f  -o $(LARCV_LIBDIR)/$(ROOTMAP) -l $(LARCV_LIBDIR)/liblarcv.so -c LinkDef.h
 
 # install headers
-install_header: $(OBJECTS) $(DICT).o
+install_header: .depend #$(OBJECTS) $(DICT).o
 	@echo '<< installing headers >>'
 	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
 
@@ -95,7 +95,7 @@ clearCINT:
 ###################################################
 # auto-generate dependencies using g++ -M
 .depend: $(SOURCES) $(HEADERS)
-#	@rm .depend
+	@rm -f .depend
 	@echo '<< checking dependencies>>'
 	@$(CXX) -M $(CXXFLAGS) $(LARCV_BASIC_ROOTINC) $(INCFLAGS) $(SOURCES) > .depend
 
