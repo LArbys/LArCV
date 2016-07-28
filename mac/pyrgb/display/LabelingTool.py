@@ -2,6 +2,7 @@ import os,sys
 import numpy as np
 from .. import pg
 from .. import QtGui
+from ..lib.roislider import ROISlider
 
 class LabelingTool:
     """ Class holding labeling functions.
@@ -166,7 +167,7 @@ class LabelingTool:
 
     def saveLabeling(self):
         """ take current image, find labeled pixels, store them in self.labelmat """
-        if self.state!=LabelingTool.kDRAWING:
+        if self.state not in [LabelingTool.kDRAWING,LabelingTool.kBOXMODE]:
             return
         # use current img
         self.plane = self._menu_labelplane.currentIndex()
@@ -184,6 +185,20 @@ class LabelingTool:
     
     def undo(self):
         """ restore current image, losing latest labeling """
+        if self.state==LabelingTool.kBOXMODE:
+            print "Move from BOXMODE TO INACIVE."
+            self._menu_kernsize.setCurrentIndex(1)
+            if self.plotitem is not None:
+                self.state = LabelingTool.kINACTIVE
+                self.plotitem.removeItem( self.labelbox )
+                self.setButtonStates()
+                self.restoreImage()
+                return
+            else:
+                self.state = LabelingTool.kUNINIT
+                self.setButtonStates()
+                return
+
         working = np.copy( self.orig_img.plot_mat )
         fmax = np.max( working )*1.1
         if self.labels[self.current_idx_label]!="background":
@@ -215,7 +230,7 @@ class LabelingTool:
         # restore image
         working = np.copy( self.orig_img.plot_mat )
         self.imageitem.setImage( image=working, autoLevels=True )
-        self.setKernel( None, None, self.imageitem ) # deactivate kernel
+        self.setKernel( 0, None, self.imageitem ) # deactivate kernel
         return
 
 
@@ -297,14 +312,15 @@ class LabelingTool:
 
     def setKernel(self,kernwidth,label,imageitem):
         if kernwidth is None or kernwidth==0:
-            imageitem.setDrawKernel( None )
+            print "get imageitem out of drawing mode"
+            imageitem.setDrawKernel( kernel=None )
 
         if label!="background":
             kern = np.ones( (kernwidth,kernwidth,3) )
-            imageitem.setDrawKernel( kern, mask=kern, center=(0,0), mode='add' )
+            imageitem.setDrawKernel( kernel=kern, mask=kern, center=(0,0), mode='add' )
         else:
             kern = np.zeros( (kernwidth,kernwidth,3) )
-            imageitem.setDrawKernel( kern, mask=kern, center=(0,0), mode='set' )
+            imageitem.setDrawKernel( kernel=kern, mask=kern, center=(0,0), mode='set' )
 
     # --------------------------------------------------------------------------------------------
     # button functions
@@ -337,6 +353,11 @@ class LabelingTool:
             self.state = LabelingTool.kINACTIVE
             self.setButtonStates()
 
+        if self.state in [LabelingTool.kBOXMODE]:
+            print "[label pixels using the box!]"
+            self.labelUsingBox()
+            
+
     def setLabelIndex(self,currentindex):
         """ called when label particle combo box changes """
         if self._currentlabel == self._menu_setLabelPID.currentIndex():
@@ -347,6 +368,56 @@ class LabelingTool:
             self.switchLabel( self._currentlabel )
         elif self.state==LabelingTool.kDISPLAY:
             self.drawLabeling( self.plotitem, self.imageitem, self.orig_img )
+
+    def labelUsingBox( self ):
+        """ called when _button_toggleLabelMode is hit while in boxmode state """
+        print self.labelbox.pos(),self.labelbox.size()
+        
+        #width = self.labelbox.size()[0]/self.images.imgs[0].meta().pixel_width()
+        #height = self.labelbox.size()[1]/self.images.imgs[0].meta().pixel_height()
+        width  = self.labelbox.size()[0]
+        height = self.labelbox.size()[1]
+
+        #x1 = int(self.labelbox.pos()[0]-0.5*width)
+        #x2 = int(self.labelbox.pos()[0]+0.5*width)
+        #y1 = int(self.labelbox.pos()[1]-0.5*height)
+        #y2 = int(self.labelbox.pos()[1]+0.5*height)
+        x1 = int(self.labelbox.pos()[0])
+        y1 = int(self.labelbox.pos()[1])
+        x2 = x1 + width
+        y2 = y1 + height
+        
+        self.plane = self._menu_labelplane.currentIndex()
+        thresh = float( self._input_thresh.text() )
+        label  = self.labels[self.current_idx_label]
+        print "Labeing within box:  plane=",self.plane," label=",self.labels[self.current_idx_label]," thresh>=",thresh," w=",width," h=",height
+
+        working = np.copy( self.orig_img.plot_mat )
+        fmax = np.max( working )*1.1
+        self.current_idx_label = self.labels.index( label )
+        if label!="background":
+            working[ self.labelmat[self.plane]==self.current_idx_label ] = fmax
+        else:
+            working[ self.labelmat[self.plane]!=self.current_idx_label ] = fmax
+        working /= fmax # normalize
+        
+        matslice = working[x1:x2,y1:y2,:]
+        print "slice: ",matslice.shape
+        if label!="background":
+            kern = np.ones( (matslice.shape[-1], ) )
+            for ich in range(0,matslice.shape[-1]):
+                matslice[:,:,ich][ matslice[:,:,self.plane]>thresh ] = 1.0
+        else:
+            for ich in range(0,matslice.shape[-1]):
+                matslice[:,:,ich][ matslice[:,:,self.plane]>thresh ] = 0.0
+
+        # now set the image
+        self.imageitem.setImage( image=working, levels=[[0.0,1.0],[0.0,1.0],[0.0,1.0]] )
+        self.current_img = self.imageitem.image
+
+        return
+        
+
 
     def displayLabels(self):
         """ called when show labels button pressed """
@@ -375,16 +446,26 @@ class LabelingTool:
 
     def setKernSizeType(self,idx):
         """ function called when _menu_kernsize is changed. """
-        if self.state!=LabelingTool.kDRAWING:
-            return
+        #if self.state!=LabelingTool.kDRAWING:
+        #    return
 
         kerntype = self._menu_kernsize.currentIndex()
-        if kerntype<3:
+        if kerntype<3 and self.state==LabelingTool.kDRAWING:
             # set drawing kernel size
             kernsize = np.power( 3, kerntype )
             self.setKernel( kernsize, self._currentlabel, self.imageitem )
-        else:
+        elif kerntype==3:
             print "[Start Box Labeling Mode]"
+            self.state = self.kBOXMODE
+            self.setButtonStates()
+            # here we need to place box into the center for the user
+            scenerect = self.plotitem.sceneBoundingRect()
+            scenecenter = scenerect.center()
+            mp = self.plotitem.vb.mapSceneToView(scenecenter)
+            self.labelbox = pg.RectROI([mp.x(), mp.y()], [20, 20], pen=(0,9))
+            self.plotitem.addItem( self.labelbox )
+            self.setKernel(0,None,self.imageitem)
+            print "placeing labeling box here: ",mp
 
     def setButtonStates(self):
         if self.state in [LabelingTool.kDRAWING]:
@@ -411,6 +492,14 @@ class LabelingTool:
             self._button_savelabel.setEnabled(False)
             self._button_showlabel.setEnabled(False)
             self._button_undolabel.setEnabled(False)
+            self._menu_kernsize.setEnabled(False)
+        elif self.state in [LabelingTool.kBOXMODE]:
+            # limited options
+            self._button_toggleLabelMode.setText("Label in Box")
+            self._button_showlabel.setEnabled(False)
+            self._button_savelabel.setEnabled(True)
+            self._button_showlabel.setEnabled(False)
+            self._button_undolabel.setEnabled(True)
             self._menu_kernsize.setEnabled(False)
         else:
             raise ValueError("Got into an unknown state.")
