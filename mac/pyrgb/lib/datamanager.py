@@ -73,9 +73,57 @@ class DataManager(object):
         # the correct subclass of PlotImage
         image = self.IF.get(imdata,roidata,planes,imgprod) # returns PlotImgae
 
+
         # return it to rgbviewer
         return ( image, hasroi )         
     
+    
+    
+    # -----------------------------------------------------------------------------
+    # Erez, July-21, 2016 - get an image using R/S/E navigation
+    # -----------------------------------------------------------------------------
+    def get_all_images(self,imgprod,event_base_and_images,rse_map) :
+        
+        for entry in range(self.iom.get_n_entries()):
+            read_entry = self.iom.read_entry(entry)
+            event_base = self.iom.get_data(larcv.kProductImage2D,imgprod)
+            event_base_and_images[entry] = event_base
+            rse = ( int(event_base.run()),int(event_base.subrun()),int(event_base.event()) )
+            #print rse
+            #rse_map[entry] = [event_base.run(),event_base.subrun(),event_base.event()]
+            rse_map[ rse ] = entry
+#            print rse_map[entry]
+        print "collected %d images...\nready for RSE navigation"%len(event_base_and_images)
+
+        return
+    
+
+
+
+    # -----------------------------------------------------------------------------
+    # Erez, July-21, 2016 - get an image using R/S/E navigation
+    # -----------------------------------------------------------------------------
+    def get_rse_image(self,event_base_and_images,rse_map,wanted_rse,imgprod,roiprod,planes, refresh=True) :
+        if wanted_rse in rse_map:
+            return self.get_event_image(rse_map[wanted_rse],imgprod,roiprod,planes,refresh)
+        else:
+            print "i couldn't find this R/S/E..."
+            return None, False
+ 
+        ii = -1
+        for i in range(len(event_base_and_images)):
+            
+            if rse_map[i] == wanted_rse:
+                ii = i
+                break
+    
+        if (ii==-1):
+            print "i couldn't find this R/S/E..."
+                        
+        return self.get_event_image(ii,imgprod,roiprod,planes,refresh)
+
+    # -----------------------------------------------------------------------------
+
 
 
 

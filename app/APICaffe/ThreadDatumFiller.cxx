@@ -7,10 +7,6 @@
 #include <sstream>
 #include <unistd.h>
 
-#include "PyUtil/PyUtils.h"
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/ndarrayobject.h>
-
 namespace larcv {
   ThreadDatumFiller::ThreadDatumFiller(std::string name)
     : larcv_base(name)
@@ -35,8 +31,28 @@ namespace larcv {
 
   void ThreadDatumFiller::set_next_index(size_t index)
   {
-    if (thread_running()) throw larbys("Cannot set next index while thread is running!");
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Cannot set next index while thread is running!" << std::endl;
+      throw larbys();
+    }
+    if( _optional_next_index_v.size() ) {
+      LARCV_CRITICAL() << "Next batch indecies already set! Cannot call this function..." << std::endl;
+      throw larbys();
+    }
     _optional_next_index = index;
+  }
+
+  void ThreadDatumFiller::set_next_batch(const std::vector<size_t>& index_v)
+  {
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Cannot set next index while thread is running!" << std::endl;
+      throw larbys();
+    }
+    if( _optional_next_index != kINVALID_SIZE ) {
+      LARCV_CRITICAL() << "Next batch indecies already set! Cannot call this function..." << std::endl;
+      throw larbys();
+    }
+    _optional_next_index_v = index_v;
   }
 
   void ThreadDatumFiller::reset()
@@ -118,6 +134,9 @@ namespace larcv {
     // override input file
     _driver.override_input_file(_input_fname_v);
 
+    // override random access to be false always
+    _driver.random_access(false);
+
     // Make sure event_creator does not exist
     ProcessID_t last_process_id = 0;
     ProcessID_t datum_filler_id = kINVALID_SIZE;
@@ -181,42 +200,6 @@ namespace larcv {
     return _filler->data();
   }
 
-  PyObject* ThreadDatumFiller::data_ndarray() const
-  {
-    if (!_processing) {
-      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
-      throw larbys();
-    }
-    if (thread_running()) {
-      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
-      throw larbys();
-    }
-
-    //SetPyUtil();
-    // PyOS_sighandler_t sighandler = PyOS_getsig(SIGINT);
-    // import_array();
-    //_import_array();
-    SetPyUtil();
-    // PyOS_setsig(SIGINT,sighandler);
-
-    auto const& vec = _filler->data();
-    if (vec.size() >= INT_MAX) {
-      LARCV_CRITICAL() << "Length of data vector too long to specify ndarray. Use by batch call." << std::endl;
-      throw larbys();
-    }
-    int nd = 1;
-    npy_intp dims[1];
-    dims[0] = (int)vec.size();
-
-    PyArrayObject *array = (PyArrayObject *) PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT, (char*) & (vec[0]) );
-    // float *a =  (float*)PyArray_DATA( array );
-    // for (size_t i = 0; i < (size_t)dims[0]; i++) {
-    //   a[i] = vec.at(i);
-    // }
-
-    return PyArray_Return(array);
-  }
-
   const std::vector<float>& ThreadDatumFiller::labels() const
   {
     if (!_processing) {
@@ -233,6 +216,12 @@ namespace larcv {
   bool ThreadDatumFiller::batch_process(size_t nentries)
   {
     LARCV_DEBUG() << " start" << std::endl;
+    if(nentries && _optional_next_index_v.size() && nentries != _optional_next_index_v.size()) {
+      LARCV_CRITICAL() << "# entries specified != size of specified next-batch indicies!" << std::endl;
+      throw larbys();
+    }
+    if(!nentries) nentries = _optional_next_index_v.size();
+    
     if (thread_running()) return false;
     if (_th.joinable()) {
       LARCV_INFO() << "Thread has finished running but not joined. "
@@ -279,26 +268,38 @@ namespace larcv {
     _filler->batch_begin();
 
     size_t valid_ctr = 0;
+    
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, _driver.io().get_n_entries() - 1);
     if (_random_access)
       LARCV_INFO() << "Generating random numbers from 0 to " << _driver.io().get_n_entries() << std::endl;
 
+    // counter for _optional_next_index_v
+    size_t next_batch_ctr = 0;
+    
     LARCV_INFO() << "Entering process loop" << std::endl;
     while (valid_ctr < nentries) {
       size_t entry = last_entry + 1;
-      if (_optional_next_index != kINVALID_SIZE) {
-        entry = _optional_next_index;
-        _optional_next_index = kINVALID_SIZE;
-      }
-      if (entry == kINVALID_SIZE) entry = 0;
+      if(_optional_next_index_v.size()) {
+	if(next_batch_ctr >= _optional_next_index_v.size())
+	  break;
+	entry = _optional_next_index_v[next_batch_ctr];
+	++next_batch_ctr;
+      }else{
+	if (_optional_next_index != kINVALID_SIZE) {
+	  entry = _optional_next_index;
+	  _optional_next_index = kINVALID_SIZE;
+	}
+	if (entry == kINVALID_SIZE) entry = 0;
 
-      if (_random_access) {
-        entry = dis(gen);
-        while (entry == last_entry) entry = dis(gen);
+	if (_random_access) {
+	  entry = dis(gen);
+	  while (entry == last_entry) entry = dis(gen);
+	}
+	else if (entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries();
+
       }
-      else if (entry >= _driver.io().get_n_entries()) entry -= _driver.io().get_n_entries();
 
       LARCV_INFO() << "Processing entry: " << entry
                    << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
@@ -320,6 +321,7 @@ namespace larcv {
     _filler->batch_end();
     _thread_state = kThreadStateIdle;
     _optional_next_index = kINVALID_SIZE;
+    _optional_next_index_v.clear();
     LARCV_DEBUG() << " end" << std::endl;
     return true;
   }

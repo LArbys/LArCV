@@ -21,7 +21,7 @@ all: pre_build main_build pkg_build
 
 pre_build:
 
-main_build: .depend pre_build $(DICT).o $(OBJECTS) install_header
+main_build: .depend pre_build $(DICT).o $(OBJECTS) $(LARCV_LIBDIR)/$(ROOTMAP) install_header
 
 # default rule for making .o files from .cxx files
 $(PACKAGE_BUILDDIR)/%.o: %.cxx %.h
@@ -46,6 +46,8 @@ $(DICT).cxx: $(HEADERS) LinkDef.h
 install_header: $(OBJECTS) $(DICT).o
 	@echo '<< installing headers >>'
 	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
+
+$(LARCV_LIBDIR)/$(ROOTMAP):
 	
 else
 
@@ -55,18 +57,15 @@ $(DICT).cxx: $(HEADERS) LinkDef.h
 #	@echo rootcint -f $(DICT).cxx -c $(CINTFLAGS) $(INCFLAGS) $(HEADERS) LinkDef.h
 	@rootcint -f $(DICT).cxx -c $(CINTFLAGS) $(INCFLAGS) $(HEADERS) LinkDef.h
 
-# rule for making shareable library
-$(LARCV_LIBDIR)/$(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
-	@echo '<< generating $(SHLIB) >>'
-#	@echo $(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
-	@$(SOMAKER) $(SOFLAGS) -o $(LARCV_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(LDFLAGS) $(LARCV_BASIC_ROOTLIBS) 
+# if ROOTMAP defined, define rule for making it
+$(LARCV_LIBDIR)/$(ROOTMAP): $(OBJECTS) $(DICT).o
+	@echo "<< generating rootmap >>"
+	@rlibmap -f  -o $(LARCV_LIBDIR)/$(ROOTMAP) -l $(LARCV_LIBDIR)/liblarcv.so -c LinkDef.h
+
+# install headers
+install_header: .depend #$(OBJECTS) $(DICT).o
 	@echo '<< installing headers >>'
 	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
-
-# if ROOTMAP defined, define rule for making it
-$(LARCV_LIBDIR)/$(ROOTMAP): $(LARCV_LIBDIR)/$(SHLIB)
-	@echo "<< generating rootmap >>"
-	@rlibmap -f  -o $(LARCV_LIBDIR)/$(ROOTMAP) -l $(LARCV_LIBDIR)/$(SHLIB) -c LinkDef.h
 
 endif
 
@@ -96,7 +95,7 @@ clearCINT:
 ###################################################
 # auto-generate dependencies using g++ -M
 .depend: $(SOURCES) $(HEADERS)
-#	@rm .depend
+	@rm -f .depend
 	@echo '<< checking dependencies>>'
 	@$(CXX) -M $(CXXFLAGS) $(LARCV_BASIC_ROOTINC) $(INCFLAGS) $(SOURCES) > .depend
 
