@@ -58,6 +58,7 @@ namespace larcv {
     float peakmax;
     int wireid;
     int planeid;
+    float width;
   };
 
   /**

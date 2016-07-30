@@ -27,6 +27,7 @@ namespace larcv {
     ttree->Branch("planeid",&planeid,"planeid/I");
     ttree->Branch("wireid",&wireid,"wireid/I");
     ttree->Branch("peak",&peakmax, "peak/F" );
+    ttree->Branch("width",&width, "width/F" );
   }
 
   bool calcPeakADC::process(IOManager& mgr)
@@ -34,8 +35,8 @@ namespace larcv {
 
     auto event_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, fImageProducer );
     for ( auto const& img_src : event_images->Image2DArray() ) {
-    //for ( int p=0; p<=8; p+=4 ) { // hack for 12 channel data
-      auto const& img_src = event_images->Image2DArray().at(p);
+      //for ( int p=0; p<=8; p+=4 ) { // hack for 12 channel data
+      //auto const& img_src = event_images->Image2DArray().at(p);
       larcv::Image2D img( img_src );
       if ( fNewCols>0 || fNewRows>0 )
 	img.compress( fNewRows, fNewCols ); //504, 864
@@ -47,6 +48,7 @@ namespace larcv {
 	bool inpeak = false;
 	float pmax = -1;
 	int peakcenter = -1;
+	int peakstart = -1;
 	std::vector<int> peakcenters;
 
 	for (int t=0; t<ticks; t++) {
@@ -59,6 +61,8 @@ namespace larcv {
 	      inpeak = true;
 	      pmax = y;
 	      peakcenter = t;
+	      if (peakstart<0)
+		peakstart = t;
 	    }
 	  }
 	  else {
@@ -71,6 +75,7 @@ namespace larcv {
 	      wireid = w;
 	      planeid = img.meta().plane();
 	      peakmax = pmax;
+	      width   = t-peakstart;
 	      peakcenters.push_back( peakcenter );
 	      ttree->Fill();
 	    }
