@@ -3,23 +3,32 @@ import ROOT as rt
 import numpy as np
 
 mc_scale = [1.0,1.0,1.0]
-global_scales = [1.235,0.703,0.95] # (data/mc)
+#global_scales = [1.235,0.703,0.95] # (data/mc)
+global_scales = [1.0,1.0,1.0]
 mc_scale = global_scales # if want to plot aligned
 sigmas = [40,30,20]
-nentries = 500000
+nentries = 800
 
 #fdata = rt.TFile("adc_scales_data_cosmics.root")
-fdata = rt.TFile("test_out_data_analysis.root")
-fmc   = rt.TFile("adc_scales_mc_cosmics.root")
+#fdata = rt.TFile("test_out_data_analysis.root")
+#fmc   = rt.TFile("adc_scales_mc_cosmics.root")
+fdata = rt.TFile("extbnb_v05_fitted.root")
+fmc   = rt.TFile("mc_v05_fitted.root")
 
 cch = rt.TCanvas("cch","cch", 1200,1200)
 cch.Divide(1,3)
+
+fout = open("chbych_scaling.txt",'w')
+print>>fout,"plane\tchannel\tdata\tmc\tscale\tbadmask"
 
 graphs = []
 planenames = {0:"U",
               1:"V",
               2:"Y"}
-chscalings = {}
+chscalings = {} # key is (p,ch)
+badmask    = {} # key is (p,ch)
+lowerbounds = [ 50, 50, 50 ]
+midbounds   = [ 70, 70, 70 ]
 for p in range(0,3):
     cch.cd(p+1).SetGridx(1)
     cch.cd(p+1).SetGridy(1)
@@ -32,125 +41,119 @@ for p in range(0,3):
     for ch in range(0,900):
         mc = gmc.GetY()[ch]
         data = gdata.GetY()[ch]
-        if mc==0 or data==0:
-            chscalings[(p,ch)] = 1.0/global_scales[p] # mc/data
+
+        hdata = fdata.Get("hadc_p%d_ch%d"%(p,ch))
+        mcbin = hdata.GetXaxis().FindBin( mc )
+        lowbin = hdata.GetXaxis().FindBin( lowerbounds[p] )
+        midbin = hdata.GetXaxis().FindBin( midbounds[p] )
+        hdata.GetXaxis().SetRange( lowbin, midbin )
+        dmax = hdata.GetMaximum()
+        dmaxbin = hdata.GetMaximumBin()
+        dminbin = hdata.GetMinimumBin()
+        hdata.GetXaxis().SetRange( dminbin, 100 )
+        dmaxbin2 = hdata.GetMaximumBin()
+        hdata.GetXaxis().SetRange( dmaxbin2, 100 )
+        dminbin2 = hdata.GetMinimumBin()
+        dmaxf = hdata.GetXaxis().GetBinCenter( dmaxbin2 )
+        #print "[",(p,ch),"]: ",dminbin,dmaxbin2,dminbin2
+        if dminbin < dmaxbin2 and dmaxbin2 < dminbin2:
+            badmask[(p,ch)] = 1
+        else:
+            badmask[(p,ch)] = 0
+
+        # check for refit
+        hdata.GetXaxis().SetRange( dminbin, 100 )
+        if (p==0 and (data>190 or data<120)) or (p==1 and (data>200 or data<90)):
+            print "refit plane ",p,", ch=",ch,
+            if hdata.Integral()<500:
+                gdata.SetPoint( ch, gdata.GetX()[ch], 0.0 )
+                data = 0.0
+                print
+            else:
+                f1 = rt.TF1("refit_p%d_ch%d"%(p,ch),"gaus")
+                f1.SetParameter(1,dmaxf)
+                f1.SetParameter(2,40)
+                f1.SetParameter(0,hdata.GetBinContent(dmaxbin2))
+                fitmin = dmaxf-100
+                fitmax = dmaxf+100
+                if fitmin<hdata.GetXaxis().GetBinCenter(dminbin):
+                    fitmin = hdata.GetXaxis().GetBinCenter(dminbin)
+                hdata.Fit(f1,"RQ0","",fitmin,fitmax)
+                mean = f1.GetParameter(1)
+                print ": data=",data," fit=",mean," mcmean=",mc," dmax=",dmax," dmaxbin=",dmaxbin," dmaxf=",dmaxf
+                gdata.SetPoint( ch, gdata.GetX()[ch], mean )
+                data = mean
+                if data<0:
+                    data = 0.0
+
+        if mc==0:
+            chscalings[(p,ch)] = 0.0
         else:
             #if (p==1 and data<100) or (p in [0,2] and data<150):
             #    global_scales[p]
             #chscalings[(p,ch)] = data/mc
-            chscalings[(p,ch)] = (mc*mc_scale[p])/data
+            chscalings[(p,ch)] = data/(mc*mc_scale[p])
+        print>>fout,"%d\t%d\t%.2f\t%.2f\t%.2f\t%d"%(p,ch,data,mc,chscalings[(p,ch)],badmask[(p,ch)])
+        hdata.GetXaxis().SetRange(1,500)
+    gdata.GetYaxis().SetRangeUser(0,220)
 
 cch.Draw()
 cch.Update()
 
-fsrcdata = rt.TFile("ana_data.root")
-fsrcmc   = rt.TFile("mc.root")
+fout.close()
 
-srcdata = fsrcdata.Get("adc")
-srcmc   = fsrcmc.Get("adc")
+# Make total histogram from summing wire histograms
 
-cplane = rt.TCanvas("cplane","cplane",800,1200)
-cplane.Divide(1,3)
-hists = {}
+mchists = {} # key by plane
+datahists = {} # key by plane
+
+# find first existant histogram
+for p in range(0,3):
+    # MC
+    for x in range(0,10):
+        h = fmc.Get( "hadc_p%d_ch%d"%(p,x) )
+        try:
+            mchists[p] = h.Clone( "htot_plane%d"%(p) )
+            mchists[p].Reset()
+            break
+        except:
+            pass
+    # DATA
+    for x in range(0,10):
+        h = fdata.Get( "hadc_p%d_ch%d"%(p,x) )
+        try:
+            datahists[p] = h.Clone( "htot_plane%d"%(p) )
+            datahists[p].Reset()
+            break
+        except:
+            pass
 
 for p in range(0,3):
-    cplane.cd(p+1)
-    hdata = rt.TH1D("hadc_data_p%d"%(p),"Plane %d;peak pixel ADC value"%(p),500,0,500)
-    hmc   = rt.TH1D("hadc_mc_p%d"%(p),"",500,0,500)
-    srcmc.Draw("peak*%.3f>>hadc_mc_p%d"%(mc_scale[p],p),"planeid==%d"%(p))
-    srcdata.Draw("peak>>hadc_data_p%d"%(p),"planeid==%d"%(p),"same")
+    for x in range(0,900):
+        h = fmc.Get( "hadc_p%d_ch%d"%(p,x) )
+        hd = fdata.Get( "hadc_p%d_ch%d"%(p,x) )
+        try:
+            mchists[p].Add( h )
+            datahists[p].Add( hd )
+        except:
+            pass
+    norm = 1.0/mchists[p].Integral()
+    mchists[p].Scale(norm)
+    norm = 1.0/datahists[p].Integral()
+    datahists[p].Scale(norm)
 
-    hmc.SetLineColor(rt.kRed)
-    m = hmc.Integral()
-    d = hdata.Integral()
-    hmc.Scale(1.0/m)
-    hdata.Scale(1.0/d)
-    cplane.Update()
-    hists[("mc",p)] = hmc
-    hists[("data",p)] = hdata
-cplane.Update()
-
-## ========================================================================
-
-print "begin ch by ch correction"
-raw_input()
-hmc_correct = {}
+ctot = rt.TCanvas("ctot","ctot",800,900)
+ctot.Divide(1,3)
 for p in range(0,3):
-    hmc_correct[p] = rt.TH1D("hadc_mccorrect_p%d"%(p),"Plane %d;peak pixel ADC value"%(p),500,0,500)
+    ctot.cd(p+1)
+    mchists[p].Draw()
+    #mchists[p].GetYaxis().SetRangeUser(0,220)
+    datahists[p].Draw("same")
+    datahists[p].SetLineColor(rt.kBlack)
+    mchists[p].SetLineColor(rt.kRed)
 
-
-for entry in range(nentries):
-    srcdata.GetEntry(entry)
-    hmc_correct[srcdata.planeid].Fill( chscalings[(srcdata.planeid,srcdata.wireid)]*srcdata.peak )
-    if entry%25000==0:
-        print "correction entry: ",entry
-    
-for p in range(0,3):
-    cplane.cd(p+1)
-    m = hmc_correct[p].Integral()
-    hmc_correct[p].Scale( 1.0/m )
-    hmc_correct[p].SetLineColor(rt.kCyan)
-
-    hdata = hists[("data",p)]
-    hmc = hists[("mc",p)]
-    hdata.GetXaxis().SetRange(70,400)
-    hmc_correct[p].GetXaxis().SetRange(70,400)
-    hmc.GetXaxis().SetRange(70,400)
-    dmax = hdata.GetMaximum()
-    mmax = hmc_correct[p].GetMaximum()
-    mcmax = hmc.GetMaximum()
-        
-    hmc_correct[p].Scale( dmax/mmax )
-    hmc.Scale( dmax/mcmax )
-
-    hmc_correct[p].Draw("same")
-
-## ========================================================================
-
-print "to begin smearing"
-raw_input()
-
-data_nentries = srcmc.GetEntries()
-if data_nentries<nentries:
-    nentries = data_nentries
-
-print "MC entries: ",nentries
-hmc_smeared = {}
-for p in range(0,3):
-    hmc_smeared[p] = rt.TH1D("hadc_mcsmeared_p%d"%(p),"Plane %d;peak pixel ADC value"%(p),500,0,500)
-
-
-for entry in range(nentries):
-    srcmc.GetEntry(entry)
-    if srcmc.wireid<250 or srcmc.wireid>300:
-        continue
-    hmc_smeared[srcmc.planeid].Fill( np.random.normal( mc_scale[srcmc.planeid]*srcmc.peak, sigmas[srcmc.planeid] ) )
-    if entry%25000==0:
-        print "Smearing entry: ",entry
-    
-for p in range(0,3):
-    cplane.cd(p+1)
-    m = hmc_smeared[p].Integral()
-    hmc_smeared[p].Scale( 1.0/m )
-    hmc_smeared[p].SetLineColor(rt.kCyan)
-
-    hdata = hists[("data",p)]
-    hmc = hists[("mc",p)]
-    hdata.GetXaxis().SetRange(70,400)
-    hmc_smeared[p].GetXaxis().SetRange(70,400)
-    hmc.GetXaxis().SetRange(70,400)
-    dmax = hdata.GetMaximum()
-    mmax = hmc_smeared[p].GetMaximum()
-    mcmax = hmc.GetMaximum()
-    
-    
-    hmc_smeared[p].Scale( dmax/mmax )
-    hmc.Scale( dmax/mcmax )
-
-    hmc_smeared[p].Draw("same")
-
-cplane.Update()
-    
+ctot.Draw()
+ctot.Update()
 
 raw_input()
 

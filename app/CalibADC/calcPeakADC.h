@@ -51,6 +51,7 @@ namespace larcv {
     float fDeadtime;
     int fNewCols;
     int fNewRows;
+    bool fDebug;
     std::string fImageProducer;
     
     // ana output

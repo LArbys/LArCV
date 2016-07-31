@@ -9,9 +9,11 @@
 
 int main( int nargs, char** argv ) {
 
-  std::string inputfile = "ana_data.root";
+  //std::string inputfile = "ana_data_v5.root";
+  std::string inputfile = "extbnb_v05_cosmics_ana.root";
+  //std::string inputfile = "mc_v05_cosmics_ana.root";
   int maxchs   = 900;
-  float lowerbounds[3] = { 100, 70, 100};
+  float lowerbounds[3] = { 50, 50, 50};
   float upperbounds[3] = {300,250,300};
 
   TFile* fin  = new TFile(inputfile.c_str());
@@ -22,7 +24,7 @@ int main( int nargs, char** argv ) {
   tree->SetBranchAddress("wireid", &wireid);
   tree->SetBranchAddress("peak",   &peak);
 
-  TFile* fout = new TFile("test_out_data_analysis.root","recreate");
+  TFile* fout = new TFile("out_v5_extbnb_analysis.root","recreate");
 
   
   TH1D** hists[3] = {NULL};

@@ -19,6 +19,7 @@ namespace larcv {
     fDeadtime  = cfg.get<float>("Deadtime");
     fNewCols   = cfg.get<int>("NewCols",-1);
     fNewRows   = cfg.get<int>("NewRows",-1);
+    fDebug     = cfg.get<bool>("Debug",false);
   }
 
   void calcPeakADC::initialize()
@@ -34,15 +35,26 @@ namespace larcv {
   {
 
     auto event_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, fImageProducer );
+
+    larcv::EventImage2D* out_images = NULL;
+    if ( fDebug )
+      out_images = (larcv::EventImage2D*)mgr.get_data( larcv::kProductImage2D, "calib" );
+    
+
     for ( auto const& img_src : event_images->Image2DArray() ) {
+
       //for ( int p=0; p<=8; p+=4 ) { // hack for 12 channel data
       //auto const& img_src = event_images->Image2DArray().at(p);
+
       larcv::Image2D img( img_src );
       if ( fNewCols>0 || fNewRows>0 )
 	img.compress( fNewRows, fNewCols ); //504, 864
       int wfms = img.meta().cols();
       int ticks = img.meta().rows();
       //std::cout << "img (wmfs,ticks) = (" << wfms << " x " << ticks << ")" << std::endl;
+
+      larcv::Image2D imgout( img_src );
+      imgout.paint( 0.0 );
       
       for (int w=0; w<wfms; w++) {
 	bool inpeak = false;
@@ -61,8 +73,7 @@ namespace larcv {
 	      inpeak = true;
 	      pmax = y;
 	      peakcenter = t;
-	      if (peakstart<0)
-		peakstart = t;
+	      peakstart = t;
 	    }
 	  }
 	  else {
@@ -77,12 +88,19 @@ namespace larcv {
 	      peakmax = pmax;
 	      width   = t-peakstart;
 	      peakcenters.push_back( peakcenter );
+	      imgout.set_pixel( peakcenter, wireid, pmax );
 	      ttree->Fill();
 	    }
 	  }//end of if in peak
 	}//end of tick loop
       }//end of wire loop
+
+      if ( fDebug )
+	out_images->Emplace( std::move(imgout) );
+
     }//end of img loop
+
+
   }//end of process
   
   void calcPeakADC::finalize()
