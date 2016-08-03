@@ -51,6 +51,7 @@ namespace larcv {
     float fDeadtime;
     int fNewCols;
     int fNewRows;
+    bool fDebug;
     std::string fImageProducer;
     
     // ana output
@@ -58,6 +59,7 @@ namespace larcv {
     float peakmax;
     int wireid;
     int planeid;
+    float width;
   };
 
   /**
