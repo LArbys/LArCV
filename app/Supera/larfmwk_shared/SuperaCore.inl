@@ -152,8 +152,8 @@ namespace larcv {
 			if (!_use_mc) {
 				// No MC: take an event picture + ROI and done
 
-				larcv::ROI roi(_default_roi_type,larcv::kShapeUnknown);
-				for(auto const& plane_meta : image_meta_m)
+				larcv::ROI roi(_default_roi_type, larcv::kShapeUnknown);
+				for (auto const& plane_meta : image_meta_m)
 					roi.AppendBB(plane_meta.second);
 
 				auto event_roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI, "tpc"));
@@ -177,7 +177,7 @@ namespace larcv {
 				}
 
 				// OpDigit
-				if(opdigit_v.size()) {
+				if (opdigit_v.size()) {
 					auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, "pmt"));
 					::larcv::ImageMeta op_meta(32, 1500, 1500, 32, 0, 1499);
 					::larcv::Image2D op_img(op_meta);
@@ -394,17 +394,17 @@ namespace larcv {
 					try {
 						roi_meta = roi.BB(p);
 					} catch ( const ::larcv::larbys& err ) {
-					  	LARCV_INFO() << "No ROI found for..." << std::endl << roi.dump() << std::endl;
+						LARCV_INFO() << "No ROI found for..." << std::endl << roi.dump() << std::endl;
 						continue;
 					}
 					// Retrieve cropped full resolution image
-					auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,Form("tpc_int%02d", roi.MCTIndex())));
+					auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, Form("tpc_int%02d", roi.MCTIndex())));
 					LARCV_INFO() << "Cropping ROI: " << roi_meta.dump();
 
 					auto hires_img = _full_image.crop(roi_meta);
 					int_img_v->Emplace(std::move(hires_img));
-					if(int_img_v->Image2DArray().size() > (p+1)) {
-				     	        LARCV_CRITICAL() << "Unexpected # of hi-res images: " << int_img_v->Image2DArray().size() << " @ plane " << p << std::endl;
+					if (int_img_v->Image2DArray().size() > (p + 1)) {
+						LARCV_CRITICAL() << "Unexpected # of hi-res images: " << int_img_v->Image2DArray().size() << " @ plane " << p << std::endl;
 						throw ::larcv::larbys();
 					}
 				}
@@ -501,12 +501,12 @@ namespace larcv {
 					// If expanded, make sure it won't go across event_image boundary
 					if ( (max_y - height) < event_image.min_y() ) {
 						LARCV_INFO() << "Y: " << max_y - height << " => " << max_y
-			        			     << " exceeds event boundary " << event_image.min_y() << std::endl;
-						max_y = event_image.min_y() + height; 
+						             << " exceeds event boundary " << event_image.min_y() << std::endl;
+						max_y = event_image.min_y() + height;
 					} else if (max_y > event_image.max_y()) {
 						LARCV_INFO() << "Y: " << max_y - height << " => " << max_y
-			        			     << " exceeds event boundary " << event_image.max_y() << std::endl;
-						max_y = event_image.max_y(); 
+						             << " exceeds event boundary " << event_image.max_y() << std::endl;
+						max_y = event_image.max_y();
 					}
 				}
 			}
