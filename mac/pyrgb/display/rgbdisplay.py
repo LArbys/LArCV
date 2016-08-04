@@ -71,15 +71,15 @@ class RGBDisplay(QtGui.QWidget):
         # erez - July-21, 2016
         # -------------------------------------------------------
         # Navigation - run / sub / event from run-info
-        self.run = QtGui.QLineEdit("%d" % 5187)      # run
+        self.run = QtGui.QLineEdit("%d" % 5155)      # run
         self.lay_inputs.addWidget(QtGui.QLabel("run"), 0, 0)
         self.lay_inputs.addWidget(self.run, 0, 1)
         
-        self.subrun = QtGui.QLineEdit("%d" % 96)      # subrun
+        self.subrun = QtGui.QLineEdit("%d" % 54)      # subrun
         self.lay_inputs.addWidget(QtGui.QLabel("subrun"), 1, 0)
         self.lay_inputs.addWidget(self.subrun, 1, 1)
        
-        self.event_num = QtGui.QLineEdit("%d" % 4812)      # event
+        self.event_num = QtGui.QLineEdit("%d" % 2731)      # event
         self.lay_inputs.addWidget(QtGui.QLabel("event"), 2, 0)
         self.lay_inputs.addWidget(self.event_num, 2, 1)
 

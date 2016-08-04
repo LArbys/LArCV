@@ -31,7 +31,11 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.input_prod_label = QtGui.QLabel("Producer:")
         self.output_prod_label = QtGui.QLabel("Producer:")
         
-        self.input_roi = QtGui.QLineEdit("/Users/erezcohen/LArCV_old/ROI/data_samples/protons/output_proton_roi.root")#"Input ROI filename")
+        PathName = "/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA"
+        ROIPath  = PathName + "/larcv_files/roi_files"
+        ListName = "9131runs_multipscore0.95_595evts_03082016"
+
+        self.input_roi = QtGui.QLineEdit(ROIPath+"/roi_"+ListName+".root")#"Input ROI filename")
         self.input_roi_producer  = QtGui.QLineEdit("protonBDT")#"Input ROI producer")
         self.input_prod = None
         
