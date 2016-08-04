@@ -256,7 +256,12 @@ class RGBDisplay(QtGui.QWidget):
 
         # OpenCV Widgets
         # wrapper for the opencv specific window
-        self.cv2_layout = CV2Layout()
+        try:
+            self.cv2_layout = CV2Layout()
+        except:
+            print "no CV2"
+            self.cv2_layout = None
+            pass
         self.cv2_enabled = False
 
         # ROI box
