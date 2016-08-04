@@ -11,47 +11,19 @@ import ROOT
 from larlite import larlite as fmwk
 fmwk.storage_manager
 from larcv import larcv
-#sys.exit( 0 )
-#from larlite import larlite as fmwk
 
 # Create ana_processor instance
 my_proc = fmwk.ana_processor()
-
-# MC
-#fdir = "/a/data/amsterdam/dl/dl_production_v00/mcc7_cosmic_extbnb_detsim_to_larlite_v00_p00/"
-#ftypes = ["wire","simch","mcinfo","opdigit","opreco"]
-
-# DATA
-fdir = "/a/data/bleeker/dl/dl_production_v00/data_extbnb_to_larlite_v00_p00/"
-ftypes = ["wire","opdigit","opreco"]
-
-flist = []
-for x in range(0,100):
-    useit = True
-    for ftype in ftypes[:1]:
-        fname = fdir+"/larlite_%s_%04d.root"%(ftype,x)
-        fstat = os.stat( fname )
-        #print ftype,fstat.st_size/1.0e6
-        if fstat.st_size/1.0e6<500:
-            useit = False
-    if useit and x not in [98]:
-        for ftype in ftypes:
-            fname = fdir+"/larlite_%s_%04d.root"%(ftype,x)
-            flist.append( fname )
-
-flist.sort()
-
-# Set input root file
-#for x in xrange(len(sys.argv)-3):
-#    my_proc.add_input_file(sys.argv[x+3])
-for x in flist:
-    my_proc.add_input_file( x )
 
 # Check if output file
 if os.path.exists(sys.argv[2]):
     print "Output file exists. Please remove first."
     print "Specified output file: ",sys.argv[2]
     sys.exit(-1)
+
+# Set input root file
+for x in xrange(len(sys.argv)-3):
+    my_proc.add_input_file(sys.argv[x+3])
 
 # Specify IO mode
 my_proc.set_io_mode(fmwk.storage_manager.kREAD)
