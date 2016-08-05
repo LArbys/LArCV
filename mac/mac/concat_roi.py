@@ -1,4 +1,4 @@
-from ROOT import larcv
+from larcv import larcv
 import numpy as np
 
 #TWO different files from two ``scans"

@@ -2,7 +2,6 @@ from PyQt4 import QtGui, QtCore
 
 import ROOT
 from larcv import larcv
-#from ROOT import larcv
 import pyqtgraph as pg
 
 #pg.setConfigOption('background', 'w')

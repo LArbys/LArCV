@@ -1,7 +1,7 @@
 import ROOT
 #ROOT.gSystem.Load("libLArCV")
 #ROOT.gSystem.Load("libLArCVData")
-from ROOT import larcv
+from larcv import larcv
 o=larcv.IOManager(larcv.IOManager.kBOTH)
 o.reset()
 o.set_verbosity(0)
