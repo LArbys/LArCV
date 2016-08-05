@@ -35,13 +35,16 @@ import pyqtgraph.exporters
 class RGBDisplay(QtGui.QWidget):
 
     def __init__(self, argv):
+        print "# super"
         super(RGBDisplay, self).__init__()
+        print "# RGBDisplay"
 
         # DataManager for loading the plot image
         self.dm = DataManager(argv)
 
+        print "# self.dm"
         # Size the canvas
-        self.resize(1200, 700)
+        self.resize(800,600)#1200, 700)
 
         # Graphics window which will hold the image
         self.win = pg.GraphicsWindow()
@@ -69,7 +72,7 @@ class RGBDisplay(QtGui.QWidget):
         self.layout.addLayout(self.lay_inputs, 2, 0)
         
                
-        
+        print "# Navigation box"
         # -------------------------------------------------------
         # Navigation box
         self._makeNavFrame()
@@ -340,22 +343,28 @@ class RGBDisplay(QtGui.QWidget):
     def openCaffe(self):
         if re.search("Disable", self.rgbcaffe.text()) is None:
             self.rgbcaffe.setText("Disable RGBCaffe")
-            self.resize(1200, 900)
+#            self.resize(1200, 900)
+            self.resize(800, 600)
             self.layout.addLayout(self.caffe_layout.grid(True), 5, 0)
         else:
             self.rgbcaffe.setText("Enable RGBCaffe")
             self.layout.removeItem(self.caffe_layout.grid(False))
-            self.resize(1200, 700)
+#            self.resize(1200, 700)
+            self.resize(800, 600)
+
 
     def openROITool(self):
         if re.search("Disable", self.rgbroi.text()) is None:
             self.rgbroi.setText("Disable ROITool")
-            self.resize(1200, 1000)
+#            self.resize(1200, 1000)
+            self.resize(800, 600)
             self.layout.addLayout(self.roitool_layout.grid(True), 5, 0)
         else:
             self.rgbroi.setText("Enable ROITool")
             self.layout.removeItem(self.roitool_layout.grid(False))
-            self.resize(1200, 700)
+#            self.resize(1200, 700)
+            self.resize(800, 600)
+
 
     # opencv editor, if/els statement is for opening and closing the pane
     def openCVEditor(self):
@@ -364,14 +373,18 @@ class RGBDisplay(QtGui.QWidget):
 
         if re.search("Disable", self.rgbcv2.text()) is None:
             self.rgbcv2.setText("Disable OpenCV")
-            self.resize(1200, 900)
+#            self.resize(1200, 900)
+            self.resize(800, 600)
+
             self.layout.addLayout(self.cv2_layout.grid(True), 5, 0)
             self.plt.addItem(self.swindow)
             self.cv2_enabled = True
         else:
             self.rgbcv2.setText("Enable OpenCV")
             self.layout.removeItem(self.cv2_layout.grid(False))
-            self.resize(1200, 700)
+#            self.resize(1200, 700)
+            self.resize(800, 600)
+
             self.plt.removeItem(self.swindow)
             self.cv2_enabled = False
 

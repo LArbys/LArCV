@@ -400,8 +400,8 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.input_prod_label.setFixedWidth(60)
         self.output_prod_label.setFixedWidth(60)
         
-        self.input_roi = QtGui.QLineEdit("ROI filename")
-        self.input_roi_producer  = QtGui.QLineEdit("ROI producer")
+        self.input_roi = QtGui.QLineEdit("/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA/larcv_files/roi_files/roi_9131runs_multipscore0.95_595evts_03082016.root")#"ROI filename")
+        self.input_roi_producer  = QtGui.QLineEdit("protonBDT")#"ROI producer")
         self.input_prod = None
         
         self.output_roi = QtGui.QLineEdit("ROI filename")

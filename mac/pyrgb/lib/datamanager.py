@@ -14,21 +14,19 @@ from imagefactory import ImageFactory
 class DataManager(object):
 
     def __init__(self,argv):
-        
+
         self.iom = IOManager(argv)
         self.keys ={}
 
         self.IF = ImageFactory()
-        
+
         # get keys from rootfile, iterate over the enum
         # and see what's in the root file
         for i in xrange(larcv.kProductUnknown):
             product = larcv.ProductName(i)
-
             self.keys[product] = []
-
             producers=self.iom.iom.producer_list(i)
-            
+
             for p in producers:
                 self.keys[product].append(p)
 
@@ -36,7 +34,7 @@ class DataManager(object):
         self.run    = -1
         self.subrun = -1
         self.event  = -1
-        
+    
 
     def get_nchannels(self,ii,imgprod) :
         # Sorry Vic I hacked this
