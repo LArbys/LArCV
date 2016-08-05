@@ -548,8 +548,10 @@ class RGBDisplay(QtGui.QWidget):
                                                        self.image_producer,
                                                        self.roi_producer,
                                                        self.views)
-        
-       
+            # Erez, Aug-05, 2016
+            print "TTree entry number ",self.rse_map[self.wanted_rse]
+            self.event.setText("%d"%(self.rse_map[self.wanted_rse]))
+
         else: # original way
             # get the image from the datamanager
             self.image, hasroi = self.dm.get_event_image(event,

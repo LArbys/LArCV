@@ -400,8 +400,10 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.input_prod_label.setFixedWidth(60)
         self.output_prod_label.setFixedWidth(60)
         
+        # i hard coded these lines just because i love retyping the production file name so much every time...
         self.input_roi = QtGui.QLineEdit("/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA/larcv_files/roi_files/roi_9131runs_multipscore0.95_595evts_03082016.root")#"ROI filename")
         self.input_roi_producer  = QtGui.QLineEdit("protonBDT")#"ROI producer")
+        # --------------------------------------------------------------------------------------------------------
         self.input_prod = None
         
         self.output_roi = QtGui.QLineEdit("ROI filename")
@@ -435,21 +437,52 @@ class ROIToolLayout(QtGui.QGridLayout):
         event = int(self.event.text())
         rse = ( self.dm.run, self.dm.subrun, self.dm.event  )
 
+
+        # Aug-05, 2016
+        # i (erez) modified the following lines to synchronize ROIs navigation with RGB navigation based on Rub/Sub/Evt
+        # please go over them to see if its efficient and so on...
+        # ---------------------------------------------------------------------------------------------
+        print "in reloadROI, self.user_rois.keys() = ",self.user_rois.keys()
+        wanted_rse = [int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())]
+        print "the RGB image that is loaded is (r/s/e): ",wanted_rse
+#        print "user ROIs: ", self.user_rois
+        print "event: ",event
+  
         # If no user ROIs, look through imported ROIs
         if event not in self.user_rois.keys():
-
-            if rse in self.imported_rse_dict:
-                print "rse in imported list ",rse
-                idx = self.imported_rse_dict[rse]
-                self.in_iom.read_entry(idx)  
-                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
-                self.user_rois_larcv[event] = [roi for roi in roiarray.ROIArray()]
-                print "reloading ",self.user_rois_larcv[event]," from file"
-                self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])  
-            else:
-                print rse," not in user_rois nor in imported dict."
-                return
             
+            print "event not in self.user_rois.keys(): ",event
+
+            # if we dont have this event already in our list,
+            # go over the TTree entries
+            for entry in range(self.in_iom.get_n_entries()):
+                read_entry = self.in_iom.read_entry(entry)
+                event_base = self.in_iom.get_data(larcv.kProductROI,"protonBDT")
+                curren_rse = [event_base.run(),event_base.subrun(),event_base.event()]
+                
+                # and if we find this event
+                if curren_rse == wanted_rse:
+                    roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
+                    self.user_rois_larcv[entry] = [roi for roi in roiarray.ROIArray()]
+                    print "reloading ",self.user_rois_larcv[entry]," from file, entry ",entry,", rse ", wanted_rse
+                    self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])
+
+
+# the previous code block (Aug-05,2016)
+# ---------------------------------------------------------------------------------------------
+#            if rse in self.imported_rse_dict:
+#                print "rse in imported list ",rse
+#                idx = self.imported_rse_dict[rse]
+#                self.in_iom.read_entry(idx)  
+#                roiarray = self.in_iom.get_data(larcv.kProductROI,self.input_prod)
+#                self.user_rois_larcv[event] = [roi for roi in roiarray.ROIArray()]
+#                print "reloading ",self.user_rois_larcv[event]," from file"
+#                self.user_rois[event] = self.larcv2roi(self.user_rois_larcv[event])  
+#            else:
+#                print rse," not in user_rois nor in imported dict."
+#                return
+# ---------------------------------------------------------------------------------------------
+
         # set to active rois
         self.rois = self.user_rois[event]
         print "active rois: ",len(self.rois)
