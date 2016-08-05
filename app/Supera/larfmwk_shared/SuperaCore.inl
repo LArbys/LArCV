@@ -19,6 +19,7 @@ namespace larcv {
 			_configured = false;
 			_use_mc = false;
 			_store_chstatus = false;
+			_default_roi_type = kROIUnknown;
 			//_larcv_io.set_verbosity(::larcv::msg::kDEBUG);
 		}
 
@@ -35,6 +36,8 @@ namespace larcv {
 			_use_mc = main_cfg.get<bool>("UseMC");
 			_store_chstatus = main_cfg.get<bool>("StoreChStatus");
 			_larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
+
+			_default_roi_type = (ROIType_t)(main_cfg.get<unsigned short>("DefaultROIType"));
 
 			_producer_digit    = main_cfg.get<std::string>("DigitProducer");
 			_producer_simch    = main_cfg.get<std::string>("SimChProducer");
@@ -147,7 +150,14 @@ namespace larcv {
 			}
 
 			if (!_use_mc) {
-				// No MC: take an event picture and done
+				// No MC: take an event picture + ROI and done
+
+				larcv::ROI roi(_default_roi_type, larcv::kShapeUnknown);
+				for (auto const& plane_meta : image_meta_m)
+					roi.AppendBB(plane_meta.second);
+
+				auto event_roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI, "tpc"));
+				event_roi_v->Emplace(std::move(roi));
 
 				for (size_t p = 0; p < ::larcv::supera::Nplanes(); ++p) {
 
@@ -167,7 +177,7 @@ namespace larcv {
 				}
 
 				// OpDigit
-				if(opdigit_v.size()) {
+				if (opdigit_v.size()) {
 					auto opdigit_image_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, "pmt"));
 					::larcv::ImageMeta op_meta(32, 1500, 1500, 32, 0, 1499);
 					::larcv::Image2D op_img(op_meta);
@@ -365,29 +375,38 @@ namespace larcv {
 			//
 			// Extract image if there's any ROI
 			//
+			LARCV_INFO() << "Checking..." << std::endl;
 			for (size_t p = 0; p < ::larcv::supera::Nplanes(); ++p) {
-
+				LARCV_INFO() << "Inspecting plane " << p << " for ROI cropping... fuck you" << std::endl;
 				auto const& full_meta = (*(image_meta_m.find(p))).second;
 
 				// Create full resolution image
 				_full_image.reset(full_meta);
+				LARCV_INFO() << "Filling full image..." << std::endl;
 				fill(_full_image, wire_v, _tpc_tick_offset);
 				_full_image.index(event_image_v->Image2DArray().size());
-
+				LARCV_INFO() << "Looping over ROIs..." << std::endl;
 				// Now extract each high-resolution interaction image
 				for (auto const& roi : roi_v->ROIArray()) {
 					// Only care about interaction
 					if (roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
-					auto const& roi_meta = roi.BB(p);
+					::larcv::ImageMeta roi_meta;
+					try {
+						roi_meta = roi.BB(p);
+					} catch ( const ::larcv::larbys& err ) {
+						LARCV_INFO() << "No ROI found for..." << std::endl << roi.dump() << std::endl;
+						continue;
+					}
 					// Retrieve cropped full resolution image
-					auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D,
-					                 Form("tpc_int%02d", roi.MCTIndex()))
-					                                         );
-
+					auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, Form("tpc_int%02d", roi.MCTIndex())));
 					LARCV_INFO() << "Cropping ROI: " << roi_meta.dump();
 
 					auto hires_img = _full_image.crop(roi_meta);
 					int_img_v->Emplace(std::move(hires_img));
+					if (int_img_v->Image2DArray().size() > (p + 1)) {
+						LARCV_CRITICAL() << "Unexpected # of hi-res images: " << int_img_v->Image2DArray().size() << " @ plane " << p << std::endl;
+						throw ::larcv::larbys();
+					}
 				}
 
 				// Finally compress and store as event image
@@ -482,12 +501,12 @@ namespace larcv {
 					// If expanded, make sure it won't go across event_image boundary
 					if ( (max_y - height) < event_image.min_y() ) {
 						LARCV_INFO() << "Y: " << max_y - height << " => " << max_y
-			        			     << " exceeds event boundary " << event_image.min_y() << std::endl;
-						max_y = event_image.min_y() + height; 
+						             << " exceeds event boundary " << event_image.min_y() << std::endl;
+						max_y = event_image.min_y() + height;
 					} else if (max_y > event_image.max_y()) {
 						LARCV_INFO() << "Y: " << max_y - height << " => " << max_y
-			        			     << " exceeds event boundary " << event_image.max_y() << std::endl;
-						max_y = event_image.max_y(); 
+						             << " exceeds event boundary " << event_image.max_y() << std::endl;
+						max_y = event_image.max_y();
 					}
 				}
 			}

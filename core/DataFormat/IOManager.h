@@ -86,6 +86,8 @@ namespace larcv {
 
     const EventBase& event_id() const { return ( _set_event_id.valid() ? _set_event_id : _event_id ); }
 
+    const EventBase& last_event_id() const { return _last_event_id; }
+
     const std::vector<std::string> producer_list(const ProductType_t type) const
     {
       std::vector<std::string> res;
@@ -107,6 +109,7 @@ namespace larcv {
     size_t      _out_tree_entries;
     EventBase   _event_id;
     EventBase   _set_event_id;
+    EventBase   _last_event_id;
     std::string _out_file_name;
     std::vector<std::string>     _in_file_v;
     std::vector<std::string>     _in_dir_v;
@@ -119,6 +122,8 @@ namespace larcv {
     std::vector<larcv::ProductType_t>   _product_type_v;
     std::vector<std::string> _store_only_name;
     std::vector<larcv::ProductType_t> _store_only_type;
+    std::vector<std::string> _read_only_name;
+    std::vector<larcv::ProductType_t> _read_only_type;
     std::vector<bool> _store_only_bool;
   };
 

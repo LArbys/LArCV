@@ -16,7 +16,8 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::ROI      > ();
   class ChStatus;
   template<> ProductType_t ProductType< larcv::ChStatus > ();
-
+  class Pixel2D;
+  template<> ProductType_t ProductType< larcv::Pixel2D  > ();
 }
 
 #endif

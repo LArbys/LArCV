@@ -14,21 +14,19 @@ from imagefactory import ImageFactory
 class DataManager(object):
 
     def __init__(self,argv):
-        
+
         self.iom = IOManager(argv)
         self.keys ={}
 
         self.IF = ImageFactory()
-        
+
         # get keys from rootfile, iterate over the enum
         # and see what's in the root file
         for i in xrange(larcv.kProductUnknown):
             product = larcv.ProductName(i)
-
             self.keys[product] = []
-
             producers=self.iom.iom.producer_list(i)
-            
+
             for p in producers:
                 self.keys[product].append(p)
 
@@ -36,7 +34,7 @@ class DataManager(object):
         self.run    = -1
         self.subrun = -1
         self.event  = -1
-        
+    
 
     def get_nchannels(self,ii,imgprod) :
         # Sorry Vic I hacked this
@@ -84,12 +82,14 @@ class DataManager(object):
     # -----------------------------------------------------------------------------
     def get_all_images(self,imgprod,event_base_and_images,rse_map) :
         
-        
         for entry in range(self.iom.get_n_entries()):
             read_entry = self.iom.read_entry(entry)
             event_base = self.iom.get_data(larcv.kProductImage2D,imgprod)
             event_base_and_images[entry] = event_base
-            rse_map[entry] = [event_base.run(),event_base.subrun(),event_base.event()]
+            rse = ( int(event_base.run()),int(event_base.subrun()),int(event_base.event()) )
+            #print rse
+            #rse_map[entry] = [event_base.run(),event_base.subrun(),event_base.event()]
+            rse_map[ rse ] = entry
 #            print rse_map[entry]
         print "collected %d images...\nready for RSE navigation"%len(event_base_and_images)
 
@@ -102,7 +102,11 @@ class DataManager(object):
     # Erez, July-21, 2016 - get an image using R/S/E navigation
     # -----------------------------------------------------------------------------
     def get_rse_image(self,event_base_and_images,rse_map,wanted_rse,imgprod,roiprod,planes, refresh=True) :
-        
+        if wanted_rse in rse_map:
+            return self.get_event_image(rse_map[wanted_rse],imgprod,roiprod,planes,refresh)
+        else:
+            print "i couldn't find this R/S/E..."
+            return None, False
  
         ii = -1
         for i in range(len(event_base_and_images)):
