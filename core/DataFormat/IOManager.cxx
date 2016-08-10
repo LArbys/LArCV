@@ -179,9 +179,9 @@ namespace larcv {
     auto& key_m = _key_list[type];
     
     auto in_iter = key_m.find(name);
-    std::string tree_name = ProductName(type) + "_" + name + "_tree";
+    std::string tree_name = std::string(ProductName(type)) + "_" + name + "_tree";
     std::string tree_desc = name + " tree";
-    std::string br_name = ProductName(type) + "_" + name + "_branch";
+    std::string br_name = std::string(ProductName(type)) + "_" + name + "_branch";
 
     LARCV_INFO() << "Requested to register a producer: " << name << " (TTree " << tree_name << ")" << std::endl;
     
