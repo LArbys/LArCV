@@ -401,7 +401,7 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.output_prod_label.setFixedWidth(60)
         
         # i hard coded these lines just because i love retyping the production file name so much every time...
-        self.input_roi = QtGui.QLineEdit("/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA/larcv_files/roi_files/roi_9131runs_multipscore0.95_595evts_03082016.root")#"ROI filename")
+        self.input_roi = QtGui.QLineEdit("ROI filename") #"/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA/larcv_files/roi_files/roi_9131runs_multipscore0.95_595evts_03082016.root"
         self.input_roi_producer  = QtGui.QLineEdit("protonBDT")#"ROI producer")
         # --------------------------------------------------------------------------------------------------------
         self.input_prod = None
