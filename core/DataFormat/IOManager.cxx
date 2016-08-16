@@ -109,6 +109,24 @@ namespace larcv {
       LARCV_CRITICAL() << "StoreOnlyName and StoreOnlyType has different lengths!" << std::endl;
       throw larbys();
     }
+
+    _read_only_name = cfg.get<std::vector<std::string> >("ReadOnlyName",_read_only_name);
+    std::vector<unsigned short> read_only_type;
+    for(auto const& ptype : _read_only_type) read_only_type.push_back((unsigned short)ptype);
+    read_only_type = cfg.get<std::vector<unsigned short> >("ReadOnlyType",read_only_type);
+    _read_only_type.clear();
+    for(auto const& ptype : read_only_type) {
+      if(ptype >= (unsigned short)kProductUnknown) {
+	LARCV_CRITICAL() << "ReadOnlyType contains invalid type: " 
+			 << ptype << " (>=" << kProductUnknown << ")" << std::endl;
+	throw larbys();
+      }
+      _read_only_type.push_back((ProductType_t)(ptype));
+    }
+    if(_read_only_name.size() != _read_only_type.size()) {
+      LARCV_CRITICAL() << "ReadOnlyName and ReadOnlyType has different lengths!" << std::endl;
+      throw larbys();
+    }
   }
 
   bool IOManager::initialize()
@@ -161,9 +179,9 @@ namespace larcv {
     auto& key_m = _key_list[type];
     
     auto in_iter = key_m.find(name);
-    std::string tree_name = ProductName(type) + "_" + name + "_tree";
+    std::string tree_name = std::string(ProductName(type)) + "_" + name + "_tree";
     std::string tree_desc = name + " tree";
-    std::string br_name = ProductName(type) + "_" + name + "_branch";
+    std::string br_name = std::string(ProductName(type)) + "_" + name + "_branch";
 
     LARCV_INFO() << "Requested to register a producer: " << name << " (TTree " << tree_name << ")" << std::endl;
     
@@ -295,6 +313,25 @@ namespace larcv {
 	  continue;
 	}
 
+	// If read-only is specified and not in a list, skip
+	if(_read_only_name.size()) {
+	  bool skip=true;
+	  for(auto const& read_type : _read_only_type) {
+	    if(read_type != type) continue;
+	    for(auto const& read_name : _read_only_name) {
+	      if(read_name == producer_name) {
+		skip=false;
+		break;
+	      }
+	    }
+	  }
+	  if(skip) {
+	    LARCV_NORMAL() << "Skipping: producer=" << producer_name << " type= " << ProductName(type) << std::endl;
+	    continue;
+	  }
+	  LARCV_INFO() << "Not skipping: producer=" << producer_name << " type= " << ProductName(type) << std::endl;
+	}
+
 	auto id = register_producer(type,producer_name);
 	LARCV_INFO() << "Registered: producer=" << producer_name << " Key=" << id << std::endl;
 	_in_tree_v[id]->AddFile(fname.c_str());
@@ -336,10 +373,12 @@ namespace larcv {
     if(_in_tree_index != index) {
       _in_tree_index = index;
       _event_id.clear();
+      _set_event_id.clear();
     }else if(force_reload){
       _in_tree_index = index;
       for(auto& v : _in_tree_index_v) v = kINVALID_SIZE;
       _event_id.clear();
+      _set_event_id.clear();
     }
     LARCV_DEBUG() << "Current input tree index: " << _in_tree_index << std::endl;
     return true;
@@ -429,6 +468,8 @@ namespace larcv {
       if(!p) break;
       p->clear();
     }
+    if(_set_event_id.valid()) _last_event_id = _set_event_id;
+    else _last_event_id = _event_id;
     _event_id.clear();
     _set_event_id.clear();
   }

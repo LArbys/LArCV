@@ -113,6 +113,7 @@ namespace larcv {
       bool _use_mc;
       bool _store_chstatus;
       std::string _supera_fname;
+      larcv::ROIType_t _default_roi_type;
     };
   }
 }

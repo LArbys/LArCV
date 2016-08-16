@@ -2,7 +2,7 @@
  * \file ThreadDatumFiller.h
  *
  * \ingroup APICaffe
- * 
+ *
  * \brief Class def header for a class ThreadDatumFiller
  *
  * @author kazuhiro
@@ -16,15 +16,9 @@
 
 #include "Processor/ProcessDriver.h"
 #include "DatumFillerBase.h"
-#include <thread>
-
-struct _object;
-typedef _object PyObject;
-
-#ifndef __CLING__
+#include "APICaffeTypes.h"
 #ifndef __CINT__
-#include <Python.h>
-#endif
+#include <thread>
 #endif
 
 namespace larcv {
@@ -34,12 +28,12 @@ namespace larcv {
      doxygen documentation!
   */
   class ThreadDatumFiller : public larcv_base {
-    
+
   public:
 
     /// Default constructor
-    ThreadDatumFiller(std::string name="ThreadDatumFiller");
-    
+    ThreadDatumFiller(std::string name = "ThreadDatumFiller");
+
     /// Default destructor
     ~ThreadDatumFiller();
 
@@ -52,11 +46,15 @@ namespace larcv {
 
     void configure(const PSet& cfg);
 
-    bool batch_process(size_t nentries);
+    bool batch_process(size_t nentries=0);
 
     void set_next_index(size_t index);
 
-    bool thread_running() const { return _thread_running; }
+    void set_next_batch(const std::vector<size_t>& index_v);
+
+    bool thread_config() const { return _use_threading; }
+
+    bool thread_running() const { return (_thread_state != kThreadStateIdle); }
 
     size_t process_ctr() const { return _num_processed; }
 
@@ -64,35 +62,41 @@ namespace larcv {
 
     const std::vector<size_t>& processed_entries() const { return _batch_entries; }
 
-    const std::vector<int>& dim();
+    const std::vector<larcv::EventBase>& processed_events() const { return _batch_events; }
+
+    const std::vector<int> dim(bool image=true) const;
 
     const std::vector<float>& data() const;
 
-    PyObject* data_ndarray() const;
-
     const std::vector<float>& labels() const;
-
+    
+    const ProcessDriver* pd() { return &_driver; }
+    
   private:
 
     bool _batch_process_(size_t nentries);
     bool _processing;
-    bool _thread_running;
+    ThreadFillerState_t _thread_state;
     bool _use_threading;
     bool _random_access;
     bool _configured;
     bool _enable_filter;
     size_t _num_processed;
     std::vector<size_t> _batch_entries;
+    std::vector<larcv::EventBase> _batch_events;
     std::vector<int> _dim_v;
     ProcessDriver _driver;
+
     DatumFillerBase* _filler;
+    #ifndef __CINT__
     std::thread _th;
+    #endif
     std::vector<std::string> _input_fname_v;
     size_t _optional_next_index;
-    
+    std::vector<size_t> _optional_next_index_v;
   };
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

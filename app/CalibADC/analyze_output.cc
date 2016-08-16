@@ -9,10 +9,18 @@
 
 int main( int nargs, char** argv ) {
 
-  std::string inputfile = "ana_data.root";
+  std::string inputfile  = argv[1];
+  std::string outputfile = argv[2];
+
+  std::cout << "Input:  " << inputfile << std::endl;
+  std::cout << "Output: " << outputfile << std::endl;
+
   int maxchs   = 900;
-  float lowerbounds[3] = { 100, 70, 100};
-  float upperbounds[3] = {300,250,300};
+  float lowerbounds[3] = { 50, 30, 50}; // assuming everything below is noise
+  float midbounds[3]   = { 70, 70, 70}; // between lower and midbounds, looking for dip before peak
+  float upperbounds[3] = {400,400,400}; // upper bound
+  int nbins = 100;
+  float maxpeak = 500.0;
 
   TFile* fin  = new TFile(inputfile.c_str());
   TTree* tree = (TTree*)fin->Get("adc");
@@ -22,8 +30,7 @@ int main( int nargs, char** argv ) {
   tree->SetBranchAddress("wireid", &wireid);
   tree->SetBranchAddress("peak",   &peak);
 
-  TFile* fout = new TFile("test_out_data_analysis.root","recreate");
-
+  TFile* fout = new TFile(outputfile.c_str(),"recreate");
   
   TH1D** hists[3] = {NULL};
   for (int p=0; p<3; p++) {
@@ -33,7 +40,7 @@ int main( int nargs, char** argv ) {
       sprintf( histname, "hadc_p%d_ch%d", p, ch );
       char histtitle[500];
       sprintf( histtitle, "Plane %d, Channel %d", p, ch );
-      hists[p][ch] = new TH1D(histname, histtitle, 50, 0, 500);
+      hists[p][ch] = new TH1D(histname, histtitle, nbins, 0, maxpeak);
     }
   }
 
@@ -61,30 +68,56 @@ int main( int nargs, char** argv ) {
     TGraph* gsigma = new TGraph( maxchs );
 
     for ( int ch=0; ch<maxchs; ch++ ) {
-      float integral = hists[p][ch]->Integral();
+      int b1 = hists[p][ch]->GetXaxis()->FindBin( lowerbounds[p] );
+      int b2 = hists[p][ch]->GetXaxis()->FindBin( midbounds[p] );
+      int b3 = hists[p][ch]->GetXaxis()->FindBin( upperbounds[p] );
+      float integral = hists[p][ch]->Integral(b1,b3); // total integral
       float mean = 0;
       float rms  = 0;
-      if ( integral>500 ) {
-	mean = hists[p][ch]->GetMean();
+      if ( integral>100 ) {
+
+	// set range between low and mid bounds to find dip before peak
+	hists[p][ch]->GetXaxis()->SetRange( b1, b2 );
+	int dmaxbin1 = hists[p][ch]->GetMaximumBin();
+	int dminbin1 = hists[p][ch]->GetMinimumBin();
+
+	// set range between dip and upper bound to find peak
+	hists[p][ch]->GetXaxis()->SetRange( dminbin1, b3 );
+	int dmaxbin2 = hists[p][ch]->GetMaximumBin();
+	int dminbin2 = hists[p][ch]->GetMinimumBin();
+
+	// set initial parameters to fit
+	mean = hists[p][ch]->GetXaxis()->GetBinCenter( dmaxbin2 );
 	rms  = hists[p][ch]->GetRMS();
+	  
+	// restore range
+	hists[p][ch]->GetXaxis()->SetRange(1,nbins);
+
 	char fitname[500];
 	sprintf( fitname, "fit_p%d_ch%d", p, ch );
 	TF1* fit    = new TF1(fitname,"gaus");
-	fit->SetParameter(0, hists[p][ch]->GetMaximum() );
+	fit->SetParameter(0, hists[p][ch]->GetBinContent(dmaxbin2) );
 	fit->SetParameter(1, mean );
 	fit->SetParameter(2, rms );
-	hists[p][ch]->Fit( fit, "RQ", "", lowerbounds[p], upperbounds[p] );
+	//hists[p][ch]->Fit( fit, "RQ", "", lowerbounds[p], upperbounds[p] );
+	float fit1 = mean-100;
+	float fit2 = mean+100;
+	if (fit1<hists[p][ch]->GetXaxis()->GetBinLowEdge(dminbin1) ) fit1 = hists[p][ch]->GetXaxis()->GetBinLowEdge(dminbin1);
+	if (fit2>upperbounds[p]) fit2 = upperbounds[p];
+
+	hists[p][ch]->Fit( fit, "RQ", "", fit1, fit2 );
 	mean = fit->GetParameter(1);
 	rms  = fit->GetParameter(2);
 	if ( mean<0 ) {
 	  std::cout << "Bad fit plane=" << p << " ch=" << ch << ": " << mean << std::endl;
-	  hists[p][ch]->GetXaxis()->SetRange( lowerbounds[p], upperbounds[p] );
-	  mean = hists[p][ch]->GetMean();
-	  rms  = hists[p][ch]->GetRMS();
-	  fit->SetParameter(0, hists[p][ch]->GetMaximum() );
-	  fit->SetParameter(1, mean );
-	  fit->SetParameter(2, rms );
-	  hists[p][ch]->GetXaxis()->SetRange( 1, 500 );
+	  mean = 0;
+	  // hists[p][ch]->GetXaxis()->SetRange( lowerbounds[p], upperbounds[p] );
+	  // mean = hists[p][ch]->GetMean();
+	  // rms  = hists[p][ch]->GetRMS();
+	  // fit->SetParameter(0, hists[p][ch]->GetMaximum() );
+	  // fit->SetParameter(1, mean );
+	  // fit->SetParameter(2, rms );
+	  // hists[p][ch]->GetXaxis()->SetRange( 1, 500 );
 	}
 	else {
 	  std::cout << "Fit plane=" << p << " ch=" << ch << " mean=" << mean << std::endl;
@@ -107,8 +140,9 @@ int main( int nargs, char** argv ) {
 	  //   }
 	  // }
 	}
-	fit->Write(fitname);
+	//fit->Write(fitname);
 	delete fit;
+	hists[p][ch]->GetXaxis()->SetRange( 1, 500 );
       }
       gmean->SetPoint(ch,ch,mean);
       gsigma->SetPoint(ch,ch,rms);

@@ -16,8 +16,14 @@ typedef _object PyObject;
 namespace larcv {
 	/// Utility function: call one-time-only numpy module initialization (you don't have to call)
 	void SetPyUtil();
+        /// 
+        PyObject* as_ndarray(const std::vector<float>& data);
 	/// larcv::Image2D to numpy array converter
 	PyObject* as_ndarray(const Image2D& img);
+
+        Image2D as_image2d(PyObject*,ImageMeta meta);
+
+        Image2D as_image2d(PyObject*);
 }
 
 #endif
