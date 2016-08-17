@@ -1,5 +1,6 @@
 import os,sys
-from ROOT import larcv, std
+from ROOT import std
+from larcv import larcv
 
 fname = sys.argv[1]
 

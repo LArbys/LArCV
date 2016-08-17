@@ -1,4 +1,4 @@
-from ROOT import larcv
+from larcv import larcv
 larcv.IOManager
 from ROOT import TChain
 import sys

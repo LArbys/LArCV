@@ -103,18 +103,12 @@ namespace larcv {
     for (auto const& value_key : orig_cfg.value_keys())
       cfg.add_value(value_key, orig_cfg.get<std::string>(value_key));
 
-    for (auto const& pset_key : orig_cfg.pset_keys()) {
-      if (pset_key == "IOManager") {
-        LARCV_WARNING() << "IOManager configuration will be ignored..." << std::endl;
-      } else {
-        cfg.add_pset(orig_cfg.get_pset(pset_key));
-      }
-    }
     set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity", 2)) );
     _enable_filter = cfg.get<bool>("EnableFilter");
     _random_access = cfg.get<bool>("RandomAccess");
     _use_threading = cfg.get<bool>("UseThread", true);
     _input_fname_v = cfg.get<std::vector<std::string> >("InputFiles");
+
     // Brew read-only configuration
     PSet io_cfg("IOManager");
     std::stringstream ss;
@@ -126,6 +120,16 @@ namespace larcv {
     io_cfg.add_value("StoreOnlyType", "[]");
     io_cfg.add_value("StoreOnlyName", "[]");
 
+    for (auto const& pset_key : orig_cfg.pset_keys()) {
+      if (pset_key == "IOManager") {
+	auto const& orig_io_cfg = orig_cfg.get_pset(pset_key);
+	if(orig_io_cfg.contains_value("ReadOnlyName"))
+	  io_cfg.add_value("ReadOnlyName", orig_io_cfg.get<std::string>("ReadOnlyName"));
+	if(orig_io_cfg.contains_value("ReadOnlyType"))
+	  io_cfg.add_value("ReadOnlyType", orig_io_cfg.get<std::string>("ReadOnlyType"));
+        LARCV_NORMAL() << "IOManager configuration will be ignored..." << std::endl;
+      } else { cfg.add_pset(orig_cfg.get_pset(pset_key)); }
+    }
     cfg.add_pset(io_cfg);
 
     // Configure the driver

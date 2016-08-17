@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys
+import sys,os
 
 if len(sys.argv) < 4:
     msg  = '\n'
@@ -11,21 +11,19 @@ import ROOT
 from larlite import larlite as fmwk
 fmwk.storage_manager
 from larcv import larcv
-#sys.exit( 0 )
-#from larlite import larlite as fmwk
 
 # Create ana_processor instance
 my_proc = fmwk.ana_processor()
-
-# Set input root file
-for x in xrange(len(sys.argv)-3):
-    my_proc.add_input_file(sys.argv[x+3])
 
 # Check if output file
 if os.path.exists(sys.argv[2]):
     print "Output file exists. Please remove first."
     print "Specified output file: ",sys.argv[2]
     sys.exit(-1)
+
+# Set input root file
+for x in xrange(len(sys.argv)-3):
+    my_proc.add_input_file(sys.argv[x+3])
 
 # Specify IO mode
 my_proc.set_io_mode(fmwk.storage_manager.kREAD)

@@ -6,7 +6,7 @@
 #include "DataFormatTypes.h"
 namespace larcv {
 
-  const std::string ProductName(ProductType_t type);
+  const char *  ProductName(ProductType_t type);
 
   template<class T> ProductType_t ProductType();
 
