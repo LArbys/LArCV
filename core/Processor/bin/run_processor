@@ -42,7 +42,7 @@ if args.infiles:
 
       if os.path.exists(file_):
          with open(file_,'r') as f: 
-            files=file_.read().split("\n")
+            files=f.read().split("\n")
          
          if files[-1]=='': files[:-1]
 
