@@ -168,6 +168,9 @@ class PlotImage(object):
 
             # particle type
             r['type'] = roi.Type()
+            
+            # network prob
+            r['prob'] = roi.NetworkProb()
 
             # the bounding boxes
             r['bbox'] = []

@@ -593,12 +593,12 @@ class RGBDisplay(QtGui.QWidget):
 
         #this is extremely hacky, we need a central layout manager that can alert the layouts that
         #the event is changed. For now lets directly tell ROILayout
-
+        
         #start vichack
         self.roitool_layout.setImages( int(self.event.text()), self.image )
         self.roitool_layout.reloadROI()
         #end vichack
-        
+        print "hasroi",hasroi
         # no ROI's -- finish early
         if hasroi == False:
             self.autoRange()
@@ -616,6 +616,7 @@ class RGBDisplay(QtGui.QWidget):
                 if ymax < bb.max_y():
                     ymax = bb.max_y()
 
+        print "self.roi_exists ",self.roi_exists
         if self.roi_exists == True:
             self.drawBBOX(self.which_type())
 
@@ -706,7 +707,9 @@ class RGBDisplay(QtGui.QWidget):
                 w_b = bbox.max_x() - bbox.min_x()
                 h_b = bbox.max_y() - bbox.min_y()
 
-                ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type']))
+                ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type'])+" "+str(roi_p['prob']),
+                                 fill='w',
+                                 color=(0,0,0))
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
 
                 print str(self.event.text()),x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i,"\n"

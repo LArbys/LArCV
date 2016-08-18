@@ -48,6 +48,7 @@ namespace larcv {
       , _pz             (0.)
       , _current_type   (-1)
       , _interaction_type (-1)
+      , _network_prob(-1)
     {}
     
     /// Default destructor
@@ -79,6 +80,9 @@ namespace larcv {
     double         ParentPx () const { return _parent_px;      }
     double         ParentPy () const { return _parent_py;      }
     double         ParentPz () const { return _parent_pz;      }
+
+    float          NetworkProb() const { return _network_prob; }
+
     const larcv::Vertex& ParentPosition () const { return _parent_vtx;}
     const std::vector<larcv::ImageMeta>& BB() const { return _bb_v;  }
     const ImageMeta& BB(PlaneID_t plane) const;
@@ -106,7 +110,8 @@ namespace larcv {
     void SetBB         (const std::vector<larcv::ImageMeta>& bb_v);
     void NuCurrentType (short curr=-1) { _current_type = curr; }
     void NuInteractionType (short itype=-1) { _interaction_type = itype; }
-
+    void NetworkProb(float prob) { _network_prob = prob; }
+    
     std::string dump() const;
     
   private:
@@ -130,6 +135,9 @@ namespace larcv {
     std::vector<larcv::ImageMeta> _bb_v;
     short _current_type;
     short _interaction_type;
+
+    float _network_prob;
+    
   };
 }
 #endif
