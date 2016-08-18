@@ -1,12 +1,35 @@
 #!/usr/bin/env python
+
+
+import argparse
+
+parser = argparse.ArgumentParser(description='LArCV Supera Run Script.')
+
+parser.add_argument('-o','--output', 
+                    type=str, dest='outfile',required=True,
+                    help='string, output file name')
+
+parser.add_argument('-c','--config',  
+                    type=str, dest='cfg',required=True
+                    help='Config file')
+
+parser.add_argument('-i','--inlist', 
+                    type=str, dest='infiles',nargs='+',required=True
+                    help='string, expect a text file w/ space or line separated list of input files, override config file')
+
+parser.add_argument('-s','--start',  
+                    type=int, dest='start',default=0,
+                    help='integer, starting index of storage_manager process, default 0')
+
+parser.add_argument('-n','--numevents',  
+                    type=int, dest='nevents',default=0,
+                    help='integer, # events to process, default 0 meaning all events')
+
+
+args = parser.parse_args()
+
 import sys,os
 
-if len(sys.argv) < 4:
-    msg  = '\n'
-    msg += "Usage 1: %s CONFIG_FILE OUT_FILENAME $INPUT_ROOT_FILE(s)\n" % sys.argv[0]
-    msg += '\n'
-    sys.stderr.write(msg)
-    sys.exit(1)
 import ROOT
 from larlite import larlite as fmwk
 fmwk.storage_manager
@@ -16,14 +39,25 @@ from larcv import larcv
 my_proc = fmwk.ana_processor()
 
 # Check if output file
-if os.path.exists(sys.argv[2]):
+if os.path.exists(args.outfile):
     print "Output file exists. Please remove first."
-    print "Specified output file: ",sys.argv[2]
+    print "Specified output file: ",args.outfile
     sys.exit(-1)
 
-# Set input root file
-for x in xrange(len(sys.argv)-3):
-    my_proc.add_input_file(sys.argv[x+3])
+   
+files = args.infiles
+   
+if len(args.infiles) == 1:      
+    file_=args.infiles[0]
+
+    if os.path.exists(file_):
+        with open(file_,'r') as f: 
+            files=f.read().split("\n")
+              
+        if files[-1]=='': files[:-1]
+         
+for file_ in files:
+    my_proc.add_input_file(file_)
 
 # Specify IO mode
 my_proc.set_io_mode(fmwk.storage_manager.kREAD)
@@ -34,8 +68,10 @@ my_proc.set_ana_output_file("")
 # Attach an analysis unit ... here we use a base class which does nothing.
 # Replace with your analysis unit if you wish.
 unit = fmwk.Supera()
-unit.set_config(sys.argv[1])
-unit.supera_fname(sys.argv[2])
+
+unit.set_config(args.cfg)
+unit.supera_fname(args.outfile)
+
 my_proc.add_process(unit)
 
 
@@ -44,7 +80,7 @@ print  "Finished configuring ana_processor. Start event loop!"
 print
 
 # Let's run it.
-my_proc.run()
+my_proc.run(args.start,args.nevents)
 
 # done!
 print
