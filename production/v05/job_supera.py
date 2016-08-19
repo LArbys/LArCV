@@ -118,4 +118,4 @@ t.update_status(status=0,job_index=jobid)
 if out_project:
     out_t=table(out_project)
     if not out_t.exist(): out_t.create()
-    out_t.fill(session_id=jobid,status=1,filepath=record_path)
+    out_t.fill(session_id=session_id,status=1,filepath=record_path)
