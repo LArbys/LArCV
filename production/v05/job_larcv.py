@@ -118,9 +118,10 @@ if out_project:
         sys.exit(1)
 
 t=table(in_project)
-t.update_status(status=0,job_index=jobid)
-
+session = t.job_session(job_index=jobid)
 if out_project:
     out_t=table(out_project)
     if not out_t.exist(): out_t.create()
-    out_t.fill(session_id=session_id,status=1,filepath=record_path)
+    out_t.fill(session_id=session,status=1,filepath=record_path)
+
+t.update_status(status=0,job_index=jobid)
