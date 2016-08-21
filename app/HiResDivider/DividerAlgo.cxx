@@ -118,6 +118,12 @@ namespace divalgo {
     if ( v_lowerbound<0 ) v_lowerbound = 0;
     if ( v_upperbound>=2400 ) v_upperbound=2399;
 
+    // y plane
+    int y_lowerbound = findYwire( lowerleft );
+    int y_upperbound = findYwire( lowerright ) + 1;
+    if ( y_lowerbound<0 ) y_lowerbound = 0;
+    if ( y_upperbound>=3456 ) y_upperbound = 3455;
+
 
     uwires.clear();
     for (int u=u_lowerbound; u<=u_upperbound; u++) {
@@ -126,11 +132,16 @@ namespace divalgo {
 
     //std::cout << "v: " << v_lowerbound << ", " << v_upperbound << std::endl;
     vwires.clear();
-    //for (int v=v_lowerbound; v<=v_upperbound; v++) {
-    //vwires.push_back( v );
-    //}
-    vwires.push_back( v_lowerbound );
-    vwires.push_back( v_upperbound );
+    for (int v=v_lowerbound; v<=v_upperbound; v++) {
+      vwires.push_back( v );
+    }
+    //vwires.push_back( v_lowerbound );
+    //vwires.push_back( v_upperbound );
+
+    ywires.clear();
+    for (int y=y_lowerbound; y<=y_upperbound; y++) {
+      ywires.push_back( y );
+    }
     
   }
   
@@ -190,6 +201,13 @@ namespace divalgo {
       vlowerbound = lastbotv + dv;
     }
     return vlowerbound;
+  }
+
+  int DividerAlgo::findYwire( float zypoint[] ) {
+    float dz = 0.3; // wire pitch
+    float first_z = yplaneStart[0][2];
+    int ylowerbound = (int)(zypoint[0]-first_z)/dz;
+    return ylowerbound;
   }
 
 }

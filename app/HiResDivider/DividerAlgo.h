@@ -36,6 +36,7 @@ namespace divalgo {
     // helper functions
     int findUwire( float zypoint[] ); //< given (z,y) coordinate, find U wire
     int findVwire( float zypoint[] ); //< given (z,y) coordinate, find V wire
+    int findYwire( float zypoint[] ); //< given (z,y) coordinate, find Y wire
     
     float fDetCenter[3]; //< center of detector in current coordinate frame 
     float fOffset[3];    //< applied offset in coorindates, default is (0,0,0)
