@@ -3,6 +3,8 @@
 #define __WIREINFODATA__
 // this file generated using dump_wire_header.py
 
+#include <vector>
+
 namespace divalgo {
 
   static const int numWiresU = 2400;
@@ -16535,6 +16537,12 @@ namespace divalgo {
    {-0.60,117.47,1036.75}, // y plane,wire=3455
   };
 
+  void getUstart( const int wireid, std::vector<float>& pos );
+  void getUend( const int wireid, std::vector<float>& pos );
+  void getVstart( const int wireid, std::vector<float>& pos );
+  void getVend( const int wireid, std::vector<float>& pos );
+  void getYstart( const int wireid, std::vector<float>& pos );
+  void getYend( const int wireid, std::vector<float>& pos );
 
 }
 

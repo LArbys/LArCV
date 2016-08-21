@@ -116,7 +116,15 @@ for plane,data in [('u',uend),('v',vend),('y',yend)]:
 
 
 header2 = """
-}
+
+  void getUstart( const int wireid, std::vector<float>& pos );
+  void getUend( const int wireid, std::vector<float>& pos );
+  void getVstart( const int wireid, std::vector<float>& pos );
+  void getVend( const int wireid, std::vector<float>& pos );
+  void getYstart( const int wireid, std::vector<float>& pos );
+  void getYend( const int wireid, std::vector<float>& pos );
+
+} //< end of namespace
 
 #endif
 """
