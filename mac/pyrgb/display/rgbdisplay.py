@@ -22,11 +22,11 @@ try:
 except:
     pass
 
-try:
-    from caffelayout import CaffeLayout
-    from ..rgb_caffe.testwrapper import TestWrapper
-except:
-    pass
+# try:
+#     from caffelayout import CaffeLayout
+#     from ..rgb_caffe.testwrapper import TestWrapper
+# except:
+#     pass
 
 from roilayout import ROIToolLayout
 
@@ -68,8 +68,7 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs = QtGui.QGridLayout()
         self.layout.addLayout(self.lay_inputs, 2, 0)
         
-               
-        
+                       
         # -------------------------------------------------------
         # Navigation box
         self._makeNavFrame()
@@ -101,7 +100,6 @@ class RGBDisplay(QtGui.QWidget):
         self.user_contrast.clicked.connect(self.enableContrast)
         
         # --------------------------------------------------------
-
         # False color mode
         self.use_false_color = QtGui.QCheckBox("Use False Color")
         self.use_false_color.setChecked(False)
@@ -162,7 +160,6 @@ class RGBDisplay(QtGui.QWidget):
         # self.lay_inputs.addWidget(QtGui.QLabel(
         # "<center>ROI Prod</center>"), 2, 2)
 
-
         self.comboBoxROI = QtGui.QComboBox()
         self.roi_producer = None
 
@@ -215,7 +212,7 @@ class RGBDisplay(QtGui.QWidget):
         utilstart = optstart + 1
         # RGBCaffe will open and close bottom of the window
         #utillabel     = QtGui.QLabel("Utilities")
-        self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
+        #self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
         self.rgbcv2 = QtGui.QPushButton("Enable OpenCV")
         self.rgbroi = QtGui.QPushButton("Enable ROITool")
         
@@ -225,15 +222,19 @@ class RGBDisplay(QtGui.QWidget):
             print "No OpenCV. Disabling."
             self.rgbcv2.setEnabled(False)
 
-        self.rgbcaffe.setFixedWidth(130)
+        # self.rgbcaffe.setFixedWidth(130)
         self.rgbcv2.setFixedWidth(130)
         self.rgbroi.setFixedWidth(130)
 
         #self.lay_inputs.addWidget(utillabel, 0, utilstart)
-        self.lay_inputs.addWidget(self.rgbcaffe, 0, utilstart)
-        self.lay_inputs.addWidget(self.rgbcv2, 1, utilstart)
-        self.lay_inputs.addWidget(self.rgbroi, 2, utilstart)
+        # self.lay_inputs.addWidget(self.rgbcaffe, 0, utilstart)
+        self.lay_inputs.addWidget(self.rgbcv2, 0, utilstart)
+        self.lay_inputs.addWidget(self.rgbroi, 1, utilstart)
+
         
+        self.roiscorecut=QtGui.QLineEdit("0.9")
+        self.lay_inputs.addWidget(self.roiscorecut,2,utilstart)
+
         # Particle types
         self.kTypes = {'kBNB':   (self.kBNB, [2]),
                        'kOTHER': (self.kOTHER, [i for i in xrange(10) if i != 2]),
@@ -264,20 +265,20 @@ class RGBDisplay(QtGui.QWidget):
         self.pimg = None
         self.modimg = None
 
-        self.rgbcaffe.clicked.connect(self.openCaffe)
+        #self.rgbcaffe.clicked.connect(self.openCaffe)
         self.rgbcv2.clicked.connect(self.openCVEditor)
         self.rgbroi.clicked.connect(self.openROITool)
 
         # Caffe Widgets
         # wrapper for FORWARD function
-        try:
-            self.caffe_test = TestWrapper()
-            self.caffe_layout = CaffeLayout(self.caffe_test,self)
-            self.caffe_enabled = True
-        except:
-            print "Caffe Disabled"
-            self.caffe_enabled = False
-            self.rgbcaffe.setEnabled(False)
+        # try:
+        #     self.caffe_test = TestWrapper()
+        #     self.caffe_layout = CaffeLayout(self.caffe_test,self)
+        #     self.caffe_enabled = True
+        # except:
+        #     print "Caffe Disabled"
+        #     self.caffe_enabled = False
+        #     self.rgbcaffe.setEnabled(False)
 
         # OpenCV Widgets
         # wrapper for the opencv specific window
@@ -304,8 +305,6 @@ class RGBDisplay(QtGui.QWidget):
         self.event_base_and_images = {}
         self.rse_map = {}
         print "len(self.event_base_and_images): ",len(self.event_base_and_images)
-
-
 
 
 
@@ -337,15 +336,15 @@ class RGBDisplay(QtGui.QWidget):
     # -------------------------
     
     
-    def openCaffe(self):
-        if re.search("Disable", self.rgbcaffe.text()) is None:
-            self.rgbcaffe.setText("Disable RGBCaffe")
-            self.resize(1200, 900)
-            self.layout.addLayout(self.caffe_layout.grid(True), 5, 0)
-        else:
-            self.rgbcaffe.setText("Enable RGBCaffe")
-            self.layout.removeItem(self.caffe_layout.grid(False))
-            self.resize(1200, 700)
+    # def openCaffe(self):
+    #     if re.search("Disable", self.rgbcaffe.text()) is None:
+    #         self.rgbcaffe.setText("Disable RGBCaffe")
+    #         self.resize(1200, 900)
+    #         self.layout.addLayout(self.caffe_layout.grid(True), 5, 0)
+    #     else:
+    #         self.rgbcaffe.setText("Enable RGBCaffe")
+    #         self.layout.removeItem(self.caffe_layout.grid(False))
+    #         self.resize(1200, 700)
 
     def openROITool(self):
         if re.search("Disable", self.rgbroi.text()) is None:
@@ -546,15 +545,17 @@ class RGBDisplay(QtGui.QWidget):
         # -----------------------------------------------------------------------------
 
 
-
-        # whoops no image, return
+        # No image, return
         if self.image == None: return
         
+        # Set selected planes
         self.image.planes = self.planes
+
+        # If there is a preset layout, display
         if hasattr(self.image,"preset_layout"):
             self.layout.addLayout(self.image.preset_layout,4,0)
 
-        # update channel combo boxes
+        # Update channel combo boxes
         nchs = self.dm.get_nchannels(event, self.image_producer)
         if self.p0.count() != (nchs + 1):
             self.p0.clear()
@@ -576,30 +577,30 @@ class RGBDisplay(QtGui.QWidget):
             if nchs > 2:
                 self.p2.setCurrentIndex(nchs / 3 * 2 + 1)
 
+        # Set the displayed views from toggles
         self.setViewPlanes()
-
+        
+        # Set the constract from text input
         self.setContrast()
 
-        # threshold for contrast, this image goes to the screen
+        # Threshold for contrast, this image goes to the screen
         self.pimg = self.image.set_plot_mat(self.iimin,self.iimax)
+        
+        # If there is an ROI, parse it
+        if hasroi: self.rois = self.image.parse_rois()
 
-        if hasroi:
-            self.rois = self.image.parse_rois()
-
-        # Emplace the image on the canvas
-        #self.imi.setImage(self.pimg)
+        # Placenthe image on the self.plt
         self.setImage(self.pimg)
+
         self.modimage = None
 
-        #this is extremely hacky, we need a central layout manager that can alert the layouts that
-        #the event is changed. For now lets directly tell ROILayout
+        # this is extremely hacky, we need a central layout manager that can alert the layouts that
+        # the event is changed. For now lets directly tell ROILayout we are in a new event
         
-        #start vichack
         self.roitool_layout.setImages( int(self.event.text()), self.image )
         self.roitool_layout.reloadROI()
-        #end vichack
-        print "hasroi",hasroi
-        # no ROI's -- finish early
+
+        # There were no no ROI's, autorange and return. Only the image should be on the screen
         if hasroi == False:
             self.autoRange()
             return
@@ -616,10 +617,10 @@ class RGBDisplay(QtGui.QWidget):
                 if ymax < bb.max_y():
                     ymax = bb.max_y()
 
-        print "self.roi_exists ",self.roi_exists
-        if self.roi_exists == True:
-            self.drawBBOX(self.which_type())
+        # If there is an roi, draw
+        if self.roi_exists == True: self.drawBBOX(self.which_type())
 
+        # Autorange for good measure
         self.autoRange()
 
     def regionChanged(self):
@@ -685,6 +686,9 @@ class RGBDisplay(QtGui.QWidget):
         for roi_p in self.rois:
 
             if roi_p['type'] not in kType:
+                continue
+                
+            if (float(roi_p['prob']) < float(self.roiscorecut.text())) and float(roi_p['prob']) > 0:
                 continue
 
             for ix, bbox in enumerate(roi_p['bbox']):
