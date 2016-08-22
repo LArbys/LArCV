@@ -53,7 +53,13 @@ namespace larcv {
 
     protected:
 
+      bool fUseDivFile;
       std::string fDivisionFile;
+      int fNumZdivisions;
+      int fNumYdivisions;
+      int fNumTdivisions;
+      bool fOverlapDivisions;
+
       int fNPlanes;
       int fTickStart;
       int fTickPreCompression;
@@ -97,6 +103,10 @@ namespace larcv {
       void generateSingleCosmicDivision( std::vector< int >& divlist, const EventImage2D& input_event_images, larcv::ROI& roi );
       void generateSingleMCDivision( std::vector< int >& divlist, EventROI& event_roi, larcv::ROI& roi );
       void generateFitleredWholeImageDivision( std::vector< int >& divlist, const EventImage2D& input_event_images);
+
+      // Methods for loading division definitions
+      void LoadDivisionsFromFile();
+      void CalculateDivisions();
 
     };
     

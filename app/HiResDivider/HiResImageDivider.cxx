@@ -6,6 +6,8 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include "DividerAlgo.h"
+
 #include <set>
 #include <random>
 #include <iostream>
@@ -20,7 +22,14 @@ namespace larcv {
     
     void HiResImageDivider::configure(const PSet& cfg)
     {
-      fDivisionFile       = cfg.get<std::string>("DivisionFile");
+
+      fUseDivFile         = cfg.get<bool>("UseDivFile",true);       // load division definitions from file
+      fDivisionFile       = cfg.get<std::string>("DivisionFile");    // division file
+      fNumZdivisions      = cfg.get<int>("NumZdivisions");           // number of pieces to divide Z dimension
+      fNumYdivisions      = cfg.get<int>("NumYdivisions");           // number of pieces to divide Y dimension
+      fNumTdivisions      = cfg.get<int>("NumTdivisions");
+      fOverlapDivisions   = cfg.get<bool>("OverlapDivisions",false); // also make overlapping divisions that are offset by half-widths
+
       fNPlanes            = cfg.get<int>( "NPlanes", 3 );
       fTickStart          = cfg.get<int>( "TickStart", 2400 );
       fTickPreCompression = cfg.get<int>( "TickPreCompression", 6 );
@@ -47,86 +56,12 @@ namespace larcv {
     
     void HiResImageDivider::initialize()
     {
-      // The image divisions are calculated before hand in the fixed grid model
-      // we load the prefined region image definitions here
-      std::set<larcv::hires::DivisionID> unique_div_s;
-      TFile* f = new TFile( Form("%s/app/HiResDivider/dat/%s", getenv("LARCV_BASEDIR"),fDivisionFile.c_str()), "open" );
-      TTree* t = (TTree*)f->Get("imagedivider/regionInfo");
-      int **planebounds = new int*[fNPlanes];
-      int planenwires[fNPlanes];
-      for (int p=0; p<fNPlanes; p++) {
-	planebounds[p] = new int[2];
-	char bname1[100];
-	sprintf( bname1, "plane%d_wirebounds", (int)p );
-	t->SetBranchAddress( bname1, planebounds[p] );
-
-	char bname2[100];
-	sprintf( bname2, "plane%d_nwires", (int)p );
-	t->SetBranchAddress( bname2, &(planenwires[p]) );
-	//std::cout << "setup plane=" << p << " branches" << std::endl;
-      }
-      
-      float zbounds[2];
-      float xbounds[2];
-      float ybounds[2];
-      int tickbounds[2];
-
-      t->SetBranchAddress( "zbounds", zbounds );
-      t->SetBranchAddress( "ybounds", ybounds );
-      t->SetBranchAddress( "xbounds", xbounds );
-      t->SetBranchAddress( "tickbounds", tickbounds );
-
-      fMaxWireInRegion = 0;
-      size_t entry = 0;
-      size_t bytes = t->GetEntry(entry);
-      while ( bytes>0 ) {
-	for (size_t p=0; p<3; p++) {
-	  if ( fMaxWireInRegion<planenwires[p] )
-	    fMaxWireInRegion = planenwires[p];
-	}
-	int plane0[2], plane1[2], plane2[2];
-	for (size_t i=0; i<2; i++) {
-	  plane0[i] = (int)planebounds[0][i];
-	  plane1[i] = (int)planebounds[1][i];
-	  plane2[i] = (int)planebounds[2][i];
-	  tickbounds[i] *= fTickPreCompression;
-	  tickbounds[i] += fTickStart;
-	}
-	plane0[1] += fWirePreCompression;
-	plane1[1] += fWirePreCompression;
-	plane2[1] += fWirePreCompression;
-	tickbounds[1] += fTickPreCompression;
- 	LARCV_DEBUG() << "division entry " << entry << ": "
-		      << " p0: [" << plane0[0] << "," << plane0[1] << "]"
-		      << " p1: [" << plane1[0] << "," << plane1[1] << "]"
-		      << " p2: [" << plane2[0] << "," << plane2[1] << "]"
-		      << " t: ["  << tickbounds[0] << "," << tickbounds[1] << "]"
-		      << std::endl;
-	
-	DivisionDef div( plane0, plane1, plane2, tickbounds, xbounds, ybounds, zbounds );
-
-	auto const& div_id = div.ID();
-	if(unique_div_s.find(div_id) == unique_div_s.end()) {
-	  unique_div_s.insert(div.ID());
-	  m_divisions.emplace_back(div);
-	}
-	entry++;
-	bytes = t->GetEntry(entry);
-	//std::cout << "Division tree entry:" << entry << " (" << bytes << ")" << std::endl;
-      }
-
-      if ( fMaxWireInRegion>fMaxWireImageWidth )
-	fMaxWireImageWidth = fMaxWireInRegion;
-
-      LARCV_INFO() << "Filled " << m_divisions.size() << " unique divisions..." << std::endl;
-      LARCV_INFO() << "MaxWireImageWidth: " << fMaxWireImageWidth << std::endl;
-
-      for (int p=0; p<fNPlanes; p++) {
-	delete [] planebounds[p];
-      }
-      delete [] planebounds;
-      
-      f->Close();
+      // Here we load the division definitions
+      // We can use a pre-calculated divisions from file, or recalculate them using the DividerAlgo.
+      if ( fUseDivFile )
+	LoadDivisionsFromFile();
+      else
+	CalculateDivisions();
 
       fProcessedEvent=0;
       fROISkippedEvent=0;
@@ -506,6 +441,7 @@ namespace larcv {
 
 	cropped.resize(fMaxWireImageWidth,fMaxWireImageWidth,0.);
 
+	//div.print();
 	LARCV_DEBUG() << "image: " << std::endl << img.meta().dump() ;
 	LARCV_DEBUG() << "div: " << std::endl << divPlaneMeta.dump() ;
 	LARCV_DEBUG() << "scaled: " << std::endl << scaled.dump() ;
@@ -545,7 +481,169 @@ namespace larcv {
 
     }
 
+    void HiResImageDivider::LoadDivisionsFromFile() {
 
+      // The image divisions are calculated before hand in the fixed grid model
+      // we load the prefined region image definitions here
+      LARCV_INFO() << "Loading Divisions from File." << std::endl;
+
+      std::set<larcv::hires::DivisionID> unique_div_s;
+
+      TFile* f = new TFile( Form("%s/app/HiResDivider/dat/%s", getenv("LARCV_BASEDIR"),fDivisionFile.c_str()), "open" );
+      TTree* t = (TTree*)f->Get("imagedivider/regionInfo");
+      int **planebounds = new int*[fNPlanes];
+      int planenwires[fNPlanes];
+      for (int p=0; p<fNPlanes; p++) {
+	planebounds[p] = new int[2];
+	char bname1[100];
+	sprintf( bname1, "plane%d_wirebounds", (int)p );
+	t->SetBranchAddress( bname1, planebounds[p] );
+
+	char bname2[100];
+	sprintf( bname2, "plane%d_nwires", (int)p );
+	t->SetBranchAddress( bname2, &(planenwires[p]) );
+	//std::cout << "setup plane=" << p << " branches" << std::endl;
+      }
+      
+      float zbounds[2];
+      float xbounds[2];
+      float ybounds[2];
+      int tickbounds[2];
+
+      t->SetBranchAddress( "zbounds", zbounds );
+      t->SetBranchAddress( "ybounds", ybounds );
+      t->SetBranchAddress( "xbounds", xbounds );
+      t->SetBranchAddress( "tickbounds", tickbounds );
+
+      fMaxWireInRegion = 0;
+      size_t entry = 0;
+      size_t bytes = t->GetEntry(entry);
+      while ( bytes>0 ) {
+	for (size_t p=0; p<3; p++) {
+	  if ( fMaxWireInRegion<planenwires[p] )
+	    fMaxWireInRegion = planenwires[p];
+	}
+	int plane0[2], plane1[2], plane2[2];
+	for (size_t i=0; i<2; i++) {
+	  plane0[i] = (int)planebounds[0][i];
+	  plane1[i] = (int)planebounds[1][i];
+	  plane2[i] = (int)planebounds[2][i];
+	  tickbounds[i] *= fTickPreCompression;
+	  tickbounds[i] += fTickStart;
+	}
+	plane0[1] += fWirePreCompression;
+	plane1[1] += fWirePreCompression;
+	plane2[1] += fWirePreCompression;
+	tickbounds[1] += fTickPreCompression;
+ 	LARCV_DEBUG() << "division entry " << entry << ": "
+		      << " p0: [" << plane0[0] << "," << plane0[1] << "]"
+		      << " p1: [" << plane1[0] << "," << plane1[1] << "]"
+		      << " p2: [" << plane2[0] << "," << plane2[1] << "]"
+		      << " t: ["  << tickbounds[0] << "," << tickbounds[1] << "]"
+		      << std::endl;
+	
+	DivisionDef div( plane0, plane1, plane2, tickbounds, xbounds, ybounds, zbounds );
+
+	auto const& div_id = div.ID();
+	if(unique_div_s.find(div_id) == unique_div_s.end()) {
+	  unique_div_s.insert(div.ID());
+	  m_divisions.emplace_back(div);
+	}
+	entry++;
+	bytes = t->GetEntry(entry);
+	//std::cout << "Division tree entry:" << entry << " (" << bytes << ")" << std::endl;
+      }
+
+      if ( fMaxWireInRegion>fMaxWireImageWidth )
+	fMaxWireImageWidth = fMaxWireInRegion;
+
+      LARCV_INFO() << "Filled " << m_divisions.size() << " unique divisions..." << std::endl;
+      LARCV_INFO() << "MaxWireImageWidth: " << fMaxWireImageWidth << std::endl;
+
+      for (int p=0; p<fNPlanes; p++) {
+	delete [] planebounds[p];
+      }
+      delete [] planebounds;
+      
+      f->Close();
+
+    }
+
+    void HiResImageDivider::CalculateDivisions() {
+
+      LARCV_INFO() << "Calculating Divisions." << std::endl;
+
+      std::set<larcv::hires::DivisionID> unique_div_s;
+      fMaxWireImageWidth = 0; // will fill this later
+
+      float zbounds[2] = {    0.0, 1037.0 }; //{ 0.04, 1036.45 };
+      float ybounds[2] = { -116.0,  118.0 }; //{-115.51,117.44};
+      float tbounds[2] = { 2400.0, 8448.0 }; // 2400+6048 // TICKS
+      float trigger_tick = 3200; // sets 'x=0'
+
+      float zWidth = (zbounds[1]-zbounds[0])/fNumZdivisions;
+      float yWidth = (ybounds[1]-ybounds[0])/fNumYdivisions;
+      float tWidth = (tbounds[1]-tbounds[0])/fNumTdivisions; // in ticks
+
+      int nz = fNumZdivisions;
+      int ny = fNumYdivisions;
+      int nt = fNumTdivisions;
+      float zstep = zWidth;
+      float ystep = yWidth;
+      float tstep = tWidth;
+      float driftx = 0.11*0.5; // (0.11 cm per microsecond) * 0.5 microseconds per tick
+      
+      if ( fOverlapDivisions ) {
+	nz = 2*fNumZdivisions-1;
+	ny = 2*fNumYdivisions-1;
+	nt = 2*fNumTdivisions-1;
+	zstep *= 0.5;
+	ystep *= 0.5;
+	tstep *= 0.5;
+      }
+
+
+      std::vector<int> uwires;
+      std::vector<int> vwires;
+      std::vector<int> ywires;
+      
+      divalgo::DividerAlgo algo;
+	    
+      for (int iz=0; iz<nz; iz++) {
+	for (int iy=0; iy<ny; iy++) {
+
+	  float box_z[2] = { zbounds[0]+iz*zstep, zbounds[0]+iz*zstep+zWidth };
+	  float box_y[2] = { ybounds[0]+iy*ystep, ybounds[0]+iy*ystep+zWidth };
+	  float bbox[4] = { box_z[0], box_y[0], box_z[1], box_y[1] };
+	  algo.getregionwires( bbox[0], bbox[1], bbox[2], bbox[3], ywires, uwires, vwires );
+	  
+	  int ubounds[2] = { uwires.at(0), uwires.back() };
+	  int vbounds[2] = { vwires.at(0), vwires.back() };
+	  int ybounds[2] = { ywires.at(0), ywires.back() };
+
+	  if ( (int)uwires.size()>fMaxWireImageWidth ) fMaxWireImageWidth = (int)uwires.size();
+	  if ( (int)vwires.size()>fMaxWireImageWidth ) fMaxWireImageWidth = (int)vwires.size();
+	  if ( (int)ywires.size()>fMaxWireImageWidth ) fMaxWireImageWidth = (int)ywires.size();
+
+	  for (int it=0; it<nt; it++) {
+	    
+	    int tickbounds[2] = { (int)(tbounds[0] + it*tstep), (int)(tbounds[0] + it*tstep + tWidth) };
+	    float box_x[2] = { (tickbounds[0]-trigger_tick)*driftx, (tickbounds[1]-trigger_tick)*driftx };
+
+	    DivisionDef div( ubounds, vbounds, ybounds, tickbounds, box_x, box_y, box_z );
+
+	    auto const& div_id = div.ID();
+	    if(unique_div_s.find(div_id) == unique_div_s.end()) {
+	      unique_div_s.insert(div.ID());
+	      m_divisions.emplace_back(div);
+	    }
+	    
+	  }//end of t-loop
+	  
+	}//end of y-loop
+      }//end of z-loop
+
+    }
 
   }
 }
