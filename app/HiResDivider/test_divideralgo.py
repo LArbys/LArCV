@@ -45,6 +45,9 @@ while True:
         y2 = y0
     bbox = [ z1, y1, z2, y2 ]
 
+    # INJECT OWN BOX HERE
+    #bbox = [ 103.7, -38, 207.4, 65.7 ]
+
     tbbox = rt.TBox( bbox[0], bbox[1], bbox[2], bbox[3] )
     tbbox.SetLineColor(rt.kBlack)
     tbbox.SetLineWidth(1)

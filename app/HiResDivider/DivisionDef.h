@@ -67,6 +67,8 @@ namespace larcv {
 
       const DivisionID& ID() const { return fID; }
 
+      void print() const;
+
     protected:
 
       void setPlaneMeta( larcv::PlaneID_t plane, int wirebounds[],int tickbounds[] );
