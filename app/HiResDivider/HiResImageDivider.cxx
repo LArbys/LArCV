@@ -441,7 +441,7 @@ namespace larcv {
 
 	cropped.resize(fMaxWireImageWidth,fMaxWireImageWidth,0.);
 
-	div.print();
+	//div.print();
 	LARCV_DEBUG() << "image: " << std::endl << img.meta().dump() ;
 	LARCV_DEBUG() << "div: " << std::endl << divPlaneMeta.dump() ;
 	LARCV_DEBUG() << "scaled: " << std::endl << scaled.dump() ;
