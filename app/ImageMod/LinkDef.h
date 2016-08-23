@@ -22,8 +22,10 @@
 #pragma link C++ class larcv::ResizeImage+;
 #pragma link C++ class larcv::CosmicROIFiller+;
 #pragma link C++ class larcv::MeanSubtraction+;
+#pragma link C++ class larcv::SegmentRelabel+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
