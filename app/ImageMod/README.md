@@ -8,8 +8,8 @@ Short description of each module can be found in the table below, followed by de
 
 | Module Name | Short Description |
 |-------------|:-----------------:|
-| #WireMask | Mask certain column pixels in an image |
-| #SegmentRelabel | Relabel segmentation map value |
+| ###WireMask | Mask certain column pixels in an image |
+| ###SegmentRelabel | Relabel segmentation map value |
 
 
 ## Description of each module
