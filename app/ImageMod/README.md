@@ -7,6 +7,25 @@ This folder contains a number of different modules that manipulate an LArCV imag
 
 Please provide a description of each module here.
 
+### WireMask
+
+This module masks certain column pixels in an image.
+Given a list of X positions in the original image coordinate, the module go look for a corresponding column index by:
+
+target column = X position / ( image width / image column count )
+
+The name WireMask comes from the fact this software is for LArTPC and X coordinate = wire number to date.
+So there is an explicit assumption of wire number being the original X coordinate of the image before downsizing.
+Also, this module "modifies" an image, rather than creating an output (this saves IO overhead).
+
+Parameters
+
+| Parameters | Description |
+|------------|:-----------:|
+| ImageProducer | name of target image2d |
+| PlaneID | literally an index number of image2d array to mask|
+| WireList | integer array of wire numbers to be masked|
+
 ### SegmentRelabel
 
 The intention of this module is to relabel the segmentation image.  
@@ -19,6 +38,8 @@ Parameters
 | InputSegmentProducerName | name of input segment image2d |
 | OutputSegmentProducerName | name of output  segment image2d. if same as InputSegmentProducerName, then stored in-place |
 | LabelMap | PSet connecting new label to a list of old labels. ex. 0:[0,1,2]. You can find example in segmentrelabel.cfg |
+
+
 
 
 
