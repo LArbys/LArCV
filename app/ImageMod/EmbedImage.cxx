@@ -85,10 +85,6 @@ namespace larcv {
       int offset_col = 0.5*(fOutputCols-orig_cols);
       float new_topleft_x = topleft_x - offset_row*width_per_pixel;
       float new_topleft_y = topleft_y + offset_col*height_per_pixel;
-
-      std::cout << "pixel size: width/pixel=" << width_per_pixel << " height/pixel=" << height_per_pixel << std::endl;
-      std::cout << "origin x: " << topleft_x << " --> " << new_topleft_x << std::endl;
-      std::cout << "origin y: " << topleft_y << " --> " << new_topleft_y << std::endl;
       
       // define the new meta
       larcv::ImageMeta new_meta( new_width, new_height,
