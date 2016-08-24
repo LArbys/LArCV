@@ -23,8 +23,10 @@
 #pragma link C++ class larcv::CosmicROIFiller+;
 #pragma link C++ class larcv::MeanSubtraction+;
 #pragma link C++ class larcv::SegmentRelabel+;
+#pragma link C++ class larcv::WireMask+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
