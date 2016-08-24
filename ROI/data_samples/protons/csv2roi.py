@@ -4,14 +4,14 @@ import pandas as pd
 
 
 
-ListPath = "/Users/erezcohen/Desktop/uBoone/AnalysisTreesAna/PassedGBDTFiles/extBNB_AnalysisTrees_JustMCtraining"
-ListName = "extBNB9131runs_JustMCtraining_pscore_0.99_914evts_11Aug2016"
-PathName = "/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA"
-CSVPath  = PathName + "/larcv_files"
-ROIPath  = PathName + "/larcv_files/roi_files"
+roiListPath = "/Users/erezcohen/Desktop/uBoone/AnalysisTreesAna/PassedGBDTFiles/extBNB_AnalysisTrees_cosmic_trained_only_on_mc"
+roiListName = "extBNB_AnalysisTrees_cosmic_trained_only_on_mc_score_0.99"
 
-print "\n running on " + ListPath + "/"+ListName+".csv"
-DoPrintLoop = False
+larcvPath = "/Users/erezcohen/Desktop/uBoone/EXTBNB_DATA/larcv_files"
+larcvName = "extBNB9131runs_cosmic_trained_only_on_mc_pscore_0.99_1598evts_23aug2016"
+
+print "\n running on \n" + roiListPath + "/passedGBDT_" + roiListName + ".csv \n"
+DoPrintLoop = True
 DoPrintOuts = True
 
 class image_def:
@@ -78,8 +78,10 @@ def roi2imgcord(imm,size,pos,img_coordinates=True):
     return (width,height,row_count,col_count,origin_x,origin_y)
 
 # we make dictionary of ROIs from Erez's file
-ferez = open( ListPath + "/passedGBDT_" + ListName + ".csv",'r') # input list of ROI boxes...
+ferez = open( roiListPath + "/passedGBDT_" + roiListName + ".csv",'r') # input list of ROI boxes...
 lerez = ferez.readlines()
+
+print "read lines from \n" + roiListPath + "/passedGBDT_" + roiListName + ".csv \n"
 
 img = image_def()
 
@@ -93,7 +95,7 @@ for l in lerez[1:]:
     subrun = int(info[1].strip())
     event = int(info[2].strip())
     
-    print run , subrun , event
+    print "r/s/e: ",run , subrun , event
     
     # make ROIs: U,V,Y = R,G,B in viewer
     # instead of the original Y-plane ROI, i loop over all 3 planes and create 3 ROIs
@@ -102,7 +104,16 @@ for l in lerez[1:]:
         y1 = float(info[5+4*plane].strip())
         x2 = float(info[6+4*plane].strip())
         y2 = float(info[7+4*plane].strip())
-
+        if (x2<x1):
+            xtmp = x1
+            x1 = x2
+            x2 = xtmp
+        if (y2<y1):
+            ytmp = y1
+            y1 = y2
+            y2 = ytmp
+        
+        
         rse = (run,subrun,event)
         if rse not in roi_dict:
             roi_dict[rse] = larcv.EventROI()
@@ -110,7 +121,7 @@ for l in lerez[1:]:
         dt = y2-y1
         dw = x2-x1
         if DoPrintLoop:
-            print dw,dt
+            print "dw: ",dw,", dt: ",dt
 
         if plane==0:        # U-plane
 
@@ -133,7 +144,7 @@ for l in lerez[1:]:
         roi = larcv.ROI()
         if DoPrintLoop:
             print "Filling: ",rse
-            print "plane %: ROI [(%.0f,%.0f)->(%.0f,%.0f)]"%(plane,x1,y1,x2,y2)
+            print "plane %d: ROI [(%.0f,%.0f)->(%.0f,%.0f)]"%(plane,x1,y1,x2,y2)
 
 
 
@@ -154,10 +165,10 @@ print "Number of entries: ",len(roi_dict)
 input  = larcv.IOManager(larcv.IOManager.kREAD)
 output = larcv.IOManager(larcv.IOManager.kWRITE)
 
-input.add_in_file( CSVPath + "/larcv_" + ListName + ".root" )
+input.add_in_file( larcvPath + "/larcv_" + larcvName + ".root" )
 input.initialize()
 
-output.set_out_file( ROIPath + "/roi_"+ListName+".root" )
+output.set_out_file( larcvPath + "/roi_files/roi_" + larcvName + ".root" )
 output.initialize()
 
 for entry in xrange( input.get_n_entries() ):
@@ -191,6 +202,6 @@ for entry in xrange( input.get_n_entries() ):
 
 output.finalize()
 
-print "wrote ouput file: \n" + ROIPath + "/roi_"+ListName+".root"
+print "wrote ouput root file: \n" + larcvPath + "/roi_files/roi_" + larcvName + ".root"
     
 
