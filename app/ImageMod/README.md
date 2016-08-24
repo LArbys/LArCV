@@ -7,6 +7,7 @@ Many are used as a preprocessor before the image is passed into caffe or tensorf
 Short description of each module can be found in the table below, followed by detailed description later.
 
 | Module Name | Short Description |
+|-------------|:-----------------:|
 | WireMask | Mask certain column pixels in an image |
 | SegmentRelabel | Relabel segmentation map value |
 
