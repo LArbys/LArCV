@@ -16,6 +16,7 @@ namespace larcv {
     _wire_v = cfg.get<std::vector<size_t> >("WireList");
     _image_producer = cfg.get<std::string>("ImageProducer");
     _plane_id = cfg.get<size_t>("PlaneID");
+    _mask_val = cfg.get<float>("MaskValue",0);
   }
 
   void WireMask::initialize()
@@ -44,7 +45,7 @@ namespace larcv {
 
     // figure out compression factor used, and also prepare empty column to memcpy
     auto const compression_x = img.meta().width() / img.meta().cols();
-    std::vector<float> empty_column(0,img.meta().rows());
+    std::vector<float> empty_column(_mask_val,img.meta().rows());
 
     // Loop over wires, find target column and erase
     for(auto const& ch : _wire_v) {

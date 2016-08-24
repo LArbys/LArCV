@@ -1,11 +1,19 @@
 # ImageMod LArCV Modules
 
-This folder contains a number of different modules that manipulate an LArCV image. Many are used as a preprocessor before the image is passed into caffe or tensorflow.
+This folder contains a number of different modules that manipulate an LArCV image.
+Modules that do not modify an image (such as modules to analyze an image) should be in ImageAna package.
+Many are used as a preprocessor before the image is passed into caffe or tensorflow.
+
+Short description of each module can be found in the table below, followed by detailed description later.
+
+| Module Name | Short Description |
+| WireMask | Mask certain column pixels in an image |
+| SegmentRelabel | Relabel segmentation map value |
 
 
 ## Description of each module
 
-Please provide a description of each module here.
+Please provide a detailed description of each module here.
 
 ### WireMask
 
@@ -25,6 +33,7 @@ Parameters
 | ImageProducer | name of target image2d |
 | PlaneID | literally an index number of image2d array to mask|
 | WireList | integer array of wire numbers to be masked|
+| MaskValue | floating point used as a value for masking |
 
 ### SegmentRelabel
 

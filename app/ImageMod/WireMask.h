@@ -45,6 +45,7 @@ namespace larcv {
     std::string _image_producer;  ///< Image to mask
     size_t      _plane_id;        ///< Plane ID (i.e. EventImage2D index number) to mask wires for
     std::vector<size_t> _wire_v;  ///< A list of wire numbers to be masked
+    float       _mask_val;        ///< Value to be used for masking (default 0)
 
   };
 
