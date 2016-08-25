@@ -24,8 +24,10 @@
 #pragma link C++ class larcv::MeanSubtraction+;
 #pragma link C++ class larcv::SegmentRelabel+;
 #pragma link C++ class larcv::WireMask+;
+#pragma link C++ class larcv::EmbedImage+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
