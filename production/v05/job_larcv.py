@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from proddb.table import table
+from proddb.dbenv import *
 import sys,commands,os
 from subprocess import Popen, PIPE
 
@@ -9,6 +10,9 @@ if not t.exist():
     print 'Project does not exist:',sys.argv[1]
     sys.exit(1)
 jobid  = int(sys.argv[2])
+
+t.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
+
 config = sys.argv[3]
 storage = sys.argv[4]
 out_project=''
@@ -89,21 +93,24 @@ proc.finalize()
 ret=1
 if os.path.isfile('%s/%s' % (JOBDIR_O,anafile)):
     try:
-        ret=os.system('scp %s/%s %s' % (JOBDIR_O,anafile,storage))
+        ret=os.system('scp %s/%s %s' % (JOBDIR_O,outfile,storage))
         if ret:
             raise OSError    
+        os.system('chmod 775 %s/%s' % (storage,outfile))
     except OSError as e:
         os.system('rm -f %s/%s' % (storage,anafile))
         sys.exit(1)
 #
 # Transfer production output file
 #
-if out_project:
+record_path=''
+if outfile:
     ret=1
     try:
         ret=os.system('scp %s/%s %s' % (JOBDIR_O,outfile,storage))
         if ret:
             raise OSError    
+        os.system('chmod 775 %s/%s' % (storage,outfile))
     except OSError as e:
         os.system('rm -f %s/%s' % (storage,outfile))
         sys.exit(1)
@@ -122,6 +129,5 @@ session = t.job_session(job_index=jobid)
 if out_project:
     out_t=table(out_project)
     if not out_t.exist(): out_t.create()
-    out_t.fill(session_id=session,status=1,filepath=record_path)
-
-t.update_status(status=0,job_index=jobid)
+    out_t.fill(session_id=session,status=kSTATUS_INIT,filepath=record_path)
+t.update_job_status(status=kSTATUS_DONE,job_index=jobid)
