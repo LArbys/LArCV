@@ -24,11 +24,20 @@ namespace larcv {
     {
 
       fUseDivFile         = cfg.get<bool>("UseDivFile",true);       // load division definitions from file
-      fDivisionFile       = cfg.get<std::string>("DivisionFile");    // division file
-      fNumZdivisions      = cfg.get<int>("NumZdivisions");           // number of pieces to divide Z dimension
-      fNumYdivisions      = cfg.get<int>("NumYdivisions");           // number of pieces to divide Y dimension
-      fNumTdivisions      = cfg.get<int>("NumTdivisions");
-      fOverlapDivisions   = cfg.get<bool>("OverlapDivisions",false); // also make overlapping divisions that are offset by half-widths
+      if ( !fUseDivFile ) {
+	fDivisionFile       = cfg.get<std::string>("DivisionFile",""); // division file [not used]
+	fNumZdivisions      = cfg.get<int>("NumZdivisions");           // number of pieces to divide Z dimension [must define]
+	fNumYdivisions      = cfg.get<int>("NumYdivisions");           // number of pieces to divide Y dimension [must define]
+	fNumTdivisions      = cfg.get<int>("NumTdivisions");           // number of pieces to divide T dimension [must define]
+	fOverlapDivisions   = cfg.get<bool>("OverlapDivisions",false); // also make overlapping divisions that are offset by half-widths
+      }
+      else {
+	fDivisionFile       = cfg.get<std::string>("DivisionFile");      // division file [must have this]
+	fNumZdivisions      = cfg.get<int>("NumZdivisions",1);           // number of pieces to divide Z dimension [not used]
+	fNumYdivisions      = cfg.get<int>("NumYdivisions",1);           // number of pieces to divide Y dimension [not used]
+	fNumTdivisions      = cfg.get<int>("NumTdivisions",1);           // number of pieces to divide T dimension [not used]
+	fOverlapDivisions   = cfg.get<bool>("OverlapDivisions",false); // also make overlapping divisions that are offset by half-widths	
+      }
 
       fNPlanes            = cfg.get<int>( "NPlanes", 3 );
       fTickStart          = cfg.get<int>( "TickStart", 2400 );
