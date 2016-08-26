@@ -27,38 +27,8 @@
 #pragma link C++ class larcv::EmbedImage+;
 #pragma link C++ class larcv::MaskImage+;
 #pragma link C++ class larcv::SegmentMask+;
+
+#pragma link C++ class larcv::CropROI+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
