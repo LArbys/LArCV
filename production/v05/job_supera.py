@@ -12,6 +12,11 @@ if not t.exist():
 jobid  = int(sys.argv[2])
 session = t.job_session(job_index=jobid)
 t.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
+#
+# Sleep for sometime to avoid simultaneous execution across all jobs
+#
+import time
+time.sleep(jobid%60)
 
 config  = sys.argv[3]
 storage = sys.argv[4]

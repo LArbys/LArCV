@@ -15,9 +15,15 @@ if not t.exist():
     print 'Project does not exist:',sys.argv[2]
     sys.exit(1)
 jobid  = int(sys.argv[3])
+session = t1.job_session(job_index=jobid)
 
 t1.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
 t2.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
+#
+# Sleep for sometime to avoid simultaneous execution across all jobs
+#
+import time
+time.sleep(jobid%60)
 
 config = sys.argv[4]
 storage = sys.argv[5]
@@ -70,7 +76,7 @@ os.system('scp %s %s/' % (config,JOBDIR_I))
 config = config[config.rfind('/')+1:len(config)]
 
 os.mkdir(JOBDIR_O)
-outfile = out_project + '_out_%04d.root' % jobid
+outfile = out_project + '_out_%04d.root' % session
 
 anafile = 'ana_' + outfile
 
@@ -142,7 +148,6 @@ if not os.path.isfile(record_path):
 
 t1=table(in_project1)
 t2=table(in_project2)
-session = t1.job_session(job_index=jobid)
 if out_project:
     out_t=table(out_project)
     if not out_t.exist(): out_t.create()
