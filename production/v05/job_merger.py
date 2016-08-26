@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from proddb.table import table
+from proddb.dbenv import *
 import sys,commands,os
 from subprocess import Popen, PIPE
 
@@ -14,6 +15,10 @@ if not t.exist():
     print 'Project does not exist:',sys.argv[2]
     sys.exit(1)
 jobid  = int(sys.argv[3])
+
+t1.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
+t2.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
+
 config = sys.argv[4]
 storage = sys.argv[5]
 out_project=''
@@ -106,39 +111,42 @@ proc.finalize()
 ret=1
 if os.path.isfile('%s/%s' % (JOBDIR_O,anafile)):
     try:
-        ret=os.system('scp %s/%s %s' % (JOBDIR_O,anafile,storage))
+        ret=os.system('scp %s/%s %s' % (JOBDIR_O,outfile,storage))
         if ret:
             raise OSError    
+        os.system('chmod 775 %s/%s' % (storage,outfile))
     except OSError as e:
         os.system('rm -f %s/%s' % (storage,anafile))
         sys.exit(1)
 #
 # Transfer production output file
 #
-if out_project:
-    ret=1
-    try:
-        ret=os.system('scp %s/%s %s' % (JOBDIR_O,outfile,storage))
-        if ret:
-            raise OSError    
-    except OSError as e:
-        os.system('rm -f %s/%s' % (storage,outfile))
-        sys.exit(1)
+ret=1
+try:
+    ret=os.system('scp %s/%s %s' % (JOBDIR_O,outfile,storage))
+    if ret:
+        raise OSError    
+    os.system('chmod 775 %s/%s' % (storage,outfile))
+except OSError as e:
+    os.system('rm -f %s/%s' % (storage,outfile))
+    sys.exit(1)
 
-    record_path = '%s/%s' % (storage,outfile)
-    record_path = record_path.replace('//','/')
+record_path = '%s/%s' % (storage,outfile)
+record_path = record_path.replace('//','/')
 
-    # Make sure if it is successful
-    if not os.path.isfile(record_path):
-        print 'ERROR: could not locate output @ storage: %s' % record_path
-        os.system('rm -f %s/%s' % (storage,anafile))
-        sys.exit(1)
+# Make sure if it is successful
+if not os.path.isfile(record_path):
+    print 'ERROR: could not locate output @ storage: %s' % record_path
+    os.system('rm -f %s/%s' % (storage,anafile))
+    sys.exit(1)
 
-t=table(in_project)
-session = t.job_session(job_index=jobid)
+t1=table(in_project1)
+t2=table(in_project2)
+session = t1.job_session(job_index=jobid)
 if out_project:
     out_t=table(out_project)
     if not out_t.exist(): out_t.create()
-    out_t.fill(session_id=session,status=1,filepath=record_path)
+    out_t.fill(session_id=session,status=kSTATUS_INIT,filepath=record_path)
 
-t.update_status(status=0,job_index=jobid)
+t1.update_status(status=kSTATUS_DONE,job_index=jobid)
+t2.update_status(status=kSTATUS_DONE,job_index=jobid)
