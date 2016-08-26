@@ -83,6 +83,8 @@ namespace larcv {
     void resize( size_t row_count, size_t col_count, float fillval=0.0 );
     /// Set pixel value via row/col specification
     void set_pixel( size_t row, size_t col, float value );
+    /// Set pixel value via index specification
+    void set_pixel( size_t index, float value );
     /// Paint all pixels with a specified value
     void paint(float value);
     /// Apply threshold: pixels lower than "thres" are all overwritten by lower_overwrite value

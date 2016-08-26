@@ -25,8 +25,12 @@
 #pragma link C++ class larcv::SegmentRelabel+;
 #pragma link C++ class larcv::WireMask+;
 #pragma link C++ class larcv::EmbedImage+;
+#pragma link C++ class larcv::MaskImage+;
+#pragma link C++ class larcv::SegmentMask+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 

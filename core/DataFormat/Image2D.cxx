@@ -66,6 +66,11 @@ namespace larcv {
 
   void Image2D::clear_data() { for(auto& v : _img) v = 0.; }
 
+  void Image2D::set_pixel( size_t index, float value ) {
+    if ( index >= _img.size() ) throw larbys("Out-of-bound pixel set request!");
+    _img[ index ] = value;
+  }
+
   void Image2D::set_pixel( size_t row, size_t col, float value ) {
     if ( row >= _meta.rows() || col >= _meta.cols() )
       throw larbys("Out-of-bound pixel set request!");
