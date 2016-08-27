@@ -24,7 +24,7 @@ namespace larcv {
   /**
      \class ImageMeta
      A simple class to store image's meta data including\n
-     0) origin (left-bottom corner of the picture) absolute coordinate \n
+     0) origin (left-top corner of the picture) absolute coordinate \n
      1) horizontal and vertical size (width and height) in double precision \n
      2) number of horizontal and vertical pixels \n
      It is meant to be associated with a specific cv::Mat or larcv::Image2D object \n

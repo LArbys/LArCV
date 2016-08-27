@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-import ROOT, sys, os
+import ROOT
+import sys, os
 for l in [x for x in os.listdir(os.environ['LARCV_LIBDIR']) if x.endswith('.so')]:
    ROOT.gSystem.Load('%s/%s' % (os.environ['LARCV_LIBDIR'],l))
 
-from ROOT import larcv, std
+from ROOT import std
+from larcv import larcv
 
 if len(sys.argv) < 2:
 

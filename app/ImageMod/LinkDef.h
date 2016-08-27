@@ -22,33 +22,13 @@
 #pragma link C++ class larcv::ResizeImage+;
 #pragma link C++ class larcv::CosmicROIFiller+;
 #pragma link C++ class larcv::MeanSubtraction+;
+#pragma link C++ class larcv::SegmentRelabel+;
+#pragma link C++ class larcv::WireMask+;
+#pragma link C++ class larcv::EmbedImage+;
+#pragma link C++ class larcv::MaskImage+;
+#pragma link C++ class larcv::SegmentMask+;
+
+#pragma link C++ class larcv::CropROI+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

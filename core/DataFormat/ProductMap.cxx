@@ -7,7 +7,7 @@
 
 namespace larcv {
 
-  const std::string ProductName(ProductType_t type)
+  const char * ProductName(ProductType_t type)
   {
     switch(type) {
     case kProductImage2D:  return "image2d";

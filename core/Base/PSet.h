@@ -98,6 +98,7 @@ namespace larcv {
       if( iter == _data_value.end() ) {
         std::string msg;
         msg = "Key does not exist: \"" + key + "\"";
+	std::cout<<dump()<<std::endl;
         throw larbys(msg);
       }
       return parser::FromString<T>((*iter).second);

@@ -1,7 +1,7 @@
 import os,sys
 import ROOT
 import numpy as np
-from ROOT import larcv
+from larcv import larcv
 print larcv.Image2D
 
 # TESTS MATRIX MULTIPLICATION FEATURE
