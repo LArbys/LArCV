@@ -4,6 +4,7 @@
 #include "DataStream.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventChStatus.h"
+#include "DataFormat/EventROI.h"
 
 namespace larcv {
 
@@ -18,6 +19,8 @@ namespace larcv {
     _tpc_image_producer = cfg.get<std::string>("TPCImageProducer");
     _pmt_image_producer = cfg.get<std::string>("PMTImageProducer");
     _ch_status_producer = cfg.get<std::string>("ChStatusProducer","");
+    _roi_producer = cfg.get<std::string>("ROIProducer","");
+
     _adc_threshold = cfg.get<float>("ADCThreshold");
     _make_segmentation = cfg.get<bool>("MakeSegmentation");
     LARCV_INFO() << "Configured" << std::endl;
@@ -34,6 +37,7 @@ namespace larcv {
     _ch_status_m.clear();
     _tpc_image_v.clear();
     _tpc_segment_v.clear();
+    _roi_v.clear();
     _pmt_image = Image2D();
     
     // Retrieve ChStatus
@@ -69,6 +73,14 @@ namespace larcv {
     event_pmt_image->Move(tmp_v);
     if(tmp_v.size())
       _pmt_image = std::move(tmp_v[0]);
+    
+    //Retrieve the ROI
+    if(!_roi_producer.empty()) {
+      LARCV_INFO() << "Reading-in ROI " << _roi_producer << std::endl;
+      auto event_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
+      if(event_roi and !event_roi->ROIArray().empty())
+	_roi_v = event_roi->ROIArray();
+    }
 
     // Create segmentation map
     if(_make_segmentation) {
