@@ -7,11 +7,11 @@ from subprocess import Popen, PIPE
 in_project1=sys.argv[1]
 in_project2=sys.argv[2]
 t1=table(in_project1)
-if not t.exist():
+if not t1.exist():
     print 'Project does not exist:',sys.argv[1]
     sys.exit(1)
 t2=table(in_project2)
-if not t.exist():
+if not t2.exist():
     print 'Project does not exist:',sys.argv[2]
     sys.exit(1)
 jobid  = int(sys.argv[3])

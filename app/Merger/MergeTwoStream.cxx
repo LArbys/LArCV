@@ -39,6 +39,15 @@ namespace larcv {
       _cosmic_driver.override_input_file(cosmic_flist);
   }
 
+  void MergeTwoStream::override_ana_file(std::string out_ana_fname)
+  {
+    if(_prepared) {
+      LARCV_CRITICAL() << "Cannot re-configure after initialized..." << std::endl;
+      throw larbys();
+    }
+    _merge_driver.override_ana_file(out_ana_fname);
+  }
+
   void MergeTwoStream::override_output_file(std::string out_fname)
   {
     if(_prepared) {

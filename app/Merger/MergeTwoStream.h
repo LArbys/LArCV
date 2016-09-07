@@ -38,6 +38,7 @@ namespace larcv {
 
     void override_input_file(const std::vector<std::string>& nu_flist = std::vector<std::string>(),
 			     const std::vector<std::string>& cosmic_flist = std::vector<std::string>());
+    void override_ana_file(std::string out_ana_fname);
 
     void override_output_file(std::string out_fname);
 
