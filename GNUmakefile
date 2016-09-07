@@ -19,7 +19,7 @@ endif
 
 APP_SUBDIRS := ImageAna ImageMod Filter PMTWeights HiResDivider Merger APICaffe
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS += Supera/APILArLite
+APP_SUBDIRS += Supera/APILArLite VertexImg
 endif
 
 .phony: all clean
