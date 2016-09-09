@@ -28,19 +28,17 @@ o.set_verbosity(MSG_LEVEL)
 o.set_out_file(OUT_FNAME)
 
 stream1 = larcv.DataStream("DataStream1")
-stream1.set_verbosity(0)
-print "READING: ",sys.argv[2]
+stream1.set_verbosity(MSG_LEVEL)
 cfg1 = larcv.CreatePSetFromFile(sys.argv[2],"DataStream1")
 stream1.configure(cfg1)
 
 stream2 = larcv.DataStream("DataStream2")
-stream2.set_verbosity(0)
-print "READING: ",sys.argv[3]
+stream1.set_verbosity(MSG_LEVEL)
 cfg2 = larcv.CreatePSetFromFile(sys.argv[3],"DataStream2")
 stream2.configure(cfg2)
 
 p = larcv.ImageMerger()
-p.set_verbosity(0)
+p.set_verbosity(2)
 
 cfg = larcv.CreatePSetFromFile(sys.argv[1],"ImageMerger")
 p.InputImageHolder1(stream2)
@@ -61,11 +59,6 @@ if not o.initialize():
     sys.exit(ERROR_WRITE_INIT)
 
 for idx in xrange(NUM_EVENT):
-    
-    # sys.stdout.write('On event: {} \r'.format(idx))
-    # sys.stdout.flush() 
-    
-    print 'On event: {}'.format(idx)
     
     #we have to make the image from ImageMeta if we are going to
     #use channel status as it checks image2d.plane
@@ -142,8 +135,29 @@ for idx in xrange(NUM_EVENT):
     roi2= larcv.ROI()
     roi2.AppendBB(bb2)
     event_roi2.Append(roi2)
+    
+    #############################################
+    #Lets get the data out and make assertions
+    combined_ev_tpc_img = o.get_data(larcv.kProductImage2D,"combined_tpc")
+    
+    assert combined_ev_tpc_img.Image2DArray().size() == 1
 
-    print "SAVING",o.event_id().event_key()
+    combined_tpc_img = combined_ev_tpc_img.Image2DArray()[0];
+    
+    for r in xrange(combined_tpc_img.meta().rows()):
+        for c in xrange(combined_tpc_img.meta().cols()):
+            px=combined_tpc_img.pixel(r,c)
+            
+            #bad wires
+            if c in [1,2,5,6,7]: 
+                assert px == 0.0; 
+                continue;
+
+            #overlap
+            if r%2 == 0 and c%2 == 1: 
+                assert px == 20.0
+                continue
+    print "PASS event: ",idx
     o.save_entry()
 
     idx+=1
