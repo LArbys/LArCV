@@ -9,34 +9,34 @@
 
 namespace larcv {
 
-  MergeTwoStream::MergeTwoStream() : larcv_base        ( "MergeTwoStream"   )
-				   , _nu_driver        ( "NeutrinoMCStream" )
-				   , _nu_proc          ( nullptr            )
-				   , _nu_proc_name     ( ""                 )
-				   , _cosmic_driver    ( "CosmicDataStream" )
-				   , _cosmic_proc      ( nullptr            )
-				   , _cosmic_proc_name ( ""                 )
-				   , _merge_driver     ( "OutStream"        )
-				   , _prepared         (false)
-				   , _num_nu           (0)
-				   , _num_cosmic       (0)
-				   , _num_processed    (0)
-				   , _num_input_max    (0)
-				   , _num_output_max   (0)
-				   , _num_frac         (0)
+  MergeTwoStream::MergeTwoStream() : larcv_base      ( "MergeTwoStream"   )
+				   , _in1_driver     ( "InputStream1"     )
+				   , _in1_proc       ( nullptr            )
+				   , _in1_proc_name  ( ""                 )
+				   , _in2_driver     ( "InputStream2"     )
+				   , _in2_proc       ( nullptr            )
+				   , _in2_proc_name  ( ""                 )
+				   , _merge_driver   ( "OutStream"        )
+				   , _prepared       (false)
+				   , _num_in1        (0)
+				   , _num_in2        (0)
+				   , _num_processed  (0)
+				   , _num_input_max  (0)
+				   , _num_output_max (0)
+				   , _num_frac       (0)
   {}
 
-  void MergeTwoStream::override_input_file(const std::vector<std::string>& nu_flist,
-					   const std::vector<std::string>& cosmic_flist)
+  void MergeTwoStream::override_input_file(const std::vector<std::string>& in1_flist,
+					   const std::vector<std::string>& in2_flist)
   {
     if(_prepared) {
       LARCV_CRITICAL() << "Cannot re-configure after initialized..." << std::endl;
       throw larbys();
     }
-    if(nu_flist.size())
-      _nu_driver.override_input_file(nu_flist);
-    if(cosmic_flist.size())
-      _cosmic_driver.override_input_file(cosmic_flist);
+    if(in1_flist.size())
+      _in1_driver.override_input_file(in1_flist);
+    if(in2_flist.size())
+      _in2_driver.override_input_file(in2_flist);
   }
 
   void MergeTwoStream::override_ana_file(std::string out_ana_fname)
@@ -65,26 +65,26 @@ namespace larcv {
     }
     auto main_cfg = CreatePSetFromFile(cfg_file);
     auto const& cfg = main_cfg.get_pset(name());
-    if(!cfg.contains_pset(_cosmic_driver.name())) {
-      LARCV_CRITICAL() << "CosmicDataStream parameter set not found..." << std::endl;
+    if(!cfg.contains_pset(_in2_driver.name())) {
+      LARCV_CRITICAL() << "InputStream2 parameter set not found..." << std::endl;
       throw larbys();
     }
-    if(!cfg.contains_pset(_nu_driver.name())) {
-      LARCV_CRITICAL() << "NeutrinoMCStream parameter set not found..." << std::endl;
+    if(!cfg.contains_pset(_in1_driver.name())) {
+      LARCV_CRITICAL() << "InputStream1 parameter set not found..." << std::endl;
       throw larbys();
     }
     if(!cfg.contains_pset(_merge_driver.name())) {
       LARCV_CRITICAL() << "OutStream parameter set not found..." << std::endl;
       throw larbys();
     }
-    _cosmic_proc_name = cfg.get<std::string>("CosmicImageHolder");
-    if(_cosmic_proc_name.empty()) {
-      LARCV_CRITICAL() << "CosmicImageHolder name is empty" << std::endl;
+    _in2_proc_name = cfg.get<std::string>("Input2ImageHolder");
+    if(_in2_proc_name.empty()) {
+      LARCV_CRITICAL() << "Input2ImageHolder name is empty" << std::endl;
       throw larbys();
     }
-    _nu_proc_name = cfg.get<std::string>("NeutrinoImageHolder");
-    if(_nu_proc_name.empty()) {
-      LARCV_CRITICAL() << "NeutrinoImageHolder name is empty" << std::endl;
+    _in1_proc_name = cfg.get<std::string>("Input1ImageHolder");
+    if(_in1_proc_name.empty()) {
+      LARCV_CRITICAL() << "Input1ImageHolder name is empty" << std::endl;
       throw larbys();
     }
     _merge_proc_name = cfg.get<std::string>("ImageMerger");
@@ -94,35 +94,35 @@ namespace larcv {
     }
 
     LARCV_WARNING() << "Note CosmicDataStream should contain image to-be-overlayed with ROI (Stream2 is the base image)"<<std::endl;
-    LARCV_NORMAL() << "Registered Input CosmicData: " << _cosmic_proc_name << std::endl;
-    LARCV_NORMAL() << "Registered Input NeutrinoMC: " << _nu_proc_name << std::endl;
-    LARCV_NORMAL() << "Registered Output Merged   : " << _merge_proc_name << std::endl; 
+    LARCV_NORMAL() << "Registered Input1: " << _in2_proc_name << std::endl;
+    LARCV_NORMAL() << "Registered Input2: " << _in1_proc_name << std::endl;
+    LARCV_NORMAL() << "Registered Output: " << _merge_proc_name << std::endl; 
 
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
     _num_output_max = cfg.get<size_t>("MaxOutputEntries");
     _merge_driver.configure(cfg.get_pset(_merge_driver.name()));
-    _cosmic_driver.configure(cfg.get_pset(_cosmic_driver.name()));
-    _nu_driver.configure(cfg.get_pset(_nu_driver.name()));
+    _in2_driver.configure(cfg.get_pset(_in2_driver.name()));
+    _in1_driver.configure(cfg.get_pset(_in1_driver.name()));
   }
   
   void MergeTwoStream::initialize()
   {
     _merge_driver.initialize();
-    _cosmic_driver.initialize();
-    _nu_driver.initialize();
+    _in2_driver.initialize();
+    _in1_driver.initialize();
     // retrieve image holder 1 & 2
-    auto const id_cosmic = _cosmic_driver.process_id(_cosmic_proc_name);
-    _cosmic_proc = (ImageHolder*)(_cosmic_driver.process_ptr(id_cosmic));
-    auto const id_nu = _nu_driver.process_id(_nu_proc_name);
-    _nu_proc = (ImageHolder*)(_nu_driver.process_ptr(id_nu));
+    auto const id_cosmic = _in2_driver.process_id(_in2_proc_name);
+    _in2_proc = (ImageHolder*)(_in2_driver.process_ptr(id_cosmic));
+    auto const id_nu = _in1_driver.process_id(_in1_proc_name);
+    _in1_proc = (ImageHolder*)(_in1_driver.process_ptr(id_nu));
     auto const id_merged = _merge_driver.process_id(_merge_proc_name);
     _merge_proc = (ImageMerger*)(_merge_driver.process_ptr(id_merged));
-    _merge_proc->NeutrinoImageHolder(_nu_proc);
-    _merge_proc->CosmicImageHolder(_cosmic_proc);
+    _merge_proc->InputImageHolder1(_in1_proc);
+    _merge_proc->InputImageHolder2(_in2_proc);
     _prepared=true;
-    _num_cosmic = 0;
-    _num_nu = 0;
-    _num_input_max = std::min(_cosmic_driver.io().get_n_entries(),_nu_driver.io().get_n_entries());
+    _num_in2 = 0;
+    _num_in1 = 0;
+    _num_input_max = std::min(_in2_driver.io().get_n_entries(),_in1_driver.io().get_n_entries());
     _num_frac = _num_input_max/10 + 1;
     if(_num_output_max > _num_input_max) {
       LARCV_NORMAL() << "Only " << _num_input_max << " entries available from input. Re-setting output max entry..." << std::endl;
@@ -144,20 +144,20 @@ namespace larcv {
       return false;
     }
 
-    while(_num_cosmic < _num_input_max) {
-      ++_num_cosmic;
-      if(_cosmic_driver.process_entry()) break;
+    while(_num_in2 < _num_input_max) {
+      ++_num_in2;
+      if(_in2_driver.process_entry()) break;
     }
-    while(_num_nu < _num_input_max) {
-      ++_num_nu;
-      if(_nu_driver.process_entry()) break;
+    while(_num_in1 < _num_input_max) {
+      ++_num_in1;
+      if(_in1_driver.process_entry()) break;
     }
 
-    if(_num_cosmic >= _num_input_max) return false;
-    if(_num_nu >= _num_input_max) return false;
+    if(_num_in2 >= _num_input_max) return false;
+    if(_num_in1 >= _num_input_max) return false;
 
-    LARCV_INFO() << "Processing CosmicDataStream entry " << _num_cosmic
-		 << " ... NeutrinoMCStream entry " << _num_nu << std::endl;
+    LARCV_INFO() << "Processing InputStream1 entry " << _num_in2
+		 << " ... InputStream2 entry " << _num_in1 << std::endl;
 
     _merge_driver.process_entry();
     ++_num_processed;
@@ -182,8 +182,8 @@ namespace larcv {
       throw larbys();
     }
 
-    _nu_driver.finalize();
-    _cosmic_driver.finalize();
+    _in1_driver.finalize();
+    _in2_driver.finalize();
     _merge_driver.finalize();
   }
 
