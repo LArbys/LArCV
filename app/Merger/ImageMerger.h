@@ -50,7 +50,6 @@ namespace larcv {
 
     ImageHolder* _in1_proc;
     ImageHolder* _in2_proc;
-    short        _min_ch_status;
     float        _pmt_pedestal;
     std::string  _out_tpc_producer;
     std::string  _out_pmt_producer;

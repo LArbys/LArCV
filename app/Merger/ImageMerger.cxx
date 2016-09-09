@@ -137,9 +137,7 @@ namespace larcv {
       if(in2_status_v.size() > min_entry)
 	for(size_t i=min_entry; i<in2_status_v.size(); ++i) status_v[i] = in2_status_v[i];
 
-      std::cout << (*in1_iter).second.as_vector().size() << "ppp1\n";
-      (*in1_iter).second = ChStatus(plane,std::move(status_v));
-      std::cout << (*in1_iter).second.as_vector().size() << "ppp2\n";
+      (*in1_iter).second=std::move(ChStatus(plane,std::move(status_v)));
       
     }
 

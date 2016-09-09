@@ -17,6 +17,7 @@ namespace larcv {
     _wire_v.clear();
     _wire_v = cfg.get<std::vector<size_t> >("WireList",_wire_v);
     _image_producer = cfg.get<std::string>("ImageProducer");
+
     _chstatus_producer = cfg.get<std::string>("ChStatusProducer","");
     _plane_id = cfg.get<size_t>("PlaneID",-1);
     _mask_val = cfg.get<float>("MaskValue",0);
@@ -46,7 +47,6 @@ namespace larcv {
 	throw larbys();
       }
     }
-
     // For operation, move an array to this scope
     std::vector<Image2D> image_v;
     input_image_v->Move(image_v);
@@ -71,11 +71,11 @@ namespace larcv {
 	  if(status_v[w] < _threshold) wire_s.insert(w);
 	}
       }
-      
+
       auto& img = image_v[_plane_id];
       auto const& meta = img.meta();
-      std::vector<float> empty_column(_mask_val,img.meta().rows());
-      
+      std::vector<float> empty_column(img.meta().rows(),_mask_val);
+
       // Loop over wires, find target column and erase
       for(auto const& ch : wire_s) {
 
