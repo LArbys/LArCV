@@ -3,6 +3,7 @@
 
 #include "WireMask.h"
 #include "DataFormat/EventImage2D.h"
+#include "DataFormat/EventChStatus.h"
 namespace larcv {
 
   static WireMaskProcessFactory __global_WireMaskProcessFactory__;
@@ -13,10 +14,18 @@ namespace larcv {
     
   void WireMask::configure(const PSet& cfg)
   {
-    _wire_v = cfg.get<std::vector<size_t> >("WireList");
+    _wire_v.clear();
+    _wire_v = cfg.get<std::vector<size_t> >("WireList",_wire_v);
     _image_producer = cfg.get<std::string>("ImageProducer");
-    _plane_id = cfg.get<size_t>("PlaneID");
+    _chstatus_producer = cfg.get<std::string>("ChStatusProducer","");
+    _plane_id = cfg.get<size_t>("PlaneID",-1);
     _mask_val = cfg.get<float>("MaskValue",0);
+    _threshold = (chstatus::ChannelStatus_t)(cfg.get<unsigned short>("ChStatusThreshold",chstatus::kGOOD));
+
+    if(_wire_v.empty() && _chstatus_producer.empty()) {
+      LARCV_CRITICAL() << "Neither wire list nor ChStatus producer name given. Nothing to mask!" << std::endl;
+      throw larbys();
+    }
   }
 
   void WireMask::initialize()
@@ -29,28 +38,51 @@ namespace larcv {
       LARCV_CRITICAL() << "Invalid image producer name: " << _image_producer << std::endl;
       throw larbys();
     }
+    EventChStatus* ev_chstatus = nullptr;
+    if(!_chstatus_producer.empty()) {
+      ev_chstatus = (EventChStatus*)(mgr.get_data(kProductChStatus,_chstatus_producer));
+      if(!ev_chstatus) {
+	LARCV_CRITICAL() << "ChStatus by " << _chstatus_producer << " not found!" << std::endl;
+	throw larbys();
+      }
+    }
 
     // For operation, move an array to this scope
     std::vector<Image2D> image_v;
     input_image_v->Move(image_v);
 
     // make sure plane id is valid
-    if(image_v.size() <= _plane_id) {
+    if(_plane_id >=0 && (int)(image_v.size()) <= _plane_id) {
       LARCV_CRITICAL() << "Could not find plane: " << _plane_id << std::endl;
       throw larbys();
     }
 
     // get a handle on modifiable reference
-    auto& img = image_v[_plane_id];
+    for(int plane=0; plane<(int)(image_v.size()); ++plane) {
+      
+      if(_plane_id>=0 && _plane_id != plane) continue;
 
-    // figure out compression factor used, and also prepare empty column to memcpy
-    auto const compression_x = img.meta().width() / img.meta().cols();
-    std::vector<float> empty_column(_mask_val,img.meta().rows());
+      // construct wire numbers to mask
+      std::set<size_t> wire_s;
+      for(auto const& w : _wire_v) wire_s.insert(w);
+      if(ev_chstatus) {
+	auto const& status_v = ev_chstatus->Status(plane).as_vector();
+	for(size_t w=0; w<status_v.size(); ++w) {
+	  if(status_v[w] < _threshold) wire_s.insert(w);
+	}
+      }
+      
+      auto& img = image_v[_plane_id];
 
-    // Loop over wires, find target column and erase
-    for(auto const& ch : _wire_v) {
-      size_t target_col = (size_t)(ch / compression_x);
-      img.copy(target_col,0,empty_column);
+      // figure out compression factor used, and also prepare empty column to memcpy
+      auto const compression_x = img.meta().width() / img.meta().cols();
+      std::vector<float> empty_column(_mask_val,img.meta().rows());
+      
+      // Loop over wires, find target column and erase
+      for(auto const& ch : wire_s) {
+	size_t target_col = (size_t)(ch / compression_x);
+	img.copy(target_col,0,empty_column);
+      }
     }
 
     // put back an image
