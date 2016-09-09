@@ -19,9 +19,9 @@ namespace larcv {
     _tpc_image_producer = cfg.get<std::string>("TPCImageProducer");
     _pmt_image_producer = cfg.get<std::string>("PMTImageProducer");
     _ch_status_producer = cfg.get<std::string>("ChStatusProducer","");
-    _roi_producer = cfg.get<std::string>("ROIProducer","");
+    _roi_producer = cfg.get<std::string>("ROIProducer");
     _segment_producer = cfg.get<std::string>("SegmentImageProducer","");
-    
+
     LARCV_INFO() << "Configured" << std::endl;
   }
 
