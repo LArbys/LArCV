@@ -31,8 +31,8 @@ namespace larcv {
 
 #ifndef __CINT__
     /// Status vector move ctor
-    ChStatus(PlaneID_t plane, std::vector<short>&&)
-      : _status_v(std::move(plane))
+    ChStatus(PlaneID_t plane, std::vector<short>&& data)
+      : _status_v(std::move(data))
       , _plane(plane)
     {}
 #endif    
