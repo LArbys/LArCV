@@ -73,15 +73,18 @@ namespace larcv {
       }
       
       auto& img = image_v[_plane_id];
-
-      // figure out compression factor used, and also prepare empty column to memcpy
-      auto const compression_x = img.meta().width() / img.meta().cols();
+      auto const& meta = img.meta();
       std::vector<float> empty_column(_mask_val,img.meta().rows());
       
       // Loop over wires, find target column and erase
       for(auto const& ch : wire_s) {
-	size_t target_col = (size_t)(ch / compression_x);
-	img.copy(target_col,0,empty_column);
+
+	if(ch < meta.min_x() || ch >= meta.max_x()) continue;
+
+	auto col = meta.col((double)ch);
+
+	img.copy(0,col,empty_column);
+
       }
     }
 

@@ -152,22 +152,6 @@ namespace larcv {
       auto& in2_image = in2_tpc_image_v[i];
       in1_image.overlay(in2_image,Image2D::kSum);
       
-
-      auto const& meta = in1_image.meta();
-      std::vector<float> null_col(meta.rows(),0);
-      // Impose ChStatus
-      auto in1_status_iter = in1_status_m.find(meta.plane());
-      if(in1_status_iter != in1_status_m.end()) {
-	auto const& stat_v = (*in1_status_iter).second.as_vector();
-	for(size_t wire_num=0; wire_num < stat_v.size(); ++wire_num) {
-	  if(wire_num < in1_image.meta().min_x() || wire_num>= in1_image.meta().max_x()) continue;
-	  auto const& stat = stat_v[wire_num];
-	  if(stat < _min_ch_status) {
-	    auto col = meta.col((double)wire_num);
-	    in1_image.copy(0,col,null_col);
-	  }
-	}
-      }
     }
     in2_tpc_image_v.clear(); // free memory, slow but keep job memory low
 
