@@ -14,13 +14,11 @@ namespace larcv {
     : ProcessBase(name)
     , _in1_proc  (nullptr)
     , _in2_proc  (nullptr)
-    , _min_ch_status (0)
   {}
     
   void ImageMerger::configure(const PSet& cfg)
   {
     _pmt_pedestal         = cfg.get<float>       ("PMTPedestal"      );
-    _min_ch_status        = cfg.get<short>       ("MinChannelStatus" );
     _out_tpc_producer     = cfg.get<std::string> ("OutNameTPCImage"  );
     _out_pmt_producer     = cfg.get<std::string> ("OutNamePMTImage"  );
     _out_roi_producer     = cfg.get<std::string> ("OutNameROI"       );
@@ -90,7 +88,6 @@ namespace larcv {
       LARCV_ERROR() << "# of Data stream image do not match between two streams! Skipping this entry..." << std::endl;
       return false;
     }
-    
     // Check PlaneID
     for(size_t i=0; i<in1_tpc_image_v.size(); ++i) {
       auto const& image1 = in1_tpc_image_v[i];
@@ -139,8 +136,10 @@ namespace larcv {
 
       if(in2_status_v.size() > min_entry)
 	for(size_t i=min_entry; i<in2_status_v.size(); ++i) status_v[i] = in2_status_v[i];
-	
-      (*in1_iter).second = std::move(ChStatus(plane,std::move(status_v)));
+
+      std::cout << (*in1_iter).second.as_vector().size() << "ppp1\n";
+      (*in1_iter).second = ChStatus(plane,std::move(status_v));
+      std::cout << (*in1_iter).second.as_vector().size() << "ppp2\n";
       
     }
 
@@ -199,7 +198,7 @@ namespace larcv {
     out_tpc_segment->Emplace(std::move(out_segment_v));
 
     auto out_status = (EventChStatus*)(mgr.get_data(kProductChStatus,_out_status_producer));
-    for(auto& plane_status : in1_status_m) out_status->Emplace(std::move(plane_status.second));
+    for(auto& plane_status : in1_status_m)  out_status->Emplace(std::move(plane_status.second));
     
     auto out_roi = (EventROI*)(mgr.get_data(kProductROI,_out_roi_producer));
     out_roi->Emplace(std::move(out_roi_v));

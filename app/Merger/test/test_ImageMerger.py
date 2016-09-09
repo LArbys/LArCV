@@ -43,11 +43,19 @@ p = larcv.ImageMerger()
 p.set_verbosity(0)
 
 cfg = larcv.CreatePSetFromFile(sys.argv[1],"ImageMerger")
-p.CosmicImageHolder(stream2)
-p.NeutrinoImageHolder(stream1)
+p.InputImageHolder1(stream2)
+p.InputImageHolder2(stream1)
 
 p.configure(cfg)
+
+mask = larcv.WireMask()
+cfg3 = larcv.CreatePSetFromFile(sys.argv[4],"WireMask")
+mask.configure(cfg3)
+
+stream1.initialize()
+stream2.initialize()
 p.initialize()
+mask.initialize()
 
 if not o.initialize():
     sys.exit(ERROR_WRITE_INIT)
@@ -85,6 +93,14 @@ for idx in xrange(NUM_EVENT):
     roi1.AppendBB(bb1)
     event_roi1.Append(roi1)
 
+    event_ch_status1 = o.get_data(larcv.kProductChStatus,"stream1")
+    ch_status1 = larcv.ChStatus()
+    ch_status1.Initialize(10) # 10 wires, some idiot did not plug in
+    ch_status1.Status(1,0) #this one is fucked
+    ch_status1.Status(2,0) #this one is fucked
+    ch_status1.Plane(0)
+    event_ch_status1.Insert(ch_status1)
+
     #Input stream 2
     event_image2_tpc = o.get_data(larcv.kProductImage2D,"stream2_tpc")
     event_image2_pmt = o.get_data(larcv.kProductImage2D,"stream2_pmt")
@@ -97,19 +113,20 @@ for idx in xrange(NUM_EVENT):
     roi2.AppendBB(bb2)
     event_roi2.Append(roi2)
 
-    event_ch_status = o.get_data(larcv.kProductChStatus,"stream2")
-    ch_status = larcv.ChStatus()
-    ch_status.Initialize(10) # 10 wires, some idiot did not plug in
-    ch_status.Status(5,0) #this one is fucked
-    ch_status.Status(6,0) #this one is fucked
-    ch_status.Status(7,0) #and this one is fucked!
-    ch_status.Plane(0)
-    event_ch_status.Insert(ch_status)
+    event_ch_status2 = o.get_data(larcv.kProductChStatus,"stream2")
+    ch_status2 = larcv.ChStatus()
+    ch_status2.Initialize(10) # 10 wires, some idiot did not plug in
+    ch_status2.Status(5,0) #this one is fucked
+    ch_status2.Status(6,0) #this one is fucked
+    ch_status2.Status(7,0) #and this one is fucked!
+    ch_status2.Plane(0)
+    event_ch_status2.Insert(ch_status2)
     
     #Processing
     stream1.process(o)
     stream2.process(o)
     p.process(o)
+    mask.process(o)
     o.set_id(0,0,idx)
     
     #Store Originals
