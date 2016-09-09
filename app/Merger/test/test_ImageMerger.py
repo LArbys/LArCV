@@ -59,35 +59,73 @@ for idx in xrange(NUM_EVENT):
     
     print 'On event: {}'.format(idx)
     
-    img1 = larcv.Image2D(10,10)
+    #we have to make the image from ImageMeta if we are going to
+    #use channel status as it checks image2d.plane
+    meta1=larcv.ImageMeta(10,10,10,10,0,10,0)
+    img1 = larcv.Image2D(meta1)
     for x in xrange(img1.as_vector().size()):
         if x%2 == 0: img1.set_pixel(x,10)
         else: img1.set_pixel(x,0)
     
-    img2 = larcv.Image2D(10,10)
+    meta2=larcv.ImageMeta(10,10,10,10,0,10,0)
+    img2 = larcv.Image2D(meta2)
     for x in xrange(img2.as_vector().size()):
-        if x%2 == 0: img2.set_pixel(x,0)
-        else: img2.set_pixel(x,10)
-        
-    event_image1_tpc = o.get_data(larcv.kProductImage2D,"stream1_tpc")
+        img2.set_pixel(x,10)
+        if (x/10)%2 == 0: img2.set_pixel(x,0)
+
+    #Input stream 1        
+    event_image1_tpc = o.get_data(larcv.kProductImage2D,"stream1_tpc") # combined image is going to steal (std::move) this from me
+    event_image1_pmt = o.get_data(larcv.kProductImage2D,"stream1_pmt") # at the end we have to go back and put shit in there
     event_image1_tpc.Append(img1)
-    event_image1_pmt = o.get_data(larcv.kProductImage2D,"stream1_pmt")
     event_image1_pmt.Append(img1)
 
-    #i have to make a fake ROI because of fantastic ImageMerger assumptions
     event_roi1 = o.get_data(larcv.kProductROI,"stream1")
-    event_roi1.Append(larcv.ROI())
+    bb1 = larcv.ImageMeta(2,2,2,2,2,2,0)
+    roi1= larcv.ROI()
+    roi1.AppendBB(bb1)
+    event_roi1.Append(roi1)
 
+    #Input stream 2
     event_image2_tpc = o.get_data(larcv.kProductImage2D,"stream2_tpc")
-    event_image2_tpc.Append(img2)
     event_image2_pmt = o.get_data(larcv.kProductImage2D,"stream2_pmt")
+    event_image2_tpc.Append(img2)
     event_image2_pmt.Append(img2)
 
+    event_roi2 = o.get_data(larcv.kProductROI,"stream2")
+    bb2 = larcv.ImageMeta(2,2,2,2,0,5,0)
+    roi2= larcv.ROI()
+    roi2.AppendBB(bb2)
+    event_roi2.Append(roi2)
 
+    event_ch_status = o.get_data(larcv.kProductChStatus,"stream2")
+    ch_status = larcv.ChStatus()
+    ch_status.Initialize(10) # 10 wires, some idiot did not plug in
+    ch_status.Status(5,0) #this one is fucked
+    ch_status.Status(6,0) #this one is fucked
+    ch_status.Status(7,0) #and this one is fucked!
+    ch_status.Plane(0)
+    event_ch_status.Insert(ch_status)
+    
+    #Processing
     stream1.process(o)
     stream2.process(o)
     p.process(o)
     o.set_id(0,0,idx)
+    
+    #Store Originals
+    event_image1_tpc.Append(img1)
+    event_image1_pmt.Append(img1)
+    event_image2_tpc.Append(img2)
+    event_image2_pmt.Append(img2)
+    bb1 = larcv.ImageMeta(2,2,2,2,2,2,0)
+    roi1= larcv.ROI()
+    roi1.AppendBB(bb1)
+    event_roi1.Append(roi1)
+    bb2 = larcv.ImageMeta(2,2,2,2,0,5,0)
+    roi2= larcv.ROI()
+    roi2.AppendBB(bb2)
+    event_roi2.Append(roi2)
+
     print "SAVING",o.event_id().event_key()
     o.save_entry()
 
