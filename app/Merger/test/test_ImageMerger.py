@@ -43,8 +43,8 @@ p = larcv.ImageMerger()
 p.set_verbosity(0)
 
 cfg = larcv.CreatePSetFromFile(sys.argv[1],"ImageMerger")
-p.CosmicImageHolder(stream2)
-p.NeutrinoImageHolder(stream1)
+p.InputImageHolder1(stream2)
+p.InputImageHolder2(stream1)
 
 p.configure(cfg)
 p.initialize()
