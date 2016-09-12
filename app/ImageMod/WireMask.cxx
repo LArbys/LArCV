@@ -14,6 +14,7 @@ namespace larcv {
     
   void WireMask::configure(const PSet& cfg)
   {
+    LARCV_DEBUG() << "start\n";
     _wire_v.clear();
     _wire_v = cfg.get<std::vector<size_t> >("WireList",_wire_v);
     _image_producer = cfg.get<std::string>("ImageProducer");
@@ -35,6 +36,7 @@ namespace larcv {
   bool WireMask::process(IOManager& mgr)
   {
     auto input_image_v = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
+    LARCV_DEBUG() << "input_image_v ptr : " << input_image_v << "\n";
     if(!input_image_v) {
       LARCV_CRITICAL() << "Invalid image producer name: " << _image_producer << std::endl;
       throw larbys();
@@ -47,13 +49,14 @@ namespace larcv {
 	throw larbys();
       }
     }
+
     // For operation, move an array to this scope
     std::vector<Image2D> image_v;
     input_image_v->Move(image_v);
 
     // make sure plane id is valid
     if(_plane_id >=0 && (int)(image_v.size()) <= _plane_id) {
-      LARCV_CRITICAL() << "Could not find plane: " << _plane_id << std::endl;
+      LARCV_CRITICAL() << "Could not find plane: " << _plane_id << ". image_v.size(): " << image_v.size() << std::endl;
       throw larbys();
     }
 
@@ -67,18 +70,20 @@ namespace larcv {
       for(auto const& w : _wire_v) wire_s.insert(w);
       if(ev_chstatus) {
 	auto const& status_v = ev_chstatus->Status(plane).as_vector();
+
 	for(size_t w=0; w<status_v.size(); ++w) {
 	  if(status_v[w] < _threshold) wire_s.insert(w);
+
 	}
       }
 
-      auto& img = image_v[_plane_id];
+      auto& img = image_v.at(plane);
       auto const& meta = img.meta();
       std::vector<float> empty_column(img.meta().rows(),_mask_val);
 
       // Loop over wires, find target column and erase
       for(auto const& ch : wire_s) {
-
+	
 	if(ch < meta.min_x() || ch >= meta.max_x()) continue;
 
 	auto col = meta.col((double)ch);
