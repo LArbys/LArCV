@@ -15,6 +15,7 @@
 #pragma link C++ class larcv::CosmicFilter+;
 #pragma link C++ class larcv::QSumFilter+;
 #pragma link C++ class larcv::MCSingleParticleFilter+;
+#pragma link C++ class larcv::VtxInRegion+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
