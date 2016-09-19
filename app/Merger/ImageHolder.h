@@ -55,7 +55,7 @@ namespace larcv {
     std::vector<larcv::Image2D>  _tpc_image_v;
     std::vector<larcv::Image2D>  _tpc_segment_v;
     Image2D _pmt_image;
-    std::map<larcv::PlaneID_t,larcv::ChStatus> _ch_status_m;
+    std::map< ::larcv::PlaneID_t,larcv::ChStatus> _ch_status_m;
     std::vector<larcv::ROI> _roi_v;
 
   };
