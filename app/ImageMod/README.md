@@ -8,8 +8,10 @@ Short description of each module can be found in the table below, followed by de
 
 | Module Name | Short Description |
 |-------------|:-----------------:|
-| WireMask | Mask certain column pixels in an image |
+| EmbedImage  | Embed image into a larger, blank, image |
+| ROIMask     | Mask out parts of image using ROI |
 | SegmentRelabel | Relabel segmentation map value |
+| WireMask | Mask certain column pixels in an image |
 
 
 ## Description of each module
@@ -19,6 +21,7 @@ Please provide a detailed description of each module here. (Sorted in Alphabetic
 List of modules:
 
 * EmbedImage
+* ROIMask
 * SegmentRelabel
 * WireMask
 
@@ -44,6 +47,18 @@ Parameters
 | OutputRows | size of output rows (must be bigger than original) |
 | OutputCols | size of output cols (must be bigger than original) |
 
+### ROIMask
+
+This module allows one to mask out parts of an image using an ROI.  One can either blank out the region inside or outside the ROI.
+
+Parameters
+
+| Parameters | Description  |
+|------------|:------------:|
+|InputImageProducer| (string) Input Image2D producer name. |
+|OutputImageProducer| (string) Output Image2d producer name. If the same as the input producer, then modification made in-place. |
+|InputROIProducer| (string) ROI producer name from which we get the masking producer |
+|MaskOutsideROI  | (bool) If true, blank out region outside the ROI. If false, blank out region inside the ROI. |
 
 ### SegmentRelabel
 
