@@ -50,9 +50,12 @@ namespace larcv {
     std::string fInputImageProducer;
     std::string fOutputImageProducer;
     std::string fInputROIProducer;
+    std::string fOutputROIProducer;
     bool fMaskOutsideROI;
     bool finplace;
     bool fCutOutOfBounds;
+    int fROIid;
+    larcv::ROIType_t fROILabel;
 
   };
 

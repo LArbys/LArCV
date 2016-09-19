@@ -58,8 +58,11 @@ Parameters
 |InputImageProducer| (string) Input Image2D producer name. |
 |OutputImageProducer| (string) Output Image2d producer name. If the same as the input producer, then modification made in-place. |
 |InputROIProducer| (string) ROI producer name from which we get the masking producer |
+|OutputROIProducer| (string) ROI producer name into which we store the ROI |
 |MaskOutsideROI  | (bool) If true, blank out region outside the ROI. If false, blank out region inside the ROI. |
 |CutOutOfBounds  | (bool, optional, default=true) If true, if ROI extends outside of image in anyway, event is skipped. Otherwise blank image inserted. |
+|ROIid | (int, optional, default=0) Index of ROI array to use |
+|ROILabel | (int, optional, default=2,kROIBNB) Label given to output ROI |
 
 ### SegmentRelabel
 

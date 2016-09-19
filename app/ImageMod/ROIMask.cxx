@@ -18,8 +18,11 @@ namespace larcv {
     fInputImageProducer  = cfg.get<std::string>( "InputImageProducer" );
     fOutputImageProducer = cfg.get<std::string>( "OutputImageProducer" );
     fInputROIProducer    = cfg.get<std::string>( "InputROIProducer" );
+    fOutputROIProducer   = cfg.get<std::string>( "OutputROIProducer" );
     fMaskOutsideROI      = cfg.get<bool>( "MaskOutsideROI" );
     fCutOutOfBounds      = cfg.get<bool>( "CutOutOfBounds", true );
+    fROIid               = cfg.get<int>("ROIid",0);
+    fROILabel            = (larcv::ROIType_t)cfg.get<int>("ROILabel", 2 ); // larcv::kROIBNB
 
     if (fInputImageProducer==fOutputImageProducer) finplace = true;
     else finplace = false;
@@ -52,7 +55,7 @@ namespace larcv {
     // Get ROI
     EventROI* event_roi = (EventROI*)mgr.get_data(kProductROI, fInputROIProducer);
     auto rois = event_roi->ROIArray();
-    int roi_id = 0;
+    EventROI* output_rois = (EventROI*)mgr.get_data(kProductROI, fOutputROIProducer);
 
     // original moves ownership of its image vectors to us
     std::vector< larcv::Image2D> image_v;
@@ -63,13 +66,16 @@ namespace larcv {
 
     std::vector<float> _buffer;
     bool outofbounds = false;
+
+    larcv::ROI output_roi( fROILabel );
+
     for ( size_t i=0; i<image_v.size(); ++i ) {
 
       // get access to the data
       larcv::Image2D& original_image = image_v[i];
 
       auto meta = original_image.meta();
-      auto roi = rois.at(roi_id);
+      auto roi = rois.at(fROIid); // fixme: smarter choice of ROI?
       auto bb  = roi.BB( meta.plane() );
 
       // make roi meta with same scale as input image
@@ -110,6 +116,7 @@ namespace larcv {
 	// overlay cropped image
 	new_image.overlay( cropped_image );
 	masked_image_v.emplace_back( std::move(new_image) );
+
       }
       else {
 	// we want to zero the region inside the ROI
@@ -123,6 +130,9 @@ namespace larcv {
 	new_image.overlay( roi_blank );
 	masked_image_v.emplace_back( std::move(new_image) );
       }
+      
+      // store the roi (maskedmeta)
+      output_roi.AppendBB( maskedmeta );
       
     }
 
@@ -141,8 +151,6 @@ namespace larcv {
       }
     }
 
-
-
     // store
     if ( finplace ) {
       // give the new images
@@ -154,6 +162,7 @@ namespace larcv {
       // we give the new image2d container our relabeled images
       event_masked->Emplace( std::move(masked_image_v) );
     }
+    output_rois->Emplace( std::move(output_roi) );
 
     return true;
 
