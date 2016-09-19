@@ -19,6 +19,7 @@ namespace larcv {
     fOutputImageProducer = cfg.get<std::string>( "OutputImageProducer" );
     fInputROIProducer    = cfg.get<std::string>( "InputROIProducer" );
     fMaskOutsideROI      = cfg.get<bool>( "MaskOutsideROI" );
+    fCutOutOfBounds      = cfg.get<bool>( "CutOutOfBounds", true );
 
     if (fInputImageProducer==fOutputImageProducer) finplace = true;
     else finplace = false;
@@ -61,6 +62,7 @@ namespace larcv {
     std::vector< larcv::Image2D > masked_image_v; 
 
     std::vector<float> _buffer;
+    bool outofbounds = false;
     for ( size_t i=0; i<image_v.size(); ++i ) {
 
       // get access to the data
@@ -81,6 +83,20 @@ namespace larcv {
       int rows = (int)height/meta.pixel_height();
 
       ImageMeta maskedmeta( width, height, rows, cols, origin_x, origin_y, meta.plane() );
+
+      LARCV_DEBUG() << "original meta: " << std::endl;
+      LARCV_DEBUG() << "  " << meta.dump() << std::endl;
+      LARCV_DEBUG() << "roi meta: " << std::endl;
+      LARCV_DEBUG() << "  " << bb.dump() << std::endl;
+
+
+      // we need to check that the roi is within image range
+      if ( bb.min_x()<meta.min_x() || bb.max_x()>meta.max_x() 
+	   || bb.min_y()<meta.min_y() || bb.max_y()>meta.max_y() ) {
+	LARCV_INFO() << "ROI extends out of bounds" << std::endl;
+	outofbounds = true;
+	break;
+      }
 
       if ( fMaskOutsideROI ) {
 	// we want everything but the ROI to be zero
@@ -110,6 +126,23 @@ namespace larcv {
       
     }
 
+    if (outofbounds) {
+      // out bound ROI found. skip or make blank
+      if ( fCutOutOfBounds )
+	return false;
+      // make blanks
+      masked_image_v.clear();
+      for ( size_t i=0; i<image_v.size(); ++i ) {      
+	larcv::Image2D& original_image = image_v[i];
+	auto meta = original_image.meta();
+	larcv::Image2D new_image( meta );
+        new_image.paint( 0.0 );
+        masked_image_v.emplace_back( std::move(new_image) );
+      }
+    }
+
+
+
     // store
     if ( finplace ) {
       // give the new images
@@ -122,6 +155,7 @@ namespace larcv {
       event_masked->Emplace( std::move(masked_image_v) );
     }
 
+    return true;
 
   }
 

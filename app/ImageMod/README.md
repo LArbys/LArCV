@@ -59,6 +59,7 @@ Parameters
 |OutputImageProducer| (string) Output Image2d producer name. If the same as the input producer, then modification made in-place. |
 |InputROIProducer| (string) ROI producer name from which we get the masking producer |
 |MaskOutsideROI  | (bool) If true, blank out region outside the ROI. If false, blank out region inside the ROI. |
+|CutOutOfBounds  | (bool, optional, default=true) If true, if ROI extends outside of image in anyway, event is skipped. Otherwise blank image inserted. |
 
 ### SegmentRelabel
 

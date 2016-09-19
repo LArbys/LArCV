@@ -52,6 +52,7 @@ namespace larcv {
     std::string fInputROIProducer;
     bool fMaskOutsideROI;
     bool finplace;
+    bool fCutOutOfBounds;
 
   };
 
