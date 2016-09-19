@@ -18,6 +18,9 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
+
+#include <string>
+
 namespace larcv {
 
   /**
@@ -48,7 +51,7 @@ namespace larcv {
     std::string fOutputImageProducer;
     std::string fInputROIProducer;
     bool fMaskOutsideROI;
-    bool inplace;
+    bool finplace;
 
   };
 
