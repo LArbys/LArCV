@@ -59,6 +59,7 @@ namespace larcv {
       int fNumYdivisions;
       int fNumTdivisions;
       bool fOverlapDivisions;
+      bool fDivisionFromROI;
 
       int fNPlanes;
       int fTickStart;
@@ -75,7 +76,6 @@ namespace larcv {
       std::vector< float > fInterestingPixelThresh_v;
       std::vector< larcv::hires::DivisionDef > m_divisions;
 
-      std::string fInputPMTProducer;
       std::string fInputROIProducer;
       std::string fOutputROIProducer;
       std::string fInputImageProducer;
@@ -102,6 +102,7 @@ namespace larcv {
 
       void generateSingleCosmicDivision( std::vector< int >& divlist, const EventImage2D& input_event_images, larcv::ROI& roi );
       void generateSingleMCDivision( std::vector< int >& divlist, EventROI& event_roi, larcv::ROI& roi );
+      void generateSingleDivisionFromROI( std::vector< int >& divlist, EventROI& event_roi, larcv::ROI& roi );
       void generateFitleredWholeImageDivision( std::vector< int >& divlist, const EventImage2D& input_event_images);
 
       // Methods for loading division definitions

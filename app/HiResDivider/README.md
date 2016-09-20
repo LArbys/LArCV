@@ -33,5 +33,4 @@ Module is used to divide a whole-event image into sub-regions that are based on 
 | RedrawOnNEmptyPlanes   | (int) Number of planes that must have interesting number of pixels before redrawing |
 | MaxRedrawAttempts      | (int) Number of tries to find an interesting division box (with enough pixels above threshold) |
 | DivideWholeImage       | (bool) Divide up whole image and save them |
-
-
+| DivisionFromROI        | (bool,optional,default false) Use ROI to choose division to save |

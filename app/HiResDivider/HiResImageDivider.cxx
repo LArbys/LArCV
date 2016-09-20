@@ -11,6 +11,7 @@
 #include <set>
 #include <random>
 #include <iostream>
+#include <algorithm>
 
 namespace larcv {
   namespace hires {
@@ -44,7 +45,6 @@ namespace larcv {
       fTickPreCompression = cfg.get<int>( "TickPreCompression", 6 );
       fWirePreCompression = cfg.get<int>( "WirePreCompression", 1 );
       fMaxWireImageWidth  = cfg.get<int>( "MaxWireImageWidth" );
-      fInputPMTProducer   = cfg.get<std::string>( "InputPMTProducer" );
       fInputROIProducer   = cfg.get<std::string>( "InputROIProducer" );
       fOutputROIProducer  = cfg.get<std::string>( "OutputROIProducer" );
       fNumNonVertexDivisionsPerEvent = cfg.get<int>( "NumNonVertexDivisionsPerEvent" );
@@ -61,6 +61,7 @@ namespace larcv {
       fRedrawOnNEmptyPlanes = cfg.get<int>("RedrawOnNEmptyPlanes",2);
       fMaxRedrawAttempts = cfg.get<int>("MaxRedrawAttempts");
       fDivideWholeImage = cfg.get<bool>("DivideWholeImage");
+      fDivisionFromROI  = cfg.get<bool>("DivisionFromROI",false);
     }
     
     void HiResImageDivider::initialize()
@@ -110,10 +111,15 @@ namespace larcv {
 	generateFitleredWholeImageDivision( divlist, input_event_images );
       }
       else {
-	if ( roi.Type()==kROICosmic )
-	  generateSingleCosmicDivision( divlist, input_event_images, roi );
-	else
-	  generateSingleMCDivision( divlist, event_roi, roi );
+	if ( !fDivisionFromROI ) {
+	  if ( roi.Type()==kROICosmic )
+	    generateSingleCosmicDivision( divlist, input_event_images, roi );
+	  else
+	    generateSingleMCDivision( divlist, event_roi, roi );
+	}
+	else {
+	  generateSingleDivisionFromROI( divlist, event_roi, roi );
+	}
 
 	if(!isInteresting(roi)) {
 	  LARCV_CRITICAL() << "Did not find any interesting ROI and/or failed to construct Cosmic ROI..." << std::endl;
@@ -352,6 +358,53 @@ namespace larcv {
       else {
 	divlist.push_back(idiv);
       }
+    }
+
+    void HiResImageDivider::generateSingleDivisionFromROI( std::vector< int >& divlist, EventROI& event_roi, larcv::ROI& roi ) {
+
+      // we pick the division with the largest overlap with the ROI. overlap determined by intersection fraction
+      int maxdiv = -1;
+      float maxoverlap = 0.0;
+
+      // we find the division via a dump loop. probably could do math.
+      int regionindex = 0;
+      for ( std::vector< larcv::hires::DivisionDef >::iterator it=m_divisions.begin(); it!=m_divisions.end(); it++) {
+	DivisionDef const& div = (*it);
+	bool overlap = false;
+	for (int p=0; p<fNPlanes; p++) {
+
+	  // check if overlaps at all
+	  if ( roi.BB(p).max_x() < div.wire_min(p) || roi.BB(p).min_x()>div.wire_max(p) ) {
+	    overlap = false;
+	    break;
+	  }
+	  if ( roi.BB(p).max_y() < div.time_min() || roi.BB(p).min_y()>div.time_max() ) {
+	    overlap = false;
+	    break;
+	  }
+	}
+	
+	// no overlap, skip division
+	if ( overlap ) { 
+	  float roi_overlap = 0.0;
+
+	  for (int p=0; p<fNPlanes; p++) {
+	    float time_overlap = fabs( std::max( (float)div.time_min(), (float)roi.BB(p).min_y() ) - std::min( (float)div.time_max(), (float)roi.BB(p).max_y() ) );
+	    float wire_overlap = fabs( std::max( (float)div.wire_min(p), (float)roi.BB(p).min_x() ) - std::min( (float)div.wire_max(p), (float)roi.BB(p).max_x() ) );
+	    float plane_roi_overlap = wire_overlap*time_overlap;
+	    roi_overlap += plane_roi_overlap;
+	  }
+
+	  if ( maxdiv==-1 || roi_overlap>maxoverlap ) {
+	    maxoverlap = roi_overlap;
+	    maxdiv = regionindex;
+	  }
+	  
+	}
+	
+	regionindex++;
+      }
+      divlist.push_back( maxdiv );
     }
     
     void HiResImageDivider::generateFitleredWholeImageDivision( std::vector< int >& divlist, const EventImage2D& input_event_images) {

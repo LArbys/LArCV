@@ -69,6 +69,11 @@ namespace larcv {
 
       void print() const;
 
+      float wire_min(int plane) const { return m_planeMeta.find(plane)->second.min_x(); };
+      float wire_max(int plane) const { return m_planeMeta.find(plane)->second.max_x(); };
+      float time_min()          const { return m_planeMeta.find(0)->second.min_y();     };
+      float time_max()          const { return m_planeMeta.find(0)->second.max_y();     };
+
     protected:
 
       void setPlaneMeta( larcv::PlaneID_t plane, int wirebounds[],int tickbounds[] );
