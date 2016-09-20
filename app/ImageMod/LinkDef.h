@@ -29,7 +29,9 @@
 #pragma link C++ class larcv::SegmentMask+;
 #pragma link C++ class larcv::SegmentMaker+;
 #pragma link C++ class larcv::CropROI+;
+#pragma link C++ class larcv::ROIMask+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
