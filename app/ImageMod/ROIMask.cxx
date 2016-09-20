@@ -75,6 +75,11 @@ namespace larcv {
       larcv::Image2D& original_image = image_v[i];
 
       auto meta = original_image.meta();
+      if ( rois.size()<=0 ) {
+	outofbounds = true;
+	break;
+      }
+
       auto roi = rois.at(fROIid); // fixme: smarter choice of ROI?
       auto bb  = roi.BB( meta.plane() );
 
@@ -87,6 +92,16 @@ namespace larcv {
       // get row and col size based on scale of original image
       int cols = (int)width/meta.pixel_width();
       int rows = (int)height/meta.pixel_height();
+      
+      if ( rows==0 || height<meta.pixel_height() ) {
+	// 0 thick roi...
+	height=meta.pixel_height();
+	rows = 1;
+      }
+      if ( cols==0 || width<meta.pixel_width() ) {
+	width = meta.pixel_width();
+	cols = 1;
+      }
 
       ImageMeta maskedmeta( width, height, rows, cols, origin_x, origin_y, meta.plane() );
 
