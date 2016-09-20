@@ -118,7 +118,10 @@ namespace larcv {
 	    generateSingleMCDivision( divlist, event_roi, roi );
 	}
 	else {
+	  LARCV_INFO() << "Find division via ROI" << std::endl;
 	  generateSingleDivisionFromROI( divlist, event_roi, roi );
+	  LARCV_INFO() << "divlist: " << divlist.size() << std::endl;
+	  if ( divlist.size()>0 ) LARCV_INFO() << " div=" << divlist.at(0) << std::endl;
 	}
 
 	if(!isInteresting(roi)) {
@@ -146,8 +149,9 @@ namespace larcv {
       // now we loop through and make divisions
       for ( auto const& idiv : divlist ) {
 	
-	if ( idiv==-1 )
+	if ( idiv==-1 ) {
 	  continue;
+	}
 
 	larcv::hires::DivisionDef const& vertex_div = m_divisions.at( idiv );
 
@@ -366,6 +370,14 @@ namespace larcv {
       int maxdiv = -1;
       float maxoverlap = 0.0;
 
+      // no ROI
+      if ( event_roi.ROIArray().size()==0 ) 
+	return;
+ 
+      roi = event_roi.ROIArray().at(0);
+      if ( (int)roi.BB().size()<fNPlanes )
+	return;
+
       // we find the division via a dump loop. probably could do math.
       int regionindex = 0;
       for ( std::vector< larcv::hires::DivisionDef >::iterator it=m_divisions.begin(); it!=m_divisions.end(); it++) {
@@ -382,6 +394,7 @@ namespace larcv {
 	    overlap = false;
 	    break;
 	  }
+	  overlap = true;
 	}
 	
 	// no overlap, skip division
