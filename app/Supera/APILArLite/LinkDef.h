@@ -15,6 +15,7 @@
 #pragma link C++ class larcv::supera::Cropper<larlite::mctrack,larlite::mcshower,larlite::simch>+;
 
 #pragma link C++ class larlite::Supera+;
+#pragma link C++ class larlite::SuperaWireAlgo+;
 
 //ADD_NEW_CLASS ... do not change this line
 #endif

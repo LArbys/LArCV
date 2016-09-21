@@ -72,13 +72,7 @@ namespace larcv {
       const ::larcv::logger& logger() const { return _logger;}
       void supera_fname(std::string name) { _supera_fname = name; }
 
-    private:
-
-      larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
-					      const larcv::ImageMeta& event_image,
-					      const size_t modular_row,
-					      const size_t modular_col);
-	
+      // fill functions
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
       void fill(Image2D& img, const std::vector<R>& opdigit_v, const int time_offset=0);
       void fill(std::vector<Image2D>& img,
@@ -86,6 +80,11 @@ namespace larcv {
 		const std::vector<V>& mcs_v,
 		const std::vector<W>& sch_v,
 		const int time_offset=0);
+    private:
+      larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
+					      const larcv::ImageMeta& event_image,
+					      const size_t modular_row,
+					      const size_t modular_col);
 
       size_t _run, _subrun, _event;
       MCParticleTree<T,U,V,W> _mctp;
