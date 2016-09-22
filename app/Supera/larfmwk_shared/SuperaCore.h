@@ -71,6 +71,7 @@ namespace larcv {
       bool store_chstatus() const { return _store_chstatus; }
       const ::larcv::logger& logger() const { return _logger;}
       void supera_fname(std::string name) { _supera_fname = name; }
+      void set_verbosity( unsigned short v ) { _logger.set( (::larcv::msg::Level_t)v ); };
 
       // fill functions
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);

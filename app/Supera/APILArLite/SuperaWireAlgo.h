@@ -38,6 +38,7 @@ namespace larlite {
     virtual ~SuperaWireAlgo() {};
     
     void fillImage( larcv::Image2D& img, const std::vector< larlite::wire >& wires, const int time_offset);
+    void setVerbosity( unsigned short v );
 
   protected:
     
