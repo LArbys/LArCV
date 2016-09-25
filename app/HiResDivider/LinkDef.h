@@ -15,13 +15,14 @@
 //#pragma link C++ class larcv::hires::HiResImageDivider+;
 #pragma link C++ class larcv::CosmicSegment+;
 #pragma link C++ class larcv::DumpHiResCropImages+;
+#pragma link C++ namespace divalgo;
 #pragma link C++ class divalgo::DividerAlgo+;
-#pragma link C++ function divalgo::getUstart+;
-#pragma link C++ function divalgo::getUend+;
-#pragma link C++ function divalgo::getVstart+;
-#pragma link C++ function divalgo::getVend+;
-#pragma link C++ function divalgo::getYstart+;
-#pragma link C++ function divalgo::getYend+;
+#pragma link C++ function divalgo::getUstart;
+#pragma link C++ function divalgo::getUend;
+#pragma link C++ function divalgo::getVstart;
+#pragma link C++ function divalgo::getVend;
+#pragma link C++ function divalgo::getYstart;
+#pragma link C++ function divalgo::getYend;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

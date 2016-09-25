@@ -50,6 +50,7 @@ namespace larcv {
 			_min_time = main_cfg.get<double>("MinTime");
 			_min_wire = main_cfg.get<double>("MinWire");
 			_tpc_tick_offset = main_cfg.get<int>("ShiftTPCTick");
+			_mc_tick_offset  = main_cfg.get<int>("ShiftMCTick");
 
 			_event_image_rows = main_cfg.get<std::vector<size_t> >("EventImageRows");
 			_event_image_cols = main_cfg.get<std::vector<size_t> >("EventImageCols");
@@ -442,7 +443,7 @@ namespace larcv {
 				break;
 			}
 			if (!sem_images.empty()) {
-				fill(sem_images, mctrack_v, mcshower_v, simch_v, _tpc_tick_offset);
+				fill(sem_images, mctrack_v, mcshower_v, simch_v, _mc_tick_offset);
 				for (auto& img : sem_images) {
 					img.compress(img.meta().rows() / _event_comp_rows[img.meta().plane()],
 					             img.meta().cols() / _event_comp_cols[img.meta().plane()], larcv::Image2D::kMaxPool);
@@ -616,7 +617,7 @@ namespace larcv {
 				//for (auto& v : column) v = (float)(-1);
 
 				for (auto const tick_ides : sch.TDCIDEMap()) {
-				        int tick = TPCTDC2Tick((double)(tick_ides.first));
+				        int tick = TPCTDC2Tick((double)(tick_ides.first)) - time_offset;
 					if (tick < meta.min_y()) continue;
 					if (tick >= meta.max_y()) continue;
 					// Where is this tick in column vector?
