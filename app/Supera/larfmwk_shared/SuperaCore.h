@@ -107,6 +107,7 @@ namespace larcv {
       double _min_time;
       double _min_wire;
       int    _tpc_tick_offset;
+      int    _mc_tick_offset;
       larcv::Image2D _full_image;
       bool _skip_empty_image;
       bool _configured;
