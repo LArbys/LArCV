@@ -106,7 +106,7 @@ namespace larcv {
 		}
 
 		template <class T, class U, class V, class W>
-		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<U>& mctrack_v)
+		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<U>& mctrack_v, const int time_offset)
 		{
 			LARCV_DEBUG() << "start" << std::endl;
 			::larcv::Vertex pri_vtx;
@@ -156,7 +156,7 @@ namespace larcv {
 					pri_vtx.Reset(start.X(), start.Y(), start.Z(), start.T());
 				}
 
-				auto roi = _cropper.ParticleROI(mctrack);
+				auto roi = _cropper.ParticleROI(mctrack,time_offset);
 				roi.MCSTIndex(i);
 
 				if (roi.BB().size() < _min_nplanes) {
@@ -169,7 +169,7 @@ namespace larcv {
 
 		template <class T, class U, class V, class W>
 		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<U>& mctrack_v,
-		        const std::vector<W>& simch_v)
+		        const std::vector<W>& simch_v, const int time_offset)
 		{
 			LARCV_DEBUG() << "start" << std::endl;
 			::larcv::Vertex pri_vtx;
@@ -219,7 +219,7 @@ namespace larcv {
 					pri_vtx.Reset(start.X(), start.Y(), start.Z(), start.T());
 				}
 
-				auto roi = _cropper.ParticleROI(mctrack, simch_v);
+				auto roi = _cropper.ParticleROI(mctrack, simch_v, time_offset);
 				roi.MCSTIndex(i);
 
 				if (roi.BB().size() < _min_nplanes) {
@@ -231,7 +231,7 @@ namespace larcv {
 		}
 
 		template <class T, class U, class V, class W>
-		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<V>& mcshower_v)
+		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<V>& mcshower_v, const int time_offset)
 		{
 			LARCV_DEBUG() << "start" << std::endl;
 			::larcv::Vertex pri_vtx;
@@ -275,7 +275,7 @@ namespace larcv {
 					pri_vtx.Reset(start.X(), start.Y(), start.Z(), start.T());
 				}
 
-				auto roi = _cropper.ParticleROI(mcshower);
+				auto roi = _cropper.ParticleROI(mcshower,time_offset);
 				roi.MCSTIndex(i);
 
 				if (roi.BB().size() < _min_nplanes) {
@@ -288,7 +288,7 @@ namespace larcv {
 
 		template <class T, class U, class V, class W>
 		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<V>& mcshower_v,
-		        const std::vector<W>& simch_v)
+		        const std::vector<W>& simch_v, const int time_offset)
 		{
 			LARCV_DEBUG() << "start" << std::endl;
 			::larcv::Vertex pri_vtx;
@@ -332,7 +332,7 @@ namespace larcv {
 					pri_vtx.Reset(start.X(), start.Y(), start.Z(), start.T());
 				}
 
-				auto roi = _cropper.ParticleROI(mcshower, simch_v);
+				auto roi = _cropper.ParticleROI(mcshower, simch_v, time_offset);
 				roi.MCSTIndex(i);
 
 				if (roi.BB().size() < _min_nplanes) {

@@ -195,11 +195,11 @@ namespace larcv {
 			_mctp.clear();
 			_mctp.DefinePrimary(mctruth_v);
 			if (_producer_simch.empty()) {
-				_mctp.RegisterSecondary(mctrack_v);
-				_mctp.RegisterSecondary(mcshower_v);
+				_mctp.RegisterSecondary(mctrack_v,_mc_tick_offset);
+				_mctp.RegisterSecondary(mcshower_v,_mc_tick_offset);
 			} else {
-				_mctp.RegisterSecondary(mctrack_v, simch_v);
-				_mctp.RegisterSecondary(mcshower_v, simch_v);
+				_mctp.RegisterSecondary(mctrack_v, simch_v, _mc_tick_offset);
+				_mctp.RegisterSecondary(mcshower_v, simch_v, _mc_tick_offset);
 			}
 
 			_mctp.UpdatePrimaryROI();
@@ -617,7 +617,7 @@ namespace larcv {
 				//for (auto& v : column) v = (float)(-1);
 
 				for (auto const tick_ides : sch.TDCIDEMap()) {
-				        int tick = TPCTDC2Tick((double)(tick_ides.first)) - time_offset;
+				    int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
 					if (tick < meta.min_y()) continue;
 					if (tick >= meta.max_y()) continue;
 					// Where is this tick in column vector?
@@ -627,7 +627,7 @@ namespace larcv {
 					::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
 					for (auto const& edep : tick_ides.second) {
 						if (edep.energy < energy) continue;
-						if (edep.trackID >= track2type_v.size()) continue;
+						if (edep.trackID >= (int)(track2type_v.size())) continue;
 						auto temp_roi_type = track2type_v[edep.trackID];
 						if (temp_roi_type ==::larcv::kROIUnknown) continue;
 						energy = edep.energy;
