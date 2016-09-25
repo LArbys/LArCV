@@ -9,6 +9,8 @@ libs=[x for x in commands.getoutput('larcv-config --libs').split() if not x.star
 libs+= commands.getoutput('root-config --libs').split()
 if 'LARLITE_BASEDIR' in os.environ:
     libs+= commands.getoutput('larlite-config --libs').split()
+if 'ANN_LIBDIR' in os.environ:
+    libs+= ["%s/libANN.a" % ( os.environ["ANN_LIBDIR"].strip() )]
     
 objs_list=[]
 dict_list=[]

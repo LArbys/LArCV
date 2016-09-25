@@ -21,6 +21,9 @@ APP_SUBDIRS := ImageAna ImageMod Filter PMTWeights HiResDivider Merger APICaffe
 ifdef LARLITE_BASEDIR
 APP_SUBDIRS += Supera/APILArLite VertexImg
 endif
+ifeq ($(LARCV_ANN),1)
+APP_SUBDIRS += ANN dbscan
+endif
 
 .phony: all clean
 

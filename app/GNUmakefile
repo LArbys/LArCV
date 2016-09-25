@@ -14,6 +14,10 @@ endif
 ifeq ($(LARCV_NUMPY),1)
 SUBDIRS += APICaffe
 endif
+ifeq ($(LARCV_ANN),1)
+SUBDIRS += ANN dbscan
+endif
+
 
 #####################################################################################
 #
