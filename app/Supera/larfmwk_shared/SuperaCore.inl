@@ -195,11 +195,11 @@ namespace larcv {
 			_mctp.clear();
 			_mctp.DefinePrimary(mctruth_v);
 			if (_producer_simch.empty()) {
-				_mctp.RegisterSecondary(mctrack_v);
-				_mctp.RegisterSecondary(mcshower_v);
+				_mctp.RegisterSecondary(mctrack_v,_mc_tick_offset);
+				_mctp.RegisterSecondary(mcshower_v,_mc_tick_offset);
 			} else {
-				_mctp.RegisterSecondary(mctrack_v, simch_v);
-				_mctp.RegisterSecondary(mcshower_v, simch_v);
+				_mctp.RegisterSecondary(mctrack_v, simch_v, _mc_tick_offset);
+				_mctp.RegisterSecondary(mcshower_v, simch_v, _mc_tick_offset);
 			}
 
 			_mctp.UpdatePrimaryROI();
@@ -627,7 +627,7 @@ namespace larcv {
 					::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
 					for (auto const& edep : tick_ides.second) {
 						if (edep.energy < energy) continue;
-						if (edep.trackID >= track2type_v.size()) continue;
+						if (edep.trackID >= (int)(track2type_v.size())) continue;
 						auto temp_roi_type = track2type_v[edep.trackID];
 						if (temp_roi_type ==::larcv::kROIUnknown) continue;
 						energy = edep.energy;
