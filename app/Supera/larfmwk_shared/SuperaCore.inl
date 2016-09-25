@@ -617,7 +617,7 @@ namespace larcv {
 				//for (auto& v : column) v = (float)(-1);
 
 				for (auto const tick_ides : sch.TDCIDEMap()) {
-				        int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
+				    int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
 					if (tick < meta.min_y()) continue;
 					if (tick >= meta.max_y()) continue;
 					// Where is this tick in column vector?

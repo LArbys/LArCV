@@ -52,13 +52,13 @@ namespace larcv {
 
       void DefinePrimary(const std::vector<T>&);
 
-      void RegisterSecondary(const std::vector<U>&);
+      void RegisterSecondary(const std::vector<U>&, const int time_offset);
 
-      void RegisterSecondary(const std::vector<U>&, const std::vector<W>&);
+      void RegisterSecondary(const std::vector<U>&, const std::vector<W>&, const int time_offset);
 
-      void RegisterSecondary(const std::vector<V>&);
+      void RegisterSecondary(const std::vector<V>&, const int time_offset);
 
-      void RegisterSecondary(const std::vector<V>&, const std::vector<W>&);
+      void RegisterSecondary(const std::vector<V>&, const std::vector<W>&, const int time_offset);
 
       void DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction);
 
