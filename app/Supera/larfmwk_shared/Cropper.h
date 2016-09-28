@@ -46,10 +46,10 @@ namespace larcv {
       WTRangeArray_t WireTimeBoundary( const U& mcs ) const;
       WTRangeArray_t WireTimeBoundary( const U& mcs, const std::vector<V>& sch_v ) const;
 
-      ::larcv::ROI ParticleROI( const T& mct ) const;
-      ::larcv::ROI ParticleROI( const T& mct, const std::vector<V>& sch_v ) const;
-      ::larcv::ROI ParticleROI( const U& mcs ) const;
-      ::larcv::ROI ParticleROI( const U& mcs, const std::vector<V>& sch_v ) const;
+      ::larcv::ROI ParticleROI( const T& mct, const int time_offset                              ) const;
+      ::larcv::ROI ParticleROI( const T& mct, const std::vector<V>& sch_v, const int time_offset ) const;
+      ::larcv::ROI ParticleROI( const U& mcs, const int time_offset                              ) const;
+      ::larcv::ROI ParticleROI( const U& mcs, const std::vector<V>& sch_v, const int time_offset ) const;
 
     private:
  
