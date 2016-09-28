@@ -41,6 +41,14 @@ namespace larcv {
 
     void finalize();
 
+  protected:
+    
+    std::string finput_producer;
+    std::string foutput_producer;
+    std::vector<double> feps;
+    std::vector<int> fminpoints;
+    std::vector<double> fthreshold;
+
   };
 
   /**
