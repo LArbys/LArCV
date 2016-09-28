@@ -12,5 +12,7 @@
 #pragma link C++ namespace dbscan;
 #pragma link C++ class dbscan::DBSCANAlgo+;
 #pragma link C++ class larcv::DBSCAN+;
+#pragma link C++ class larcv::NNCosine+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+

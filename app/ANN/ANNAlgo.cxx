@@ -13,7 +13,8 @@ namespace ann {
   }
 
   ANNAlgo::~ANNAlgo () {
-    if ( bdtree!=nullptr ) delete bdtree;
+    //std::cout << "dealloc ANN" << std::endl;
+    deinitialize();
     if ( datablock!=nullptr ) dealloc_data_block();
   }
 
@@ -32,6 +33,8 @@ namespace ann {
   void ANNAlgo::dealloc_data_block() {
     delete [] datablock;
     datablock = nullptr;
+    delete [] points;
+    points = nullptr;
   }
 
   void ANNAlgo::initialize() {
@@ -42,7 +45,8 @@ namespace ann {
 
   void ANNAlgo::deinitialize() {
     // ignore dials for now
-    delete bdtree;
+    if ( bdtree!=nullptr)
+      delete bdtree;
     bdtree = nullptr;
     _init = false;
   }
@@ -56,6 +60,16 @@ namespace ann {
     for ( int i=0; i<fNdims; i++ ) {
       *(datablock + idx*fNdims + i) = point.at(i);
     }
+  }
+
+  void ANNAlgo::setPoint2D( int idx, double x, double y ) {
+    if ( fNdims!=2 ) {
+      std::cout << "ANNAlgo Error. Dimension of point (" << 2 << ") is not right dimensions, " << fNdims << std::endl;
+      return;
+    }
+
+    *(datablock + idx*fNdims + 0) = x;
+    *(datablock + idx*fNdims + 1) = y;
   }
 
   void ANNAlgo::getPoint( int idx, std::vector<double>& point ) {
@@ -111,5 +125,8 @@ namespace ann {
       std::cout << std::endl;
     }
   }
-  
+
+  void ANNAlgo::cleanup() {
+    annClose();
+  }
 }

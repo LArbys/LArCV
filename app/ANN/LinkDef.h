@@ -10,7 +10,7 @@
 #pragma link off all functions;
 
 #pragma link C++ namespace ann;
-#pragma link C++ class  ann::ANNAlgo+;
+#pragma link C++ class  ann::ANNAlgo;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
