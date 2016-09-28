@@ -43,7 +43,10 @@ namespace larcv {
 
   protected:
     
-    std::string finput_producer;
+    std::string ftpc_producer;
+    std::vector<std::string> fauxdata_producers;
+    std::vector<float> fauxdim_scale;
+
     std::string foutput_producer;
     std::vector<double> feps;
     std::vector<int> fminpoints;

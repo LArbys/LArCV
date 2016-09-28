@@ -36,7 +36,6 @@ class DrawNNCosine:
             
             hits = np.argwhere( img_hit>0.1 )
             for hit in hits:
-                print hit
                 img_dx[hit[0],hit[1]] = np.cos( img_ang[hit[0],hit[1]] )*200.0
                 img_dy[hit[0],hit[1]] = np.sin( img_ang[hit[0],hit[1]] )*100.0 + 100.0
             
