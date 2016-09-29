@@ -336,6 +336,23 @@ namespace larcv {
     return res;
   }
 
+  std::string PSet::data_string() const
+  {
+
+    std::string res;
+    res = _name + ":{";
+    for(auto const& key_value : _data_value)
+
+      res += key_value.first + ":" + key_value.second + " ";
+
+    for(auto const& key_value : _data_pset)
+
+      res += key_value.second.data_string();
+
+    res += "}";
+    return res;
+  }
+
   const PSet& PSet::get_pset(const std::string& key) const
   {
     auto iter = _data_pset.find(key);
