@@ -9,6 +9,19 @@ libs=[x for x in commands.getoutput('larcv-config --libs').split() if not x.star
 libs+= commands.getoutput('root-config --libs').split()
 if 'LARLITE_BASEDIR' in os.environ:
     libs+= commands.getoutput('larlite-config --libs').split()
+    if 'LAROPENCV_BASEDIR' in os.environ:
+        libs += [' -lLArOpenCV_ImageClusterBase']
+        libs += [' -lLArOpenCV_ImageClusterCluster']
+        libs += [' -lLArOpenCV_ImageClusterDirection']
+        libs += [' -lLArOpenCV_ImageClusterUtil']
+        libs += [' -lLArOpenCV_ImageClusterMatch']
+        libs += [' -lLArOpenCV_ImageClusterMerge']
+        libs += [' -lLArOpenCV_ImageClusterFilter']
+        libs += [' -lLArOpenCV_ImageClusterReCluster']
+        libs += [' -lLArOpenCV_ImageClusterStartPoint']
+        libs += [' -lLArOpenCV_ImageClusterDebug']
+        libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
+        libs += [' -lBasicTool_FhiclLite']
     
 objs_list=[]
 dict_list=[]
