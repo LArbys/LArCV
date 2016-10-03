@@ -91,6 +91,9 @@ namespace larcv {
     /// Dump into a text format
     std::string dump(size_t indent_size=0) const;
 
+    /// Dump data string
+    std::string data_string() const;
+
     /// Template getter
     template <class T>
     T get(const std::string& key) const{
@@ -128,6 +131,8 @@ namespace larcv {
     bool  contains_value (const std::string& key) const;
     /// Check if a specified key exists for key-PSet pairs
     bool  contains_pset  (const std::string& key) const;
+
+
 
   private:
 

@@ -14,6 +14,9 @@ endif
 ifeq ($(LARCV_NUMPY),1)
 SUBDIRS += APICaffe
 endif
+ifdef LAROPENCV_BASEDIR
+SUBDIRS += LArOpenCVBandle
+endif
 
 #####################################################################################
 #
