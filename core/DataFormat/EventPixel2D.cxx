@@ -12,6 +12,7 @@ namespace larcv {
 
   void EventPixel2D::clear()
   {
+    EventBase::clear();
     _pixel_m.clear(); _cluster_m.clear();
   }
 
