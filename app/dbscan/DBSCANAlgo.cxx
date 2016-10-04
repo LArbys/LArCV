@@ -9,6 +9,8 @@ namespace dbscan {
     dbscanOutput output;
 
     int npts  = input.size();
+    if ( npts==0 )
+      return output;
     int ndims = input.at(0).size();
     std::vector<double> weights;
 
