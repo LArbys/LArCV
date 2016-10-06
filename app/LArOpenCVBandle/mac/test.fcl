@@ -38,7 +38,7 @@ ProcessDriver: {
 
         Verbosity: 2
         Profile:   true
-
+        StoreAlgoData: true
         ClusterAlgoType: ["EmptyImageCluster","Algo"]
         ClusterAlgoName: ["eic","Algo"]
         EnableWireCheck: false
