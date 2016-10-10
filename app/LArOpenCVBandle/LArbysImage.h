@@ -46,6 +46,8 @@ namespace larcv {
 
     void finalize();
 
+    const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
+    
   protected:
 
     void store_clusters(IOManager& mgr);

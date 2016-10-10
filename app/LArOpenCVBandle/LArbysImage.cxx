@@ -160,6 +160,7 @@ namespace larcv {
   void LArbysImage::finalize()
   {
     if ( has_ana_file() ) {
+      _alg_mgr.Finalize(&(ana_file()));
       _tree->Write();
     }
   }
