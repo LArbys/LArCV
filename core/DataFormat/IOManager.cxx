@@ -523,7 +523,7 @@ namespace larcv {
     }
 
     if(_io_mode != kWRITE && _in_tree_index != kINVALID_SIZE &&
-       _in_tree_index_v[id] != _in_tree_index && !_store_only_bool.at(id) ) {
+       _in_tree_index_v[id] != _in_tree_index ) {
 
       LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _in_tree_index << std::endl;
       _in_tree_v[id]->GetEntry(_in_tree_index);
