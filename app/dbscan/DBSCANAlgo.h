@@ -17,6 +17,7 @@ namespace dbscan {
     virtual ~dbscanOutput() {};
     dbClusters clusters;
     std::vector<int> clusterid;
+    std::vector<int> nneighbors;
   };
 
 

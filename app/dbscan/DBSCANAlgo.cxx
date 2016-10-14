@@ -41,6 +41,8 @@ namespace dbscan {
     // DBSCAN
     std::vector<bool> visited(npts, false);
     std::vector<int>  N, N2;
+    output.clusterid.resize(npts,-1);
+    output.nneighbors.resize(npts,0);
     
     for (int i=0; i<npts; i++) {
       // check for interrupt
@@ -57,6 +59,7 @@ namespace dbscan {
       //else              N = regionQuery(i, dataPts, kdTree, eps2, approx);
       // ---------------------------------------------------------
       N = bdtree.regionQuery( i, eps2, approx );
+      output.nneighbors.at( i ) = N.size();
       // Note: the points are not sorted by distance!
       // ---------------------------------------------------------
 
