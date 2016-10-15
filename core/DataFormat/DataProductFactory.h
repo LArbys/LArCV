@@ -100,11 +100,11 @@ namespace larcv {
       LARCV_NORMAL() << ss.str() << std::endl;
     }
 
-    std::string ROIType2String(const ROIType_t type)
-    { return ROIType2String(type); }
-
+    std::string ROIType2String(const ROIType_t type) 
+    { return ::larcv::ROIType2String(type); }
+    
     ROIType_t String2ROIType(const std::string& name)
-    { return String2ROIType(name); }
+    { return ::larcv::String2ROIType(name); }
 
   private:
     /// Static factory container
