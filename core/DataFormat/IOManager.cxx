@@ -148,7 +148,10 @@ namespace larcv {
 	return false;
       }
       LARCV_NORMAL() << "Prepared input with " << _in_tree_entries << " entries..." << std::endl;
+      _read_id_bool.clear();
+      _read_id_bool.resize(_product_ctr,true);
     }
+    
 
     // Now handle "store-only" configuration
     _store_only_bool.clear();
@@ -157,6 +160,8 @@ namespace larcv {
       for(size_t i=0; i<_store_only_type.size(); ++i)
 	store_only_id.push_back(register_producer(_store_only_type[i],_store_only_name[i]));
       _store_only_bool.resize(_product_ctr,false);
+      if ( _product_ctr>_read_id_bool.size() ) // append to read-in counters
+	_read_id_bool.resize(_product_ctr,false);
       for(auto const& id : store_only_id) _store_only_bool.at(id) = true;
     }
 
@@ -523,7 +528,7 @@ namespace larcv {
     }
 
     if(_io_mode != kWRITE && _in_tree_index != kINVALID_SIZE &&
-       _in_tree_index_v[id] != _in_tree_index ) {
+       _in_tree_index_v[id] != _in_tree_index && _read_id_bool[id] ) {
 
       LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _in_tree_index << std::endl;
       _in_tree_v[id]->GetEntry(_in_tree_index);
