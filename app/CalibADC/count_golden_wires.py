@@ -109,5 +109,7 @@ c.Update()
 
 # c.Update()
 
+c.SaveAs("ScaleFactorsDist.png")
+
 raw_input()
     

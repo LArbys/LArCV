@@ -125,6 +125,7 @@ namespace larcv {
     std::vector<std::string> _read_only_name;
     std::vector<larcv::ProductType_t> _read_only_type;
     std::vector<bool> _store_only_bool;
+    std::vector<bool> _read_id_bool;
   };
 
 }
