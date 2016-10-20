@@ -19,8 +19,15 @@ endif
 
 APP_SUBDIRS := ImageAna ImageMod Filter PMTWeights HiResDivider Merger APICaffe
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS += Supera/APILArLite
+APP_SUBDIRS += Supera/APILArLite VertexImg
+  ifdef LAROPENCV_BASEDIR
+  APP_SUBDIRS += LArOpenCVBandle
+  endif
 endif
+
+#ifeq ($(LARCV_LLBANDLE),1)
+#  APP_SUBDIRS += LLBandle/LArCVFlashMatch
+#endif
 
 .phony: all clean
 

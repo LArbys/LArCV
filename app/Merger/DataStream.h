@@ -46,8 +46,9 @@ namespace larcv {
     std::string _tpc_image_producer;
     std::string _pmt_image_producer;
     std::string _ch_status_producer;
-    float _adc_threshold;
-    bool _make_segmentation;
+    std::string _roi_producer;
+    std::string _segment_producer;
+    
   };
 
   /**

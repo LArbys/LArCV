@@ -297,11 +297,13 @@ namespace larcv {
     }
 
     template<class T, class U, class V>
-    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const T& mct ) const
+    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const T& mct, const int time_offset) const
     {
       LARCV_DEBUG() << "start" << std::endl;
       LARCV_INFO() << "Assessing MCTrack G4Track ID = " << mct.TrackID() << " PdgCode " << mct.PdgCode() << std::endl;
       auto wtrange_v = WireTimeBoundary(mct);
+      // Add time offset
+      wtrange_v.back().Set(wtrange_v.back().Start()+time_offset, wtrange_v.back().End()+time_offset);
       auto bb_v = WTRange2BB(wtrange_v);
       ::larcv::ROI res;
       res.SetBB(bb_v);
@@ -330,11 +332,12 @@ namespace larcv {
     }
 
     template<class T, class U, class V>
-    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const T& mct, const std::vector<V>& sch_v ) const
+    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const T& mct, const std::vector<V>& sch_v, const int time_offset ) const
     {
       LARCV_DEBUG() << "start" << std::endl;
       LARCV_INFO() << "Assessing MCTrack G4Track ID = " << mct.TrackID() << " PdgCode " << mct.PdgCode() << std::endl;
       auto wtrange_v = WireTimeBoundary(mct, sch_v);
+      wtrange_v.back().Set(wtrange_v.back().Start()+time_offset, wtrange_v.back().End()+time_offset);
       auto bb_v = WTRange2BB(wtrange_v);
       ::larcv::ROI res;
       res.SetBB(bb_v);
@@ -362,11 +365,12 @@ namespace larcv {
     }
 
     template <class T, class U, class V>
-    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const U& mcs ) const
+    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const U& mcs, const int time_offset ) const
     {
       LARCV_DEBUG() << "start" << std::endl;
       LARCV_INFO() << "Assessing MCShower G4Track ID = " << mcs.TrackID() << " PdgCode " << mcs.PdgCode() << std::endl;
       auto wtrange_v = WireTimeBoundary(mcs);
+      wtrange_v.back().Set(wtrange_v.back().Start()+time_offset, wtrange_v.back().End()+time_offset);
       auto bb_v = WTRange2BB(wtrange_v);
       ::larcv::ROI res;
       res.SetBB(bb_v);
@@ -392,11 +396,12 @@ namespace larcv {
     }
 
     template <class T, class U, class V>
-    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const U& mcs, const std::vector<V>& sch_v ) const
+    ::larcv::ROI Cropper<T, U, V>::ParticleROI( const U& mcs, const std::vector<V>& sch_v, const int time_offset ) const
     {
       LARCV_DEBUG() << "start" << std::endl;
       LARCV_INFO() << "Assessing MCShower G4Track ID = " << mcs.TrackID() << " PdgCode " << mcs.PdgCode() << std::endl;
       auto wtrange_v = WireTimeBoundary(mcs, sch_v);
+      wtrange_v.back().Set(wtrange_v.back().Start()+time_offset, wtrange_v.back().End()+time_offset);
       auto bb_v = WTRange2BB(wtrange_v);
       ::larcv::ROI res;
       res.SetBB(bb_v);

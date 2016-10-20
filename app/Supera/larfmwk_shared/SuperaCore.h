@@ -71,14 +71,9 @@ namespace larcv {
       bool store_chstatus() const { return _store_chstatus; }
       const ::larcv::logger& logger() const { return _logger;}
       void supera_fname(std::string name) { _supera_fname = name; }
+      void set_verbosity( unsigned short v ) { _logger.set( (::larcv::msg::Level_t)v ); };
 
-    private:
-
-      larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
-					      const larcv::ImageMeta& event_image,
-					      const size_t modular_row,
-					      const size_t modular_col);
-	
+      // fill functions
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
       void fill(Image2D& img, const std::vector<R>& opdigit_v, const int time_offset=0);
       void fill(std::vector<Image2D>& img,
@@ -86,6 +81,11 @@ namespace larcv {
 		const std::vector<V>& mcs_v,
 		const std::vector<W>& sch_v,
 		const int time_offset=0);
+    private:
+      larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
+					      const larcv::ImageMeta& event_image,
+					      const size_t modular_row,
+					      const size_t modular_col);
 
       size_t _run, _subrun, _event;
       MCParticleTree<T,U,V,W> _mctp;
@@ -107,6 +107,7 @@ namespace larcv {
       double _min_time;
       double _min_wire;
       int    _tpc_tick_offset;
+      int    _mc_tick_offset;
       larcv::Image2D _full_image;
       bool _skip_empty_image;
       bool _configured;

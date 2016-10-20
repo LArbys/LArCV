@@ -244,6 +244,8 @@ namespace larcv {
 
     if(caffe_class == kINVALID_SIZE) {
       LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;
+      for(size_t roi_index=0; roi_index<roi_v.size(); ++roi_index)
+	LARCV_CRITICAL() << "Dumping ROI " << roi_index << std::endl << roi_v[roi_index].dump() << std::endl;
       throw larbys();
     }
 

@@ -26,5 +26,7 @@ include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
 pkg_build:
 	@cp -f bin/run_processor $(LARCV_BINDIR)/run_processor
+	@cp -f bin/run_processordb $(LARCV_BINDIR)/run_processordb
 pkg_clean:
 	@rm -f $(LARCV_BINDIR)/run_processor
+	@rm -f $(LARCV_BINDIR)/run_processordb

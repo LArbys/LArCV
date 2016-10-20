@@ -1,0 +1,70 @@
+
+ProcessDriver: {
+
+  Verbosity:    2
+  EnableFilter: true
+  RandomAccess: false
+  ProcessType:  ["LArbysImage"]
+  ProcessName:  ["LArbysImage"]
+  AnaFile:     "ana.root"
+
+  IOManager: {
+    Verbosity:   2
+    Name:        "IOManager"
+    IOMode:      2
+    OutFileName: "out.root"
+    InputFiles:  []
+    InputDirs:   []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+
+  ProcessList: {
+ 
+    LArbysImage: {
+
+      Verbosity: 2
+      Profile: true
+      ImageProducer: "tpc"
+      Debug: true
+  
+      Q2Gray: 2
+      QMin: 0.1
+      QMax: 500
+
+      MatchPlaneWeights: [1.,1.,1.]
+
+      ImageClusterManager: {
+
+        Verbosity: 2
+        Profile:   true
+        StoreAlgoData: true
+        ClusterAlgoType: ["EmptyImageCluster","Algo"]
+        ClusterAlgoName: ["eic","Algo"]
+        EnableWireCheck: false
+          
+        ShowImage: false
+
+        MatchAlgoType: ""
+        MatchAlgoName: ""
+
+        ReClusterAlgoType: ""
+        ReClusterAlgoName: ""
+
+        UseOnlyTwoPlanes: false
+        RequirePlane: 2
+
+        ImageClusterViewer: {
+          Verbosity: 0
+          Width:  800
+          Height: 800
+          MinContourArea: 0
+        }
+
+        eic: {}
+
+        Algo: {}
+      }
+    }
+  }
+}

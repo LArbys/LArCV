@@ -4,6 +4,7 @@
 #include "DataStream.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventChStatus.h"
+#include "DataFormat/EventROI.h"
 
 namespace larcv {
 
@@ -18,8 +19,9 @@ namespace larcv {
     _tpc_image_producer = cfg.get<std::string>("TPCImageProducer");
     _pmt_image_producer = cfg.get<std::string>("PMTImageProducer");
     _ch_status_producer = cfg.get<std::string>("ChStatusProducer","");
-    _adc_threshold = cfg.get<float>("ADCThreshold");
-    _make_segmentation = cfg.get<bool>("MakeSegmentation");
+    _roi_producer = cfg.get<std::string>("ROIProducer");
+    _segment_producer = cfg.get<std::string>("SegmentImageProducer","");
+
     LARCV_INFO() << "Configured" << std::endl;
   }
 
@@ -34,6 +36,7 @@ namespace larcv {
     _ch_status_m.clear();
     _tpc_image_v.clear();
     _tpc_segment_v.clear();
+    _roi_v.clear();
     _pmt_image = Image2D();
     
     // Retrieve ChStatus
@@ -49,6 +52,7 @@ namespace larcv {
       _ch_status_m = event_chstatus->ChStatusMap();
     }
     
+
     // Retrieve TPC Image
     LARCV_INFO() << "Reading-in TPC Image2D " << _tpc_image_producer << std::endl;
     auto event_tpc_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_tpc_image_producer));
@@ -69,23 +73,22 @@ namespace larcv {
     event_pmt_image->Move(tmp_v);
     if(tmp_v.size())
       _pmt_image = std::move(tmp_v[0]);
-
-    // Create segmentation map
-    if(_make_segmentation) {
-      for(auto const& img : _tpc_image_v) {
-
-	LARCV_INFO() << "Copying constructing TPC segmentation Image2D " << std::endl;
-	auto copy_img  = img;
-	
-	LARCV_INFO() << "Binary-thresholding" << std::endl;
-	copy_img.binary_threshold(_adc_threshold,(float)kROIUnknown,(float)kROICosmic);
-
-	LARCV_INFO() << "emplacing back" << std::endl;
-	_tpc_segment_v.emplace_back(std::move(copy_img));
-
-      }
+    
+    //Retrieve the ROI
+    if(!_roi_producer.empty()) {
+      LARCV_INFO() << "Reading-in ROI " << _roi_producer << std::endl;
+      auto event_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
+      if(event_roi and !event_roi->ROIArray().empty())
+	_roi_v = event_roi->ROIArray();
     }
 
+    //Retrieve the segmenation image if exists
+    if(!_segment_producer.empty()) {
+      //segment_proc->move_segment(_tpc_segment_v);
+      auto event_segment = (EventImage2D*)(mgr.get_data(kProductImage2D,_segment_producer));
+      _tpc_segment_v = event_segment->Image2DArray();
+    }
+    
     // Retrieve event id
     retrieve_id(event_tpc_image);
 

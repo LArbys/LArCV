@@ -1,5 +1,6 @@
 #include "DivisionDef.h"
 #include "Base/larbys.h"
+#include "Base/larcv_base.h"
 
 namespace larcv {
   namespace hires {
@@ -57,6 +58,12 @@ namespace larcv {
 	  return false;
       }
       return true;
+    }
+
+    void DivisionDef::print() const {
+      std::cout << "Division Def: x=[" << fDetBounds[0][0] << "," << fDetBounds[0][1] << "] "
+		<< " y=[" << fDetBounds[1][0] << "," << fDetBounds[1][1] << "] "
+		<< " z=[" << fDetBounds[2][0] << "," << fDetBounds[2][1] << "]" << std::endl;
     }
     
   }

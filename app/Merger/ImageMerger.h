@@ -42,15 +42,14 @@ namespace larcv {
 
     void finalize();
 
-    void CosmicImageHolder(ImageHolder* ptr);
+    void InputImageHolder1(ImageHolder* ptr);
 
-    void NeutrinoImageHolder(ImageHolder* ptr);
+    void InputImageHolder2(ImageHolder* ptr);
 
   protected:
 
-    ImageHolder* _nu_proc;
-    ImageHolder* _cosmic_proc;
-    short        _min_ch_status;
+    ImageHolder* _in1_proc;
+    ImageHolder* _in2_proc;
     float        _pmt_pedestal;
     std::string  _out_tpc_producer;
     std::string  _out_pmt_producer;

@@ -38,6 +38,7 @@ namespace larcv {
 
     void override_input_file(const std::vector<std::string>& nu_flist = std::vector<std::string>(),
 			     const std::vector<std::string>& cosmic_flist = std::vector<std::string>());
+    void override_ana_file(std::string out_ana_fname);
 
     void override_output_file(std::string out_fname);
 
@@ -51,21 +52,21 @@ namespace larcv {
 
   private:
 
-    ProcessDriver _nu_driver;
-    ImageHolder*  _nu_proc;
-    std::string   _nu_proc_name;
+    ProcessDriver _in1_driver;
+    ImageHolder*  _in1_proc;
+    std::string   _in1_proc_name;
     
-    ProcessDriver _cosmic_driver;
-    ImageHolder*  _cosmic_proc;
-    std::string   _cosmic_proc_name;
+    ProcessDriver _in2_driver;
+    ImageHolder*  _in2_proc;
+    std::string   _in2_proc_name;
 
     ProcessDriver _merge_driver;
     ImageMerger*  _merge_proc;
     std::string   _merge_proc_name;
     
     bool _prepared;
-    size_t _num_nu;
-    size_t _num_cosmic;
+    size_t _num_in1;
+    size_t _num_in2;
     size_t _num_processed;
     size_t _num_input_max;
     size_t _num_output_max;
