@@ -103,6 +103,21 @@ if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
     fi
 fi
 
+if [[ -d $MRB_TOP/srcs/argoneutcode/ ]]; then
+    printf "\033[93mLArSoft\033[00m\n"
+    echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
+    echo "    Preparing APILArSoft package for build (making sym links)"
+    target=$LARCV_APPDIR/Supera/larfmwk_shared/*
+    for f in $target
+    do
+    ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
+    done
+    if [ ! -d $MRB_TOP/srcs/argoneutcode/Supera ]; then
+    ln -s $LARCV_APPDIR/Supera/APILArSoft $MRB_TOP/srcs/argoneutcode/Supera
+    fi
+fi
+
+
 export LARCV_CXX=clang++
 if [ -z `command -v $LARCV_CXX` ]; then
     export LARCV_CXX=g++
