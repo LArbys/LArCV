@@ -1,7 +1,7 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = PMTWeights
+PACKAGE_NAME = UBWireTool
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
@@ -11,7 +11,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
-INCFLAGS += $(shell larcv-config --includes) -I$(LARCV_BASEDIR)/app/UBWireTool
+INCFLAGS += $(shell larcv-config --includes)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
@@ -20,10 +20,10 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += $(shell larcv-config --libs) -lUBWireTool
+LDFLAGS += $(shell larcv-config --libs)
+
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
 pkg_build:
-
 pkg_clean:

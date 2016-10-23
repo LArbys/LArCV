@@ -9,8 +9,8 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class larcv::pmtweights::PMTWireWeights+;
-#pragma link C++ class larcv::pmtweights::PMTWeightImageBuilder+;
+#pragma link C++ class larcv::WireData+;
+#pragma link C++ class larcv::UBWireTool+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
