@@ -14,7 +14,8 @@ INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell basictool-config --includes)
 INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += -I$(LARLITE_COREDIR)
-INCFLAGS += -I$(LARLITE_USERDEVDIR)/LArOpenCV/
+INCFLAGS += -I$(LAROPENCV_BASEDIR)
+INCFLAGS += -I$(GEO2D_BASEDIR)
 INCFLAGS += -I$(LARLITE_USERDEVDIR)/RecoTool/
 
 LDFLAGS += -L$(LARLITE_LIBDIR)
