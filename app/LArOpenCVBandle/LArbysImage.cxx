@@ -72,6 +72,8 @@ namespace larcv {
 
     watch_one.Start();
 
+    return true;
+
     this->store_clusters(mgr);
 
     _process_time_cluster_storage += watch_one.WallTime();
@@ -135,8 +137,17 @@ namespace larcv {
 
       auto const& cvmeta = image_v[i].meta();
 
-      ::larocv::ImageMeta meta(cvmeta.width(), cvmeta.height(),cvmeta.cols(),cvmeta.rows(),
+      LARCV_DEBUG() << "Reading image (rows,cols) = (" << cvmeta.rows() << "," << cvmeta.cols() << ") "
+		    << " ... (height,width) = (" << cvmeta.height() << "," << cvmeta.width() << ")" << std::endl;
+	
+
+      ::larocv::ImageMeta meta(cvmeta.width(), cvmeta.height(),
+			       cvmeta.cols(),  cvmeta.rows(),
 			       cvmeta.min_x(), cvmeta.min_y(), i);
+
+      LARCV_DEBUG() << "LArOpenCV meta @ plane " << i << " ... "
+		    << "Reading image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
+		    << " ... (height,width) = (" << meta.height() << "," << meta.width() << ")" << std::endl;
       
       _img_mgr.push_back(::cv::Mat(cvmeta.cols(),cvmeta.rows(),CV_8UC1,cvScalar(0.)),meta,::larocv::ROI());
 
@@ -151,6 +162,7 @@ namespace larcv {
 	  if(charge > _charge_max) charge = _charge_max;
 	  charge /= _charge_to_gray_scale;
 	  mat.at<unsigned char>(col,cvmeta.rows()-1-row) = (unsigned char)((int)charge);
+	  //mat.at<unsigned char>(cvmeta.rows()-1-row,col) = (unsigned char)((int)charge);
 	}
       }
     }
