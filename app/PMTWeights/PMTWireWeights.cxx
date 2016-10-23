@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cmath>
 
-#include "UBWireTool.h"
+#include "UBWireTool/UBWireTool.h"
 
 namespace larcv {
   namespace pmtweights {

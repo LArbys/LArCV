@@ -11,7 +11,7 @@
 
 #include "Processor/ProcessFactory.h"
 #include "DataFormat/Image2D.h"
-#include "WireData.h"
+#include "UBWireTool/WireData.h"
 
 #include "TFile.h"
 #include "TTree.h"

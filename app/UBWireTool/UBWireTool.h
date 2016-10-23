@@ -17,7 +17,6 @@ namespace larcv {
 
   public:
 
-    /*
     static float calculateIntersectionTriangle( const std::vector<float>& p0, const std::vector<float>& p1, const std::vector<float>& p2 );
     static void findWireIntersections( const std::vector< std::vector<int> >& wirelists,
 				       const std::vector< std::vector<float> >& valid_range,
@@ -28,7 +27,6 @@ namespace larcv {
     static void lineSegmentIntersection2D( const std::vector< std::vector<float> >& ls1, 
 					   const std::vector< std::vector<float> >& ls2, 
 					   std::vector<float>& insec, int& crosses );
-    */
 
     static const larcv::WireData& getWireData(int plane);
 
