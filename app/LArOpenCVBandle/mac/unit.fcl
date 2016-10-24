@@ -1,4 +1,4 @@
-      Verbosity: 2
+      Verbosity: 0
       Profile: true
       ImageProducer: "tpc"#"tpc_hires_crop"
       Debug: true
@@ -11,11 +11,11 @@
 
       ImageClusterManager: {
         StoreAlgoData: false  
-        Verbosity: 2
+        Verbosity: 0
         Profile:   true
 
-        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex"]
-        ClusterAlgoName: ["hc","dc","pcac","cv"]
+        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster"]
+        ClusterAlgoName: ["hc","dc","pcac","cv","ref","vtc"]
         EnableWireCheck: false
           
         ShowImage: false
@@ -37,8 +37,19 @@
         }
 
         hc : {}
-        dc: {}
-        pcac: {}
+        dc : {}
+        pcac : {}
         cv : {}
-      }
+        ref : { CircleVertexAlgo : "cv" }
 
+        vtc : {
+            #Verbosity : 0
+                DilationSize : 10
+                DilationIterations : 2
+                BlurSizeR : 25
+                BlurSizeT : 5
+                Thresh : 1
+                ThreshMaxVal : 255
+                Refine2DVertexAlgo : ref
+        }
+      }
