@@ -14,8 +14,8 @@
         Verbosity: 0
         Profile:   true
 
-        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster"]
-        ClusterAlgoName: ["hc","dc","pcac","cv","ref","vtc"]
+        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates"]
+        ClusterAlgoName: ["hipctor","defbreak1","pca1","rough_vtx","refine_vtx","vtxctor","defbreak2","pca2"]
         EnableWireCheck: false
           
         ShowImage: false
@@ -36,13 +36,12 @@
           MinContourArea: 0
         }
 
-        hc : {}
-        dc : {}
-        pcac : {}
-        cv : {}
-        ref : { CircleVertexAlgo : "cv" }
-
-        vtc : {
+        hipctor : {}
+        defbreak1 : {}
+        pca1 : {}
+        rough_vtx : {}
+        refine_vtx : { CircleVertexAlgo : "rough_vtx" }
+        vtxctor : {
             #Verbosity : 0
                 DilationSize : 10
                 DilationIterations : 2
@@ -50,6 +49,8 @@
                 BlurSizeT : 5
                 Thresh : 1
                 ThreshMaxVal : 255
-                Refine2DVertexAlgo : ref
+                Refine2DVertexAlgo : refine_vtx
         }
+        defbreak2 : {}
+        pca2 : {}
       }
