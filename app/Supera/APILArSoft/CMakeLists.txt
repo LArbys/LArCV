@@ -1,6 +1,6 @@
 # define ROOTLIB
 
-set( LARCV_LIB -L$ENV{LARCV_LIBDIR} -lLArCVBase -lLArCVDataFormat -lLArCVProcessor )
+set( LARCV_LIB -L$ENV{LARCV_LIBDIR} -llarcv )
 
 include_directories ( $ENV{LARCV_INCDIR} )
 
@@ -14,7 +14,7 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME     LArSupera
           LIB_LIBRARIES
                    larcore_Geometry
-                   #uboone_Geometry
+                   uboone_Geometry
                    larcore_Geometry_Geometry_service
                    larsim_Simulation
                    lardataobj_RecoBase
@@ -36,6 +36,9 @@ art_make( BASENAME_ONLY
                    ${ART_PERSISTENCY_COMMON}
                    ${ART_PERSISTENCY_PROVENANCE}
                    ${ART_UTILITIES}
+
+                   art_Persistency_Common canvas_Persistency_Common
+                   art_Utilities canvas_Utilities
                    ${MF_MESSAGELOGGER}
                    ${MF_UTILITIES}
                    ${FHICLCPP}
@@ -49,7 +52,6 @@ art_make( BASENAME_ONLY
 simple_plugin( Supera "module"
                    LArSupera
                    larcore_Geometry
-                   #uboone_Geometry
                    larcore_Geometry_Geometry_service
                    larsim_Simulation
                    nusimdata_SimulationBase
