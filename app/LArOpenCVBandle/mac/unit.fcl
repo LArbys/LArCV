@@ -14,8 +14,8 @@
         Verbosity: 0
         Profile:   true
 
-        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","dQdXProfiler"]
-        ClusterAlgoName: ["hipctor","defbreak1","pca1","rough_vtx","refine_vtx","vtxctor","defbreak2","pca2","dqdx"]
+        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","AtomicTrackAna","dQdXProfiler"]
+        ClusterAlgoName: ["hipctor","defbreak1","pca1","rough_vtx","refine_vtx","vtxctor","defbreak2","pca2","atrack","dqdx"]
         EnableWireCheck: false
           
         ShowImage: false
@@ -53,6 +53,9 @@
         }
         defbreak2 : {}
         pca2 : {}
+        atrack : {
+            PCACandidatesName : "pca2"
+            }
         dqdx : {
             PCACandidatesName : "pca2"
             }
