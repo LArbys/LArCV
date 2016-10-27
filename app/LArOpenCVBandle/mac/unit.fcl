@@ -14,8 +14,8 @@
         Verbosity: 0
         Profile:   true
 
-        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","AtomicTrackAna","dQdXProfiler","MatchCluster"] 
-        ClusterAlgoName: ["hipctor","defbreak1","pca1","rough_vtx","refine_vtx","vtxctor","defbreak2","pca2","atrack","dqdx","mcl"]
+        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","CircleVertex","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","AtomicTrackAna","dQdXProfiler","ProjectionCluster"]
+        ClusterAlgoName: ["hipctor","defbreak1","pca1","rough_vtx","refine_vtx","vtxctor","defbreak2","pca2","atrack","dqdx","proj"]
         EnableWireCheck: false
           
         ShowImage: false
@@ -35,7 +35,6 @@
           Height: 800
           MinContourArea: 0
         }
-
 
         hipctor : {}
         defbreak1 : {}
@@ -60,8 +59,8 @@
 	    Refine2DVertex       : "refine_vtx" 
 	    }
         dqdx : {
-            PCACandidatesName  : "pca2"
-    	    AtomicTrackAnaName : "atrack"
+            PCACandidatesName    : "pca2"
+    	    AtomicTrackAnaName   : "atrack"
 	    2ndDefectClusterName : "defbreak2"		       
 	    }
         proj : {
@@ -70,18 +69,4 @@
     	    VertexTrackClusterName : "vtxctor"
             AtomicTrackAnaName :     "atrack"
      	    }
-
-        mcl     : { 
-          Refine2DVertexName : "refine_vtx"
-          VertexTrackClusterName : "vtxctor"
-          Score : 0.4 
-                  }   
-
-        pmc     : { 
-          dQdXProfilerName : "dqdx"
-          MatchClusterName : "mcl"
-          Refine2DVertexName : "refine_vtx"
-                  }   
-
-
       }
