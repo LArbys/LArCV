@@ -321,6 +321,116 @@ namespace larcv {
     }//end of loop over p0 planes
   }//end of findWireIntersections(...)
   
-  
+  void UBWireTool::wireIntersection( int plane1, int wireid1, int plane2, int wireid2, std::vector<float>&intersection, int& crosses ) {
+    // maybe think about caching all these values
+    UBWireTool* _g = UBWireTool::_get_global_instance();
+    
+    const std::vector<float>& start1 = _g->m_WireData[plane1].wireStart.find(wireid1)->second;
+    const std::vector<float>& end1   = _g->m_WireData[plane1].wireEnd.find(wireid1)->second;
+    const std::vector<float>& start2 = _g->m_WireData[plane2].wireStart.find(wireid2)->second;
+    const std::vector<float>& end2   = _g->m_WireData[plane2].wireEnd.find(wireid2)->second;
+    
+    std::vector< std::vector<float> > ls1(2); 
+    ls1[0].push_back( start1[2] );
+    ls1[0].push_back( start1[1] );
+    ls1[1].push_back( end1[2] );
+    ls1[1].push_back( end1[1] );
+    
+    std::vector< std::vector<float> > ls2(2); 
+    ls2[0].push_back( start2[2] );
+    ls2[0].push_back( start2[1] );
+    ls2[1].push_back( end2[2] );
+    ls2[1].push_back( end2[1] );
+    
+    crosses = 0;
+    UBWireTool::lineSegmentIntersection2D( ls1, ls2, intersection, crosses );
+  }
+
+
+  //void UBWireTool::wireIntersection( std::vector< int > wids, std::vector<float>& intersection, std::vector<float>& triangle_area, int& crosses ) {
+  void UBWireTool::wireIntersection( std::vector< int > wids, std::vector<float>& intersection, double& triangle_area, int& crosses ) {
+    // inputs
+    // ------
+    // wids: vector of wire ids for each plane (going from 0,1,2 = U,V,Y)
+    // outputs
+    // -------
+    // intersection: 3D intersection
+    // triangle_area: trianlge formed by 3 wires
+    // crosses: 1 if crosses, 0 if does not
+    
+    UBWireTool* _g = UBWireTool::_get_global_instance();
+    
+    // get wire data
+    typedef std::vector< std::vector<float> > LineSegEnds_t;
+    LineSegEnds_t segs[3];
+    for (int p=0; p<3; p++) {
+      int wid = wids.at(p);
+      const std::vector<float>& start = _g->m_WireData[p].wireStart.find(wid)->second;
+      const std::vector<float>& end   = _g->m_WireData[p].wireEnd.find(wid)->second;
+      std::vector<float> start_poszy(2);
+      start_poszy[0] = start[2];
+      start_poszy[1] = start[1];
+      std::vector<float> end_poszy(2);
+      end_poszy[0] = end[2];
+      end_poszy[1] = end[1];
+
+      segs[p].resize(2); // one for start and end
+      segs[p][0] = start_poszy;
+      segs[p][1] = end_poszy;
+    }
+
+    // now check all combos here
+    std::vector<float> intersection01;
+    std::vector<float> intersection02;
+    std::vector<float> intersection12;
+    int combo_crosses[3] = {0};
+    lineSegmentIntersection2D( segs[0], segs[1], intersection01, combo_crosses[0] );
+    lineSegmentIntersection2D( segs[0], segs[2], intersection02, combo_crosses[1] );
+    lineSegmentIntersection2D( segs[1], segs[2], intersection12, combo_crosses[2] );
+
+    int combo[3][2] = { {0,1}, {0,2}, {1,2} };
+    for (int i=0; i<3; i++) {
+      if ( combo_crosses[i]==0 ) {
+	// check if miss involves wire's whose tips are very close
+	int idx1 = combo[i][0];
+	int idx2 = combo[i][1];
+	float dxss = 0.;
+	float dxee = 0.;
+	float dxes = 0.;
+	float dxse = 0.;
+	for (int v=0; v<2; v++) {
+	  dxss += (segs[idx1][0][v]-segs[idx2][0][v])*(segs[idx1][0][v]-segs[idx2][0][v]); // start to start
+	  dxee += (segs[idx1][1][v]-segs[idx2][1][v])*(segs[idx1][1][v]-segs[idx2][1][v]); // end to end
+	  dxse += (segs[idx1][0][v]-segs[idx2][1][v])*(segs[idx1][0][v]-segs[idx2][1][v]); // start to end
+	  dxes += (segs[idx1][1][v]-segs[idx2][0][v])*(segs[idx1][1][v]-segs[idx2][0][v]); // end to start
+	}
+	dxss = sqrt(dxss);
+	dxee = sqrt(dxee);
+	dxes = sqrt(dxes);
+	dxse = sqrt(dxse);
+	if ( dxss<1.0 || dxee<1.0 || dxes<1.0 || dxse<1.0 ) {
+	  // pretty close. let's change the crossing status
+	  combo_crosses[i]=1;
+	}
+      }
+      // U-V crossing. check if the end points are close
+      // sometimes wires that meet close to one another don't register has an intersection
+    }//end of loop over crosses
+
+    crosses = 1;
+    for (int i=0; i<3; i++) {
+      if ( combo_crosses[i]==0 ) crosses = 0;
+    }
+    
+    // get area of intersection triangle
+    //triangle_area.push_back( calculateIntersectionTriangle( intersection01, intersection02, intersection12 ) );
+    triangle_area = calculateIntersectionTriangle( intersection01, intersection02, intersection12 );
+    
+    // get the 3 plane (2D) vertex
+    intersection.resize(2,0.0);
+    for (int i=0; i<2; i++) 
+      intersection[i] = (intersection01[i]+intersection02[i]+intersection12[i] )/3.0;
+    
+  }
   
 }

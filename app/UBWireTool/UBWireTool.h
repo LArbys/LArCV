@@ -27,6 +27,8 @@ namespace larcv {
     static void lineSegmentIntersection2D( const std::vector< std::vector<float> >& ls1, 
 					   const std::vector< std::vector<float> >& ls2, 
 					   std::vector<float>& insec, int& crosses );
+    static void wireIntersection( int plane1, int wireid1, int plane2, int wireid2, std::vector<float>& intersection, int& crosses );
+    static void wireIntersection( std::vector< int > wids, std::vector<float>& intersection, double& triangle_area, int& crosses );
 
     static const larcv::WireData& getWireData(int plane);
 
