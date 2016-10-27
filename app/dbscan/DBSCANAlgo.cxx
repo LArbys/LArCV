@@ -123,6 +123,9 @@ namespace dbscan {
 	output.clusterid[output.clusters[i][j]] = i; // R adds one probably because 1-indexed vectors: WTF
       }
     }
+
+    // clean up
+    //ann::ANNAlgo::cleanup();    
     
     return output;
     

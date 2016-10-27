@@ -9,19 +9,20 @@ namespace ann {
     fNdims   = ndims;
     datablock = nullptr;
     bdtree = nullptr;
+    array = nullptr;
     alloc_data_block();
   }
 
   ANNAlgo::~ANNAlgo () {
     //std::cout << "dealloc ANN" << std::endl;
-    deinitialize();
     if ( datablock!=nullptr ) dealloc_data_block();
+    deinitialize();
   }
 
   void ANNAlgo::alloc_data_block() {
     // make coord block
     datablock = new ANNcoord[fNpoints*fNdims];
-    memset( datablock, 0.0, sizeof(ANNcoord) );
+    memset( datablock, 0.0, sizeof(ANNcoord)*fNpoints*fNdims );
     // make point array
     points = new ANNpoint[fNpoints];
     for (int pt=0; pt<fNpoints; pt++)
@@ -31,14 +32,16 @@ namespace ann {
   }
 
   void ANNAlgo::dealloc_data_block() {
-    delete [] datablock;
-    datablock = nullptr;
+    array = nullptr;
     delete [] points;
     points = nullptr;
+    delete [] datablock;
+    datablock = nullptr;
   }
 
   void ANNAlgo::initialize() {
     // ignore dials for now
+    //std::cout << "initializing ANNbd_tree( array, " << fNpoints << "," <<  fNdims << ")" << std::endl;
     bdtree = new ANNbd_tree( array, fNpoints, fNdims );
     _init = true;
   }
