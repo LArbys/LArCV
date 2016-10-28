@@ -56,12 +56,13 @@
         atrack : {
             2ndPCACandidatesName : "pca2"
             2ndDefectClusterName : "defbreak2"		       
-	    Refine2DVertex       : "refine_vtx" 
+	    Refine2DVertexName   : "refine_vtx" 
 	    }
         dqdx : {
             PCACandidatesName    : "pca2"
     	    AtomicTrackAnaName   : "atrack"
 	    2ndDefectClusterName : "defbreak2"		       
+	    Refine2DVertexName   : "refine_vtx"
 	    }
         proj : {
             Refine2DVertexName :     "refine_vtx"
