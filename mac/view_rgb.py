@@ -2,8 +2,8 @@
 # thanks taritree(!)
 
 import os,sys
-from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
+from pyqtgraph import QtGui, QtCore
 from pyrgb.display import rgbdisplay as rgbd
 
 inputs = sys.argv

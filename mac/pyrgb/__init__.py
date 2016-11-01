@@ -1,8 +1,8 @@
-from PyQt4 import QtGui, QtCore
+import pyqtgraph as pg
+from pyqtgraph import QtGui, QtCore
 
 import ROOT
 from larcv import larcv
-import pyqtgraph as pg
 
 #pg.setConfigOption('background', 'w')
 #pg.setConfigOption('foreground', 'k')
