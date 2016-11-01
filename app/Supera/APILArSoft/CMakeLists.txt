@@ -14,7 +14,6 @@ art_make( BASENAME_ONLY
           LIBRARY_NAME     LArSupera
           LIB_LIBRARIES
                    larcore_Geometry
-                   uboone_Geometry
                    larcore_Geometry_Geometry_service
                    larsim_Simulation
                    lardataobj_RecoBase

@@ -28,7 +28,6 @@
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/MCBase/MCShower.h"
-#include "lardataobj/RawData/OpDetWaveform.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 // larcv
@@ -58,8 +57,8 @@ public:
 
 private:
 
-  ::larcv::supera::SuperaCore< raw::OpDetWaveform, recob::Wire,
-			       simb::MCTruth, sim::MCTrack, sim::MCShower, sim::SimChannel> _core;
+  ::larcv::supera::SuperaCore<recob::Wire,
+  simb::MCTruth, sim::MCTrack, sim::MCShower, sim::SimChannel> _core;
   ::larcv::logger _logger;
 
 };
@@ -82,48 +81,47 @@ void Supera::endJob()
 bool Supera::filter(art::Event & e)
 {
   _core.clear_data();
-  _core.set_id(e.id().run(),e.id().subRun(),e.id().event());
+  _core.set_id(e.id().run(), e.id().subRun(), e.id().event());
 
   art::Handle<std::vector<recob::Wire> > wire_h;
-  e.getByLabel(_core.producer_wire(),wire_h);
-  if(!wire_h.isValid()) { throw ::larcv::larbys("Could not load wire data!"); }
+  e.getByLabel(_core.producer_wire(), wire_h);
+  if (!wire_h.isValid()) { throw ::larcv::larbys("Could not load wire data!"); }
 
-  art::Handle<std::vector<raw::OpDetWaveform> > opdigit_h;
-  e.getByLabel(_core.producer_opdigit(),opdigit_h);
-  if(!opdigit_h.isValid()) { throw ::larcv::larbys("Could not load opdigit data!"); }
 
   //
   // Fill Channel Status
-  // 
-  if(_core.store_chstatus()) {
+  //
+  if (_core.store_chstatus()) {
 
     std::vector<bool> filled_ch( ::larcv::supera::Nchannels(), false );
-    
+
     // If specified check RawDigit pedestal value: if negative this channel is not used by wire (set status=>-2)
-    if(!_core.producer_digit().empty()) {
+    if (!_core.producer_digit().empty()) {
       art::Handle<std::vector<raw::RawDigit> > digit_h;
-      e.getByLabel(_core.producer_digit(),digit_h);
-      for(auto const& digit : *digit_h) {
-	auto const ch = digit.Channel();
-	if(ch >= filled_ch.size()) throw ::larcv::larbys("Found RawDigit > possible channel number!");
-	if(digit.GetPedestal()<0.) {
-	  _core.set_chstatus(ch,::larcv::chstatus::kNEGATIVEPEDESTAL);
-	  filled_ch[ch] = true;
-	}
+      e.getByLabel(_core.producer_digit(), digit_h);
+      for (auto const& digit : *digit_h) {
+        auto const ch = digit.Channel();
+        if (ch >= filled_ch.size()) throw ::larcv::larbys("Found RawDigit > possible channel number!");
+        if (digit.GetPedestal() < 0.) {
+          _core.set_chstatus(ch, ::larcv::chstatus::kNEGATIVEPEDESTAL);
+          filled_ch[ch] = true;
+        }
       }
     }
 
     // Set database status
-    const lariov::ChannelStatusProvider& chanFilt = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
-    for(size_t i=0; i < ::larcv::supera::Nchannels(); ++i) {
+    const lariov::ChannelStatusProvider& chanFilt
+      = art::ServiceHandle<lariov::ChannelStatusService>()->GetProvider();
+    for (size_t i = 0; i < ::larcv::supera::Nchannels(); ++i) {
       if ( filled_ch[i] ) continue;
-      if (!chanFilt.IsPresent(i)) _core.set_chstatus(i,::larcv::chstatus::kNOTPRESENT);
-      else _core.set_chstatus(i,(short)(chanFilt.Status(i)));
+      if (!chanFilt.IsPresent(i))
+        _core.set_chstatus(i, ::larcv::chstatus::kNOTPRESENT);
+      else _core.set_chstatus(i, (short)(chanFilt.Status(i)));
     }
   }
 
-  bool status=true;
-  if(_core.use_mc()) {
+  bool status = true;
+  if (_core.use_mc()) {
 
     art::Handle<std::vector<simb::MCTruth> > mctruth_h;
     art::Handle<std::vector<sim::MCTrack>  > mctrack_h;
@@ -132,29 +130,29 @@ bool Supera::filter(art::Event & e)
     e.getByLabel(_core.producer_mcreco(),    mctrack_h);
     e.getByLabel(_core.producer_mcreco(),    mcshower_h);
 
-    if(!mctruth_h.isValid() || !mctrack_h.isValid() || !mcshower_h.isValid())
+    if (!mctruth_h.isValid() || !mctrack_h.isValid() || !mcshower_h.isValid())
 
       throw ::larcv::larbys("Necessary MC info missing...");
 
-    if(_core.producer_simch().empty()) {
+    if (_core.producer_simch().empty()) {
 
       std::vector<sim::SimChannel> empty_simch;
-      status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+      status = _core.process_event(*wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
 
-    }else{
+    } else {
 
       art::Handle<std::vector<sim::SimChannel> > simch_h;
       e.getByLabel(_core.producer_simch(), simch_h);
-      if(!simch_h.isValid()) throw ::larcv::larbys("SimChannel requested but not available");
-      status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+      if (!simch_h.isValid()) throw ::larcv::larbys("SimChannel requested but not available");
+      status = _core.process_event(*wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
 
     }
-  }else{
+  } else {
     std::vector<simb::MCTruth>   empty_mctruth;
     std::vector<sim::MCTrack>    empty_mctrack;
     std::vector<sim::MCShower>   empty_mcshower;
     std::vector<sim::SimChannel> empty_simch;
-    status = _core.process_event(*opdigit_h, *wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);
+    status = _core.process_event(*wire_h, empty_mctruth, empty_mctrack, empty_mcshower, empty_simch);
   }
   return status;
 }
