@@ -52,7 +52,7 @@
                 Refine2DVertexAlgo : refine_vtx
         }
         defbreak2 : {}
-        pca2 : {}
+        pca2 : {   DefectClusterAlgo: "defbreak2"}
         atrack : {
             2ndPCACandidatesName : "pca2"
             2ndDefectClusterName : "defbreak2"		       
