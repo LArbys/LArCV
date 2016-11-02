@@ -143,7 +143,7 @@ namespace larcv {
 
       ::larocv::ImageMeta meta(cvmeta.width(), cvmeta.height(),
 			       cvmeta.cols(),  cvmeta.rows(),
-			       cvmeta.min_x(), cvmeta.min_y(), i);
+			       cvmeta.min_y(), cvmeta.min_x(), i);
 
       LARCV_DEBUG() << "LArOpenCV meta @ plane " << i << " ... "
 		    << "Reading image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
