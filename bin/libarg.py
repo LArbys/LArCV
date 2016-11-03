@@ -17,7 +17,7 @@ if 'LARLITE_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterMatch']
         libs += [' -lLArOpenCV_ImageClusterMerge']
         libs += [' -lLArOpenCV_ImageClusterFilter']
-        libs += [' -lLArOpenCV_ImageClusterReCluster']
+        #libs += [' -lLArOpenCV_ImageClusterReCluster']
         libs += [' -lLArOpenCV_ImageClusterStartPoint']
         libs += [' -lLArOpenCV_ImageClusterDebug']
         libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
