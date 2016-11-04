@@ -35,7 +35,7 @@ namespace larcv {
 
     /// HIP cluster data
     _reco_tree->Branch("n_mip_ctors_v", &_n_mip_ctors_v );
-    _reco_tree->Branch("n_mip_ctors_v", &_n_hip_ctors_v );
+    _reco_tree->Branch("n_hip_ctors_v", &_n_hip_ctors_v );
     
     std::cout << "ImageClusterManager pointer is: " << _mgr_ptr << std::endl;
     
