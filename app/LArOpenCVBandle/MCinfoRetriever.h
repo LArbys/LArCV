@@ -48,6 +48,8 @@ namespace larcv {
 
     //  private:
   protected:
+    std::string _producer;
+    
     TTree* _mc_tree;
     int _run;
     int _subrun;
