@@ -16,6 +16,8 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
+#include "LArbysImage.h"
+
 namespace larcv {
 
   /**
@@ -38,9 +40,23 @@ namespace larcv {
     void initialize();
 
     bool process(IOManager& mgr);
-
+    
     void finalize();
+    
+    void SetManager(const ::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
+    
+  private:
+    
+    TTree* _reco_tree;
+    
+    const ::larocv::ImageClusterManager* _mgr_ptr;
 
+
+    uint _run;
+    uint _subrun;
+    uint _event;
+    
+    
   };
 
   /**
