@@ -104,8 +104,8 @@ namespace larcv {
     void ParentMomentum (double px, double py, double pz) { _parent_px = px; _parent_py = py; _parent_pz = pz; }
     void AppendBB      (const larcv::ImageMeta& bb);
     void SetBB         (const std::vector<larcv::ImageMeta>& bb_v);
-    void NuCurrentType (short curr=-1) { _current_type = curr; }
-    void NuInteractionType (short itype=-1) { _interaction_type = itype; }
+    void NuCurrentType (short curr) { curr = -1; _current_type = curr; }
+    void NuInteractionType (short itype) { itype = -1; _interaction_type = itype; }
 
     std::string dump() const;
     
