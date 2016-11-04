@@ -43,19 +43,23 @@ namespace larcv {
     
     void finalize();
     
-    void SetManager(const ::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
+    void SetManager(const::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
     
   private:
     
     TTree* _reco_tree;
     
     const ::larocv::ImageClusterManager* _mgr_ptr;
+    void Clear();
 
-
+    /// Unique event keys
     uint _run;
     uint _subrun;
     uint _event;
     
+    /// HIP cluster vars
+    std::vector<uint> _n_mip_ctors_v;
+    std::vector<uint> _n_hip_ctors_v;
     
   };
 
