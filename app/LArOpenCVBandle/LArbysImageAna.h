@@ -1,0 +1,64 @@
+/**
+ * \file LArbysImageAna.h
+ *
+ * \ingroup Package_Name
+ * 
+ * \brief Class def header for a class LArbysImageAna
+ *
+ * @author vgenty
+ */
+
+/** \addtogroup Package_Name
+
+    @{*/
+#ifndef __LARBYSIMAGEANA_H__
+#define __LARBYSIMAGEANA_H__
+
+#include "Processor/ProcessBase.h"
+#include "Processor/ProcessFactory.h"
+namespace larcv {
+
+  /**
+     \class ProcessBase
+     User defined class LArbysImageAna ... these comments are used to generate
+     doxygen documentation!
+  */
+  class LArbysImageAna : public ProcessBase {
+
+  public:
+    
+    /// Default constructor
+    LArbysImageAna(const std::string name="LArbysImageAna");
+    
+    /// Default destructor
+    ~LArbysImageAna(){}
+
+    void configure(const PSet&);
+
+    void initialize();
+
+    bool process(IOManager& mgr);
+
+    void finalize();
+
+  };
+
+  /**
+     \class larcv::LArbysImageAnaFactory
+     \brief A concrete factory class for larcv::LArbysImageAna
+  */
+  class LArbysImageAnaProcessFactory : public ProcessFactoryBase {
+  public:
+    /// ctor
+    LArbysImageAnaProcessFactory() { ProcessFactory::get().add_factory("LArbysImageAna",this); }
+    /// dtor
+    ~LArbysImageAnaProcessFactory() {}
+    /// creation method
+    ProcessBase* create(const std::string instance_name) { return new LArbysImageAna(instance_name); }
+  };
+
+}
+
+#endif
+/** @} */ // end of doxygen group 
+
