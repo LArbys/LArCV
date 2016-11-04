@@ -57,13 +57,15 @@ namespace larcv {
     _current_type = roi.NuCurrentType();
     _interaction_type  =roi.NuInteractionType();
     
-    
+    _mc_tree->Fill();
     return true;
     
   }
 
   void MCinfoRetriever::finalize()
-  {}
+  {
+    _mc_tree->Write();
+  }
 
 }
 #endif
