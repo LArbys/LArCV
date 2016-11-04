@@ -4,6 +4,7 @@
 #include "MCinfoRetriever.h"
 #include "DataFormat/ROI.h"
 #include "DataFormat/EventROI.h"
+#include "LArUtil/GeometryHelper.h"
 
 namespace larcv {
 
@@ -33,18 +34,17 @@ namespace larcv {
     _mc_tree->Branch("parentPx",&_parent_px,"parentPx/D");
     _mc_tree->Branch("parentPy",&_parent_py,"parentPy/D");
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
-    _mc_tree->Branch("currentType",&_current_type,"currentType/I");
-    _mc_tree->Branch("interactionType",&_current_type,"InteractionType/I");
+    _mc_tree->Branch("currentType",&_current_type,"currentType/Short");
+    _mc_tree->Branch("interactionType",&_current_type,"InteractionType/Short");
+    _mc_tree->Branch("vtx2d","std::vector<std::pair<double,double>>",&_vtx_2d_v);
     
   }
 
   bool MCinfoRetriever::process(IOManager& mgr)
   {
 
-    // get the ROI data that has the MC information
-    //https://github.com/LArbys/LArCV/blob/develop/core/DataFormat/EventROI.h
-    //https://github.com/LArbys/LArCV/blob/develop/core/DataFormat/ROI.h
-    //std::cout << "This event is: " << ev_roi->event() << std::endl;
+    _vtx_2d_v.clear();
+    _vtx_2d_v.resize(3);
 
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer);
     _run    = ev_roi->run();
@@ -66,6 +66,24 @@ namespace larcv {
     _current_type = roi.NuCurrentType();
     _interaction_type  =roi.NuInteractionType();
     
+    //Get 2D projections from 3D
+    
+    auto geohelp = larutil::GeometryHelper::GetME();
+    
+    for (int plane = 0 ; plane<3;++plane){
+      
+      auto vtx_2d = geohelp->Point_3Dto2D(_parent_x, _parent_y, _parent_z, plane );
+      
+      auto vtx_w = vtx_2d.w / geohelp->WireToCm();
+      auto vtx_t = vtx_2d.t / geohelp->TimeToCm();
+
+      std::pair<double,double> wt(vtx_w,vtx_t);
+      
+      _vtx_2d_v.emplace_back(wt);
+      
+    }
+    
+    //Fill tree
     _mc_tree->Fill();
     return true;
     
