@@ -14,7 +14,9 @@ namespace larcv {
   {}
     
   void MCinfoRetriever::configure(const PSet& cfg)
-  {}
+  {
+    
+  }
 
   void MCinfoRetriever::initialize()
   {
@@ -31,7 +33,9 @@ namespace larcv {
     // get the ROI data that has the MC information
     //https://github.com/LArbys/LArCV/blob/develop/core/DataFormat/EventROI.h
     //https://github.com/LArbys/LArCV/blob/develop/core/DataFormat/ROI.h
-    auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,"tpc");
+    
+    auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,"tpc_hires_crop");
+    
     //auto ev_roi = (larcv::EventROI*)(mgr.get_data(kProductROI,"tpc"));
     //std::cout << "This event is: " << ev_roi->event() << std::endl;
     _run    = ev_roi->run();
