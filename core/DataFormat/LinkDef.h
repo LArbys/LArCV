@@ -49,6 +49,9 @@
 #pragma link C++ function larcv::ROIType2String(larcv::ROIType_t)+;
 #pragma link C++ function larcv::String2ROIType(const string&)+;
 #endif
+#pragma link C++ class larcv::MCinfoRetriever+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
+
+
