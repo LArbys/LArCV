@@ -34,8 +34,8 @@ namespace larcv {
     _mc_tree->Branch("parentPx",&_parent_px,"parentPx/D");
     _mc_tree->Branch("parentPy",&_parent_py,"parentPy/D");
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
-    _mc_tree->Branch("currentType",&_current_type,"currentType/Short");
-    _mc_tree->Branch("interactionType",&_current_type,"InteractionType/Short");
+    _mc_tree->Branch("currentType",&_current_type,"currentType/S");
+    _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
     _mc_tree->Branch("vtx2d","std::vector<std::pair<double,double>>",&_vtx_2d_v);
     
   }
