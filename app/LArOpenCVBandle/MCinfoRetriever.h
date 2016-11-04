@@ -16,6 +16,11 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
+
+#include <vector>
+#include "TH1D.h"
+#include "TTree.h"
+
 namespace larcv {
 
   /**
@@ -41,6 +46,26 @@ namespace larcv {
 
     void finalize();
 
+    //  private:
+  protected:
+    TTree* _mc_tree;
+    int _run;
+    int _subrun;
+    int _event;
+    
+    int _parent_pdg;//primary particle pdg
+    double _energy_deposit;
+    double _parent_x;
+    double _parent_y;  
+    double _parent_z;  
+    double _parent_t;  
+    double _parent_px;
+    double _parent_py;  
+    double _parent_pz;  
+
+    short _current_type;
+    short _interaction_type;
+
   };
 
   /**
@@ -55,6 +80,7 @@ namespace larcv {
     ~MCinfoRetrieverProcessFactory() {}
     /// creation method
     ProcessBase* create(const std::string instance_name) { return new MCinfoRetriever(instance_name); }
+
   };
 
 }
