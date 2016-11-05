@@ -11,6 +11,7 @@ if 'LARLITE_BASEDIR' in os.environ:
     libs+= commands.getoutput('larlite-config --libs').split()
     if 'LAROPENCV_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterBase']
+        libs += [' -lLArOpenCV_ImageClusterAlgoData']
         libs += [' -lLArOpenCV_ImageClusterCluster']
         libs += [' -lLArOpenCV_ImageClusterDirection']
         libs += [' -lLArOpenCV_ImageClusterUtil']

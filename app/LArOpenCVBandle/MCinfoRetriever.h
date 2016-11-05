@@ -20,6 +20,7 @@
 #include <vector>
 #include "TH1D.h"
 #include "TTree.h"
+#include "LArUtil/PxUtils.h"
 
 namespace larcv {
 
@@ -48,6 +49,8 @@ namespace larcv {
 
     //  private:
   protected:
+    std::string _producer;
+    
     TTree* _mc_tree;
     int _run;
     int _subrun;
@@ -66,6 +69,7 @@ namespace larcv {
     short _current_type;
     short _interaction_type;
 
+    std::vector<std::pair<double,double>> _vtx_2d_v;
   };
 
   /**

@@ -50,6 +50,7 @@ namespace larcv {
     TTree* _reco_tree;
     
     const ::larocv::ImageClusterManager* _mgr_ptr;
+
     void Clear();
 
     /// Unique event keys
@@ -60,6 +61,18 @@ namespace larcv {
     /// HIP cluster vars
     std::vector<uint> _n_mip_ctors_v;
     std::vector<uint> _n_hip_ctors_v;
+
+    /// Refine2D data
+    uint _n_vtx3d;
+
+
+
+
+    /// Configuration pset
+    std::string _hipcluster_name;     
+    std::string _defectcluster_name;  
+    std::string _pcacandidates_name; 
+    std::string _refine2dvertex_name; 
     
   };
 
