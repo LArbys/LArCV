@@ -24,5 +24,9 @@ $(PROGRAMS): $(PROGRAMS).cxx
 	@echo '<<compiling' $@'>>'
 	@$(CXX) $@.cxx -o $@ $(CXXFLAGS) -std=c++1y $(LDFLAGS)
 	@rm -rf *.dSYM
+	@echo '<<installing' $@'>>'
+	@cp supera $(LARCV_BUILDDIR)/bin/
+	@chmod 755 $(LARCV_BUILDDIR)/bin/supera
 clean:	
 	rm -f $(PROGRAMS)
+	rm $(LARCV_BUILDDIR)/bin/supera
