@@ -13,7 +13,7 @@ namespace larcv {
   static MCinfoRetrieverProcessFactory __global_MCinfoRetrieverProcessFactory__;
 
   MCinfoRetriever::MCinfoRetriever(const std::string name)
-    : ProcessBase(name)
+    : ProcessBase(name), _mc_tree(nullptr)
   {}
     
   void MCinfoRetriever::configure(const PSet& cfg)
@@ -25,9 +25,9 @@ namespace larcv {
   void MCinfoRetriever::initialize()
   {
     _mc_tree = new TTree("mctree","MC infomation");
-    _mc_tree->Branch("run",&_run,"sun/I");
-    _mc_tree->Branch("subrun",&_subrun,"subrun/I");
-    _mc_tree->Branch("event",&_event,"event/I");
+    _mc_tree->Branch("run",&_run,"run/i");
+    _mc_tree->Branch("subrun",&_subrun,"subrun/i");
+    _mc_tree->Branch("event",&_event,"event/i");
     _mc_tree->Branch("parentPDG",&_parent_pdg,"parentPDG/I");
     _mc_tree->Branch("energyDeposit",&_energy_deposit,"energyDeposit/D");
     _mc_tree->Branch("parentX",&_parent_x,"parentX/D");
@@ -57,9 +57,9 @@ namespace larcv {
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
 
-    _run    = ev_roi->run();
-    _subrun = ev_roi->subrun();
-    _run    = ev_roi->event();
+    _run    = (uint) ev_roi->run();
+    _subrun = (uint) ev_roi->subrun();
+    _event  = (uint) ev_roi->event();
     
     auto roi = ev_roi->at(0);
     

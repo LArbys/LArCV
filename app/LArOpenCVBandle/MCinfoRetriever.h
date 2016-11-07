@@ -56,12 +56,13 @@ namespace larcv {
     TTree* _mc_tree;
     
     /// Event ID
-    int _run;
-    int _subrun;
-    int _event;
+    uint _run;
+    uint _subrun;
+    uint _event;
 
     /// Primary Particle Info
     int _parent_pdg;//primary particle pdg
+
     double _energy_deposit;
     double _parent_x;
     double _parent_y;  
