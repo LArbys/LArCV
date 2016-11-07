@@ -5,6 +5,8 @@
 #include "DataFormat/ROI.h"
 #include "DataFormat/EventROI.h"
 #include "LArUtil/GeometryHelper.h"
+#include "LArUtil/LArProperties.h"
+#include "DataFormat/EventImage2D.h"
 
 namespace larcv {
 
@@ -16,7 +18,8 @@ namespace larcv {
     
   void MCinfoRetriever::configure(const PSet& cfg)
   {
-    _producer  = cfg.get<std::string>("MCProducer");
+    _producer_roi       = cfg.get<std::string>("MCProducer");
+    _producer_image2d   = cfg.get<std::string>("Image2DProducer");
   }
 
   void MCinfoRetriever::initialize()
@@ -36,17 +39,24 @@ namespace larcv {
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
     _mc_tree->Branch("currentType",&_current_type,"currentType/S");
     _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
-    _mc_tree->Branch("vtx2d","std::vector<std::pair<double,double>>",&_vtx_2d_v);
+    _mc_tree->Branch("vtx2d_w","std::vector<double>",&_vtx_2d_w_v);
+    _mc_tree->Branch("vtx2d_t","std::vector<double>",&_vtx_2d_t_v);
     
   }
 
   bool MCinfoRetriever::process(IOManager& mgr)
   {
 
-    _vtx_2d_v.clear();
-    _vtx_2d_v.resize(3);
+    _vtx_2d_w_v.clear();
+    _vtx_2d_t_v.clear();
+    _vtx_2d_w_v.resize(3);
+    _vtx_2d_t_v.resize(3);
+    _image_v.clear();
+    _image_v.resize(3);
+    
+    auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
+    auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
 
-    auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer);
     _run    = ev_roi->run();
     _subrun = ev_roi->subrun();
     _run    = ev_roi->event();
@@ -68,18 +78,33 @@ namespace larcv {
     
     //Get 2D projections from 3D
     
-    auto geohelp = larutil::GeometryHelper::GetME();
+    auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
+    auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
     
     for (int plane = 0 ; plane<3;++plane){
       
       auto vtx_2d = geohelp->Point_3Dto2D(_parent_x, _parent_y, _parent_z, plane );
       
-      auto vtx_w = vtx_2d.w / geohelp->WireToCm();
-      auto vtx_t = vtx_2d.t / geohelp->TimeToCm();
+      //auto vtx_w = vtx_2d.w / geohelp->WireToCm();
+      //auto vtx_t = vtx_2d.t / geohelp->TimeToCm();
 
-      std::pair<double,double> wt(vtx_w,vtx_t);
+      ///Convert [cm] to [pixel]
+
+      _image_v[plane] = ev_image2d->Image2DArray()[plane];
       
-      _vtx_2d_v.emplace_back(wt);
+      _meta = _image_v[plane].meta();
+      double x_compression, y_compression;
+      x_compression  = _meta.width()  / _meta.cols();
+      y_compression  = _meta.height() / _meta.rows();
+      
+      double x_pixel  ,  y_pixel;
+      x_pixel = (vtx_2d.w/geohelp->WireToCm() - _meta.tl().x) / x_compression;
+      y_pixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-_meta.br().y)/y_compression;
+   
+      _vtx_2d_w_v[plane] = x_pixel;
+      _vtx_2d_t_v[plane] = y_pixel;
+    
+      
       
     }
     
