@@ -21,6 +21,7 @@
 #include "TH1D.h"
 #include "TTree.h"
 #include "LArUtil/PxUtils.h"
+#include "DataFormat/Image2D.h"
 
 namespace larcv {
 
@@ -49,13 +50,17 @@ namespace larcv {
 
     //  private:
   protected:
-    std::string _producer;
+    std::string _producer_roi;
+    std::string _producer_image2d;
     
     TTree* _mc_tree;
+    
+    /// Event ID
     int _run;
     int _subrun;
     int _event;
-    
+
+    /// Primary Particle Info
     int _parent_pdg;//primary particle pdg
     double _energy_deposit;
     double _parent_x;
@@ -65,11 +70,17 @@ namespace larcv {
     double _parent_px;
     double _parent_py;  
     double _parent_pz;  
-
     short _current_type;
     short _interaction_type;
 
-    std::vector<std::pair<double,double>> _vtx_2d_v;
+    /// 2D Vertex Info
+    std::vector<double> _vtx_2d_w_v;
+    std::vector<double> _vtx_2d_t_v;
+
+    /// LARCV Image2D data
+    std::vector<larcv::Image2D> _image_v;
+    ImageMeta _meta;
+    
   };
 
   /**
