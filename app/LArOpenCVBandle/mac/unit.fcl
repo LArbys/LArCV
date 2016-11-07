@@ -1,6 +1,7 @@
       Verbosity: 0
       Profile: true
-      ImageProducer: "tpc_hires_crop"#"tpc_hires_crop"
+      #ImageProducer: "tpc_hires_crop"
+      ImageProducer: "tpc"
       Debug: true
 
       Q2Gray: 2
@@ -39,7 +40,7 @@
         hipctor : {}
         defbreak1 : {}
         pca1 : {
-            DefectClusterAlgo: ""
+            DefectClusterAlgo: "defbreak1"
             BreakPerVertex: false
         }
         rough_vtx : {}
