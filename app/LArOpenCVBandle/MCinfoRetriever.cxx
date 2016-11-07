@@ -51,6 +51,8 @@ namespace larcv {
     _vtx_2d_t_v.clear();
     _vtx_2d_w_v.resize(3);
     _vtx_2d_t_v.resize(3);
+    _image_v.clear();
+    _image_v.resize(3);
     
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
@@ -87,7 +89,9 @@ namespace larcv {
       //auto vtx_t = vtx_2d.t / geohelp->TimeToCm();
 
       ///Convert [cm] to [pixel]
+
       _image_v[plane] = ev_image2d->Image2DArray()[plane];
+      
       _meta = _image_v[plane].meta();
       double x_compression, y_compression;
       x_compression  = _meta.width()  / _meta.cols();
