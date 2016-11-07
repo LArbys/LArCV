@@ -67,14 +67,19 @@ namespace larcv {
     std::vector<double> _x_v, _y_v, _z_v;
 
     uint _n_circle_vtx;
-    std::vector<double> _x0_v, _x1_v, _x2_v;
-    std::vector<double> _y0_v, _y1_v, _y2_v;
+    std::vector<std::vector<double> > _x_vv;
+    std::vector<std::vector<double> > _y_vv;
 
     std::vector<uint> _vtx3d_n_planes_v;
     
     /// VertexTrackCluster
     uint _n_vtx_cluster;
-    
+
+    std::vector<uint> _num_planes_v;
+
+    std::vector<std::vector<uint> >    _num_clusters_vv;
+    std::vector<std::vector<uint> >    _num_pixels_vv;
+    std::vector<std::vector<double> > _num_pixel_frac_vv;    
     /// Configuration pset
     std::string _hipcluster_name;
     std::string _defectcluster_name;

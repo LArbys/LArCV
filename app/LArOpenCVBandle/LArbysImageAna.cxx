@@ -21,7 +21,7 @@ namespace larcv {
     _defectcluster_name  = cfg.get<std::string>("DefectClusterAlgoName");
     _pcacandidates_name  = cfg.get<std::string>("PCACandidatesAlgoName");
     _refine2dvertex_name = cfg.get<std::string>("Refine2DVertexAlgoName");
-    //_vertexcluster_name = cfg.get<std::string>("VertexTrackClusterAlgoName");
+    _vertexcluster_name = cfg.get<std::string>("VertexTrackClusterAlgoName");
   }
 
   void LArbysImageAna::Clear() {
@@ -33,12 +33,12 @@ namespace larcv {
     _x_v.clear();
     _y_v.clear();
     _z_v.clear();
-    _x0_v.clear();
-    _x1_v.clear();
-    _x2_v.clear();
-    _y0_v.clear();
-    _y1_v.clear();
-    _y2_v.clear();	
+    _x_vv.clear();
+    _y_vv.clear();
+    _num_planes_v.clear();
+    _num_clusters_vv.clear();
+    _num_pixels_vv.clear();
+    _num_pixel_frac_vv.clear();
   }
   
   void LArbysImageAna::initialize()
@@ -68,16 +68,18 @@ namespace larcv {
 
     _reco_tree->Branch("n_circle_vtx", &_n_circle_vtx, "n_circle_vtx/i" );
 
-    _reco_tree->Branch("circle_vtx_x0_v",&_x0_v);
-    _reco_tree->Branch("circle_vtx_x1_v",&_x1_v);
-    _reco_tree->Branch("circle_vtx_x2_v",&_x2_v);
-
-    _reco_tree->Branch("circle_vtx_y0_v",&_y0_v);
-    _reco_tree->Branch("circle_vtx_y1_v",&_y1_v);
-    _reco_tree->Branch("circle_vtx_y2_v",&_y2_v);
-	
-    /// VertexTrackCluster
+    _reco_tree->Branch("circle_vtx_x_vv",&_x_vv);
+    _reco_tree->Branch("circle_vtx_y_vv",&_y_vv);
     
+    /// VertexTrackCluster
+    _reco_tree->Branch("n_vtx_cluster", &_n_vtx_cluster, "n_vtx_cluster/i");    
+
+    _reco_tree->Branch("num_planes_v"      ,&_num_planes_v);
+    _reco_tree->Branch("num_clusters_vv"   ,&_num_clusters_vv);
+    _reco_tree->Branch("num_pixels_vv"     ,&_num_pixels_vv);
+    _reco_tree->Branch("num_pixel_frac_vv" ,&_num_pixel_frac_vv);
+    
+
   }
   
   bool LArbysImageAna::process(IOManager& mgr)
@@ -127,32 +129,63 @@ namespace larcv {
     uint circle_vtx_vv_size=circle_vtx_vv.size();
     _n_circle_vtx = circle_vtx_vv_size;
     
-    _x0_v.resize(circle_vtx_vv_size);
-    //std::fill(v.begin(), v.end(), -1.0)
-    _x1_v.resize(circle_vtx_vv_size);
-    _x2_v.resize(circle_vtx_vv_size);
-
-    _y0_v.resize(circle_vtx_vv_size);
-    _y1_v.resize(circle_vtx_vv_size);
-    _y2_v.resize(circle_vtx_vv_size);
+    _x_vv.resize(circle_vtx_vv_size);
+    _y_vv.resize(circle_vtx_vv_size);
     
     for(uint i=0;i<circle_vtx_vv_size;++i) {
       const auto& circle_vtx_v = circle_vtx_vv[i];
+
+      auto& _x_v = _x_vv[i];
+      auto& _y_v = _y_vv[i];
+      
+      _x_v.resize(circle_vtx_v.size());
+      _y_v.resize(circle_vtx_v.size());
+      
       for(uint plane_id=0;plane_id<circle_vtx_v.size();++plane_id) {
 	const auto& circle_vtx = circle_vtx_v[plane_id];
 	const auto& circle_vtx_c = circle_vtx.center;
-	switch (plane_id) {
-	case 0 : _x0_v.at(i) = circle_vtx_c.x; _y0_v.at(i) = circle_vtx_c.y; break;
-	case 1 : _x1_v.at(i) = circle_vtx_c.x; _y1_v.at(i) = circle_vtx_c.y; break;
-	case 2 : _x2_v.at(i) = circle_vtx_c.x; _y2_v.at(i) = circle_vtx_c.y; break;
-	default: throw larbys("Invalid plane requested in the circle vertex loop");
-	}
+	_x_v[plane_id] = circle_vtx_c.x;
+	_y_v[plane_id] = circle_vtx_c.y;
       }
+      
     }
     
     // /// VertexCluster data
-    // const auto vtxtrkcluster_data = (larocv::data::VertexClusterArray*)dm.Data( dm.ID(_vertexcluster_name) );
+    const auto vtxtrkcluster_data = (larocv::data::VertexClusterArray*)dm.Data( dm.ID(_vertexcluster_name) );
+    auto& vtx_cluster_v=  vtxtrkcluster_data->_vtx_cluster_v;
+    _n_vtx_cluster = (uint) vtx_cluster_v.size();
+
+    _num_planes_v.resize(_n_vtx_cluster);
+
     
+    _num_clusters_vv.resize(_n_vtx_cluster);
+    _num_pixels_vv.resize(_n_vtx_cluster);
+    _num_pixel_frac_vv.resize(_n_vtx_cluster);
+    
+    for(uint px=0; px<_n_vtx_cluster; ++px) { 
+
+      const auto& vtx_cluster = vtx_cluster_v[px];
+      _num_planes_v[px]   = vtx_cluster.num_planes();
+
+      auto& num_clusters_v   = _num_clusters_vv[px];
+      auto& num_pixels_v     = _num_pixels_vv[px];
+      auto& num_pixel_frac_v = _num_pixel_frac_vv[px];
+
+      const auto n_planes = vtx_cluster.num_planes();
+      
+      num_clusters_v.resize(n_planes);
+      num_pixels_v.resize(n_planes);
+      num_pixel_frac_v.resize(n_planes);
+      
+      for(uint plane_id=0;plane_id<n_planes;++plane_id) {
+	num_clusters_v[plane_id]  = vtx_cluster.num_clusters(plane_id);
+	num_pixels_v[plane_id]    = vtx_cluster.num_pixels(plane_id);
+	num_pixel_frac_v[plane_id]= vtx_cluster.num_pixel_fraction(plane_id);
+      }
+      
+    }
+
+      
     _reco_tree->Fill();
     
     Clear();

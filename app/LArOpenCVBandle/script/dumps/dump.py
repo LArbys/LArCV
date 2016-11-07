@@ -30,7 +30,7 @@ larbysimg.configure(cfg)
 larbysimg.initialize()
 pygeo   = geo2d.PyDraw()
 
-for event in xrange(1):
+for event in xrange(10):
     print "EVENT IS ",event
     fig,ax=plt.subplots(figsize=(10,10))
     ax.text(-30,75,"Event %d"%event,fontsize=35,color='blue',fontweight='bold')
