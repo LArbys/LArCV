@@ -69,6 +69,8 @@ namespace larcv {
     uint _n_circle_vtx;
     std::vector<double> _x0_v, _x1_v, _x2_v;
     std::vector<double> _y0_v, _y1_v, _y2_v;
+
+    std::vector<uint> _vtx3d_n_planes_v;
     
     /// VertexTrackCluster
     uint _n_vtx_cluster;

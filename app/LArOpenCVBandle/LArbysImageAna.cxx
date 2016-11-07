@@ -29,6 +29,7 @@ namespace larcv {
     _n_hip_ctors_v.clear();
     _n_mip_ctors_v.resize(3);
     _n_hip_ctors_v.resize(3);
+    _vtx3d_n_planes_v.clear();
     _x_v.clear();
     _y_v.clear();
     _z_v.clear();
@@ -58,6 +59,9 @@ namespace larcv {
     
     /// Refine2D data
     _reco_tree->Branch("n_vtx3d", &_n_vtx3d, "n_vtx3d/i");
+
+    _reco_tree->Branch("vtx3d_num_planes_v", &_vtx3d_n_planes_v);
+    
     _reco_tree->Branch("vtx3d_x_v", &_x_v );
     _reco_tree->Branch("vtx3d_y_v", &_y_v );
     _reco_tree->Branch("vtx3d_z_v", &_z_v );
@@ -108,8 +112,11 @@ namespace larcv {
     _x_v.resize(_n_vtx3d);
     _y_v.resize(_n_vtx3d);
     _z_v.resize(_n_vtx3d);
+    _vtx3d_n_planes_v.resize(_n_vtx3d);
+    
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) {
       const auto& vtx3d = vtx3d_v[vtx_id];
+      _vtx3d_n_planes_v[vtx_id] = vtx3d.num_planes;
       _x_v[vtx_id] = vtx3d.x;
       _y_v[vtx_id] = vtx3d.y;
       _z_v[vtx_id] = vtx3d.z;
