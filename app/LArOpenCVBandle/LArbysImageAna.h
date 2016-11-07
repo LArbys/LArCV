@@ -64,15 +64,23 @@ namespace larcv {
 
     /// Refine2D data
     uint _n_vtx3d;
+    std::vector<double> _x_v, _y_v, _z_v;
 
+    uint _n_circle_vtx;
+    std::vector<double> _x0_v, _x1_v, _x2_v;
+    std::vector<double> _y0_v, _y1_v, _y2_v;
 
-
-
+    std::vector<uint> _vtx3d_n_planes_v;
+    
+    /// VertexTrackCluster
+    uint _n_vtx_cluster;
+    
     /// Configuration pset
-    std::string _hipcluster_name;     
-    std::string _defectcluster_name;  
-    std::string _pcacandidates_name; 
-    std::string _refine2dvertex_name; 
+    std::string _hipcluster_name;
+    std::string _defectcluster_name;
+    std::string _pcacandidates_name;
+    std::string _refine2dvertex_name;
+    std::string _vertexcluster_name;
     
   };
 

@@ -30,7 +30,7 @@ larbysimg.configure(cfg)
 larbysimg.initialize()
 pygeo   = geo2d.PyDraw()
 
-for event in xrange(10):
+for event in xrange(1):
     print "EVENT IS ",event
     fig,ax=plt.subplots(figsize=(10,10))
     ax.text(-30,75,"Event %d"%event,fontsize=35,color='blue',fontweight='bold')
@@ -191,11 +191,11 @@ for event in xrange(10):
         vtx_idx=0
         for vtx_idx in xrange(len(vtx_vv)):
             vtx = vtx_vv[vtx_idx][plane]
-
+            print vtx.center.x,vtx.center.y
             ax.plot([vtx.center.x],[vtx.center.y],marker='$\star$',color='yellow',markersize=24)
 
         ax=plt.gca()
-
+        
         plt.savefig("%04d_3_%d.png"%(event,plane))
         plt.cla()
         plt.clf()
