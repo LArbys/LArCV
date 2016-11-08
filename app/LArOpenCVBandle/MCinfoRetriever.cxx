@@ -65,52 +65,85 @@ namespace larcv {
   //Function intersection finds the intersecion point of track
   //and ROI in particle direction
   
-  geo2d::Vector<float> MCinfoRetriever::Intersection (const geo2d::Line<float> lt,
-						      geo2d::Vector<float> tl,geo2d::Vector<float>br)
+  geo2d::Vector<float> MCinfoRetriever::Intersection (const geo2d::HalfLine<float>& hline,
+						      const cv::Rect& rect)
   {
-    geo2d::Vector<float> bl(br.x, tl.y);
-    geo2d::Vector<float> tr(tl.x, br.y);
     
-    geo2d::Line<float> l1(bl,br-bl);
-    geo2d::Line<float> l2(br,tr-br);
-    geo2d::Line<float> l3(tr,tl-tr);
-    geo2d::Line<float> l4(tl,bl-tl);
+    geo2d::LineSegment<float> ls1(geo2d::Vector<float>(rect.x           ,rect.y            ),
+				  geo2d::Vector<float>(rect.x+rect.width,rect.y            ));
+
+    geo2d::LineSegment<float> ls2(geo2d::Vector<float>(rect.x+rect.width,rect.y            ),
+				  geo2d::Vector<float>(rect.x+rect.width,rect.y+rect.height));
+
+    geo2d::LineSegment<float> ls3(geo2d::Vector<float>(rect.x+rect.width,rect.y+rect.height),
+				  geo2d::Vector<float>(rect.x           ,rect.y+rect.height));
+
+    geo2d::LineSegment<float> ls4(geo2d::Vector<float>(rect.x           ,rect.y+rect.height),
+				  geo2d::Vector<float>(rect.x           ,rect.y            ));
     
-    auto pt1 = geo2d::IntersectionPoint(lt,l1);
-    auto pt2 = geo2d::IntersectionPoint(lt,l2);
-    auto pt3 = geo2d::IntersectionPoint(lt,l3);
-    auto pt4 = geo2d::IntersectionPoint(lt,l4);
+
+    geo2d::Vector<float> pt(0.0,0.0);
     
-    std::vector<geo2d::Vector<float>> pts;
-    pts.clear();
-    pts.resize(4);
-    pts[0]=pt1; 
-    pts[1]=pt2; 
-    pts[2]=pt3; 
-    pts[3]=pt4;
-    geo2d::Vector<float> pt_edge(0.0,0.0);
-    for(uint i =0; i<4 ;++i){
-      
-      if(pts[i].x==tl.x || pts[i].x==tr.x){
-	if(pts[i].y<tl.y && pts[i].y>bl.y){ 
-	  //auto const shit = pts[i].x;
-	  if((lt.y(pts[i].x)-_start.y)*(pts[i].x-_start.x)>0)  pt_edge = pts[i];
-	  //if((lt.y(shit)-_start.y)*(shit-_start.x)>0)  pt_edge = pts[i];
-	}
-      }
-      
-      if(pts[i].y==tl.y || pts[i].y==bl.y){
-	if(pts[i].x<tr.x && pts[i].x>tl.x){ 
-	  if((pts[i].y-_start.y)*(lt.x(pts[i].y)-_start.x)>0)  pt_edge = pts[i];
-	}
-      }
-      
+    try {
+      auto x = hline.x(ls1.pt1.y);
+      pt.x=x;
+      pt.y=ls1.pt1.y;
+      if ( pt.x <= ls1.pt2.x and pt.x >= ls1.pt1.x ) return pt;
+    } catch(...){
+      //std::cout << "No point found in this direction" << std::endl;
     }
 
+    try {
+      auto y = hline.y(ls2.pt1.x);
+      pt.x=ls2.pt1.x;
+      pt.y=y;
+      if ( pt.y <= ls2.pt2.y and pt.y >= ls2.pt1.y ) return pt;
+    } catch(...){
+      //std::cout << "No point found in this direction" << std::endl;
+    }
+
+    try {
+      auto x = hline.x(ls3.pt1.y);
+      pt.x=x;
+      pt.y=ls3.pt1.y;
+      if ( pt.x >= ls3.pt2.x and pt.x <= ls3.pt1.x ) return pt;
+    } catch(...){
+      //std::cout << "No point found in this direction" << std::endl;
+    }
+
+    try {
+      auto y= hline.y(ls4.pt1.x);
+      pt.x=ls4.pt1.x;
+      pt.y=y;
+      if ( pt.y >= ls4.pt2.y and pt.y <= ls4.pt1.y ) return pt;
+    } catch(...){
+      //std::cout << "No point found in this direction" << std::endl;
+    }
     
-    return pt_edge;
+    throw larbys("\nNo intersection point found?\n");
+    return pt;
     
+  }
+
+  void MCinfoRetriever::Clear() {
+
+    _vtx_2d_w_v.clear();
+    _vtx_2d_t_v.clear();
+    _vtx_2d_w_v.resize(3);
+    _vtx_2d_t_v.resize(3);
+    _image_v.clear();
+    _image_v.resize(3);
     
+    _daughter_pdg_v.clear();
+    _daughter_energyinit_v.clear();
+    _daughter_energydep_v.clear();
+    _daughter_length_vv.clear();
+
+    _daughter_2dstartx_vv.clear();
+    _daughter_2dstarty_vv.clear();
+    _daughter_2dendx_vv.clear();
+    _daughter_2dendy_vv.clear();
+
   }
   
   void MCinfoRetriever::initialize()
@@ -130,21 +163,24 @@ namespace larcv {
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
     _mc_tree->Branch("currentType",&_current_type,"currentType/S");
     _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
+
     _mc_tree->Branch("vtx2d_w","std::vector<double>",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t","std::vector<double>",&_vtx_2d_t_v);
-    _mc_tree->Branch("length2d",&_length_2d,"length2d/f");
-    
+
+    _mc_tree->Branch("daughterPdg_v"       ,&_daughter_pdg_v);
+    _mc_tree->Branch("daughterLength_vv"   ,&_daughter_length_vv);
+    _mc_tree->Branch("daughterEnergyInit_v",&_daughter_energyinit_v);
+    _mc_tree->Branch("daughterEnergyDep_v" ,&_daughter_energydep_v);
+    _mc_tree->Branch("daughter2DStartX_vv" ,&_daughter_2dstartx_vv);
+    _mc_tree->Branch("daughter2DStartY_vv" ,&_daughter_2dstarty_vv);
+    _mc_tree->Branch("daughter2DEndX_vv"   ,&_daughter_2dendx_vv);
+    _mc_tree->Branch("daughter2DEndY_vv"   ,&_daughter_2dendy_vv);
+	
   }
 
   bool MCinfoRetriever::process(IOManager& mgr)
   {
-
-    _vtx_2d_w_v.clear();
-    _vtx_2d_t_v.clear();
-    _vtx_2d_w_v.resize(3);
-    _vtx_2d_t_v.resize(3);
-    _image_v.clear();
-    _image_v.resize(3);
+    Clear();
     
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
@@ -192,8 +228,12 @@ namespace larcv {
     
     for(const auto& roi : ev_roi->ROIArray()) {
 
-      if (roi.ParentPdgCode() != 12 or roi.ParentPdgCode() != 14) continue;
-      
+      if (roi.PdgCode() == 12 or
+	  roi.PdgCode() == 14 or
+	  roi.PdgCode() == 0) continue;
+
+      //std::cout << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
+
       //get a unit vector for this pdg in 3 coordinates
       auto px = roi.Px();
       auto py = roi.Py();
@@ -216,11 +256,27 @@ namespace larcv {
       auto x1 = x0+px;
       auto y1 = y0+py;
       auto z1 = z0+pz;
-      
+
+      _daughter_pdg_v.push_back((uint) roi.PdgCode());
+      _daughter_energyinit_v.push_back(roi.EnergyInit());
+      _daughter_energydep_v.push_back(roi.EnergyDeposit());
+
+      _daughter_length_vv.resize(3);
+      _daughter_2dstartx_vv.resize(3);
+      _daughter_2dstarty_vv.resize(3);
+      _daughter_2dendx_vv.resize(3);
+      _daughter_2dendy_vv.resize(3);
+
       //lets project both points
       for(uint plane=0; plane<3; ++plane) {
 
-	const auto& img = ev_image2d->Image2DArray()[plane];
+	auto& daughter_length_v = _daughter_length_vv[plane];
+	auto& daughter_2dstartx_v = _daughter_2dstartx_vv[plane];
+	auto& daughter_2dstarty_v = _daughter_2dstarty_vv[plane];
+	auto& daughter_2dendx_v = _daughter_2dendx_vv[plane];
+	auto& daughter_2dendy_v = _daughter_2dendy_vv[plane];
+	
+	const auto& img  = ev_image2d->Image2DArray()[plane];
 	const auto& meta = img.meta();
 	
 	double x_pixel0(0), y_pixel0(0);
@@ -232,26 +288,24 @@ namespace larcv {
 	// start and end in 2D
 	geo2d::Vector<float> start(x_pixel0,y_pixel0);
 	geo2d::Vector<float> end  (x_pixel1,y_pixel1);
-	_start = start;
-	_dir   = end-start;
 	
 	// get the line of particle
-	geo2d::Line<float> lt(start,end-start);
+	geo2d::HalfLine<float> hline(start,end-start);
 	
 	//here is the bbox on this plane --> we need to get the single intersection point for the half line
 	//and this bbox
 	cv::Rect roi_on_plane = Get2DRoi(meta,roi.BB(plane));
-	std::cout << roi_on_plane.x << std::endl;
-	
 
 	// the start point will be inside the 2D ROI
 	// we need to intersection point between the edge and this half line, find it
-	geo2d::Vector<float> tl(roi_on_plane.tl());
-	geo2d::Vector<float> br(roi_on_plane.br());
-	auto pt_edge = Intersection(lt,tl,br );
-	
-	auto dir    = pt_edge-_start; 
-	_length_2d = sqrt(dir.x*dir.x+ dir.y*dir.y);
+	auto pt_edge = Intersection(hline,roi_on_plane);
+	//std::cout << "ax.plot(" << pt_edge.y << "," << pt_edge.x << ",'o',markersize=15)"  << std::endl;
+
+	daughter_length_v.push_back(geo2d::length(pt_edge - start));
+	daughter_2dstartx_v.push_back(start.x);
+	daughter_2dstarty_v.push_back(start.y);
+	daughter_2dendx_v.push_back(pt_edge.x);
+	daughter_2dendy_v.push_back(pt_edge.y);
 	
 	
       }

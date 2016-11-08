@@ -50,6 +50,8 @@ namespace larcv {
 
     void finalize();
 
+    void Clear();
+    
     //  private:
   protected:
     std::string _producer_roi;
@@ -79,6 +81,18 @@ namespace larcv {
     
     geo2d::Vector<float> _start; //2d start point
     geo2d::Vector<float> _dir;   //2d dir
+
+    std::vector<uint>   _daughter_pdg_v;
+
+    std::vector<double> _daughter_energyinit_v;
+    std::vector<double> _daughter_energydep_v;
+
+    std::vector<std::vector<double> > _daughter_length_vv;
+    std::vector<std::vector<double> > _daughter_2dstartx_vv;
+    std::vector<std::vector<double> > _daughter_2dstarty_vv;
+    std::vector<std::vector<double> > _daughter_2dendx_vv;
+    std::vector<std::vector<double> > _daughter_2dendy_vv;
+
     
     /// 2D Vertex Info
     std::vector<double> _vtx_2d_w_v;
@@ -96,13 +110,13 @@ namespace larcv {
 		   double& xpixel, double& ypixel);
     
     ///Calculate edge point on 2D ROI
-    geo2d::Vector<float> Intersection (geo2d::Line<float> hl,
-				       geo2d::Vector<float> tl,
-				       geo2d::Vector<float>br);
+    geo2d::Vector<float> Intersection (const geo2d::HalfLine<float>& hline,
+				       const cv::Rect& rect);
     
     cv::Rect Get2DRoi(const ImageMeta& meta,
 		      const ImageMeta& roi_meta);
 
+    
   };
 
   /**
