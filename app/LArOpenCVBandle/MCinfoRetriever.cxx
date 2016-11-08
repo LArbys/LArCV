@@ -117,19 +117,18 @@ namespace larcv {
     
     for(const auto& roi : ev_roi->ROIArray()) {
       if (roi.ParentPDG() != 12 or roi.ParentPD() != 14) continue;
-
       
-            //get a unit vector for this pdg in 3 coordinates
+      //get a unit vector for this pdg in 3 coordinates
       auto px = roi.Px();
       auto py = roi.Py();
       auto pz = roi.Pz();
 
+      //length of p
       auto lenp = sqrt(px*px+py*py+pz*pz);
       
       px/=lenp;
       py/=lenp;
       pz/=lenp;
-
 
       // original location
       auto x0 = roi.X();
@@ -153,9 +152,11 @@ namespace larcv {
 	double x_pixel1(0), y_pixel1(0);
 	Project3D(meta,x1,y1,z1,plane,x_pixel1,y_pixel1);
 
-	//get the infininte line spaning these two points
-	geo2d::Line ll(geo2d::Vector(x_pixel0,y_pixel0),
-		       geo2d::Vector(x_pixel1,y_pixel1));
+	geo2d::Vector<float> start(x_pixel0,y_pixel0);
+	geo2d::Vector<float> end  (x_pixel1,y_pixel1);
+	
+	//get the half line in the direction of the segment...
+	geo2d::HalfLine hl(start,end-start);
 	
       }
       
