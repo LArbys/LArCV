@@ -22,6 +22,7 @@
 #include "TTree.h"
 #include "LArUtil/PxUtils.h"
 #include "DataFormat/Image2D.h"
+#include "Core/Line.h"
 
 namespace larcv {
 

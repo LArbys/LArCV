@@ -116,11 +116,12 @@ namespace larcv {
 
     
     for(const auto& roi : ev_roi->ROIArray()) {
-      if (roi.ParentPDG() != 12 or roi.ParentPD() != 14) continue;
+      
+      if (roi.PdgCode() != 12 or roi.PdgCode() != 14) continue;
 
       
             //get a unit vector for this pdg in 3 coordinates
-      auto px = roi.Px();
+      auto px = _parent_px;
       auto py = roi.Py();
       auto pz = roi.Pz();
 
@@ -130,17 +131,16 @@ namespace larcv {
       py/=lenp;
       pz/=lenp;
 
-
       // original location
       auto x0 = roi.X();
       auto y0 = roi.Y();
       auto z0 = roi.Z();
-      auto t  = roi.t();
+      auto t  = roi.T();
 
       // here is another point in the direction of p
-      auto x1 = x+px;
-      auto y1 = y+py;
-      auto z1 = z+pz;
+      auto x1 = x0+px;
+      auto y1 = y0+py;
+      auto z1 = z0+pz;
       
       //lets project both points
       for(uint plane=0; plane<3; ++plane) {
@@ -154,8 +154,8 @@ namespace larcv {
 	Project3D(meta,x1,y1,z1,plane,x_pixel1,y_pixel1);
 
 	//get the infininte line spaning these two points
-	geo2d::Line ll(geo2d::Vector(x_pixel0,y_pixel0),
-		       geo2d::Vector(x_pixel1,y_pixel1));
+	geo2d::Line<double> ll(geo2d::Vector<double>(x_pixel0,y_pixel0),
+			       geo2d::Vector<double>(x_pixel1,y_pixel1));
 	
       }
       
