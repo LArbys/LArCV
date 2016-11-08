@@ -143,7 +143,9 @@ namespace larcv {
     _daughter_2dstarty_vv.clear();
     _daughter_2dendx_vv.clear();
     _daughter_2dendy_vv.clear();
-
+    _daughterPx_v.clear();
+    _daughterPy_v.clear();
+    _daughterPz_v.clear();
   }
   
   void MCinfoRetriever::initialize()
@@ -167,6 +169,10 @@ namespace larcv {
     _mc_tree->Branch("vtx2d_w","std::vector<double>",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t","std::vector<double>",&_vtx_2d_t_v);
 
+    _mc_tree->Branch("daughterPx_v", &_daughterPx_v);
+    _mc_tree->Branch("daughterPy_v", &_daughterPy_v);
+    _mc_tree->Branch("daughterPz_v", &_daughterPz_v);
+    
     _mc_tree->Branch("daughterPdg_v"       ,&_daughter_pdg_v);
     _mc_tree->Branch("daughterLength_vv"   ,&_daughter_length_vv);
     _mc_tree->Branch("daughterEnergyInit_v",&_daughter_energyinit_v);
@@ -232,6 +238,10 @@ namespace larcv {
 	  roi.PdgCode() == 14 or
 	  roi.PdgCode() == 0) continue;
 
+      _daughterPx_v.push_back(roi.Px());
+      _daughterPy_v.push_back(roi.Py());
+      _daughterPz_v.push_back(roi.Pz());
+      
       //std::cout << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
 
       //get a unit vector for this pdg in 3 coordinates

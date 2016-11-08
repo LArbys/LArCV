@@ -93,7 +93,9 @@ namespace larcv {
     std::vector<std::vector<double> > _daughter_2dendx_vv;
     std::vector<std::vector<double> > _daughter_2dendy_vv;
 
-    
+    std::vector<double> _daughterPx_v;
+    std::vector<double> _daughterPy_v;
+    std::vector<double> _daughterPz_v;
     /// 2D Vertex Info
     std::vector<double> _vtx_2d_w_v;
     std::vector<double> _vtx_2d_t_v;
