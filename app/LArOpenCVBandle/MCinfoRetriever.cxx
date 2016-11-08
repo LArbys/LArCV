@@ -7,7 +7,7 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 #include "DataFormat/EventImage2D.h"
-#include "Core/HalfLine.h"
+#include "Core/Geo2D.h"
 
 namespace larcv {
 
@@ -37,6 +37,53 @@ namespace larcv {
     double y_compression  = meta.height() / meta.rows();
     xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
     ypixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
+    
+  }
+  
+
+  //Input is track line and 4 linesegment consists the ROI
+  //Function intersection finds the intersecion point of track
+  //and ROI in particle direction
+  
+  geo2d::Vector<float> MCinfoRetriever::Intersection (const geo2d::Line<float> lt,geo2d::Vector<float> tl,
+						      geo2d::Vector<float>br)
+  {
+    geo2d::Vector<float> bl(br.x, tl.y);
+    geo2d::Vector<float> tr(tl.x, br.y);
+    
+    geo2d::Line<float> l1(bl,br-bl);
+    geo2d::Line<float> l2(br,tr-br);
+    geo2d::Line<float> l3(tr,tl-tr);
+    geo2d::Line<float> l4(tl,bl-tl);
+    
+    auto pt1 = geo2d::IntersectionPoint(lt,l1);
+    auto pt2 = geo2d::IntersectionPoint(lt,l2);
+    auto pt3 = geo2d::IntersectionPoint(lt,l3);
+    auto pt4 = geo2d::IntersectionPoint(lt,l4);
+    
+    std::vector<geo2d::Vector<float>> pts;
+    pts.clear();
+    pts.resize(4);
+    pts[0]=pt1; 
+    pts[1]=pt2; 
+    pts[2]=pt3; 
+    pts[3]=pt4;
+    geo2d::Vector<float> pt_edge(0.0,0.0);
+    for(uint i =0; i<4 ;++i){
+      
+      if(pts[i].x==tl.x || pts[i].x==tr.x){
+	if(pts[i].y<tl.y && pts[i].y>bl.y){auto pt_edge = pts[i];}
+      }
+      
+      if(pts[i].y==tl.y || pts[i].y==bl.y){
+	if(pts[i].x<tr.x && pts[i].x>tl.x){auto pt_edge = pts[i];}
+      }
+      
+    }
+
+    
+    return pt_edge;
+    
     
   }
   
@@ -161,21 +208,22 @@ namespace larcv {
 	
 	// get the half line in the direction of the segment...
 	geo2d::HalfLine<float> hl(start,end-start);
-
+	
 	// the start point will be inside the 2D ROI
 	// we need to intersection point between the edge and this half line, find it
+	
 	
 	
       }
       
     }
     
-    
     //Fill tree
     _mc_tree->Fill();
     return true;
     
   }
+  
 
   void MCinfoRetriever::finalize()
   {

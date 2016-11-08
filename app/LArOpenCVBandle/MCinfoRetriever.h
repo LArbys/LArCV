@@ -22,6 +22,7 @@
 #include "TTree.h"
 #include "LArUtil/PxUtils.h"
 #include "DataFormat/Image2D.h"
+#include "Core/HalfLine.h"
 #include "Core/Line.h"
 
 namespace larcv {
@@ -88,6 +89,11 @@ namespace larcv {
     void Project3D(const ImageMeta& meta,
 		   double _parent_x,double _parent_y,double _parent_z,uint plane,
 		   double& xpixel, double& ypixel);
+    
+    geo2d::Vector<float> Intersection (geo2d::Line<float> hl,
+				       geo2d::Vector<float> tl,
+				       geo2d::Vector<float>br);
+    
     
   };
 
