@@ -5,6 +5,8 @@
 #include "AlgoData/HIPClusterData.h"
 #include "AlgoData/Refine2DVertexData.h"
 #include "AlgoData/VertexClusterData.h"
+#include "LArUtil/GeometryHelper.h"
+#include "LArUtil/LArProperties.h"
 
 namespace larcv {
 
@@ -21,7 +23,7 @@ namespace larcv {
     _defectcluster_name  = cfg.get<std::string>("DefectClusterAlgoName");
     _pcacandidates_name  = cfg.get<std::string>("PCACandidatesAlgoName");
     _refine2dvertex_name = cfg.get<std::string>("Refine2DVertexAlgoName");
-    _vertexcluster_name = cfg.get<std::string>("VertexTrackClusterAlgoName");
+    _vertexcluster_name  = cfg.get<std::string>("VertexTrackClusterAlgoName");
   }
 
   void LArbysImageAna::Clear() {
@@ -29,18 +31,25 @@ namespace larcv {
     _n_hip_ctors_v.clear();
     _n_mip_ctors_v.resize(3);
     _n_hip_ctors_v.resize(3);
+
     _vtx3d_n_planes_v.clear();
-    _x_v.clear();
-    _y_v.clear();
-    _z_v.clear();
+
+    _vtx3d_x_v.clear();
+    _vtx3d_y_v.clear();
+    _vtx3d_z_v.clear();
+
+    _vtx2d_x_vv.clear();
+    _vtx2d_y_vv.clear();
+    
     _x_vv.clear();
     _y_vv.clear();
+
     _num_planes_v.clear();
     _num_clusters_vv.clear();
     _num_pixels_vv.clear();
     _num_pixel_frac_vv.clear();
   }
-  
+
   void LArbysImageAna::initialize()
   {
 
@@ -62,9 +71,12 @@ namespace larcv {
 
     _reco_tree->Branch("vtx3d_num_planes_v", &_vtx3d_n_planes_v);
     
-    _reco_tree->Branch("vtx3d_x_v", &_x_v );
-    _reco_tree->Branch("vtx3d_y_v", &_y_v );
-    _reco_tree->Branch("vtx3d_z_v", &_z_v );
+    _reco_tree->Branch("vtx3d_x_v", &_vtx3d_x_v );
+    _reco_tree->Branch("vtx3d_y_v", &_vtx3d_y_v );
+    _reco_tree->Branch("vtx3d_z_v", &_vtx3d_z_v );
+
+    _reco_tree->Branch("vtx2d_x_vv", &_vtx2d_x_vv );
+    _reco_tree->Branch("vtx2d_y_vv", &_vtx2d_y_vv );
 
     _reco_tree->Branch("n_circle_vtx", &_n_circle_vtx, "n_circle_vtx/i" );
 
@@ -84,9 +96,9 @@ namespace larcv {
   
   bool LArbysImageAna::process(IOManager& mgr)
   {
-
-    LARCV_DEBUG() << "process" << std::endl;
     
+    LARCV_DEBUG() << "process" << std::endl;
+
     /// Unique event keys
     const auto& event_id = mgr.event_id();
     _run    = (uint)event_id.run();
@@ -111,17 +123,30 @@ namespace larcv {
     _n_vtx3d = (uint) vtx3d_v.size();
 
     // vec of circle vertex per 3d vtx id
-    _x_v.resize(_n_vtx3d);
-    _y_v.resize(_n_vtx3d);
-    _z_v.resize(_n_vtx3d);
+    _vtx3d_x_v.resize(_n_vtx3d);
+    _vtx3d_y_v.resize(_n_vtx3d);
+    _vtx3d_z_v.resize(_n_vtx3d);
+    
     _vtx3d_n_planes_v.resize(_n_vtx3d);
     
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) {
       const auto& vtx3d = vtx3d_v[vtx_id];
       _vtx3d_n_planes_v[vtx_id] = vtx3d.num_planes;
-      _x_v[vtx_id] = vtx3d.x;
-      _y_v[vtx_id] = vtx3d.y;
-      _z_v[vtx_id] = vtx3d.z;
+
+      _vtx3d_x_v[vtx_id] = vtx3d.x;
+      _vtx3d_y_v[vtx_id] = vtx3d.y;
+      _vtx3d_z_v[vtx_id] = vtx3d.z;
+
+      _vtx2d_x_vv.resize(3);
+      _vtx2d_y_vv.resize(3);
+      
+      for(uint plane_id=0;plane_id<3;++plane_id) {
+	auto& vtx2d_x_v = _vtx2d_x_vv[plane_id];
+	auto& vtx2d_y_v = _vtx2d_y_vv[plane_id];
+
+	vtx2d_x_v.push_back(vtx3d.vtx2d_v[plane_id].pt.x);
+	vtx2d_y_v.push_back(vtx3d.vtx2d_v[plane_id].pt.y);
+      }
     }
 
     // vec of circle vertex per 3d vtx id NOTE: VIC, HEY -- MAY NOT BE 1-to-1 w/ vertex3d I don't know yet

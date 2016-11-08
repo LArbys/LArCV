@@ -17,6 +17,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "LArbysImage.h"
+#include "DataFormat/EventImage2D.h"
 
 namespace larcv {
 
@@ -46,6 +47,9 @@ namespace larcv {
     void SetManager(const::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
     
   private:
+    void Project3D(const larcv::ImageMeta& meta,
+		   double _parent_x,double _parent_y,double _parent_z,uint plane,
+		   double& xpixel, double& ypixel);
     
     TTree* _reco_tree;
     
@@ -64,7 +68,8 @@ namespace larcv {
 
     /// Refine2D data
     uint _n_vtx3d;
-    std::vector<double> _x_v, _y_v, _z_v;
+    std::vector<double> _vtx3d_x_v, _vtx3d_y_v, _vtx3d_z_v;
+    std::vector<std::vector<double> > _vtx2d_x_vv, _vtx2d_y_vv;
 
     uint _n_circle_vtx;
     std::vector<std::vector<double> > _x_vv;
