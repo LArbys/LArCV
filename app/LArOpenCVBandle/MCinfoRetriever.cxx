@@ -131,21 +131,28 @@ namespace larcv {
     _vtx_2d_t_v.clear();
     _vtx_2d_w_v.resize(3);
     _vtx_2d_t_v.resize(3);
+
     _image_v.clear();
     _image_v.resize(3);
     
     _daughter_pdg_v.clear();
+
     _daughter_energyinit_v.clear();
     _daughter_energydep_v.clear();
+
     _daughter_length_vv.clear();
 
     _daughter_2dstartx_vv.clear();
     _daughter_2dstarty_vv.clear();
+
     _daughter_2dendx_vv.clear();
     _daughter_2dendy_vv.clear();
+
     _daughterPx_v.clear();
     _daughterPy_v.clear();
     _daughterPz_v.clear();
+    
+    _daughter_2dcosangle_vv.clear();
   }
   
   void MCinfoRetriever::initialize()
@@ -166,22 +173,23 @@ namespace larcv {
     _mc_tree->Branch("currentType",&_current_type,"currentType/S");
     _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
 
-    _mc_tree->Branch("vtx2d_w","std::vector<double>",&_vtx_2d_w_v);
-    _mc_tree->Branch("vtx2d_t","std::vector<double>",&_vtx_2d_t_v);
+    _mc_tree->Branch("vtx2d_w",&_vtx_2d_w_v);
+    _mc_tree->Branch("vtx2d_t",&_vtx_2d_t_v);
 
     _mc_tree->Branch("daughterPx_v", &_daughterPx_v);
     _mc_tree->Branch("daughterPy_v", &_daughterPy_v);
     _mc_tree->Branch("daughterPz_v", &_daughterPz_v);
     
-    _mc_tree->Branch("daughterPdg_v"       ,&_daughter_pdg_v);
-    _mc_tree->Branch("daughterLength_vv"   ,&_daughter_length_vv);
-    _mc_tree->Branch("daughterEnergyInit_v",&_daughter_energyinit_v);
-    _mc_tree->Branch("daughterEnergyDep_v" ,&_daughter_energydep_v);
-    _mc_tree->Branch("daughter2DStartX_vv" ,&_daughter_2dstartx_vv);
-    _mc_tree->Branch("daughter2DStartY_vv" ,&_daughter_2dstarty_vv);
-    _mc_tree->Branch("daughter2DEndX_vv"   ,&_daughter_2dendx_vv);
-    _mc_tree->Branch("daughter2DEndY_vv"   ,&_daughter_2dendy_vv);
-	
+    _mc_tree->Branch("daughterPdg_v"       , &_daughter_pdg_v);
+    _mc_tree->Branch("daughterLength_vv"   , &_daughter_length_vv);
+    _mc_tree->Branch("daughterEnergyInit_v", &_daughter_energyinit_v);
+    _mc_tree->Branch("daughterEnergyDep_v" , &_daughter_energydep_v);
+    _mc_tree->Branch("daughter2DStartX_vv" , &_daughter_2dstartx_vv);
+    _mc_tree->Branch("daughter2DStartY_vv" , &_daughter_2dstarty_vv);
+    _mc_tree->Branch("daughter2DEndX_vv"   , &_daughter_2dendx_vv);
+    _mc_tree->Branch("daughter2DEndY_vv"     , &_daughter_2dendy_vv);
+    _mc_tree->Branch("daughter2DCosAngle_vv" , &_daughter_2dcosangle_vv);
+    
   }
 
   bool MCinfoRetriever::process(IOManager& mgr)
@@ -194,7 +202,8 @@ namespace larcv {
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
     _event  = (uint) ev_roi->event();
-    
+
+    // Neutrino ROI
     auto roi = ev_roi->at(0);
     
     _parent_pdg = roi.PdgCode();
@@ -207,19 +216,19 @@ namespace larcv {
     _parent_py = roi.Py(); 
     _parent_pz = roi.Pz(); 
 
-    _current_type = roi.NuCurrentType();
-    _interaction_type  =roi.NuInteractionType();
+    _current_type     = roi.NuCurrentType();
+    _interaction_type = roi.NuInteractionType();
     
     //Get 2D projections from 3D
     
     for (uint plane = 0 ; plane<3;++plane){
       
       ///Convert [cm] to [pixel]
-      _image_v[plane] = ev_image2d->Image2DArray()[plane];
-      _meta = _image_v[plane].meta();
+      const auto& img = ev_image2d->Image2DArray()[plane];
+      const auto& meta = img.meta();
       
       double x_pixel(0), y_pixel(0);
-      Project3D(_meta,_parent_x,_parent_y,_parent_z,plane,x_pixel,y_pixel);
+      Project3D(meta,_parent_x,_parent_y,_parent_z,plane,x_pixel,y_pixel);
       
       _vtx_2d_w_v[plane] = x_pixel;
       _vtx_2d_t_v[plane] = y_pixel;
@@ -229,8 +238,7 @@ namespace larcv {
     //for each ROI not nu, lets get the 3D line in direction of particle trajectory.
     //then project onto plane, and find the intersection with the edges of the particle
     //ROI box, I think this won't be such a bad proxy for the MC particle length
-    //and send point estimation
-
+    //and eend point estimation
     
     for(const auto& roi : ev_roi->ROIArray()) {
 
@@ -238,10 +246,6 @@ namespace larcv {
 	  roi.PdgCode() == 14 or
 	  roi.PdgCode() == 0) continue;
 
-      _daughterPx_v.push_back(roi.Px());
-      _daughterPy_v.push_back(roi.Py());
-      _daughterPz_v.push_back(roi.Pz());
-      
       //std::cout << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
 
       //get a unit vector for this pdg in 3 coordinates
@@ -272,7 +276,8 @@ namespace larcv {
       _daughter_2dstarty_vv.resize(3);
       _daughter_2dendx_vv.resize(3);
       _daughter_2dendy_vv.resize(3);
-
+      _daughter_2dcosangle_vv.resize(3);
+      
       //lets project both points
       for(uint plane=0; plane<3; ++plane) {
 
@@ -281,6 +286,7 @@ namespace larcv {
 	auto& daughter_2dstarty_v = _daughter_2dstarty_vv[plane];
 	auto& daughter_2dendx_v = _daughter_2dendx_vv[plane];
 	auto& daughter_2dendy_v = _daughter_2dendy_vv[plane];
+	auto& daughter_2dcosangle_v  = _daughter_2dcosangle_vv[plane];
 	
 	const auto& img  = ev_image2d->Image2DArray()[plane];
 	const auto& meta = img.meta();
@@ -311,30 +317,37 @@ namespace larcv {
 
 	// the start point will be inside the 2D ROI
 	// we need to intersection point between the edge and this half line, find it
-	auto pt_edge = Intersection(hline,roi_on_plane);
-	//std::cout << "ax.plot(" << pt_edge.y << "," << pt_edge.x << ",'o',markersize=15)"  << std::endl;
 
+	auto pt_edge = Intersection(hline,roi_on_plane);
+
+	//std::cout << "ax.plot(" << pt_edge.y << "," << pt_edge.x << ",'o',markersize=15)"  << std::endl;
+	
 	daughter_length_v.push_back(geo2d::length(pt_edge - start));
 	daughter_2dstartx_v.push_back(start.x);
 	daughter_2dstarty_v.push_back(start.y);
 	daughter_2dendx_v.push_back(pt_edge.x);
 	daughter_2dendy_v.push_back(pt_edge.y);
+
+	auto dir=pt_edge-start;
+	double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
 	
-	
+	daughter_2dcosangle_v.push_back(cosangle);
       }
 
+      _daughterPx_v.push_back( roi.Px() );
+      _daughterPy_v.push_back( roi.Py() );
+      _daughterPz_v.push_back( roi.Pz() );
+      
       _daughter_pdg_v.push_back((uint) roi.PdgCode());
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
-
-      
     }
     
     //Fill tree
     _mc_tree->Fill();
+
     return true;
-    
   }
   
 
