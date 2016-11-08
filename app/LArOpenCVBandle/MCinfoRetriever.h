@@ -94,7 +94,9 @@ namespace larcv {
 				       geo2d::Vector<float> tl,
 				       geo2d::Vector<float>br);
     
-    
+    cv::Rect Get2DRoi(const ImageMeta& meta,
+		      const ImageMeta& roi_meta);
+
   };
 
   /**

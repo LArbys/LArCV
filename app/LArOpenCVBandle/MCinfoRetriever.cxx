@@ -23,6 +23,26 @@ namespace larcv {
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
   }
 
+  cv::Rect MCinfoRetriever::Get2DRoi(const ImageMeta& meta,
+				     const ImageMeta& bb) {
+
+    //bb == ROI on plane META
+    
+    float x_compression = meta.width()  / (float) meta.cols();
+    float y_compression = meta.height() / (float) meta.rows();
+    
+
+    int x=(bb.bl().x - meta.bl().x)/x_compression;
+    int y=(bb.bl().y - meta.bl().y)/y_compression;
+    
+    int dx=(bb.tr().x-bb.bl().x)/x_compression;
+    int dy=(bb.tr().y-bb.bl().y)/y_compression;
+
+    return cv::Rect(x,y,dx,dy);
+  }
+  
+
+  
   void MCinfoRetriever::Project3D(const ImageMeta& meta,
 				  double _parent_x,double _parent_y,double _parent_z,uint plane,
 				  double& xpixel, double& ypixel) 
@@ -211,9 +231,12 @@ namespace larcv {
 	
 	// the start point will be inside the 2D ROI
 	// we need to intersection point between the edge and this half line, find it
-	
-	
-	
+
+	//here is the bbox on this plane --> we need to get the single intersection point for the half line
+	//and this bbox
+	cv::Rect roi_on_plane = Get2DRoi(meta,roi.BB(plane));
+	std::cout << roi_on_plane.x << std::endl;
+
       }
       
     }
