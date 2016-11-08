@@ -23,6 +23,10 @@ if 'LARLITE_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterDebug']
         libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
         libs += [' -lBasicTool_FhiclLite']
+    if 'GEO2D_BASEDIR' in os.environ:
+        libs += [' -L%s' % os.environ['GEO2D_LIBDIR']]
+        libs += [' -lGeo2D_Core']
+        libs += [' -lGeo2D_Algorithm']
     
 objs_list=[]
 dict_list=[]
