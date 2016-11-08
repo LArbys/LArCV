@@ -82,7 +82,7 @@ namespace larcv {
 				  geo2d::Vector<float>(rect.x           ,rect.y            ));
     
 
-    geo2d::Vector<float> pt(0.0,0.0);
+    geo2d::Vector<float> pt(-1,-1);
     
     try {
       auto x = hline.x(ls1.pt1.y);
@@ -120,7 +120,7 @@ namespace larcv {
       //std::cout << "No point found in this direction" << std::endl;
     }
     
-    throw larbys("\nNo intersection point found?\n");
+    // throw larbys("\nNo intersection point found?\n");
     return pt;
     
   }
@@ -257,10 +257,6 @@ namespace larcv {
       auto y1 = y0+py;
       auto z1 = z0+pz;
 
-      _daughter_pdg_v.push_back((uint) roi.PdgCode());
-      _daughter_energyinit_v.push_back(roi.EnergyInit());
-      _daughter_energydep_v.push_back(roi.EnergyDeposit());
-
       _daughter_length_vv.resize(3);
       _daughter_2dstartx_vv.resize(3);
       _daughter_2dstarty_vv.resize(3);
@@ -294,6 +290,13 @@ namespace larcv {
 	
 	//here is the bbox on this plane --> we need to get the single intersection point for the half line
 	//and this bbox
+	ImageMeta bb;
+	try {
+	  bb = roi.BB(plane);
+	}
+	catch(...) {
+	  continue;
+	}
 	cv::Rect roi_on_plane = Get2DRoi(meta,roi.BB(plane));
 
 	// the start point will be inside the 2D ROI
@@ -309,6 +312,12 @@ namespace larcv {
 	
 	
       }
+
+      _daughter_pdg_v.push_back((uint) roi.PdgCode());
+      _daughter_energyinit_v.push_back(roi.EnergyInit());
+      _daughter_energydep_v.push_back(roi.EnergyDeposit());
+
+
       
     }
     
