@@ -65,8 +65,8 @@ namespace larcv {
   //Function intersection finds the intersecion point of track
   //and ROI in particle direction
   
-  geo2d::Vector<float> MCinfoRetriever::Intersection (const geo2d::Line<float> lt,geo2d::Vector<float> tl,
-						      geo2d::Vector<float>br)
+  geo2d::Vector<float> MCinfoRetriever::Intersection (const geo2d::Line<float> lt,
+						      geo2d::Vector<float> tl,geo2d::Vector<float>br)
   {
     geo2d::Vector<float> bl(br.x, tl.y);
     geo2d::Vector<float> tr(tl.x, br.y);
@@ -92,11 +92,17 @@ namespace larcv {
     for(uint i =0; i<4 ;++i){
       
       if(pts[i].x==tl.x || pts[i].x==tr.x){
-	if(pts[i].y<tl.y && pts[i].y>bl.y){auto pt_edge = pts[i];}
+	if(pts[i].y<tl.y && pts[i].y>bl.y){ 
+	  //auto const shit = pts[i].x;
+	  if((lt.y(pts[i].x)-_start.y)*(pts[i].x-_start.x)>0)  pt_edge = pts[i];
+	  //if((lt.y(shit)-_start.y)*(shit-_start.x)>0)  pt_edge = pts[i];
+	}
       }
       
       if(pts[i].y==tl.y || pts[i].y==bl.y){
-	if(pts[i].x<tr.x && pts[i].x>tl.x){auto pt_edge = pts[i];}
+	if(pts[i].x<tr.x && pts[i].x>tl.x){ 
+	  if((pts[i].y-_start.y)*(lt.x(pts[i].y)-_start.x)>0)  pt_edge = pts[i];
+	}
       }
       
     }
@@ -126,6 +132,7 @@ namespace larcv {
     _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
     _mc_tree->Branch("vtx2d_w","std::vector<double>",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t","std::vector<double>",&_vtx_2d_t_v);
+    _mc_tree->Branch("length2d",&_length_2d,"length2d/f");
     
   }
 
@@ -225,18 +232,28 @@ namespace larcv {
 	// start and end in 2D
 	geo2d::Vector<float> start(x_pixel0,y_pixel0);
 	geo2d::Vector<float> end  (x_pixel1,y_pixel1);
+	_start = start;
+	_dir   = end-start;
 	
-	// get the half line in the direction of the segment...
-	geo2d::HalfLine<float> hl(start,end-start);
+	// get the line of particle
+	geo2d::Line<float> lt(start,end-start);
 	
-	// the start point will be inside the 2D ROI
-	// we need to intersection point between the edge and this half line, find it
-
 	//here is the bbox on this plane --> we need to get the single intersection point for the half line
 	//and this bbox
 	cv::Rect roi_on_plane = Get2DRoi(meta,roi.BB(plane));
 	std::cout << roi_on_plane.x << std::endl;
+	
 
+	// the start point will be inside the 2D ROI
+	// we need to intersection point between the edge and this half line, find it
+	geo2d::Vector<float> tl(roi_on_plane.tl());
+	geo2d::Vector<float> br(roi_on_plane.br());
+	auto pt_edge = Intersection(lt,tl,br );
+	
+	auto dir    = pt_edge-_start; 
+	_length_2d = sqrt(dir.x*dir.x+ dir.y*dir.y);
+	
+	
       }
       
     }

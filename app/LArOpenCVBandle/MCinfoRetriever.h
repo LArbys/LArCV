@@ -75,7 +75,11 @@ namespace larcv {
     double _parent_pz;  
     short _current_type;
     short _interaction_type;
-
+    float _length_2d;
+    
+    geo2d::Vector<float> _start; //2d start point
+    geo2d::Vector<float> _dir;   //2d dir
+    
     /// 2D Vertex Info
     std::vector<double> _vtx_2d_w_v;
     std::vector<double> _vtx_2d_t_v;
@@ -86,10 +90,12 @@ namespace larcv {
 
     
   private:
+    ///Project 3D track into 2D Image(per plane) 
     void Project3D(const ImageMeta& meta,
 		   double _parent_x,double _parent_y,double _parent_z,uint plane,
 		   double& xpixel, double& ypixel);
     
+    ///Calculate edge point on 2D ROI
     geo2d::Vector<float> Intersection (geo2d::Line<float> hl,
 				       geo2d::Vector<float> tl,
 				       geo2d::Vector<float>br);
