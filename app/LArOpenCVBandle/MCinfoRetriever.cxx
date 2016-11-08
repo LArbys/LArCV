@@ -7,6 +7,7 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 #include "DataFormat/EventImage2D.h"
+#include "Core/HalfLine.h"
 
 namespace larcv {
 
@@ -24,8 +25,9 @@ namespace larcv {
 
   void MCinfoRetriever::Project3D(const ImageMeta& meta,
 				  double _parent_x,double _parent_y,double _parent_z,uint plane,
-				  double& xpixel, double& ypixel) {
-
+				  double& xpixel, double& ypixel) 
+  {
+    
     auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
     auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
 
@@ -35,7 +37,7 @@ namespace larcv {
     double y_compression  = meta.height() / meta.rows();
     xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
     ypixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
-        
+    
   }
   
   void MCinfoRetriever::initialize()
@@ -97,7 +99,6 @@ namespace larcv {
     for (uint plane = 0 ; plane<3;++plane){
       
       ///Convert [cm] to [pixel]
-
       _image_v[plane] = ev_image2d->Image2DArray()[plane];
       _meta = _image_v[plane].meta();
       
@@ -116,7 +117,8 @@ namespace larcv {
 
     
     for(const auto& roi : ev_roi->ROIArray()) {
-      if (roi.ParentPDG() != 12 or roi.ParentPD() != 14) continue;
+
+      if (roi.ParentPdgCode() != 12 or roi.ParentPdgCode() != 14) continue;
       
       //get a unit vector for this pdg in 3 coordinates
       auto px = roi.Px();
@@ -134,29 +136,35 @@ namespace larcv {
       auto x0 = roi.X();
       auto y0 = roi.Y();
       auto z0 = roi.Z();
-      auto t  = roi.t();
+      auto t  = roi.T();
 
-      // here is another point in the direction of p
-      auto x1 = x+px;
-      auto y1 = y+py;
-      auto z1 = z+pz;
+      // here is another point in the direction of p. Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
+      auto x1 = x0+px;
+      auto y1 = y0+py;
+      auto z1 = z0+pz;
       
       //lets project both points
       for(uint plane=0; plane<3; ++plane) {
+
 	const auto& img = ev_image2d->Image2DArray()[plane];
 	const auto& meta = img.meta();
 	
 	double x_pixel0(0), y_pixel0(0);
 	Project3D(meta,x0,y0,z0,plane,x_pixel0,y_pixel0);
-
+	
 	double x_pixel1(0), y_pixel1(0);
 	Project3D(meta,x1,y1,z1,plane,x_pixel1,y_pixel1);
 
+	// start and end in 2D
 	geo2d::Vector<float> start(x_pixel0,y_pixel0);
 	geo2d::Vector<float> end  (x_pixel1,y_pixel1);
 	
-	//get the half line in the direction of the segment...
-	geo2d::HalfLine hl(start,end-start);
+	// get the half line in the direction of the segment...
+	geo2d::HalfLine<float> hl(start,end-start);
+
+	// the start point will be inside the 2D ROI
+	// we need to intersection point between the edge and this half line, find it
+	
 	
       }
       
