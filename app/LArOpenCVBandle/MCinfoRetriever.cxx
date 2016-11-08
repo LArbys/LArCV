@@ -24,8 +24,9 @@ namespace larcv {
 
   void MCinfoRetriever::Project3D(const ImageMeta& meta,
 				  double _parent_x,double _parent_y,double _parent_z,uint plane,
-				  double& xpixel, double& ypixel) {
-
+				  double& xpixel, double& ypixel) 
+  {
+    
     auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
     auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
 
@@ -35,7 +36,7 @@ namespace larcv {
     double y_compression  = meta.height() / meta.rows();
     xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
     ypixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
-        
+    
   }
   
   void MCinfoRetriever::initialize()
@@ -97,7 +98,6 @@ namespace larcv {
     for (uint plane = 0 ; plane<3;++plane){
       
       ///Convert [cm] to [pixel]
-
       _image_v[plane] = ev_image2d->Image2DArray()[plane];
       _meta = _image_v[plane].meta();
       
@@ -121,7 +121,7 @@ namespace larcv {
 
       
             //get a unit vector for this pdg in 3 coordinates
-      auto px = _parent_px;
+      auto px = roi.Px();
       auto py = roi.Py();
       auto pz = roi.Pz();
 
@@ -137,7 +137,7 @@ namespace larcv {
       auto z0 = roi.Z();
       auto t  = roi.T();
 
-      // here is another point in the direction of p
+      // here is another point in the direction of p. Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
       auto x1 = x0+px;
       auto y1 = y0+py;
       auto z1 = z0+pz;
@@ -149,7 +149,7 @@ namespace larcv {
 	
 	double x_pixel0(0), y_pixel0(0);
 	Project3D(meta,x0,y0,z0,plane,x_pixel0,y_pixel0);
-
+	
 	double x_pixel1(0), y_pixel1(0);
 	Project3D(meta,x1,y1,z1,plane,x_pixel1,y_pixel1);
 
