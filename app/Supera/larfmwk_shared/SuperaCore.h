@@ -113,6 +113,7 @@ namespace larcv {
       bool _configured;
       bool _use_mc;
       bool _store_chstatus;
+      bool _store_interaction_images;
       std::string _supera_fname;
       larcv::ROIType_t _default_roi_type;
     };
