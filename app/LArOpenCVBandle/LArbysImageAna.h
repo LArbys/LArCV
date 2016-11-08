@@ -80,6 +80,7 @@ namespace larcv {
     std::vector<std::vector<uint> >    _num_clusters_vv;
     std::vector<std::vector<uint> >    _num_pixels_vv;
     std::vector<std::vector<double> > _num_pixel_frac_vv;    
+
     /// Configuration pset
     std::string _hipcluster_name;
     std::string _defectcluster_name;

@@ -81,6 +81,12 @@ namespace larcv {
     /// LARCV Image2D data
     std::vector<larcv::Image2D> _image_v;
     ImageMeta _meta;
+
+    
+  private:
+    void Project3D(const ImageMeta& meta,
+		   double _parent_x,double _parent_y,double _parent_z,uint plane,
+		   double& xpixel, double& ypixel);
     
   };
 

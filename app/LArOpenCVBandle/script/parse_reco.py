@@ -29,6 +29,6 @@ larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetManager(larbysimg.Manager())
    
 proc.initialize()
-proc.batch_process(0,10)
-#proc.batch_process()
+#proc.batch_process(0,10)
+proc.batch_process()
 proc.finalize()

@@ -22,6 +22,22 @@ namespace larcv {
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
   }
 
+  void MCinfoRetriever::Project3D(const ImageMeta& meta,
+				  double _parent_x,double _parent_y,double _parent_z,uint plane,
+				  double& xpixel, double& ypixel) {
+
+    auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
+    auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
+
+    auto vtx_2d = geohelp->Point_3Dto2D(_parent_x, _parent_y, _parent_z, plane );
+    
+    double x_compression  = meta.width()  / meta.cols();
+    double y_compression  = meta.height() / meta.rows();
+    xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
+    ypixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
+        
+  }
+  
   void MCinfoRetriever::initialize()
   {
     _mc_tree = new TTree("mctree","MC infomation");
@@ -65,10 +81,10 @@ namespace larcv {
     
     _parent_pdg = roi.PdgCode();
     _energy_deposit = roi.EnergyDeposit();
-    _parent_x = roi.X(); 
-    _parent_y = roi.Y(); 
-    _parent_z = roi.Z(); 
-    _parent_t = roi.T(); 
+    _parent_x  = roi.X(); 
+    _parent_y  = roi.Y(); 
+    _parent_z  = roi.Z(); 
+    _parent_t  = roi.T(); 
     _parent_px = roi.Px(); 
     _parent_py = roi.Py(); 
     _parent_pz = roi.Pz(); 
@@ -78,35 +94,73 @@ namespace larcv {
     
     //Get 2D projections from 3D
     
-    auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
-    auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
-    
-    for (int plane = 0 ; plane<3;++plane){
+    for (uint plane = 0 ; plane<3;++plane){
       
-      auto vtx_2d = geohelp->Point_3Dto2D(_parent_x, _parent_y, _parent_z, plane );
-      
-      //auto vtx_w = vtx_2d.w / geohelp->WireToCm();
-      //auto vtx_t = vtx_2d.t / geohelp->TimeToCm();
-
       ///Convert [cm] to [pixel]
 
       _image_v[plane] = ev_image2d->Image2DArray()[plane];
-      
       _meta = _image_v[plane].meta();
-      double x_compression, y_compression;
-      x_compression  = _meta.width()  / _meta.cols();
-      y_compression  = _meta.height() / _meta.rows();
       
-      double x_pixel  ,  y_pixel;
-      x_pixel = (vtx_2d.w/geohelp->WireToCm() - _meta.tl().x) / x_compression;
-      y_pixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-_meta.br().y)/y_compression;
-   
+      double x_pixel(0), y_pixel(0);
+      Project3D(_meta,_parent_x,_parent_y,_parent_z,plane,x_pixel,y_pixel);
+      
       _vtx_2d_w_v[plane] = x_pixel;
       _vtx_2d_t_v[plane] = y_pixel;
-    
-      
       
     }
+
+    //for each ROI not nu, lets get the 3D line in direction of particle trajectory.
+    //then project onto plane, and find the intersection with the edges of the particle
+    //ROI box, I think this won't be such a bad proxy for the MC particle length
+    //and send point estimation
+
+    
+    for(const auto& roi : ev_roi->ROIArray()) {
+      if (roi.ParentPDG() != 12 or roi.ParentPD() != 14) continue;
+
+      
+            //get a unit vector for this pdg in 3 coordinates
+      auto px = roi.Px();
+      auto py = roi.Py();
+      auto pz = roi.Pz();
+
+      auto lenp = sqrt(px*px+py*py+pz*pz);
+      
+      px/=lenp;
+      py/=lenp;
+      pz/=lenp;
+
+
+      // original location
+      auto x0 = roi.X();
+      auto y0 = roi.Y();
+      auto z0 = roi.Z();
+      auto t  = roi.t();
+
+      // here is another point in the direction of p
+      auto x1 = x+px;
+      auto y1 = y+py;
+      auto z1 = z+pz;
+      
+      //lets project both points
+      for(uint plane=0; plane<3; ++plane) {
+	const auto& img = ev_image2d->Image2DArray()[plane];
+	const auto& meta = img.meta();
+	
+	double x_pixel0(0), y_pixel0(0);
+	Project3D(meta,x0,y0,z0,plane,x_pixel0,y_pixel0);
+
+	double x_pixel1(0), y_pixel1(0);
+	Project3D(meta,x1,y1,z1,plane,x_pixel1,y_pixel1);
+
+	//get the infininte line spaning these two points
+	geo2d::Line ll(geo2d::Vector(x_pixel0,y_pixel0),
+		       geo2d::Vector(x_pixel1,y_pixel1));
+	
+      }
+      
+    }
+    
     
     //Fill tree
     _mc_tree->Fill();
