@@ -88,7 +88,9 @@ namespace larcv {
     void Project3D(const ImageMeta& meta,
 		   double _parent_x,double _parent_y,double _parent_z,uint plane,
 		   double& xpixel, double& ypixel);
-    
+
+    cv::Rect Get2DRoi(const ImageMeta& meta,
+		      const ImageMeta& roi_meta);
   };
 
   /**
