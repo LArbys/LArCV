@@ -68,6 +68,7 @@ namespace larcv {
     int _parent_pdg;//primary particle pdg
 
     double _energy_deposit;
+    double _energy_init;
     double _parent_x;
     double _parent_y;  
     double _parent_z;  
@@ -83,6 +84,8 @@ namespace larcv {
     geo2d::Vector<float> _dir;   //2d dir
 
     std::vector<uint>   _daughter_pdg_v;
+    std::vector<uint>   _daughter_trackid_v;
+    std::vector<uint>   _daughter_parenttrackid_v;    
 
     std::vector<double> _daughter_energyinit_v;
     std::vector<double> _daughter_energydep_v;

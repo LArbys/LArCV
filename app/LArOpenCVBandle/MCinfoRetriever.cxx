@@ -136,6 +136,8 @@ namespace larcv {
     _image_v.resize(3);
     
     _daughter_pdg_v.clear();
+    _daughter_trackid_v.clear();
+    _daughter_parenttrackid_v.clear();
 
     _daughter_energyinit_v.clear();
     _daughter_energydep_v.clear();
@@ -163,6 +165,7 @@ namespace larcv {
     _mc_tree->Branch("event",&_event,"event/i");
     _mc_tree->Branch("parentPDG",&_parent_pdg,"parentPDG/I");
     _mc_tree->Branch("energyDeposit",&_energy_deposit,"energyDeposit/D");
+    _mc_tree->Branch("energyInit",&_energy_init,"energyInit/D");
     _mc_tree->Branch("parentX",&_parent_x,"parentX/D");
     _mc_tree->Branch("parentY",&_parent_y,"parentY/D");
     _mc_tree->Branch("parentZ",&_parent_z,"parentZ/D");
@@ -172,23 +175,25 @@ namespace larcv {
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
     _mc_tree->Branch("currentType",&_current_type,"currentType/S");
     _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
-
+    
     _mc_tree->Branch("vtx2d_w",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t",&_vtx_2d_t_v);
-
+    
     _mc_tree->Branch("daughterPx_v", &_daughterPx_v);
     _mc_tree->Branch("daughterPy_v", &_daughterPy_v);
     _mc_tree->Branch("daughterPz_v", &_daughterPz_v);
     
-    _mc_tree->Branch("daughterPdg_v"       , &_daughter_pdg_v);
-    _mc_tree->Branch("daughterLength_vv"   , &_daughter_length_vv);
-    _mc_tree->Branch("daughterEnergyInit_v", &_daughter_energyinit_v);
-    _mc_tree->Branch("daughterEnergyDep_v" , &_daughter_energydep_v);
-    _mc_tree->Branch("daughter2DStartX_vv" , &_daughter_2dstartx_vv);
-    _mc_tree->Branch("daughter2DStartY_vv" , &_daughter_2dstarty_vv);
-    _mc_tree->Branch("daughter2DEndX_vv"   , &_daughter_2dendx_vv);
-    _mc_tree->Branch("daughter2DEndY_vv"     , &_daughter_2dendy_vv);
-    _mc_tree->Branch("daughter2DCosAngle_vv" , &_daughter_2dcosangle_vv);
+    _mc_tree->Branch("daughterPdg_v"           , &_daughter_pdg_v);
+    _mc_tree->Branch("daughterTrackid_v"       , &_daughter_trackid_v);
+    _mc_tree->Branch("daughterParentTrackid_v" , &_daughter_parenttrackid_v);
+    _mc_tree->Branch("daughterLength_vv"       , &_daughter_length_vv);
+    _mc_tree->Branch("daughterEnergyInit_v"    , &_daughter_energyinit_v);
+    _mc_tree->Branch("daughterEnergyDep_v"     , &_daughter_energydep_v);
+    _mc_tree->Branch("daughter2DStartX_vv"     , &_daughter_2dstartx_vv);
+    _mc_tree->Branch("daughter2DStartY_vv"     , &_daughter_2dstarty_vv);
+    _mc_tree->Branch("daughter2DEndX_vv"       , &_daughter_2dendx_vv);
+    _mc_tree->Branch("daughter2DEndY_vv"       , &_daughter_2dendy_vv);
+    _mc_tree->Branch("daughter2DCosAngle_vv"   , &_daughter_2dcosangle_vv);
     
   }
 
@@ -206,15 +211,16 @@ namespace larcv {
     // Neutrino ROI
     auto roi = ev_roi->at(0);
     
-    _parent_pdg = roi.PdgCode();
+    _parent_pdg     = roi.PdgCode();
     _energy_deposit = roi.EnergyDeposit();
-    _parent_x  = roi.X(); 
-    _parent_y  = roi.Y(); 
-    _parent_z  = roi.Z(); 
-    _parent_t  = roi.T(); 
-    _parent_px = roi.Px(); 
-    _parent_py = roi.Py(); 
-    _parent_pz = roi.Pz(); 
+    _energy_init    = roi.EnergyInit();
+    _parent_x       = roi.X(); 
+    _parent_y       = roi.Y(); 
+    _parent_z       = roi.Z(); 
+    _parent_t       = roi.T(); 
+    _parent_px      = roi.Px(); 
+    _parent_py      = roi.Py(); 
+    _parent_pz      = roi.Pz(); 
 
     _current_type     = roi.NuCurrentType();
     _interaction_type = roi.NuInteractionType();
@@ -339,6 +345,8 @@ namespace larcv {
       _daughterPz_v.push_back( roi.Pz() );
       
       _daughter_pdg_v.push_back((uint) roi.PdgCode());
+      _daughter_trackid_v.push_back((uint) roi.TrackID());
+      _daughter_parenttrackid_v.push_back((uint) roi.ParentTrackID());
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
