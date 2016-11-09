@@ -126,7 +126,7 @@ namespace larcv {
   }
 
   void MCinfoRetriever::Clear() {
-
+    
     _vtx_2d_w_v.clear();
     _vtx_2d_t_v.clear();
     _vtx_2d_w_v.resize(3);
@@ -158,6 +158,7 @@ namespace larcv {
   void MCinfoRetriever::initialize()
   {
     _mc_tree = new TTree("mctree","MC infomation");
+
     _mc_tree->Branch("run",&_run,"run/i");
     _mc_tree->Branch("subrun",&_subrun,"subrun/i");
     _mc_tree->Branch("event",&_event,"event/i");
@@ -175,7 +176,7 @@ namespace larcv {
 
     _mc_tree->Branch("vtx2d_w",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t",&_vtx_2d_t_v);
-
+    
     _mc_tree->Branch("daughterPx_v", &_daughterPx_v);
     _mc_tree->Branch("daughterPy_v", &_daughterPy_v);
     _mc_tree->Branch("daughterPz_v", &_daughterPz_v);
@@ -203,11 +204,13 @@ namespace larcv {
     _subrun = (uint) ev_roi->subrun();
     _event  = (uint) ev_roi->event();
 
+    ///////////////////////////////
     // Neutrino ROI
     auto roi = ev_roi->at(0);
     
     _parent_pdg = roi.PdgCode();
     _energy_deposit = roi.EnergyDeposit();
+
     _parent_x  = roi.X(); 
     _parent_y  = roi.Y(); 
     _parent_z  = roi.Z(); 
@@ -220,7 +223,6 @@ namespace larcv {
     _interaction_type = roi.NuInteractionType();
     
     //Get 2D projections from 3D
-    
     for (uint plane = 0 ; plane<3;++plane){
       
       ///Convert [cm] to [pixel]
@@ -236,18 +238,19 @@ namespace larcv {
     }
 
     //for each ROI not nu, lets get the 3D line in direction of particle trajectory.
-    //then project onto plane, and find the intersection with the edges of the particle
-    //ROI box, I think this won't be such a bad proxy for the MC particle length
-    //and eend point estimation
-    
+    //then project onto plane, and find the intersection with the edge of the particle
+    //ROI box, I think this won't be such a bad proxy for the MC particle length and angle.
+
+    ///////////////////////////////
+    //Daughter ROI
     for(const auto& roi : ev_roi->ROIArray()) {
 
       if (roi.PdgCode() == 12 or
 	  roi.PdgCode() == 14 or
 	  roi.PdgCode() == 0) continue;
 
-      //std::cout << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
-
+      LARCV_DEBUG() << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
+      
       //get a unit vector for this pdg in 3 coordinates
       auto px = roi.Px();
       auto py = roi.Py();
@@ -266,7 +269,8 @@ namespace larcv {
       auto z0 = roi.Z();
       auto t  = roi.T();
 
-      // here is another point in the direction of p. Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
+      // here is another point in the direction of p.
+      // Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
       auto x1 = x0+px;
       auto y1 = y0+py;
       auto z1 = z0+pz;
