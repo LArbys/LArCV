@@ -100,9 +100,80 @@ namespace larcv {
 							roi.EnergyInit(mom.E() * 1.e3);
 						}
 					}
+					
+					// Define MCPNode
+					MCPNode* pnode = new MCPNode( -1, -1, mcp.PdgCode(), vtx.T(), -1, MCPNode::kTruth, MCPNode::kNeutrino );
+					// insert into tree
+					nodelist.push_back( pnode );
+					int idx = nodelist.size()-1;
+					idx_primaries.push_back( idx );
+					//idx_secondary2primary.insert( std::make_pair<idx,-1> ); // designate as primary
+					//idx_vertexmap.insert(std::make_pair<vtx,idx>); // vertex mapped to primary node
 				}
 			}
 			for (auto const& vtx_roi : roi_m) DefinePrimary(vtx_roi.first, vtx_roi.second);
+		}
+
+
+		template <class T, class U, class V, class W>
+		void MCParticleTree<T, U, V, W>::DefinePrimaries(const std::vector<U>& mctrack_v, const int time_offset)
+		{
+		  // we define primaries from MCTrack information
+		  LARCV_DEBUG() << "start" << std::endl;
+
+		  for (size_t i = 0; i < mctrack_v.size(); ++i) {
+		    auto const& mctrack = mctrack_v[i];
+		 
+		    if  ( mctrack.TrackID()!=mctrack.MotherTrackID() ) {
+		      // this is a secondary
+		      continue;
+		    }
+
+		    if (mctrack.size() < 2) {
+		      LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+				   << " PdgCode " << mctrack.PdgCode()
+				   << " as it has < 2 steps in the detector" << std::endl;
+		      continue;
+		    }
+
+		    double min_energy_init    = _min_energy_init_mctrack;
+		    double min_energy_deposit = _min_energy_deposit_mctrack;
+
+		    // Check if PDG is registered for a special handling
+		    if (_min_energy_init_pdg.find(mctrack.PdgCode()) != _min_energy_init_pdg.end()) {
+		      min_energy_init    = _min_energy_init_pdg[mctrack.PdgCode()];
+		      min_energy_deposit = _min_energy_deposit_pdg[mctrack.PdgCode()];
+		    }
+
+		    if ((mctrack.Start().E() < min_energy_init) ) {
+		      LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+				   << " PdgCode " << mctrack.PdgCode()
+				   << " as it has too small initial energy " << mctrack.Start().E()
+				   << " MeV < " << min_energy_init << " MeV" << std::endl;
+		      continue;
+		    }
+		    if ((mctrack.front().E() - mctrack.back().E()) < min_energy_deposit) {
+		      LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
+				   << " PdgCode " << mctrack.PdgCode()
+				   << " as it has too small deposit energy " << (mctrack.front().E() - mctrack.back().E())
+				   << " MeV < " << min_energy_deposit << " MeV" << std::endl;
+		      continue;
+		    }
+
+		    ::larcv::Vertex pri_vtx( mctrack.Start().X(), mctrack.Start().Y(), mctrack.Start().Z(), mctrack.Start().T() );
+
+		    auto roi = _cropper.ParticleROI(mctrack,time_offset);
+		    roi.MCSTIndex(i);
+		    
+		    if (roi.BB().size() < _min_nplanes) {
+		      LARCV_INFO() << "Skipping Primary ROI as # planes (" << roi.BB().size() << ") < requirement (" << _min_nplanes << std::endl
+				   << roi.dump() << std::endl;
+		      continue;
+		    }
+
+		    // insert roi into vertex map
+		    DefinePrimary( pri_vtx, roi );
+		  }
 		}
 
 		template <class T, class U, class V, class W>
@@ -353,7 +424,7 @@ namespace larcv {
 				                 << "(" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << std::endl;
 				throw larbys();
 			}
-			LARCV_INFO() << "Definiing a new primary @ (x,y,z,t) = ("
+			LARCV_INFO() << "Defining a new primary @ (x,y,z,t) = ("
 			             << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << ")" << std::endl;
 			_roi_m.insert(std::make_pair(vtx, std::make_pair(interaction, ParticleROIArray_t())));
 		}
@@ -378,10 +449,20 @@ namespace larcv {
 			}
 
 			auto iter = _roi_m.find(vtx);
-			if (iter != _roi_m.end()) (*iter).second.second.push_back(secondary);
+			if (iter != _roi_m.end()) { 
+			  (*iter).second.second.push_back(secondary);
+			  // matches to a vertex
+			}
 			else {
 				LARCV_INFO() << "Vertex does not exactly match with registered primary: (x,y,z,t) = ("
 				             << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << ")" << std::endl;
+				
+				// is the particle its own parent?
+				if ( secondary.TrackID()==secondary.ParentTrackID() ) {
+				  LARCV_INFO() << "Secondary is its own parent. Cosmic ray track." << std::endl;
+				  return;
+				}
+
 				// Search closest in time but AFTER
 				std::map<double, larcv::Vertex> time_order;
 				for (auto const& key_value : _roi_m) time_order.emplace(std::make_pair(key_value.first.T(), key_value.first));
