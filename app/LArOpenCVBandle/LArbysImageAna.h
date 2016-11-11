@@ -85,12 +85,16 @@ namespace larcv {
     std::vector<std::vector<uint> >    _num_pixels_vv;
     std::vector<std::vector<double> > _num_pixel_frac_vv;    
 
+    std::vector<std::vector<double> > _circle_vtx_r_vv;
+    std::vector<std::vector<double> > _circle_vtx_angle_vv;
+        
     /// Configuration pset
     std::string _hipcluster_name;
     std::string _defectcluster_name;
     std::string _pcacandidates_name;
     std::string _refine2dvertex_name;
     std::string _vertexcluster_name;
+    std::string _linearvtxfilter_name;
     
   };
 
