@@ -101,6 +101,8 @@ namespace larcv {
 
       void DefinePrimaries(const std::vector<U>&, const int time_offset);
 
+      void DefinePrimaries(const std::vector<V>&, const int time_offset);
+
       void RegisterSecondary(const larcv::Vertex& vtx, const larcv::ROI& secondary);
 
       void UpdatePrimaryROI();

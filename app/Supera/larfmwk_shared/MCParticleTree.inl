@@ -177,12 +177,78 @@ namespace larcv {
 		}
 
 		template <class T, class U, class V, class W>
+		void MCParticleTree<T, U, V, W>::DefinePrimaries(const std::vector<V>& mcshower_v, const int time_offset)
+		{
+		  // we define primaries from MCTrack information
+		  LARCV_DEBUG() << "start" << std::endl;
+
+		  for (size_t i = 0; i < mcshower_v.size(); ++i) {
+		    auto const& mcshower = mcshower_v[i];
+		 
+		    if  ( mcshower.TrackID()!=mcshower.MotherTrackID() ) {
+		      // this is a secondary
+		      continue;
+		    }
+
+		    if (mcshower.size() < 2) {
+		      LARCV_INFO() << "Ignoring Mcshower G4TrackID " << mcshower.TrackID()
+				   << " PdgCode " << mcshower.PdgCode()
+				   << " as it has < 2 steps in the detector" << std::endl;
+		      continue;
+		    }
+
+		    double min_energy_init    = _min_energy_init_mcshower;
+		    double min_energy_deposit = _min_energy_deposit_mcshower;
+
+		    // Check if PDG is registered for a special handling
+		    if (_min_energy_init_pdg.find(mcshower.PdgCode()) != _min_energy_init_pdg.end()) {
+		      min_energy_init    = _min_energy_init_pdg[mcshower.PdgCode()];
+		      min_energy_deposit = _min_energy_deposit_pdg[mcshower.PdgCode()];
+		    }
+
+		    if ((mcshower.Start().E() < min_energy_init) ) {
+		      LARCV_INFO() << "Ignoring Mcshower G4TrackID " << mcshower.TrackID()
+				   << " PdgCode " << mcshower.PdgCode()
+				   << " as it has too small initial energy " << mcshower.Start().E()
+				   << " MeV < " << min_energy_init << " MeV" << std::endl;
+		      continue;
+		    }
+		    if ((mcshower.front().E() - mcshower.back().E()) < min_energy_deposit) {
+		      LARCV_INFO() << "Ignoring Mcshower G4TrackID " << mcshower.TrackID()
+				   << " PdgCode " << mcshower.PdgCode()
+				   << " as it has too small deposit energy " << (mcshower.front().E() - mcshower.back().E())
+				   << " MeV < " << min_energy_deposit << " MeV" << std::endl;
+		      continue;
+		    }
+
+		    ::larcv::Vertex pri_vtx( mcshower.Start().X(), mcshower.Start().Y(), mcshower.Start().Z(), mcshower.Start().T() );
+
+		    auto roi = _cropper.ParticleROI(mcshower,time_offset);
+		    roi.MCSTIndex(i);
+		    
+		    if (roi.BB().size() < _min_nplanes) {
+		      LARCV_INFO() << "Skipping Primary ROI as # planes (" << roi.BB().size() << ") < requirement (" << _min_nplanes << std::endl
+				   << roi.dump() << std::endl;
+		      continue;
+		    }
+
+		    // insert roi into vertex map
+		    DefinePrimary( pri_vtx, roi );
+		  }
+		}
+
+		template <class T, class U, class V, class W>
 		void MCParticleTree<T, U, V, W>::RegisterSecondary(const std::vector<U>& mctrack_v, const int time_offset)
 		{
 			LARCV_DEBUG() << "start" << std::endl;
 			::larcv::Vertex pri_vtx;
 			for (size_t i = 0; i < mctrack_v.size(); ++i) {
 				auto const& mctrack = mctrack_v[i];
+
+				if  ( mctrack.TrackID()==mctrack.MotherTrackID() ) {
+				  // this is a primary
+				  continue;
+				}
 
 				if (mctrack.size() < 2) {
 					LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
