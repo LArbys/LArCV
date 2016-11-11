@@ -47,17 +47,16 @@ namespace larcv {
     void SetManager(const::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
     
   private:
-    void Project3D(const larcv::ImageMeta& meta,
-		   double _parent_x,double _parent_y,double _parent_z,uint plane,
-		   double& xpixel, double& ypixel);
-    
+
     TTree* _event_tree;
     TTree* _vtx3d_tree;
+    TTree* _particle_tree;
     
     const ::larocv::ImageClusterManager* _mgr_ptr;
 
     void ClearEvent();
     void ClearVertex();
+    void ClearParticle();
     
     /// Unique event keys
     uint _run;
@@ -91,7 +90,22 @@ namespace larcv {
 
     std::vector<double> _circle_vtx_r_v;
     std::vector<double> _circle_vtx_angle_v;
-        
+
+    
+    //dQdXProfilerAlgo
+    uint _plane_id;
+    uint _n_pars;
+    
+    std::vector<uint>   _num_atoms_v;
+    std::vector<double> _start_x_v;
+    std::vector<double> _start_y_v;
+    std::vector<double> _end_x_v;
+    std::vector<double> _end_y_v;
+    std::vector<double> _start_end_length_v;
+    std::vector<double> _atom_sum_length_v;
+
+
+    
     /// Configuration pset
     std::string _hipcluster_name;
     std::string _defectcluster_name;

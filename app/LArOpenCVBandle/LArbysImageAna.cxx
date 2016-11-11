@@ -6,7 +6,7 @@
 #include "AlgoData/Refine2DVertexData.h"
 #include "AlgoData/VertexClusterData.h"
 #include "AlgoData/LinearVtxFilterData.h"
-//#include "AlgoData/dQdXProfilerData.h"
+#include "AlgoData/dQdXProfilerData.h"
 
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
@@ -18,7 +18,8 @@ namespace larcv {
   LArbysImageAna::LArbysImageAna(const std::string name)
     : ProcessBase(name),
       _event_tree(nullptr),
-      _vtx3d_tree(nullptr)
+      _vtx3d_tree(nullptr),
+      _particle_tree(nullptr)
   {}
     
   void LArbysImageAna::configure(const PSet& cfg)
@@ -29,9 +30,20 @@ namespace larcv {
     _refine2dvertex_name   = cfg.get<std::string>("Refine2DVertexAlgoName");
     _vertexcluster_name    = cfg.get<std::string>("VertexTrackClusterAlgoName");
     _linearvtxfilter_name  = cfg.get<std::string>("LinearVtxFilterAlgoName");
-    //_dqdxprofiler_name     = cfg.get<std::string>("dQdXProfilerAlgoName");
+    _dqdxprofiler_name     = cfg.get<std::string>("dQdXProfilerAlgoName");
   }
 
+  void LArbysImageAna::ClearParticle() {
+    _num_atoms_v.clear();
+    _start_x_v.clear();
+    _start_y_v.clear();
+    _end_x_v.clear();
+    _end_y_v.clear();
+    _start_end_length_v.clear();
+    _atom_sum_length_v.clear();
+    
+  }
+  
   void LArbysImageAna::ClearEvent() {
     _n_mip_ctors_v.clear();
     _n_hip_ctors_v.clear();
@@ -65,8 +77,6 @@ namespace larcv {
 
   void LArbysImageAna::initialize()
   {
-
-
     _event_tree = new TTree("EventTree","");
 
     _event_tree->Branch("run"    ,&_run    , "run/i");
@@ -108,6 +118,24 @@ namespace larcv {
     //LinearVtxFilter
     _vtx3d_tree->Branch("circle_vtx_r_v",&_circle_vtx_r_v);
     _vtx3d_tree->Branch("circle_vtx_angle_v",&_circle_vtx_angle_v);
+
+    //Particle Tree
+    _particle_tree = new TTree("ParticleTree","");
+
+    _particle_tree->Branch("run"    ,&_run    , "run/i");
+    _particle_tree->Branch("subrun" ,&_subrun , "subrun/i");
+    _particle_tree->Branch("event"  ,&_event  , "event/i");
+
+    _particle_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
+    _particle_tree->Branch("plane_id", &_plane_id, "plane_id/i");
+    _particle_tree->Branch("n_pars",&_n_pars,"n_pars/i");
+    _particle_tree->Branch("num_atoms_v",&_num_atoms_v);
+    _particle_tree->Branch("start_x_v",&_start_x_v);
+    _particle_tree->Branch("start_y_v",&_start_y_v);
+    _particle_tree->Branch("end_x_v",&_end_x_v);
+    _particle_tree->Branch("end_y_v",&_end_y_v);
+    _particle_tree->Branch("start_end_length_v",&_start_end_length_v);
+    _particle_tree->Branch("atom_sum_length_v",&_atom_sum_length_v);
     
   }
   
@@ -148,8 +176,7 @@ namespace larcv {
     auto& vtx_cluster_v=  vtxtrkcluster_data->_vtx_cluster_v;
 
     /// dQdX profiler
-    // auto dqdxprofiler_data = (larocv::data::dQdXProfilerData*)dm.Data( dm.ID(_dqdxprofiler_name) );
-
+    auto dqdxprofiler_data = (larocv::data::dQdXProfilerData*)dm.Data( dm.ID(_dqdxprofiler_name) );
 
     _n_vtx3d = (uint) vtx_cluster_v.size();
     
@@ -163,16 +190,17 @@ namespace larcv {
 
       auto& csarray = circle_setting_array_v[vtx_id];
 
-      // const auto& pardqdxarr = dqdxprofiler_data->get_vertex_cluster(vtx_id);
+      const auto& pardqdxarr = dqdxprofiler_data->get_vertex_cluster(vtx_id);
 
       _vtx3d_x = vtx3d.x;
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
 
       _num_planes = vtx3d.num_planes;
-
+      
       for(uint plane_id=0;plane_id<3;++plane_id) {
-	
+
+	_plane_id=plane_id;
 	const auto& circle_vtx   = vtx_cluster.get_circle_vertex(plane_id);
 	const auto& circle_vtx_c = circle_vtx.center;
 	
@@ -205,17 +233,49 @@ namespace larcv {
 	circle_vtx_r     = csetting._local_r;
 	circle_vtx_angle = csetting._angle;
 
-	// //list of particles on this plane
-	// const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
-
-	// auto& num_atoms = num_atoms_v[plane_id];
-	// num_atoms = pardqdx.num_atoms();
-
-	// //calculate the single line approximate length
+	//list of particles on this plane
+	const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
+	ClearParticle();
+	_n_pars = pardqdx_v.size();
+	
+	_num_atoms_v.resize(_n_pars);
+	_start_x_v.resize(_n_pars);
+	_start_y_v.resize(_n_pars);
+	_end_x_v.resize(_n_pars);
+	_end_y_v.resize(_n_pars);
+	_start_end_length_v.resize(_n_pars);
+	_atom_sum_length_v.resize(_n_pars);
+	//_atomid_v.resize(_n_pars);
 	
 	
+	for(uint pidx=0; pidx < _n_pars; ++pidx) {
+	  auto& num_atoms        = _num_atoms_v[pidx];
+	  auto& start_x          = _start_x_v[pidx];
+	  auto& start_y          = _start_y_v[pidx];
+	  auto& end_x            = _end_x_v[pidx];
+	  auto& end_y            = _end_y_v[pidx];
+	  auto& start_end_length = _start_end_length_v[pidx];
+	  auto& atom_sum_length  = _atom_sum_length_v[pidx];
+	  //auto& atomid           = _atomid_v[pidx];
+		
+	  const auto& pardqdx = pardqdx_v[pidx];
+
+	  num_atoms = pardqdx.num_atoms();
+	  start_x = pardqdx.start_pt().x;
+	  start_y = pardqdx.start_pt().y;
+	  end_x  = pardqdx.end_pt().x;
+	  end_y  = pardqdx.end_pt().y;
+	  	  
+	  start_end_length = geo2d::length(pardqdx.end_pt() - pardqdx.start_pt());
+	  atom_sum_length=0.0;
+	  
+	  //loop over ordered atomics and calcluate the start end length 1-by-1, sum them
+	  for(auto aid : pardqdx.atom_id_array())
+	    atom_sum_length += geo2d::length(pardqdx.atom_end_pt(aid) - pardqdx.atom_start_pt(aid));
+	}
+	
+	_particle_tree->Fill();
       }
-
       
       _vtx3d_tree->Fill();
     }
@@ -230,6 +290,7 @@ namespace larcv {
   {
     _event_tree->Write();
     _vtx3d_tree->Write();
+    _particle_tree->Write();
   }
 
 }
