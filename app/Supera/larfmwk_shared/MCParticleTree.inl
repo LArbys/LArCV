@@ -190,13 +190,6 @@ namespace larcv {
 		      continue;
 		    }
 
-		    if (mcshower.size() < 2) {
-		      LARCV_INFO() << "Ignoring Mcshower G4TrackID " << mcshower.TrackID()
-				   << " PdgCode " << mcshower.PdgCode()
-				   << " as it has < 2 steps in the detector" << std::endl;
-		      continue;
-		    }
-
 		    double min_energy_init    = _min_energy_init_mcshower;
 		    double min_energy_deposit = _min_energy_deposit_mcshower;
 
@@ -213,13 +206,14 @@ namespace larcv {
 				   << " MeV < " << min_energy_init << " MeV" << std::endl;
 		      continue;
 		    }
-		    if ((mcshower.front().E() - mcshower.back().E()) < min_energy_deposit) {
-		      LARCV_INFO() << "Ignoring Mcshower G4TrackID " << mcshower.TrackID()
+		    if (mcshower.DetProfile().E() < min_energy_deposit) {
+		      LARCV_INFO() << "Ignoring MCShower G4TrackID " << mcshower.TrackID()
 				   << " PdgCode " << mcshower.PdgCode()
-				   << " as it has too small deposit energy " << (mcshower.front().E() - mcshower.back().E())
+				   << " as it has too small deposited energy " << mcshower.DetProfile().E()
 				   << " MeV < " << min_energy_deposit << " MeV" << std::endl;
 		      continue;
 		    }
+
 
 		    ::larcv::Vertex pri_vtx( mcshower.Start().X(), mcshower.Start().Y(), mcshower.Start().Z(), mcshower.Start().T() );
 
