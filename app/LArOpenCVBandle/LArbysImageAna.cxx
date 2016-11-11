@@ -87,6 +87,8 @@ namespace larcv {
     _vtx3d_tree->Branch("subrun" ,&_subrun , "subrun/i");
     _vtx3d_tree->Branch("event"  ,&_event  , "event/i");
 
+    _vtx3d_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
+    
     _vtx3d_tree->Branch("vtx3d_x", &_vtx3d_x, "vtx3d_x/D"  );
     _vtx3d_tree->Branch("vtx3d_y", &_vtx3d_y, "vtx3d_y/D"  );
     _vtx3d_tree->Branch("vtx3d_z", &_vtx3d_z, "vtx3d_z/D"  );
@@ -153,7 +155,8 @@ namespace larcv {
     
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) {
       ClearVertex();
-      
+
+      _vtx3d_id=vtx_id;
       const auto& vtx_cluster = vtx_cluster_v[vtx_id];
       
       const auto& vtx3d = vtx_cluster.get_vertex();
