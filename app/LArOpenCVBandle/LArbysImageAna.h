@@ -51,12 +51,14 @@ namespace larcv {
 		   double _parent_x,double _parent_y,double _parent_z,uint plane,
 		   double& xpixel, double& ypixel);
     
-    TTree* _reco_tree;
+    TTree* _event_tree;
+    TTree* _vtx3d_tree;
     
     const ::larocv::ImageClusterManager* _mgr_ptr;
 
-    void Clear();
-
+    void ClearEvent();
+    void ClearVertex();
+    
     /// Unique event keys
     uint _run;
     uint _subrun;
@@ -68,25 +70,25 @@ namespace larcv {
 
     /// Refine2D data
     uint _n_vtx3d;
-    std::vector<double> _vtx3d_x_v, _vtx3d_y_v, _vtx3d_z_v;
-    std::vector<std::vector<double> > _vtx2d_x_vv, _vtx2d_y_vv;
+    double _vtx3d_x, _vtx3d_y, _vtx3d_z;
+    std::vector<double> _vtx2d_x_v, _vtx2d_y_v;
 
-    std::vector<std::vector<double> > _circle_x_vv;
-    std::vector<std::vector<double> > _circle_y_vv;
+    std::vector<double> _circle_x_v;
+    std::vector<double> _circle_y_v;
 
-    std::vector<uint> _vtx3d_n_planes_v;
+    uint _vtx3d_n_planes;
     
     /// VertexTrackCluster
     uint _n_vtx_cluster;
 
-    std::vector<uint> _num_planes_v;
+    uint _num_planes;
 
-    std::vector<std::vector<uint> >    _num_clusters_vv;
-    std::vector<std::vector<uint> >    _num_pixels_vv;
-    std::vector<std::vector<double> > _num_pixel_frac_vv;    
+    std::vector<uint>    _num_clusters_v;
+    std::vector<uint>    _num_pixels_v;
+    std::vector<double> _num_pixel_frac_v;  
 
-    std::vector<std::vector<double> > _circle_vtx_r_vv;
-    std::vector<std::vector<double> > _circle_vtx_angle_vv;
+    std::vector<double> _circle_vtx_r_v;
+    std::vector<double> _circle_vtx_angle_v;
         
     /// Configuration pset
     std::string _hipcluster_name;
@@ -95,6 +97,7 @@ namespace larcv {
     std::string _refine2dvertex_name;
     std::string _vertexcluster_name;
     std::string _linearvtxfilter_name;
+    std::string _dqdxprofiler_name;
     
   };
 

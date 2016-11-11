@@ -6,6 +6,7 @@
 #include "AlgoData/Refine2DVertexData.h"
 #include "AlgoData/VertexClusterData.h"
 #include "AlgoData/LinearVtxFilterData.h"
+//#include "AlgoData/dQdXProfilerData.h"
 
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
@@ -16,7 +17,8 @@ namespace larcv {
 
   LArbysImageAna::LArbysImageAna(const std::string name)
     : ProcessBase(name),
-      _reco_tree(nullptr)
+      _event_tree(nullptr),
+      _vtx3d_tree(nullptr)
   {}
     
   void LArbysImageAna::configure(const PSet& cfg)
@@ -27,78 +29,89 @@ namespace larcv {
     _refine2dvertex_name   = cfg.get<std::string>("Refine2DVertexAlgoName");
     _vertexcluster_name    = cfg.get<std::string>("VertexTrackClusterAlgoName");
     _linearvtxfilter_name  = cfg.get<std::string>("LinearVtxFilterAlgoName");
+    //_dqdxprofiler_name     = cfg.get<std::string>("dQdXProfilerAlgoName");
   }
 
-  void LArbysImageAna::Clear() {
+  void LArbysImageAna::ClearEvent() {
     _n_mip_ctors_v.clear();
     _n_hip_ctors_v.clear();
     _n_mip_ctors_v.resize(3);
     _n_hip_ctors_v.resize(3);
+  }
+  
+  void LArbysImageAna::ClearVertex() {
 
-    _vtx3d_n_planes_v.clear();
+    _vtx2d_x_v.clear();
+    _vtx2d_y_v.clear();
+    _circle_x_v.clear();
+    _circle_y_v.clear();
+    _num_clusters_v.clear();
+    _num_pixels_v.clear();
+    _num_pixel_frac_v.clear();
+    _circle_vtx_r_v.clear();
+    _circle_vtx_angle_v.clear();
 
-    _vtx3d_x_v.clear();
-    _vtx3d_y_v.clear();
-    _vtx3d_z_v.clear();
-
-    _vtx2d_x_vv.clear();
-    _vtx2d_y_vv.clear();
+    _vtx2d_x_v.resize(3);
+    _vtx2d_y_v.resize(3);
+    _circle_x_v.resize(3);
+    _circle_y_v.resize(3);
+    _num_clusters_v.resize(3);
+    _num_pixels_v.resize(3);
+    _num_pixel_frac_v.resize(3);
+    _circle_vtx_r_v.resize(3);
+    _circle_vtx_angle_v.resize(3);
     
-    _circle_x_vv.clear();
-    _circle_y_vv.clear();
-
-    _num_planes_v.clear();
-    _num_clusters_vv.clear();
-    _num_pixels_vv.clear();
-    _num_pixel_frac_vv.clear();
-    
-    _circle_vtx_r_vv.clear();
-    _circle_vtx_angle_vv.clear();
   }
 
   void LArbysImageAna::initialize()
   {
 
-    Clear();
-    
-    _reco_tree = new TTree("LArbysImageTree","");
 
-    /// Unique event keys
-    _reco_tree->Branch("run"    ,&_run    , "run/i");
-    _reco_tree->Branch("subrun" ,&_subrun , "subrun/i");
-    _reco_tree->Branch("event"  ,&_event  , "event/i");
+    _event_tree = new TTree("EventTree","");
+
+    _event_tree->Branch("run"    ,&_run    , "run/i");
+    _event_tree->Branch("subrun" ,&_subrun , "subrun/i");
+    _event_tree->Branch("event"  ,&_event  , "event/i");
 
     /// HIP cluster data
-    _reco_tree->Branch("n_mip_ctors_v", &_n_mip_ctors_v );
-    _reco_tree->Branch("n_hip_ctors_v", &_n_hip_ctors_v );
-    
+    _event_tree->Branch("n_mip_ctors_v", &_n_mip_ctors_v);
+    _event_tree->Branch("n_hip_ctors_v", &_n_hip_ctors_v);
+
     /// VertexTrackCluster
-    _reco_tree->Branch("n_vtx3d", &_n_vtx3d, "n_vtx3d/i");
-
-    _reco_tree->Branch("vtx3d_x_v", &_vtx3d_x_v );
-    _reco_tree->Branch("vtx3d_y_v", &_vtx3d_y_v );
-    _reco_tree->Branch("vtx3d_z_v", &_vtx3d_z_v );
-
-    _reco_tree->Branch("vtx2d_x_vv", &_vtx2d_x_vv );
-    _reco_tree->Branch("vtx2d_y_vv", &_vtx2d_y_vv );
-
-    _reco_tree->Branch("circle_vtx_x_vv",&_circle_x_vv);
-    _reco_tree->Branch("circle_vtx_y_vv",&_circle_y_vv);
+    _event_tree->Branch("n_vtx3d", &_n_vtx3d, "n_vtx3d/i");
     
-    _reco_tree->Branch("num_planes_v"      ,&_num_planes_v);
-    _reco_tree->Branch("num_clusters_vv"   ,&_num_clusters_vv);
-    _reco_tree->Branch("num_pixels_vv"     ,&_num_pixels_vv);
-    _reco_tree->Branch("num_pixel_frac_vv" ,&_num_pixel_frac_vv);
+    _vtx3d_tree = new TTree("Vtx3DTree","");
 
+    /// Unique event keys
+    _vtx3d_tree->Branch("run"    ,&_run    , "run/i");
+    _vtx3d_tree->Branch("subrun" ,&_subrun , "subrun/i");
+    _vtx3d_tree->Branch("event"  ,&_event  , "event/i");
+
+    _vtx3d_tree->Branch("vtx3d_x", &_vtx3d_x, "vtx3d_x/D"  );
+    _vtx3d_tree->Branch("vtx3d_y", &_vtx3d_y, "vtx3d_y/D"  );
+    _vtx3d_tree->Branch("vtx3d_z", &_vtx3d_z, "vtx3d_z/D"  );
+
+    _vtx3d_tree->Branch("vtx2d_x_v", &_vtx2d_x_v );
+    _vtx3d_tree->Branch("vtx2d_y_v", &_vtx2d_y_v );
+
+    _vtx3d_tree->Branch("circle_vtx_x_v",&_circle_x_v);
+    _vtx3d_tree->Branch("circle_vtx_y_v",&_circle_y_v);
+
+    _vtx3d_tree->Branch("num_planes"       , &_num_planes, "num_planes/i");
+    
+    _vtx3d_tree->Branch("num_clusters_v"   , &_num_clusters_v);
+    _vtx3d_tree->Branch("num_pixels_v"     , &_num_pixels_v);
+    _vtx3d_tree->Branch("num_pixel_frac_v" , &_num_pixel_frac_v);
 
     //LinearVtxFilter
-    _reco_tree->Branch("circle_vtx_r_vv",&_circle_vtx_r_vv);
-    _reco_tree->Branch("circle_vtx_angle_vv",&_circle_vtx_angle_vv);
+    _vtx3d_tree->Branch("circle_vtx_r_v",&_circle_vtx_r_v);
+    _vtx3d_tree->Branch("circle_vtx_angle_v",&_circle_vtx_angle_v);
     
   }
   
   bool LArbysImageAna::process(IOManager& mgr)
   {
+    ClearEvent();
     
     LARCV_DEBUG() << "process" << std::endl;
 
@@ -125,99 +138,57 @@ namespace larcv {
     /// VertexCluster data
     const auto vtxtrkcluster_data = (larocv::data::VertexClusterArray*)dm.Data( dm.ID(_vertexcluster_name) );
 
-
     /// LinearVtxFilter data
     auto linearvf_data = (larocv::data::LinearVtxFilterData*)dm.Data( dm.ID(_linearvtxfilter_name) );
-
+    
     //careful: this is nonconst
     auto& circle_setting_array_v = linearvf_data->_circle_setting_array_v;
     auto& vtx_cluster_v=  vtxtrkcluster_data->_vtx_cluster_v;
-    
+
+    /// dQdX profiler
+    // auto dqdxprofiler_data = (larocv::data::dQdXProfilerData*)dm.Data( dm.ID(_dqdxprofiler_name) );
+
+
     _n_vtx3d = (uint) vtx_cluster_v.size();
-
-    // vec of circle vertex per 3d vtx id
-    _vtx3d_x_v.resize(_n_vtx3d);
-    _vtx3d_y_v.resize(_n_vtx3d);
-    _vtx3d_z_v.resize(_n_vtx3d);
-
-    _num_clusters_vv.resize(_n_vtx3d);
-    _num_pixels_vv.resize(_n_vtx3d);
-    _num_pixel_frac_vv.resize(_n_vtx3d);
-
-    _vtx2d_x_vv.resize(_n_vtx3d);
-    _vtx2d_y_vv.resize(_n_vtx3d);
-    
-    _circle_x_vv.resize(_n_vtx3d);
-    _circle_y_vv.resize(_n_vtx3d);
-
-    _num_planes_v.resize(_n_vtx3d);
-    
-    _circle_vtx_angle_vv.resize(_n_vtx3d);
-    _circle_vtx_r_vv.resize(_n_vtx3d);
     
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) {
+      ClearVertex();
       
       const auto& vtx_cluster = vtx_cluster_v[vtx_id];
       
       const auto& vtx3d = vtx_cluster.get_vertex();
 
       auto& csarray = circle_setting_array_v[vtx_id];
-      
-      _vtx3d_x_v[vtx_id] = vtx3d.x;
-      _vtx3d_y_v[vtx_id] = vtx3d.y;
-      _vtx3d_z_v[vtx_id] = vtx3d.z;
 
-      _num_planes_v[vtx_id] = vtx3d.num_planes;
+      // const auto& pardqdxarr = dqdxprofiler_data->get_vertex_cluster(vtx_id);
 
-      auto& num_clusters_v    = _num_clusters_vv[vtx_id];
-      auto& num_pixels_v     = _num_pixels_vv[vtx_id];
-      auto& num_pixel_frac_v = _num_pixel_frac_vv[vtx_id];
+      _vtx3d_x = vtx3d.x;
+      _vtx3d_y = vtx3d.y;
+      _vtx3d_z = vtx3d.z;
 
-      num_clusters_v.resize(3);
-      num_pixels_v.resize(3);
-      num_pixel_frac_v.resize(3);
+      _num_planes = vtx3d.num_planes;
 
-      auto& vtx2d_x_v = _vtx2d_x_vv[vtx_id];
-      auto& vtx2d_y_v = _vtx2d_y_vv[vtx_id];
-      
-      auto& circle_x_v = _circle_x_vv[vtx_id];
-      auto& circle_y_v = _circle_y_vv[vtx_id];
-
-      vtx2d_x_v.resize(3);
-      vtx2d_y_v.resize(3);
-    
-      circle_x_v.resize(3);
-      circle_y_v.resize(3);
-
-
-      auto& circle_vtx_r_v     = _circle_vtx_r_vv[vtx_id];
-      auto& circle_vtx_angle_v = _circle_vtx_angle_vv[vtx_id];
-
-      circle_vtx_r_v.resize(3);
-      circle_vtx_angle_v.resize(3);
-      
       for(uint plane_id=0;plane_id<3;++plane_id) {
-
 	
 	const auto& circle_vtx   = vtx_cluster.get_circle_vertex(plane_id);
 	const auto& circle_vtx_c = circle_vtx.center;
 	
-	auto& circle_x = circle_x_v[plane_id];
-	auto& circle_y = circle_y_v[plane_id];
+	auto& circle_x = _circle_x_v[plane_id];
+	auto& circle_y = _circle_y_v[plane_id];
 
 	circle_x = circle_vtx_c.x;
 	circle_y = circle_vtx_c.y;
 
-	auto& num_clusters   = num_clusters_v[plane_id];
-	auto& num_pixels     = num_pixels_v[plane_id];
-	auto& num_pixel_frac = num_pixel_frac_v[plane_id];
+	auto& num_clusters   = _num_clusters_v[plane_id];
+	auto& num_pixels     = _num_pixels_v[plane_id];
+	auto& num_pixel_frac = _num_pixel_frac_v[plane_id];
 
       	num_clusters   = vtx_cluster.num_clusters(plane_id);
 	num_pixels     = vtx_cluster.num_pixels(plane_id);
 	num_pixel_frac = vtx_cluster.num_pixel_fraction(plane_id);
 	
-	auto& vtx2d_x = vtx2d_x_v[plane_id];
-	auto& vtx2d_y = vtx2d_y_v[plane_id];
+	auto& vtx2d_x = _vtx2d_x_v[plane_id];
+	auto& vtx2d_y = _vtx2d_y_v[plane_id];
 	
 	vtx2d_x = vtx3d.vtx2d_v[plane_id].pt.x;
 	vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
@@ -225,26 +196,39 @@ namespace larcv {
 
 	const auto& csetting = csarray.get_circle_setting(plane_id);
 	
-	auto& circle_vtx_r     = circle_vtx_r_v[plane_id];
-	auto& circle_vtx_angle = circle_vtx_angle_v[plane_id];
+	auto& circle_vtx_r     = _circle_vtx_r_v[plane_id];
+	auto& circle_vtx_angle = _circle_vtx_angle_v[plane_id];
 
 	circle_vtx_r     = csetting._local_r;
 	circle_vtx_angle = csetting._angle;
+
+	// //list of particles on this plane
+	// const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
+
+	// auto& num_atoms = num_atoms_v[plane_id];
+	// num_atoms = pardqdx.num_atoms();
+
+	// //calculate the single line approximate length
+	
 	
       }
+
       
+      _vtx3d_tree->Fill();
     }
 
-    _reco_tree->Fill();
+    _event_tree->Fill();
     
-    Clear();
+
     return true;
   }
 
   void LArbysImageAna::finalize()
   {
-    _reco_tree->Write();
+    _event_tree->Write();
+    _vtx3d_tree->Write();
   }
 
 }
 #endif
+
