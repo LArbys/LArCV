@@ -126,6 +126,9 @@ namespace larcv {
 		 
 		    if  ( mctrack.TrackID()!=mctrack.MotherTrackID() ) {
 		      // this is a secondary
+		      LARCV_DEBUG() << "Ignoring Secondary MCTrack (" << mctrack.PdgCode() << "," << mctrack.TrackID() << ")"
+				    << " mother=(" << mctrack.MotherPdgCode() << "," << mctrack.MotherTrackID() << ")" 
+				    << std::endl;
 		      continue;
 		    }
 
@@ -135,6 +138,16 @@ namespace larcv {
 				   << " as it has < 2 steps in the detector" << std::endl;
 		      continue;
 		    }
+
+		    // log track in primary tree
+		    ::larcv::Vertex pri_vtx( mctrack.Start().X(), mctrack.Start().Y(), mctrack.Start().Z(), mctrack.Start().T() );
+
+		    MCPNode* pnode = new MCPNode( -1, -1, mctrack.PdgCode(), pri_vtx.T(), -1, MCPNode::kTruth, MCPNode::kCosmic );
+		    // insert into tree
+		    nodelist.push_back( pnode );
+		    int idx = nodelist.size()-1;
+		    idx_primaries.push_back( idx );
+		    primaryids[mctrack.TrackID()] = pnode;
 
 		    double min_energy_init    = _min_energy_init_mctrack;
 		    double min_energy_deposit = _min_energy_deposit_mctrack;
@@ -159,8 +172,6 @@ namespace larcv {
 				   << " MeV < " << min_energy_deposit << " MeV" << std::endl;
 		      continue;
 		    }
-
-		    ::larcv::Vertex pri_vtx( mctrack.Start().X(), mctrack.Start().Y(), mctrack.Start().Z(), mctrack.Start().T() );
 
 		    auto roi = _cropper.ParticleROI(mctrack,time_offset);
 		    roi.MCSTIndex(i);
@@ -187,6 +198,9 @@ namespace larcv {
 		 
 		    if  ( mcshower.TrackID()!=mcshower.MotherTrackID() ) {
 		      // this is a secondary
+		      LARCV_DEBUG() << "Ignoring Secondary MCShower (" << mcshower.PdgCode() << "," << mcshower.TrackID() << ")"
+				    << " mother=(" << mcshower.MotherPdgCode() << "," << mcshower.MotherTrackID() << ")" 
+				    << std::endl;
 		      continue;
 		    }
 
@@ -307,6 +321,11 @@ namespace larcv {
 			for (size_t i = 0; i < mctrack_v.size(); ++i) {
 				auto const& mctrack = mctrack_v[i];
 
+				if  ( mctrack.TrackID()==mctrack.MotherTrackID() ) {
+				  // this is a primary
+				  continue;
+				}
+
 				if (mctrack.size() < 2) {
 					LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 					             << " PdgCode " << mctrack.PdgCode()
@@ -369,6 +388,11 @@ namespace larcv {
 			for (size_t i = 0; i < mcshower_v.size(); ++i) {
 				auto const& mcshower = mcshower_v[i];
 
+				if  ( mcshower.TrackID()==mcshower.MotherTrackID() ) {
+				  // this is a primary
+				  continue;
+				}
+
 				double min_energy_init    = _min_energy_init_mcshower;
 				double min_energy_deposit = _min_energy_deposit_mcshower;
 
@@ -426,6 +450,11 @@ namespace larcv {
 			for (size_t i = 0; i < mcshower_v.size(); ++i) {
 				auto const& mcshower = mcshower_v[i];
 
+				if  ( mcshower.TrackID()==mcshower.MotherTrackID() ) {
+				  // this is a primary
+				  continue;
+				}
+
 				double min_energy_init    = _min_energy_init_mcshower;
 				double min_energy_deposit = _min_energy_deposit_mcshower;
 
@@ -477,18 +506,32 @@ namespace larcv {
 		template <class T, class U, class V, class W>
 		void MCParticleTree<T, U, V, W>::DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction)
 		{
-			LARCV_DEBUG() << "start" << std::endl;
-			auto iter = _roi_m.find(vtx);
-			if (iter != _roi_m.end()) {
-				LARCV_CRITICAL() << "Duplicate interaction definition @ (x,y,z,t) = "
-				                 << "(" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << std::endl;
-				throw larbys();
-			}
-			LARCV_INFO() << "Defining a new primary @ (x,y,z,t) = ("
-			             << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << ")" << std::endl;
-			_roi_m.insert(std::make_pair(vtx, std::make_pair(interaction, ParticleROIArray_t())));
-		}
+		  LARCV_DEBUG() << "defining" << std::endl << interaction.dump() << std::endl;
+		  if ( interaction.Type()==larcv::kROIBNB ) {
+		    LARCV_INFO() << "Neutrino interaction: current=" << interaction.NuCurrentType() << " mode=" << interaction.NuInteractionType() << std::endl;
+		  }
+		  auto iter = _roi_m.find(vtx);
+		  if (iter != _roi_m.end()) {
+		    if ( (*iter).second.first.Type()==larcv::kROIBNB ) {
+		      // if matching vertex is neutrino interaction, particle will have no parent ID, so going to look like a primary
+		      // we add it as secondary
+		      RegisterSecondary( vtx, interaction );
+		    }
+		    else {
+		      // else, it is a cosmic or part of single particle gun
 
+		      LARCV_CRITICAL() << "Duplicate interaction definition @ (x,y,z,t) = "
+				       << "(" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << std::endl;
+		      throw larbys();
+		    }
+		  }
+		  else {
+		    LARCV_INFO() << "Defining a new primary @ (x,y,z,t) = ("
+				 << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << ")" << std::endl;
+		    _roi_m.insert(std::make_pair(vtx, std::make_pair(interaction, ParticleROIArray_t())));
+		  }
+		}
+	  
 		template <class T, class U, class V, class W>
 		void MCParticleTree<T, U, V, W>::RegisterSecondary(const larcv::Vertex& vtx, const larcv::ROI& secondary)
 		{
@@ -512,14 +555,20 @@ namespace larcv {
 			if (iter != _roi_m.end()) { 
 			  (*iter).second.second.push_back(secondary);
 			  // matches to a vertex
+			  if ( (*iter).second.first.Type()==larcv::kROIBNB ) {
+			    LARCV_INFO() << "secondary add to neutrino interaction: " << std::endl << (*iter).second.first.dump() << std::endl;
+			  }
+			    
 			}
 			else {
 				LARCV_INFO() << "Vertex does not exactly match with registered primary: (x,y,z,t) = ("
 				             << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << "," << vtx.T() << ")" << std::endl;
 				
-				// is the particle its own parent?
-				if ( secondary.TrackID()==secondary.ParentTrackID() ) {
-				  LARCV_INFO() << "Secondary is its own parent. Cosmic ray track." << std::endl;
+				// we have it's parent logged?
+				auto it_primid = primaryids.find( secondary.ParentTrackID() );
+				if ( it_primid!=primaryids.end() ) {
+				  _roi_m[vtx].second.push_back(secondary);
+				  LARCV_INFO() << "Matched via parent track ID instead." << std::endl;
 				  return;
 				}
 
@@ -603,7 +652,24 @@ namespace larcv {
 			for (auto const& vtx_roi : _roi_m) res.push_back(vtx_roi.second);
 			return res;
 		}
+
+	  template <class T, class U, class V, class W>
+	  std::vector<larcv::supera::InteractionROI_t> MCParticleTree<T, U, V, W>::GetNeutrinoROI() const
+	  {
+	    LARCV_DEBUG() << "start" << std::endl;
+	    std::vector<larcv::supera::InteractionROI_t> res;
+	    for (auto const& vtx_roi : _roi_m) {
+	      if ( vtx_roi.second.first.Type()==kROIBNB )
+		res.push_back(vtx_roi.second);
+	    }
+	    LARCV_INFO() << "returning " << res.size() << " neutrino interaction ROIs" << std::endl;
+	    return res;
+	  }
 	}
 }
 
 #endif
+
+// Local Variables:
+// mode: c++
+// End:

@@ -80,6 +80,7 @@ namespace larcv {
 		const std::vector<U>& mct_v,
 		const std::vector<V>& mcs_v,
 		const std::vector<W>& sch_v,
+		const larcv::supera::InteractionROI_t& interaction_roi,
 		const int time_offset=0);
     private:
       larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,

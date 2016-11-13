@@ -193,6 +193,9 @@ namespace larcv {
 			//
 			// 1) Construct Interaction/Particle ROIs
 			//
+			
+			// for now, our goal is to produce neutrino ROI only
+
 			_mctp.clear();
 			_mctp.DefinePrimary(mctruth_v);
 			_mctp.DefinePrimaries(mctrack_v,_mc_tick_offset);
@@ -205,8 +208,13 @@ namespace larcv {
 			}
 
 			_mctp.UpdatePrimaryROI();
-			auto int_roi_v = _mctp.GetPrimaryROI();
-
+			//auto int_roi_v = _mctp.GetPrimaryROI();
+			auto int_roi_v = _mctp.GetNeutrinoROI();
+			LARCV_NORMAL() << "neutrino interactions=" << int_roi_v.size() << std::endl;
+			if ( int_roi_v.size()>0 ) {
+			  LARCV_NORMAL() << int_roi_v.at(0).first.dump() << std::endl;
+			}
+			
 			auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI, "tpc"));
 
 			for (auto& int_roi : int_roi_v) {
@@ -474,11 +482,11 @@ namespace larcv {
 				break;
 			}
 			if (!sem_images.empty()) {
-				fill(sem_images, mctrack_v, mcshower_v, simch_v, _mc_tick_offset);
-				for (auto& img : sem_images) {
-					img.compress(img.meta().rows() / _event_comp_rows[img.meta().plane()],
-					             img.meta().cols() / _event_comp_cols[img.meta().plane()], larcv::Image2D::kMaxPool);
-				}
+			  fill(sem_images, mctrack_v, mcshower_v, simch_v, int_roi_v.at(0), _mc_tick_offset);
+			  for (auto& img : sem_images) {
+			    img.compress(img.meta().rows() / _event_comp_rows[img.meta().plane()],
+					 img.meta().cols() / _event_comp_cols[img.meta().plane()], larcv::Image2D::kMaxPool);
+			  }
 			}
 			event_semimage_v->Emplace(std::move(sem_images));
 
@@ -596,81 +604,87 @@ namespace larcv {
 		                                        const std::vector<U>& mct_v,
 		                                        const std::vector<V>& mcs_v,
 		                                        const std::vector<W>& sch_v,
+							const larcv::supera::InteractionROI_t& interaction_roi,
 		                                        const int time_offset)
 		{
-			LARCV_INFO() << "Filling semantic-segmentation ground truth image..." << std::endl;
-			for (auto const& img : img_v)
+		  LARCV_INFO() << "Filling semantic-segmentation ground truth image..." << std::endl;
+		  for (auto const& img : img_v)
+		    LARCV_INFO() << img.meta().dump();
+		  
+		  std::set<int> interaction_trackids;
+		  for ( auto &part_roi : interaction_roi.second ) 
+		    interaction_trackids.insert( (int)part_roi.TrackID() );
+		  
+		  //static std::vector<larcv::ROIType_t> track2type_v(1e4, ::larcv::kROIUnknown);
+		  std::map< int, larcv::ROIType_t > track2type_v;
+		  //for (auto& v : track2type_v) v = ::larcv::kROIUnknown;
+		  for (auto const& mct : mct_v) {
+		    //if (mct.TrackID() >= track2type_v.size())
+		    //		track2type_v.resize(mct.TrackID() + 1, ::larcv::kROIUnknown);
+		    track2type_v[mct.TrackID()] = ::larcv::PDG2ROIType(mct.PdgCode());
+		  }
+		  for (auto const& mcs : mcs_v) {
+		    //if (mcs.TrackID() >= track2type_v.size())
+		    //track2type_v.resize(mcs.TrackID() + 1, ::larcv::kROIUnknown);
+		    auto const roi_type = ::larcv::PDG2ROIType(mcs.PdgCode());
+		    track2type_v[mcs.TrackID()] = roi_type;
+		    for (auto const& id : mcs.DaughterTrackID()) {
+		      //if (id >= track2type_v.size())
+		      //track2type_v.resize(id + 1, ::larcv::kROIUnknown);
+		      track2type_v[id] = roi_type;
+		    }
+		  }
+		  
+		  static std::vector<float> column;
+		  for (auto const& img : img_v) {
+		    if (img.meta().rows() >= column.size())
+		      column.resize(img.meta().rows() + 1, (float)(::larcv::kROIUnknown));
+		  }
 
-				LARCV_INFO() << img.meta().dump();
-
-			static std::vector<larcv::ROIType_t> track2type_v(1e4, ::larcv::kROIUnknown);
-			for (auto& v : track2type_v) v = ::larcv::kROIUnknown;
-			for (auto const& mct : mct_v) {
-				if (mct.TrackID() >= track2type_v.size())
-					track2type_v.resize(mct.TrackID() + 1, ::larcv::kROIUnknown);
-				track2type_v[mct.TrackID()] = ::larcv::PDG2ROIType(mct.PdgCode());
-			}
-			for (auto const& mcs : mcs_v) {
-				if (mcs.TrackID() >= track2type_v.size())
-					track2type_v.resize(mcs.TrackID() + 1, ::larcv::kROIUnknown);
-				auto const roi_type = ::larcv::PDG2ROIType(mcs.PdgCode());
-				track2type_v[mcs.TrackID()] = roi_type;
-				for (auto const& id : mcs.DaughterTrackID()) {
-					if (id >= track2type_v.size())
-						track2type_v.resize(id + 1, ::larcv::kROIUnknown);
-					track2type_v[id] = roi_type;
-				}
-			}
-
-			static std::vector<float> column;
-			for (auto const& img : img_v) {
-				if (img.meta().rows() >= column.size())
-					column.resize(img.meta().rows() + 1, (float)(::larcv::kROIUnknown));
-			}
-
-			for (auto const& sch : sch_v) {
-
-				auto ch = sch.Channel();
-				auto const& wid = ::larcv::supera::ChannelToWireID(ch);
-				auto const& plane = wid.Plane;
-				auto& img = img_v.at(plane);
-				auto const& meta = img.meta();
-
-				size_t col = wid.Wire;
-				if (col < meta.min_x()) continue;
-				if (meta.max_x() <= col) continue;
-				if (plane != img.meta().plane()) continue;
-
-				col -= (size_t)(meta.min_x());
-
-				// Initialize column vector
-				for (auto& v : column) v = (float)(::larcv::kROIUnknown);
-				//for (auto& v : column) v = (float)(-1);
-
-				for (auto const tick_ides : sch.TDCIDEMap()) {
-				    int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
-					if (tick < meta.min_y()) continue;
-					if (tick >= meta.max_y()) continue;
-					// Where is this tick in column vector?
-					size_t index = (size_t)(meta.max_y() - tick);
-					// Pick type
-					double energy = 0;
-					::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
-					for (auto const& edep : tick_ides.second) {
-						if (edep.energy < energy) continue;
-						if (edep.trackID >= (int)(track2type_v.size())) continue;
-						auto temp_roi_type = track2type_v[edep.trackID];
-						if (temp_roi_type ==::larcv::kROIUnknown) continue;
-						energy = edep.energy;
-						roi_type = temp_roi_type;
-					}
-					column[index] = roi_type;
-				}
-				// mem-copy column vector
-				img.copy(0, col, column, img.meta().rows());
-			}
+		  for (auto const& sch : sch_v) {
+		    
+		    auto ch = sch.Channel();
+		    auto const& wid = ::larcv::supera::ChannelToWireID(ch);
+		    auto const& plane = wid.Plane;
+		    auto& img = img_v.at(plane);
+		    auto const& meta = img.meta();
+		    
+		    size_t col = wid.Wire;
+		    if (col < meta.min_x()) continue;
+		    if (meta.max_x() <= col) continue;
+		    if (plane != img.meta().plane()) continue;
+		    
+		    col -= (size_t)(meta.min_x());
+		    
+		    // Initialize column vector
+		    for (auto& v : column) v = (float)(::larcv::kROIUnknown);
+		    //for (auto& v : column) v = (float)(-1);
+		    
+		    for (auto const tick_ides : sch.TDCIDEMap()) {
+		      int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
+		      if (tick < meta.min_y()) continue;
+		      if (tick >= meta.max_y()) continue;
+		      // Where is this tick in column vector?
+		      size_t index = (size_t)(meta.max_y() - tick);
+		      // Pick type
+		      double energy = 0;
+		      ::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
+		      for (auto const& edep : tick_ides.second) {
+			if (edep.energy < energy) continue;
+			if ( interaction_trackids.find( edep.trackID )==interaction_trackids.end() ) continue;
+			//if (edep.trackID >= (int)(track2type_v.size())) continue;
+			auto temp_roi_type = track2type_v[edep.trackID];
+			if (temp_roi_type ==::larcv::kROIUnknown) continue;
+			energy = edep.energy;
+			roi_type = temp_roi_type;
+		      }
+		      column[index] = roi_type;
+		    }
+		    // mem-copy column vector
+		    img.copy(0, col, column, img.meta().rows());
+		  }
 		}
-
+	  
 		template <class R, class S, class T, class U, class V, class W>
 		void SuperaCore<R, S, T, U, V, W>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
 		{
@@ -766,3 +780,7 @@ namespace larcv {
 	}
 }
 #endif
+
+// Local Variables:
+// mode: c++
+// End:

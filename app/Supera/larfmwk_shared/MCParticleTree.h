@@ -21,6 +21,8 @@
 #include "Base/larcv_base.h"
 #include "SuperaTypes.h"
 #include "Cropper.h"
+#include "MCPNode.h"
+
 namespace larcv {
   namespace supera {
 
@@ -29,42 +31,6 @@ namespace larcv {
        User defined class MCParticleTree ... these comments are used to generate
        doxygen documentation!
     */
-
-
-    class MCPNode {
-    public:
-      typedef enum { kTruth, kTrack, kShower } NodeSource_t;
-      typedef enum { kNeutrino, kCosmic } NodeOrigin_t;
-      MCPNode( int tid, int pid, int pdgcode, float t, int parent_node, NodeSource_t src, NodeOrigin_t o )
-        : trackid(tid), parentid(pid), pdg(pdgcode), time(t), source(src), origin(o), idx_parentnode(parent_node)  {};
-      virtual ~MCPNode() {};
-
-      MCPNode( const MCPNode& src ) {
-	trackid = src.trackid;
-	parentid = src.parentid;
-	pdg = src.pdg;
-	time = src.time;
-	source = src.source;
-	origin = src.origin;
-	idx_parentnode = src.idx_parentnode;
-	for (int i=0; i<(int)src.idx_daughternodes.size(); i++)
-	  idx_daughternodes.push_back( src.idx_daughternodes.at(i) );
-      };
-
-      bool operator<( const MCPNode& rhs ) {
-	if ( time < rhs.time ) return true;
-	return false;
-      };
-
-      int trackid;
-      int parentid;
-      int pdg;
-      float time;
-      NodeSource_t source;
-      NodeOrigin_t origin;
-      int idx_parentnode;
-      std::vector<int> idx_daughternodes;
-    };
 
     template <class T, class U, class V, class W>
     class MCParticleTree : public larcv::larcv_base {
@@ -108,6 +74,7 @@ namespace larcv {
       void UpdatePrimaryROI();
 
       std::vector<larcv::supera::InteractionROI_t> GetPrimaryROI() const;
+      std::vector<larcv::supera::InteractionROI_t> GetNeutrinoROI() const;
 
       void clear()
       { 
@@ -118,6 +85,7 @@ namespace larcv {
 	}
 	nodelist.clear();
 	idx_primaries.clear();
+	primaryids.clear();
 	//idx_secondary2primary.clear();
       };
 
@@ -131,6 +99,7 @@ namespace larcv {
       std::vector< int > idx_primaries;
       //std::map< int, int > idx_secondary2primary;
       std::map<larcv::Vertex,int> idx_vertexmap;
+      std::map< int, MCPNode* > primaryids;
 
       std::map<int,double> _min_energy_init_pdg;
       std::map<int,double> _min_energy_deposit_pdg;
