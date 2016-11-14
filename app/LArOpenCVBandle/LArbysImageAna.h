@@ -103,9 +103,8 @@ namespace larcv {
     std::vector<double> _end_y_v;
     std::vector<double> _start_end_length_v;
     std::vector<double> _atom_sum_length_v;
-
-
-    
+    std::vector<double> _first_atom_cos_v;
+        
     /// Configuration pset
     std::string _hipcluster_name;
     std::string _defectcluster_name;

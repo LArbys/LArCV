@@ -41,7 +41,7 @@ namespace larcv {
     _end_y_v.clear();
     _start_end_length_v.clear();
     _atom_sum_length_v.clear();
-    
+    _first_atom_cos_v.clear();
   }
   
   void LArbysImageAna::ClearEvent() {
@@ -136,6 +136,7 @@ namespace larcv {
     _particle_tree->Branch("end_y_v",&_end_y_v);
     _particle_tree->Branch("start_end_length_v",&_start_end_length_v);
     _particle_tree->Branch("atom_sum_length_v",&_atom_sum_length_v);
+    _particle_tree->Branch("first_atom_cos_v",&_first_atom_cos_v);
     
   }
   
@@ -223,7 +224,6 @@ namespace larcv {
 	
 	vtx2d_x = vtx3d.vtx2d_v[plane_id].pt.x;
 	vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
-	
 
 	const auto& csetting = csarray.get_circle_setting(plane_id);
 	
@@ -245,8 +245,8 @@ namespace larcv {
 	_end_y_v.resize(_n_pars);
 	_start_end_length_v.resize(_n_pars);
 	_atom_sum_length_v.resize(_n_pars);
-	//_atomid_v.resize(_n_pars);
-	
+	_first_atom_cos_v.resize(_n_pars);
+
 	
 	for(uint pidx=0; pidx < _n_pars; ++pidx) {
 	  auto& num_atoms        = _num_atoms_v[pidx];
@@ -256,7 +256,7 @@ namespace larcv {
 	  auto& end_y            = _end_y_v[pidx];
 	  auto& start_end_length = _start_end_length_v[pidx];
 	  auto& atom_sum_length  = _atom_sum_length_v[pidx];
-	  //auto& atomid           = _atomid_v[pidx];
+	  auto& first_atom_cos   = _first_atom_cos_v[pidx];
 		
 	  const auto& pardqdx = pardqdx_v[pidx];
 
@@ -272,6 +272,16 @@ namespace larcv {
 	  //loop over ordered atomics and calcluate the start end length 1-by-1, sum them
 	  for(auto aid : pardqdx.atom_id_array())
 	    atom_sum_length += geo2d::length(pardqdx.atom_end_pt(aid) - pardqdx.atom_start_pt(aid));
+
+	  //use the first atomic to estimate the direction, get the first atomic end point location
+	  //calculate direction from 2D vertex
+	  const auto& first_atom_end = pardqdx.atom_end_pt(0);
+	  
+	  auto dir=first_atom_end-geo2d::Vector<float>(vtx2d_x,vtx2d_y);
+	  double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
+	  
+	  first_atom_cos = cosangle;
+	  
 	}
 	
 	_particle_tree->Fill();
