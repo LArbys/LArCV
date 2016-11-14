@@ -60,6 +60,7 @@ namespace larcv {
     _num_clusters_v.clear();
     _num_pixels_v.clear();
     _num_pixel_frac_v.clear();
+    
     _circle_vtx_r_v.clear();
     _circle_vtx_angle_v.clear();
 
@@ -114,7 +115,7 @@ namespace larcv {
     _vtx3d_tree->Branch("num_clusters_v"   , &_num_clusters_v);
     _vtx3d_tree->Branch("num_pixels_v"     , &_num_pixels_v);
     _vtx3d_tree->Branch("num_pixel_frac_v" , &_num_pixel_frac_v);
-
+    _vtx3d_tree->Branch("sum_pixel_frac"   ,&_sum_pixel_frac ,"sum_pixel_frac/d");
     //LinearVtxFilter
     _vtx3d_tree->Branch("circle_vtx_r_v",&_circle_vtx_r_v);
     _vtx3d_tree->Branch("circle_vtx_angle_v",&_circle_vtx_angle_v);
@@ -197,8 +198,8 @@ namespace larcv {
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
 
-      _num_planes = vtx3d.num_planes;
-      
+      _num_planes     = vtx3d.num_planes;
+      _sum_pixel_frac = 0;
       for(uint plane_id=0;plane_id<3;++plane_id) {
 
 	_plane_id=plane_id;
@@ -219,6 +220,10 @@ namespace larcv {
 	num_pixels     = vtx_cluster.num_pixels(plane_id);
 	num_pixel_frac = vtx_cluster.num_pixel_fraction(plane_id);
 	
+	if(num_pixel_frac>1)num_pixel_frac = 1 ;//Force the up limit of pixel fraction to be 1.
+	_sum_pixel_frac+= num_pixel_frac; 
+	
+
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
 	
