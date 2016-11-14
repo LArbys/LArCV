@@ -86,7 +86,8 @@ namespace larcv {
 
     std::vector<uint>    _num_clusters_v;
     std::vector<uint>    _num_pixels_v;
-    std::vector<double> _num_pixel_frac_v;  
+    std::vector<double>  _num_pixel_frac_v;
+    double   _sum_pixel_frac;
 
     std::vector<double> _circle_vtx_r_v;
     std::vector<double> _circle_vtx_angle_v;
