@@ -88,6 +88,7 @@ namespace larcv {
     std::vector<uint>    _num_pixels_v;
     std::vector<double>  _num_pixel_frac_v;
     double   _sum_pixel_frac;
+    double   _prod_pixel_frac;
 
     std::vector<double> _circle_vtx_r_v;
     std::vector<double> _circle_vtx_angle_v;
@@ -96,6 +97,9 @@ namespace larcv {
     //dQdXProfilerAlgo
     uint _plane_id;
     uint _n_pars;
+
+    std::vector<double> _qsum_v;
+    std::vector<uint> _npix_v;
     
     std::vector<uint>   _num_atoms_v;
     std::vector<double> _start_x_v;
@@ -135,4 +139,5 @@ namespace larcv {
 
 #endif
 /** @} */ // end of doxygen group 
+
 

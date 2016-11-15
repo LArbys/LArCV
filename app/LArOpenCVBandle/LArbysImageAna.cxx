@@ -34,6 +34,9 @@ namespace larcv {
   }
 
   void LArbysImageAna::ClearParticle() {
+
+    _qsum_v.clear();
+    _npix_v.clear();
     _num_atoms_v.clear();
     _start_x_v.clear();
     _start_y_v.clear();
@@ -42,6 +45,7 @@ namespace larcv {
     _start_end_length_v.clear();
     _atom_sum_length_v.clear();
     _first_atom_cos_v.clear();
+    
   }
   
   void LArbysImageAna::ClearEvent() {
@@ -116,6 +120,8 @@ namespace larcv {
     _vtx3d_tree->Branch("num_pixels_v"     , &_num_pixels_v);
     _vtx3d_tree->Branch("num_pixel_frac_v" , &_num_pixel_frac_v);
     _vtx3d_tree->Branch("sum_pixel_frac"   ,&_sum_pixel_frac ,"sum_pixel_frac/d");
+    _vtx3d_tree->Branch("prod_pixel_frac"   ,&_prod_pixel_frac ,"prod_pixel_frac/d");
+    
     //LinearVtxFilter
     _vtx3d_tree->Branch("circle_vtx_r_v",&_circle_vtx_r_v);
     _vtx3d_tree->Branch("circle_vtx_angle_v",&_circle_vtx_angle_v);
@@ -130,6 +136,10 @@ namespace larcv {
     _particle_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
     _particle_tree->Branch("plane_id", &_plane_id, "plane_id/i");
     _particle_tree->Branch("n_pars",&_n_pars,"n_pars/i");
+
+    _particle_tree->Branch("qsum_v",&_qsum_v);
+    _particle_tree->Branch("npix_v",&_npix_v);
+
     _particle_tree->Branch("num_atoms_v",&_num_atoms_v);
     _particle_tree->Branch("start_x_v",&_start_x_v);
     _particle_tree->Branch("start_y_v",&_start_y_v);
@@ -198,8 +208,10 @@ namespace larcv {
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
 
-      _num_planes     = vtx3d.num_planes;
-      _sum_pixel_frac = 0;
+      _num_planes      = vtx3d.num_planes;
+      _sum_pixel_frac  = 0;
+      _prod_pixel_frac = 1.0;
+      
       for(uint plane_id=0;plane_id<3;++plane_id) {
 
 	_plane_id=plane_id;
@@ -220,10 +232,11 @@ namespace larcv {
 	num_pixels     = vtx_cluster.num_pixels(plane_id);
 	num_pixel_frac = vtx_cluster.num_pixel_fraction(plane_id);
 	
-	if(num_pixel_frac>1)num_pixel_frac = 1 ;//Force the up limit of pixel fraction to be 1.
-	_sum_pixel_frac+= num_pixel_frac; 
-	
+	//if(num_pixel_frac>1)num_pixel_frac = 1 ;//Force the up limit of pixel fraction to be 1.
 
+	_sum_pixel_frac  += num_pixel_frac;
+	_prod_pixel_frac *= num_pixel_frac; 
+	
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
 	
@@ -238,11 +251,16 @@ namespace larcv {
 	circle_vtx_r     = csetting._local_r;
 	circle_vtx_angle = csetting._angle;
 
+
 	//list of particles on this plane
 	const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
+
+	//particle list from vertextrackcluster
+	const auto& parcluster_v = vtx_cluster.get_clusters(plane_id);
+
 	ClearParticle();
+
 	_n_pars = pardqdx_v.size();
-	
 	_num_atoms_v.resize(_n_pars);
 	_start_x_v.resize(_n_pars);
 	_start_y_v.resize(_n_pars);
@@ -251,9 +269,11 @@ namespace larcv {
 	_start_end_length_v.resize(_n_pars);
 	_atom_sum_length_v.resize(_n_pars);
 	_first_atom_cos_v.resize(_n_pars);
-
+	_qsum_v.resize(_n_pars);
+	_npix_v.resize(_n_pars);
 	
 	for(uint pidx=0; pidx < _n_pars; ++pidx) {
+	  
 	  auto& num_atoms        = _num_atoms_v[pidx];
 	  auto& start_x          = _start_x_v[pidx];
 	  auto& start_y          = _start_y_v[pidx];
@@ -262,7 +282,15 @@ namespace larcv {
 	  auto& start_end_length = _start_end_length_v[pidx];
 	  auto& atom_sum_length  = _atom_sum_length_v[pidx];
 	  auto& first_atom_cos   = _first_atom_cos_v[pidx];
-		
+	  auto& qsum             = _qsum_v[pidx];
+	  auto& npix             = _npix_v[pidx];
+
+	  //this is a special from VertexTrackCluster
+	  const auto& parcluster = parcluster_v[pidx];
+
+	  npix = parcluster._num_pixel;
+	  qsum = parcluster._qsum;
+	    
 	  const auto& pardqdx = pardqdx_v[pidx];
 
 	  num_atoms = pardqdx.num_atoms();
