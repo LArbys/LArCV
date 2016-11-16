@@ -45,7 +45,8 @@ namespace larcv {
     _start_end_length_v.clear();
     _atom_sum_length_v.clear();
     _first_atom_cos_v.clear();
-    
+    _dqdx_vv.clear();
+    _dqdx_start_idx_vv.clear();
   }
   
   void LArbysImageAna::ClearEvent() {
@@ -103,6 +104,7 @@ namespace larcv {
     _vtx3d_tree->Branch("event"  ,&_event  , "event/i");
 
     _vtx3d_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
+    _vtx3d_tree->Branch("vtx3d_type", &_vtx3d_type, "vtx3d_type/i");
     
     _vtx3d_tree->Branch("vtx3d_x", &_vtx3d_x, "vtx3d_x/D"  );
     _vtx3d_tree->Branch("vtx3d_y", &_vtx3d_y, "vtx3d_y/D"  );
@@ -148,6 +150,8 @@ namespace larcv {
     _particle_tree->Branch("start_end_length_v",&_start_end_length_v);
     _particle_tree->Branch("atom_sum_length_v",&_atom_sum_length_v);
     _particle_tree->Branch("first_atom_cos_v",&_first_atom_cos_v);
+    _particle_tree->Branch("dqdx_vv",&_dqdx_vv);
+    _particle_tree->Branch("dqdx_start_idx_vv",&_dqdx_start_idx_vv);
     
   }
   
@@ -175,7 +179,7 @@ namespace larcv {
     }
 
     /// Refine2D data
-    /// const auto refine2d_data = (larocv::data::Refine2DVertexData*)dm.Data( dm.ID(_refine2dvertex_name) );
+    const auto refine2d_data = (larocv::data::Refine2DVertexData*)dm.Data( dm.ID(_refine2dvertex_name) );
 
     /// VertexCluster data
     const auto vtxtrkcluster_data = (larocv::data::VertexClusterArray*)dm.Data( dm.ID(_vertexcluster_name) );
@@ -195,21 +199,31 @@ namespace larcv {
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) {
       ClearVertex();
 
+      // set the vertex ID
       _vtx3d_id=vtx_id;
+
+      // get this VertexTrackCluster
       const auto& vtx_cluster = vtx_cluster_v[vtx_id];
-      
+
+      // set the vertex type
+      _vtx3d_type = (uint) refine2d_data->get_type(vtx_id);
+
+      // get this 3D vertex
       const auto& vtx3d = vtx_cluster.get_vertex();
 
+      // get this circle's setting
       auto& csarray = circle_setting_array_v[vtx_id];
 
+      // get the dqdx particle array for this vertex id
       const auto& pardqdxarr = dqdxprofiler_data->get_vertex_cluster(vtx_id);
 
       _vtx3d_x = vtx3d.x;
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
 
-      _num_planes      = vtx3d.num_planes;
-      _sum_pixel_frac  = 0;
+      _num_planes = (uint) vtx3d.num_planes;
+            
+      _sum_pixel_frac  = 0.0;
       _prod_pixel_frac = 1.0;
       
       for(uint plane_id=0;plane_id<3;++plane_id) {
@@ -232,8 +246,6 @@ namespace larcv {
 	num_pixels     = vtx_cluster.num_pixels(plane_id);
 	num_pixel_frac = vtx_cluster.num_pixel_fraction(plane_id);
 	
-	//if(num_pixel_frac>1)num_pixel_frac = 1 ;//Force the up limit of pixel fraction to be 1.
-
 	_sum_pixel_frac  += num_pixel_frac;
 	_prod_pixel_frac *= num_pixel_frac; 
 	
@@ -250,7 +262,6 @@ namespace larcv {
 
 	circle_vtx_r     = csetting._local_r;
 	circle_vtx_angle = csetting._angle;
-
 
 	//list of particles on this plane
 	const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
@@ -271,6 +282,8 @@ namespace larcv {
 	_first_atom_cos_v.resize(_n_pars);
 	_qsum_v.resize(_n_pars);
 	_npix_v.resize(_n_pars);
+	_dqdx_vv.resize(_n_pars);
+	_dqdx_start_idx_vv.resize(_n_pars);
 	
 	for(uint pidx=0; pidx < _n_pars; ++pidx) {
 	  
@@ -314,6 +327,15 @@ namespace larcv {
 	  double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
 	  
 	  first_atom_cos = cosangle;
+	  
+	  auto& dqdx_v = _dqdx_vv[pidx];
+	  dqdx_v = pardqdx.dqdx(); // copy it.
+
+	  auto& dqdx_start_idx_v = _dqdx_start_idx_vv[pidx];
+	  dqdx_start_idx_v.resize(num_atoms);
+
+	  for(uint atom_id=0;atom_id<num_atoms;++atom_id)
+	    dqdx_start_idx_v[atom_id] = (uint) pardqdx.atom_start_index(atom_id);
 	  
 	}
 	
