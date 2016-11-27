@@ -21,6 +21,21 @@ namespace larcv {
   {
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
+
+    _min_nu_dep_e  = cfg.get<float>("MinNuDepE",0);
+    _max_nu_dep_e  = cfg.get<float>("MaxNuDepE",9e6);
+    _min_nu_init_e = cfg.get<float>("MinNuInitE",200);
+    _max_nu_init_e = cfg.get<float>("MaxNuInitE",600);
+
+    _min_n_proton = cfg.get<int>("MinNProton",0);
+    _min_n_lepton = cfg.get<int>("MinNLepton",0);
+    _min_n_meson  = cfg.get<int>("MinNMeson",0);
+    _min_n_shower = cfg.get<int>("MinNShower",0);
+    _min_n_neutron = cfg.get<int>("MinNNeutron",0);
+
+    _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
+    _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
+    
   }
 
   cv::Rect MCinfoRetriever::Get2DRoi(const ImageMeta& meta,
@@ -165,21 +180,51 @@ namespace larcv {
     _mc_tree->Branch("subrun",&_subrun,"subrun/i");
     _mc_tree->Branch("event",&_event,"event/i");
     _mc_tree->Branch("parentPDG",&_parent_pdg,"parentPDG/I");
+
     _mc_tree->Branch("energyDeposit",&_energy_deposit,"energyDeposit/D");
     _mc_tree->Branch("energyInit",&_energy_init,"energyInit/D");
+
     _mc_tree->Branch("parentX",&_parent_x,"parentX/D");
     _mc_tree->Branch("parentY",&_parent_y,"parentY/D");
     _mc_tree->Branch("parentZ",&_parent_z,"parentZ/D");
     _mc_tree->Branch("parentT",&_parent_t,"parentT/D");
+
     _mc_tree->Branch("parentPx",&_parent_px,"parentPx/D");
     _mc_tree->Branch("parentPy",&_parent_py,"parentPy/D");
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
+
     _mc_tree->Branch("currentType",&_current_type,"currentType/S");
     _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
     
     _mc_tree->Branch("vtx2d_w",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t",&_vtx_2d_t_v);
+
+    _mc_tree->Branch("nprimary", &_nprimary,"nprimary/i");
+    _mc_tree->Branch("ntotal", &_ntotal,"ntotal/i");
     
+    _mc_tree->Branch("nproton", &_nproton,"nproton/i");
+    _mc_tree->Branch("nlepton", &_nlepton,"nlepton/i");
+    _mc_tree->Branch("nmeson", &_nmeson,"nmeson/i");
+    _mc_tree->Branch("nshower", &_nshower,"nshower/i");
+    _mc_tree->Branch("nneutron", &_nneutron,"nneutron/i");    
+
+    _mc_tree->Branch("hi_lep_pdg",&_hi_lep_pdg,"hi_lep_pdg/I");
+
+    _mc_tree->Branch("dep_sum_lep",&_dep_sum_lep,"dep_sum_lep/D");
+    _mc_tree->Branch("ke_sum_lep",&_ke_sum_lep,"ke_sum_lep/D");
+    
+    _mc_tree->Branch("dep_sum_proton",&_dep_sum_proton,"dep_sum_proton/D");
+    _mc_tree->Branch("ke_sum_proton",&_ke_sum_proton,"ke_sum_proton/D");
+
+    _mc_tree->Branch("dep_sum_meson",&_dep_sum_meson,"dep_sum_meson/D");
+    _mc_tree->Branch("ke_sum_meson",&_ke_sum_meson,"ke_sum_meson/D");
+    
+    _mc_tree->Branch("dep_sum_shower",&_dep_sum_shower,"dep_sum_shower/D");
+    _mc_tree->Branch("ke_sum_shower",&_ke_sum_shower,"ke_sum_shower/D");
+
+    _mc_tree->Branch("dep_sum_neutron",&_dep_sum_neutron,"dep_sum_neutron/D");
+    _mc_tree->Branch("ke_sum_neutron",&_ke_sum_neutron,"ke_sum_neutron/D");
+
     _mc_tree->Branch("daughterPx_v", &_daughterPx_v);
     _mc_tree->Branch("daughterPy_v", &_daughterPy_v);
     _mc_tree->Branch("daughterPz_v", &_daughterPz_v);
@@ -212,28 +257,21 @@ namespace larcv {
     ///////////////////////////////
     // Neutrino ROI
     auto roi = ev_roi->at(0);
-    
+
     _parent_pdg     = roi.PdgCode();
+
     _energy_deposit = roi.EnergyDeposit();
 
     _energy_init    = roi.EnergyInit();
+
     _parent_x       = roi.X(); 
     _parent_y       = roi.Y(); 
     _parent_z       = roi.Z(); 
     _parent_t       = roi.T(); 
+
     _parent_px      = roi.Px(); 
     _parent_py      = roi.Py(); 
     _parent_pz      = roi.Pz(); 
-
-
-    _parent_x  = roi.X(); 
-    _parent_y  = roi.Y(); 
-    _parent_z  = roi.Z(); 
-    _parent_t  = roi.T(); 
-    _parent_px = roi.Px(); 
-    _parent_py = roi.Py(); 
-    _parent_pz = roi.Pz(); 
-
 
     _current_type     = roi.NuCurrentType();
     _interaction_type = roi.NuInteractionType();
@@ -253,14 +291,42 @@ namespace larcv {
       
     }
 
-    //for each ROI not nu, lets get the 3D line in direction of particle trajectory.
-    //then project onto plane, and find the intersection with the edge of the particle
-    //ROI box, I think this won't be such a bad proxy for the MC particle length and angle.
+    // for each ROI not nu, lets get the 3D line in direction of particle trajectory.
+    // then project onto plane, and find the intersection with the edge of the particle
+    // ROI box, I think this won't be such a bad proxy for the MC particle length and angle.
 
     ///////////////////////////////
     //Daughter ROI
+    _nprimary=0;
+    _ntotal=0;
+    _nproton=0;
+    _nneutron=0;
+    _nlepton=0;
+    _nmeson=0;
+    _nshower=0;
+    
+    _hi_lep_pdg=-1;
+
+    float hi_lep_e = 0;
+    
+    _dep_sum_lep=0;
+    _ke_sum_lep=0;
+    _dep_sum_proton=0;
+    _ke_sum_proton=0;
+    _dep_sum_meson=0;
+    _ke_sum_meson=0;
+    _dep_sum_shower=0;
+    _ke_sum_shower=0;
+    _dep_sum_neutron=0;
+    _ke_sum_neutron=0;
+
+    bool visibility=false;
+    bool hadron_vis=false;
+    bool lepton_vis=false;
+    
     for(const auto& roi : ev_roi->ROIArray()) {
 
+      //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events
       if (roi.PdgCode() == 12 or
 	  roi.PdgCode() == 14 or
 	  roi.PdgCode() == 0) continue;
@@ -283,7 +349,7 @@ namespace larcv {
       auto x0 = roi.X();
       auto y0 = roi.Y();
       auto z0 = roi.Z();
-      auto t  = roi.T();
+      //auto t  = roi.T();
 
       // here is another point in the direction of p.
       // Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
@@ -333,6 +399,7 @@ namespace larcv {
 	catch(...) {
 	  continue;
 	}
+	
 	cv::Rect roi_on_plane = Get2DRoi(meta,roi.BB(plane));
 
 	// the start point will be inside the 2D ROI
@@ -340,15 +407,16 @@ namespace larcv {
 
 	auto pt_edge = Intersection(hline,roi_on_plane);
 
-	//std::cout << "ax.plot(" << pt_edge.y << "," << pt_edge.x << ",'o',markersize=15)"  << std::endl;
+	// std::cout << "ax.plot(" << pt_edge.y << "," << pt_edge.x << ",'o',markersize=15)"  << std::endl;
 	
 	daughter_length_v.push_back(geo2d::length(pt_edge - start));
+
 	daughter_2dstartx_v.push_back(start.x);
 	daughter_2dstarty_v.push_back(start.y);
 	daughter_2dendx_v.push_back(pt_edge.x);
 	daughter_2dendy_v.push_back(pt_edge.y);
 
-	auto dir=pt_edge-start;
+	auto dir=pt_edge - start;
 	double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
 	
 	daughter_2dcosangle_v.push_back(cosangle);
@@ -364,7 +432,80 @@ namespace larcv {
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
+      auto pdgcode = roi.PdgCode();
+      
+      //check if this particle is primary...
+
+      _ntotal+=1;
+      
+      //its not move on
+      if (roi.TrackID() != roi.ParentTrackID()) continue;
+      
+      // it is
+      _nprimary+=1;
+      
+      //this is proton
+      if (pdgcode==2212) {
+	_nproton++;
+	_dep_sum_proton += roi.EnergyDeposit();
+	_ke_sum_proton  += roi.EnergyInit() - 938.0;
+
+	if (roi.EnergyInit() > _min_proton_init_e) hadron_vis = true;
+      }
+
+      //this is neutron
+      if (pdgcode==2112 or pdgcode==-2112) {
+	_nneutron++;
+	_dep_sum_neutron += roi.EnergyDeposit();
+	_ke_sum_neutron  += roi.EnergyInit() - 939.5;
+      }
+
+      //mesons are pion,kaon,...
+      if (pdgcode==211 or pdgcode==-211 or
+	  pdgcode==321 or pdgcode==-321) {
+	_nmeson++;
+	_dep_sum_meson += roi.EnergyDeposit();
+	_ke_sum_meson  += roi.EnergyInit();
+      }
+
+      //leptons are electron, muon also (anti...)
+      if (pdgcode==11 or pdgcode==-11 or
+	  pdgcode==13 or pdgcode==-13) {
+	_nlepton++;
+	_dep_sum_lep += roi.EnergyDeposit();
+	_ke_sum_lep += roi.EnergyInit();
+
+	if (roi.EnergyInit() > hi_lep_e) _hi_lep_pdg = pdgcode;
+
+	if (roi.EnergyInit() > _min_lepton_init_e) lepton_vis = true;
+	
+      }
+      
+      //shower are electron, gamma, pi0
+      if (pdgcode==11 or pdgcode==-11 or
+	  pdgcode==22 or
+	  pdgcode==111) {
+	_nshower++;
+	_dep_sum_shower += roi.EnergyDeposit();
+	_ke_sum_shower  += roi.EnergyInit();
+      }
+
     }
+    
+    //the analysis filter
+    if ( _energy_deposit < _min_nu_dep_e  or _energy_deposit > _max_nu_dep_e)  return false;
+    if ( _energy_init    < _min_nu_init_e or _energy_init    > _max_nu_init_e) return false;
+    
+    if ( _nproton  < _min_n_proton  ) return false;
+    if ( _nneutron < _min_n_neutron ) return false;
+    if ( _nlepton  < _min_n_lepton  ) return false;
+    if ( _nmeson   < _min_n_meson   ) return false;
+    if ( _nshower  < _min_n_shower  ) return false;
+
+
+    visibility = hadron_vis && lepton_vis;
+    
+    if ( !visibility ) return false;
     
     //Fill tree
     _mc_tree->Fill();
