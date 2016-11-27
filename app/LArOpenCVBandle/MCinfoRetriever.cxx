@@ -329,8 +329,10 @@ namespace larcv {
     for(const auto& roi : ev_roi->ROIArray()) {
 
       //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events
-      if (roi.PdgCode() == 12 or
-	  roi.PdgCode() == 14 or
+      if (roi.PdgCode() ==  12 or
+	  roi.PdgCode() ==  14 or
+	  roi.PdgCode() == -12 or
+	  roi.PdgCode() == -14 or
 	  roi.PdgCode() == 0) continue;
 
       LARCV_DEBUG() << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
