@@ -36,7 +36,8 @@ namespace larcv {
     _check_vis         = cfg.get<bool>("CheckVisibility",false);
     _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
-    
+    _do_not_reco       = cfg.get<bool>("DoNotReco");
+
   }
 
   cv::Rect MCinfoRetriever::Get2DRoi(const ImageMeta& meta,
@@ -513,6 +514,8 @@ namespace larcv {
     //Fill tree
     _mc_tree->Fill();
 
+    if (_do_not_reco) return false;
+    
     return true;
   }
   

@@ -155,6 +155,8 @@ namespace larcv {
     float _min_lepton_init_e;
     
     bool _check_vis;
+
+    bool _do_not_reco;
     
   private:
     ///Project 3D track into 2D Image(per plane) 
