@@ -34,11 +34,13 @@ namespace larcv {
     _min_n_neutron = cfg.get<int>("MinNNeutron",0);
 
     _check_vis         = cfg.get<bool>("CheckVisibility");
-    _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
-    _min_proton_ke = cfg.get<float>("ProtonMinKE");
-    _max_proton_ke = cfg.get<float>("ProtonMaxKE");
+
+    _min_proton_dep = cfg.get<float>("ProtonMinDepE");
+    _max_proton_dep = cfg.get<float>("ProtonMaxDepE");
+    
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
     _do_not_reco       = cfg.get<bool>("DoNotReco");
+    
     eee=-1;
   }
 
@@ -457,17 +459,17 @@ namespace larcv {
 	//primary protons
 	if (roi.TrackID() == roi.ParentTrackID()) {
 	  _nproton++;
-	  _dep_sum_proton += roi.EnergyDeposit();
-	  //_ke_sum_proton  += roi.EnergyInit() - 938.0;
+	  //_dep_sum_proton += roi.EnergyDeposit();
+	  _ke_sum_proton  += roi.EnergyInit() - 938.0;
 	}
 	
 	//all protons go into vector
 	
 	this_proton thispro;
-
-	thispro.trackid = roi.TrackID();
-	thispro.parenttrackid  = roi.ParentTrackID();
-	thispro.depeng = roi.EnergyInit() - 938.0;
+	
+	thispro.trackid       = roi.TrackID();
+	thispro.parenttrackid = roi.ParentTrackID();
+	thispro.depeng        = roi.EnergyDeposit();
 	
 	protons.push_back(thispro);
       }
@@ -543,9 +545,8 @@ namespace larcv {
       for (auto const each : proton_engs) {
 	if (each > highest_primary_proton_eng) highest_primary_proton_eng = each;
       }
-      _ke_sum_proton = highest_primary_proton_eng;
+      _dep_sum_proton = highest_primary_proton_eng;
     }
-    
     
     //the analysis filter
     if ( _energy_deposit < _min_nu_dep_e  or _energy_deposit > _max_nu_dep_e)  return false;
@@ -557,8 +558,8 @@ namespace larcv {
     if ( _nmeson   < _min_n_meson   ) return false;
     if ( _nshower  < _min_n_shower  ) return false;
     
-    if (highest_primary_proton_eng >= _min_proton_ke &&
-	highest_primary_proton_eng <= _max_proton_ke) hadron_vis = true;
+    if (highest_primary_proton_eng >= _min_proton_dep &&
+	highest_primary_proton_eng <= _max_proton_dep) hadron_vis = true;
     
     visibility = hadron_vis && lepton_vis;
     
