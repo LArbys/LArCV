@@ -49,6 +49,8 @@ namespace larcv {
 
     std::string _image_producer;
 
+    std::string _output_producer;
+
     std::string _roi_producer;
 
     std::vector<unsigned short> _plane_v;

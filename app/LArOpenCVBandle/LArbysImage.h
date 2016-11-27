@@ -57,14 +57,18 @@ namespace larcv {
     ::larlite::event_user* _eui;
     
     ::larocv::ImageClusterManager _alg_mgr;
-    ::larocv::ImageManager _img_mgr;
+    ::larocv::ImageManager _track_img_mgr;
+    ::larocv::ImageManager _shower_img_mgr;
 
     bool   _debug;
     double _charge_to_gray_scale;
     double _charge_min;
     double _charge_max;
     std::vector<float> _plane_weights;
-    std::string _producer;
+    std::string _track_producer;
+    std::string _shower_producer;
+    std::string _output_producer;
+    ::larocv::AlgorithmID_t _output_cluster_alg_id;
     double _process_count;
     double _process_time_image_extraction;
     double _process_time_analyze;
