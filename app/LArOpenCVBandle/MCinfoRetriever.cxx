@@ -35,6 +35,8 @@ namespace larcv {
 
     _check_vis         = cfg.get<bool>("CheckVisibility");
     _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
+    _min_proton_ke = cfg.get<float>("ProtonMinKE");
+    _max_proton_ke = cfg.get<float>("ProtonMaxKE");
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
     _do_not_reco       = cfg.get<bool>("DoNotReco");
     eee=-1;
@@ -327,6 +329,9 @@ namespace larcv {
     bool lepton_vis=false;
 
     uint ic=0;
+    std::vector<this_proton> protons;
+    protons.clear();
+    
     for(const auto& roi : ev_roi->ROIArray()) {
 
       // //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events
@@ -369,6 +374,7 @@ namespace larcv {
       _daughter_2dcosangle_vv.resize(3);
       
       //lets project both points
+
       for(uint plane=0; plane<3; ++plane) {
 
 	auto& daughter_length_v = _daughter_length_vv[plane];
@@ -440,27 +446,41 @@ namespace larcv {
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
-      
-      //check if this particle is primary...
+      //check if this particle is primary...Moved after storing proton since we care secondary proton
 
       _ntotal+=1;
       
+      //this is proton
+      
+      if (pdgcode==2212) {
+
+	//primary protons
+	if (roi.TrackID() == roi.ParentTrackID()) {
+	  _nproton++;
+	  _dep_sum_proton += roi.EnergyDeposit();
+	  //_ke_sum_proton  += roi.EnergyInit() - 938.0;
+	}
+	
+	//all protons go into vector
+	
+	this_proton thispro;
+
+	thispro.trackid = roi.TrackID();
+	thispro.parenttrackid  = roi.ParentTrackID();
+	thispro.depeng = roi.EnergyInit() - 938.0;
+	
+	protons.push_back(thispro);
+      }
+	    
       //its not move on
       if (roi.TrackID() != roi.ParentTrackID()) continue;
       
-      // it is
+      //it is
       _nprimary+=1;
       
-      //this is proton
-      if (pdgcode==2212) {
+      //if (roi.EnergyInit() - 938.0 > _min_proton_init_e) hadron_vis = true;
 
-	_nproton++;
-	_dep_sum_proton += roi.EnergyDeposit();
-	_ke_sum_proton  += roi.EnergyInit() - 938.0;
-
-	if (roi.EnergyInit() - 938.0 > _min_proton_init_e) hadron_vis = true;
-      }
-
+      
       //this is neutron
       if (pdgcode==2112 or pdgcode==-2112) {
 	_nneutron++;
@@ -500,6 +520,32 @@ namespace larcv {
       }
 
     }
+
+    float highest_primary_proton_eng = 0;
+    std::vector<float> proton_engs;
+    proton_engs.clear();
+
+    if (protons.size() > 0){
+      int trackid ;
+      for (int x=0;x < protons.size() ; x++ ){
+	highest_primary_proton_eng = 0;
+	trackid = protons.at(x).trackid;
+	highest_primary_proton_eng += protons.at(x).depeng;
+	for (int y=0;y < protons.size() ; y++ ){
+	  if (x==y) continue;
+	  if (protons.at(y).parenttrackid == trackid) {
+	    highest_primary_proton_eng+=protons.at(y).depeng;
+	  }
+	}
+	proton_engs.push_back(highest_primary_proton_eng);
+      }
+      highest_primary_proton_eng = 0;
+      for (auto const each : proton_engs) {
+	if (each > highest_primary_proton_eng) highest_primary_proton_eng = each;
+      }
+      _ke_sum_proton = highest_primary_proton_eng;
+    }
+    
     
     //the analysis filter
     if ( _energy_deposit < _min_nu_dep_e  or _energy_deposit > _max_nu_dep_e)  return false;
@@ -510,8 +556,10 @@ namespace larcv {
     if ( _nlepton  < _min_n_lepton  ) return false;
     if ( _nmeson   < _min_n_meson   ) return false;
     if ( _nshower  < _min_n_shower  ) return false;
-
-
+    
+    if (highest_primary_proton_eng >= _min_proton_ke &&
+	highest_primary_proton_eng <= _max_proton_ke) hadron_vis = true;
+    
     visibility = hadron_vis && lepton_vis;
     
     if ( !visibility and _check_vis) return false;

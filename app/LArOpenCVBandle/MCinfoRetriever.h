@@ -152,11 +152,20 @@ namespace larcv {
     int _min_n_shower;
 
     float _min_proton_init_e;
+    float _min_proton_ke;
+    float _max_proton_ke;
     float _min_lepton_init_e;
     
     bool _check_vis;
 
     bool _do_not_reco;
+    
+    struct this_proton{
+      int trackid;
+      int parenttrackid;
+      float depeng;
+    };
+
     
   private:
     ///Project 3D track into 2D Image(per plane) 
