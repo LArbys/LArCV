@@ -29,9 +29,10 @@ larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetManager(larbysimg.Manager())
 
 evstart=int(sys.argv[2])
-step=int(3375)
+#step=int(3375)
+step=int(1654)
 print "got start: ",evstart," step: ",step
-proc.override_ana_file("reco_ccqe_%05d_%05d.root"%(evstart,evstart+step))
+proc.override_ana_file("numu_reco_ccqe_%05d_%05d.root"%(evstart,evstart+step))
 
 proc.initialize()
 
