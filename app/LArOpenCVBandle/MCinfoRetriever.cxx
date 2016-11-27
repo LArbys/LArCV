@@ -423,11 +423,11 @@ namespace larcv {
 	daughter_2dcosangle_v.push_back(cosangle);
       }
 
-      _daughterPx_v.push_back( roi.Px() );
-      _daughterPy_v.push_back( roi.Py() );
-      _daughterPz_v.push_back( roi.Pz() );
+      _daughterPx_v.push_back(roi.Px());
+      _daughterPy_v.push_back(roi.Py());
+      _daughterPz_v.push_back(roi.Pz());
       
-      _daughter_pdg_v.push_back((uint) roi.PdgCode());
+      _daughter_pdg_v.push_back((int) roi.PdgCode());
       _daughter_trackid_v.push_back((uint) roi.TrackID());
       _daughter_parenttrackid_v.push_back((uint) roi.ParentTrackID());
       _daughter_energyinit_v.push_back(roi.EnergyInit());

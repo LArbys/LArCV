@@ -112,7 +112,7 @@ namespace larcv {
     geo2d::Vector<float> _start; //2d start point
     geo2d::Vector<float> _dir;   //2d dir
 
-    std::vector<uint>   _daughter_pdg_v;
+    std::vector<int>   _daughter_pdg_v;
     std::vector<uint>   _daughter_trackid_v;
     std::vector<uint>   _daughter_parenttrackid_v;    
 
