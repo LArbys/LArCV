@@ -33,7 +33,7 @@ namespace larcv {
     _min_n_shower = cfg.get<int>("MinNShower",0);
     _min_n_neutron = cfg.get<int>("MinNNeutron",0);
 
-    _check_vis         = cfg.get<bool>("CheckVisibility",false);
+    _check_vis         = cfg.get<bool>("CheckVisibility");
     _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
     _do_not_reco       = cfg.get<bool>("DoNotReco");
@@ -325,13 +325,18 @@ namespace larcv {
     bool visibility=false;
     bool hadron_vis=false;
     bool lepton_vis=false;
-    
+
+    uint ic=0;
     for(const auto& roi : ev_roi->ROIArray()) {
 
-      //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events
-      if (roi.PdgCode() == 12 or
-	  roi.PdgCode() == 14 or
-	  roi.PdgCode() == 0) continue;
+      // //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events
+
+      if (ic==0)
+	{ ic+=1; continue; }
+
+      // if (roi.PdgCode() == 12 or
+      //     roi.PdgCode() == 14 or
+      //     roi.PdgCode() == 0) continue;
 
       LARCV_DEBUG() << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
       
