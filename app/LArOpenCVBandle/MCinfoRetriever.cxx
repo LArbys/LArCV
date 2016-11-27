@@ -334,9 +334,6 @@ namespace larcv {
       if (ic==0)
 	{ ic+=1; continue; }
 
-      // if (roi.PdgCode() == 12 or
-      //     roi.PdgCode() == 14 or
-      //     roi.PdgCode() == 0) continue;
 
       LARCV_DEBUG() << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
       
