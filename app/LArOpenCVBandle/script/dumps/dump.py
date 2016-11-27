@@ -21,16 +21,20 @@ import matplotlib.patches as patches
 iom=larcv.IOManager(larcv.IOManager.kBOTH)
 iom.reset()
 iom.set_verbosity(2)
-iom.add_in_file("/Users/vgenty/Desktop/out_0000_0099.root")
+iom.add_in_file("/Users/vgenty/Downloads/ccqe_0000_0099.root")
+iom.add_in_file("/Users/vgenty/Downloads/ccqe_0100_0199.root")
+iom.add_in_file("/Users/vgenty/Downloads/ccqe_0200_0299.root")
 iom.set_out_file("/tmp/trash.root")
 iom.initialize()
+
 larbysimg=larcv.LArbysImage()
 cfg=larcv.CreatePSetFromFile("unit.fcl","LArbysImage")
 larbysimg.configure(cfg)
 larbysimg.initialize()
+
 pygeo   = geo2d.PyDraw()
 
-for event in xrange(10):
+for event in [23]:
     print "EVENT IS ",event
     fig,ax=plt.subplots(figsize=(10,10))
     ax.text(-30,75,"Event %d"%event,fontsize=35,color='blue',fontweight='bold')
@@ -115,10 +119,14 @@ for event in xrange(10):
     tickscore0_y = np.array(tickscore0_y)
     tickscore1_x = np.array(tickscore1_x)
     tickscore1_y = np.array(tickscore1_y)
+
+    #print "[",tickscore0_x,tickscore0_y,tickscore1_y,tickscore1_y,"]"
+    
     if tickscore0_x.size==0:continue
     if tickscore0_y.size==0:continue
     if tickscore1_x.size==0:continue
     if tickscore1_y.size==0:continue
+    
     ymin = tickscore0_y.min()
     ymax = tickscore0_y.max()
     if ymin > tickscore1_y.min(): ymin = tickscore1_y.min()
@@ -191,18 +199,51 @@ for event in xrange(10):
         vtx_idx=0
         for vtx_idx in xrange(len(vtx_vv)):
             vtx = vtx_vv[vtx_idx][plane]
-            print vtx.center.x,vtx.center.y
             ax.plot([vtx.center.x],[vtx.center.y],marker='$\star$',color='yellow',markersize=24)
 
         ax=plt.gca()
-        
+
         plt.savefig("%04d_3_%d.png"%(event,plane))
         plt.cla()
         plt.clf()
         plt.close()
 
+    vtx_cluster_data = dm.Data(4)
+    for vtx_data in vtx_cluster_data._vtx_cluster_v:
+        print "vtx_data ptr: ",vtx_data
+        for plane in xrange(3):
+            print "plane: ",plane
+            print "... num clusters: ",vtx_data.num_clusters(plane),"... num_pixels: ",vtx_data.num_pixels(plane)
+            print "... num pixel frac: ",vtx_data.num_pixel_fraction(plane)
+        print ""
 
-# In[ ]:
+    iv=-1
+    for vtx_data in vtx_cluster_data._vtx_cluster_v:
+        iv+=1
+        for plane in xrange(3):
+        
+            fig,ax=plt.subplots(figsize=(20,20),facecolor='w')
 
+            shape_img=np.where(img_v[plane]>1.0,1.0,0.0).astype(np.uint8)
 
+            plt.imshow(shape_img,cmap='Greys',interpolation='none')
+            
+            nz_pixels=np.where(shape_img>0.0)
+            
+            ymin,ymax = (np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
+            xmin,xmax = (np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)    
+            
+            ax.set_ylim(ymin,ymax)
+            ax.set_xlim(xmin,xmax)
 
+            for cluster in vtx_data.get_clusters(plane):
+                ctor = cluster._ctor;
+                c_=[[pt.x,pt.y] for pt in ctor]
+                c_.append(c_[0])
+                c_=np.array(c_)
+                print plane,c_.shape
+                plt.plot(c_[:,0],c_[:,1],'-o')
+            
+            plt.savefig("%04d_4_%d_%d.png"%(event,iv,plane))
+            
+            
