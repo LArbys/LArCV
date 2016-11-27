@@ -70,7 +70,7 @@ namespace larcv {
 
     double _energy_deposit;
     double _energy_init;
-
+    int eee;
     double _parent_x;
     double _parent_y;  
     double _parent_z;  
@@ -155,6 +155,8 @@ namespace larcv {
     float _min_lepton_init_e;
     
     bool _check_vis;
+
+    bool _do_not_reco;
     
   private:
     ///Project 3D track into 2D Image(per plane) 

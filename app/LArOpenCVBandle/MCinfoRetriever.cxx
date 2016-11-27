@@ -36,7 +36,8 @@ namespace larcv {
     _check_vis         = cfg.get<bool>("CheckVisibility",false);
     _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
-    
+    _do_not_reco       = cfg.get<bool>("DoNotReco");
+    eee=-1;
   }
 
   cv::Rect MCinfoRetriever::Get2DRoi(const ImageMeta& meta,
@@ -247,7 +248,7 @@ namespace larcv {
   bool MCinfoRetriever::process(IOManager& mgr)
   {
     Clear();
-    
+    eee+=1;
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
 
@@ -426,6 +427,10 @@ namespace larcv {
       _daughterPx_v.push_back(roi.Px());
       _daughterPy_v.push_back(roi.Py());
       _daughterPz_v.push_back(roi.Pz());
+
+      int pdgcode = roi.PdgCode();
+      
+      //if (pdgcode > 1e6) { std::cout << "Entry is " << eee << std::endl; throw larbys("Fucked up pdg code");}
       
       _daughter_pdg_v.push_back((int) roi.PdgCode());
       _daughter_trackid_v.push_back((uint) roi.TrackID());
@@ -433,7 +438,6 @@ namespace larcv {
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
-      auto pdgcode = roi.PdgCode();
       
       //check if this particle is primary...
 
@@ -513,6 +517,8 @@ namespace larcv {
     //Fill tree
     _mc_tree->Fill();
 
+    if (_do_not_reco) return false;
+    
     return true;
   }
   
