@@ -15,8 +15,8 @@ proc.configure(sys.argv[1])
 if len(sys.argv) > 1:
    
    flist=ROOT.std.vector('std::string')()
-   for x in xrange(len(sys.argv)-2):
-      flist.push_back(sys.argv[x+2])
+   for x in xrange(len(sys.argv)-3):
+      flist.push_back(sys.argv[x+3])
 
    proc.override_input_file(flist)
 
@@ -27,7 +27,14 @@ ana_id  = proc.process_id("LArbysImageAna")
 larbysimg     = proc.process_ptr(reco_id)
 larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetManager(larbysimg.Manager())
-   
+
+evstart=int(sys.argv[2])
+step=int(3375)
+print "got start: ",evstart," step: ",step
+proc.override_ana_file("reco_ccqe_%05d_%05d.root"%(evstart,evstart+step))
+
 proc.initialize()
-proc.batch_process(0,1000)
+
+#proc.batch_process(0,1000)
+proc.batch_process(evstart,step)
 proc.finalize()
