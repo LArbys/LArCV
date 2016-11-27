@@ -22,10 +22,10 @@ namespace larcv {
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
 
-    _min_nu_dep_e  = cfg.get<float>("MinNuDepE",0);
-    _max_nu_dep_e  = cfg.get<float>("MaxNuDepE",9e6);
-    _min_nu_init_e = cfg.get<float>("MinNuInitE",200);
-    _max_nu_init_e = cfg.get<float>("MaxNuInitE",600);
+    _min_nu_dep_e  = cfg.get<float>("MinNuDepE");
+    _max_nu_dep_e  = cfg.get<float>("MaxNuDepE");
+    _min_nu_init_e = cfg.get<float>("MinNuInitE");
+    _max_nu_init_e = cfg.get<float>("MaxNuInitE");
 
     _min_n_proton = cfg.get<int>("MinNProton",0);
     _min_n_lepton = cfg.get<int>("MinNLepton",0);
@@ -33,6 +33,7 @@ namespace larcv {
     _min_n_shower = cfg.get<int>("MinNShower",0);
     _min_n_neutron = cfg.get<int>("MinNNeutron",0);
 
+    _check_vis         = cfg.get<bool>("CheckVisibility",false);
     _min_proton_init_e = cfg.get<float>("ProtonMinInitE");
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
     
@@ -446,11 +447,12 @@ namespace larcv {
       
       //this is proton
       if (pdgcode==2212) {
+
 	_nproton++;
 	_dep_sum_proton += roi.EnergyDeposit();
 	_ke_sum_proton  += roi.EnergyInit() - 938.0;
 
-	if (roi.EnergyInit() > _min_proton_init_e) hadron_vis = true;
+	if (roi.EnergyInit() - 938.0 > _min_proton_init_e) hadron_vis = true;
       }
 
       //this is neutron
@@ -471,9 +473,10 @@ namespace larcv {
       //leptons are electron, muon also (anti...)
       if (pdgcode==11 or pdgcode==-11 or
 	  pdgcode==13 or pdgcode==-13) {
+
 	_nlepton++;
 	_dep_sum_lep += roi.EnergyDeposit();
-	_ke_sum_lep += roi.EnergyInit();
+	_ke_sum_lep  += roi.EnergyInit();
 
 	if (roi.EnergyInit() > hi_lep_e) _hi_lep_pdg = pdgcode;
 
@@ -505,7 +508,7 @@ namespace larcv {
 
     visibility = hadron_vis && lepton_vis;
     
-    if ( !visibility ) return false;
+    if ( !visibility and _check_vis) return false;
     
     //Fill tree
     _mc_tree->Fill();
