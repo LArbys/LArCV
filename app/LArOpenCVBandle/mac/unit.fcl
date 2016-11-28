@@ -1,7 +1,32 @@
+ProcessDriver: {
+
+  Verbosity:    2
+  EnableFilter: true
+  RandomAccess: false
+  ProcessType:  ["LArbysImage"]
+  ProcessName:  ["LArbysImage"]
+  AnaFile:     "ana.root"
+
+  IOManager: {
+    Verbosity:   2
+    Name:        "IOManager"
+    IOMode:      0
+    OutFileName: "out.root"
+    InputFiles:  []
+    InputDirs:   []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+
+  ProcessList: {
+ 
+    LArbysImage: {
+
       Verbosity: 0
       Profile: true
-      #ImageProducer: "tpc_hires_crop"
-      ImageProducer: "tpc"
+      TrackImageProducer: "tpc_hires_crop"
+      ShowerImageProducer: "tpc_hires_crop"
+      #TrackImageProducer: "tpc"
       Debug: true
 
       Q2Gray: 2
@@ -15,8 +40,10 @@
         Verbosity: 0
         Profile:   true
 
-        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","dQdXProfiler"]#,"ProjectionCluster"]
-        ClusterAlgoName: ["hipctor","defbreak1","pca1","refine_vtx","vtxctor","defbreak2","pca2","dqdx"]#,"proj"]
+        #ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","dQdXProfiler"]#,"ProjectionCluster"]
+        #ClusterAlgoName: ["hipctor","defbreak1","pca1","refine_vtx","vtxctor","defbreak2","pca2","dqdx"]#,"proj"]
+        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","Refine2DVertex"]
+        ClusterAlgoName: ["hipctor","defbreak1","pca1","refine_vtx"]
         EnableWireCheck: false
           
         ShowImage: false
@@ -76,3 +103,7 @@
             AtomicTrackAnaName :     "atrack"
      	    }
       }
+    }
+  }
+}
+
