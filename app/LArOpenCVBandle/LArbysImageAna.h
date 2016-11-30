@@ -76,6 +76,7 @@ namespace larcv {
     
     std::vector<double> _circle_x_v;
     std::vector<double> _circle_y_v;
+    std::vector<uint>   _circle_xs_v;
 
     uint _vtx3d_n_planes;
 
