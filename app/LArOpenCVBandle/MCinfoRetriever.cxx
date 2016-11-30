@@ -175,6 +175,10 @@ namespace larcv {
     _daughterPy_v.clear();
     _daughterPz_v.clear();
     
+    _daughterx_v.clear();
+    _daughtery_v.clear();
+    _daughterz_v.clear();
+    
     _daughter_2dcosangle_vv.clear();
   }
   
@@ -235,6 +239,10 @@ namespace larcv {
     _mc_tree->Branch("daughterPy_v", &_daughterPy_v);
     _mc_tree->Branch("daughterPz_v", &_daughterPz_v);
     
+    _mc_tree->Branch("daughterx_v", &_daughterx_v);   
+    _mc_tree->Branch("daughtery_v", &_daughtery_v);
+    _mc_tree->Branch("daughterz_v", &_daughterz_v);
+
     _mc_tree->Branch("daughterPdg_v"           , &_daughter_pdg_v);
     _mc_tree->Branch("daughterTrackid_v"       , &_daughter_trackid_v);
     _mc_tree->Branch("daughterParentTrackid_v" , &_daughter_parenttrackid_v);
@@ -437,6 +445,9 @@ namespace larcv {
       _daughterPx_v.push_back(roi.Px());
       _daughterPy_v.push_back(roi.Py());
       _daughterPz_v.push_back(roi.Pz());
+      _daughterx_v.push_back(roi.X());
+      _daughtery_v.push_back(roi.Y());
+      _daughterz_v.push_back(roi.Z());
 
       int pdgcode = roi.PdgCode();
       
