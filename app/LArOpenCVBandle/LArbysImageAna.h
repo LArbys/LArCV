@@ -51,12 +51,16 @@ namespace larcv {
     TTree* _event_tree;
     TTree* _vtx3d_tree;
     TTree* _particle_tree;
+    TTree* _track_tree;
+    TTree* _shower_tree;
     
     const ::larocv::ImageClusterManager* _mgr_ptr;
 
     void ClearEvent();
     void ClearVertex();
     void ClearParticle();
+    void ClearTracks();
+    void ClearShowers();
     
     /// Unique event keys
     uint _run;
@@ -125,6 +129,35 @@ namespace larcv {
     std::string _vertexcluster_name;
     std::string _linearvtxfilter_name;
     std::string _dqdxprofiler_name;
+
+    std::string _lineartrackcluster_name;
+    std::string _vertexsingleshower_name;
+
+    /// LinearTrackCluster
+    uint _n_trackclusters;
+
+    std::vector<float> _edge2D_1_x_v;
+    std::vector<float> _edge2D_1_y_v;
+    std::vector<float> _edge2D_2_x_v;
+    std::vector<float> _edge2D_2_y_v;
+
+    //VertexSignleShower
+    uint _n_showerclusters;
+    
+    uint _shower_id;
+    uint _shower_ass_id;
+    uint _shower_ass_type;
+
+    float _shower_vtx3D_x;
+    float _shower_vtx3D_y;   
+    float _shower_vtx3D_z;
+    
+    std::vector<float>_start2D_x_v;
+    std::vector<float> _start2D_y_v;
+    
+    std::vector<float> _dir2D_x_v;
+    std::vector<float> _dir2D_y_v;
+
     
   };
 
