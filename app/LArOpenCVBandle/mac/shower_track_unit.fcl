@@ -10,7 +10,7 @@ ProcessDriver: {
   IOManager: {
     Verbosity:   2
     Name:        "IOManager"
-    IOMode:      0
+    IOMode:      2
     OutFileName: "out.root"
     InputFiles:  []
     InputDirs:   []
@@ -19,14 +19,12 @@ ProcessDriver: {
   }
 
   ProcessList: {
- 
     LArbysImage: {
 
       Verbosity: 0
       Profile: true
-      TrackImageProducer: "tpc_hires_crop"
-      #TrackImageProducer: "track_hires_crop"
-      ShowerImageProducer: ""
+      TrackImageProducer: "track_hires_crop"
+      ShowerImageProducer: "shower_hires_crop"
       #TrackImageProducer: "tpc"
       Debug: true
 
@@ -41,8 +39,8 @@ ProcessDriver: {
         Verbosity: 0
         Profile:   true
 
-        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","dQdXProfiler"]#,"ProjectionCluster"]
-        ClusterAlgoName: ["hipctor","defbreak1","pca1","refine_vtx","vtxctor","defbreak2","pca2","dqdx"]#,"proj"]
+        ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","Refine2DVertex","VertexTrackCluster","DefectCluster","PCACandidates","dQdXProfiler","LinearTrackCluster","VertexSingleShower"]#,"ProjectionCluster"]
+        ClusterAlgoName: ["hipctor","defbreak1","pca1","refine_vtx","vtxctor","defbreak2","pca2","dqdx","lintrack","sshower"]#,"proj"]
         #ClusterAlgoType: ["HIPCluster","DefectCluster","PCACandidates","Refine2DVertex"]
         #ClusterAlgoName: ["hipctor","defbreak1","pca1","refine_vtx"]
         EnableWireCheck: false
@@ -72,7 +70,7 @@ ProcessDriver: {
             BreakPerVertex: false
         }
         rough_vtx : {}
-        refine_vtx : { PCACandidatesAlgo : "pca1" DefectClusterAlgo : "defbreak1" }#CleanImage : true }
+        refine_vtx : { PCACandidatesAlgo : "pca1" DefectClusterAlgo : "defbreak1" }
         vtxctor : {
             #Verbosity : 0
                 DilationSize : 10
@@ -105,6 +103,19 @@ ProcessDriver: {
     	    VertexTrackClusterName : "vtxctor"
             AtomicTrackAnaName :     "atrack"
      	    }
+        lintrack : {
+          TrackContourSizeMin : 10
+          TrackContourLengthMin : 6.
+          VertexTrackClusterName : "vtxctor"
+          SeedPlane : [2,0,1]
+        }
+        sshower : {
+          dQdXProfilerName : "dqdx"
+          VertexTrackClusterName : "vtxctor"
+          LinearTrackClusterName : "lintrack"
+          PixelFracThreshold : 0.9
+          ImageSetID : 1
+       }
       }
     }
   }
