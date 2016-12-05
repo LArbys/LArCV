@@ -73,6 +73,7 @@ namespace larcv {
     _vtx2d_y_v.resize(3);
     _circle_x_v.resize(3);
     _circle_y_v.resize(3);
+    _circle_xs_v.resize(3);
     _num_clusters_v.resize(3);
     _num_pixels_v.resize(3);
     _num_pixel_frac_v.resize(3);
@@ -115,6 +116,7 @@ namespace larcv {
 
     _vtx3d_tree->Branch("circle_vtx_x_v",&_circle_x_v);
     _vtx3d_tree->Branch("circle_vtx_y_v",&_circle_y_v);
+    _vtx3d_tree->Branch("circle_vtx_xs_v",&_circle_xs_v);
 
     _vtx3d_tree->Branch("num_planes"       , &_num_planes, "num_planes/i");
     
@@ -184,15 +186,15 @@ namespace larcv {
     /// VertexCluster data
     const auto vtxtrkcluster_data = (larocv::data::VertexClusterArray*)dm.Data( dm.ID(_vertexcluster_name) );
 
-    /// LinearVtxFilter data
-    auto linearvf_data = (larocv::data::LinearVtxFilterData*)dm.Data( dm.ID(_linearvtxfilter_name) );
+    // /// LinearVtxFilter data
+    // auto linearvf_data = (larocv::data::LinearVtxFilterData*)dm.Data( dm.ID(_linearvtxfilter_name) );
     
     //careful: this is nonconst
-    auto& circle_setting_array_v = linearvf_data->_circle_setting_array_v;
+    // auto& circle_setting_array_v = linearvf_data->_circle_setting_array_v;
     auto& vtx_cluster_v=  vtxtrkcluster_data->_vtx_cluster_v;
 
-    /// dQdX profiler
-    auto dqdxprofiler_data = (larocv::data::dQdXProfilerData*)dm.Data( dm.ID(_dqdxprofiler_name) );
+    // /// dQdX profiler
+    // auto dqdxprofiler_data = (larocv::data::dQdXProfilerData*)dm.Data( dm.ID(_dqdxprofiler_name) );
 
     _n_vtx3d = (uint) vtx_cluster_v.size();
     
@@ -212,42 +214,46 @@ namespace larcv {
       const auto& vtx3d = vtx_cluster.get_vertex();
 
       // get this circle's setting
-      auto& csarray = circle_setting_array_v[vtx_id];
+      // auto& csarray = circle_setting_array_v[vtx_id];
 
       // get the dqdx particle array for this vertex id
-      const auto& pardqdxarr = dqdxprofiler_data->get_vertex_cluster(vtx_id);
-
+      // const auto& pardqdxarr = dqdxprofiler_data->get_vertex_cluster(vtx_id);
+      
       _vtx3d_x = vtx3d.x;
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
 
       _num_planes = (uint) vtx3d.num_planes;
-            
-      _sum_pixel_frac  = 0.0;
-      _prod_pixel_frac = 1.0;
       
-      for(uint plane_id=0;plane_id<3;++plane_id) {
-
+      // _sum_pixel_frac  = 0.0;
+      // _prod_pixel_frac = 1.0;
+      
+      for(uint plane_id=0; plane_id<3;  ++plane_id) {
+	
 	_plane_id=plane_id;
+	
 	const auto& circle_vtx   = vtx_cluster.get_circle_vertex(plane_id);
 	const auto& circle_vtx_c = circle_vtx.center;
 	
-	auto& circle_x = _circle_x_v[plane_id];
-	auto& circle_y = _circle_y_v[plane_id];
-
+	auto& circle_x  = _circle_x_v [plane_id];
+	auto& circle_y  = _circle_y_v [plane_id];
+	auto& circle_xs = _circle_xs_v[plane_id];
+	  
 	circle_x = circle_vtx_c.x;
 	circle_y = circle_vtx_c.y;
 
-	auto& num_clusters   = _num_clusters_v[plane_id];
-	auto& num_pixels     = _num_pixels_v[plane_id];
-	auto& num_pixel_frac = _num_pixel_frac_v[plane_id];
+	circle_xs = (uint) circle_vtx.xs_v.size();
+	  
+	// auto& num_clusters   = _num_clusters_v[plane_id];
+	// auto& num_pixels     = _num_pixels_v[plane_id];
+	// auto& num_pixel_frac = _num_pixel_frac_v[plane_id];
 
-      	num_clusters   = vtx_cluster.num_clusters(plane_id);
-	num_pixels     = vtx_cluster.num_pixels(plane_id);
-	num_pixel_frac = vtx_cluster.num_pixel_fraction(plane_id);
+      	// num_clusters   = vtx_cluster.num_clusters(plane_id);
+	// num_pixels     = vtx_cluster.num_pixels(plane_id);
+	// num_pixel_frac = vtx_cluster.num_pixel_fraction(plane_id);
 	
-	_sum_pixel_frac  += num_pixel_frac;
-	_prod_pixel_frac *= num_pixel_frac; 
+	// _sum_pixel_frac  += num_pixel_frac;
+	// _prod_pixel_frac *= num_pixel_frac; 
 	
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
@@ -255,91 +261,91 @@ namespace larcv {
 	vtx2d_x = vtx3d.vtx2d_v[plane_id].pt.x;
 	vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
 
-	const auto& csetting = csarray.get_circle_setting(plane_id);
+	// const auto& csetting = csarray.get_circle_setting(plane_id);
 	
-	auto& circle_vtx_r     = _circle_vtx_r_v[plane_id];
-	auto& circle_vtx_angle = _circle_vtx_angle_v[plane_id];
+	// auto& circle_vtx_r     = _circle_vtx_r_v[plane_id];
+	// auto& circle_vtx_angle = _circle_vtx_angle_v[plane_id];
 
-	circle_vtx_r     = csetting._local_r;
-	circle_vtx_angle = csetting._angle;
+	// circle_vtx_r     = csetting._local_r;
+	// circle_vtx_angle = csetting._angle;
 
 	//list of particles on this plane
-	const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
+	// const auto& pardqdx_v = pardqdxarr.get_cluster(plane_id);
 
 	//particle list from vertextrackcluster
-	const auto& parcluster_v = vtx_cluster.get_clusters(plane_id);
-
-	ClearParticle();
-
-	_n_pars = pardqdx_v.size();
-	_num_atoms_v.resize(_n_pars);
-	_start_x_v.resize(_n_pars);
-	_start_y_v.resize(_n_pars);
-	_end_x_v.resize(_n_pars);
-	_end_y_v.resize(_n_pars);
-	_start_end_length_v.resize(_n_pars);
-	_atom_sum_length_v.resize(_n_pars);
-	_first_atom_cos_v.resize(_n_pars);
-	_qsum_v.resize(_n_pars);
-	_npix_v.resize(_n_pars);
-	_dqdx_vv.resize(_n_pars);
-	_dqdx_start_idx_vv.resize(_n_pars);
+	// const auto& parcluster_v = vtx_cluster.get_clusters(plane_id);
 	
-	for(uint pidx=0; pidx < _n_pars; ++pidx) {
+	// ClearParticle();
+	
+	// _n_pars = pardqdx_v.size();
+	// _num_atoms_v.resize(_n_pars);
+	// _start_x_v.resize(_n_pars);
+	// _start_y_v.resize(_n_pars);
+	// _end_x_v.resize(_n_pars);
+	// _end_y_v.resize(_n_pars);
+	// _start_end_length_v.resize(_n_pars);
+	// _atom_sum_length_v.resize(_n_pars);
+	// _first_atom_cos_v.resize(_n_pars);
+	// _qsum_v.resize(_n_pars);
+	// _npix_v.resize(_n_pars);
+	// _dqdx_vv.resize(_n_pars);
+	// _dqdx_start_idx_vv.resize(_n_pars);
+	
+	// for(uint pidx=0; pidx < _n_pars; ++pidx) {
 	  
-	  auto& num_atoms        = _num_atoms_v[pidx];
-	  auto& start_x          = _start_x_v[pidx];
-	  auto& start_y          = _start_y_v[pidx];
-	  auto& end_x            = _end_x_v[pidx];
-	  auto& end_y            = _end_y_v[pidx];
-	  auto& start_end_length = _start_end_length_v[pidx];
-	  auto& atom_sum_length  = _atom_sum_length_v[pidx];
-	  auto& first_atom_cos   = _first_atom_cos_v[pidx];
-	  auto& qsum             = _qsum_v[pidx];
-	  auto& npix             = _npix_v[pidx];
+	//   auto& num_atoms        = _num_atoms_v[pidx];
+	//   auto& start_x          = _start_x_v[pidx];
+	//   auto& start_y          = _start_y_v[pidx];
+	//   auto& end_x            = _end_x_v[pidx];
+	//   auto& end_y            = _end_y_v[pidx];
+	//   auto& start_end_length = _start_end_length_v[pidx];
+	//   auto& atom_sum_length  = _atom_sum_length_v[pidx];
+	//   auto& first_atom_cos   = _first_atom_cos_v[pidx];
+	//   auto& qsum             = _qsum_v[pidx];
+	//   auto& npix             = _npix_v[pidx];
 
-	  //this is a special from VertexTrackCluster
-	  const auto& parcluster = parcluster_v[pidx];
+	//   //this is a special from VertexTrackCluster
+	//   const auto& parcluster = parcluster_v[pidx];
 
-	  npix = parcluster._num_pixel;
-	  qsum = parcluster._qsum;
+	//   npix = parcluster._num_pixel;
+	//   qsum = parcluster._qsum;
 	    
-	  const auto& pardqdx = pardqdx_v[pidx];
+	//   const auto& pardqdx = pardqdx_v[pidx];
 
-	  num_atoms = pardqdx.num_atoms();
-	  start_x = pardqdx.start_pt().x;
-	  start_y = pardqdx.start_pt().y;
-	  end_x  = pardqdx.end_pt().x;
-	  end_y  = pardqdx.end_pt().y;
+	//   num_atoms = pardqdx.num_atoms();
+	//   start_x = pardqdx.start_pt().x;
+	//   start_y = pardqdx.start_pt().y;
+	//   end_x  = pardqdx.end_pt().x;
+	//   end_y  = pardqdx.end_pt().y;
 	  	  
-	  start_end_length = geo2d::length(pardqdx.end_pt() - pardqdx.start_pt());
-	  atom_sum_length=0.0;
+	//   start_end_length = geo2d::length(pardqdx.end_pt() - pardqdx.start_pt());
+	//   atom_sum_length=0.0;
 	  
-	  //loop over ordered atomics and calcluate the start end length 1-by-1, sum them
-	  for(auto aid : pardqdx.atom_id_array())
-	    atom_sum_length += geo2d::length(pardqdx.atom_end_pt(aid) - pardqdx.atom_start_pt(aid));
+	//   //loop over ordered atomics and calcluate the start end length 1-by-1, sum them
+	//   for(auto aid : pardqdx.atom_id_array())
+	//     atom_sum_length += geo2d::length(pardqdx.atom_end_pt(aid) - pardqdx.atom_start_pt(aid));
 
-	  //use the first atomic to estimate the direction, get the first atomic end point location
-	  //calculate direction from 2D vertex
-	  const auto& first_atom_end = pardqdx.atom_end_pt(0);
+	//   //use the first atomic to estimate the direction, get the first atomic end point location
+	//   //calculate direction from 2D vertex
+	//   const auto& first_atom_end = pardqdx.atom_end_pt(0);
 	  
-	  auto dir=first_atom_end-geo2d::Vector<float>(vtx2d_x,vtx2d_y);
-	  double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
+	//   auto dir=first_atom_end-geo2d::Vector<float>(vtx2d_x,vtx2d_y);
+	//   double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
 	  
-	  first_atom_cos = cosangle;
+	//   first_atom_cos = cosangle;
 	  
-	  auto& dqdx_v = _dqdx_vv[pidx];
-	  dqdx_v = pardqdx.dqdx(); // copy it.
+	//   auto& dqdx_v = _dqdx_vv[pidx];
+	//   dqdx_v = pardqdx.dqdx(); // copy it.
 
-	  auto& dqdx_start_idx_v = _dqdx_start_idx_vv[pidx];
-	  dqdx_start_idx_v.resize(num_atoms);
+	//   auto& dqdx_start_idx_v = _dqdx_start_idx_vv[pidx];
+	//   dqdx_start_idx_v.resize(num_atoms);
 
-	  for(uint atom_id=0;atom_id<num_atoms;++atom_id)
-	    dqdx_start_idx_v[atom_id] = (uint) pardqdx.atom_start_index(atom_id);
+	//   for(uint atom_id=0;atom_id<num_atoms;++atom_id)
+	//     dqdx_start_idx_v[atom_id] = (uint) pardqdx.atom_start_index(atom_id);
 	  
-	}
+	// }
 	
-	_particle_tree->Fill();
+	// _particle_tree->Fill();
       }
       
       _vtx3d_tree->Fill();
@@ -347,7 +353,6 @@ namespace larcv {
 
     _event_tree->Fill();
     
-
     return true;
   }
 
@@ -355,7 +360,7 @@ namespace larcv {
   {
     _event_tree->Write();
     _vtx3d_tree->Write();
-    _particle_tree->Write();
+    // _particle_tree->Write();
   }
 
 }
