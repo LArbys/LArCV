@@ -129,9 +129,9 @@ namespace larcv {
     std::vector<double> _daughterPx_v;
     std::vector<double> _daughterPy_v;
     std::vector<double> _daughterPz_v;
-    std::vector<double> _daughterx_v;
-    std::vector<double> _daughtery_v;
-    std::vector<double> _daughterz_v;
+    std::vector<double> _daughterX_v;
+    std::vector<double> _daughterY_v;
+    std::vector<double> _daughterZ_v;
 
     /// 2D Vertex Info
     std::vector<double> _vtx_2d_w_v;

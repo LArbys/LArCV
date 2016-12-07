@@ -426,84 +426,92 @@ namespace larcv {
       _vtx3d_tree->Fill();
     }
 
-
-    /// LinearTrackCluster
-    auto lineartrackcluster_data = (larocv::data::LinearTrackArray*) dm.Data( dm.ID(_lineartrackcluster_name) );
-    const auto& track_clusters = lineartrackcluster_data->get_clusters();
-
-    _n_trackclusters = (uint) track_clusters.size();
-
-    for( uint trk_cluster_idx=0; trk_cluster_idx < track_clusters.size(); trk_cluster_idx++) {
-
-      ClearTracks();
+    if (!_lineartrackcluster_name.empty()) {
       
-      const auto& trk_cluster = lineartrackcluster_data->get_cluster(trk_cluster_idx);
+      /// LinearTrackCluster
+      auto lineartrackcluster_data = (larocv::data::LinearTrackArray*) dm.Data( dm.ID(_lineartrackcluster_name) );
+      const auto& track_clusters = lineartrackcluster_data->get_clusters();
+
+      _n_trackclusters = (uint) track_clusters.size();
+
+      for( uint trk_cluster_idx=0; trk_cluster_idx < track_clusters.size(); trk_cluster_idx++) {
+
+	ClearTracks();
       
-      for( uint plane_id=0; plane_id<3; ++plane_id) {
+	const auto& trk_cluster = lineartrackcluster_data->get_cluster(trk_cluster_idx);
+      
+	for( uint plane_id=0; plane_id<3; ++plane_id) {
 
-	auto& edge2D_1_x = _edge2D_1_x_v[plane_id];
-	auto& edge2D_1_y = _edge2D_1_y_v[plane_id];
-	auto& edge2D_2_x = _edge2D_2_x_v[plane_id];
-	auto& edge2D_2_y = _edge2D_2_y_v[plane_id];
+	  auto& edge2D_1_x = _edge2D_1_x_v[plane_id];
+	  auto& edge2D_1_y = _edge2D_1_y_v[plane_id];
+	  auto& edge2D_2_x = _edge2D_2_x_v[plane_id];
+	  auto& edge2D_2_y = _edge2D_2_y_v[plane_id];
 	
-	const auto& trk_linear2d = trk_cluster.get_cluster(plane_id);
+	  const auto& trk_linear2d = trk_cluster.get_cluster(plane_id);
 
-	const auto& edge1 = trk_linear2d.edge1;
-	const auto& edge2 = trk_linear2d.edge2;
+	  const auto& edge1 = trk_linear2d.edge1;
+	  const auto& edge2 = trk_linear2d.edge2;
 	
-	edge2D_1_x = edge1.x;
-	edge2D_1_y = edge1.y;
-	edge2D_2_x = edge2.x;
-	edge2D_2_y = edge2.y;
+	  edge2D_1_x = edge1.x;
+	  edge2D_1_y = edge1.y;
+	  edge2D_2_x = edge2.x;
+	  edge2D_2_y = edge2.y;
 	
+	}
+      
+	_track_tree->Fill();
       }
-      
-      _track_tree->Fill();
-    }
 
     
-    /// VertexSingleShower
-    auto vertexsingleshower_data = (larocv::data::SingleShowerArray*) dm.Data( dm.ID(_vertexsingleshower_name) );
-    const auto& shower_clusters = vertexsingleshower_data->get_showers();
+      /// VertexSingleShower
+      auto vertexsingleshower_data = (larocv::data::SingleShowerArray*) dm.Data( dm.ID(_vertexsingleshower_name) );
+      const auto& shower_clusters = vertexsingleshower_data->get_showers();
     
-    _n_showerclusters = (uint) shower_clusters.size();
+      _n_showerclusters = (uint) shower_clusters.size();
 
-    for( uint shr_cluster_idx=0; shr_cluster_idx < shower_clusters.size(); shr_cluster_idx++) {
+      for( uint shr_cluster_idx=0; shr_cluster_idx < shower_clusters.size(); shr_cluster_idx++) {
 
-      ClearShowers();
+	ClearShowers();
       
-      const auto& shr_cluster = shower_clusters[shr_cluster_idx];
+	const auto& shr_cluster = shower_clusters[shr_cluster_idx];
 
-      _shower_id       = shr_cluster.id();
-      _shower_ass_id   = shr_cluster.ass_id();
-      _shower_ass_type = shr_cluster.ass_type();
+	_shower_id       = shr_cluster.id();
+	_shower_ass_id   = shr_cluster.ass_id();
+	_shower_ass_type = shr_cluster.ass_type();
 
-      const auto& shower_vtx3d = shr_cluster.get_vertex();
-      _shower_vtx3D_x = shower_vtx3d.x;
-      _shower_vtx3D_y = shower_vtx3d.y;
-      _shower_vtx3D_z = shower_vtx3d.z;
+	const auto& shower_vtx3d = shr_cluster.get_vertex();
+	_shower_vtx3D_x = shower_vtx3d.x;
+	_shower_vtx3D_y = shower_vtx3d.y;
+	_shower_vtx3D_z = shower_vtx3d.z;
 
-      for( uint plane_id=0; plane_id<3; ++plane_id) {
+	for( uint plane_id=0; plane_id<3; ++plane_id) {
 
-	auto& start2D_x = _start2D_x_v[plane_id];
-	auto& start2D_y = _start2D_y_v[plane_id];
-	auto& dir2D_x   = _dir2D_x_v[plane_id];
-	auto& dir2D_y   = _dir2D_y_v[plane_id];
+	  auto& start2D_x = _start2D_x_v[plane_id];
+	  auto& start2D_y = _start2D_y_v[plane_id];
+	  auto& dir2D_x   = _dir2D_x_v[plane_id];
+	  auto& dir2D_y   = _dir2D_y_v[plane_id];
+
+	  larocv::data::ShowerCluster shr_cluster2d;
+	  try {
+	    shr_cluster2d = shr_cluster.get_cluster(plane_id);
+	  }
+	  catch(...) {
+	    continue;
+	  }
+
+	  const auto& start = shr_cluster2d.start;
+	  const auto& dir   = shr_cluster2d.dir;
+
+	  start2D_x = start.x;
+	  start2D_y = start.y;
+
+	  dir2D_x   = dir.x;
+	  dir2D_y   = dir.y;
 	
-	const auto& shr_cluster2d = shr_cluster.get_cluster(plane_id);
-
-	const auto& start = shr_cluster2d.start;
-	const auto& dir   = shr_cluster2d.dir;
-
-	start2D_x = start.x;
-	start2D_y = start.y;
-
-	dir2D_x   = dir.x;
-	dir2D_y   = dir.y;
-	
+	}
+      
+	_shower_tree->Fill();
       }
-      
-      _shower_tree->Fill();
     }
     
     _event_tree->Fill();
