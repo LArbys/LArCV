@@ -6,6 +6,7 @@
 namespace dbscan {
 
   typedef std::vector< std::vector<double> > dbPoints; // list of (x,y,z,....) points
+  typedef std::vector< int > dbCluster; // list of indices to dbPoints
   typedef std::vector< std::vector<int> >  dbClusters; // list of list of indices to provided dbPoints
 
   class dbscanOutput {
@@ -18,8 +19,10 @@ namespace dbscan {
     dbClusters clusters;
     std::vector<int> clusterid;
     std::vector<int> nneighbors;
+    int findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius );
+        
   };
-
+  
 
   class DBSCANAlgo {
 

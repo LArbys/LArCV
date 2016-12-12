@@ -10,6 +10,11 @@
 #pragma link off all functions;
 
 #pragma link C++ namespace dbscan;
+#pragma link C++ class std::vector< std::vector<double> >;
+#pragma link C++ class std::vector< std::vector<int> >;
+#pragma link C++ typedef dbPoints;
+#pragma link C++ typedef dbCluster;
+#pragma link C++ typedef dbClusters;
 #pragma link C++ class dbscan::DBSCANAlgo+;
 #pragma link C++ class larcv::DBSCAN+;
 #pragma link C++ class larcv::NNCosine+;

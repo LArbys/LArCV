@@ -72,6 +72,13 @@ for icluster in xrange(0,output.clusters.size()):
 
 c.Update()
 
+# testing point
+testpoint = std.vector("double")(2,0.0)
+testpoint[0] = gauscenters[0][0]
+testpoint[1] = gauscenters[0][1]
+match = output.findMatchingCluster( testpoint, data, 10.0 )
+print "matching cluster index=",match
+
 print "How'd we do?"
 raw_input()
 

@@ -132,4 +132,50 @@ namespace dbscan {
   }
 
 
+  // DBSCAN Output Functions
+  int dbscanOutput::findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius ) {
+    // inputs
+    // ------
+    //  testpoint: test point in data space. will try to find closest cluster to this point
+    //  data: list of all points in the data. the same data set used to form this cluster output
+    //  radius: maximum radius the test point needs to be to some member data point in a cluster
+    // output
+    // ------
+    //  return int: index to cluster that contains a point closest to the test point
+    // this is an order N search
+
+    // -------------------------------
+    // list of exceptions
+    class querypoint_mismatch_ex: public std::exception
+    {
+      virtual const char* what() const throw()
+      {
+	return "dbscanOutput::findMatchingCluster. Query Point and data point sizes do not match.";
+      }
+    } querypoint_mismatch;
+    // -------------------------------
+
+    int matching_cluster = -1;
+    double r2 = radius*radius;
+    double closest_r2 = 0.0;
+    for (int ic=0; ic<clusters.size(); ic++) {
+      const dbCluster &cluster = clusters.at(ic);
+      int nhits = clusters.at(ic).size();
+      for (int ihit=0; ihit<nhits; ihit++) {
+	int hitidx = cluster.at(ihit);
+	double dist = 0.;
+	if ( testpoint.size()!=data.at(hitidx).size() ) {
+	  throw querypoint_mismatch;
+	}
+	for (int i=0; i<testpoint.size();i++) {
+	  dist += (data.at(hitidx).at(i)-testpoint.at(i))*(data.at(hitidx).at(i)-testpoint.at(i));
+	}
+	if (dist<r2 && (matching_cluster==-1 || dist<closest_r2) ) {
+	  matching_cluster = ic;
+	  closest_r2 = dist;
+	}
+      }
+    }
+    return matching_cluster;
+  }
 }
