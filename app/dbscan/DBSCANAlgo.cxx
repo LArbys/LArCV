@@ -1,5 +1,6 @@
 #include "DBSCANAlgo.h"
 
+#include <algorithm> // for std::sort
 
 namespace dbscan {
 
@@ -133,7 +134,7 @@ namespace dbscan {
 
 
   // DBSCAN Output Functions
-  int dbscanOutput::findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius ) {
+  int dbscanOutput::findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius ) const {
     // inputs
     // ------
     //  testpoint: test point in data space. will try to find closest cluster to this point
@@ -178,4 +179,87 @@ namespace dbscan {
     }
     return matching_cluster;
   }
+
+  
+  void dbscanOutput::closestHitsInCluster( const int clusterid, const std::vector<double>& test_pos, const dbPoints& src_data,
+					   std::vector< std::pair<int,double> >& hitlist, const int max_nhits ) const {
+    // inputs
+    // ------
+    //  clusterid: index of cluster in clusters data member
+    //  test_pos2d: position to determine how close
+    //  src_data: dbPoints used to make these clusters (up to user to not screw this up)
+    //  number_of_hits: number of closest hits to return
+    // output
+    // ------
+    //  hitlist: sorted ordered pairs of (hit indices, distance to test point) from closest to furthest
+    // this is an order N search. paired with sorting of a list.  not great.  but, we can be more clever in the future if we need to be
+
+    // input checks
+    if ( clusterid<0 || clusterid>=clusters.size() ) {
+      throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid cluster id");
+    }
+    if ( clusters.at(clusterid).size()==0 ) {
+      throw std::runtime_error("dbscanOutput::closestHitsInCluster: weird, empty cluster");
+    }
+    if ( clusters.at(clusterid).at(0)<0 || clusters.at(clusterid).at(0)>=src_data.size() ) {
+      throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid first hit in test cluster");
+    }
+    if ( src_data.at( clusters.at(clusterid).at(0) ).size()==test_pos.size() ) {
+      throw std::runtime_error("dbscanOutput::closestHitsInCluster: test point dimensions do not match source data");
+    }
+    
+    // if number of hits > number of this in the cluster, just going to return distances for all hits
+
+    // we compare the distance
+    struct mycompare_t {
+      bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) { 
+	if ( lhs.second<rhs.second ) 
+	  return true;
+	return false;
+      }
+    } mycompare;
+    
+    hitlist.clear();
+    
+    for (size_t ihit=0; ihit<clusters.at(clusterid).size(); ihit++) {
+      int hitidx = clusters.at(clusterid).at(ihit);
+      double hit_dist  = 0.0;
+      const std::vector<double>& hitpos = src_data.at(hitidx);
+      for (size_t i=0; i<hitpos.size(); i++) {
+	hit_dist += (hitpos[i]-test_pos[i])*(hitpos[i]-test_pos[i]);
+      }
+      hit_dist = sqrt(hit_dist);
+      std::pair<int,double> test_hit( hitidx, hit_dist );
+      if ( max_nhits>0 ) {
+	// we have to care about the number of hits in the list
+	if ( hitlist.size()<max_nhits ) {
+	  // but not now
+	  hitlist.emplace_back( test_hit );
+	}
+	else {
+	  bool isbetter = false;
+	  for (size_t ilisthit=0; ilisthit<max_nhits; ilisthit++) {
+	    if ( hitlist.at(ilisthit).second > hit_dist ) {
+	      isbetter = true;
+	      break;
+	    }
+	  }
+	  if ( isbetter )
+	    hitlist.emplace_back( test_hit );
+	}
+      }
+      else {
+	// dont care about the number of hits. add it to hit list.
+	hitlist.emplace_back( test_hit );
+      }
+
+      // sort the current hitlist vector
+      std::sort( hitlist.begin(), hitlist.end(), mycompare );
+      // truncate the end
+      if ( max_nhits>0 && max_nhits<(int)hitlist.size() )
+	hitlist.resize(max_nhits);
+    }//end of loop over hits in the cluster
+    
+  }
+
 }

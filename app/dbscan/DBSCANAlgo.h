@@ -3,6 +3,9 @@
 
 #include "ANN/ANNAlgo.h"
 
+#include <vector>
+#include <utility> // for pair
+
 namespace dbscan {
 
   typedef std::vector< std::vector<double> > dbPoints; // list of (x,y,z,....) points
@@ -19,8 +22,12 @@ namespace dbscan {
     dbClusters clusters;
     std::vector<int> clusterid;
     std::vector<int> nneighbors;
-    int findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius );
-        
+
+    // utility functions. seems like useful, common tasks, but would make more sense to separate these from the data itself?
+    int findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius ) const;
+    void closestHitsInCluster( const int clusterid, const std::vector<double>& test_pos, const dbPoints& src_data,
+			       std::vector< std::pair<int,double> >& hitlist, const int max_nhits=-1 ) const;
+
   };
   
 
