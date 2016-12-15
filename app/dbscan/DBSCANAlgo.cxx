@@ -1,6 +1,7 @@
 #include "DBSCANAlgo.h"
 
 #include <algorithm> // for std::sort
+#include <sstream>
 
 namespace dbscan {
 
@@ -181,7 +182,8 @@ namespace dbscan {
   }
 
   
-  void dbscanOutput::closestHitsInCluster( const int clusterid, const std::vector<double>& test_pos, const dbPoints& src_data,
+  void dbscanOutput::closestHitsInCluster( const int clusterid, const std::vector<double>& test_pos, const dbPoints& src_data, 
+					   const larcv::ImageMeta& meta, const float cm_per_tick, const float cm_per_wire,
 					   std::vector< std::pair<int,double> >& hitlist, const int max_nhits ) const {
     // inputs
     // ------
@@ -204,8 +206,11 @@ namespace dbscan {
     if ( clusters.at(clusterid).at(0)<0 || clusters.at(clusterid).at(0)>=src_data.size() ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid first hit in test cluster");
     }
-    if ( src_data.at( clusters.at(clusterid).at(0) ).size()==test_pos.size() ) {
-      throw std::runtime_error("dbscanOutput::closestHitsInCluster: test point dimensions do not match source data");
+    if ( src_data.at( clusters.at(clusterid).at(0) ).size()!=test_pos.size() ) {
+      std::stringstream ss;
+      ss << "dbscanOutput::closestHitsInCluster: test point dimensions (" << test_pos.size() << ") "
+	 << " do not match source data (" << src_data.at( clusters.at(clusterid).at(0) ).size() << ")";
+      throw std::runtime_error(ss.str());
     }
     
     // if number of hits > number of this in the cluster, just going to return distances for all hits
@@ -220,15 +225,16 @@ namespace dbscan {
     } mycompare;
     
     hitlist.clear();
-    
+    //std::cout << " test point: " << test_pos[0] << ", " << test_pos[1] << std::endl;
+    //std::cout << " height=" << meta.pixel_height() << " width=" << meta.pixel_width() << " cm/tick=" << cm_per_tick << " cm/wire= " << cm_per_wire << std::endl;
     for (size_t ihit=0; ihit<clusters.at(clusterid).size(); ihit++) {
       int hitidx = clusters.at(clusterid).at(ihit);
       double hit_dist  = 0.0;
       const std::vector<double>& hitpos = src_data.at(hitidx);
-      for (size_t i=0; i<hitpos.size(); i++) {
-	hit_dist += (hitpos[i]-test_pos[i])*(hitpos[i]-test_pos[i]);
-      }
-      hit_dist = sqrt(hit_dist);
+      double dt = (hitpos[1]-test_pos[1])*meta.pixel_height()*cm_per_tick;
+      double dw = (hitpos[0]-test_pos[0])*meta.pixel_width()*cm_per_wire;
+      hit_dist = sqrt( dt*dt + dw*dw ); // in cm
+      //std::cout << ihit << " " << hitidx << " " << hit_dist << std::endl;
       std::pair<int,double> test_hit( hitidx, hit_dist );
       if ( max_nhits>0 ) {
 	// we have to care about the number of hits in the list
