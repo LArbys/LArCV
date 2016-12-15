@@ -25,6 +25,26 @@ namespace larcv {
     return img;
   }
 
+  cv::Mat as_gray_mat(const Image2D& larcv_img)
+  {
+    auto const& meta = larcv_img.meta();
+    cv::Mat img(meta.rows(),meta.cols(),CV_8UC1);
+    
+    unsigned char* px_ptr = (unsigned char*)img.data;
+    int cn = 1;
+    
+    for(size_t i=0;i<meta.rows();i++) {
+      for (size_t j=0;j<meta.cols();j++) {
+	
+	float q = larcv_img.pixel(i,j);
+	px_ptr[i*img.cols*cn + j*cn + 0] = (unsigned char)(((int)(q+0.5)));
+	//px_ptr[i*img.cols*cn + j*cn + 1] = (unsigned char)(((int)(q+0.5))/256);
+	//px_ptr[i*img.cols*cn + j*cn + 2] = (unsigned char)(((int)(q+0.5))/256/256);
+      }
+    }
+    return img;
+  }
+
   Image2D imread(const std::string file_name)
   {
     ::cv::Mat image;
@@ -48,6 +68,7 @@ namespace larcv {
     return larcv_img;
   }
 
+  
   Image2D imread_gray(const std::string file_name)
   {
     ::cv::Mat image;

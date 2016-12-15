@@ -20,10 +20,6 @@ INCFLAGS += -I$(LARLITE_USERDEVDIR)/RecoTool/
 INCFLAGS += -I$(LAROPENCV_IMAGECLUSTERDIR)
 
 LDFLAGS += -L$(LARLITE_LIBDIR)
-#LDFLAGS += -lLArOpenCV_Core -lLArOpenCV_ImageCluster -lLArOpenCV_ImageClusterBase -lLArOpenCV_ImageClusterCluster
-#LDFLAGS += -lLArOpenCV_ImageClusterDebug -lLArOpenCV_ImageClusterDirection -lLArOpenCV_ImageClusterFilter
-#LDFLAGS += -lLArOpenCV_ImageClusterMatch -lLArOpenCV_ImageClusterMerge -lLArOpenCV_ImageClusterReCluster
-#LDFLAGS += -lLArOpenCV_ImageClusterStartPoint -lLArOpenCV_ImageClusterUtil -lLArOpenCV_Utils
 LDFLAGS += -lLArOpenCV_ImageClusterBase
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoData
 LDFLAGS += -lLArOpenCV_ImageClusterCluster

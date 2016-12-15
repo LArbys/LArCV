@@ -1,6 +1,6 @@
       Verbosity: 0
       Profile: true
-      ImageProducer: "tpc_hires_crop"
+      TrackImageProducer: "tpc_hires_crop"
       Debug: true
 
       Q2Gray: 2
