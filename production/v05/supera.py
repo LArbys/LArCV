@@ -7,19 +7,21 @@ if len(sys.argv) < 4:
     msg += '\n'
     sys.stderr.write(msg)
     sys.exit(1)
+#import ROOT
+#from ROOT import larlite as fmwk
+##from larlite import larlite as fmwk
 import ROOT
 from larlite import larlite as fmwk
 fmwk.storage_manager
 from larcv import larcv
+if os.path.exists(sys.argv[2]):
+    print "Output file exists. Please remove."
+    print "Output file specified: ",sys.argv[2]
+    print "Giving up."
+    sys.exit(1)
 
 # Create ana_processor instance
 my_proc = fmwk.ana_processor()
-
-# Check if output file
-if os.path.exists(sys.argv[2]):
-    print "Output file exists. Please remove first."
-    print "Specified output file: ",sys.argv[2]
-    sys.exit(-1)
 
 # Set input root file
 for x in xrange(len(sys.argv)-3):

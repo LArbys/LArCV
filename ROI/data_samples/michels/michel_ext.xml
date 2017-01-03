@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<!-- Production Project -->
+<!-- Replace These -->
+
+<!DOCTYPE project [
+<!ENTITY release "v05_08_00_02">
+<!ENTITY tag     "dl_litemaker">
+<!ENTITY name    "michel_sample">
+<!ENTITY user "tmw">
+<!ENTITY runnum "01">
+<!ENTITY data_dir     "/pnfs/uboone/persistent/users/tmw/dl_michel">
+<!ENTITY local_dir    "/pnfs/uboone/persistent/users/tmw/dl_michel">
+<!ENTITY software_dir "/uboone/app/users/tmw/projects/dl_litemaker/data_samples/michels" >
+]>
+
+<job>
+<project name="&name;">
+
+  <!-- Group -->
+  <group>uboone</group>
+
+  <os>SL6</os>
+
+  <resource>DEDICATED,OPPORTUNISTIC</resource>
+
+  <!-- Larsoft information -->
+  <larsoft>
+    <tag>&release;</tag>
+    <qual>e9:prof</qual>
+    <local>&software_dir;/larsoft/larsoft.tar</local>
+  </larsoft>
+
+  <!-- Project size -->
+  <!-- 1583 files: expected to extract 1412 -->
+  <numevents>62359</numevents>
+
+  <!-- Stage1: Filter -->
+  <stage name="filter">
+    <initsource>&software_dir;/init.sh</initsource>
+    <inputdef>prod_ext_reco_inclusive_v2</inputdef>
+    <fcldir>&software_dir;</fcldir>
+    <fcl>filter_ext.fcl</fcl>
+    <numjobs>320</numjobs>
+    <memory>4000</memory>
+    <maxfilesperjob>5</maxfilesperjob>
+    <outdir>&data_dir;/&release;/&name;</outdir>
+    <logdir>&local_dir;/prod_log/&release;/&name;/run&runnum;</logdir>
+    <workdir>&local_dir;/prod_work/&release;/&name;/run&runnum;</workdir>
+  </stage>
+
+  <!-- file type -->
+  <filetype>data</filetype>
+
+  <!-- run type -->
+  <runtype>physics</runtype>
+
+
+</project>
+</job>
