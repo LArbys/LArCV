@@ -77,9 +77,16 @@ namespace larcv {
       auto& image = image_v[pid];
       auto const& data = image.as_vector();
       
-      for(size_t px_idx=0; px_idx < data.size(); ++px_idx)
+      for(size_t px_idx=0; px_idx < data.size(); ++px_idx) {
 
-	if(!valid_roi_v[(size_t)(data[px_idx])]) image.set_pixel(px_idx,_mask_value);
+	if(data[px_idx]>=valid_roi_v.size()) {
+	  LARCV_WARNING() << "Masking an invalid segment value " << data[px_idx] << " @ " << px_idx << std::endl;
+	  image.set_pixel(px_idx,_mask_value);
+	}
+	else if(!valid_roi_v[(size_t)(data[px_idx])]) 
+	  image.set_pixel(px_idx,_mask_value);
+
+      }
 
     }
 
