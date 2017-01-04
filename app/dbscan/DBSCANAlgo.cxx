@@ -2,6 +2,7 @@
 
 #include <algorithm> // for std::sort
 #include <sstream>
+#include <stdexcept>
 
 namespace dbscan {
 

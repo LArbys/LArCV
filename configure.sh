@@ -46,6 +46,8 @@ export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
 
 # Check ann
 export LARCV_ANN=1
+export ANN_INCDIR=$LARCV_BASEDIR/app/ann_1.1.2/include
+export ANN_LIBDIR=$LARCV_BASEDIR/app/ann_1.1.2/lib
 if [[ -z $ANN_INCDIR ]]; then
     export LARCV_ANN=0
 fi
