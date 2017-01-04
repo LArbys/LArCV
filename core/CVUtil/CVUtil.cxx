@@ -25,6 +25,79 @@ namespace larcv {
     return img;
   }
 
+  cv::Mat as_mat_1FC(const Image2D& larcv_img)
+  {
+    auto const& meta = larcv_img.meta();
+    cv::Mat img(meta.rows(),meta.cols(),CV_32FC1);
+        
+    for(size_t i=0;i<meta.rows();i++) {
+      for (size_t j=0;j<meta.cols();j++) {
+	float q = larcv_img.pixel(i,j);
+	img.at<float>(i,j) = q;
+      }
+    }
+    return img;
+  }
+
+  cv::Mat as_mat_greyscale2bgr(const Image2D& larcv_img, const float min, const float max)
+  {
+    // converts into a color scaled image
+    auto const& meta = larcv_img.meta();
+    cv::Mat img(meta.rows(),meta.cols(),CV_8UC3);
+    
+    unsigned char* px_ptr = (unsigned char*)img.data;
+    int cn = img.channels();
+    
+    for(size_t i=0;i<meta.rows();i++) {
+      for (size_t j=0;j<meta.cols();j++) {
+	
+	float q = larcv_img.pixel(i,j);
+	if ( q>max ) q = max;
+	if ( q<min ) q = min;
+	float rgbval = ((q-min)/(max-min))*255.0;
+	px_ptr[i*img.cols*cn + j*cn + 0] = (unsigned char)(((int)(rgbval)));
+	px_ptr[i*img.cols*cn + j*cn + 1] = (unsigned char)(((int)(rgbval)));
+	px_ptr[i*img.cols*cn + j*cn + 2] = (unsigned char)(((int)(rgbval)));
+      }
+    }
+    return img;
+  }
+
+  larcv::Image2D mat_to_image2d( const cv::Mat& mat, const ImageMeta& src_meta ) {
+    
+    int cn = mat.channels();
+    // more than 1 channel assumes a color scale. not well-defined how to re-constitute image
+    if ( cn>1 ) {
+      throw std::runtime_error("CVUtil.cxx: mat_to_image2d, number of channels != 1");
+    }
+
+    // define the meta
+    ImageMeta meta( src_meta );
+    if ( meta.width()==0.0 && meta.height()==0.0 ) {
+      // empty meta
+      meta = ImageMeta( mat.cols, mat.rows, mat.rows, mat.cols );
+    }
+    larcv::Image2D img( meta );
+    
+    for (size_t i=0; i<meta.rows(); i++) {
+      for (size_t j=0; j<meta.cols(); j++) {
+	if ( mat.type()==CV_32F ) {
+	  float q = (float)mat.at<float>(i,j);
+	  img.set_pixel( i, j, q );
+	}
+	else if (mat.type()==CV_8U) {
+	  int q = (int)mat.at<unsigned char>(i,j);
+	  img.set_pixel( i, j, (float)q );
+	}
+	else {
+	  throw std::runtime_error("CVUtil.cxx: mat_to_image2d, data type not handled (accepts CV_8U=unsigned char or CV_64F=double)");
+	}
+      }
+    }
+    
+    return img;
+  }
+
   Image2D imread(const std::string file_name)
   {
     ::cv::Mat image;

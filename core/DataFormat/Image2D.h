@@ -87,6 +87,10 @@ namespace larcv {
     void set_pixel( size_t index, float value );
     /// Paint all pixels with a specified value
     void paint(float value);
+    /// Paint a row of pixels with a specified value
+    void paint_row( int row, float value );
+    /// Paint a column of pixels with a specified value
+    void paint_col( int col, float value );
     /// Apply threshold: pixels lower than "thres" are all overwritten by lower_overwrite value
     void threshold(float thres, float lower_overwrite);
     /// Apply threshold: make all pixels to take only 2 values, lower_overwrite or upper_overwrite 

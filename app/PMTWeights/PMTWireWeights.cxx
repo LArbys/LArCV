@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cmath>
 
+#include "UBWireTool/UBWireTool.h"
+
 namespace larcv {
   namespace pmtweights {
     
@@ -30,33 +32,6 @@ namespace larcv {
 	//std::cout << std::endl;
       }
 
-      // Get the Wire Info
-      fWireTree = (TTree*)fGeoFile->Get( "imagedivider/wireInfo" );
-      int wireID;
-      int planeID;
-      float start[3];
-      float end[3];
-      fWireTree->SetBranchAddress( "wireID", &wireID );
-      fWireTree->SetBranchAddress( "plane",  &planeID );
-      fWireTree->SetBranchAddress( "start", start );
-      fWireTree->SetBranchAddress( "end", end );
-      
-      int nentries = fWireTree->GetEntries();
-      for ( int ientry=0; ientry<nentries; ientry++ ) {
-	fWireTree->GetEntry(ientry);
-	if ( m_WireData.find( planeID )==m_WireData.end() ) {
-	  // cannot find instance of wire data for plane id. make one.
-	  m_WireData[planeID] = WireData( planeID );
-	}
-	m_WireData[planeID].addWire( wireID, start, end );
-      }
-
-//       std::cout << "Number of wire data stored (per plane)" << std::endl;
-//       for ( std::map<int,WireData>::iterator it=m_WireData.begin(); it!=m_WireData.end(); it++) {
-// 	std::cout << " [Plane " << (*it).first << "]: " << (*it).second.nwires() << std::endl;
-//       }
-
-      
       // Configure
       configure();
 
@@ -74,10 +49,9 @@ namespace larcv {
       // we make a weight matrix W = [ N, M ] where N is the number of wires and M is the number of PMTs
       // the way we will use this is to assign each PMT a value: z = q/Q so that z is the fraction of charge seen in the trigger window
       // the weight assigned to each wire will be W*Z, where Z is the vector of z values for all M PMTs.
-
-      for ( std::map<int,WireData>::iterator it=m_WireData.begin(); it!=m_WireData.end(); it++ ) {
-	int plane = (*it).first;
-	WireData const& data = (*it).second;
+      
+      for (int plane=0; plane<3; plane++) {
+	const larcv::WireData& data = larcv::UBWireTool::getWireData(plane);  
 	int nwires = data.nwires();
 	if ( fNWires>0 ) 
 	  nwires = fNWires;

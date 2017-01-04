@@ -11,7 +11,7 @@
 
 #include "Processor/ProcessFactory.h"
 #include "DataFormat/Image2D.h"
-#include "WireData.h"
+#include "UBWireTool/WireData.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -41,9 +41,6 @@ namespace larcv {
       int femch;
       float pmtpos[32][3];
       
-      TTree* fWireTree;
-      std::map<int,larcv::pmtweights::WireData> m_WireData; // key is plane ID, value is class with wire info
-
       // The object we end up filling
       std::map<int, larcv::Image2D> planeWeights; // index is the plane number
 

@@ -22,6 +22,10 @@ if 'LARLITE_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterDebug']
         libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
         libs += [' -lBasicTool_FhiclLite']
+
+if 'ANN_LIBDIR' in os.environ:
+    libs+= ["%s/libANN.a" % ( os.environ["ANN_LIBDIR"].strip() )]
+
     
 objs_list=[]
 dict_list=[]

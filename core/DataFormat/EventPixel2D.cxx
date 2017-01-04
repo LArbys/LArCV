@@ -12,18 +12,24 @@ namespace larcv {
 
   void EventPixel2D::clear()
   {
+    EventBase::clear();
     _pixel_m.clear(); _cluster_m.clear();
   }
 
   const std::vector<larcv::Pixel2D>& EventPixel2D::Pixel2DArray(const ::larcv::PlaneID_t plane)
   {
+    // I prefer to return empty vector than fail
     auto iter = _pixel_m.find(plane);
     if(iter == _pixel_m.end()) {
-      logger::get("EventPixel2D").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
-	<< "No pixel for plane " << plane << std::endl;
-      throw larbys();
+      _pixel_m.insert( std::pair< ::larcv::PlaneID_t, std::vector< ::larcv::Pixel2D > >( plane, std::vector< ::larcv::Pixel2D >() ) );
+      iter = _pixel_m.find(plane); // get the new iterator
+      if ( iter==_pixel_m.end() ) {
+	// oops
+	logger::get("EventPixel2D").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
+	  << "No pixel for plane " << plane << " and could not make empty vector." << std::endl;
+	throw larbys();	
+      }
     }
-
     return (*iter).second;
   }
 
@@ -31,11 +37,16 @@ namespace larcv {
   {
     auto iter = _cluster_m.find(plane);
     if(iter == _cluster_m.end()) {
-      logger::get("EventPixel2DCluster").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
-	<< "No cluster for plane " << plane << std::endl;
-      throw larbys();
+      _cluster_m.insert( std::pair< ::larcv::PlaneID_t, std::vector< ::larcv::Pixel2DCluster > >( plane, std::vector< ::larcv::Pixel2DCluster >() ) );
+      iter = _cluster_m.find(plane); // get the new iterator
+      if ( iter==_cluster_m.end() ) {
+	// oops
+	logger::get("EventPixel2D").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
+	  << "No pixel cluster for plane " << plane << " and could not make empty vector." << std::endl;
+	throw larbys();	
+      }
     }
-
+    
     return (*iter).second;
   }
 
@@ -50,7 +61,7 @@ namespace larcv {
     col.push_back(cluster);
     col.back()._id = col.size() - 1;
   }
-    
+  
   void EventPixel2D::Emplace(const larcv::PlaneID_t plane, Pixel2D&& pixel)
   {
     auto& col = _pixel_m[plane];
