@@ -39,6 +39,30 @@ namespace larcv {
     return img;
   }
 
+  cv::Mat as_mat_greyscale2bgr(const Image2D& larcv_img, const float min, const float max)
+  {
+    // converts into a color scaled image
+    auto const& meta = larcv_img.meta();
+    cv::Mat img(meta.rows(),meta.cols(),CV_8UC3);
+    
+    unsigned char* px_ptr = (unsigned char*)img.data;
+    int cn = img.channels();
+    
+    for(size_t i=0;i<meta.rows();i++) {
+      for (size_t j=0;j<meta.cols();j++) {
+	
+	float q = larcv_img.pixel(i,j);
+	if ( q>max ) q = max;
+	if ( q<min ) q = min;
+	float rgbval = ((q-min)/(max-min))*255.0;
+	px_ptr[i*img.cols*cn + j*cn + 0] = (unsigned char)(((int)(rgbval)));
+	px_ptr[i*img.cols*cn + j*cn + 1] = (unsigned char)(((int)(rgbval)));
+	px_ptr[i*img.cols*cn + j*cn + 2] = (unsigned char)(((int)(rgbval)));
+      }
+    }
+    return img;
+  }
+
   larcv::Image2D mat_to_image2d( const cv::Mat& mat, const ImageMeta& src_meta ) {
     
     int cn = mat.channels();
