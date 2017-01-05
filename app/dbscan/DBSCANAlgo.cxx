@@ -6,12 +6,20 @@
 
 namespace dbscan {
 
+  struct mycompare_t {
+    bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) { 
+      if ( lhs.second<rhs.second ) 
+	return true;
+      return false;
+    }
+  } mycompare;
+  
   dbscanOutput DBSCANAlgo::scan( dbPoints input, int minPts, double eps, bool borderPoints, double approx ) {
 
     // allocate output
     dbscanOutput output;
 
-    int npts  = input.size();
+    size_t npts  = input.size();
     if ( npts==0 )
       return output;
     int ndims = input.at(0).size();
@@ -21,7 +29,7 @@ namespace dbscan {
     ann::ANNAlgo bdtree( npts, ndims );
     
     // now fill it
-    for (int i=0; i<npts; i++) {
+    for (size_t i=0; i<npts; i++) {
       bdtree.setPoint( i, input.at(i) );
     }
 
@@ -47,7 +55,7 @@ namespace dbscan {
     output.clusterid.resize(npts,-1);
     output.nneighbors.resize(npts,0);
     
-    for (int i=0; i<npts; i++) {
+    for (size_t i=0; i<npts; i++) {
       // check for interrupt
       //if (!(i % 100)) Rcpp::checkUserInterrupt(); //convert this to python
       
@@ -161,7 +169,7 @@ namespace dbscan {
     int matching_cluster = -1;
     double r2 = radius*radius;
     double closest_r2 = 0.0;
-    for (int ic=0; ic<clusters.size(); ic++) {
+    for (size_t ic=0; ic<clusters.size(); ic++) {
       const dbCluster &cluster = clusters.at(ic);
       int nhits = clusters.at(ic).size();
       for (int ihit=0; ihit<nhits; ihit++) {
@@ -170,7 +178,7 @@ namespace dbscan {
 	if ( testpoint.size()!=data.at(hitidx).size() ) {
 	  throw querypoint_mismatch;
 	}
-	for (int i=0; i<testpoint.size();i++) {
+	for (size_t i=0; i<testpoint.size();i++) {
 	  dist += (data.at(hitidx).at(i)-testpoint.at(i))*(data.at(hitidx).at(i)-testpoint.at(i));
 	}
 	if (dist<r2 && (matching_cluster==-1 || dist<closest_r2) ) {
@@ -198,13 +206,13 @@ namespace dbscan {
     // this is an order N search. paired with sorting of a list.  not great.  but, we can be more clever in the future if we need to be
 
     // input checks
-    if ( clusterid<0 || clusterid>=clusters.size() ) {
+    if ( clusterid<0 || clusterid>=(int)clusters.size() ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid cluster id");
     }
     if ( clusters.at(clusterid).size()==0 ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: weird, empty cluster");
     }
-    if ( clusters.at(clusterid).at(0)<0 || clusters.at(clusterid).at(0)>=src_data.size() ) {
+    if ( clusters.at(clusterid).at(0)<0 || clusters.at(clusterid).at(0)>=(int)src_data.size() ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid first hit in test cluster");
     }
     if ( src_data.at( clusters.at(clusterid).at(0) ).size()!=test_pos.size() ) {
@@ -217,13 +225,6 @@ namespace dbscan {
     // if number of hits > number of this in the cluster, just going to return distances for all hits
 
     // we compare the distance
-    struct mycompare_t {
-      bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) { 
-	if ( lhs.second<rhs.second ) 
-	  return true;
-	return false;
-      }
-    } mycompare;
     
     hitlist.clear();
     //std::cout << " test point: " << test_pos[0] << ", " << test_pos[1] << std::endl;
@@ -239,13 +240,13 @@ namespace dbscan {
       std::pair<int,double> test_hit( hitidx, hit_dist );
       if ( max_nhits>0 ) {
 	// we have to care about the number of hits in the list
-	if ( hitlist.size()<max_nhits ) {
+	if ( (int)hitlist.size()<max_nhits ) {
 	  // but not now
 	  hitlist.emplace_back( test_hit );
 	}
 	else {
 	  bool isbetter = false;
-	  for (size_t ilisthit=0; ilisthit<max_nhits; ilisthit++) {
+	  for (size_t ilisthit=0; ilisthit<(size_t)max_nhits; ilisthit++) {
 	    if ( hitlist.at(ilisthit).second > hit_dist ) {
 	      isbetter = true;
 	      break;
