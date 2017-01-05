@@ -6,13 +6,6 @@
 
 namespace dbscan {
 
-  struct mycompare_t {
-    bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) { 
-      if ( lhs.second<rhs.second ) 
-	return true;
-      return false;
-    }
-  } mycompare;
   
   dbscanOutput DBSCANAlgo::scan( dbPoints input, int minPts, double eps, bool borderPoints, double approx ) {
 
@@ -225,6 +218,14 @@ namespace dbscan {
     // if number of hits > number of this in the cluster, just going to return distances for all hits
 
     // we compare the distance
+    struct mycompare_t {
+      //bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) {
+      bool operator() ( std::pair<int,double> lhs, std::pair<int,double> rhs ) { 
+      if ( lhs.second<rhs.second ) 
+	return true;
+      return false;
+      }
+    } mycompare;
     
     hitlist.clear();
     //std::cout << " test point: " << test_pos[0] << ", " << test_pos[1] << std::endl;
