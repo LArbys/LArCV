@@ -2,6 +2,9 @@
 #include "TFile.h"
 #include "TTree.h"
 
+#include <sstream>
+#include <exception>
+
 namespace larcv {
 
   UBWireTool* UBWireTool::_g_ubwiretool = NULL;
@@ -365,6 +368,14 @@ namespace larcv {
     LineSegEnds_t segs[3];
     for (int p=0; p<3; p++) {
       int wid = wids.at(p);
+      if (wid>=_g->m_WireData[p].nwires()) wid = _g->m_WireData[p].nwires()-1;
+      auto it_start = _g->m_WireData[p].wireStart.find(wid);
+      auto it_end   = _g->m_WireData[p].wireEnd.find(wid);
+      if ( it_start==_g->m_WireData[p].wireStart.end() || it_end==_g->m_WireData[p].wireEnd.end() ) {
+	std::stringstream ss;
+	ss << __FILE__ << "::" << __LINE__ << " Wire ID=" << wid << " Plane=" << p << " could not find wireStart or wireEnd" << std::endl;
+	throw std::runtime_error(ss.str());
+      }
       const std::vector<float>& start = _g->m_WireData[p].wireStart.find(wid)->second;
       const std::vector<float>& end   = _g->m_WireData[p].wireEnd.find(wid)->second;
       std::vector<float> start_poszy(2);

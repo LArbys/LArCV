@@ -142,6 +142,15 @@ namespace larcv {
   }
 
 
+  void draw_bb( cv::Mat& mat, const larcv::ImageMeta& img_meta, const larcv::ImageMeta& bbox,
+		const int r, const int g, const int b, const int thickness ) {
+    cv::rectangle( mat,
+		   cv::Point( img_meta.col( bbox.min_x() ), img_meta.row( bbox.min_y() ) ),
+		   cv::Point( img_meta.col( bbox.max_x() ), img_meta.row( bbox.max_y() ) ),
+		   cv::Scalar( b, g, r ),
+		   thickness );
+  }
+  
 }
 
 #endif
