@@ -17,6 +17,135 @@ namespace larcv {
     : ProcessBase(name), _mc_tree(nullptr)
   {}
     
+  
+  bool MCinfoRetriever::MCSelect (const EventROI* ev_roi) {
+    
+    //bool engdep         = false;
+    bool engini         = false;
+    bool nlepton        = false;
+    bool dep_sum_lepton = false;
+    bool nproton        = false;
+    bool dep_sum_proton = false;
+    bool nprimary       = false;
+    bool vis_one_proton = false;
+    
+    _nlepton            = 0;
+    _dep_sum_lepton     = 0;
+    _nproton            = 0;
+    _dep_sum_proton     = 0;
+    _nprimary           = 0;
+    
+    _run    = (uint) ev_roi->run();
+    _subrun = (uint) ev_roi->subrun();
+    _event  = (uint) ev_roi->event();
+    
+    auto roi = ev_roi->at(0);
+
+    _energy_deposit = roi.EnergyDeposit();
+
+    _energy_init    = roi.EnergyInit();
+
+    std::vector<this_proton> protons;
+    protons.clear();
+
+    uint ic = 0 ; 
+    
+    for(const auto& roi : ev_roi->ROIArray()) {
+
+      if (ic==0)
+	{ ic+=1; continue; }      
+      
+      int pdgcode = roi.PdgCode();
+      
+      if (pdgcode==2212) {
+
+	//primary protons
+	if (roi.TrackID() == roi.ParentTrackID()) {
+	  _nproton++;
+	  //_dep_sum_proton += roi.EnergyDeposit();
+	  _ke_sum_proton  += roi.EnergyInit() - 938.0;
+	}
+	
+	//all protons go into vector
+	
+	this_proton thispro;
+	
+	thispro.trackid       = roi.TrackID();
+	thispro.parenttrackid = roi.ParentTrackID();
+	thispro.depeng        = roi.EnergyDeposit();
+	
+	protons.push_back(thispro);
+      }
+
+      if (roi.TrackID() != roi.ParentTrackID()) continue;
+
+      _nprimary+=1;
+      
+      if (pdgcode==11 or pdgcode==-11 or
+	  pdgcode==13 or pdgcode==-13) {
+	
+	_nlepton++;
+	_dep_sum_lepton += roi.EnergyDeposit();
+
+      }
+      
+    }
+
+    float highest_primary_proton_eng = 0;
+    std::vector<float> proton_engs;
+    proton_engs.clear();
+
+    int proton_engs_ctr = 0 ;
+    if (protons.size() > 0){
+      int trackid ;
+      int ptrackid ;
+      for (int x=0;x < protons.size() ; x++ ){
+        highest_primary_proton_eng = 0;
+        trackid = protons.at(x).trackid;
+        ptrackid = protons.at(x).parenttrackid;
+	highest_primary_proton_eng += protons.at(x).depeng;
+	if (highest_primary_proton_eng>60 && trackid == ptrackid) proton_engs_ctr ++;
+	for (int y=0;y < protons.size() ; y++ ){
+          if (x==y) continue;
+          if (protons.at(y).parenttrackid == trackid) {
+	    highest_primary_proton_eng+=protons.at(y).depeng;
+          }
+        }
+	proton_engs.push_back(highest_primary_proton_eng);
+      }
+      highest_primary_proton_eng = 0;
+      for (auto const each : proton_engs) {
+        if (each > highest_primary_proton_eng) highest_primary_proton_eng = each;
+      }
+      _dep_sum_proton = highest_primary_proton_eng;
+    }
+
+    //if (_energy_deposit >= _min_nu_dep_e  && _energy_deposit < _max_nu_dep_e)  engdep = true;
+    if (_energy_init >= _min_nu_init_e && _energy_init <= _max_nu_init_e) engini = true;
+    if (_nlepton >0)         nlepton         = true; // Interactions could have more than one lepton.
+    if (_dep_sum_lepton>35)  dep_sum_lepton  = true; // 
+    if (_nproton >= 1)       nproton         = true; // Interactions could have more than one proton(only one visible).
+    if (_dep_sum_proton>=60) dep_sum_proton  = true; 
+    if (proton_engs_ctr <=1) vis_one_proton  = true; // Note that cases where no vis proton is included. This should be thought as intrinsic error
+    
+    if (_nprimary ==2)       nprimary        = true;
+    
+    _selected = engini * nlepton * dep_sum_lepton * nproton * dep_sum_proton * vis_one_proton;// * nprimary;
+    
+    //if(_selected && nlepton == 0 ) std::cout<<"run is "<< _run <<" ,subrun is "<<_subrun<<" ,event is"<<_event <<std::endl;
+    /***
+    std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<"
+	     <<"selected is " <<_selected<<"\n"
+	     <<"_nlepton is    "<< _nlepton<< "nlepton is "<< nlepton <<'\n'
+	     <<"_dep lepton is "<<_dep_sum_lepton <<"deplepton is " <<dep_sum_lepton<<'\n'
+	     <<"_nproton is    "<< _nproton<< "nproton is "<< nproton <<'\n'
+	     <<"_dep proton is "<<_dep_sum_proton <<"deppro    is " <<dep_sum_proton<<'\n'
+	     <<"n primary is   "<<_nprimary<<"nprimary     is " <<nprimary<<'\n';
+    ***/
+    return _selected;
+  } 
+  
+  
   void MCinfoRetriever::configure(const PSet& cfg)
   {
     _producer_roi       = cfg.get<std::string>("MCProducer");
@@ -220,8 +349,8 @@ namespace larcv {
 
     _mc_tree->Branch("hi_lep_pdg",&_hi_lep_pdg,"hi_lep_pdg/I");
 
-    _mc_tree->Branch("dep_sum_lep",&_dep_sum_lep,"dep_sum_lep/D");
-    _mc_tree->Branch("ke_sum_lep",&_ke_sum_lep,"ke_sum_lep/D");
+    _mc_tree->Branch("dep_sum_lepton",&_dep_sum_lepton,"dep_sum_lepton/D");
+    _mc_tree->Branch("ke_sum_lepton",&_ke_sum_lepton,"ke_sum_lepton/D");
     
     _mc_tree->Branch("dep_sum_proton",&_dep_sum_proton,"dep_sum_proton/D");
     _mc_tree->Branch("ke_sum_proton",&_ke_sum_proton,"ke_sum_proton/D");
@@ -263,6 +392,8 @@ namespace larcv {
     eee+=1;
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
+
+    if (!MCSelect(ev_roi)) return false;
 
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
@@ -323,8 +454,8 @@ namespace larcv {
 
     float hi_lep_e = 0;
     
-    _dep_sum_lep=0;
-    _ke_sum_lep=0;
+    _dep_sum_lepton=0;
+    _ke_sum_lepton=0;
     _dep_sum_proton=0;
     _ke_sum_proton=0;
     _dep_sum_meson=0;
@@ -441,14 +572,14 @@ namespace larcv {
 	
 	daughter_2dcosangle_v.push_back(cosangle);
       }
-
+      
       _daughterPx_v.push_back(roi.Px());
       _daughterPy_v.push_back(roi.Py());
       _daughterPz_v.push_back(roi.Pz());
       _daughterX_v.push_back(roi.X());
       _daughterY_v.push_back(roi.Y());
       _daughterZ_v.push_back(roi.Z());
-
+      
       int pdgcode = roi.PdgCode();
       
       //if (pdgcode > 1e6) { std::cout << "Entry is " << eee << std::endl; throw larbys("Fucked up pdg code");}
@@ -514,8 +645,8 @@ namespace larcv {
 	  pdgcode==13 or pdgcode==-13) {
 
 	_nlepton++;
-	_dep_sum_lep += roi.EnergyDeposit();
-	_ke_sum_lep  += roi.EnergyInit();
+	_dep_sum_lepton += roi.EnergyDeposit();
+	_ke_sum_lepton  += roi.EnergyInit();
 
 	if (roi.EnergyInit() > hi_lep_e) _hi_lep_pdg = pdgcode;
 
@@ -540,6 +671,7 @@ namespace larcv {
 
     if (protons.size() > 0){
       int trackid ;
+
       for (int x=0;x < protons.size() ; x++ ){
 	highest_primary_proton_eng = 0;
 	trackid = protons.at(x).trackid;
@@ -558,7 +690,7 @@ namespace larcv {
       }
       _dep_sum_proton = highest_primary_proton_eng;
     }
-    
+    /***
     //the analysis filter
     if ( _energy_deposit < _min_nu_dep_e  or _energy_deposit > _max_nu_dep_e)  return false;
     if ( _energy_init    < _min_nu_init_e or _energy_init    > _max_nu_init_e) return false;
@@ -575,7 +707,7 @@ namespace larcv {
     visibility = hadron_vis && lepton_vis;
     
     if ( !visibility and _check_vis) return false;
-    
+    ***/
     //Fill tree
     _mc_tree->Fill();
 

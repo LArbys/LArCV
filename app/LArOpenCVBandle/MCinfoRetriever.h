@@ -24,6 +24,7 @@
 #include "DataFormat/Image2D.h"
 #include "Core/HalfLine.h"
 #include "Core/Line.h"
+#include "DataFormat/EventROI.h"
 
 namespace larcv {
 
@@ -94,8 +95,8 @@ namespace larcv {
 
     int _hi_lep_pdg;
     
-    double _dep_sum_lep;
-    double _ke_sum_lep;
+    double _dep_sum_lepton;
+    double _ke_sum_lepton;
 
     double _dep_sum_proton;
     double _ke_sum_proton;
@@ -161,6 +162,8 @@ namespace larcv {
     bool _check_vis;
 
     bool _do_not_reco;
+
+    bool _selected;
     
     struct this_proton{
       int trackid;
@@ -182,6 +185,9 @@ namespace larcv {
     cv::Rect Get2DRoi(const ImageMeta& meta,
 		      const ImageMeta& roi_meta);
 
+    //bool MCSelect (const larcv::EventROI roi);
+    bool MCSelect (const EventROI* ev_roi);
+    
     
   };
 
