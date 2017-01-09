@@ -17,10 +17,10 @@ namespace larcv {
     : ProcessBase(name), _mc_tree(nullptr)
   {}
     
-  
   bool MCinfoRetriever::MCSelect (const EventROI* ev_roi) {
     
     //bool engdep         = false;
+    bool pdg            = false;
     bool engini         = false;
     bool nlepton        = false;
     bool dep_sum_lepton = false;
@@ -38,9 +38,11 @@ namespace larcv {
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
     _event  = (uint) ev_roi->event();
-    
+
     auto roi = ev_roi->at(0);
 
+    int pdgcode = roi.PdgCode();
+    
     _energy_deposit = roi.EnergyDeposit();
 
     _energy_init    = roi.EnergyInit();
@@ -121,6 +123,7 @@ namespace larcv {
     }
 
     //if (_energy_deposit >= _min_nu_dep_e  && _energy_deposit < _max_nu_dep_e)  engdep = true;
+    if ( pdgcode==14) pdg = true; 
     if (_energy_init >= _min_nu_init_e && _energy_init <= _max_nu_init_e) engini = true;
     if (_nlepton >0)         nlepton         = true; // Interactions could have more than one lepton.
     if (_dep_sum_lepton>35)  dep_sum_lepton  = true; // 
@@ -130,7 +133,7 @@ namespace larcv {
     
     if (_nprimary ==2)       nprimary        = true;
     
-    _selected = engini * nlepton * dep_sum_lepton * nproton * dep_sum_proton * vis_one_proton;// * nprimary;
+    _selected = pdg * engini * nlepton * dep_sum_lepton * nproton * dep_sum_proton * vis_one_proton;// * nprimary;
     
     //if(_selected && nlepton == 0 ) std::cout<<"run is "<< _run <<" ,subrun is "<<_subrun<<" ,event is"<<_event <<std::endl;
     /***
@@ -398,6 +401,10 @@ namespace larcv {
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
     _event  = (uint) ev_roi->event();
+
+    _entry_info.run    = _run;
+    _entry_info.subrun = _subrun;
+    _entry_info.event  = _event;
 
     ///////////////////////////////
     // Neutrino ROI

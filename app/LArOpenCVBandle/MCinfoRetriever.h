@@ -171,6 +171,14 @@ namespace larcv {
       float depeng;
     };
 
+
+    struct entry_info{
+      int run;
+      int subrun;
+      int event;
+    };
+
+    entry_info _entry_info;
     
   private:
     ///Project 3D track into 2D Image(per plane) 
