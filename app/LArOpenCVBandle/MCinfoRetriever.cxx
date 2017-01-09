@@ -200,7 +200,6 @@ namespace larcv {
 
     return cv::Rect(x,y,dx,dy);
   }
-  
 
   
   void MCinfoRetriever::Project3D(const ImageMeta& meta,
@@ -329,6 +328,7 @@ namespace larcv {
     _mc_tree->Branch("subrun",&_subrun,"subrun/i");
     _mc_tree->Branch("event",&_event,"event/i");
     _mc_tree->Branch("parentPDG",&_parent_pdg,"parentPDG/I");
+    _mc_tree->Branch("signal",&_is_signal,"_is_signal/O");
 
     _mc_tree->Branch("energyDeposit",&_energy_deposit,"energyDeposit/D");
     _mc_tree->Branch("energyInit",&_energy_init,"energyInit/D");
@@ -704,12 +704,18 @@ namespace larcv {
     //Look @ this event or not?
     bool signal_selected = MCSelect(ev_roi);
     // std::cout  << "_select_signal " << _select_signal << "... _select_background " << _select_background << "... signal_selected " << signal_selected << std::endl;
-    if ( _select_signal     and !signal_selected ) return false;
-    if ( _select_background and  signal_selected ) return false;
+
+    if ( !_select_signal or !_select_background) {
+      if ( _select_signal     and !signal_selected ) return false;
+      if ( _select_background and  signal_selected ) return false;
+    }
     
+    _is_signal = signal_selected;
+
     _mc_tree->Fill();
     
     if (_do_not_reco) return false;
+
     // std::cout << "Passed" << std::endl;
     return true;
   }
