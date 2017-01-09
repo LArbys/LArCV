@@ -123,7 +123,9 @@ namespace larcv {
     }
 
     //if (_energy_deposit >= _min_nu_dep_e  && _energy_deposit < _max_nu_dep_e)  engdep = true;
-    if ( pdgcode==14) pdg = true; 
+    if ( pdgcode==14) pdg = true;
+    _min_nu_init_e = 200;
+    _max_nu_init_e = 600;
     if (_energy_init >= _min_nu_init_e && _energy_init <= _max_nu_init_e) engini = true;
     if (_nlepton >0)         nlepton         = true; // Interactions could have more than one lepton.
     if (_dep_sum_lepton>35)  dep_sum_lepton  = true; // 
@@ -131,21 +133,23 @@ namespace larcv {
     if (_dep_sum_proton>=60) dep_sum_proton  = true; 
     if (proton_engs_ctr <=1) vis_one_proton  = true; // Note that cases where no vis proton is included. This should be thought as intrinsic error
     
-    if (_nprimary ==2)       nprimary        = true;
-    
-    _selected = pdg * engini * nlepton * dep_sum_lepton * nproton * dep_sum_proton * vis_one_proton;// * nprimary;
+    if (_nprimary ==2)        nprimary        = true;
+
+    bool selected = pdg && engini && nlepton && dep_sum_lepton && nproton && dep_sum_proton && vis_one_proton;// * nprimary;
     
     //if(_selected && nlepton == 0 ) std::cout<<"run is "<< _run <<" ,subrun is "<<_subrun<<" ,event is"<<_event <<std::endl;
-    /***
-    std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<"
-	     <<"selected is " <<_selected<<"\n"
-	     <<"_nlepton is    "<< _nlepton<< "nlepton is "<< nlepton <<'\n'
-	     <<"_dep lepton is "<<_dep_sum_lepton <<"deplepton is " <<dep_sum_lepton<<'\n'
-	     <<"_nproton is    "<< _nproton<< "nproton is "<< nproton <<'\n'
-	     <<"_dep proton is "<<_dep_sum_proton <<"deppro    is " <<dep_sum_proton<<'\n'
-	     <<"n primary is   "<<_nprimary<<"nprimary     is " <<nprimary<<'\n';
-    ***/
-    return _selected;
+    
+    // std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<"
+    // 	     <<"selected is     " <<selected<<"\n"
+    // 	     <<"pdgcode is      "<< pdgcode<< "\t~~~pdg " << pdg << "\n"
+    // 	     <<"_nlepton is     "<< _nlepton<< "\t~~~nlepton is "<< nlepton <<'\n'
+    // 	     <<"_dep lepton is  "<<_dep_sum_lepton <<"\t~~~deplepton is " <<dep_sum_lepton<<'\n'
+    // 	     <<"_nproton is     "<< _nproton<< "\t~~~nproton is "<< nproton <<'\n'
+    // 	     <<"_dep proton is  "<<_dep_sum_proton <<"\t~~~deppro    is " <<dep_sum_proton<<'\n'
+    // 	     <<"proton_engs_ctr "<<vis_one_proton  <<"\t~~~vis_one_proton "<<vis_one_proton<< "\n"
+    // 	     <<"n primary is    "<<_nprimary<<"\t~~~nprimary     is " <<nprimary<<'\n';
+    
+    return selected;
   } 
   
   
@@ -699,14 +703,14 @@ namespace larcv {
 
     //Look @ this event or not?
     bool signal_selected = MCSelect(ev_roi);
-    //std::cout  << "_select_signal " << _select_signal << "... _select_background " << _select_background << "... signal_selected " << signal_selected << std::endl;
+    // std::cout  << "_select_signal " << _select_signal << "... _select_background " << _select_background << "... signal_selected " << signal_selected << std::endl;
     if ( _select_signal     and !signal_selected ) return false;
     if ( _select_background and  signal_selected ) return false;
     
     _mc_tree->Fill();
     
     if (_do_not_reco) return false;
-    //std::cout << "Passed" << std::endl;
+    // std::cout << "Passed" << std::endl;
     return true;
   }
   
