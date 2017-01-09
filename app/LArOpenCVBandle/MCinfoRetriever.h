@@ -53,7 +53,6 @@ namespace larcv {
 
     void Clear();
     
-    //  private:
   protected:
 
     std::string _producer_roi;
@@ -164,6 +163,9 @@ namespace larcv {
     bool _do_not_reco;
 
     bool _selected;
+
+    bool _select_signal;
+    bool _select_background;
     
     struct this_proton{
       int trackid;
@@ -171,8 +173,6 @@ namespace larcv {
       float depeng;
     };
 
-    bool _select_signal;
-    bool _select_background;
     
     struct entry_info{
       int run;

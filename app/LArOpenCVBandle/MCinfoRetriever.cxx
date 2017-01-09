@@ -171,10 +171,10 @@ namespace larcv {
     _max_proton_dep = cfg.get<float>("ProtonMaxDepE",0);
     
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",0);
-    _do_not_reco       = cfg.get<bool>("DoNotReco",false);
+    _do_not_reco       = cfg.get<bool>("DoNotReco");
 
-    _select_signal = cfg.get<bool>("SelectSignal",true);
-    _select_background = cfg.get<bool>("SelectBackground",true);
+    _select_signal     = cfg.get<bool>("SelectSignal");
+    _select_background = cfg.get<bool>("SelectBackground");
     
     eee=-1;
   }
@@ -398,8 +398,6 @@ namespace larcv {
     eee+=1;
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
-
-    //if (!MCSelect(ev_roi)) return true;
 
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
@@ -701,15 +699,14 @@ namespace larcv {
 
     //Look @ this event or not?
     bool signal_selected = MCSelect(ev_roi);
-    
+    //std::cout  << "_select_signal " << _select_signal << "... _select_background " << _select_background << "... signal_selected " << signal_selected << std::endl;
     if ( _select_signal     and !signal_selected ) return false;
     if ( _select_background and  signal_selected ) return false;
-
-    if (_do_not_reco) {
-      _mc_tree->Fill();
-      return false;
-    }
-      
+    
+    _mc_tree->Fill();
+    
+    if (_do_not_reco) return false;
+    //std::cout << "Passed" << std::endl;
     return true;
   }
   
