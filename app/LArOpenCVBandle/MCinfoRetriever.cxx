@@ -393,7 +393,7 @@ namespace larcv {
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
 
-    if (!MCSelect(ev_roi)) return false;
+    //if (!MCSelect(ev_roi)) return true;
 
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
@@ -709,11 +709,11 @@ namespace larcv {
     if ( !visibility and _check_vis) return false;
     ***/
     //Fill tree
-    _mc_tree->Fill();
-
-    if (_do_not_reco) return false;
+    if ( MCSelect(ev_roi) ) _mc_tree->Fill();
     
-    return true;
+    if (_do_not_reco) return false;
+    else return MCSelect(ev_roi);
+
   }
   
 
