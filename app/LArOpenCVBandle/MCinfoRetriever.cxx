@@ -151,10 +151,10 @@ namespace larcv {
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
 
-    _min_nu_dep_e  = cfg.get<float>("MinNuDepE");
-    _max_nu_dep_e  = cfg.get<float>("MaxNuDepE");
-    _min_nu_init_e = cfg.get<float>("MinNuInitE");
-    _max_nu_init_e = cfg.get<float>("MaxNuInitE");
+    _min_nu_dep_e  = cfg.get<float>("MinNuDepE",0);
+    _max_nu_dep_e  = cfg.get<float>("MaxNuDepE",0);
+    _min_nu_init_e = cfg.get<float>("MinNuInitE",0);
+    _max_nu_init_e = cfg.get<float>("MaxNuInitE",0);
 
     _min_n_proton = cfg.get<int>("MinNProton",0);
     _min_n_lepton = cfg.get<int>("MinNLepton",0);
@@ -162,13 +162,16 @@ namespace larcv {
     _min_n_shower = cfg.get<int>("MinNShower",0);
     _min_n_neutron = cfg.get<int>("MinNNeutron",0);
 
-    _check_vis         = cfg.get<bool>("CheckVisibility");
+    _check_vis         = cfg.get<bool>("CheckVisibility",false);
 
-    _min_proton_dep = cfg.get<float>("ProtonMinDepE");
-    _max_proton_dep = cfg.get<float>("ProtonMaxDepE");
+    _min_proton_dep = cfg.get<float>("ProtonMinDepE",0);
+    _max_proton_dep = cfg.get<float>("ProtonMaxDepE",0);
     
-    _min_lepton_init_e = cfg.get<float>("LeptonMinInitE");
-    _do_not_reco       = cfg.get<bool>("DoNotReco");
+    _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",0);
+    _do_not_reco       = cfg.get<bool>("DoNotReco",false);
+
+    _select_signal = cfg.get<bool>("SelectSignal",true);
+    _select_background = cfg.get<bool>("SelectBackground",true);
     
     eee=-1;
   }
@@ -558,7 +561,6 @@ namespace larcv {
 
 	auto pt_edge = Intersection(hline,roi_on_plane);
 
-	// std::cout << "ax.plot(" << pt_edge.y << "," << pt_edge.x << ",'o',markersize=15)"  << std::endl;
 	
 	daughter_length_v.push_back(geo2d::length(pt_edge - start));
 
@@ -622,8 +624,6 @@ namespace larcv {
       //it is
       _nprimary+=1;
       
-      //if (roi.EnergyInit() - 938.0 > _min_proton_init_e) hadron_vis = true;
-
       
       //this is neutron
       if (pdgcode==2112 or pdgcode==-2112) {
@@ -690,30 +690,20 @@ namespace larcv {
       }
       _dep_sum_proton = highest_primary_proton_eng;
     }
-    /***
-    //the analysis filter
-    if ( _energy_deposit < _min_nu_dep_e  or _energy_deposit > _max_nu_dep_e)  return false;
-    if ( _energy_init    < _min_nu_init_e or _energy_init    > _max_nu_init_e) return false;
-    
-    if ( _nproton  < _min_n_proton  ) return false;
-    if ( _nneutron < _min_n_neutron ) return false;
-    if ( _nlepton  < _min_n_lepton  ) return false;
-    if ( _nmeson   < _min_n_meson   ) return false;
-    if ( _nshower  < _min_n_shower  ) return false;
-    
-    if (highest_primary_proton_eng >= _min_proton_dep &&
-	highest_primary_proton_eng <= _max_proton_dep) hadron_vis = true;
-    
-    visibility = hadron_vis && lepton_vis;
-    
-    if ( !visibility and _check_vis) return false;
-    ***/
-    //Fill tree
-    if ( MCSelect(ev_roi) ) _mc_tree->Fill();
-    
-    if (_do_not_reco) return false;
-    else return MCSelect(ev_roi);
 
+
+    //Look @ this event or not?
+    bool signal_selected = MCSelect(ev_roi);
+    
+    if ( _select_signal     and !signal_selected ) return false;
+    if ( _select_background and  signal_selected ) return false;
+
+    if (_do_not_reco) {
+      _mc_tree->Fill();
+      return false;
+    }
+      
+    return true;
   }
   
 

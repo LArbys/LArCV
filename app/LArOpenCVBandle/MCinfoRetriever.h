@@ -171,6 +171,9 @@ namespace larcv {
       float depeng;
     };
 
+    bool _select_signal;
+    bool _select_background;
+    
     
   private:
     ///Project 3D track into 2D Image(per plane) 
@@ -188,6 +191,7 @@ namespace larcv {
     //bool MCSelect (const larcv::EventROI roi);
     bool MCSelect (const EventROI* ev_roi);
     
+
     
   };
 
