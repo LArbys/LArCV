@@ -8,14 +8,16 @@ namespace larcv {
   DatumFillerBase::DatumFillerBase(const std::string name)
     : ProcessBase(name)
     , _nentries(kINVALID_SIZE)
-    , _image_producer_id(kINVALID_PRODUCER)
-    , _label_producer_id(kINVALID_PRODUCER)
+    , _image_producer_id  (kINVALID_PRODUCER)
+    , _label_producer_id  (kINVALID_PRODUCER)
+    , _weight_producer_id (kINVALID_PRODUCER)
   {}
 
   void DatumFillerBase::configure(const PSet& cfg)
   {
-    _image_producer = cfg.get<std::string>("ImageProducer");
-    _label_producer = cfg.get<std::string>("LabelProducer");
+    _image_producer  = cfg.get<std::string>("ImageProducer");
+    _label_producer  = cfg.get<std::string>("LabelProducer");
+    _weight_producer = cfg.get<std::string>("WeightProducer","");
     this->child_configure(cfg);
   }
 
@@ -26,9 +28,10 @@ namespace larcv {
       throw larbys();
     }
     _current_entry = kINVALID_SIZE;
-    _entry_image_size = _entry_label_size = kINVALID_SIZE;
-    _image_producer_id = kINVALID_PRODUCER;
-    _label_producer_id   = kINVALID_PRODUCER;
+    _entry_image_size   = _entry_label_size = _entry_weight_size = kINVALID_SIZE;
+    _image_producer_id  = kINVALID_PRODUCER;
+    _label_producer_id  = kINVALID_PRODUCER;
+    _weight_producer_id = kINVALID_PRODUCER;
     this->child_initialize();
   }
 
@@ -36,9 +39,12 @@ namespace larcv {
     if(_entry_image_size != kINVALID_SIZE) {
       _image_data.resize(_nentries * _entry_image_size);
       _label_data.resize(_nentries * _entry_label_size);
+      if(!_weight_producer.empty()) 
+	_weight_data.resize(_nentries * _entry_weight_size);
     }
-    for(auto& v : _image_data) v=0.;
-    for(auto& v : _label_data) v=0.;
+    for( auto& v : _image_data  ) v=0.;
+    for( auto& v : _label_data  ) v=0.;
+    for( auto& v : _weight_data ) v=0.;
     _current_entry = 0;
     this->child_batch_begin();
   }
@@ -63,11 +69,14 @@ namespace larcv {
         LARCV_CRITICAL() << "Label producer " << _label_producer << " not valid!" << std::endl;
         throw larbys();
       }
+
+      if(!_weight_producer.empty())
+	_weight_producer_id = mgr.producer_id(_weight_product_type,_weight_producer);
     }
 
     auto const image_data = mgr.get_data(_image_producer_id);
     auto const label_data = mgr.get_data(_label_producer_id);
-
+      
     if(_entry_image_size==kINVALID_SIZE) {
       _entry_image_size = compute_image_size(image_data);
       _entry_label_size = compute_label_size(label_data);
@@ -75,14 +84,23 @@ namespace larcv {
         LARCV_CRITICAL() << "Rows/Cols/NumChannels not set!" << std::endl;
         throw larbys();
       }
-      _image_data.resize(_entry_image_size * _nentries, 0.);
-      _label_data.resize(_entry_label_size * _nentries, 0.);
+      if(_weight_producer_id != kINVALID_ID)
+	_entry_weight_size = _entry_image_size;
+
+      _image_data.resize  (_entry_image_size  * _nentries, 0.);
+      _label_data.resize  (_entry_label_size  * _nentries, 0.);
+      _weight_data.resize (_entry_weight_size * _nentries, 0.);
     }
 
-    this->fill_entry_data(image_data,label_data);
+    EventBase* weight_ptr=nullptr;
+    if(_weight_producer_id != kINVALID_ID)
+      weight_data = mgr.get_data(_weight_producer_id);
 
-    auto const& entry_image_data = entry_data(true);
-    auto const& entry_label_data = entry_data(false);
+    this->fill_entry_data(image_data,label_data,weight_data);
+      
+    auto const& entry_image_data  = entry_data(kFillerDataImage);
+    auto const& entry_label_data  = entry_data(kFillerDataLabel);
+    auto const& entry_weight_data = entry_data(kFillerDataWeight);
 
     if(entry_image_data.size() != _entry_image_size) {
       LARCV_CRITICAL() << "(run,subrun,event) = ("
@@ -98,6 +116,13 @@ namespace larcv {
       throw larbys();
     }
 
+    if(entry_weight_data.size() != _entry_weight_size) {
+      LARCV_CRITICAL() << "(run,subrun,event) = ("
+      << weight_data->run() << "," << weight_data->subrun() << "," << weight_data->event() << ")"
+      << "Entry weight size should be " << _entry_weight_size << " but found " << entry_weight_data.size() << std::endl;
+      throw larbys();
+    }
+
     const size_t current_image_index_start = _current_entry * _entry_image_size;
     for(size_t i = 0; i<_entry_image_size; ++i)
       _image_data[current_image_index_start + i] = entry_image_data[i];
@@ -105,6 +130,10 @@ namespace larcv {
     const size_t current_label_index_start = _current_entry * _entry_label_size;
     for(size_t i = 0; i<_entry_label_size; ++i)
       _label_data[current_label_index_start + i] = entry_label_data[i];
+
+    const size_t current_weight_index_start = _current_entry * _entry_weight_size;
+    for(size_t i = 0; i<_entry_weight_size; ++i)
+      _weight_data[current_weight_index_start + i] = entry_weight_data[i];
 
     ++_current_entry;
     return true;

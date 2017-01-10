@@ -102,7 +102,7 @@ namespace larcv {
     PSet cfg(_driver.name());
     for (auto const& value_key : orig_cfg.value_keys())
       cfg.add_value(value_key, orig_cfg.get<std::string>(value_key));
-
+    std::cout<<"\033[93m setting verbosity \033[00m" << cfg.get<unsigned short>("Verbosity", 2) << std::endl;
     set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity", 2)) );
     _enable_filter = cfg.get<bool>("EnableFilter");
     _random_access = cfg.get<bool>("RandomAccess");
@@ -282,7 +282,8 @@ namespace larcv {
     // counter for _optional_next_index_v
     size_t next_batch_ctr = 0;
     
-    LARCV_INFO() << "Entering process loop" << std::endl;
+    //LARCV_INFO() << "Entering process loop" << std::endl;
+    std::cout << "Entering process loop" << std::endl;
     while (valid_ctr < nentries) {
       size_t entry = last_entry + 1;
       if(_optional_next_index_v.size()) {
@@ -305,7 +306,8 @@ namespace larcv {
 
       }
 
-      LARCV_INFO() << "Processing entry: " << entry
+      //LARCV_INFO() << "Processing entry: " << entry
+      std::cout << "Processing entry: " << entry
                    << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
 
       last_entry = entry;

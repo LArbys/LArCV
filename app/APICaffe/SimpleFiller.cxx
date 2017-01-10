@@ -180,8 +180,15 @@ namespace larcv {
     }
   }
 
-  void SimpleFiller::fill_entry_data( const EventBase* image_data, const EventBase* label_data)
+  void SimpleFiller::fill_entry_data( const EventBase* image_data, 
+				      const EventBase* label_data,
+				      const EventBase* weight_data)
   {
+    if(weight_data) {
+      LARCV_CRITICAL() << "SimpleFiller cannot use weight data!" << std::endl;
+      throw larbys();
+    }
+
     auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
     this->assert_dimension(image_v);
 
