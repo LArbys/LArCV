@@ -7,7 +7,7 @@
 #include "AlgoData/VertexClusterData.h"
 #include "AlgoData/LinearVtxFilterData.h"
 #include "AlgoData/dQdXProfilerData.h"
-
+#include "AlgoData/DefectClusterData.h"
 #include "AlgoData/LinearTrackClusterData.h"
 #include "AlgoData/SingleShowerData.h"
 
@@ -43,7 +43,12 @@ namespace larcv {
 
   void LArbysImageAna::ClearDefect() {
     
-    }
+    _defect_atomic_len_v.clear(); 
+    _defect_atomic_qsum_v.clear(); 
+    _defect_atomic_npts_v.clear();    
+    _defect_atomic_qavg_v.clear(); 
+
+  }
   
   void LArbysImageAna::ClearParticle() {
 
@@ -239,6 +244,24 @@ namespace larcv {
     _shower_tree->Branch("dir2D_x_v", &_dir2D_x_v);
     _shower_tree->Branch("dir2D_y_v", &_dir2D_y_v);
     
+    /// Defect->Atomic Info
+    
+    _defect_tree = new TTree("DefectInfo", "");
+    
+    //_event_tree
+
+    _defect_tree->Branch("defect_plane_id",&_defect_plane_id, "_defect_plane_id/i");   
+    _defect_tree->Branch("id"             ,&_defect_id, "_defect_id/i");
+
+    _defect_tree->Branch("defect_dist_start_end",&_defect_dist_start_end, "_defect_dist_start_end/d");
+    _defect_tree->Branch("defect_dist"          ,&_defect_dist, "_defect_dist/d");
+    _defect_tree->Branch("defect_n_atomics"     ,&_defect_n_atomics, "_defect_n_atomics/i");
+
+    _defect_tree->Branch("defect_atomic_len_v" ,&_defect_atomic_len_v);
+    _defect_tree->Branch("defect_atomic_qsum_v",&_defect_atomic_qsum_v);
+    _defect_tree->Branch("defect_atomic_ntps_v",&_defect_atomic_npts_v);
+    _defect_tree->Branch("defect_atomic_qavg_v",&_defect_atomic_qavg_v);
+
   }
   
   bool LArbysImageAna::process(IOManager& mgr)
@@ -273,8 +296,39 @@ namespace larcv {
     if ( !_defectcluster_name.empty() ) {
 
       //do this
+      const auto defectcluster_data = (larocv::data::DefectClusterData*)dm.Data( dm.ID(_defectcluster_name) );
+      
+      for(uint plane_id=0; plane_id<3;  ++plane_id) {
+	_defect_plane_id  = plane_id;
+	auto& cluster_data = defectcluster_data->_raw_cluster_vv[plane_id];
+	int num_cluster   = cluster_data.num_clusters();
 
-      _defect_tree->Write();
+	int defect_id     = 0 ; 
+	for (uint cluster_id = 0; cluster_id < num_cluster; cluster_id++){
+
+	  auto& defect_data = cluster_data.get_cluster()[cluster_id].get_defects();
+	  
+	  geo2d::Vector<float> start; 
+	  geo2d::Vector<float> end;
+
+	  int num_defects   = cluster_data.get_cluster()[cluster_id].get_defects().size();
+	  for (uint cluster_defect_id = 0; cluster_defect_id < num_defects; cluster_defect_id++){
+	    
+	    start = defect_data[cluster_defect_id]._pt_start;
+	    end = defect_data[cluster_defect_id]._pt_end;
+	    
+	    _defect_n_atomics      = defect_data[cluster_defect_id].associated_atoms().size();
+	    _defect_dist           = defect_data[cluster_defect_id]._dist;
+	    _defect_dist_start_end = pow(pow(start.x-end.x,2)+pow(start.y-end.y,2),0.5);
+	    _defect_id             = defect_id;
+	    
+	    defect_id++;
+	  
+	  }
+	}
+      }
+
+      _defect_tree->Fill();
     }
     
     //
