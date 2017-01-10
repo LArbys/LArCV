@@ -3,6 +3,8 @@
 
 #include "LArbysImageAna.h"
 #include "AlgoData/HIPClusterData.h"
+#include "AlgoData/DefectClusterData.h"
+
 #include "AlgoData/Refine2DVertexData.h"
 #include "AlgoData/VertexClusterData.h"
 #include "AlgoData/LinearVtxFilterData.h"
@@ -256,33 +258,66 @@ namespace larcv {
     const auto& dm  = _mgr_ptr->DataManager();    
     
     /// HIP cluster data
-    const auto hipctor_data = (larocv::data::HIPClusterData*)dm.Data( dm.ID(_hipcluster_name) );
-    
-    for(uint plane_id=0;plane_id<3;++plane_id) {
-      const auto& hipctor_plane_data = hipctor_data->_plane_data_v[plane_id];
-      _n_mip_ctors_v[plane_id] = hipctor_plane_data.num_mip();
-      _n_hip_ctors_v[plane_id] = hipctor_plane_data.num_hip();
+    auto hipcluster_id = dm.ID(_hipcluster_name);
+    if (hipcluster_id != larocv::kINVALID_ALGO_ID ) {
+      const auto hipctor_data = (larocv::data::HIPClusterData*)dm.Data( dm.ID(_hipcluster_name) );
+      
+      for(uint plane_id=0;plane_id<3;++plane_id) {
+	const auto& hipctor_plane_data = hipctor_data->_plane_data_v[plane_id];
+	_n_mip_ctors_v[plane_id] = hipctor_plane_data.num_mip();
+	_n_hip_ctors_v[plane_id] = hipctor_plane_data.num_hip();
+      }
     }
-
     
     //
     //
     //
     //DefectClusterAlgoStuff
-
-    if ( !_defectcluster_name.empty() ) {
-
+    auto defectcluster_id = dm.ID(_defectcluster_name);
+    if (defectcluster_id != larocv::kINVALID_ALGO_ID ) {
+    
       //do this
 
-      _defect_tree->Write();
+      //_defect_tree->Write();
+      
+      
+      const auto& img_v = _mgr_ptr->InputImages();
+
+      for(const auto& img : img_v)
+	LARCV_DEBUG() << "Image ptr @ " << &img << " of shape rows " << img.rows << "... cols " << img.cols << std::endl;
+      const auto defect_data = (larocv::data::DefectClusterData*) dm.Data( defectcluster_id);
+
+      //get the first plane  //get the first cluster
+      larocv::data::ClusterCompound this_compound = defect_data->_raw_cluster_vv.at(0).get_cluster().front();
+      const auto& this_atom = this_compound.get_atoms().front();
+      std::cout << "Got an atom @ address " << &this_atom << std::endl;
+      const auto& ctor = this_atom._ctor;
+      
+      //threshold the image
+      cv::Mat thresh_img = img_v[0].clone();
+      cv::threshold(thresh_img, thresh_img, 10,255, CV_THRESH_BINARY);
+      //cv::imwrite("thresh_img.png",thresh_img);
+
+      std::vector<cv::Point_<int> >  points;
+      cv::findNonZero(thresh_img, points);
+
+      uint npts = 0;
+      uint qsum = 0;
+      
+      for(const auto& pt : points) { 
+	if( cv::pointPolygonTest(ctor,pt,false) >= 0 ) {
+	  npts+=1;
+	  qsum += (uchar) img_v[0].at<uchar>(pt.y,pt.x);
+	}
+      }
+      
+      std::cout << "npts : " << npts << std::endl;
+      std::cout << "qsum : " << qsum << std::endl;
+      
     }
-    
     //
     //
     //
-    
-    
-    
     
     if ( !_refine2dvertex_name.empty() &&
 	 !_vertexcluster_name.empty() &&
