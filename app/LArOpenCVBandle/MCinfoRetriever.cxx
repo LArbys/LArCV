@@ -17,144 +17,9 @@ namespace larcv {
     : ProcessBase(name), _mc_tree(nullptr)
   {}
     
-  bool MCinfoRetriever::MCSelect (const EventROI* ev_roi) {
-    
-    //bool engdep         = false;
-    bool pdg            = false;
-    bool engini         = false;
-    bool nlepton        = false;
-    bool dep_sum_lepton = false;
-    bool nproton        = false;
-    bool dep_sum_proton = false;
-    bool nprimary       = false;
-    bool vis_one_proton = false;
-    
-    _nlepton            = 0;
-    _dep_sum_lepton     = 0;
-    _nproton            = 0;
-    _dep_sum_proton     = 0;
-    _nprimary           = 0;
-    
-    _run    = (uint) ev_roi->run();
-    _subrun = (uint) ev_roi->subrun();
-    _event  = (uint) ev_roi->event();
-
-    auto roi = ev_roi->at(0);
-
-    int pdgcode = roi.PdgCode();
-    
-    _energy_deposit = roi.EnergyDeposit();
-
-    _energy_init    = roi.EnergyInit();
-
-    std::vector<this_proton> protons;
-    protons.clear();
-
-    uint ic = 0 ; 
-    
-    for(const auto& roi : ev_roi->ROIArray()) {
-
-      if (ic==0)
-	{ ic+=1; continue; }      
-      
-      int pdgcode = roi.PdgCode();
-      
-      if (pdgcode==2212) {
-
-	//primary protons
-	if (roi.TrackID() == roi.ParentTrackID()) {
-	  _nproton++;
-	  //_dep_sum_proton += roi.EnergyDeposit();
-	  _ke_sum_proton  += roi.EnergyInit() - 938.0;
-	}
-	
-	//all protons go into vector
-	
-	this_proton thispro;
-	
-	thispro.trackid       = roi.TrackID();
-	thispro.parenttrackid = roi.ParentTrackID();
-	thispro.depeng        = roi.EnergyDeposit();
-	
-	protons.push_back(thispro);
-      }
-
-      if (roi.TrackID() != roi.ParentTrackID()) continue;
-
-      _nprimary+=1;
-      
-      if (pdgcode==11 or pdgcode==-11 or
-	  pdgcode==13 or pdgcode==-13) {
-	
-	_nlepton++;
-	_dep_sum_lepton += roi.EnergyDeposit();
-
-      }
-      
-    }
-
-    float highest_primary_proton_eng = 0;
-    std::vector<float> proton_engs;
-    proton_engs.clear();
-
-    int proton_engs_ctr = 0 ;
-    if (protons.size() > 0){
-      int trackid ;
-      int ptrackid ;
-      for (int x=0;x < protons.size() ; x++ ){
-        highest_primary_proton_eng = 0;
-        trackid = protons.at(x).trackid;
-        ptrackid = protons.at(x).parenttrackid;
-	highest_primary_proton_eng += protons.at(x).depeng;
-	if (highest_primary_proton_eng>60 && trackid == ptrackid) proton_engs_ctr ++;
-	for (int y=0;y < protons.size() ; y++ ){
-          if (x==y) continue;
-          if (protons.at(y).parenttrackid == trackid) {
-	    highest_primary_proton_eng+=protons.at(y).depeng;
-          }
-        }
-	proton_engs.push_back(highest_primary_proton_eng);
-      }
-      highest_primary_proton_eng = 0;
-      for (auto const each : proton_engs) {
-        if (each > highest_primary_proton_eng) highest_primary_proton_eng = each;
-      }
-      _dep_sum_proton = highest_primary_proton_eng;
-    }
-
-    //if (_energy_deposit >= _min_nu_dep_e  && _energy_deposit < _max_nu_dep_e)  engdep = true;
-    if ( pdgcode==14) pdg = true;
-    _min_nu_init_e = 200;
-    _max_nu_init_e = 600;
-    if (_energy_init >= _min_nu_init_e && _energy_init <= _max_nu_init_e) engini = true;
-    if (_nlepton >0)         nlepton         = true; // Interactions could have more than one lepton.
-    if (_dep_sum_lepton>35)  dep_sum_lepton  = true; // 
-    if (_nproton >= 1)       nproton         = true; // Interactions could have more than one proton(only one visible).
-    if (_dep_sum_proton>=60) dep_sum_proton  = true; 
-    if (proton_engs_ctr <=1) vis_one_proton  = true; // Note that cases where no vis proton is included. This should be thought as intrinsic error
-    
-    if (_nprimary ==2)        nprimary        = true;
-
-    bool selected = pdg && engini && nlepton && dep_sum_lepton && nproton && dep_sum_proton && vis_one_proton;// * nprimary;
-    
-    //if(_selected && nlepton == 0 ) std::cout<<"run is "<< _run <<" ,subrun is "<<_subrun<<" ,event is"<<_event <<std::endl;
-    
-    // std::cout<<"<<<<<<<<<<<<<<<<<<<<<<<<<"
-    // 	     <<"selected is     " <<selected<<"\n"
-    // 	     <<"pdgcode is      "<< pdgcode<< "\t~~~pdg " << pdg << "\n"
-    // 	     <<"_nlepton is     "<< _nlepton<< "\t~~~nlepton is "<< nlepton <<'\n'
-    // 	     <<"_dep lepton is  "<<_dep_sum_lepton <<"\t~~~deplepton is " <<dep_sum_lepton<<'\n'
-    // 	     <<"_nproton is     "<< _nproton<< "\t~~~nproton is "<< nproton <<'\n'
-    // 	     <<"_dep proton is  "<<_dep_sum_proton <<"\t~~~deppro    is " <<dep_sum_proton<<'\n'
-    // 	     <<"proton_engs_ctr "<<vis_one_proton  <<"\t~~~vis_one_proton "<<vis_one_proton<< "\n"
-    // 	     <<"n primary is    "<<_nprimary<<"\t~~~nprimary     is " <<nprimary<<'\n';
-    
-    return selected;
-  } 
-  
-  
   void MCinfoRetriever::configure(const PSet& cfg)
   {
+    _enum=0;
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
 
@@ -177,8 +42,8 @@ namespace larcv {
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",0);
     _do_not_reco       = cfg.get<bool>("DoNotReco");
 
-    _select_signal     = cfg.get<bool>("SelectSignal");
-    _select_background = cfg.get<bool>("SelectBackground");
+    // _select_signal     = cfg.get<bool>("SelectSignal");
+    // _select_background = cfg.get<bool>("SelectBackground");
     
     eee=-1;
   }
@@ -701,22 +566,16 @@ namespace larcv {
     }
 
 
-    //Look @ this event or not?
-    bool signal_selected = MCSelect(ev_roi);
-    // std::cout  << "_select_signal " << _select_signal << "... _select_background " << _select_background << "... signal_selected " << signal_selected << std::endl;
-
-    if ( !_select_signal or !_select_background) {
-      if ( _select_signal     and !signal_selected ) return false;
-      if ( _select_background and  signal_selected ) return false;
-    }
-    
-    _is_signal = signal_selected;
+    //_is_signal = signal_selected;
 
     _mc_tree->Fill();
+
+    _enum+=1;
+    
+    std::cout << "Next: " << _enum << std::endl;
     
     if (_do_not_reco) return false;
-
-    // std::cout << "Passed" << std::endl;
+    
     return true;
   }
   

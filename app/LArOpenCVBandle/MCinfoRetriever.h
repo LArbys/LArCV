@@ -54,7 +54,7 @@ namespace larcv {
     void Clear();
     
   protected:
-
+    uint _enum;
     std::string _producer_roi;
     std::string _producer_image2d;
     
@@ -195,10 +195,6 @@ namespace larcv {
     
     cv::Rect Get2DRoi(const ImageMeta& meta,
 		      const ImageMeta& roi_meta);
-
-    //bool MCSelect (const larcv::EventROI roi);
-    bool MCSelect (const EventROI* ev_roi);
-    
 
     
   };
