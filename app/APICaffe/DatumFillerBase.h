@@ -97,6 +97,19 @@ namespace larcv {
     const std::vector<float>& entry_data(bool image=true) const 
     { return (image ? _entry_image_data : _entry_label_data); }
 
+    const std::vector<float>& data(FillerDataType_t dtype = kFillerImageData) const
+    { 
+      switch(dtype) {
+      case kFillerImageData:
+        return _entry_image_data;
+      case kFillerLabelData:
+        return _entry_label_data;
+      case kFillerWeightData:
+        return _entry_weight_data;
+      }
+      return _entry_weight_data;
+    }
+
     std::vector<float> _entry_image_data;
     std::vector<float> _entry_label_data;
     std::vector<float> _entry_weight_data;
