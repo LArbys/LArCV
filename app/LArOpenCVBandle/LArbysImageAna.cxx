@@ -153,6 +153,15 @@ namespace larcv {
     _hip_event_tree->Branch("avg_long_hip_length",&_avg_long_hip_length,"avg_long_hip_length/F");
     _hip_event_tree->Branch("avg_long_mip_length",&_avg_long_mip_length,"avg_long_mip_length/F");
     
+    _hip_event_tree->Branch("avg_long_mip_width",&_avg_long_mip_width,"avg_long_mip_width/F");
+    _hip_event_tree->Branch("avg_long_hip_width",&_avg_long_hip_width,"avg_long_hip_width/F");
+    _hip_event_tree->Branch("avg_long_mip_qsum",&_avg_long_mip_qsum ,"avg_long_mip_qsum/F");
+    _hip_event_tree->Branch("avg_long_hip_qsum",&_avg_long_hip_qsum ,"avg_long_hip_qsum/F");
+    _hip_event_tree->Branch("avg_long_mip_qavg",&_avg_long_mip_qavg ,"avg_long_mip_qavg/F");
+    _hip_event_tree->Branch("avg_long_hip_qavg",&_avg_long_hip_qavg ,"avg_long_hip_qavg/F");
+    _hip_event_tree->Branch("avg_long_mip_npx",&_avg_long_mip_npx  ,"avg_long_mip_npx/F");
+    _hip_event_tree->Branch("avg_long_hip_npx",&_avg_long_hip_npx  ,"avg_long_hip_npx/F");
+
     /// HIP per plane cluster data
     _hip_plane_tree = new TTree("ClusterPlaneTree","");
     _hip_plane_tree->Branch("run"    ,&_run    , "run/i");
@@ -170,6 +179,15 @@ namespace larcv {
     _hip_plane_tree->Branch("pixel_v",&_pixel_v);
     _hip_plane_tree->Branch("mip_pixel_v",&_mip_pixel_v);
     _hip_plane_tree->Branch("hip_pixel_v",&_hip_pixel_v);
+    
+    _hip_plane_tree->Branch("long_mip_width",&_long_mip_width,"long_mip_width/F");
+    _hip_plane_tree->Branch("long_hip_width",&_long_hip_width,"long_hip_width/F");
+    _hip_plane_tree->Branch("long_mip_qsum",&_long_mip_qsum,"long_mip_qsum/F");
+    _hip_plane_tree->Branch("long_hip_qsum",&_long_hip_qsum,"long_hip_qsum/F");
+    _hip_plane_tree->Branch("long_mip_qavg",&_long_mip_qavg,"long_mip_qavg/F");
+    _hip_plane_tree->Branch("long_hip_qavg",&_long_hip_qavg,"long_hip_qavg/F");
+    _hip_plane_tree->Branch("long_mip_npx",&_long_mip_npx,"long_mip_npx/F");
+    _hip_plane_tree->Branch("long_hip_npx",&_long_hip_npx,"long_hip_npx/F");
     
     /// Defect Event Tree
     _defect_event_tree = new TTree("DefectEventTree", "");
@@ -324,9 +342,35 @@ namespace larcv {
       
       float was_hip=0;
       float was_mip=0;
+
+
+      _avg_long_hip_width = 0;
+      _avg_long_mip_width = 0;
+      _avg_long_hip_qsum = 0;
+      _avg_long_mip_qsum = 0;
+      _avg_long_hip_qavg = 0;
+      _avg_long_mip_qavg = 0;
+      _avg_long_hip_npx = 0;
+      _avg_long_mip_npx = 0;
+      _avg_long_hip_length = 0;
+      _avg_long_mip_length = 0;
+	
       
       for(uint plane_id=0;plane_id<3;++plane_id) {
 	auto& hipctor_plane_data = hipctor_data->_plane_data_v[plane_id];
+
+
+	_long_hip_width = 0;
+	_long_mip_width = 0;
+	_long_hip_qsum = 0;
+	_long_mip_qsum = 0;
+	_long_hip_qavg = 0;
+	_long_mip_qavg = 0;
+	_long_hip_npx = 0;
+	_long_mip_npx = 0;
+	_long_hip_length = 0;
+	_long_mip_length = 0;
+	
 	
 	uint num_hips=0;
 	uint num_mips=0;
@@ -336,8 +380,8 @@ namespace larcv {
 	_long_hip_length=0;
 	_long_mip_length=0;
 	
-	larocv::data::Cluster* long_mip_cluster;
-	larocv::data::Cluster* long_hip_cluster;
+	larocv::data::Cluster* long_mip_cluster = nullptr;
+	larocv::data::Cluster* long_hip_cluster = nullptr;
 	float mip_dist = 0;
 	float hip_dist = 0;
 	
@@ -361,11 +405,10 @@ namespace larcv {
 	  _q_sum_v.push_back(cluster.qsum());
 	  _q_avg_v.push_back(cluster.qavg());
 	  _is_hip_v.push_back((uint)cluster.iship());
-
-	  _pixel_v.push_back((std::vector<float>)cluster.pixel_v());
-	  _mip_pixel_v.push_back((std::vector<float>)cluster.mip_pixel_v());
-	  _hip_pixel_v.push_back((std::vector<float>)cluster.hip_pixel_v());
-		  
+	  
+	  _pixel_v.push_back((std::vector<float>) cluster.pixel_v());
+	  _mip_pixel_v.push_back( (std::vector<float>) cluster.mip_pixel_v() );
+	  _hip_pixel_v.push_back( (std::vector<float>) cluster.hip_pixel_v() );
 	}
 
 	_long_hip_length = hip_dist;
@@ -379,7 +422,31 @@ namespace larcv {
 
 	_num_hip_plane+=num_hips;
 	_num_mip_plane+=num_mips;
+
+	if (long_mip_cluster) {
+	  _long_mip_width = long_mip_cluster->width();
+	  _avg_long_mip_width += _long_mip_width;
+	  _long_mip_qsum = long_mip_cluster->qsum();
+	  _avg_long_mip_qsum += _long_mip_qsum;
+	  _long_mip_qavg = long_mip_cluster->qavg();
+	  _avg_long_mip_qavg += _long_mip_qavg;
+	  _long_mip_npx = long_mip_cluster->npx();
+	  _avg_long_mip_npx += _long_mip_npx;
+	}
 	
+	if (long_hip_cluster) {
+	  _long_hip_width = long_hip_cluster->width();
+	  _avg_long_hip_width += _long_hip_width;
+	  _long_hip_qsum = long_hip_cluster->qsum();
+	  _avg_long_hip_qsum += _long_hip_qsum;
+	  _long_hip_qavg = long_hip_cluster->qavg();
+	  _avg_long_hip_qavg += _long_hip_qavg;
+	  _long_hip_npx = long_hip_cluster->npx();
+	  _avg_long_hip_npx += _long_hip_npx;
+	}
+	
+
+
 	if (num_hips > 0) {
 	  _hip_per_plane = 1;
 	  was_hip+=1;
@@ -391,7 +458,19 @@ namespace larcv {
 	_hip_plane_tree->Fill();
 	ClearHIPCluster();
       } // end plane wise hipcluster
-
+      
+      _avg_long_mip_width /= was_mip;
+      _avg_long_hip_width /= was_hip;
+      
+      _avg_long_mip_qsum /= was_mip;
+      _avg_long_hip_qsum /= was_hip;
+      
+      _avg_long_mip_qavg /= was_mip;
+      _avg_long_hip_qavg /= was_hip;
+      
+      _avg_long_mip_npx /= was_mip;
+      _avg_long_hip_npx /= was_hip;
+      
       _avg_long_hip_length /= was_hip;
       _avg_long_mip_length /= was_mip;
       
