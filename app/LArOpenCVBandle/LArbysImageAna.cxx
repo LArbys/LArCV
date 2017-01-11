@@ -4,7 +4,6 @@
 #include "LArbysImageAna.h"
 #include "AlgoData/HIPClusterData.h"
 #include "AlgoData/DefectClusterData.h"
-
 #include "AlgoData/Refine2DVertexData.h"
 #include "AlgoData/VertexClusterData.h"
 #include "AlgoData/LinearVtxFilterData.h"
@@ -23,6 +22,7 @@ namespace larcv {
   LArbysImageAna::LArbysImageAna(const std::string name)
     : ProcessBase(name),
       _event_tree(nullptr),
+      _hip_tree(nullptr),
       _defect_tree(nullptr),
       _vtx3d_tree(nullptr),
       _particle_tree(nullptr),
@@ -43,13 +43,21 @@ namespace larcv {
     _vertexsingleshower_name = cfg.get<std::string>("VertexSingleShowerAlgoName");
   }
 
+  void LArbysImageAna::ClearHIPCluster() {
+    _npx_v.clear();
+    _q_sum_v.clear();
+    _q_avg_v.clear();
+    _is_hip_v.clear(); 
+  }
+
+  
   void LArbysImageAna::ClearDefect() {
-    
+
     _defect_atomic_len_v.clear(); 
     _defect_atomic_qsum_v.clear(); 
     _defect_atomic_npts_v.clear();    
-    _defect_atomic_qavg_v.clear(); 
-
+    _defect_atomic_qavg_v.clear();
+    
   }
   
   void LArbysImageAna::ClearParticle() {
@@ -71,15 +79,9 @@ namespace larcv {
   
   void LArbysImageAna::ClearEvent() {
 
-    _n_mip_ctors_v.clear();
-    _n_hip_ctors_v.clear();
-    _n_mip_ctors_v.resize(3);
-    _n_hip_ctors_v.resize(3);
-    
   }
   
   void LArbysImageAna::ClearVertex() {
-
     _vtx2d_x_v.clear();
     _vtx2d_y_v.clear();
     _circle_x_v.clear();
@@ -101,7 +103,6 @@ namespace larcv {
     _num_pixel_frac_v.resize(3);
     _circle_vtx_r_v.resize(3);
     _circle_vtx_angle_v.resize(3);
-    
   }
 
   void LArbysImageAna::ClearTracks() {
@@ -142,10 +143,33 @@ namespace larcv {
     _event_tree->Branch("event"  ,&_event  , "event/i");
 
     /// HIP cluster data
-    _event_tree->Branch("n_mip_ctors_v", &_n_mip_ctors_v);
-    _event_tree->Branch("n_hip_ctors_v", &_n_hip_ctors_v);
-
-    /// DefectClusterAlgo
+    _hip_tree = new TTree("ClusterTree","");
+    _hip_tree->Branch("run"    ,&_run    , "run/i");
+    _hip_tree->Branch("subrun" ,&_subrun , "subrun/i");
+    _hip_tree->Branch("event"  ,&_event  , "event/i");
+    _hip_tree->Branch("plane", &_hip_cluster_plane, "plane/i");
+    _hip_tree->Branch("num_mips", &_num_mips, "num_mips/i");
+    _hip_tree->Branch("num_hips", &_num_hips, "num_hips/i");
+    _hip_tree->Branch("npx_v"  , &_npx_v);
+    _hip_tree->Branch("q_sum_v", &_q_sum_v);
+    _hip_tree->Branch("q_avg_v", &_q_avg_v);
+    _hip_tree->Branch("is_hip_v", &_is_hip_v);
+    
+    /// Defect->Atomic Info
+    _defect_tree = new TTree("DefectInfo", "");
+    
+    _defect_tree->Branch("run"    ,&_run    , "run/i");
+    _defect_tree->Branch("subrun" ,&_subrun , "subrun/i");
+    _defect_tree->Branch("event"  ,&_event  , "event/i");
+    _defect_tree->Branch("defect_plane_id",&_defect_plane_id, "_defect_plane_id/i");   
+    _defect_tree->Branch("id"             ,&_defect_id, "_defect_id/i");
+    _defect_tree->Branch("defect_dist_start_end",&_defect_dist_start_end, "_defect_dist_start_end/D");
+    _defect_tree->Branch("defect_dist"          ,&_defect_dist, "_defect_dist/D");
+    _defect_tree->Branch("defect_n_atomics"     ,&_defect_n_atomics, "_defect_n_atomics/i");
+    _defect_tree->Branch("defect_atomic_len_v" ,&_defect_atomic_len_v);
+    _defect_tree->Branch("defect_atomic_qsum_v",&_defect_atomic_qsum_v);
+    _defect_tree->Branch("defect_atomic_ntps_v",&_defect_atomic_npts_v);
+    _defect_tree->Branch("defect_atomic_qavg_v",&_defect_atomic_qavg_v);
     
     /// VertexTrackCluster
     _event_tree->Branch("n_vtx3d", &_n_vtx3d, "n_vtx3d/i");
@@ -246,23 +270,6 @@ namespace larcv {
     _shower_tree->Branch("dir2D_x_v", &_dir2D_x_v);
     _shower_tree->Branch("dir2D_y_v", &_dir2D_y_v);
     
-    /// Defect->Atomic Info
-    
-    _defect_tree = new TTree("DefectInfo", "");
-    
-    //_event_tree
-
-    _defect_tree->Branch("defect_plane_id",&_defect_plane_id, "_defect_plane_id/i");   
-    _defect_tree->Branch("id"             ,&_defect_id, "_defect_id/i");
-
-    _defect_tree->Branch("defect_dist_start_end",&_defect_dist_start_end, "_defect_dist_start_end/d");
-    _defect_tree->Branch("defect_dist"          ,&_defect_dist, "_defect_dist/d");
-    _defect_tree->Branch("defect_n_atomics"     ,&_defect_n_atomics, "_defect_n_atomics/i");
-
-    _defect_tree->Branch("defect_atomic_len_v" ,&_defect_atomic_len_v);
-    _defect_tree->Branch("defect_atomic_qsum_v",&_defect_atomic_qsum_v);
-    _defect_tree->Branch("defect_atomic_ntps_v",&_defect_atomic_npts_v);
-    _defect_tree->Branch("defect_atomic_qavg_v",&_defect_atomic_qavg_v);
 
   }
   
@@ -283,13 +290,36 @@ namespace larcv {
     /// HIP cluster data
     auto hipcluster_id = dm.ID(_hipcluster_name);
     if (hipcluster_id != larocv::kINVALID_ALGO_ID ) {
-      const auto hipctor_data = (larocv::data::HIPClusterData*)dm.Data( dm.ID(_hipcluster_name) );
+      auto hipctor_data = (larocv::data::HIPClusterData*)dm.Data( dm.ID(_hipcluster_name) );
       
       for(uint plane_id=0;plane_id<3;++plane_id) {
-	const auto& hipctor_plane_data = hipctor_data->_plane_data_v[plane_id];
-	_n_mip_ctors_v[plane_id] = hipctor_plane_data.num_mip();
-	_n_hip_ctors_v[plane_id] = hipctor_plane_data.num_hip();
+	auto& hipctor_plane_data = hipctor_data->_plane_data_v[plane_id];
+
+	uint num_hips=0;
+	uint num_mips=0;
+
+	_hip_cluster_plane = plane_id;
+	
+	for(auto& cluster : hipctor_plane_data.get_clusters()) {
+
+	  if (cluster.iship()) num_hips++;
+	  if (cluster.ismip()) num_mips++;
+
+	  _npx_v.push_back(cluster.npx());
+	  _q_sum_v.push_back(cluster.qsum());
+	  _q_avg_v.push_back(cluster.qavg());
+	  _is_hip_v.push_back((uint)cluster.iship());
+	  
+	}
+
+	_num_mips = num_mips;
+	_num_hips = num_hips;
+	
+	_hip_tree->Fill();
+	ClearHIPCluster();
       }
+
+      
     }
     
     //
@@ -658,6 +688,7 @@ namespace larcv {
   void LArbysImageAna::finalize()
   {
     _event_tree->Write();
+    _hip_tree->Write();
     _defect_tree->Write();
     _vtx3d_tree->Write();
     _particle_tree->Write();

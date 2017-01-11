@@ -49,6 +49,7 @@ namespace larcv {
   private:
 
     TTree* _event_tree;
+    TTree* _hip_tree;
     TTree* _defect_tree;
     TTree* _vtx3d_tree;
     TTree* _particle_tree;
@@ -58,6 +59,7 @@ namespace larcv {
     const ::larocv::ImageClusterManager* _mgr_ptr;
 
     void ClearEvent();
+    void ClearHIPCluster();
     void ClearDefect();
     void ClearVertex();
     void ClearParticle();
@@ -70,15 +72,20 @@ namespace larcv {
     uint _event;
     
     /// HIP cluster vars
-    std::vector<uint> _n_mip_ctors_v;
-    std::vector<uint> _n_hip_ctors_v;
- 
+    uint _hip_cluster_plane;
+    uint _num_mips;
+    uint _num_hips;
+    std::vector<uint> _npx_v;
+    std::vector<float> _q_sum_v;
+    std::vector<float> _q_avg_v;
+    std::vector<uint> _is_hip_v;
+
     /// Defect cluster data -- per r/s/e & plane & defect
-    size_t _defect_id;
-    uint   _defect_plane_id;
-    float  _defect_dist_start_end;
-    float  _defect_dist;
-    uint   _defect_n_atomics;
+    size_t  _defect_id;
+    uint    _defect_plane_id;
+    double  _defect_dist_start_end;
+    double  _defect_dist;
+    uint    _defect_n_atomics;
     std::vector<float> _defect_atomic_len_v; //per atomic // per plane
     std::vector<float> _defect_atomic_qsum_v; // charge sum
     std::vector<float> _defect_atomic_npts_v; // number of points in atomic contour
