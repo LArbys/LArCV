@@ -76,6 +76,8 @@ namespace larcv {
 
     bool _process_entry_();
 #ifndef __CINT__
+    size_t _batch_start_entry;
+    size_t _batch_num_entry;
     size_t _current_entry;
     bool _enable_filter;
     bool _random_access;
