@@ -30,8 +30,10 @@
 #pragma link C++ class larcv::SegmentMaker+;
 #pragma link C++ class larcv::CropROI+;
 #pragma link C++ class larcv::ROIMask+;
+#pragma link C++ class larcv::SegWeightTrackShower+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

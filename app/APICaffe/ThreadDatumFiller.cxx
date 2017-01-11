@@ -194,7 +194,7 @@ namespace larcv {
   const std::vector<float>& ThreadDatumFiller::data() const
   {
     if (!_processing) {
-      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
+      LARCV_CRITICAL() << "Data is not available before start processing!" << std::endl;
       throw larbys();
     }
     if (thread_running()) {
@@ -207,7 +207,7 @@ namespace larcv {
   const std::vector<float>& ThreadDatumFiller::labels() const
   {
     if (!_processing) {
-      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
+      LARCV_CRITICAL() << "Label is not available before start processing!" << std::endl;
       throw larbys();
     }
     if (thread_running()) {
@@ -215,6 +215,19 @@ namespace larcv {
       throw larbys();
     }
     return _filler->data(DatumFillerBase::kFillerLabelData);
+  }
+
+  const std::vector<float>& ThreadDatumFiller::weights() const
+  {
+    if (!_processing) {
+      LARCV_CRITICAL() << "Weight is not available before start processing!" << std::endl;
+      throw larbys();
+    }
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+    return _filler->data(DatumFillerBase::kFillerWeightData);
   }
 
   bool ThreadDatumFiller::batch_process(size_t nentries)
