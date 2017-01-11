@@ -295,14 +295,13 @@ namespace larcv {
 
     if ( !_defectcluster_name.empty() ) {
 
-      //do this
       const auto defectcluster_data = (larocv::data::DefectClusterData*)dm.Data( dm.ID(_defectcluster_name) );
       
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
 	_defect_plane_id  = plane_id;
 	auto& cluster_data = defectcluster_data->_raw_cluster_vv[plane_id];
 	int num_cluster   = cluster_data.num_clusters();
-
+	//std::cout<<"there are "<<num_cluster<<" of clusters on plane "<<plane_id<<std::endl;
 	int defect_id     = 0 ; 
 	for (uint cluster_id = 0; cluster_id < num_cluster; cluster_id++){
 
@@ -323,20 +322,16 @@ namespace larcv {
 	    _defect_id             = defect_id;
 	    
 	    defect_id++;
-	  
+
+	    _defect_tree->Fill();
 	  }
 	}
       }
-
-      _defect_tree->Fill();
     }
     
     //
     //
     //
-    
-    
-    
     
     if ( !_refine2dvertex_name.empty() &&
 	 !_vertexcluster_name.empty() &&
