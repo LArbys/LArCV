@@ -78,7 +78,7 @@ namespace larcv {
   {
     if(logger().level() <= msg::kINFO) {
       std::vector<size_t> ctr_v;
-      for(auto const& v : data(false)) {
+      for(auto const& v : data(kFillerLabelData)) {
         if(v>=ctr_v.size()) ctr_v.resize(v+1,0);
         ctr_v[v] += 1;
       }

@@ -201,7 +201,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
       throw larbys();
     }
-    return _filler->data();
+    return _filler->data(DatumFillerBase::kFillerImageData);
   }
 
   const std::vector<float>& ThreadDatumFiller::labels() const
@@ -214,7 +214,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
       throw larbys();
     }
-    return _filler->data(false);
+    return _filler->data(DatumFillerBase::kFillerLabelData);
   }
 
   bool ThreadDatumFiller::batch_process(size_t nentries)

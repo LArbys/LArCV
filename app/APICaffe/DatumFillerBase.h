@@ -94,10 +94,7 @@ namespace larcv {
 
     virtual size_t compute_label_size(const larcv::EventBase* image) = 0;
 
-    const std::vector<float>& entry_data(bool image=true) const 
-    { return (image ? _entry_image_data : _entry_label_data); }
-
-    const std::vector<float>& data(FillerDataType_t dtype = kFillerImageData) const
+    const std::vector<float>& entry_data(FillerDataType_t dtype = kFillerImageData) const
     { 
       switch(dtype) {
       case kFillerImageData:
