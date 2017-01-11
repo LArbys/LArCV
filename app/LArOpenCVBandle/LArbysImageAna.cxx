@@ -9,7 +9,7 @@
 #include "AlgoData/VertexClusterData.h"
 #include "AlgoData/LinearVtxFilterData.h"
 #include "AlgoData/dQdXProfilerData.h"
-
+#include "AlgoData/DefectClusterData.h"
 #include "AlgoData/LinearTrackClusterData.h"
 #include "AlgoData/SingleShowerData.h"
 
@@ -45,7 +45,12 @@ namespace larcv {
 
   void LArbysImageAna::ClearDefect() {
     
-    }
+    _defect_atomic_len_v.clear(); 
+    _defect_atomic_qsum_v.clear(); 
+    _defect_atomic_npts_v.clear();    
+    _defect_atomic_qavg_v.clear(); 
+
+  }
   
   void LArbysImageAna::ClearParticle() {
 
@@ -241,6 +246,24 @@ namespace larcv {
     _shower_tree->Branch("dir2D_x_v", &_dir2D_x_v);
     _shower_tree->Branch("dir2D_y_v", &_dir2D_y_v);
     
+    /// Defect->Atomic Info
+    
+    _defect_tree = new TTree("DefectInfo", "");
+    
+    //_event_tree
+
+    _defect_tree->Branch("defect_plane_id",&_defect_plane_id, "_defect_plane_id/i");   
+    _defect_tree->Branch("id"             ,&_defect_id, "_defect_id/i");
+
+    _defect_tree->Branch("defect_dist_start_end",&_defect_dist_start_end, "_defect_dist_start_end/d");
+    _defect_tree->Branch("defect_dist"          ,&_defect_dist, "_defect_dist/d");
+    _defect_tree->Branch("defect_n_atomics"     ,&_defect_n_atomics, "_defect_n_atomics/i");
+
+    _defect_tree->Branch("defect_atomic_len_v" ,&_defect_atomic_len_v);
+    _defect_tree->Branch("defect_atomic_qsum_v",&_defect_atomic_qsum_v);
+    _defect_tree->Branch("defect_atomic_ntps_v",&_defect_atomic_npts_v);
+    _defect_tree->Branch("defect_atomic_qavg_v",&_defect_atomic_qavg_v);
+
   }
   
   bool LArbysImageAna::process(IOManager& mgr)
@@ -276,45 +299,83 @@ namespace larcv {
     auto defectcluster_id = dm.ID(_defectcluster_name);
     if (defectcluster_id != larocv::kINVALID_ALGO_ID ) {
     
-      //do this
-
-      //_defect_tree->Write();
-      
-      
       const auto& img_v = _mgr_ptr->InputImages();
-
-      for(const auto& img : img_v)
-	LARCV_DEBUG() << "Image ptr @ " << &img << " of shape rows " << img.rows << "... cols " << img.cols << std::endl;
-      const auto defect_data = (larocv::data::DefectClusterData*) dm.Data( defectcluster_id);
-
-      //get the first plane  //get the first cluster
-      larocv::data::ClusterCompound this_compound = defect_data->_raw_cluster_vv.at(0).get_cluster().front();
-      const auto& this_atom = this_compound.get_atoms().front();
-      std::cout << "Got an atom @ address " << &this_atom << std::endl;
-      const auto& ctor = this_atom._ctor;
-      
-      //threshold the image
-      cv::Mat thresh_img = img_v[0].clone();
-      cv::threshold(thresh_img, thresh_img, 10,255, CV_THRESH_BINARY);
-      //cv::imwrite("thresh_img.png",thresh_img);
-
-      std::vector<cv::Point_<int> >  points;
-      cv::findNonZero(thresh_img, points);
-
-      uint npts = 0;
-      uint qsum = 0;
-      
-      for(const auto& pt : points) { 
-	if( cv::pointPolygonTest(ctor,pt,false) >= 0 ) {
-	  npts+=1;
-	  qsum += (uchar) img_v[0].at<uchar>(pt.y,pt.x);
-	}
+      std::vector<cv::Mat> thresh_img_v;
+      thresh_img_v.resize(3);
+      for(uint img_id=0; img_id < 3; ++img_id) {
+	const auto& img  = img_v[img_id];
+	auto& thresh_img = thresh_img_v[img_id];
+	cv::threshold(img, thresh_img, 10,255, CV_THRESH_BINARY);
       }
       
-      std::cout << "npts : " << npts << std::endl;
-      std::cout << "qsum : " << qsum << std::endl;
+      const auto defectcluster_data = (larocv::data::DefectClusterData*)dm.Data( dm.ID(_defectcluster_name) );
       
-    }
+      for(uint plane_id=0; plane_id < 3;  ++plane_id) {
+
+	const auto& img        = img_v[plane_id];
+	const auto& thresh_img = thresh_img_v[plane_id];
+	
+	_defect_plane_id   = plane_id;
+
+	std::vector<cv::Point_<int> >  points;
+	cv::findNonZero(thresh_img, points);
+		    
+	
+	auto& clustercompound_data = defectcluster_data->_raw_cluster_vv[plane_id];
+
+	int num_cluster    = clustercompound_data.num_clusters();
+	int defect_id      = 0;
+	
+	for (uint cluster_id = 0; cluster_id < num_cluster; cluster_id++){
+
+	  const auto& cluster_data = clustercompound_data.get_cluster()[cluster_id];
+	  const auto& defect_data = cluster_data.get_defects();
+	  const auto& atom_data   = cluster_data.get_atoms();
+
+	  int num_defects   = defect_data.size();
+	  
+	  geo2d::Vector<float> start, end; 
+
+	  for (uint cluster_defect_id = 0; cluster_defect_id < num_defects; cluster_defect_id++){
+
+	    const auto& defect        = defect_data[cluster_defect_id];
+	    const auto& ass_atom_id_v = defect.associated_atoms();
+	    
+	    start = defect._pt_start;
+	    end   = defect._pt_end;
+	    
+	    _defect_n_atomics      = ass_atom_id_v.size();
+	    _defect_dist           = defect._dist;
+	    _defect_dist_start_end = sqrt(pow(start.x-end.x,2)+pow(start.y-end.y,2));
+	    _defect_id             = defect_id;
+	    std::cout << "N atomics: " << _defect_n_atomics << std::endl;
+	    for(auto atom_idx : ass_atom_id_v) {
+
+	      const auto& ctor = atom_data.at(atom_idx)._ctor;
+	      
+	      uint npts = 0;
+	      uint qsum = 0;
+      
+	      for(const auto& pt : points) { 
+		if( cv::pointPolygonTest(ctor,pt,false) >= 0 ) {
+		  npts+=1;
+		  qsum += (uchar) img.at<uchar>(pt.y,pt.x);
+		}
+	      }
+	      _defect_atomic_len_v.push_back(0.0);
+	      _defect_atomic_qsum_v.push_back(qsum);
+	      _defect_atomic_npts_v.push_back(npts);
+	      _defect_atomic_qavg_v.push_back( (float) qsum / (float) npts);
+	    }
+	    
+	    defect_id++;
+	    _defect_tree->Fill();
+	    
+	    ClearDefect();
+	  } // end loop over defect per cluster
+	} // end loop over cluster
+      } // end loop over 3 planes
+    } // end conditional defectcluster algo name
     //
     //
     //
