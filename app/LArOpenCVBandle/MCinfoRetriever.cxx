@@ -572,7 +572,7 @@ namespace larcv {
 
     _enum+=1;
     
-    std::cout << "Next: " << _enum << std::endl;
+    // std::cout << "Next: " << _enum << std::endl;
     
     if (_do_not_reco) return false;
     
