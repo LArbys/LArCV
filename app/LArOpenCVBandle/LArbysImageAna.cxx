@@ -1,7 +1,7 @@
 #ifndef __LARBYSIMAGEANA_CXX__
 #define __LARBYSIMAGEANA_CXX__
-
 #include "LArbysImageAna.h"
+
 #include "AlgoData/HIPClusterData.h"
 #include "AlgoData/DefectClusterData.h"
 #include "AlgoData/Refine2DVertexData.h"
@@ -188,6 +188,8 @@ namespace larcv {
     _hip_plane_tree->Branch("long_hip_qavg",&_long_hip_qavg,"long_hip_qavg/F");
     _hip_plane_tree->Branch("long_mip_npx",&_long_mip_npx,"long_mip_npx/F");
     _hip_plane_tree->Branch("long_hip_npx",&_long_hip_npx,"long_hip_npx/F");
+    _hip_plane_tree->Branch("long_hip_angle",&_long_hip_angle,"long_hip_angle/F");
+    _hip_plane_tree->Branch("long_mip_angle",&_long_mip_angle,"long_mip_angle/F");
     
     /// Defect Event Tree
     _defect_event_tree = new TTree("DefectEventTree", "");
@@ -343,7 +345,6 @@ namespace larcv {
       float was_hip=0;
       float was_mip=0;
 
-
       _avg_long_hip_width = 0;
       _avg_long_mip_width = 0;
       _avg_long_hip_qsum = 0;
@@ -360,17 +361,18 @@ namespace larcv {
 	auto& hipctor_plane_data = hipctor_data->_plane_data_v[plane_id];
 
 
-	_long_hip_width = 0;
-	_long_mip_width = 0;
-	_long_hip_qsum = 0;
-	_long_mip_qsum = 0;
-	_long_hip_qavg = 0;
-	_long_mip_qavg = 0;
-	_long_hip_npx = 0;
-	_long_mip_npx = 0;
-	_long_hip_length = 0;
-	_long_mip_length = 0;
-	
+	_long_hip_width = kINVALID_FLOAT;
+	_long_mip_width = kINVALID_FLOAT;
+	_long_hip_qsum = kINVALID_FLOAT;
+	_long_mip_qsum = kINVALID_FLOAT;
+	_long_hip_qavg = kINVALID_FLOAT;
+	_long_mip_qavg = kINVALID_FLOAT;
+	_long_hip_npx = kINVALID_FLOAT;
+	_long_mip_npx = kINVALID_FLOAT;
+	_long_hip_length = kINVALID_FLOAT;
+	_long_mip_length = kINVALID_FLOAT;
+	_long_hip_angle = kINVALID_FLOAT;
+	_long_mip_angle = kINVALID_FLOAT;
 	
 	uint num_hips=0;
 	uint num_mips=0;
@@ -432,6 +434,9 @@ namespace larcv {
 	  _avg_long_mip_qavg += _long_mip_qavg;
 	  _long_mip_npx = long_mip_cluster->npx();
 	  _avg_long_mip_npx += _long_mip_npx;
+
+	  _long_mip_angle = long_mip_cluster->angle();
+
 	}
 	
 	if (long_hip_cluster) {
@@ -443,6 +448,8 @@ namespace larcv {
 	  _avg_long_hip_qavg += _long_hip_qavg;
 	  _long_hip_npx = long_hip_cluster->npx();
 	  _avg_long_hip_npx += _long_hip_npx;
+
+	  _long_hip_angle = long_hip_cluster->angle();
 	}
 	
 

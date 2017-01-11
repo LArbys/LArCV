@@ -106,6 +106,8 @@ namespace larcv {
     float _long_mip_npx;
     float _long_hip_length;
     float _long_mip_length;
+    float _long_hip_angle;
+    float _long_mip_angle;
     
     float _avg_long_hip_width;
     float _avg_long_mip_width;
