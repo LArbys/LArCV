@@ -50,6 +50,9 @@ namespace larcv {
     _q_sum_v.clear();
     _q_avg_v.clear();
     _is_hip_v.clear(); 
+    _pixel_v.clear();
+    _mip_pixel_v.clear();
+    _hip_pixel_v.clear();
   }
 
   
@@ -164,14 +167,16 @@ namespace larcv {
     _hip_plane_tree->Branch("is_hip_v", &_is_hip_v);
     _hip_plane_tree->Branch("long_hip_length",&_long_hip_length,"long_hip_length/F");
     _hip_plane_tree->Branch("long_mip_length",&_long_mip_length,"long_mip_length/F");
+    _hip_plane_tree->Branch("pixel_v",&_pixel_v);
+    _hip_plane_tree->Branch("mip_pixel_v",&_mip_pixel_v);
+    _hip_plane_tree->Branch("hip_pixel_v",&_hip_pixel_v);
     
-
     /// Defect Event Tree
     _defect_event_tree = new TTree("DefectEventTree", "");
     
-    _defect_event_tree->Branch("run"    ,&_run    , "run/i");
-    _defect_event_tree->Branch("subrun" ,&_subrun , "subrun/i");
-    _defect_event_tree->Branch("event"  ,&_event  , "event/i");
+    _defect_event_tree->Branch("run"     ,&_run    , "run/i");
+    _defect_event_tree->Branch("subrun"  ,&_subrun , "subrun/i");
+    _defect_event_tree->Branch("event"   ,&_event  , "event/i");
     _defect_event_tree->Branch("ndefects",&_defect_n_defects,"ndefects/i");
 
     /// Defect->Atomic Info
@@ -356,6 +361,11 @@ namespace larcv {
 	  _q_sum_v.push_back(cluster.qsum());
 	  _q_avg_v.push_back(cluster.qavg());
 	  _is_hip_v.push_back((uint)cluster.iship());
+
+	  _pixel_v.push_back((std::vector<float>)cluster.pixel_v());
+	  _mip_pixel_v.push_back((std::vector<float>)cluster.mip_pixel_v());
+	  _hip_pixel_v.push_back((std::vector<float>)cluster.hip_pixel_v());
+		  
 	}
 
 	_long_hip_length = hip_dist;
@@ -448,8 +458,7 @@ namespace larcv {
 	    _defect_dist           = defect._dist;
 	    _defect_dist_start_end = sqrt(pow(start.x-end.x,2)+pow(start.y-end.y,2));
 	    _defect_id             = defect_id;
-	    
-	    // std::cout << "N atomics: " << _defect_n_atomics << std::endl;
+
 	    for(auto atom_idx : ass_atom_id_v) {
 
 	      const auto& ctor = atom_data.at(atom_idx)._ctor;

@@ -79,7 +79,7 @@ namespace larcv {
 
     
     
-    /// HIP cluster vars
+    /// HIP cluster varsOB
     uint _hip_cluster_plane;
     
     uint _hip_per_plane;
@@ -93,6 +93,9 @@ namespace larcv {
     std::vector<float> _q_sum_v;
     std::vector<float> _q_avg_v;
     std::vector<uint> _is_hip_v;
+    std::vector<std::vector<float>> _pixel_v;
+    std::vector<std::vector<float>> _mip_pixel_v;
+    std::vector<std::vector<float>> _hip_pixel_v;
 
     float _long_hip_length;
     float _long_mip_length;
