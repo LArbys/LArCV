@@ -105,18 +105,23 @@ namespace larcv {
 	  ++npx_track;
       }
 
-      double weight = (double)(label_image.as_vector().size()) / ((double)(npx_shower+npx_track));
+      double weight = 1.;
+      if(npx_shower || npx_track)
+	weight = (double)(label_image.as_vector().size()) / ((double)(npx_shower+npx_track));
       
       double shower_weight = weight;
       double track_weight  = weight;
 
       if( npx_shower ) track_weight  *= ( (double)(npx_track ) / (double)(npx_shower) );
       if( npx_track  ) shower_weight *= ( (double)(npx_shower) / (double)(npx_track ) );
-      
+
+      LARCV_INFO() << npx_shower << " shower pixels and " << npx_track << " track pixels found..." << std::endl;
+      LARCV_INFO() << "Weights: shower = " << shower_weight << " and track = " << track_weight << std::endl;
       auto const& weight_data = weight_image.as_vector();
       temp_weight_data.resize(weight_data.size());
       for(auto& v : temp_weight_data) v = 1.;
       boundary_data.resize(weight_data.size());
+      for(auto& v : boundary_data) v = 0.;
 
       for(size_t idx=0; idx<weight_data.size(); ++idx) {
 	ROIType_t v = (ROIType_t)(label_data[idx]);
@@ -126,8 +131,7 @@ namespace larcv {
 	  temp_weight_data[idx] = track_weight;
       }
       
-      //
-      if(_weight_surrounding) {
+      if(_weight_surrounding && _dist_surrounding) {
 	int target_row, target_col;
 	int nrows = weight_image.meta().rows();
 	int ncols = weight_image.meta().cols();
@@ -136,14 +140,20 @@ namespace larcv {
 	auto const& label_meta = label_image.meta();
 	for(int row=0; row<nrows; ++row) {
 	  for(int col=0; col<ncols; ++col) {
+	    ROIType_t v = (ROIType_t)(label_image.pixel(row,col));
+	    if(v == kROIEminus || v == kROIGamma || v == kROIPizero ||
+	       v == kROIMuminus || v == kROIKminus || v == kROIPiminus || v == kROIProton) {
+	      boundary_data[label_meta.index(row,col)] = 0.;
+	      continue;
+	    }
 	    flag = false;
-	    for(target_row = (int)(row+_dist_surrounding); (int)(target_row + _dist_surrounding) < row; --target_row) {
+	    for(target_row = (int)(row+_dist_surrounding); (int)(target_row + _dist_surrounding) >= row; --target_row) {
 	      if(target_row >= nrows) continue;
 	      if(target_row < 0) break;
-	      for(target_col = (int)(col+_dist_surrounding); (int)(target_col + _dist_surrounding) < col; --target_col) {
+	      for(target_col = (int)(col+_dist_surrounding); (int)(target_col + _dist_surrounding) >= col; --target_col) {
 		if(target_col >= ncols) continue;
 		if(target_col < 0) break;
-		ROIType_t v = (ROIType_t)(label_image.pixel(target_row,target_col));
+		v = (ROIType_t)(label_image.pixel(target_row,target_col));
 		if(v == kROIEminus || v == kROIGamma || v == kROIPizero ||
 		   v == kROIMuminus || v == kROIKminus || v == kROIPiminus || v == kROIProton) {
 		  flag=true;
@@ -156,12 +166,16 @@ namespace larcv {
 	    if(flag) ++n_surrounding_pixel;
 	  }
 	}
-	weight = (double)(label_data.size()) / (double)(n_surrounding_pixel);
-	for(size_t idx=0; idx < weight_data.size(); ++idx)
+	weight = 0;
+	if(n_surrounding_pixel)
+	  weight = (double)(label_data.size()) / (double)(n_surrounding_pixel);
+
+	LARCV_INFO() << "Found " << n_surrounding_pixel << " pixels around interesting ones..." << std::endl;
+	LARCV_INFO() << "Weight: " << weight << std::endl;
+
+	for(size_t idx=0; idx < weight_data.size(); ++idx) 
 	  temp_weight_data[idx] += (boundary_data[idx] * weight);
       }
-
-    if(_weight_surrounding && !_dist_surrounding) {
 
       switch(_pool_type) {
       case kSumPool:
@@ -181,9 +195,7 @@ namespace larcv {
 	  weight_image.set_pixel(idx, temp_weight_data[idx]);
 	break;
       }
-    }
-    
-    //
+
     }
     
     event_weight_v->Emplace(std::move(weight_image_v));
