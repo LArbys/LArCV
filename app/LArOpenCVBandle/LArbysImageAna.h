@@ -49,10 +49,16 @@ namespace larcv {
   private:
 
     TTree* _event_tree;
-    TTree* _hip_tree;
-    TTree* _defect_tree;
+
+    TTree* _hip_event_tree;
+    TTree* _hip_plane_tree;
+    
+    TTree* _defect_event_tree;
+    TTree* _defect_defect_tree;
+    
     TTree* _vtx3d_tree;
     TTree* _particle_tree;
+
     TTree* _track_tree;
     TTree* _shower_tree;
     
@@ -70,22 +76,39 @@ namespace larcv {
     uint _run;
     uint _subrun;
     uint _event;
+
+    
     
     /// HIP cluster vars
     uint _hip_cluster_plane;
+    
+    uint _hip_per_plane;
+    uint _num_hip_plane;
+    uint _num_mip_plane;
+    
     uint _num_mips;
     uint _num_hips;
+
     std::vector<uint> _npx_v;
     std::vector<float> _q_sum_v;
     std::vector<float> _q_avg_v;
     std::vector<uint> _is_hip_v;
 
+    float _long_hip_length;
+    float _long_mip_length;
+
+    float _avg_long_hip_length;
+    float _avg_long_mip_length;
+    
     /// Defect cluster data -- per r/s/e & plane & defect
+
+    uint    _defect_n_defects;
     size_t  _defect_id;
     uint    _defect_plane_id;
     double  _defect_dist_start_end;
     double  _defect_dist;
     uint    _defect_n_atomics;
+
     std::vector<float> _defect_atomic_len_v; //per atomic // per plane
     std::vector<float> _defect_atomic_qsum_v; // charge sum
     std::vector<float> _defect_atomic_npts_v; // number of points in atomic contour
@@ -120,7 +143,6 @@ namespace larcv {
 
     std::vector<double> _circle_vtx_r_v;
     std::vector<double> _circle_vtx_angle_v;
-
     
     //dQdXProfilerAlgo
     uint _plane_id;
@@ -177,7 +199,6 @@ namespace larcv {
     
     std::vector<float> _dir2D_x_v;
     std::vector<float> _dir2D_y_v;
-
     
   };
 

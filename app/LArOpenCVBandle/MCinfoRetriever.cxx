@@ -14,7 +14,7 @@ namespace larcv {
   static MCinfoRetrieverProcessFactory __global_MCinfoRetrieverProcessFactory__;
 
   MCinfoRetriever::MCinfoRetriever(const std::string name)
-    : ProcessBase(name), _mc_tree(nullptr)
+    : ProcessBase(name), _mc_tree(nullptr), _filter_ptr(nullptr)
   {}
     
   void MCinfoRetriever::configure(const PSet& cfg)
@@ -568,6 +568,9 @@ namespace larcv {
 
     //_is_signal = signal_selected;
 
+    if (_filter_ptr)
+      _is_signal = _filter_ptr->selected();
+      
     _mc_tree->Fill();
 
     _enum+=1;

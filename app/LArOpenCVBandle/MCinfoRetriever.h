@@ -25,6 +25,7 @@
 #include "Core/HalfLine.h"
 #include "Core/Line.h"
 #include "DataFormat/EventROI.h"
+#include "NuFilter.h"
 
 namespace larcv {
 
@@ -52,8 +53,13 @@ namespace larcv {
     void finalize();
 
     void Clear();
+
+    void SetFilter(const NuFilter* filter_ptr) { _filter_ptr = filter_ptr; }
     
   protected:
+
+    const NuFilter* _filter_ptr;
+
     uint _enum;
     std::string _producer_roi;
     std::string _producer_image2d;
