@@ -43,7 +43,7 @@ namespace larcv {
 
     void finalize();
 
-    const bool selected() { return _selected; }
+    const bool selected() const { return _selected; }
     
   private:
     
