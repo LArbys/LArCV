@@ -48,6 +48,9 @@ namespace larcv {
     _q_sum_v.clear();
     _q_avg_v.clear();
     _is_hip_v.clear(); 
+    _pixel_v.clear();
+    _mip_pixel_v.clear();
+    _hip_pixel_v.clear();
   }
 
   
@@ -154,7 +157,10 @@ namespace larcv {
     _hip_tree->Branch("q_sum_v", &_q_sum_v);
     _hip_tree->Branch("q_avg_v", &_q_avg_v);
     _hip_tree->Branch("is_hip_v", &_is_hip_v);
-    
+    _hip_tree->Branch("pixel_v",&_pixel_v);
+    _hip_tree->Branch("mip_pixel_v",&_mip_pixel_v);
+    _hip_tree->Branch("hip_pixel_v",&_hip_pixel_v);
+
     /// Defect->Atomic Info
     _defect_tree = new TTree("DefectInfo", "");
     
@@ -309,7 +315,10 @@ namespace larcv {
 	  _q_sum_v.push_back(cluster.qsum());
 	  _q_avg_v.push_back(cluster.qavg());
 	  _is_hip_v.push_back((uint)cluster.iship());
-	  
+	  _pixel_v.push_back((std::vector<float>)cluster.pixel_v());
+	  _mip_pixel_v.push_back((std::vector<float>)cluster.mip_pixel_v());
+	  _hip_pixel_v.push_back((std::vector<float>)cluster.hip_pixel_v());
+		  
 	}
 
 	_num_mips = num_mips;
@@ -378,7 +387,7 @@ namespace larcv {
 	    _defect_dist           = defect._dist;
 	    _defect_dist_start_end = sqrt(pow(start.x-end.x,2)+pow(start.y-end.y,2));
 	    _defect_id             = defect_id;
-	    std::cout << "N atomics: " << _defect_n_atomics << std::endl;
+	    //std::cout << "N atomics: " << _defect_n_atomics << std::endl;
 	    for(auto atom_idx : ass_atom_id_v) {
 
 	      const auto& ctor = atom_data.at(atom_idx)._ctor;

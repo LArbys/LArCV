@@ -71,7 +71,7 @@ namespace larcv {
     uint _subrun;
     uint _event;
     
-    /// HIP cluster vars
+    /// HIP cluster varsOB
     uint _hip_cluster_plane;
     uint _num_mips;
     uint _num_hips;
@@ -79,6 +79,9 @@ namespace larcv {
     std::vector<float> _q_sum_v;
     std::vector<float> _q_avg_v;
     std::vector<uint> _is_hip_v;
+    std::vector<std::vector<float>> _pixel_v;
+    std::vector<std::vector<float>> _mip_pixel_v;
+    std::vector<std::vector<float>> _hip_pixel_v;
 
     /// Defect cluster data -- per r/s/e & plane & defect
     size_t  _defect_id;
