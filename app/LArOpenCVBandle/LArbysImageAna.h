@@ -18,9 +18,13 @@
 #include "Processor/ProcessFactory.h"
 #include "LArbysImage.h"
 #include "DataFormat/EventImage2D.h"
+#include "Core/Vector.h"
+#include "AlgoData/HIPClusterData.h"
+
 
 namespace larcv {
 
+  
   /**
      \class ProcessBase
      User defined class LArbysImageAna ... these comments are used to generate
@@ -48,14 +52,16 @@ namespace larcv {
     
   private:
 
+    
     TTree* _event_tree;
 
     TTree* _hip_event_tree;
     TTree* _hip_plane_tree;
     
     TTree* _defect_event_tree;
+    TTree* _defect_plane_tree;
     TTree* _defect_defect_tree;
-    
+    TTree* _vtx3d_event_tree;
     TTree* _vtx3d_tree;
     TTree* _particle_tree;
 
@@ -64,6 +70,7 @@ namespace larcv {
     
     const ::larocv::ImageClusterManager* _mgr_ptr;
 
+    
     void ClearEvent();
     void ClearHIPCluster();
     void ClearDefect();
@@ -71,6 +78,11 @@ namespace larcv {
     void ClearParticle();
     void ClearTracks();
     void ClearShowers();
+    
+    float dist_defect_hip_mip(const larocv::data::Cluster* c1,
+			      const larocv::data::Cluster* c2,
+			      const geo2d::Vector<float> dpt);
+    
     
     /// Unique event keys
     uint _run;
@@ -128,6 +140,13 @@ namespace larcv {
     double  _defect_dist;
     uint    _defect_n_atomics;
 
+    float _defect_matched_x;
+    float _defect_matched_y;
+    float _defect_matched_d;
+    uint _defect_matched_id;
+    uint  _defect_has_match;
+    
+    
     std::vector<float> _defect_atomic_len_v; //per atomic // per plane
     std::vector<float> _defect_atomic_qsum_v; // charge sum
     std::vector<float> _defect_atomic_npts_v; // number of points in atomic contour
