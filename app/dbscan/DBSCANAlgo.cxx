@@ -4,9 +4,27 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "DataFormat/Image2D.h"
+#include "DataFormat/ImageMeta.h"
+
 namespace dbscan {
 
-  
+  dbPoints extractPointsFromImage( const larcv::Image2D& img, const double threshold ) {
+    dbPoints pixels;
+    const larcv::ImageMeta& meta = img.meta();
+    for (size_t r=0; r<meta.rows(); r++) {
+      for (size_t c=0; c<meta.cols(); c++) {
+        if ( img.pixel(r,c)>threshold ) {
+          std::vector<double> pixel(2,0.0);
+          pixel[0] = (double)c;
+          pixel[1] = (double)r;
+          pixels.emplace_back( std::move(pixel) );
+        }
+      }
+    }
+    return pixels;
+  }
+
   dbscanOutput DBSCANAlgo::scan( dbPoints input, int minPts, double eps, bool borderPoints, double approx ) {
 
     // allocate output
