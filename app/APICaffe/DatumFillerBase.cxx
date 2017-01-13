@@ -28,7 +28,8 @@ namespace larcv {
       throw larbys();
     }
     _current_entry = kINVALID_SIZE;
-    _entry_image_size   = _entry_label_size = _entry_weight_size = kINVALID_SIZE;
+    _entry_image_size   = _entry_label_size = kINVALID_SIZE;
+    _entry_weight_size  = 0;
     _image_producer_id  = kINVALID_PRODUCER;
     _label_producer_id  = kINVALID_PRODUCER;
     _weight_producer_id = kINVALID_PRODUCER;
@@ -76,20 +77,26 @@ namespace larcv {
 
     auto const image_data = mgr.get_data(_image_producer_id);
     auto const label_data = mgr.get_data(_label_producer_id);
-      
+
     if(_entry_image_size==kINVALID_SIZE) {
+
       _entry_image_size = compute_image_size(image_data);
+
       _entry_label_size = compute_label_size(label_data);
+
       if( _entry_image_size == kINVALID_SIZE || _entry_label_size == kINVALID_SIZE ) {
         LARCV_CRITICAL() << "Rows/Cols/NumChannels not set!" << std::endl;
         throw larbys();
       }
-      if(_weight_producer_id != kINVALID_PRODUCER)
+
+      if(_weight_producer_id != kINVALID_PRODUCER) {
 	_entry_weight_size = _entry_image_size;
+	_weight_data.resize (_entry_weight_size * _nentries, 0.);
+      }
 
       _image_data.resize  (_entry_image_size  * _nentries, 0.);
       _label_data.resize  (_entry_label_size  * _nentries, 0.);
-      _weight_data.resize (_entry_weight_size * _nentries, 0.);
+
     }
 
     EventBase* weight_data=nullptr;
@@ -97,7 +104,7 @@ namespace larcv {
       weight_data = mgr.get_data(_weight_producer_id);
 
     this->fill_entry_data(image_data,label_data,weight_data);
-      
+
     auto const& entry_image_data  = entry_data(kFillerImageData);
     auto const& entry_label_data  = entry_data(kFillerLabelData);
     auto const& entry_weight_data = entry_data(kFillerWeightData);

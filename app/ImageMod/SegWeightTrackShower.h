@@ -64,6 +64,8 @@ namespace larcv {
 
     std::vector<size_t> _plane_v;
 
+    unsigned int _weight_max;
+
   };
 
   /**

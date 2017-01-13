@@ -20,6 +20,8 @@ namespace larcv {
 
     _plane_v = cfg.get<std::vector<size_t> >("PlaneID");
 
+    _weight_max = cfg.get<unsigned int>("WeightMax");
+
     if(_label_producer.empty()) {
       LARCV_CRITICAL() << "Label producer empty!" << std::endl;
       throw larbys();
@@ -93,6 +95,7 @@ namespace larcv {
       }else{
 	// create weight image
 	weight_image = larcv::Image2D(label_image.meta());
+	weight_image.paint(1.);
       }
 
       // compute # shower pixels, # track pixels
@@ -105,32 +108,31 @@ namespace larcv {
 	  ++npx_track;
       }
 
-      double weight = 1.;
-      if(npx_shower || npx_track)
-	weight = (double)(label_image.as_vector().size()) / ((double)(npx_shower+npx_track));
-      
-      double shower_weight = weight;
-      double track_weight  = weight;
+      float shower_weight = 1.;
+      float track_weight  = 1.;
 
-      if( npx_shower ) track_weight  *= ( (double)(npx_track ) / (double)(npx_shower) );
-      if( npx_track  ) shower_weight *= ( (double)(npx_shower) / (double)(npx_track ) );
+      if( npx_track  ) track_weight  = (int)((float)(label_image.as_vector().size()) / (float)(npx_track ));
+      if( npx_shower ) shower_weight = (int)((float)(label_image.as_vector().size()) / (float)(npx_shower));
 
       LARCV_INFO() << npx_shower << " shower pixels and " << npx_track << " track pixels found..." << std::endl;
       LARCV_INFO() << "Weights: shower = " << shower_weight << " and track = " << track_weight << std::endl;
       auto const& weight_data = weight_image.as_vector();
       temp_weight_data.resize(weight_data.size());
-      for(auto& v : temp_weight_data) v = 1.;
       boundary_data.resize(weight_data.size());
-      for(auto& v : boundary_data) v = 0.;
+      for(size_t idx=0; idx<weight_data.size(); ++idx)
+	temp_weight_data[idx] = boundary_data[idx] = 0.;
 
       for(size_t idx=0; idx<weight_data.size(); ++idx) {
 	ROIType_t v = (ROIType_t)(label_data[idx]);
 	if(v == kROIEminus || v == kROIGamma || v == kROIPizero)
-	  temp_weight_data[idx] = shower_weight;
+	  temp_weight_data[idx] = (float)shower_weight;
 	else if(v == kROIMuminus || v == kROIKminus || v == kROIPiminus || v == kROIProton)
-	  temp_weight_data[idx] = track_weight;
+	  temp_weight_data[idx] = (float)track_weight;
+	else
+	  temp_weight_data[idx] = 0.;
       }
       
+      float surrounding_weight=0;
       if(_weight_surrounding && _dist_surrounding) {
 	int target_row, target_col;
 	int nrows = weight_image.meta().rows();
@@ -166,33 +168,46 @@ namespace larcv {
 	    if(flag) ++n_surrounding_pixel;
 	  }
 	}
-	weight = 0;
+
 	if(n_surrounding_pixel)
-	  weight = (double)(label_data.size()) / (double)(n_surrounding_pixel);
+	  surrounding_weight = (int)((float)(label_data.size()) / (float)(n_surrounding_pixel));
 
 	LARCV_INFO() << "Found " << n_surrounding_pixel << " pixels around interesting ones..." << std::endl;
-	LARCV_INFO() << "Weight: " << weight << std::endl;
+	LARCV_INFO() << "Weight: " << surrounding_weight << std::endl;
 
 	for(size_t idx=0; idx < weight_data.size(); ++idx) 
-	  temp_weight_data[idx] += (boundary_data[idx] * weight);
+	  temp_weight_data[idx] += (boundary_data[idx] * surrounding_weight);
       }
 
+      float v=0;
       switch(_pool_type) {
       case kSumPool:
-	for(size_t idx=0; idx<weight_data.size(); ++idx)
-	  weight_image.set_pixel(idx, weight_data[idx] + temp_weight_data[idx]);
+	for(size_t idx=0; idx<weight_data.size(); ++idx) {
+	  v = weight_data[idx] + temp_weight_data[idx];
+	  if(v > (float)(_weight_max)) v = _weight_max;
+	  weight_image.set_pixel(idx,v);
+	}
 	break;
       case kMaxPool:
-	for(size_t idx=0; idx<weight_data.size(); ++idx)
-	  weight_image.set_pixel(idx, std::max(weight_data[idx],temp_weight_data[idx]));
+	for(size_t idx=0; idx<weight_data.size(); ++idx) {
+	  v = std::max(weight_data[idx],temp_weight_data[idx]);
+	  if(v > (float)(_weight_max)) v = _weight_max;
+	  weight_image.set_pixel(idx,v);
+	}
 	break;
       case kAveragePool:
-	for(size_t idx=0; idx<weight_data.size(); ++idx)
-	  weight_image.set_pixel(idx, (weight_data[idx] + temp_weight_data[idx])/2.);
+	for(size_t idx=0; idx<weight_data.size(); ++idx) {
+	  v = (weight_data[idx] + temp_weight_data[idx])/2.;
+	  if(v > (float)(_weight_max)) v = _weight_max;
+	  weight_image.set_pixel(idx,v);
+	}
 	break;
       case kOverwrite:
-	for(size_t idx=0; idx<weight_data.size(); ++idx)
-	  weight_image.set_pixel(idx, temp_weight_data[idx]);
+	for(size_t idx=0; idx<weight_data.size(); ++idx) {
+	  v = temp_weight_data[idx];
+	  if(v > (float)(_weight_max)) v = _weight_max;
+	  weight_image.set_pixel(idx,v);
+	}
 	break;
       }
 

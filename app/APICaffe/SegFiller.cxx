@@ -215,7 +215,7 @@ namespace larcv {
       LARCV_CRITICAL() << "Segmentation image channel (" << _seg_channel << ") does not exist in data!" << std::endl;
       throw larbys();
     }
-    
+
     if(_entry_image_data.empty()) _entry_image_data.resize(entry_image_size(),0.);
     for(auto& v : _entry_image_data) v = 0.;
 
