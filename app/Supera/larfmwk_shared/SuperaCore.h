@@ -80,6 +80,7 @@ namespace larcv {
 		const std::vector<U>& mct_v,
 		const std::vector<V>& mcs_v,
 		const std::vector<W>& sch_v,
+		const larcv::supera::InteractionROI_t& interaction_roi,
 		const int time_offset=0);
     private:
       larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
@@ -113,6 +114,7 @@ namespace larcv {
       bool _configured;
       bool _use_mc;
       bool _store_chstatus;
+      bool _store_interaction_images;
       std::string _supera_fname;
       larcv::ROIType_t _default_roi_type;
     };
