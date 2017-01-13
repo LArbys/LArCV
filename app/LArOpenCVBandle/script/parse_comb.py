@@ -36,8 +36,9 @@ larbysimg_ana.SetManager(larbysimg.Manager())
 
 
 evstart=int(sys.argv[2])
-step=int(3375)
-#step=int(1717)
+#step=int(3375)
+step=int(1717)
+#step=int(20)
 
 proc.override_ana_file("numu_ccqe_p00_p07_rad6_sig_bak_%05d_%05d.root"%(evstart,evstart+step))
 #proc.override_ana_file("test.root")
