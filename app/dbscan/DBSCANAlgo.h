@@ -14,7 +14,7 @@ namespace dbscan {
   typedef std::vector< int > dbCluster; // list of indices to dbPoints
   typedef std::vector< std::vector<int> >  dbClusters; // list of list of indices to provided dbPoints
 
-  dbPoints extractPointsFromImage( const larcv::Image2D& img, float threshold );
+  dbPoints extractPointsFromImage( const larcv::Image2D& img, const double threshold );
 
   class dbscanOutput {
   public: 
