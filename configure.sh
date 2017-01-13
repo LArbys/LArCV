@@ -9,8 +9,7 @@ else
 fi
 
 # set the build dir
-export LARCV_BUILDDIR=/grid/fermiapp/products/uboone/larcv/v05_09_00/Linux64bit+2.6-2.12
-
+unset LARCV_BUILDDIR
 if [[ -z $LARCV_BUILDDIR ]]; then
     export LARCV_BUILDDIR=$LARCV_BASEDIR/build
 fi
