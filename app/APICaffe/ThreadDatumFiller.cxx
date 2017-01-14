@@ -295,8 +295,7 @@ namespace larcv {
     // counter for _optional_next_index_v
     size_t next_batch_ctr = 0;
     
-    //LARCV_INFO() << "Entering process loop" << std::endl;
-    std::cout << "Entering process loop" << std::endl;
+    LARCV_INFO() << "Entering process loop" << std::endl;
     while (valid_ctr < nentries) {
       size_t entry = last_entry + 1;
       if(_optional_next_index_v.size()) {
@@ -319,9 +318,8 @@ namespace larcv {
 
       }
 
-      //LARCV_INFO() << "Processing entry: " << entry
-      std::cout << "Processing entry: " << entry
-                   << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
+      LARCV_INFO() << "Processing entry: " << entry
+		   << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
 
       last_entry = entry;
       bool good_status = _driver.process_entry(entry, true);

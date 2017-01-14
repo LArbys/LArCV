@@ -15,8 +15,9 @@ namespace larcv {
     , _slice_v()
     , _max_ch(0)
   { 
-    _image_product_type = kProductImage2D;
-    _label_product_type = kProductImage2D;
+    _image_product_type  = kProductImage2D;
+    _label_product_type  = kProductImage2D;
+    _weight_product_type = kProductImage2D;
     _seg_channel = kINVALID_SIZE;
   }
 

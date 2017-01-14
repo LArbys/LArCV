@@ -52,11 +52,13 @@ namespace larcv {
 
   bool DatumFillerBase::process(IOManager& mgr)
   {
+    LARCV_INFO() << std::endl;
+
     if(_current_entry == kINVALID_SIZE) {
       LARCV_CRITICAL() << "batch_begin() not called... Note this process is only meant to use with ThreadReadDriver!\n";
       throw larbys();
     }
-
+    LARCV_INFO() << std::endl;
     if(_image_producer_id == kINVALID_PRODUCER) {
 
       _image_producer_id = mgr.producer_id(_image_product_type,_image_producer);
@@ -70,14 +72,14 @@ namespace larcv {
         LARCV_CRITICAL() << "Label producer " << _label_producer << " not valid!" << std::endl;
         throw larbys();
       }
-
+      LARCV_INFO() << std::endl;
       if(!_weight_producer.empty())
 	_weight_producer_id = mgr.producer_id(_weight_product_type,_weight_producer);
     }
-
+    LARCV_INFO() << std::endl;
     auto const image_data = mgr.get_data(_image_producer_id);
     auto const label_data = mgr.get_data(_label_producer_id);
-
+    LARCV_INFO() << std::endl;
     if(_entry_image_size==kINVALID_SIZE) {
 
       _entry_image_size = compute_image_size(image_data);
