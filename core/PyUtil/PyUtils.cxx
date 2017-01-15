@@ -41,7 +41,7 @@ namespace larcv {
     return PyArray_FromDimsAndData( 2, dim_data, NPY_FLOAT, (char*) &(vec[0]));
   }
 
-  larcv::Image2D as_image2d(PyObject* pyarray,ImageMeta meta)
+  larcv::Image2D as_image2d_meta(PyObject* pyarray,ImageMeta meta)
   {
     SetPyUtil();
     float **carray;

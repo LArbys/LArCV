@@ -47,6 +47,7 @@ namespace larcv {
     for( auto& v : _label_data  ) v=0.;
     for( auto& v : _weight_data ) v=0.;
     _current_entry = 0;
+    _meta_data.clear();
     this->child_batch_begin();
   }
 
@@ -154,7 +155,6 @@ namespace larcv {
   void DatumFillerBase::batch_end()
   { 
     this->child_batch_end();
-    _meta_data.clear();
   }
 
   void DatumFillerBase::finalize()
