@@ -105,6 +105,7 @@ namespace larcv {
     if(_weight_producer_id != kINVALID_PRODUCER)
       weight_data = mgr.get_data(_weight_producer_id);
 
+    _entry_meta_data.clear();
     this->fill_entry_data(image_data,label_data,weight_data);
 
     auto const& entry_image_data  = entry_data(kFillerImageData);
@@ -144,13 +145,16 @@ namespace larcv {
     for(size_t i = 0; i<_entry_weight_size; ++i)
       _weight_data[current_weight_index_start + i] = entry_weight_data[i];
 
+    _meta_data.emplace_back(std::move(_entry_meta_data));
+
     ++_current_entry;
     return true;
   }
 
   void DatumFillerBase::batch_end()
   { 
-    this->child_batch_end(); 
+    this->child_batch_end();
+    _meta_data.clear();
   }
 
   void DatumFillerBase::finalize()

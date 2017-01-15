@@ -210,8 +210,10 @@ namespace larcv {
         size_t input_ch = _slice_v[ch];
 
         auto const& input_img2d = image_v[input_ch];
+	auto const& input_meta  = input_img2d.meta();
+	_entry_meta_data.push_back(input_meta);
 
-        if(_crop_image) _cropper.set_crop_region(input_img2d.meta().rows(), input_img2d.meta().cols());
+        if(_crop_image) _cropper.set_crop_region(input_meta.rows(), input_meta.cols());
 
         auto const& input_image = (_crop_image ? _cropper.crop(input_img2d) : input_img2d.as_vector());
 

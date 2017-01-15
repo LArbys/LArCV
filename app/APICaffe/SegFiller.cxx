@@ -244,12 +244,14 @@ namespace larcv {
 	LARCV_INFO() << "Filling for an image channel " << input_ch << std::endl;
 
         auto const& input_img2d = image_v[input_ch];
-
+	auto const& input_meta  = input_img2d.meta();
+	_entry_meta_data.push_back(input_meta);
+	
         if(!ch && _crop_image) {
 
 	  LARCV_INFO() << "First image: setting cropping region (" 
 		       << _cropper.rows() << "x" << _cropper.cols() << std::endl;
-          _cropper.set_crop_region(input_img2d.meta().rows(), input_img2d.meta().cols());
+          _cropper.set_crop_region(input_meta.rows(), input_meta.cols());
 
 	}
 
@@ -281,12 +283,12 @@ namespace larcv {
 	  auto const& weight_img2d = ((EventImage2D*)(weight_data))->Image2DArray()[input_ch];
 
 	  // Make sure dimension matches
-	  if(weight_img2d.meta().cols() != input_img2d.meta().cols() ||
-	     weight_img2d.meta().rows() != input_img2d.meta().rows() ) {
+	  if(weight_img2d.meta().cols() != input_meta.cols() ||
+	     weight_img2d.meta().rows() != input_meta.rows() ) {
 	    LARCV_CRITICAL() << "Channel " << input_ch << ": weight dim (col,row) = ("
 			     << weight_img2d.meta().rows() << "," << weight_img2d.meta().cols() << ")"
 			     << " vs. Image dim ("
-			     << input_img2d.meta().rows() << "," << input_img2d.meta().cols() << ")"
+			     << input_meta.rows() << "," << input_meta.cols() << ")"
 			     << std::endl;
 	    throw larbys();
 	  }

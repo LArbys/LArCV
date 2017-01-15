@@ -71,6 +71,8 @@ namespace larcv {
     const std::vector<float>& labels() const;
 
     const std::vector<float>& weights() const;
+
+    const std::vector<std::vector<larcv::ImageMeta> >& meta() const;
     
     const ProcessDriver* pd() { return &_driver; }
     
