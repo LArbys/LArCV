@@ -172,12 +172,26 @@ namespace larcv {
 
     // alternatively, m_rng class member can give you
     // m_rng->Gaus( mean, sigma )
+    std::random_device rd;
+    std::mt19937 gen(rd());
 
+    std::normal_distribution<double> overall_noise(1.0,m_config.overall_std);
+    std::uniform_real_distribution<double> picker(0.0,1.0);
 
     for ( auto const& pixel : pixels ) {
       int row = pixel.Y();
       int col = pixel.X();
-
+      float val = pixel.Intensity();
+      float manip = overall_noise(gen);
+      float choice1 =  picker(gen);
+      float choice2 =  picker(gen);
+      val = val*manip;
+      if (choice1>0.98){row = row+1;}
+      if (choice1>0.995){row = row+1;}
+      if (choice2<0.02){col = col+1;}
+      if (choice2>0.005){col = col+1;}
+      output_image.set_pixel(row, col, val);
+      
       // you won't need this right away I think, but this is how you convert to time and wire
       //float tick = meta.pos_y( row );
       //float wire = meta.pos_x( col );
