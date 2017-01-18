@@ -228,9 +228,9 @@ namespace larcv {
     uint _shower_ass_id;
     uint _shower_ass_type;
 
-    float _shower_vtx3D_x;
-    float _shower_vtx3D_y;   
-    float _shower_vtx3D_z;
+    double _shower_vtx3D_x;
+    double _shower_vtx3D_y;   
+    double _shower_vtx3D_z;
     
     std::vector<float>_start2D_x_v;
     std::vector<float> _start2D_y_v;

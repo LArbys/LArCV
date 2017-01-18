@@ -308,7 +308,7 @@ namespace larcv {
     _track_tree->Branch("edge2D_2_y_v", &_edge2D_2_y_v);
     
     /// VertexSingleShower info
-    _shower_tree = new TTree("ShowerTree","");
+    _shower_tree = new TTree("ShowerShowerTree","");
     
     _event_tree->Branch("n_showerclusters",&_n_showerclusters,"_n_showerclusters/i");
 
@@ -320,9 +320,9 @@ namespace larcv {
     _shower_tree->Branch("ass_id", &_shower_ass_id, "_ass_id/i");
     _shower_tree->Branch("ass_type", &_shower_ass_type, "_ass_type/i");
 
-    _shower_tree->Branch("vtx3D_x",&_shower_vtx3D_x,"_shower_vtx3D_x/d");
-    _shower_tree->Branch("vtx3D_y",&_shower_vtx3D_y,"_shower_vtx3D_y/d");
-    _shower_tree->Branch("vtx3D_z",&_shower_vtx3D_z,"_shower_vtx3D_z/d");
+    _shower_tree->Branch("vtx3D_x",&_shower_vtx3D_x,"_shower_vtx3D_x/D");
+    _shower_tree->Branch("vtx3D_y",&_shower_vtx3D_y,"_shower_vtx3D_y/D");
+    _shower_tree->Branch("vtx3D_z",&_shower_vtx3D_z,"_shower_vtx3D_z/D");
     
     _shower_tree->Branch("start2D_x_v", &_start2D_x_v);
     _shower_tree->Branch("start2D_y_v", &_start2D_y_v);
@@ -334,8 +334,8 @@ namespace larcv {
 
 
   float LArbysImageAna::dist_defect_hip_mip(const larocv::data::Cluster* c1,
-					    const larocv::data::Cluster* c2,
-					    const geo2d::Vector<float> dpt) {
+  					    const larocv::data::Cluster* c2,
+  					    const geo2d::Vector<float> dpt) {
 
     if (!c1) return kINVALID_FLOAT;
     if (!c2) return kINVALID_FLOAT;
@@ -640,7 +640,7 @@ namespace larcv {
 	    }
 	    
 	    defect_id++;
-
+	    
 	    auto dist = dist_defect_hip_mip(longest_mip,longest_hip,defect._pt_defect);
 	    // std::cout << "Observed " << defect._pt_defect << " dist: " << dist << std::endl;
 	    if (dist < ddist) {
@@ -904,7 +904,7 @@ namespace larcv {
       
 	const auto& shr_cluster = shower_clusters[shr_cluster_idx];
 
-	_shower_id       = shr_cluster.id();
+	_shower_id       = shr_cluster_idx;//shr_cluster.id(); //--> currently invalid
 	_shower_ass_id   = shr_cluster.ass_id();
 	_shower_ass_type = shr_cluster.ass_type();
 
