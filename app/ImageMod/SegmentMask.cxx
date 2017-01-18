@@ -98,13 +98,20 @@ namespace larcv {
 
       auto& image = image_v[pid];
       auto const& data = image.as_vector();
-      
-      for(size_t px_idx=0; px_idx < data.size(); ++px_idx)
 
-	if(!valid_roi_v[(size_t)(data[px_idx])]) image.set_pixel(px_idx,_mask_value);
+      size_t pixel_val;
+      for(size_t px_idx=0; px_idx < data.size(); ++px_idx) {
 
+	if(data[px_idx]<0) image.set_pixel(px_idx,_mask_value);
+	else{
+	  pixel_val = (size_t)(data[px_idx]);
+
+	  if(pixel_val >= valid_roi_v.size() || !valid_roi_v[pixel_val])
+	    image.set_pixel(px_idx,_mask_value);
+	}
+      }
     }
-
+      
     output_event_image->Emplace(std::move(image_v));
     
     return true;
