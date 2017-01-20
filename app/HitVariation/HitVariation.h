@@ -37,17 +37,20 @@ namespace larcv {
     	std::string originalimg_tree_name;
     	std::string roi_label_tree_name;
     	int numplanes;
+        bool make_random_image;
     } m_config;
 
    IOManager& GetIOManager() { return *m_ioman; }
 
    // primary method
-   std::vector< std::vector<larcv::Image2D> > GenerateImages( const int num_images, const std::vector<double>& parameters, 
-    std::vector<int>& labels, std::vector<int>& entrynumbers );
+   void GenerateImages( const int num_images, const std::vector<double>& parameters, 
+			std::vector< std::vector<larcv::Image2D> >& output, std::vector<int>& labels, std::vector<int>& entrynumbers );
 
-   // supporting methods
+   // supporting methods:
+   // Below is for Matt's code
    larcv::Image2D MakeImageFromHits( const std::vector<larcv::Pixel2D>& pixels, const larcv::ImageMeta& meta, const std::vector<double>& parameters );
-
+   // Below is just an example
+   larcv::Image2D MakeRandomImage( const std::vector<larcv::Pixel2D>& pixels, const larcv::ImageMeta& meta, const std::vector<double>& parameters );
 
   protected:
   	// IOManager: this is the interface to the LArCV files

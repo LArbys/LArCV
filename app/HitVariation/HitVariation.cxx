@@ -49,6 +49,7 @@ namespace larcv {
     m_config.originalimg_tree_name = hitvary_pset.get<std::string>("OriginalImageTreeName");
     m_config.roi_label_tree_name = hitvary_pset.get<std::string>("ROILabelTreeName");
     m_config.numplanes       = hitvary_pset.get<int>("NumberOfPlanes",3);
+    m_config.make_random_image = hitvary_pset.get<bool>("MakeExampleRandomImages");
 
     // rng 
     m_seed = hitvary_pset.get<long>("RNGSeed",-1);
@@ -69,8 +70,8 @@ namespace larcv {
   }
 
 
-  std::vector< std::vector<larcv::Image2D> > HitVariation::GenerateImages( const int num_images, const std::vector<double>& parameters, 
-    std::vector<int>& labels, std::vector<int>& entrynumbers ) {
+  void HitVariation::GenerateImages( const int num_images, const std::vector<double>& parameters, 
+				     std::vector< std::vector<larcv::Image2D> >& output, std::vector<int>& labels, std::vector<int>& entrynumbers ) {
     // Generates images from hits with parameterized variations
     // inputs
     // -------
@@ -100,6 +101,9 @@ namespace larcv {
     //   ...
     //   // do stuff
 
+
+    output.clear();
+    
     // get random set of entries
     entrynumbers.resize( num_images );
     for (int ientry=0; ientry<num_images; ientry++){
@@ -107,31 +111,48 @@ namespace larcv {
     }
     labels.resize(num_images);
 
-    // container where output images are going
-    std::vector< std::vector<larcv::Image2D> > output_container;
-
     // get the data
     int ientry = 0;
     for ( auto &entry : entrynumbers ) {
       // set the entry in the file
+      std::cout << "Reading entry " << entry << std::endl;
       m_ioman->read_entry( entry );
 
-      // get the pixel data
-      larcv::EventPixel2D* event_pixel_container = (larcv::EventPixel2D*)m_ioman->get_data( larcv::kProductPixel2D, m_config.pixel_tree_name );
+      // get image container
       larcv::EventImage2D* event_original_images = (larcv::EventImage2D*)m_ioman->get_data( larcv::kProductImage2D, m_config.originalimg_tree_name );
-
+      const std::vector< larcv::Image2D >& input_images = event_original_images->Image2DArray();
+      
+      // output image container
       std::vector< larcv::Image2D > output_images;
-      for ( int p=0; p<m_config.numplanes; p++ ) {
-        const std::vector<larcv::Pixel2D>& pixels_v = event_pixel_container->Pixel2DArray( p ); //< vector containing pixels
-        const larcv::ImageMeta& meta = event_original_images->Image2DArray().at(p).meta(); //< meta describes image size and coordinates
-        larcv::Image2D plane_image = MakeImageFromHits( pixels_v, meta, parameters );
-        output_images.emplace_back( std::move(plane_image) );
+      
+      if ( !m_config.make_random_image ) {
+	
+	// get the pixel data
+	std::cout << "Reading pixel containers" << std::endl;
+	larcv::EventPixel2D* event_pixel_container = (larcv::EventPixel2D*)m_ioman->get_data( larcv::kProductPixel2D, m_config.pixel_tree_name );
+
+	std::cout << "Making output images" << std::endl;
+	for ( int p=0; p<m_config.numplanes; p++ ) {
+	  const larcv::ImageMeta& meta = event_original_images->Image2DArray().at(p).meta(); //< meta describes image size and coordinates
+	  const std::vector<larcv::Pixel2D>& pixels_v = event_pixel_container->Pixel2DArray( p ); //< vector containing pixels
+	  larcv::Image2D plane_image = MakeImageFromHits( pixels_v, meta, parameters ); ///< proper function
+	  output_images.emplace_back( std::move(plane_image) );
+	}
+      }
+      else {
+	for (int p=0; p<(int)input_images.size(); p++ ) {
+	  const larcv::ImageMeta& meta =input_images.at(p).meta(); //< meta describes image size and coordinates
+	  std::vector<larcv::Pixel2D> dummy_pixel_v;
+	  larcv::Image2D plane_image = MakeRandomImage( dummy_pixel_v, meta, parameters );
+	  output_images.emplace_back( std::move(plane_image) );
+	}
       }
 
       // save it!
-      output_container.emplace_back( std::move(output_images) );
+      output.emplace_back( std::move(output_images) );
 
       // Get the truth label. Stored in the ROI objects which store event/interaction/particle meta data
+      std::cout << "get truth info to make label" << std::endl;
       larcv::EventROI* event_roi_metadata = (larcv::EventROI*)m_ioman->get_data( larcv::kProductROI, m_config.roi_label_tree_name );
       const larcv::ROI& roi = event_roi_metadata->ROIArray().front();
       int label = -1;
@@ -267,6 +288,21 @@ namespace larcv {
  //    }
 
   }//end of MakeImageFromHits
+
+  larcv::Image2D HitVariation::MakeRandomImage( const std::vector<larcv::Pixel2D>& pixels, const larcv::ImageMeta& meta, const std::vector<double>& parameters ) {
+    // create new image from meta. the latter provides the dimensions and coordinates of image
+    larcv::Image2D img(meta);
+    // set all pixels to zero
+    img.paint(0.0);
+    for ( size_t row=0; row<meta.rows(); row++) {
+      for ( size_t col=0; col<meta.cols(); col++) {
+	float random_value = m_rng->Gaus( 50.0, 20.0 );
+	img.set_pixel( row, col, random_value );
+      }
+    }
+
+    return img;
+  }
 
 }//end of larcv namespace
 
