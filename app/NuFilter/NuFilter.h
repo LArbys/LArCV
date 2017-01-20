@@ -57,17 +57,30 @@ namespace larcv {
     double _max_nu_init_e;
     double _dep_sum_lepton;
     double _dep_sum_proton;
-
+    
     bool _selected;
     bool _select_signal;
     bool _select_background;
-
-    struct this_proton{
+    
+    struct aparticle{
       int trackid;
-      int parenttrackid;
+      int ptrackid;
+      bool primary;
       float depeng;
     };
 
+    uint _n_fail_nupdg;
+    uint _n_fail_nuE;
+    uint _n_fail_lepton_dep;
+    uint _n_fail_proton_dep;
+    uint _n_pass;
+    uint _n_calls;
+
+    TTree* _event_tree;
+    
+    uint _run;
+    uint _subrun;
+    uint _event; 
     
   };
 
