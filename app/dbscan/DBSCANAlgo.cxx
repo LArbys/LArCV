@@ -9,22 +9,6 @@
 
 namespace dbscan {
 
-  dbPoints extractPointsFromImage( const larcv::Image2D& img, const double threshold ) {
-    dbPoints pixels;
-    const larcv::ImageMeta& meta = img.meta();
-    for (size_t r=0; r<meta.rows(); r++) {
-      for (size_t c=0; c<meta.cols(); c++) {
-        if ( img.pixel(r,c)>threshold ) {
-          std::vector<double> pixel(2,0.0);
-          pixel[0] = (double)c;
-          pixel[1] = (double)r;
-          pixels.emplace_back( std::move(pixel) );
-        }
-      }
-    }
-    return pixels;
-  }
-
   dbscanOutput DBSCANAlgo::scan( dbPoints input, int minPts, double eps, bool borderPoints, double approx ) {
 
     // allocate output
@@ -288,5 +272,62 @@ namespace dbscan {
     }//end of loop over hits in the cluster
     
   }
+
+
+  // ==========================================================================================
+  // UTILITY FUNCTIONS
+
+  dbPoints extractPointsFromImage( const larcv::Image2D& img, const double threshold ) {
+    dbPoints pixels;
+    const larcv::ImageMeta& meta = img.meta();
+    for (size_t r=0; r<meta.rows(); r++) {
+      for (size_t c=0; c<meta.cols(); c++) {
+        if ( img.pixel(r,c)>threshold ) {
+          std::vector<double> pixel(2,0.0);
+          pixel[0] = (double)c;
+          pixel[1] = (double)r;
+          pixels.emplace_back( std::move(pixel) );
+        }
+      }
+    }
+    return pixels;
+  }
+
+  ClusterExtrema ClusterExtrema::FindClusterExtrema( const int cluster_id, const dbscanOutput& clustering_info, const dbPoints& hitlist )  {
+    if ( cluster_id <0 || cluster_id >= (int)clustering_info.clusters.size() )
+        throw std::runtime_error("ClusterExtrema::FindClusterExtrema[error] cluster id is invalid");
+
+    const dbCluster& cluster = clustering_info.clusters.at(cluster_id);
+    return ClusterExtrema::FindClusterExtrema( cluster, hitlist );
+  }
+
+  ClusterExtrema ClusterExtrema::FindClusterExtrema( const dbCluster& cluster, const dbPoints& hitlist ) {
+
+    ClusterExtrema extrema;
+  
+    for ( int ihit=0; ihit<(int)cluster.size(); ihit++) {
+      int hitidx = cluster.at(ihit);
+      const std::vector<double>& hit = hitlist.at(hitidx);
+      if ( hit[0]<extrema.leftmost()[0]) {
+        extrema.leftmost()[0] = hit[0];
+        extrema.leftmost()[1] = hit[1];
+      }
+      if (hit[0]>extrema.rightmost()[0]) {
+        extrema.rightmost()[0] = hit[0];
+        extrema.rightmost()[1] = hit[1];
+      }
+      if (hit[1]>extrema.topmost()[1]) {
+        extrema.topmost()[0] = hit[0];
+        extrema.topmost()[1] = hit[1];
+      }
+      if (hit[1]<extrema.bottommost()[1]) {
+        extrema.bottommost()[0] = hit[0];
+        extrema.bottommost()[1] = hit[1];
+      }
+    } 
+
+    return extrema;   
+  }
+
 
 }
