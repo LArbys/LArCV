@@ -22,8 +22,8 @@
 #include "TTree.h"
 #include "LArUtil/PxUtils.h"
 #include "DataFormat/Image2D.h"
-#include "Core/HalfLine.h"
-#include "Core/Line.h"
+#include "Geo2D/Core/HalfLine.h"
+#include "Geo2D/Core/Line.h"
 #include "DataFormat/EventROI.h"
 #include "NuFilter.h"
 

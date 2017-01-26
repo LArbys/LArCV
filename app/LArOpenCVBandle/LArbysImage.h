@@ -16,9 +16,9 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
-#include "Core/ImageManager.h"
-#include "ImageCluster/Base/ImageClusterManager.h"
-#include "ImageCluster/Base/ImageClusterViewer.h"
+#include "LArOpenCV/Core/ImageManager.h"
+#include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
+#include "LArOpenCV/ImageCluster/Base/ImageClusterViewer.h"
 #include "DataFormat/user_info.h"
 
 namespace larcv {

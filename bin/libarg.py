@@ -12,6 +12,8 @@ if 'LARLITE_BASEDIR' in os.environ:
     if 'LAROPENCV_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterBase']
         libs += [' -lLArOpenCV_ImageClusterAlgoData']
+        libs += [' -lLArOpenCV_ImageClusterAlgoFunction']
+        libs += [' -lLArOpenCV_ImageClusterAlgoClass']
         libs += [' -lLArOpenCV_ImageClusterCluster']
         libs += [' -lLArOpenCV_ImageClusterDirection']
         libs += [' -lLArOpenCV_ImageClusterUtil']

@@ -2,14 +2,14 @@
 #define __LARBYSIMAGEANA_CXX__
 #include "LArbysImageAna.h"
 
-#include "AlgoData/DefectClusterData.h"
-#include "AlgoData/Refine2DVertexData.h"
-#include "AlgoData/VertexClusterData.h"
-#include "AlgoData/LinearVtxFilterData.h"
-#include "AlgoData/dQdXProfilerData.h"
-#include "AlgoData/DefectClusterData.h"
-#include "AlgoData/LinearTrackClusterData.h"
-#include "AlgoData/SingleShowerData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/DefectClusterData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/Refine2DVertexData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/VertexClusterData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/LinearVtxFilterData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/dQdXProfilerData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/DefectClusterData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/LinearTrackClusterData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/SingleShowerData.h"
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 
@@ -614,7 +614,7 @@ namespace larcv {
 
 	    for(auto atom_idx : ass_atom_id_v) {
 
-	      const auto& ctor = atom_data.at(atom_idx)._ctor;
+	      const auto& ctor = atom_data.at(atom_idx);
 	      
 	      uint npts = 0;
 	      uint qsum = 0;

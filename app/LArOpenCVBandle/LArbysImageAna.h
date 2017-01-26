@@ -18,8 +18,8 @@
 #include "Processor/ProcessFactory.h"
 #include "LArbysImage.h"
 #include "DataFormat/EventImage2D.h"
-#include "Core/Vector.h"
-#include "AlgoData/HIPClusterData.h"
+#include "Geo2D/Core/Vector.h"
+#include "LArOpenCV/ImageCluster/AlgoData/HIPClusterData.h"
 
 
 namespace larcv {

@@ -42,14 +42,14 @@ namespace larcv {
 
   void LArbysImage::initialize()
   {
-    _eui = new ::larlite::event_user;
-    _tree = new TTree("tree","");
-    _tree->Branch("user_info",&_eui);
+    //_eui = new ::larlite::event_user;
+    //_tree = new TTree("tree","");
+    //_tree->Branch("user_info",&_eui);
   }
 
   bool LArbysImage::process(IOManager& mgr)
   {
-    _eui->clear_data();
+    //_eui->clear_data();
     
     _track_img_mgr.clear();
     _shower_img_mgr.clear();
@@ -69,7 +69,7 @@ namespace larcv {
       auto      & meta = _track_img_mgr.meta_at(plane);
       auto const& roi  = _track_img_mgr.roi_at(plane);
 
-      if (_debug) meta.set_ev_user(_eui);
+      //if (_debug) meta.set_ev_user(_eui);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
 
@@ -83,7 +83,7 @@ namespace larcv {
       auto      & meta = _shower_img_mgr.meta_at(plane);
       auto const& roi  = _shower_img_mgr.roi_at(plane);
 
-      if (_debug) meta.set_ev_user(_eui);
+      //if (_debug) meta.set_ev_user(_eui);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
 

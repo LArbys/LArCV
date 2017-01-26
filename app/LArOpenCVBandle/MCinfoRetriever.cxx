@@ -7,7 +7,7 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 #include "DataFormat/EventImage2D.h"
-#include "Core/Geo2D.h"
+#include "Geo2D/Core/Geo2D.h"
 
 namespace larcv {
 
