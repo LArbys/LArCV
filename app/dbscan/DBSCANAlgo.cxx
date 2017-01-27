@@ -278,10 +278,19 @@ namespace dbscan {
   // UTILITY FUNCTIONS
 
   dbPoints extractPointsFromImage( const larcv::Image2D& img, const double threshold ) {
+    const larcv::ImageMeta& meta = img.meta();
+    dbPoints pixels = extractPointsFromImageBounds( img, threshold, 0, meta.rows()-1, 0, meta.cols()-1 );
+    return pixels;
+  }
+  dbPoints extractPointsFromImageBounds( const larcv::Image2D& img, const double threshold, int row_min, int row_max, int col_min, int col_max ) {
     dbPoints pixels;
     const larcv::ImageMeta& meta = img.meta();
-    for (size_t r=0; r<meta.rows(); r++) {
-      for (size_t c=0; c<meta.cols(); c++) {
+    if ( row_min<0 ) row_min = 0;
+    if ( row_max>=(int)meta.rows() ) row_max = (int)meta.rows()-1;
+    if ( col_min<0 ) col_min = 0;
+    if ( col_max>=(int)meta.cols() ) col_max = (int)meta.cols()-1;
+    for (int r=row_min; r<=row_max; r++) {
+      for (int c=col_min; c<=col_max; c++) {
         if ( img.pixel(r,c)>threshold ) {
           std::vector<double> pixel(2,0.0);
           pixel[0] = (double)c;
@@ -304,8 +313,19 @@ namespace dbscan {
   ClusterExtrema ClusterExtrema::FindClusterExtrema( const dbCluster& cluster, const dbPoints& hitlist ) {
 
     ClusterExtrema extrema;
-  
-    for ( int ihit=0; ihit<(int)cluster.size(); ihit++) {
+    if ( cluster.size()==0 ) 
+      return extrema;
+
+    // seed the values
+    int firsthit_idx = cluster.front();
+    const std::vector<double>& hit = hitlist.at(firsthit_idx);
+    extrema.leftmost() = hit;
+    extrema.rightmost() = hit;
+    extrema.topmost() = hit;
+    extrema.bottommost() = hit;
+
+    // find the extrema
+    for ( int ihit=1; ihit<(int)cluster.size(); ihit++) {
       int hitidx = cluster.at(ihit);
       const std::vector<double>& hit = hitlist.at(hitidx);
       if ( hit[0]<extrema.leftmost()[0]) {
@@ -325,8 +345,13 @@ namespace dbscan {
         extrema.bottommost()[1] = hit[1];
       }
     } 
-
+    extrema.empty = false;
     return extrema;   
+  }
+
+  ClusterExtrema ClusterExtrema::MakeEmptyExtrema() {
+    ClusterExtrema empty;
+    return empty;
   }
 
 
