@@ -5,6 +5,8 @@
 #include <sstream>
 #include <exception>
 
+#include "LArUtil/Geometry.h"
+
 namespace larcv {
 
   UBWireTool* UBWireTool::_g_ubwiretool = NULL;
@@ -347,6 +349,34 @@ namespace larcv {
     
     crosses = 0;
     UBWireTool::lineSegmentIntersection2D( ls1, ls2, intersection, crosses );
+  }
+
+  void UBWireTool::getMissingWireAndPlane( const int plane1, const int wireid1, const int plane2, const int wireid2, 
+      int& otherplane, int& otherwire, std::vector<float>& intersection, int& crosses ) {
+    // maybe think about caching all these values
+    UBWireTool* _g = UBWireTool::_get_global_instance();
+
+    _g->wireIntersection( plane1, wireid1, plane2, wireid2, intersection, crosses );
+
+    if ( crosses==0 ) {
+      otherplane = -1;
+      otherwire = -1;
+      return;
+    }
+
+    // which is the missing plane?
+    for (int p=0; p<3; p++ ) {
+      if ( p!=plane1 && p!=plane2) {
+        otherplane = p;
+        break;
+      }
+    }
+    if ( otherplane==-1 ) {
+      throw std::runtime_error("UBWireTool::getMissingWireAndPlane. Could not determine the other plane");
+    }
+
+    Double_t xyz[3] = { 0, intersection[1], intersection[0] };
+    otherwire = (int)larutil::Geometry::GetME()->WireCoordinate( xyz, otherplane );;
   }
 
 
