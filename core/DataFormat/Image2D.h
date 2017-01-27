@@ -121,6 +121,7 @@ namespace larcv {
 
     Image2D& operator +=(const std::vector<float>& rhs);
     Image2D& operator -=(const std::vector<float>& rhs);
+    Image2D& operator +=(const larcv::Image2D& rhs);
 
     // Matrix Multiplication
     /// Matrix multiplicaition
