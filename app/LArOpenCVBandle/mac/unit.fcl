@@ -72,16 +72,25 @@ ProcessDriver: {
             BreakPerVertex: false
         }
         rough_vtx : {}
-        refine_vtx : { PCACandidatesAlgo : "pca1" DefectClusterAlgo : "defbreak1" }#CleanImage : true }
+        refine_vtx : {
+            Verbosity : 2
+            PCACandidatesAlgo : "pca1"
+            DefectClusterAlgo : "defbreak1"
+            TrackVertexScan2D : { }
+        }
         vtxctor : {
             #Verbosity : 0
-            Refine2DVertexAlgo : "refine_vtx"
-            VertexParticleCluster : {
-                ThetaHi: 20
-                ThetaLo: 20
+            Refine2DVertexAlgo: "refine_vtx"
+            VertexParticleCluster: {
+                ThetaHi: 10
+                ThetaLo: 10
                 PIThreshold: 10
                 ContourMinDist: 5
-                UseHalfAngle: true
+                UseHalfAngle : true
+                RefinePolarCluster: true
+                RefineCartesianCluster: true
+                MaskFractionRadius: -1
+                MaskMinRadius: 3
             }
         }
         defbreak2 : {
