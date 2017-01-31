@@ -49,25 +49,15 @@ namespace larcv {
 
     void finalize();
 
-    virtual bool is(const std::string question) const
-    { return (question == "DatumFiller"); }
+    const std::string& producer(FillerDataType_t type) const;
 
-    size_t entries() const { return _nentries; }
+    virtual bool is(const std::string question) const;
 
-    const std::vector<std::vector<larcv::ImageMeta> >& meta() const
-    { return _meta_data; }
+    size_t entries() const;
 
-    const std::vector<float>& data(FillerDataType_t dtype = kFillerImageData) const
-    { switch(dtype) {
-      case kFillerImageData: 
-	return _image_data;
-      case kFillerLabelData:
-	return _label_data;
-      case kFillerWeightData:
-	return _weight_data;
-      }
-      return _weight_data;
-    }
+    const std::vector<std::vector<larcv::ImageMeta> >& meta() const;
+
+    const std::vector<float>& data(FillerDataType_t dtype = kFillerImageData) const;
 
     virtual const std::vector<int> dim(bool image=true) const = 0;
 
@@ -97,18 +87,7 @@ namespace larcv {
 
     virtual size_t compute_label_size(const larcv::EventBase* image) = 0;
 
-    const std::vector<float>& entry_data(FillerDataType_t dtype = kFillerImageData) const
-    { 
-      switch(dtype) {
-      case kFillerImageData:
-        return _entry_image_data;
-      case kFillerLabelData:
-        return _entry_label_data;
-      case kFillerWeightData:
-        return _entry_weight_data;
-      }
-      return _entry_weight_data;
-    }
+    const std::vector<float>& entry_data(FillerDataType_t dtype = kFillerImageData) const;
 
     const std::vector<larcv::ImageMeta>& entry_meta() const
     { return _entry_meta_data;}

@@ -13,6 +13,54 @@ namespace larcv {
     , _weight_producer_id (kINVALID_PRODUCER)
   {}
 
+  const std::string& 
+  DatumFillerBase::producer(DatumFillerBase::FillerDataType_t dtype) const
+  { switch(dtype) {
+    case kFillerImageData: 
+      return _image_producer;
+    case kFillerLabelData:
+      return _label_producer;
+    case kFillerWeightData:
+      return _weight_producer;
+    }
+    return _weight_producer;
+  }
+
+  size_t DatumFillerBase::entries() const { return _nentries; }
+
+  bool DatumFillerBase::is(const std::string question) const
+  { return (question == "DatumFiller"); }
+  
+  const std::vector<std::vector<larcv::ImageMeta> >& DatumFillerBase::meta() const
+  { return _meta_data; }
+  
+  const std::vector<float>& 
+  DatumFillerBase::data(DatumFillerBase::FillerDataType_t dtype) const
+  { switch(dtype) {
+    case kFillerImageData: 
+      return _image_data;
+    case kFillerLabelData:
+      return _label_data;
+    case kFillerWeightData:
+      return _weight_data;
+    }
+    return _weight_data;
+  }
+
+  const std::vector<float>& 
+  DatumFillerBase::entry_data(DatumFillerBase::FillerDataType_t dtype) const
+  { 
+    switch(dtype) {
+    case kFillerImageData:
+      return _entry_image_data;
+    case kFillerLabelData:
+      return _entry_label_data;
+    case kFillerWeightData:
+      return _entry_weight_data;
+    }
+    return _entry_weight_data;
+  }
+  
   void DatumFillerBase::configure(const PSet& cfg)
   {
     _image_producer  = cfg.get<std::string>("ImageProducer");

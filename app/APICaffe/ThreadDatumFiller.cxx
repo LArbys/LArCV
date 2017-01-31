@@ -191,6 +191,19 @@ namespace larcv {
     return _filler->dim(image);
   }
 
+  const std::string& ThreadDatumFiller::producer(DatumFillerBase::FillerDataType_t dtype) const
+  {
+    if (!_processing) {
+      LARCV_CRITICAL() << "Data is not available before start processing!" << std::endl;
+      throw larbys();
+    }
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+    return _filler->producer(dtype);
+  }
+
   const std::vector<float>& ThreadDatumFiller::data() const
   {
     if (!_processing) {
