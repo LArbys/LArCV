@@ -39,3 +39,4 @@ app/Supera/APILArSoft/supera.fcl
 *.ipynb
 .DS_Store
 *.pdf
+*.o

@@ -44,6 +44,17 @@ fi
 # Check Numpy
 export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
 
+# Check ann
+export LARCV_ANN=1
+export ANN_INCDIR=$LARCV_BASEDIR/app/ann_1.1.2/include
+export ANN_LIBDIR=$LARCV_BASEDIR/app/ann_1.1.2/lib
+if [[ -z $ANN_INCDIR ]]; then
+    export LARCV_ANN=0
+fi
+if [[ -z $ANN_LIBDIR ]]; then
+    export LARCV_ANN=0
+fi
+
 # warning for missing support
 missing=""
 if [ $LARCV_OPENCV -eq 0 ]; then
@@ -51,6 +62,9 @@ if [ $LARCV_OPENCV -eq 0 ]; then
 fi
 if [ $LARCV_NUMPY -eq 0 ]; then
     missing+=" Numpy"
+fi
+if [ $LARCV_ANN -eq 0 ]; then
+    missing+=" ANN"
 fi
 if [[ $missing ]]; then
     printf "\033[93mWarning\033[00m ... missing$missing support. Build without them.\n";
@@ -87,6 +101,11 @@ if [[ $LARLITE_BASEDIR ]]; then
     do
 	ln -sf $f $LARCV_APPDIR/Supera/APILArLite/
     done
+fi
+
+if [[ $ANN_LIBDIR ]]; then
+    printf "\033[93mANN: approximate nearest neighboor\033[00m\n"
+    echo "    Found ANN package"
 fi
 
 if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then

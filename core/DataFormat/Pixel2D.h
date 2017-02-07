@@ -49,7 +49,7 @@ namespace larcv {
     // set width
     void Width(float w) { _width = w; };
     // get width
-    float Width() { return _width; };
+    float Width() const { return _width; };
 
     //
     // uniry operators

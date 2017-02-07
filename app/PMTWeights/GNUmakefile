@@ -11,7 +11,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
-INCFLAGS += $(shell larcv-config --includes)
+INCFLAGS += $(shell larcv-config --includes) -I$(LARCV_BASEDIR)/app
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
@@ -20,7 +20,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += $(shell larcv-config --libs)
+LDFLAGS += $(shell larcv-config --libs) -lUBWireTool
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 

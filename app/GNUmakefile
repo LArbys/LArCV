@@ -14,6 +14,18 @@ endif
 ifeq ($(LARCV_NUMPY),1)
 SUBDIRS += APICaffe
 endif
+
+# if we build with dbscan and approx. nearest neighbor tools
+ifeq ($(LARCV_ANN),1)
+SUBDIRS += ANN dbscan
+ifeq ($(shell uname -s),Linux)
+  ANN_OS=linux-g++
+endif
+ifeq ($(shell uname -s),Darwin)
+  ANN_OS=macosx-g++
+endif
+endif
+
 ifdef LAROPENCV_BASEDIR
 SUBDIRS += LArOpenCVBandle
 endif
@@ -26,7 +38,13 @@ endif
 .phony: all clean
 
 all:
+ifeq (LARCV_ANN,1)
+	(cd ann_1.1.2 && $(MAKE) $(ANN_OS)) || exit $$?
+endif
 	@for i in $(SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $$i && $(MAKE) ) || exit $$?; done
+
+
+
 #####################################################################################
 #
 # CLEANs...
