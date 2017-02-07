@@ -21,7 +21,6 @@ namespace larcv {
   {
     _track_vertex_estimate_algo_name = cfg.get<std::string>("TrackVertexEstimateAlgoName");
   }
-
   
   void LArbysImageAna::ClearVertex() {
     _vtx2d_x_v.clear();
@@ -90,8 +89,8 @@ namespace larcv {
     auto& vtx_cluster_v=  trkvtxest_data->get_vertex();
       
     _n_vtx3d = (uint) vtx_cluster_v.size();
-      
-    for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) {
+    
+    for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) { 
 	
       // clear vertex
       ClearVertex();

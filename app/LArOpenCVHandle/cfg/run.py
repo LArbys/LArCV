@@ -42,7 +42,7 @@ proc.override_ana_file("numu_ccqe_p00_p07_ana_out_%05d_%05d.root"%(evstart,evsta
 
 proc.initialize()
 proc.batch_process(evstart,step)
-#proc.batch_process(0,1)
+#proc.batch_process(0,1000)
 
 proc.finalize()
 
