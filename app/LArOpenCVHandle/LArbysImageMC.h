@@ -125,10 +125,13 @@ namespace larcv {
     std::vector<double> _daughterY_v;
     std::vector<double> _daughterZ_v;
 
+
+  public:
     /// 2D Vertex Info
     std::vector<double> _vtx_2d_w_v;
     std::vector<double> _vtx_2d_t_v;
 
+  protected:
     /// LARCV Image2D data
     std::vector<larcv::Image2D> _image_v;
     ImageMeta _meta;

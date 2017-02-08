@@ -59,7 +59,8 @@ namespace larcv {
     void finalize();
     void clear_entry();
     void set_id(const size_t run, const size_t subrun, const size_t event);
-
+    size_t current_entry() const { return _in_tree_index; }
+    
     size_t get_n_entries() const
     { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
     

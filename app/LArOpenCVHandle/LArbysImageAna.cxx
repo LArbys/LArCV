@@ -46,6 +46,7 @@ namespace larcv {
     _event_tree->Branch("run"    ,&_run    , "run/i");
     _event_tree->Branch("subrun" ,&_subrun , "subrun/i");
     _event_tree->Branch("event"  ,&_event  , "event/i");
+    _event_tree->Branch("entry"  ,&_entry  , "entry/i");
     
     _vtx3d_tree = new TTree("Vtx3DTree","");
 
@@ -80,7 +81,8 @@ namespace larcv {
     _run    = (uint) event_id.run();
     _subrun = (uint) event_id.subrun();
     _event  = (uint) event_id.event();
-
+    _entry =  (uint) mgr.current_entry();
+      
     const auto& dm  = _mgr_ptr->DataManager();    
 
     /// Refine2D data
@@ -109,23 +111,20 @@ namespace larcv {
       _vtx3d_z = vtx3d.z;
       
       _vtx3d_n_planes = (uint) vtx3d.num_planes;
-      
+
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
+
+	if (_vtx3d_type < 2) {
+	  const auto& circle_vtx   = trkvtxest_data->get_circle_vertex(vtx_id,plane_id);
+	  const auto& circle_vtx_c = circle_vtx.center;
+	  auto& circle_x  = _circle_x_v [plane_id];
+	  auto& circle_y  = _circle_y_v [plane_id];
+	  auto& circle_xs = _circle_xs_v[plane_id];
+	  circle_x = circle_vtx_c.x;
+	  circle_y = circle_vtx_c.y;
+	  circle_xs = (uint) circle_vtx.xs_v.size();
+	}
 	
-	//_plane_id=plane_id;
-	
-	const auto& circle_vtx   = trkvtxest_data->get_circle_vertex(vtx_id,plane_id);
-	const auto& circle_vtx_c = circle_vtx.center;
-	  
-	auto& circle_x  = _circle_x_v [plane_id];
-	auto& circle_y  = _circle_y_v [plane_id];
-	auto& circle_xs = _circle_xs_v[plane_id];
-	  
-	circle_x = circle_vtx_c.x;
-	circle_y = circle_vtx_c.y;
-	  
-	circle_xs = (uint) circle_vtx.xs_v.size();
-	  
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
 	  

@@ -43,6 +43,7 @@ namespace larcv {
     uint _run;
     uint _subrun;
     uint _event;
+    uint _entry;
     
     /// Vtx3d data
     uint _n_vtx3d;
