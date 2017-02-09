@@ -5,7 +5,7 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 #include "DataFormat/EventImage2D.h"
-#include "LArOpenCV/ImageCluster/AlgoData/VertexEstimateData.h"
+#include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 
 namespace larcv {
 
@@ -86,9 +86,9 @@ namespace larcv {
     const auto& dm  = _mgr_ptr->DataManager();    
 
     /// Refine2D data
-    const auto trkvtxest_data = (larocv::data::VertexEstimateData*)dm.Data( dm.ID(_track_vertex_estimate_algo_name) );
+    const auto trkvtxest_data = (larocv::data::Vertex3DArray*)dm.Data( dm.ID(_track_vertex_estimate_algo_name) );
       
-    auto& vtx_cluster_v=  trkvtxest_data->get_vertex();
+    auto& vtx_cluster_v=  trkvtxest_data->as_vector();//trkvtxest_data->get_vertex();
       
     _n_vtx3d = (uint) vtx_cluster_v.size();
     
@@ -104,7 +104,7 @@ namespace larcv {
       const auto& vtx3d = vtx_cluster_v[vtx_id];
 	
       // set the vertex type
-      _vtx3d_type = (uint) trkvtxest_data->get_type(vtx_id);
+      _vtx3d_type = (uint) vtx3d.type;//trkvtxest_data.->get_type(vtx_id);
 	
       _vtx3d_x = vtx3d.x;
       _vtx3d_y = vtx3d.y;
@@ -115,7 +115,7 @@ namespace larcv {
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
 
 	if (_vtx3d_type < 2) {
-	  const auto& circle_vtx   = trkvtxest_data->get_circle_vertex(vtx_id,plane_id);
+	  const auto& circle_vtx   = vtx3d.cvtx2d_v.at(plane_id);//trkvtxest_data->get_circle_vertex(vtx_id,plane_id);
 	  const auto& circle_vtx_c = circle_vtx.center;
 	  auto& circle_x  = _circle_x_v [plane_id];
 	  auto& circle_y  = _circle_y_v [plane_id];
