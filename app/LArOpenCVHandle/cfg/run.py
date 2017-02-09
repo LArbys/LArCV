@@ -43,7 +43,7 @@ proc.override_ana_file("numu_%05d_%05d.root"%(evstart,evstart+step))
 
 proc.initialize()
 #proc.batch_process(evstart,step)
-proc.batch_process(0,20)
+proc.batch_process(0,10)
 
 proc.finalize()
 

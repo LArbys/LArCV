@@ -15,7 +15,8 @@ namespace larcv {
     
   void LArbysImage::configure(const PSet& cfg)
   {
-    _track_producer  = cfg.get<std::string>("TrackImageProducer");
+    _adc_producer    = cfg.get<std::string>("ADCImageProducer");
+    _track_producer  = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
     _output_producer = cfg.get<std::string>("OutputImageProducer","");
 
@@ -49,8 +50,7 @@ namespace larcv {
 
   bool LArbysImage::process(IOManager& mgr)
   {
-    //_eui->clear_data();
-    
+    _adc_img_mgr.clear();
     _track_img_mgr.clear();
     _shower_img_mgr.clear();
     _alg_mgr.ClearData();
@@ -63,17 +63,27 @@ namespace larcv {
 
     _process_time_image_extraction += watch_one.WallTime();
 
+    for (size_t plane = 0; plane < _adc_img_mgr.size(); ++plane) {
+
+      auto const& img  = _adc_img_mgr.img_at(plane);
+      auto      & meta = _adc_img_mgr.meta_at(plane);
+      auto const& roi  = _adc_img_mgr.roi_at(plane);
+
+      if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+
+      _alg_mgr.Add(img, meta, roi, 0);
+
+    }
+
     for (size_t plane = 0; plane < _track_img_mgr.size(); ++plane) {
 
       auto const& img  = _track_img_mgr.img_at(plane);
       auto      & meta = _track_img_mgr.meta_at(plane);
       auto const& roi  = _track_img_mgr.roi_at(plane);
 
-      //if (_debug) meta.set_ev_user(_eui);
-
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
 
-      _alg_mgr.Add(img, meta, roi, 0);
+      _alg_mgr.Add(img, meta, roi, 1);
 
     }
 
@@ -83,11 +93,9 @@ namespace larcv {
       auto      & meta = _shower_img_mgr.meta_at(plane);
       auto const& roi  = _shower_img_mgr.roi_at(plane);
 
-      //if (_debug) meta.set_ev_user(_eui);
-
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
 
-      _alg_mgr.Add(img, meta, roi, 1);
+      _alg_mgr.Add(img, meta, roi, 2);
 
     }
 
@@ -118,19 +126,29 @@ namespace larcv {
       throw larbys();
     }
 
-    auto ev_track_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_track_producer));
-
-    if(!ev_track_image) {
-      LARCV_CRITICAL() << "Image by " << _track_producer << " not found..." << std::endl;
+    auto ev_adc_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_adc_producer));
+    if(!ev_adc_image) {
+      LARCV_CRITICAL() << "Image by adc producer " << _adc_producer << " not found..." << std::endl;
       throw larbys();
     }
 
+    
+    EventImage2D* ev_track_image = nullptr;
+
+    if(!_track_producer.empty()) {
+      ev_track_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_track_producer));
+      if(!ev_track_image) {
+	LARCV_CRITICAL() << "Image by track producer " << _track_producer << " not found..." << std::endl;
+	throw larbys();
+      }
+    }
+    
     EventImage2D* ev_shower_image = nullptr;
 
     if(!_shower_producer.empty()) {
       ev_shower_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_shower_producer));
       if(!ev_shower_image) {
-	LARCV_CRITICAL() << "Image by " << _shower_producer << " not found..." << std::endl;
+	LARCV_CRITICAL() << "Image by shower producer " << _shower_producer << " not found..." << std::endl;
 	throw larbys();
       }
     }
@@ -169,30 +187,41 @@ namespace larcv {
   void LArbysImage::extract_image(IOManager& mgr) {
     LARCV_DEBUG() << "Extracting Image\n" << std::endl;
 
-    auto ev_track_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_track_producer));
-
-    if(!ev_track_image) {
-      LARCV_CRITICAL() << "Image by " << _track_producer << " not found..." << std::endl;
+    auto ev_adc_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_adc_producer));
+    
+    if (!ev_adc_image) {
+      LARCV_CRITICAL() << "Image by adc producer " << _adc_producer << " not found..." << std::endl;
       throw larbys();
     }
+
+    EventImage2D* ev_track_image = nullptr;
+    
+    if(!_track_producer.empty()) {
+      ev_track_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_track_producer));
+      if(!ev_track_image) {
+	LARCV_CRITICAL() << "Image by track producer " << _track_producer << " not found..." << std::endl;
+	throw larbys();
+      }
+    }
+
 
     EventImage2D* ev_shower_image = nullptr;
     
     if(!_shower_producer.empty()) {
       ev_shower_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_shower_producer));
       if(!ev_shower_image) {
-	LARCV_CRITICAL() << "Image by " << _shower_producer << " not found..." << std::endl;
+	LARCV_CRITICAL() << "Image by shower producer " << _shower_producer << " not found..." << std::endl;
 	throw larbys();
       }
     }
 
-    auto const& track_image_v = ev_track_image->Image2DArray();
+    auto const& adc_image_v = ev_adc_image->Image2DArray();
     
-    for(size_t i=0; i<track_image_v.size(); ++i) {
+    for(size_t i=0; i<adc_image_v.size(); ++i) {
 
-      auto const& cvmeta = track_image_v[i].meta();
+      auto const& cvmeta = adc_image_v[i].meta();
 
-      LARCV_DEBUG() << "Reading image (rows,cols) = (" << cvmeta.rows() << "," << cvmeta.cols() << ") "
+      LARCV_DEBUG() << "Reading adc image (rows,cols) = (" << cvmeta.rows() << "," << cvmeta.cols() << ") "
 		    << " ... (height,width) = (" << cvmeta.height() << "," << cvmeta.width() << ")" << std::endl;
 	
 
@@ -201,35 +230,33 @@ namespace larcv {
 			       cvmeta.min_y(), cvmeta.min_x(), i);
 
       LARCV_DEBUG() << "LArOpenCV meta @ plane " << i << " ... "
-		    << "Reading image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
+		    << "Reading adc image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
 		    << " ... (height,width) = (" << meta.height() << "," << meta.width() << ")" << std::endl;
       
-      _track_img_mgr.push_back(::cv::Mat(cvmeta.cols(),cvmeta.rows(),CV_8UC1,cvScalar(0.)),meta,::larocv::ROI());
+      _adc_img_mgr.push_back(::cv::Mat(cvmeta.cols(),cvmeta.rows(),CV_8UC1,cvScalar(0.)),meta,::larocv::ROI());
 
-      auto& mat = _track_img_mgr.img_at(i);
+      auto& mat = _adc_img_mgr.img_at(i);
 
       for(size_t row=0; row<cvmeta.rows(); ++row) {
 	for(size_t col=0; col<cvmeta.cols(); ++col) {
-
-	  float charge = track_image_v[i].pixel(row,col);
+	  float charge = adc_image_v[i].pixel(row,col);
 	  charge -= _charge_min;
 	  if(charge < 0) charge = 0;
 	  if(charge > _charge_max) charge = _charge_max;
 	  charge /= _charge_to_gray_scale;
 	  mat.at<unsigned char>(col,cvmeta.rows()-1-row) = (unsigned char)((int)charge);
-	  //mat.at<unsigned char>(cvmeta.rows()-1-row,col) = (unsigned char)((int)charge);
 	}
       }
     }
 
-    if(ev_shower_image) {
+    if(ev_track_image) {
 
-      auto const& shower_image_v = ev_shower_image->Image2DArray();
-      for(size_t i=0; i<shower_image_v.size(); ++i) {
+      auto const& track_image_v = ev_track_image->Image2DArray();
+      for(size_t i=0; i<track_image_v.size(); ++i) {
 	
-	auto const& cvmeta = shower_image_v[i].meta();
+	auto const& cvmeta = track_image_v[i].meta();
 	
-	LARCV_DEBUG() << "Reading image (rows,cols) = (" << cvmeta.rows() << "," << cvmeta.cols() << ") "
+	LARCV_DEBUG() << "Reading track image (rows,cols) = (" << cvmeta.rows() << "," << cvmeta.cols() << ") "
 		      << " ... (height,width) = (" << cvmeta.height() << "," << cvmeta.width() << ")" << std::endl;
 	
 	
@@ -238,7 +265,42 @@ namespace larcv {
 				 cvmeta.min_y(), cvmeta.min_x(), i);
 	
 	LARCV_DEBUG() << "LArOpenCV meta @ plane " << i << " ... "
-		      << "Reading image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
+		      << "Reading track image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
+		      << " ... (height,width) = (" << meta.height() << "," << meta.width() << ")" << std::endl;
+	
+	_track_img_mgr.push_back(::cv::Mat(cvmeta.cols(),cvmeta.rows(),CV_8UC1,cvScalar(0.)),meta,::larocv::ROI());
+	
+	auto& mat = _track_img_mgr.img_at(i);
+	
+	for(size_t row=0; row<cvmeta.rows(); ++row) {
+	  for(size_t col=0; col<cvmeta.cols(); ++col) {
+	    float charge = track_image_v[i].pixel(row,col);
+	    charge -= _charge_min;
+	    if(charge < 0) charge = 0;
+	    if(charge > _charge_max) charge = _charge_max;
+	    charge /= _charge_to_gray_scale;
+	    mat.at<unsigned char>(col,cvmeta.rows()-1-row) = (unsigned char)((int)charge);
+	  }
+	}
+      }
+    }
+    if(ev_shower_image) {
+
+      auto const& shower_image_v = ev_shower_image->Image2DArray();
+      for(size_t i=0; i<shower_image_v.size(); ++i) {
+	
+	auto const& cvmeta = shower_image_v[i].meta();
+	
+	LARCV_DEBUG() << "Reading shower image (rows,cols) = (" << cvmeta.rows() << "," << cvmeta.cols() << ") "
+		      << " ... (height,width) = (" << cvmeta.height() << "," << cvmeta.width() << ")" << std::endl;
+	
+	
+	::larocv::ImageMeta meta(cvmeta.width(), cvmeta.height(),
+				 cvmeta.cols(),  cvmeta.rows(),
+				 cvmeta.min_y(), cvmeta.min_x(), i);
+	
+	LARCV_DEBUG() << "LArOpenCV meta @ plane " << i << " ... "
+		      << "Reading shower image (rows,cols) = (" << meta.num_pixel_row() << "," << meta.num_pixel_column() << ") "
 		      << " ... (height,width) = (" << meta.height() << "," << meta.width() << ")" << std::endl;
 	
 	_shower_img_mgr.push_back(::cv::Mat(cvmeta.cols(),cvmeta.rows(),CV_8UC1,cvScalar(0.)),meta,::larocv::ROI());
@@ -247,14 +309,12 @@ namespace larcv {
 	
 	for(size_t row=0; row<cvmeta.rows(); ++row) {
 	  for(size_t col=0; col<cvmeta.cols(); ++col) {
-	    
 	    float charge = shower_image_v[i].pixel(row,col);
 	    charge -= _charge_min;
 	    if(charge < 0) charge = 0;
 	    if(charge > _charge_max) charge = _charge_max;
 	    charge /= _charge_to_gray_scale;
 	    mat.at<unsigned char>(col,cvmeta.rows()-1-row) = (unsigned char)((int)charge);
-	    //mat.at<unsigned char>(cvmeta.rows()-1-row,col) = (unsigned char)((int)charge);
 	  }
 	}
       }
@@ -265,7 +325,6 @@ namespace larcv {
   {
     if ( has_ana_file() ) {
       _alg_mgr.Finalize(&(ana_file()));
-      // _tree->Write();
     }
   }
 

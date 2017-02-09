@@ -57,6 +57,7 @@ namespace larcv {
     ::larlite::event_user* _eui;
     
     ::larocv::ImageClusterManager _alg_mgr;
+    ::larocv::ImageManager _adc_img_mgr;
     ::larocv::ImageManager _track_img_mgr;
     ::larocv::ImageManager _shower_img_mgr;
 
@@ -65,6 +66,7 @@ namespace larcv {
     double _charge_min;
     double _charge_max;
     std::vector<float> _plane_weights;
+    std::string _adc_producer;
     std::string _track_producer;
     std::string _shower_producer;
     std::string _output_producer;
