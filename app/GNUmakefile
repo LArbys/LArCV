@@ -27,7 +27,7 @@ endif
 endif
 
 ifdef LAROPENCV_BASEDIR
-SUBDIRS += LArOpenCVBandle
+SUBDIRS += LArOpenCVHandle
 endif
 
 #####################################################################################
