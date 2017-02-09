@@ -42,28 +42,22 @@ namespace larcv {
   {
     
     _event_tree = new TTree("EventTree","");
-
     _event_tree->Branch("run"    ,&_run    , "run/i");
     _event_tree->Branch("subrun" ,&_subrun , "subrun/i");
     _event_tree->Branch("event"  ,&_event  , "event/i");
     _event_tree->Branch("entry"  ,&_entry  , "entry/i");
     
     _vtx3d_tree = new TTree("Vtx3DTree","");
-
     _vtx3d_tree->Branch("run"    ,&_run    , "run/i");
     _vtx3d_tree->Branch("subrun" ,&_subrun , "subrun/i");
     _vtx3d_tree->Branch("event"  ,&_event  , "event/i");
-
     _vtx3d_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
     _vtx3d_tree->Branch("vtx3d_type", &_vtx3d_type, "vtx3d_type/i");
-    
     _vtx3d_tree->Branch("vtx3d_x", &_vtx3d_x, "vtx3d_x/D"  );
     _vtx3d_tree->Branch("vtx3d_y", &_vtx3d_y, "vtx3d_y/D"  );
     _vtx3d_tree->Branch("vtx3d_z", &_vtx3d_z, "vtx3d_z/D"  );
-
     _vtx3d_tree->Branch("vtx2d_x_v", &_vtx2d_x_v );
     _vtx3d_tree->Branch("vtx2d_y_v", &_vtx2d_y_v );
-
     _vtx3d_tree->Branch("circle_vtx_x_v",&_circle_x_v);
     _vtx3d_tree->Branch("circle_vtx_y_v",&_circle_y_v);
     _vtx3d_tree->Branch("circle_vtx_xs_v",&_circle_xs_v);
@@ -76,19 +70,23 @@ namespace larcv {
         
     LARCV_DEBUG() << "process" << std::endl;
 
-    /// Unique event keys
+    /// get the data manager
+    const auto& data_mgr  = _mgr_ptr->DataManager();
+
+    /// get the ass man to associate algo manager
+    const auto& data_ass_mgr  = data_mgr.AssManager();
+    
+    /// unique event keys
     const auto& event_id = mgr.event_id();
     _run    = (uint) event_id.run();
     _subrun = (uint) event_id.subrun();
     _event  = (uint) event_id.event();
     _entry =  (uint) mgr.current_entry();
-      
-    const auto& dm  = _mgr_ptr->DataManager();    
 
-    /// Refine2D data
-    const auto trkvtxest_data = (larocv::data::Vertex3DArray*)dm.Data( dm.ID(_track_vertex_estimate_algo_name) );
-      
-    auto& vtx_cluster_v=  trkvtxest_data->as_vector();//trkvtxest_data->get_vertex();
+    /// get the track estimate data
+    const auto vtx3d_array = (larocv::data::Vertex3DArray*)data_mgr.Data( data_mgr.ID(_track_vertex_estimate_algo_name), 0);
+    
+    auto& vtx_cluster_v = vtx3d_array->as_vector();
       
     _n_vtx3d = (uint) vtx_cluster_v.size();
     
@@ -97,25 +95,29 @@ namespace larcv {
       // clear vertex
       ClearVertex();
 	
-      // set the vertex ID
+      // set the vertex index number
       _vtx3d_id=vtx_id;
 	
       // get this 3D vertex
       const auto& vtx3d = vtx_cluster_v[vtx_id];
 	
       // set the vertex type
-      _vtx3d_type = (uint) vtx3d.type;//trkvtxest_data.->get_type(vtx_id);
-	
+      _vtx3d_type = (uint) vtx3d.type;
+
+      // set the 3D coordinates
       _vtx3d_x = vtx3d.x;
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
-      
+
+      // set the number of planes this vertex was reconstructed from
       _vtx3d_n_planes = (uint) vtx3d.num_planes;
 
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
 
+	// query the vertex type it's 0 (time vtx) or 1 (wire vtx)
 	if (_vtx3d_type < 2) {
-	  const auto& circle_vtx   = vtx3d.cvtx2d_v.at(plane_id);//trkvtxest_data->get_circle_vertex(vtx_id,plane_id);
+	  // store circle vertex information
+	  const auto& circle_vtx   = vtx3d.cvtx2d_v.at(plane_id);
 	  const auto& circle_vtx_c = circle_vtx.center;
 	  auto& circle_x  = _circle_x_v [plane_id];
 	  auto& circle_y  = _circle_y_v [plane_id];
@@ -124,7 +126,8 @@ namespace larcv {
 	  circle_y = circle_vtx_c.y;
 	  circle_xs = (uint) circle_vtx.xs_v.size();
 	}
-	
+
+	// store the 2D vertex information for this plane
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
 	  
@@ -132,6 +135,7 @@ namespace larcv {
 	vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
 	  
       } // end plane
+
       _vtx3d_tree->Fill();
 
     } // end loop over vtx

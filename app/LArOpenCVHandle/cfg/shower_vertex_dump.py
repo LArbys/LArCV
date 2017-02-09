@@ -30,7 +30,9 @@ mcinfo_proc   = proc.process_ptr(mcinfo_id)
                                                                                                                                                     
 larbysimg     = proc.process_ptr(reco_id)
 
-for event in xrange(0,50):
+#for event in xrange(26,50):
+for event in xrange(31,100):
+
     proc.batch_process(event,1)
     
     pygeo   = geo2d.PyDraw()
@@ -159,7 +161,10 @@ for event in xrange(0,50):
             else:
                 print 'Track',track_id,'has two edge'
 
+            print "Num planes: ",track.get_clusters().size()
             strack = track.get_cluster(plane)
+            print "Got strack: ",strack
+            
             if strack.ctor.empty(): continue
                 
             pts=np.array([[pt.x,pt.y] for pt in strack.ctor])
@@ -167,16 +172,23 @@ for event in xrange(0,50):
             
             plt.plot([strack.edge1.x],[strack.edge1.y],marker='$\\star$',color='magenta',markersize=24)
             plt.plot([strack.edge2.x],[strack.edge2.y],marker='$\\star$',color='magenta',markersize=24)
-            
+
+        print "shower v size ",shower_v.size()
         for shower_id in xrange(shower_v.size()):
-            ctor  = shower_v[shower_id].get_cluster(plane).ctor        
+            print "Requesting shower_id ",shower_id," on plane ",plane
+            this_shower=shower_v[shower_id]
+            print "... got this shower ",this_shower
+            if plane>=this_shower.get_clusters().size() : continue
+            this_cluster=this_shower.get_cluster(plane)
+            print "... got this cluster ",this_cluster
+            ctor  = this_cluster.ctor        
             pts=[[pt.x,pt.y] for pt in ctor]
             if len(pts)>0:
                 pts.append(pts[0])
                 pts = np.array(pts)
                 plt.plot(pts[:,0],pts[:,1],'-o',color='red',lw=3)
-            
-            start = shower_v[shower_id].get_cluster(plane).start
+
+            start = this_cluster.start
             plt.plot([start.x],[start.y],marker='$\\star$',color='yellow',markersize=24)
             
         ax.set_aspect(1.0)
