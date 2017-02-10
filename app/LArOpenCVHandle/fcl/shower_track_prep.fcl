@@ -1,0 +1,61 @@
+ProcessDriver: {
+  Verbosity: 2
+  EnableFilter: true
+  RandomAccess: false
+  ProcessType: ["CombineImages","SegmentMask","SegmentMask","MaskImage","MaskImage"]
+  ProcessName: ["CombineImages","ShowerSegment","TrackSegment","ShowerImage","TrackImage"]
+  AnaFile: "ana.root"
+  IOManager: {
+    Verbosity: 2
+    Name: "IOManager"
+    IOMode: 2
+    OutFileName: "out.root"
+    InputFiles: []
+    InputDirs: []
+    StoreOnlyType: []
+    StoreOnlyName: []
+  }
+  ProcessList: {
+  CombineImages: {
+    Verbosity: 0
+    ImageProducers: ["uburn_plane2","uburn_plane2","uburn_plane2"]
+    NPlanes: 1
+    OutputProducer: "uburn"
+   }
+    ShowerSegment: {
+      Verbosity: 2
+      ROIProducer: ""
+      ImageProducer:  "uburn"
+      OutputProducer: "shower_segment"
+      ValidROI: ["Cosmic"]
+      MaskValue: 0
+      PlaneID: [0,1,2]
+    }
+    TrackSegment: {
+      Verbosity: 2
+      ROIProducer: ""
+      ImageProducer:  "uburn"
+      OutputProducer: "track_segment"
+      ValidROI: ["BNB"]
+      MaskValue: 0
+      PlaneID: [0,1,2]
+    }
+    ShowerImage: {
+      Verbosity: 2
+      MinPIThreshold: 1
+      MaskValue: 0
+      OutputProducer: "shower_hires_crop"
+      ReferenceProducer: "shower_segment"
+      TargetProducer: "tpc_hires_crop"
+    }
+    TrackImage: {
+      Verbosity: 2
+      MinPIThreshold: 1
+      MaskValue: 0
+      OutputProducer: "track_hires_crop"
+      ReferenceProducer: "track_segment"
+      TargetProducer: "tpc_hires_crop"
+    }
+  }
+}
+
