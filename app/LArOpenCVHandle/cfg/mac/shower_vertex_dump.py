@@ -1,7 +1,7 @@
 from larcv import larcv
 larcv.load_pyutil
 larcv.load_cvutil
-
+import sys,os
 import cv2
 import ROOT
 from ROOT import fcllite
@@ -15,7 +15,7 @@ plt.rc('grid', linestyle="-", color='black')
 import numpy as np
 
 proc = larcv.ProcessDriver("ProcessDriver")
-proc.configure('shr_vtx.cfg')
+proc.configure('../reco_shower_debug.cfg')
 f=ROOT.std.string("/Users/vgenty/Desktop/nue_track_shower.root")
 flist=ROOT.std.vector('string')()
 flist.push_back(f)
@@ -23,27 +23,33 @@ proc.override_input_file(flist)
 proc.initialize()
 
 mcinfo_id = proc.process_id("LArbysImageMC")                                                                                                        
-reco_id   = proc.process_id("LArbysImage")                                                                                                          
+reco_id   = proc.process_id("LArbysImage")
                                                                                                                                                     
-mcinfo_proc   = proc.process_ptr(mcinfo_id)                                                                                                         
-#mcinfo_proc.SetFilter(filter_proc)                                                                                                                  
-                                                                                                                                                    
+mcinfo_proc   = proc.process_ptr(mcinfo_id)
 larbysimg     = proc.process_ptr(reco_id)
+#array=np.array([157, 173, 222, 228, 240, 271, 366, 372])
+array = np.array([304])
+for event in array:
 
-#for event in xrange(26,50):
-for event in xrange(31,100):
-
+    print "Processing event: ",event
     proc.batch_process(event,1)
-    
+    print "Done"
     pygeo   = geo2d.PyDraw()
-    
+    iom=proc.io()
+    print iom.current_entry()
+
     mgr=larbysimg.Manager()
     img_v = []
     shower_img_v = []
     track_img_v  = []
 
-    track_mat_v  = mgr.InputImages(0)
-    shower_mat_v = mgr.InputImages(1)
+    print "My name is ",mgr.Name()
+    print "Requesting image id: ",0
+    adc_mat_v    = mgr.InputImages(0)
+    print "Requesting image id: ",1
+    track_mat_v  = mgr.InputImages(1)
+    print "Requesting image id: ",2
+    shower_mat_v = mgr.InputImages(2)
 
     for plane in xrange(track_mat_v.size()):
         shower_img_v.append(pygeo.image(shower_mat_v[plane]))
@@ -64,20 +70,15 @@ for event in xrange(31,100):
         plt.cla()
         plt.clf()
         plt.close()
-        
+
+    #["LinearTrackFinder","SuperClusterMaker","ShowerVertexSeeds","ShowerVertexEstimate"]
     dm=mgr.DataManager()
     colors=['red','green','blue','orange','magenta','cyan','pink']
     colors*=10
 
     dm=mgr.DataManager()
-    data=dm.Data(0)
-    lintrk_v=data.get_clusters()
-    colors=['red','green','blue','orange','magenta','cyan','pink']
-    colors*=10
-
-    dm=mgr.DataManager()
-    data=dm.Data(0)
-    lintrk_v=data.get_clusters()
+    data=dm.Data(0,0)
+    lintrk_v=data.as_vector()
     print "Found ",lintrk_v.size()," linear track clusters"
     strack_n=-1
     for strack in lintrk_v:
@@ -135,99 +136,69 @@ for event in xrange(31,100):
             plt.clf()
             plt.close()
 
-    mgr=larbysimg.Manager()
+
     dm=mgr.DataManager()
-    lintrack_data=dm.Data(0)
-    sshower_data=dm.Data(2)
-    track_v  = lintrack_data.get_clusters()
-    shower_v = sshower_data.get_showers() 
-    for plane in xrange(3):
-        print 'Plane',plane
-        fig,ax=plt.subplots(figsize=(12,12),facecolor='w')
+    data=dm.Data(3,0)
+    print data
+    for vtx3d in data.as_vector():
+        for plane in xrange(3):
+            fig,ax=plt.subplots(figsize=(12,12),facecolor='w')
+            shape_img = img_v[plane]
+            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            plt.imshow(shape_img,cmap='Greys',interpolation='none')
+            nz_pixels=np.where(shape_img>0.0)
     
-        #Get the image
-        shape_img = img_v[plane]
-        shape_img=np.where(img_v[plane]>10.0,1.0,0.0).astype(np.uint8)
-
-        plt.imshow(shape_img,cmap='Greys',interpolation='none')
-        nz_pixels=np.where(shape_img>0.0)
-        
-        for track_id in xrange(track_v.size()):
-            track = track_v[track_id]
-            edge1=track.edge1
-            edge2=track.edge2
-            if edge1.vtx2d_v.empty() or edge2.vtx2d_v.empty():
-                print 'Track',track_id,'has one edge'
-            else:
-                print 'Track',track_id,'has two edge'
-
-            print "Num planes: ",track.get_clusters().size()
-            strack = track.get_cluster(plane)
-            print "Got strack: ",strack
-            
-            if strack.ctor.empty(): continue
+            cvtx=vtx3d.cvtx2d_v[plane]
+            plt.plot(cvtx.center.x,cvtx.center.y,'o',color='red',markersize=10)
+            circl=matplotlib.patches.Circle((cvtx.center.x,cvtx.center.y),
+                                      cvtx.radius,fc='none',ec='cyan',lw=5)
+            for xs in cvtx.xs_v:
+                plt.plot(xs.pt.x,xs.pt.y,'o',color='orange',markersize=10)
                 
-            pts=np.array([[pt.x,pt.y] for pt in strack.ctor])
-            plt.plot(pts[:,0],pts[:,1],'-o',color='blue')
-            
-            plt.plot([strack.edge1.x],[strack.edge1.y],marker='$\\star$',color='magenta',markersize=24)
-            plt.plot([strack.edge2.x],[strack.edge2.y],marker='$\\star$',color='magenta',markersize=24)
+            ax.add_patch(circl)
+            ax.set_aspect(1.0)
+            ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
+            ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
+            plt.xlabel('Time [6 ticks]',fontsize=20)
+            plt.ylabel('Wire [2 wires]',fontsize=20)
+            plt.tick_params(labelsize=20)
+            ax.set_aspect(0.8)
 
-        print "shower v size ",shower_v.size()
-        for shower_id in xrange(shower_v.size()):
-            print "Requesting shower_id ",shower_id," on plane ",plane
-            this_shower=shower_v[shower_id]
-            print "... got this shower ",this_shower
-            if plane>=this_shower.get_clusters().size() : continue
-            this_cluster=this_shower.get_cluster(plane)
-            print "... got this cluster ",this_cluster
-            ctor  = this_cluster.ctor        
-            pts=[[pt.x,pt.y] for pt in ctor]
-            if len(pts)>0:
-                pts.append(pts[0])
-                pts = np.array(pts)
-                plt.plot(pts[:,0],pts[:,1],'-o',color='red',lw=3)
-
-            start = this_cluster.start
-            plt.plot([start.x],[start.y],marker='$\\star$',color='yellow',markersize=24)
-            
-        ax.set_aspect(1.0)
-        plt.tight_layout()
-
-        plt.xlabel('Time [6 ticks]',fontsize=20)
-        plt.ylabel('Wire',fontsize=20)
-
-        y0 = np.min(nz_pixels[0])-10
-        y1 = np.max(nz_pixels[0])+10
-        x0 = np.min(nz_pixels[1])-10
-        x1 = np.max(nz_pixels[1])+10
-        
-        ax.set_ylim(y0,y1)
-        ax.set_xlim(x0,x1)
-
-        major_ticks_x = np.arange(x0,x1+5,5)
-        major_ticks_y = np.arange(y0,y1+5,5)
-
-        minor_ticks_x = np.arange(x0+0.5,x1+0.5+1,1)
-        minor_ticks_y = np.arange(y0+0.5,y1+0.5+1,1)
- 
-        ax.set_xticks(major_ticks_x)
-        ax.set_xticks(minor_ticks_x, minor=True)
-        ax.set_yticks(major_ticks_y)
-        ax.set_yticks(minor_ticks_y, minor=True)
-
-        # and a corresponding grid
-        ax.grid(which='minor')
-
-        ax.set_xticklabels(major_ticks_x,rotation=45,fontsize=10,minor=False)
-        ax.set_yticklabels(major_ticks_y,rotation=45,fontsize=10,minor=False)
-        
-        plt.tick_params(labelsize=20)
-        ax.set_aspect(0.8)
-        plt.tight_layout()
         SS="out/%04d_02_plane_%02d.png"%(event,plane)
         ax.set_title(SS,fontsize=30)
         plt.savefig(SS)
         plt.cla()
         plt.clf()
         plt.close()
+        
+    assman=dm.AssManager()
+    #New VertexCluster
+    vtx_data=dm.Data(3,0).as_vector()
+    
+    for vtx in vtx_data:
+        for plane in xrange(3):
+            fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
+            shape_img = trk_img_v[plane]+shr_img_v[plane]
+            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            plt.imshow(shape_img,cmap='Greys',interpolation='none')
+            nz_pixels=np.where(shape_img>0.0)
+            
+            par_data=dm.Data(4,plane)
+            
+            ass_t = np.array(assman.GetManyAss(vtx,par_data.ID()))
+            if ass_t.size==0:continue
+                
+            par_data_v=par_data.as_vector()
+            for id_ in ass_t:
+                ctor=np.array([[pt.x,pt.y] for pt in par_data_v[id_]._ctor])
+                plt.plot(ctor[:,0],ctor[:,1],'-o',lw=2)
+            
+            ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
+            ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
+            SS="out/%04d_03_plane_%02d.png"%(event,plane)
+            ax.set_title(SS,fontsize=30)
+            plt.savefig(SS)
+            plt.cla()
+            plt.clf()
+            plt.close()
+

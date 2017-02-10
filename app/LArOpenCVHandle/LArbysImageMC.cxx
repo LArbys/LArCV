@@ -192,6 +192,7 @@ namespace larcv {
     _mc_tree->Branch("run",&_run,"run/i");
     _mc_tree->Branch("subrun",&_subrun,"subrun/i");
     _mc_tree->Branch("event",&_event,"event/i");
+    _mc_tree->Branch("entry"  ,&_entry  , "entry/i");
     _mc_tree->Branch("parentPDG",&_parent_pdg,"parentPDG/I");
     _mc_tree->Branch("signal",&_is_signal,"_is_signal/O");
 
@@ -271,7 +272,8 @@ namespace larcv {
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
     _event  = (uint) ev_roi->event();
-
+    _entry =  (uint) mgr.current_entry();
+   
     _entry_info.run    = _run;
     _entry_info.subrun = _subrun;
     _entry_info.event  = _event;

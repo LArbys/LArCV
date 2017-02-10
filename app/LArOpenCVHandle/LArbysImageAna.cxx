@@ -51,6 +51,7 @@ namespace larcv {
     _vtx3d_tree->Branch("run"    ,&_run    , "run/i");
     _vtx3d_tree->Branch("subrun" ,&_subrun , "subrun/i");
     _vtx3d_tree->Branch("event"  ,&_event  , "event/i");
+    _vtx3d_tree->Branch("entry"  ,&_entry  , "entry/i");
     _vtx3d_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
     _vtx3d_tree->Branch("vtx3d_type", &_vtx3d_type, "vtx3d_type/i");
     _vtx3d_tree->Branch("vtx3d_x", &_vtx3d_x, "vtx3d_x/D"  );
@@ -87,17 +88,18 @@ namespace larcv {
     const auto vtx3d_array = (larocv::data::Vertex3DArray*)data_mgr.Data( data_mgr.ID(_track_vertex_estimate_algo_name), 0);
     
     auto& vtx_cluster_v = vtx3d_array->as_vector();
-      
+
     _n_vtx3d = (uint) vtx_cluster_v.size();
-    
+
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) { 
-	
+      
       // clear vertex
       ClearVertex();
 	
       // set the vertex index number
       _vtx3d_id=vtx_id;
-	
+
+      
       // get this 3D vertex
       const auto& vtx3d = vtx_cluster_v[vtx_id];
 	
@@ -108,7 +110,7 @@ namespace larcv {
       _vtx3d_x = vtx3d.x;
       _vtx3d_y = vtx3d.y;
       _vtx3d_z = vtx3d.z;
-
+      
       // set the number of planes this vertex was reconstructed from
       _vtx3d_n_planes = (uint) vtx3d.num_planes;
 

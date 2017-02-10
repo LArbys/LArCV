@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 proc = larcv.ProcessDriver("ProcessDriver")
-proc.configure('trk_vtx.cfg')
+proc.configure('../reco_track_debug.cfg')
 f=ROOT.std.string("/Users/vgenty/Desktop/numu_ccqe_p00_p07.root")
 flist=ROOT.std.vector('string')()
 flist.push_back(f)
@@ -34,12 +34,13 @@ larbysimg     = proc.process_ptr(reco_id)
 larbysimg_ana = proc.process_ptr(ana_id)                                                                                                            
 larbysimg_ana.SetManager(larbysimg.Manager())   
 
-for event in xrange(50):
+for event in [247]:
+    print "vic: event is... ",event
     proc.batch_process(event,1)
-
-    if (filter_proc.selected() == False):
-        print "Not selected ",event," continue"
-        continue
+    continue
+    # if (filter_proc.selected() == False):
+    #     print "Not selected ",event," continue"
+    #     continue
 
     print "Selected ",event
     
@@ -55,7 +56,7 @@ for event in xrange(50):
     colors*=10
 
     dm=mgr.DataManager()
-    data=dm.Data(0)
+    data=dm.Data(0,0)
 
     for plane in xrange(3):
         ix=0

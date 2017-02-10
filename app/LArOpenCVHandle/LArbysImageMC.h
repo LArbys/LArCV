@@ -56,6 +56,7 @@ namespace larcv {
     uint _run;
     uint _subrun;
     uint _event;
+    uint _entry;
 
     /// Primary Particle Info
     int _parent_pdg;//primary particle pdg
