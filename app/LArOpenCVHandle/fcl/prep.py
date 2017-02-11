@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
    proc.override_input_file(flist)
 
 proc.initialize()
-proc.batch_process()
+proc.batch_process(0,100)
 
 proc.finalize()
 
