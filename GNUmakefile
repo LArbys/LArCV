@@ -17,7 +17,7 @@ ifeq ($(LARCV_OPENCV),1)
   CORE_SUBDIRS += CVUtil
 endif
 
-APP_SUBDIRS := ImageAna ImageMod Filter UBWireTool PMTWeights HiResDivider Merger APICaffe
+APP_SUBDIRS := ImageAna ImageMod Filter UBWireTool PMTWeights HiResDivider Merger APICaffe #NuFilter
 ifdef LARLITE_BASEDIR
 APP_SUBDIRS += Supera/APILArLite VertexImg
   ifdef LAROPENCV_BASEDIR
