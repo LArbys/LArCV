@@ -8,6 +8,8 @@ else
     export LARCV_BASEDIR=$FORCE_LARCV_BASEDIR
 fi
 
+# set the build dir
+unset LARCV_BUILDDIR
 if [[ -z $LARCV_BUILDDIR ]]; then
     export LARCV_BUILDDIR=$LARCV_BASEDIR/build
 fi

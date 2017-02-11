@@ -58,8 +58,8 @@ namespace larcv {
       // find hits.
       dbscan::dbPoints pixels;
       LARCV_DEBUG() << "making points for above threshold pixels" << std::endl;
-      for (int c=0; c<meta.cols(); c++) {
-	for (int r=0; r<meta.rows(); r++) {
+      for (size_t c=0; c<meta.cols(); c++) {
+	for (size_t r=0; r<meta.rows(); r++) {
 	  if ( img.pixel( r, c )>thresh ) {
 	    // hit found, we assemble out point in augmented space
 	    // i.e., we combine 2D position, plus values from auxillary image data
@@ -100,7 +100,7 @@ namespace larcv {
       // background labeled with 1
       // rest increment cluster id i+1
       LARCV_DEBUG() << "make output cluster image" << std::endl;
-      for (int ic=0; ic<clusterout.clusters.size(); ic++) {
+      for (size_t ic=0; ic<clusterout.clusters.size(); ic++) {
 	const std::vector< int >& cl = clusterout.clusters.at(ic);
 	for ( auto& idx : cl ) {
 	  const std::vector<double>& pix = pixels.at(idx);

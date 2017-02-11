@@ -324,6 +324,18 @@ namespace larcv {
     return (*this);
   }
 
+  Image2D& Image2D::operator+=(const larcv::Image2D& rhs)
+  {
+    if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!"); 
+    for (size_t col=0; col<meta().cols(); col++) {
+      for ( size_t row=0; row<meta().rows(); row++ ) {
+        float val = pixel(row,col);
+        set_pixel(row,col,val+rhs.pixel(row,col));
+      }
+    }
+    return (*this);
+  }
+
   Image2D& Image2D::operator-=(const std::vector<float>& rhs)
   {
     if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!");

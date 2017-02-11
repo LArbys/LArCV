@@ -4,6 +4,9 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "DataFormat/Image2D.h"
+#include "DataFormat/ImageMeta.h"
+
 namespace dbscan {
 
   dbscanOutput DBSCANAlgo::scan( dbPoints input, int minPts, double eps, bool borderPoints, double approx ) {
@@ -11,7 +14,7 @@ namespace dbscan {
     // allocate output
     dbscanOutput output;
 
-    int npts  = input.size();
+    size_t npts  = input.size();
     if ( npts==0 )
       return output;
     int ndims = input.at(0).size();
@@ -21,7 +24,7 @@ namespace dbscan {
     ann::ANNAlgo bdtree( npts, ndims );
     
     // now fill it
-    for (int i=0; i<npts; i++) {
+    for (size_t i=0; i<npts; i++) {
       bdtree.setPoint( i, input.at(i) );
     }
 
@@ -47,7 +50,7 @@ namespace dbscan {
     output.clusterid.resize(npts,-1);
     output.nneighbors.resize(npts,0);
     
-    for (int i=0; i<npts; i++) {
+    for (size_t i=0; i<npts; i++) {
       // check for interrupt
       //if (!(i % 100)) Rcpp::checkUserInterrupt(); //convert this to python
       
@@ -161,7 +164,7 @@ namespace dbscan {
     int matching_cluster = -1;
     double r2 = radius*radius;
     double closest_r2 = 0.0;
-    for (int ic=0; ic<clusters.size(); ic++) {
+    for (size_t ic=0; ic<clusters.size(); ic++) {
       const dbCluster &cluster = clusters.at(ic);
       int nhits = clusters.at(ic).size();
       for (int ihit=0; ihit<nhits; ihit++) {
@@ -170,7 +173,7 @@ namespace dbscan {
 	if ( testpoint.size()!=data.at(hitidx).size() ) {
 	  throw querypoint_mismatch;
 	}
-	for (int i=0; i<testpoint.size();i++) {
+	for (size_t i=0; i<testpoint.size();i++) {
 	  dist += (data.at(hitidx).at(i)-testpoint.at(i))*(data.at(hitidx).at(i)-testpoint.at(i));
 	}
 	if (dist<r2 && (matching_cluster==-1 || dist<closest_r2) ) {
@@ -198,13 +201,13 @@ namespace dbscan {
     // this is an order N search. paired with sorting of a list.  not great.  but, we can be more clever in the future if we need to be
 
     // input checks
-    if ( clusterid<0 || clusterid>=clusters.size() ) {
+    if ( clusterid<0 || clusterid>=(int)clusters.size() ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid cluster id");
     }
     if ( clusters.at(clusterid).size()==0 ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: weird, empty cluster");
     }
-    if ( clusters.at(clusterid).at(0)<0 || clusters.at(clusterid).at(0)>=src_data.size() ) {
+    if ( clusters.at(clusterid).at(0)<0 || clusters.at(clusterid).at(0)>=(int)src_data.size() ) {
       throw std::runtime_error("dbscanOutput::closestHitsInCluster: invalid first hit in test cluster");
     }
     if ( src_data.at( clusters.at(clusterid).at(0) ).size()!=test_pos.size() ) {
@@ -218,10 +221,11 @@ namespace dbscan {
 
     // we compare the distance
     struct mycompare_t {
-      bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) { 
-	if ( lhs.second<rhs.second ) 
-	  return true;
-	return false;
+      //bool operator() ( std::pair<int,double>& lhs, std::pair<int,double>& rhs ) {
+      bool operator() ( std::pair<int,double> lhs, std::pair<int,double> rhs ) { 
+      if ( lhs.second<rhs.second ) 
+	return true;
+      return false;
       }
     } mycompare;
     
@@ -239,13 +243,13 @@ namespace dbscan {
       std::pair<int,double> test_hit( hitidx, hit_dist );
       if ( max_nhits>0 ) {
 	// we have to care about the number of hits in the list
-	if ( hitlist.size()<max_nhits ) {
+	if ( (int)hitlist.size()<max_nhits ) {
 	  // but not now
 	  hitlist.emplace_back( test_hit );
 	}
 	else {
 	  bool isbetter = false;
-	  for (size_t ilisthit=0; ilisthit<max_nhits; ilisthit++) {
+	  for (size_t ilisthit=0; ilisthit<(size_t)max_nhits; ilisthit++) {
 	    if ( hitlist.at(ilisthit).second > hit_dist ) {
 	      isbetter = true;
 	      break;
@@ -268,5 +272,87 @@ namespace dbscan {
     }//end of loop over hits in the cluster
     
   }
+
+
+  // ==========================================================================================
+  // UTILITY FUNCTIONS
+
+  dbPoints extractPointsFromImage( const larcv::Image2D& img, const double threshold ) {
+    const larcv::ImageMeta& meta = img.meta();
+    dbPoints pixels = extractPointsFromImageBounds( img, threshold, 0, meta.rows()-1, 0, meta.cols()-1 );
+    return pixels;
+  }
+  dbPoints extractPointsFromImageBounds( const larcv::Image2D& img, const double threshold, int row_min, int row_max, int col_min, int col_max ) {
+    dbPoints pixels;
+    const larcv::ImageMeta& meta = img.meta();
+    if ( row_min<0 ) row_min = 0;
+    if ( row_max>=(int)meta.rows() ) row_max = (int)meta.rows()-1;
+    if ( col_min<0 ) col_min = 0;
+    if ( col_max>=(int)meta.cols() ) col_max = (int)meta.cols()-1;
+    for (int r=row_min; r<=row_max; r++) {
+      for (int c=col_min; c<=col_max; c++) {
+        if ( img.pixel(r,c)>threshold ) {
+          std::vector<double> pixel(2,0.0);
+          pixel[0] = (double)c;
+          pixel[1] = (double)r;
+          pixels.emplace_back( std::move(pixel) );
+        }
+      }
+    }
+    return pixels;
+  }
+
+  ClusterExtrema ClusterExtrema::FindClusterExtrema( const int cluster_id, const dbscanOutput& clustering_info, const dbPoints& hitlist )  {
+    if ( cluster_id <0 || cluster_id >= (int)clustering_info.clusters.size() )
+        throw std::runtime_error("ClusterExtrema::FindClusterExtrema[error] cluster id is invalid");
+
+    const dbCluster& cluster = clustering_info.clusters.at(cluster_id);
+    return ClusterExtrema::FindClusterExtrema( cluster, hitlist );
+  }
+
+  ClusterExtrema ClusterExtrema::FindClusterExtrema( const dbCluster& cluster, const dbPoints& hitlist ) {
+
+    ClusterExtrema extrema;
+    if ( cluster.size()==0 ) 
+      return extrema;
+
+    // seed the values
+    int firsthit_idx = cluster.front();
+    const std::vector<double>& hit = hitlist.at(firsthit_idx);
+    extrema.leftmost() = hit;
+    extrema.rightmost() = hit;
+    extrema.topmost() = hit;
+    extrema.bottommost() = hit;
+
+    // find the extrema
+    for ( int ihit=1; ihit<(int)cluster.size(); ihit++) {
+      int hitidx = cluster.at(ihit);
+      const std::vector<double>& hit = hitlist.at(hitidx);
+      if ( hit[0]<extrema.leftmost()[0]) {
+        extrema.leftmost()[0] = hit[0];
+        extrema.leftmost()[1] = hit[1];
+      }
+      if (hit[0]>extrema.rightmost()[0]) {
+        extrema.rightmost()[0] = hit[0];
+        extrema.rightmost()[1] = hit[1];
+      }
+      if (hit[1]>extrema.topmost()[1]) {
+        extrema.topmost()[0] = hit[0];
+        extrema.topmost()[1] = hit[1];
+      }
+      if (hit[1]<extrema.bottommost()[1]) {
+        extrema.bottommost()[0] = hit[0];
+        extrema.bottommost()[1] = hit[1];
+      }
+    } 
+    extrema.empty = false;
+    return extrema;   
+  }
+
+  ClusterExtrema ClusterExtrema::MakeEmptyExtrema() {
+    ClusterExtrema empty;
+    return empty;
+  }
+
 
 }
