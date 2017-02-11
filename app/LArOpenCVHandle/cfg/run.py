@@ -39,11 +39,11 @@ evstart=int(sys.argv[2])
 step=int(3434)
 
 #proc.override_ana_file("nue_%05d_%05d.root"%(evstart,evstart+step))
-proc.override_ana_file("numu_%05d_%05d.root"%(evstart,evstart+step))
+proc.override_ana_file("test.root")
 
 proc.initialize()
 #proc.batch_process(evstart,step)
-proc.batch_process(0,1000)
+proc.batch_process(0,1)
 
 proc.finalize()
 
