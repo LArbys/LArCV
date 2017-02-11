@@ -28,7 +28,7 @@ namespace larcv {
        User defined class SuperaCore ... these comments are used to generate
        doxygen documentation!
     */
-    template<class R, class S, class T, class U, class V, class W>
+    template<class R, class S, class T, class U, class V, class W, class Q>
     class SuperaCore{
       
     public:
@@ -51,6 +51,7 @@ namespace larcv {
 
       bool process_event(const std::vector<R>&,  // OpDetWaveform
 			 const std::vector<S>&,  // Wire
+       const std::vector<Q>&,  // Hit
 			 const std::vector<T>&,  // MCTruth
 			 const std::vector<U>&,  // MCTrack
 			 const std::vector<V>&,  // MCShower
@@ -60,6 +61,7 @@ namespace larcv {
 
       void set_chstatus(unsigned int ch, short status);
       void set_chstatus(::larcv::PlaneID_t plane, unsigned int ch, short status);
+      const std::string& producer_hit       () const { return _producer_hit;  }  
       const std::string& producer_opdigit   () const { return _producer_opdigit;  } 
       const std::string& producer_digit     () const { return _producer_digit;    }
       const std::string& producer_wire      () const { return _producer_wire;     }
@@ -75,6 +77,7 @@ namespace larcv {
 
       // fill functions
       void fill(Image2D& img, const std::vector<S>& wires, const int time_offset=0);
+      void fill(Image2D& img, const std::vector<Q>& hits, const int time_offset=0);
       void fill(Image2D& img, const std::vector<R>& opdigit_v, const int time_offset=0);
       void fill(std::vector<Image2D>& img,
 		const std::vector<U>& mct_v,
@@ -84,7 +87,7 @@ namespace larcv {
 		const int time_offset=0);
     private:
       larcv::ImageMeta format_meta(const larcv::ImageMeta& part_image,
-					      const larcv::ImageMeta& event_image,
+                const larcv::ImageMeta& event_image,
 					      const size_t modular_row,
 					      const size_t modular_col);
 
@@ -94,6 +97,7 @@ namespace larcv {
       std::vector<std::pair<unsigned short,unsigned short> > _channel_to_plane_wire;
       larcv::logger _logger;
       larcv::IOManager _larcv_io;
+      std::string _producer_hit;
       std::string _producer_digit;
       std::string _producer_simch;
       std::string _producer_wire;
