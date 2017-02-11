@@ -51,6 +51,7 @@ namespace larcv {
 
 				auto const& mctruth = mctruth_v[mctruth_index];
 
+				if(mctruth.Origin()>1) continue;
 				for (size_t i = 0; i < (size_t)(mctruth.NParticles()); ++i) {
 
 					auto const& mcp = mctruth.GetParticle(i);
@@ -112,7 +113,7 @@ namespace larcv {
 			::larcv::Vertex pri_vtx;
 			for (size_t i = 0; i < mctrack_v.size(); ++i) {
 				auto const& mctrack = mctrack_v[i];
-
+				if(mctrack.Origin() >1) continue;
 				if (mctrack.size() < 2) {
 					LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 					             << " PdgCode " << mctrack.PdgCode()
@@ -175,7 +176,7 @@ namespace larcv {
 			::larcv::Vertex pri_vtx;
 			for (size_t i = 0; i < mctrack_v.size(); ++i) {
 				auto const& mctrack = mctrack_v[i];
-
+				if(mctrack.Origin() >1) continue;
 				if (mctrack.size() < 2) {
 					LARCV_INFO() << "Ignoring MCTrack G4TrackID " << mctrack.TrackID()
 					             << " PdgCode " << mctrack.PdgCode()
@@ -237,7 +238,7 @@ namespace larcv {
 			::larcv::Vertex pri_vtx;
 			for (size_t i = 0; i < mcshower_v.size(); ++i) {
 				auto const& mcshower = mcshower_v[i];
-
+				if(mcshower.Origin() >1) continue;
 				double min_energy_init    = _min_energy_init_mcshower;
 				double min_energy_deposit = _min_energy_deposit_mcshower;
 
@@ -294,7 +295,7 @@ namespace larcv {
 			::larcv::Vertex pri_vtx;
 			for (size_t i = 0; i < mcshower_v.size(); ++i) {
 				auto const& mcshower = mcshower_v[i];
-
+				if(mcshower.Origin() >1) continue;
 				double min_energy_init    = _min_energy_init_mcshower;
 				double min_energy_deposit = _min_energy_deposit_mcshower;
 
@@ -394,8 +395,9 @@ namespace larcv {
 				else {
 
 					if (vtx.T() < (*(time_order.begin())).second.T()) {
-						LARCV_CRITICAL() << "No primary found before this secondary!" << std::endl;
-						throw larbys();
+						LARCV_INFO() << "No primary found before this secondary!" << std::endl;
+						//throw larbys();
+						return;
 					}
 
 					auto iter = time_order.upper_bound(vtx.T());
