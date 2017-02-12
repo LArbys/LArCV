@@ -10,6 +10,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::LArbysImage+;
+#pragma link C++ class larcv::LArbysImagePreProcess+;
 #pragma link C++ class larcv::LArbysImageAna+;
 #pragma link C++ class larcv::LArbysImageMC+;
 
