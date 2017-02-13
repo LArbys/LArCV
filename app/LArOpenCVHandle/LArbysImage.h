@@ -53,6 +53,7 @@ namespace larcv {
     double _charge_to_gray_scale;
     double _charge_min;
     double _charge_max;
+    bool _preprocess;
     std::vector<float> _plane_weights;
     std::string _adc_producer;
     std::string _track_producer;
@@ -64,7 +65,7 @@ namespace larcv {
     double _process_time_analyze;
     double _process_time_cluster_storage;
     void Report() const;
-
+    
     PreProcessor _pre_processor;
   };
 

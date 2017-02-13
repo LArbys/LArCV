@@ -19,7 +19,9 @@ namespace larcv {
     _track_producer  = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
     _output_producer = cfg.get<std::string>("OutputImageProducer","");
-
+    _preprocess = cfg.get<bool>("PreProcess",true);
+    LARCV_INFO() << "Preprocessing image" << std::endl;
+    
     _process_count = 0;
     _process_time_image_extraction = 0;
     _process_time_analyze = 0;
@@ -40,11 +42,11 @@ namespace larcv {
     if(!output_cluster_alg_name.empty())
       _output_cluster_alg_id = _alg_mgr.GetClusterAlgID(output_cluster_alg_name);
   }
-
+  
   void LArbysImage::initialize()
   {
   }
-
+  
   bool LArbysImage::process(IOManager& mgr)
   {
     _adc_img_mgr.clear();
@@ -97,14 +99,15 @@ namespace larcv {
     }
     LARCV_DEBUG() << "Process index " << mgr.current_entry() << std::endl;
 
-    //give a single plane @ a time to pre processor
-    for(uint img_set_id=0;img_set_id<3;++img_set_id) {
-      auto& in_img_v = _alg_mgr.InputImagesRW(img_set_id);
+    if (_preprocess) {
+      //give a single plane @ a time to pre processor
+      auto& adc_img_v= _alg_mgr.InputImagesRW(0);
+      auto& trk_img_v= _alg_mgr.InputImagesRW(1);
+      auto& shr_img_v= _alg_mgr.InputImagesRW(2);
       for(uint plane_id=0;plane_id<3;++plane_id) {
-	if (!_pre_processor.PreProcess(in_img_v[0],in_img_v[1],in_img_v[2])) {
-	  LARCV_CRITICAL() << "Image set id " << img_set_id
-			   << " @ plane " << plane_id
-			   << " could not be preprocessed, abort!" << std::endl;
+	LARCV_DEBUG() << "Preprocess image set @ "<< " plane " << plane_id << std::endl;
+	if (!_pre_processor.PreProcess(adc_img_v[plane_id],trk_img_v[plane_id],shr_img_v[plane_id])) {
+	  LARCV_CRITICAL() << "... could not be preprocessed, abort!" << std::endl;
 	  throw larbys();
 	}
       }
