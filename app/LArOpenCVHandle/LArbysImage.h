@@ -1,16 +1,3 @@
-/**
- * \file LArbysImage.h
- *
- * \ingroup Package_Name
- * 
- * \brief Class def header for a class LArbysImage
- *
- * @author kazuhiro
- */
-
-/** \addtogroup Package_Name
-
-    @{*/
 #ifndef __LARBYSIMAGE_H__
 #define __LARBYSIMAGE_H__
 
@@ -20,6 +7,7 @@
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterViewer.h"
 #include "DataFormat/user_info.h"
+#include "PreProcessor.h"
 
 namespace larcv {
 
@@ -76,6 +64,8 @@ namespace larcv {
     double _process_time_analyze;
     double _process_time_cluster_storage;
     void Report() const;
+
+    PreProcessor _pre_processor;
   };
 
   /**

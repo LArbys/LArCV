@@ -43,9 +43,6 @@ namespace larcv {
 
   void LArbysImage::initialize()
   {
-    //_eui = new ::larlite::event_user;
-    //_tree = new TTree("tree","");
-    //_tree->Branch("user_info",&_eui);
   }
 
   bool LArbysImage::process(IOManager& mgr)
@@ -98,7 +95,21 @@ namespace larcv {
       _alg_mgr.Add(img, meta, roi, 2);
 
     }
+    LARCV_DEBUG() << "Process index " << mgr.current_entry() << std::endl;
 
+    //give a single plane @ a time to pre processor
+    for(uint img_set_id=0;img_set_id<3;++img_set_id) {
+      auto& in_img_v = _alg_mgr.InputImagesRW(img_set_id);
+      for(uint plane_id=0;plane_id<3;++plane_id) {
+	if (!_pre_processor.PreProcess(in_img_v[0],in_img_v[1],in_img_v[2])) {
+	  LARCV_CRITICAL() << "Image set id " << img_set_id
+			   << " @ plane " << plane_id
+			   << " could not be preprocessed, abort!" << std::endl;
+	  throw larbys();
+	}
+      }
+    }
+    
     _alg_mgr.Process();
 
     watch_one.Start();
@@ -131,7 +142,6 @@ namespace larcv {
       LARCV_CRITICAL() << "Image by adc producer " << _adc_producer << " not found..." << std::endl;
       throw larbys();
     }
-
     
     EventImage2D* ev_track_image = nullptr;
 
