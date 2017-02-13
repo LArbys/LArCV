@@ -10,11 +10,10 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::LArbysImage+;
-#pragma link C++ class larcv::LArbysImagePreProcess+;
 #pragma link C++ class larcv::LArbysImageAna+;
 #pragma link C++ class larcv::LArbysImageMC+;
 
-#pragma link C++ class PreProcessor+;
+#pragma link C++ class larcv::PreProcessor+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

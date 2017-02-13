@@ -1,8 +1,8 @@
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
 #include "Base/larcv_base.h"
-
 #include <opencv2/opencv.hpp>
+#include "LArOpenCV/ImageCluster/AlgoClass/SingleLinearTrack.h"
 
 namespace larcv {
   class PreProcessor : public larcv_base{
@@ -17,6 +17,10 @@ namespace larcv {
 
   private:
     uint _pi_threshold;
+    uint _min_ctor_size;
+    float _allowed_shower_track_distance;
+    
+    larocv::SingleLinearTrack _SingleLinearTrack;
   };
 }
 #endif
