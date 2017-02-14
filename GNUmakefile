@@ -17,12 +17,21 @@ ifeq ($(LARCV_OPENCV),1)
   CORE_SUBDIRS += CVUtil
 endif
 
-APP_SUBDIRS := ImageAna ImageMod Filter PMTWeights HiResDivider Merger APICaffe
+APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe #NuFilter
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS += Supera/APILArLite VertexImg
+APP_SUBDIRS += Supera/APILArLite VertexImg UBWireTool PMTWeights HiResDivider
   ifdef LAROPENCV_BASEDIR
   APP_SUBDIRS += LArOpenCVBandle
   endif
+endif
+ifeq ($(LARCV_ANN),1)
+APP_SUBDIRS += ANN dbscan
+ifeq ($(OSNAME),Linux)
+  ANN_OS=linux-g++
+endif
+ifeq ($(OSNAME),Darwin)
+  ANN_OS=macosx-g++
+endif
 endif
 
 #ifeq ($(LARCV_LLBANDLE),1)
@@ -46,6 +55,10 @@ obj:
 	@echo
 	@for i in $(CORE_SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $(LARCV_COREDIR)/$$i && $(MAKE) ) || exit $$?; done
 	@echo Building app...
+ifeq ($(LARCV_ANN),1)
+	echo "Compiling app/ann_1.1.2 os=$(ANN_OS)"
+	(cd $(LARCV_APPDIR)/ann_1.1.2 && $(MAKE) $(ANN_OS)) || exit $$?
+endif
 	@for i in $(APP_SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $(LARCV_APPDIR)/$$i && $(MAKE) ) || exit $$?; done
 
 lib: obj

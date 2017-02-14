@@ -17,6 +17,7 @@
 #pragma link C++ class larcv::SimpleFiller+;
 #pragma link C++ class larcv::ThreadFillerFactory+;
 #pragma link C++ class larcv::RandomCropper+;
+#pragma link C++ class larcv::ExampleCircularBuffer+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

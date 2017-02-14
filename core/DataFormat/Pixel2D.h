@@ -46,6 +46,10 @@ namespace larcv {
     /// X Y Intensity setter
     void Set(size_t x, size_t y, float i)
     { _x = x; _y = y; _intensity = i; }
+    // set width
+    void Width(float w) { _width = w; };
+    // get width
+    float Width() const { return _width; };
 
     //
     // uniry operators
@@ -94,6 +98,7 @@ namespace larcv {
     size_t _x; ///< X position
     size_t _y; ///< Y position
     float  _intensity; ///< Pixel Intensity
+    float  _width; ///< Width (when using pixel to represent a hit)
   };
 }
 

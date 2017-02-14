@@ -13,22 +13,22 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
-#include "art/Utilities/InputTag.h"
+#include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include <memory>
 
 // nutools
-#include "SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
 // larsoft
 #include "larcore/Geometry/Geometry.h"
-#include "larsim/Simulation/SimChannel.h"
-#include "lardata/RecoBase/Wire.h"
-#include "lardata/RawData/RawDigit.h"
-#include "lardata/MCBase/MCTrack.h"
-#include "lardata/MCBase/MCShower.h"
-#include "lardata/RawData/OpDetWaveform.h"
+#include "lardataobj/Simulation/SimChannel.h"
+#include "lardataobj/RecoBase/Wire.h"
+#include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/MCBase/MCTrack.h"
+#include "lardataobj/MCBase/MCShower.h"
+#include "lardataobj/RawData/OpDetWaveform.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusService.h"
 #include "larevt/CalibrationDBI/Interface/ChannelStatusProvider.h"
 // larcv

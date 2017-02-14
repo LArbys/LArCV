@@ -80,6 +80,18 @@ namespace larcv {
   void Image2D::paint(float value)
   { for(auto& v : _img) v=value; }
 
+  void Image2D::paint_row(int row, float value)
+  { 
+    for ( size_t col=0; col<_meta.cols(); col++ )
+      set_pixel( row, col, value );
+  }
+
+  void Image2D::paint_col(int col, float value)
+  { 
+    for ( size_t row=0; row<_meta.rows(); row++ )
+      set_pixel( row, col, value );
+  }
+
   void Image2D::threshold(float thres, float lower_overwrite)
   { for(auto& v : _img) if( v <= thres ) v = lower_overwrite; }
 
@@ -309,6 +321,18 @@ namespace larcv {
   {
     if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!");
     for(size_t i=0; i<_img.size(); ++i) _img[i] += rhs[i];
+    return (*this);
+  }
+
+  Image2D& Image2D::operator+=(const larcv::Image2D& rhs)
+  {
+    if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!"); 
+    for (size_t col=0; col<meta().cols(); col++) {
+      for ( size_t row=0; row<meta().rows(); row++ ) {
+        float val = pixel(row,col);
+        set_pixel(row,col,val+rhs.pixel(row,col));
+      }
+    }
     return (*this);
   }
 

@@ -86,7 +86,7 @@ namespace larcv {
       // 2) (how to choose which one we clip?)
 
       larcv::EventImage2D input_event_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputImageProducer)));
-      larcv::EventImage2D input_seg_images;
+      larcv::EventImage2D* input_seg_images;
       larcv::EventROI event_roi;
 
       // If it exists, we get the ROI which will guide us on how to use the image
@@ -96,7 +96,8 @@ namespace larcv {
       if(roi_producer_id != kINVALID_PRODUCER) {
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " found. Searching for MC ROI..." << std::endl;
 	event_roi = *((larcv::EventROI*)(mgr.get_data(roi_producer_id)));
-	input_seg_images = *((larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer)));
+	if(!fInputSegmentationProducer.empty())
+	  input_seg_images = (larcv::EventImage2D*)(mgr.get_data(kProductImage2D,fInputSegmentationProducer));
       }else{
 	LARCV_INFO() << "ROI by producer " << fInputROIProducer << " not found. Constructing Cosmic ROI..." << std::endl;
 	// Input ROI did not exist. Assume this means cosmics and create one
@@ -188,7 +189,7 @@ namespace larcv {
 	}
 
 	// Output Segmentation
-	if ( fCropSegmentation && input_seg_images.Image2DArray().size() ) {
+	if ( fCropSegmentation && input_seg_images->Image2DArray().size() ) {
 	  // the semantic segmentation is only filled in the neighboor hood of the interaction
 	  // we overlay it into a full image (and then crop out the division)
 	  larcv::EventImage2D full_seg_images;
@@ -200,7 +201,7 @@ namespace larcv {
 					     img.meta().plane() );
 	    larcv::Image2D seg_image( seg_image_meta );
 	    seg_image.paint( 0.0 );
-	    seg_image.overlay( input_seg_images.at(p) );
+	    seg_image.overlay( input_seg_images->at(p) );
 	    full_seg_images.Emplace( std::move(seg_image) );
 	  }
 	  LARCV_DEBUG() << "Crop " << fInputSegmentationProducer << " Images." << std::endl;
