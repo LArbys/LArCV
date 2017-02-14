@@ -104,7 +104,8 @@ namespace larcv {
       auto& adc_img_v= _alg_mgr.InputImagesRW(0);
       auto& trk_img_v= _alg_mgr.InputImagesRW(1);
       auto& shr_img_v= _alg_mgr.InputImagesRW(2);
-      for(uint plane_id=0;plane_id<3;++plane_id) {
+      auto nplanes = adc_img_v.size();
+      for(size_t plane_id=0;plane_id<nplanes;++plane_id) {
 	LARCV_DEBUG() << "Preprocess image set @ "<< " plane " << plane_id << std::endl;
 	if (!_pre_processor.PreProcess(adc_img_v[plane_id],trk_img_v[plane_id],shr_img_v[plane_id])) {
 	  LARCV_CRITICAL() << "... could not be preprocessed, abort!" << std::endl;
@@ -112,7 +113,7 @@ namespace larcv {
 	}
       }
     }
-    
+
     _alg_mgr.Process();
 
     watch_one.Start();
