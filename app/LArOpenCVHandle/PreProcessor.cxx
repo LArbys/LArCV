@@ -184,8 +184,8 @@ namespace larcv {
     }
     
     // Threshold
-    cv::threshold(img_t,img_t,_pi_threshold,255,CV_THRESH_BINARY);
-
+    img_t = larocv::Threshold(img_t,_pi_threshold,255);
+    
     if(this->logger().level() == msg::kDEBUG) {
       static uint call2=0;
       std::stringstream ss;
@@ -283,7 +283,7 @@ namespace larcv {
 	  LARCV_INFO() << "Claiming a mostly shower ADC contour as shower" << std::endl;
 	  //mask these pixels out of the ADC image
 	  auto mask_adc = larocv::MaskImage(adc_img,adc_ctor,0,false);
-	  //mask away these pixels in the track image
+	  //mask away these pixels in the show image
 	  auto mask_shower = larocv::MaskImage(shower_img,adc_ctor,0,true);
 	  //reset the shower image
 	  shower_img = mask_adc + mask_shower;
@@ -384,7 +384,10 @@ namespace larcv {
       shower_img = larocv::MaskImage(shower_img,shower_ctor,0,true);
     }
 
-
+    // Lets make sure the track and shower images do not gain
+    // extra pixel value from masking
+    adc_img.copyTo(track_img,larocv::Threshold(track_img,1,1));
+    adc_img.copyTo(shower_img,larocv::Threshold(shower_img,1,1));
     
     LARCV_DEBUG() << "end" << std::endl;    
     return true;

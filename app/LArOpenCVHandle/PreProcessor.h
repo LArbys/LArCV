@@ -9,7 +9,7 @@ namespace larcv {
   enum class Type_t { kUnknown, kTrack, kShower };
   
   struct LinearTrack {
-    LinearTrack() : type(Type_t::kUnknown){}
+    LinearTrack() : track_frac(0), shower_frac(0), type(Type_t::kUnknown){}
     ~LinearTrack() {}
 
     larocv::GEO2D_Contour_t ctor;
