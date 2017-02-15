@@ -70,11 +70,9 @@ namespace larcv {
     std::vector<LinearTrack>
     MakeLinearTracks(const larocv::GEO2D_ContourArray_t& ctor_v,
 		     const cv::Mat& img);
-
-    bool
-    IsSandwich(const LinearTrack& shower,
-	       const LinearTrack& track1,
-	       const LinearTrack& track2);
+  bool
+  EdgeConnected(const LinearTrack& track1,
+		const LinearTrack& track2);
     
   private:
     uint _pi_threshold;
@@ -82,7 +80,7 @@ namespace larcv {
     uint _blur;
     float _allowed_shower_track_distance;
     uint _pca_box_size;
-    
+    float _min_overall_angle;
     larocv::SingleLinearTrack _SingleLinearTrack;
 
     

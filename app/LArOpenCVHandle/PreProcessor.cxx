@@ -18,6 +18,7 @@ namespace larcv {
     _allowed_shower_track_distance=10;//10;
     _blur = 4;//0
     _pca_box_size=5;
+    _min_overall_angle=10;
     LARCV_DEBUG() << "end" << std::endl;
   }
 
@@ -81,61 +82,41 @@ namespace larcv {
 
     return track_v;
   }
-  bool
-  PreProcessor::IsSandwich(const LinearTrack& shower,
-			   const LinearTrack& track1,
-			   const LinearTrack& track2) {
-    
-    bool bs1t11,bs1t12,bs1t21,bs1t22,bs2t11,bs2t12,bs2t21,bs2t22;
-    bool bs1,bs2;
-    
-    bs1t11=bs1t12=bs1t21=bs1t22=bs2t11=bs2t12=bs2t21=bs2t22=false;
-    bs1=bs2=false;
 
-    const auto& sedge1 = shower.edge1;
-    const auto& sedge2 = shower.edge2;
-    LARCV_DEBUG() << "sedge1 " << sedge1 << std::endl;
-    LARCV_DEBUG() << "sedge2 " << sedge2 << std::endl;
-    
+
+  bool PreProcessor::EdgeConnected(const LinearTrack& track1,
+				   const LinearTrack& track2) {
     const auto& t1edge1 = track1.edge1;
     const auto& t1edge2 = track1.edge2;
-    LARCV_DEBUG() << "t1edge1 " << t1edge1 << std::endl;
-    LARCV_DEBUG() << "t1edge2 " << t1edge2 << std::endl;
 
     const auto& t2edge1 = track2.edge1;
     const auto& t2edge2 = track2.edge2;
-    LARCV_DEBUG() << "t2edge1 " << t2edge1 << std::endl;
-    LARCV_DEBUG() << "t2edge2 " << t2edge2 << std::endl;
+
+    bool bt11t21,bt11t22,bt12t21,bt12t22;
+    bt11t21=bt11t22=bt12t21=bt12t22=false;
+
+    auto ft11t21 = geo2d::dist(t1edge1,t2edge1);
+    auto ft11t22 = geo2d::dist(t1edge1,t2edge2);
+    auto ft12t21 = geo2d::dist(t1edge2,t2edge1);
+    auto ft12t22 = geo2d::dist(t1edge2,t2edge2);
     
-    //have to tracks, determine if edge is compatible
-    auto fs1t11 = geo2d::dist(sedge1,t1edge1);
-    auto fs1t12 = geo2d::dist(sedge1,t1edge2);
-    auto fs1t21 = geo2d::dist(sedge1,t2edge1);
-    auto fs1t22 = geo2d::dist(sedge1,t2edge2);
-    auto fs2t11 = geo2d::dist(sedge2,t1edge1);
-    auto fs2t12 = geo2d::dist(sedge2,t1edge2);
-    auto fs2t21 = geo2d::dist(sedge2,t2edge1);
-    auto fs2t22 = geo2d::dist(sedge2,t2edge2);
+    if(ft11t21 < _allowed_shower_track_distance) bt11t21=true;
+    if(ft11t22 < _allowed_shower_track_distance) bt11t22=true;
+    if(ft12t21 < _allowed_shower_track_distance) bt12t21=true;
+    if(ft12t22 < _allowed_shower_track_distance) bt12t22=true;
+
+    if (bt11t21)
+      { LARCV_DEBUG() << "Track 1 edge1 & Track 2 edge1 neaby" << std::endl; return true; }
+    if (bt11t22)
+      { LARCV_DEBUG() << "Track 1 edge1 & Track 2 edge2 nearby" << std::endl; return true; }
+    if (bt12t21)
+      { LARCV_DEBUG() << "Track 1 edge2 & Track 2 edge1 nearby" << std::endl; return true; }
+    if (bt12t22)
+      { LARCV_DEBUG() << "Track 1 edge2 & Track 2 edge2 nearby" << std::endl; return true; }
     
-    LARCV_DEBUG() << fs1t11 << "," << fs1t12 << "," << fs1t21 << "," << fs1t22 << "," << fs2t11 << "," << fs2t12 << "," << fs2t21 << "," << fs2t22 << std::endl;
-
-    if(fs1t11 < _allowed_shower_track_distance) bs1t11=true;
-    if(fs1t12 < _allowed_shower_track_distance) bs1t12=true;
-    if(fs1t21 < _allowed_shower_track_distance) bs1t21=true;
-    if(fs1t22 < _allowed_shower_track_distance) bs1t22=true;
-    if(fs2t11 < _allowed_shower_track_distance) bs2t11=true;
-    if(fs2t12 < _allowed_shower_track_distance) bs2t12=true;
-    if(fs2t21 < _allowed_shower_track_distance) bs2t21=true;
-    if(fs2t22 < _allowed_shower_track_distance) bs2t22=true;
-
-    bs1 = ( (bs1t11 or bs1t12) or (bs1t21 or bs1t22) );
-    bs2 = ( (bs2t11 or bs2t12) or (bs2t21 or bs2t22) );
-
-    if (bs1 && bs2) return true;
-
     return false;
   }
-
+  
   
   bool
   PreProcessor::PreProcess(cv::Mat& adc_img, cv::Mat& track_img, cv::Mat& shower_img)
@@ -191,33 +172,43 @@ namespace larcv {
     auto shower_lintrk_v = MakeLinearTracks(shower_ctor_v,shower_img_t);
 
     // Shower contours that are probably track..
-    std::vector<std::array<size_t,3> > cidx_v;
-
+    std::vector<size_t> cidx_v;
+    
     // Find "sandwich" showers -- showers between two tracks    
     for(size_t shower_id=0;shower_id<shower_lintrk_v.size();++shower_id) {
       const auto& shower = shower_lintrk_v[shower_id];
       for(size_t track1_id=0;track1_id<track_lintrk_v.size();++track1_id) {
 	const auto& track1 = track_lintrk_v[track1_id];
+	if (!EdgeConnected(shower,track1))
+	  continue;
 	for(size_t track2_id=track1_id+1;track2_id<track_lintrk_v.size();++track2_id) {
 	  const auto& track2 = track_lintrk_v[track2_id];
-	  if (IsSandwich(shower,track1,track2)) {
-	    LARCV_DEBUG() << "Shower " << shower_id
-			  << " sandwich btw"
-			  << " track " << track1_id
-			  << " & track " << track2_id
-			  << std::endl;
-	    std::array<size_t,3> arr {{shower_id,track1_id,track2_id}};
-	    cidx_v.emplace_back(std::move(arr));
-	  } // sandwich
+	  if (!EdgeConnected(shower,track2))
+	    continue;
+	  
+	  LARCV_DEBUG() << "Shower " << shower_id
+			<< " sandwich btw"
+			<< " track " << track1_id
+			<< " & track " << track2_id
+			<< std::endl;
+
+	  cidx_v.push_back(shower_id);
 	} // end track2
+
+	auto angle = geo2d::angle(shower.overallPCA,track1.overallPCA);
+	if (angle < _min_overall_angle) 
+	  cidx_v.push_back(shower_id);
+
       } // end track1
     } // end this shower
 
     
+    
+    
     LARCV_INFO() << "Found " << cidx_v.size() << " compatible tracks and showers" << std::endl;
     //lets use the shower to mask the ADC image, and append to the track image
     for(const auto& cidx : cidx_v) {
-      const auto& shower_ctor = shower_lintrk_v[cidx[0]].ctor;
+      const auto& shower_ctor = shower_lintrk_v[cidx].ctor;
       //get a mask of the ADC image
       auto mask_adc = larocv::MaskImage(adc_img,shower_ctor,0,false);
       //add it to the track image
@@ -229,7 +220,6 @@ namespace larcv {
     LARCV_DEBUG() << "end" << std::endl;    
     return true;
   }
-
 }
 
 #endif
