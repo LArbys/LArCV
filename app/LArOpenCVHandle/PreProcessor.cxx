@@ -20,6 +20,7 @@ namespace larcv {
     _blur = 4;//0
     _pca_box_size=5;
     _min_overall_angle=10;
+    _min_pca_angle=10;
     _merge_pixel_frac=true;
     _min_track_frac = 0.8;
     _min_shower_frac = 0.8;
@@ -41,6 +42,20 @@ namespace larcv {
     LARCV_DEBUG() << "end" << std::endl;
     return;
   }
+
+  bool
+  PreProcessor::IsStraight(const LinearTrack& track) {
+    
+    auto edgePCA_a = std::abs(geo2d::angle(track.edge1PCA,track.edge2PCA));
+    // auto oe1PCA_a  = std::abs(geo2d::angle(track.overallPCA,track.edge1PCA));
+    // auto oe1PCA_a  = std::abs(geo2d::angle(track.overallPCA,track.edge2PCA));
+    
+    if ((edgePCA_a < _min_pca_angle) or (edgePCA_a > 180-_min_pca_angle)) // probably straight...
+      return true;
+      
+    return false;
+  }
+
   
   void
   PreProcessor::FilterContours(larocv::GEO2D_ContourArray_t& ctor_v) {
@@ -196,8 +211,7 @@ namespace larcv {
     
     // FindContours
     larocv::GEO2D_ContourArray_t adc_raw_ctor_v,adc_ctor_v,track_ctor_v,shower_ctor_v;
-    cv::Mat adc_img_copy = adc_img.clone();
-    adc_raw_ctor_v = larocv::FindContours(adc_img_copy);
+    adc_raw_ctor_v = larocv::FindContours(adc_img.clone());
     adc_ctor_v  = larocv::FindContours(adc_img_t);
     track_ctor_v = larocv::FindContours(track_img_t);
     shower_ctor_v = larocv::FindContours(shower_img_t);
@@ -208,7 +222,7 @@ namespace larcv {
     FilterContours(shower_ctor_v);
     LARCV_DEBUG() << "Found " << adc_ctor_v.size() << " adc contours" << std::endl;
     LARCV_DEBUG() << "Found " << track_ctor_v.size() << " track contours" << std::endl;
-    LARCV_DEBUG() << "Found " << shower_ctor_v.size() << " track contours" << std::endl;
+    LARCV_DEBUG() << "Found " << shower_ctor_v.size() << " shower contours" << std::endl;
 
     std::vector<LinearTrack> adc_lintrk_v,track_lintrk_v,shower_lintrk_v;
 
@@ -290,7 +304,7 @@ namespace larcv {
       FilterContours(track_ctor_v);
       FilterContours(shower_ctor_v);
       LARCV_DEBUG() << "Re-Found " << track_ctor_v.size() << " track contours" << std::endl;
-      LARCV_DEBUG() << "Re-Found " << shower_ctor_v.size() << " track contours" << std::endl;
+      LARCV_DEBUG() << "Re-Found " << shower_ctor_v.size() << " shower contours" << std::endl;
     }
 	
     
@@ -306,15 +320,28 @@ namespace larcv {
     LARCV_DEBUG() << "Generating extended Shower linear tracks..." << std::endl;
     shower_lintrk_v = MakeLinearTracks(shower_ctor_v,shower_img_t,Type_t::kShower);
     LARCV_DEBUG() << "... made " << shower_lintrk_v.size() << " shower tracks " << std::endl;
-
     
     std::vector<size_t> cidx_v;
-
+    //Loop to determine track and shower compatibility
+    
     for(size_t shower_id=0;shower_id<shower_lintrk_v.size();++shower_id) {
       LARCV_DEBUG() << "On shower " << shower_id << std::endl;
       const auto& shower = shower_lintrk_v[shower_id];
+      
       for(size_t track1_id=0;track1_id<track_lintrk_v.size();++track1_id) {
 	const auto& track1 = track_lintrk_v[track1_id];
+
+	//Determine the straightness of this track and this shower
+	if (IsStraight(track1) and IsStraight(shower)) {
+	  LARCV_DEBUG() << "Straight shower and straight track identified" << std::endl;
+	  auto angle = std::abs(geo2d::angle(shower.overallPCA,track1.overallPCA));
+	  if ((angle < _min_overall_angle) or (angle > 180 - _min_overall_angle)) {
+	    cidx_v.push_back(shower_id);
+	    continue;
+	  }
+	}
+
+
 	if (!EdgeConnected(shower,track1))
 	  continue;
 
@@ -329,16 +356,16 @@ namespace larcv {
 			<< " track " << track1_id
 			<< " & track " << track2_id
 			<< std::endl;
-
+	  
 	  cidx_v.push_back(shower_id);
 	} // end track2
-
+	
 	// Find nearby contours with similar overall PCA
-	auto angle = geo2d::angle(shower.overallPCA,track1.overallPCA);
-	if (std::abs(angle) < _min_overall_angle) 
+	auto angle = std::abs(geo2d::angle(shower.overallPCA,track1.overallPCA));
+	if ((angle < _min_overall_angle) or (angle > 180 - _min_overall_angle)) {
+	  LARCV_DEBUG() << "Compatible angle detected" << std::endl;
 	  cidx_v.push_back(shower_id);
-
-	// Get the two edge points, calculate local PCA @ edge point
+	}
 	
       } // end track1
     } // end this shower

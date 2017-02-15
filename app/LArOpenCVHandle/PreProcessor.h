@@ -42,6 +42,11 @@ namespace larcv {
 	       cv::Mat& shower_img);
 
   private:
+
+
+    bool
+    IsStraight(const LinearTrack& track);
+    
     void
     FilterContours(larocv::GEO2D_ContourArray_t& ctor_v);
 		   
@@ -58,6 +63,8 @@ namespace larcv {
 		  const LinearTrack& track2);
 
     cv::Mat PrepareImage(const cv::Mat& img);
+
+    
   private:
     uint _pi_threshold;
     uint _min_ctor_size;
@@ -65,6 +72,7 @@ namespace larcv {
     float _allowed_neighbor_dist;
     uint _pca_box_size;
     float _min_overall_angle;
+    float _min_pca_angle;
     float _min_track_size;
     bool _merge_pixel_frac;
     float _min_track_frac;
