@@ -6,33 +6,11 @@
 
 namespace larcv {
 
+  enum class Type_t { kUnknown, kTrack, kShower };
+  
   struct LinearTrack {
-    LinearTrack() {}
+    LinearTrack() : type(Type_t::kUnknown){}
     ~LinearTrack() {}
-
-    LinearTrack(const larocv::GEO2D_Contour_t& ctor_,
-		const geo2d::Vector<float>& edge1_,
-		const geo2d::Vector<float>& edge2_,
-		const float length_,
-		const float width_,
-		const float perimeter_,
-		const float area_,
-		const uint npixel_,
-		geo2d::Line<float> overallPCA_,
-		geo2d::Line<float> edge1PCA_,
-		geo2d::Line<float> edge2PCA_) :
-      ctor(ctor_),
-      edge1(edge1_),
-      edge2(edge2_),
-      length(length_),
-      width(width_),
-      perimeter(perimeter_),
-      area(area_),
-      npixel(npixel_),
-      overallPCA(overallPCA_),
-      edge1PCA(edge1PCA_),
-      edge2PCA(edge2PCA_)
-    {}
 
     larocv::GEO2D_Contour_t ctor;
     geo2d::Vector<float> edge1;
@@ -45,9 +23,12 @@ namespace larcv {
     geo2d::Line<float> overallPCA;
     geo2d::Line<float> edge1PCA;
     geo2d::Line<float> edge2PCA;
+    float track_frac;
+    float shower_frac;
+    Type_t type;
   };
 
-
+  
   class PreProcessor : public larcv_base{
 
   public:
@@ -62,25 +43,32 @@ namespace larcv {
 
   private:
     void
-    FilterContours(larocv::GEO2D_ContourArray_t& ctor_v,
-		   const cv::Mat& img);
+    FilterContours(larocv::GEO2D_ContourArray_t& ctor_v);
+		   
     void
     Configure(const fcllite::PSet& pset);
 
     std::vector<LinearTrack>
     MakeLinearTracks(const larocv::GEO2D_ContourArray_t& ctor_v,
-		     const cv::Mat& img);
-  bool
-  EdgeConnected(const LinearTrack& track1,
-		const LinearTrack& track2);
-    
+		     const cv::Mat& img,
+		     Type_t type,
+		     bool calc_params=true);
+    bool
+    EdgeConnected(const LinearTrack& track1,
+		  const LinearTrack& track2);
+
+    cv::Mat PrepareImage(const cv::Mat& img);
   private:
     uint _pi_threshold;
     uint _min_ctor_size;
     uint _blur;
-    float _allowed_shower_track_distance;
+    float _allowed_neighbor_dist;
     uint _pca_box_size;
     float _min_overall_angle;
+    float _min_track_size;
+    bool _merge_pixel_frac;
+    float _min_track_frac;
+    float _min_shower_frac;
     larocv::SingleLinearTrack _SingleLinearTrack;
 
     

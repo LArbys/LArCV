@@ -35,6 +35,8 @@ namespace larcv {
     void finalize();
 
     const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
+
+    const PreProcessor& PProcessor() const { return _pre_processor; }
     
   protected:
 
