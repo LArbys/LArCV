@@ -21,6 +21,8 @@
 #include "Base/larcv_base.h"
 #include "SuperaTypes.h"
 #include "Cropper.h"
+#include "MCPNode.h"
+
 namespace larcv {
   namespace supera {
 
@@ -29,6 +31,7 @@ namespace larcv {
        User defined class MCParticleTree ... these comments are used to generate
        doxygen documentation!
     */
+
     template <class T, class U, class V, class W>
     class MCParticleTree : public larcv::larcv_base {
       
@@ -62,19 +65,41 @@ namespace larcv {
 
       void DefinePrimary(const larcv::Vertex& vtx, const larcv::ROI& interaction);
 
+      void DefinePrimaries(const std::vector<U>&, const int time_offset);
+
+      void DefinePrimaries(const std::vector<V>&, const int time_offset);
+
       void RegisterSecondary(const larcv::Vertex& vtx, const larcv::ROI& secondary);
 
       void UpdatePrimaryROI();
 
       std::vector<larcv::supera::InteractionROI_t> GetPrimaryROI() const;
+      std::vector<larcv::supera::InteractionROI_t> GetNeutrinoROI() const;
 
       void clear()
-      { _roi_m.clear(); }
+      { 
+	_roi_m.clear(); 
+	for ( std::vector<MCPNode*>::iterator it=nodelist.begin(); it!=nodelist.end(); it++ ) {
+	  delete (*it);
+	  (*it) = NULL;
+	}
+	nodelist.clear();
+	idx_primaries.clear();
+	primaryids.clear();
+	//idx_secondary2primary.clear();
+      };
 
     private:
 
       Cropper<U,V,W> _cropper;
       std::map<larcv::Vertex,larcv::supera::InteractionROI_t> _roi_m;
+
+      // the particle tree
+      std::vector< MCPNode* > nodelist;
+      std::vector< int > idx_primaries;
+      //std::map< int, int > idx_secondary2primary;
+      std::map<larcv::Vertex,int> idx_vertexmap;
+      std::map< int, MCPNode* > primaryids;
 
       std::map<int,double> _min_energy_init_pdg;
       std::map<int,double> _min_energy_deposit_pdg;

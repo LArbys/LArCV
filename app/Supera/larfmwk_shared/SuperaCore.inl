@@ -12,8 +12,8 @@
 namespace larcv {
 	namespace supera {
 
-		template <class R, class S, class T, class U, class V, class W>
-		SuperaCore<R, S, T, U, V, W>::SuperaCore() : _logger("Supera")
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		SuperaCore<R, S, T, U, V, W, Q>::SuperaCore() : _logger("Supera")
 			, _larcv_io(::larcv::IOManager::kWRITE)
 		{
 			_configured = false;
@@ -24,22 +24,24 @@ namespace larcv {
 		}
 
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::initialize() {
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::initialize() {
 			if (!_supera_fname.empty()) _larcv_io.set_out_file(_supera_fname);
 			_larcv_io.initialize();
 		}
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::configure(const Config_t& main_cfg) {
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::configure(const Config_t& main_cfg) {
 
 			_use_mc = main_cfg.get<bool>("UseMC");
 			_store_chstatus = main_cfg.get<bool>("StoreChStatus");
+			_store_interaction_images = main_cfg.get<bool>("StoreInteractionImages");
 			_larcv_io.set_out_file(main_cfg.get<std::string>("OutFileName"));
 
 			_default_roi_type = (ROIType_t)(main_cfg.get<unsigned short>("DefaultROIType"));
 
 			_producer_digit    = main_cfg.get<std::string>("DigitProducer");
+			_producer_hit      = main_cfg.get<std::string>("HitProducer");
 			_producer_simch    = main_cfg.get<std::string>("SimChProducer");
 			_producer_wire     = main_cfg.get<std::string>("WireProducer");
 			_producer_gen      = main_cfg.get<std::string>("GenProducer");
@@ -93,24 +95,25 @@ namespace larcv {
 			_configured = true;
 		}
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::set_chstatus(unsigned int ch, short status)
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::set_chstatus(unsigned int ch, short status)
 		{
 			if (ch >= _channel_to_plane_wire.size()) throw ::larcv::larbys("Invalid channel to store status!");
 			auto const& plane_wire = _channel_to_plane_wire[ch];
 			set_chstatus(plane_wire.first, plane_wire.second, status);
 		}
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::set_chstatus(::larcv::PlaneID_t plane, unsigned int wire, short status)
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::set_chstatus(::larcv::PlaneID_t plane, unsigned int wire, short status)
 		{
 			if (wire >= ::larcv::supera::Nwires(plane)) throw ::larcv::larbys("Invalid wire number to store status!");
 			_status_m[plane].Status(wire, status);
 		}
 
-		template <class R, class S, class T, class U, class V, class W>
-		bool SuperaCore<R, S, T, U, V, W>::process_event(const std::vector<R>& opdigit_v,
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		bool SuperaCore<R, S, T, U, V, W, Q>::process_event(const std::vector<R>& opdigit_v,
 		        const std::vector<S>& wire_v,
+		        const std::vector<Q>& hit_v,
 		        const std::vector<T>& mctruth_v,
 		        const std::vector<U>& mctrack_v,
 		        const std::vector<V>& mcshower_v,
@@ -166,7 +169,10 @@ namespace larcv {
 
 					// Create full resolution image
 					_full_image.reset(full_meta);
-					fill(_full_image, wire_v, _tpc_tick_offset);
+					if(hit_v.empty())
+						fill(_full_image, wire_v, _tpc_tick_offset);
+					else
+						fill(_full_image, hit_v, _tpc_tick_offset);
 					_full_image.index(event_image_v->Image2DArray().size());
 
 					// Finally compress and store as event image
@@ -192,8 +198,12 @@ namespace larcv {
 			//
 			// 1) Construct Interaction/Particle ROIs
 			//
+			
+			// for now, our goal is to produce neutrino ROI only
+
 			_mctp.clear();
 			_mctp.DefinePrimary(mctruth_v);
+			_mctp.DefinePrimaries(mctrack_v,_mc_tick_offset);
 			if (_producer_simch.empty()) {
 				_mctp.RegisterSecondary(mctrack_v,_mc_tick_offset);
 				_mctp.RegisterSecondary(mcshower_v,_mc_tick_offset);
@@ -203,8 +213,13 @@ namespace larcv {
 			}
 
 			_mctp.UpdatePrimaryROI();
-			auto int_roi_v = _mctp.GetPrimaryROI();
-
+			//auto int_roi_v = _mctp.GetPrimaryROI();
+			auto int_roi_v = _mctp.GetNeutrinoROI();
+			LARCV_NORMAL() << "neutrino interactions=" << int_roi_v.size() << std::endl;
+			if ( int_roi_v.size()>0 ) {
+			  LARCV_NORMAL() << int_roi_v.at(0).first.dump() << std::endl;
+			}
+			
 			auto roi_v = (::larcv::EventROI*)(_larcv_io.get_data(::larcv::kProductROI, "tpc"));
 
 			for (auto& int_roi : int_roi_v) {
@@ -373,53 +388,86 @@ namespace larcv {
 			fill(op_img, opdigit_v);
 			opdigit_image_v->Emplace(std::move(op_img));
 
+
 			//
-			// Extract image if there's any ROI
+			// Extract interaction images
 			//
-			LARCV_INFO() << "Checking..." << std::endl;
+			if ( _store_interaction_images ) {
+			  LARCV_INFO() << "Checking for interactions  ..." << std::endl;
+			  
+			  // Now extract each high-resolution interaction image
+			  for (auto const& roi : roi_v->ROIArray()) {
+			    // Only care about interaction
+			    if (roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
+			    ::larcv::ImageMeta roi_meta;
+			    
+			    int nplanes = 0;
+			    for (size_t p = 0; p < ::larcv::supera::Nplanes(); ++p) {
+			    
+			      try {
+				roi_meta = roi.BB(p);
+			      } catch ( const ::larcv::larbys& err ) {
+				LARCV_INFO() << "No ROI found on plane=" << p << " for..." << std::endl << roi.dump() << std::endl;
+				//continue;
+				break;
+			      }
+			      nplanes++;
+			    }
+			    
+			    if (nplanes!=::larcv::supera::Nplanes()) continue;
+			    
+			    LARCV_INFO() << "Saving Interaction ROI for..." << std::endl << roi.dump() << std::endl;
+
+			    for (size_t p=0; p<::larcv::supera::Nplanes(); p++) {
+			      ::larcv::ImageMeta roi_meta = roi.BB(p);
+			      LARCV_INFO() << "Inspecting plane " << p << " for ROI cropping... fuck you" << std::endl;
+			      auto const& full_meta = (*(image_meta_m.find(p))).second;
+			      
+			      // Create full resolution image
+			      _full_image.reset(full_meta);
+
+
+			      // Retrieve cropped full resolution image
+			      //auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, Form("tpc_int%02d", roi.MCTIndex())));
+			      auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, "tpc_int") );
+			      LARCV_INFO() << "Cropping ROI (type=" << roi.Type() << ", ID=" << roi.MCTIndex() << "): " << roi_meta.dump();
+			      
+			      auto hires_img = _full_image.crop(roi_meta);
+			      int_img_v->Emplace(std::move(hires_img));
+			      //if (int_img_v->Image2DArray().size() > (p + 1)) {
+			      //	LARCV_CRITICAL() << "Unexpected # of hi-res images: " << int_img_v->Image2DArray().size() << " @ plane " << p << std::endl;
+			      //	throw ::larcv::larbys();
+			      //}
+			    }//end of filling interaction
+			  }// loop over ROIs
+			}//if save interaction iamges
+
+			//
+			// Extract Full Event Images
+			//
 			for (size_t p = 0; p < ::larcv::supera::Nplanes(); ++p) {
-				LARCV_INFO() << "Inspecting plane " << p << " for ROI cropping... fuck you" << std::endl;
-				auto const& full_meta = (*(image_meta_m.find(p))).second;
+			  auto const& full_meta = (*(image_meta_m.find(p))).second;
 
-				// Create full resolution image
-				_full_image.reset(full_meta);
-				LARCV_INFO() << "Filling full image..." << std::endl;
-				fill(_full_image, wire_v, _tpc_tick_offset);
-				_full_image.index(event_image_v->Image2DArray().size());
-				LARCV_INFO() << "Looping over ROIs..." << std::endl;
-				// Now extract each high-resolution interaction image
-				for (auto const& roi : roi_v->ROIArray()) {
-					// Only care about interaction
-					if (roi.MCSTIndex() != ::larcv::kINVALID_INDEX) continue;
-					::larcv::ImageMeta roi_meta;
-					try {
-						roi_meta = roi.BB(p);
-					} catch ( const ::larcv::larbys& err ) {
-						LARCV_INFO() << "No ROI found for..." << std::endl << roi.dump() << std::endl;
-						continue;
-					}
-					// Retrieve cropped full resolution image
-					auto int_img_v = (::larcv::EventImage2D*)(_larcv_io.get_data(::larcv::kProductImage2D, Form("tpc_int%02d", roi.MCTIndex())));
-					LARCV_INFO() << "Cropping ROI: " << roi_meta.dump();
+			  // Create full resolution image
+			  _full_image.reset(full_meta);
+			  LARCV_INFO() << "Filling full image..." << std::endl;
+			  if(hit_v.empty())
+				  fill(_full_image, wire_v, _tpc_tick_offset);
+				else
+					fill(_full_image, hit_v, _tpc_tick_offset);
 
-					auto hires_img = _full_image.crop(roi_meta);
-					int_img_v->Emplace(std::move(hires_img));
-					if (int_img_v->Image2DArray().size() > (p + 1)) {
-						LARCV_CRITICAL() << "Unexpected # of hi-res images: " << int_img_v->Image2DArray().size() << " @ plane " << p << std::endl;
-						throw ::larcv::larbys();
-					}
-				}
+			  _full_image.index(event_image_v->Image2DArray().size());
+			
+			  // Finally compress and store as event image
+			  auto comp_meta = ::larcv::ImageMeta(_full_image.meta());
+			  comp_meta.update(_event_image_rows[p], _event_image_cols[p]);
 
-				// Finally compress and store as event image
-				auto comp_meta = ::larcv::ImageMeta(_full_image.meta());
-				comp_meta.update(_event_image_rows[p], _event_image_cols[p]);
+			  LARCV_INFO() << "Event compress from : " << _full_image.meta().dump();
+			  LARCV_INFO() << "Event compress to   : " << comp_meta.dump();
 
-				LARCV_INFO() << "Event compress from : " << _full_image.meta().dump();
-				LARCV_INFO() << "Event compress to   : " << comp_meta.dump();
-
-				::larcv::Image2D img(std::move(comp_meta),
-				                     std::move(_full_image.copy_compress(_event_image_rows[p], _event_image_cols[p])));
-				event_image_v->Emplace(std::move(img));
+			  ::larcv::Image2D img(std::move(comp_meta),
+					       std::move(_full_image.copy_compress(_event_image_rows[p], _event_image_cols[p])));
+			  event_image_v->Emplace(std::move(img));
 			}
 
 			//
@@ -443,11 +491,11 @@ namespace larcv {
 				break;
 			}
 			if (!sem_images.empty()) {
-				fill(sem_images, mctrack_v, mcshower_v, simch_v, _mc_tick_offset);
-				for (auto& img : sem_images) {
-					img.compress(img.meta().rows() / _event_comp_rows[img.meta().plane()],
-					             img.meta().cols() / _event_comp_cols[img.meta().plane()], larcv::Image2D::kMaxPool);
-				}
+			  fill(sem_images, mctrack_v, mcshower_v, simch_v, int_roi_v.at(0), _mc_tick_offset);
+			  for (auto& img : sem_images) {
+			    img.compress(img.meta().rows() / _event_comp_rows[img.meta().plane()],
+					 img.meta().cols() / _event_comp_cols[img.meta().plane()], larcv::Image2D::kMaxPool);
+			  }
 			}
 			event_semimage_v->Emplace(std::move(sem_images));
 
@@ -455,8 +503,8 @@ namespace larcv {
 			return true;
 		}
 
-		template<class R, class S, class T, class U, class V, class W>
-		larcv::ImageMeta SuperaCore<R, S, T, U, V, W>::format_meta(const larcv::ImageMeta& part_image,
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		larcv::ImageMeta SuperaCore<R, S, T, U, V, W, Q>::format_meta(const larcv::ImageMeta& part_image,
 		        const larcv::ImageMeta& event_image,
 		        const size_t modular_row,
 		        const size_t modular_col)
@@ -527,15 +575,15 @@ namespace larcv {
 			return res;
 		}
 
-		template<class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::finalize() {
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::finalize() {
 			if (!_configured) throw larbys("Call configure() first!");
 			_larcv_io.finalize();
 			_larcv_io.reset();
 		}
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::fill(Image2D& img, const std::vector<R>& opdigit_v, int time_offset)
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::fill(Image2D& img, const std::vector<R>& opdigit_v, int time_offset)
 		{
 			auto const& meta = img.meta();
 			img.paint(2048);
@@ -560,88 +608,123 @@ namespace larcv {
 			}
 		}
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::fill(std::vector<Image2D>& img_v,
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::fill(std::vector<Image2D>& img_v,
 		                                        const std::vector<U>& mct_v,
 		                                        const std::vector<V>& mcs_v,
 		                                        const std::vector<W>& sch_v,
+												const larcv::supera::InteractionROI_t& interaction_roi,
 		                                        const int time_offset)
 		{
-			LARCV_INFO() << "Filling semantic-segmentation ground truth image..." << std::endl;
-			for (auto const& img : img_v)
+		  LARCV_INFO() << "Filling semantic-segmentation ground truth image..." << std::endl;
+		  for (auto const& img : img_v)
+		    LARCV_INFO() << img.meta().dump();
+		  
+		  std::set<int> interaction_trackids;
+		  for ( auto &part_roi : interaction_roi.second ) 
+		    interaction_trackids.insert( (int)part_roi.TrackID() );
+		  
+		  //static std::vector<larcv::ROIType_t> track2type_v(1e4, ::larcv::kROIUnknown);
+		  std::map< int, larcv::ROIType_t > track2type_v;
+		  //for (auto& v : track2type_v) v = ::larcv::kROIUnknown;
+		  for (auto const& mct : mct_v) {
+		    //if (mct.TrackID() >= track2type_v.size())
+		    //		track2type_v.resize(mct.TrackID() + 1, ::larcv::kROIUnknown);
+		    track2type_v[mct.TrackID()] = ::larcv::PDG2ROIType(mct.PdgCode());
+		  }
+		  for (auto const& mcs : mcs_v) {
+		    //if (mcs.TrackID() >= track2type_v.size())
+		    //track2type_v.resize(mcs.TrackID() + 1, ::larcv::kROIUnknown);
+		    auto const roi_type = ::larcv::PDG2ROIType(mcs.PdgCode());
+		    track2type_v[mcs.TrackID()] = roi_type;
+		    for (auto const& id : mcs.DaughterTrackID()) {
+		      //if (id >= track2type_v.size())
+		      //track2type_v.resize(id + 1, ::larcv::kROIUnknown);
+		      track2type_v[id] = roi_type;
+		    }
+		  }
+		  
+		  static std::vector<float> column;
+		  for (auto const& img : img_v) {
+		    if (img.meta().rows() >= column.size())
+		      column.resize(img.meta().rows() + 1, (float)(::larcv::kROIUnknown));
+		  }
 
-				LARCV_INFO() << img.meta().dump();
-
-			static std::vector<larcv::ROIType_t> track2type_v(1e4, ::larcv::kROIUnknown);
-			for (auto& v : track2type_v) v = ::larcv::kROIUnknown;
-			for (auto const& mct : mct_v) {
-				if (mct.TrackID() >= track2type_v.size())
-					track2type_v.resize(mct.TrackID() + 1, ::larcv::kROIUnknown);
-				track2type_v[mct.TrackID()] = ::larcv::PDG2ROIType(mct.PdgCode());
-			}
-			for (auto const& mcs : mcs_v) {
-				if (mcs.TrackID() >= track2type_v.size())
-					track2type_v.resize(mcs.TrackID() + 1, ::larcv::kROIUnknown);
-				auto const roi_type = ::larcv::PDG2ROIType(mcs.PdgCode());
-				track2type_v[mcs.TrackID()] = roi_type;
-				for (auto const& id : mcs.DaughterTrackID()) {
-					if (id >= track2type_v.size())
-						track2type_v.resize(id + 1, ::larcv::kROIUnknown);
-					track2type_v[id] = roi_type;
-				}
-			}
-
-			static std::vector<float> column;
-			for (auto const& img : img_v) {
-				if (img.meta().rows() >= column.size())
-					column.resize(img.meta().rows() + 1, (float)(::larcv::kROIUnknown));
-			}
-
-			for (auto const& sch : sch_v) {
-
-				auto ch = sch.Channel();
-				auto const& wid = ::larcv::supera::ChannelToWireID(ch);
-				auto const& plane = wid.Plane;
-				auto& img = img_v.at(plane);
-				auto const& meta = img.meta();
-
-				size_t col = wid.Wire;
-				if (col < meta.min_x()) continue;
-				if (meta.max_x() <= col) continue;
-				if (plane != img.meta().plane()) continue;
-
-				col -= (size_t)(meta.min_x());
-
-				// Initialize column vector
-				for (auto& v : column) v = (float)(::larcv::kROIUnknown);
-				//for (auto& v : column) v = (float)(-1);
-
-				for (auto const tick_ides : sch.TDCIDEMap()) {
-				    int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
-					if (tick < meta.min_y()) continue;
-					if (tick >= meta.max_y()) continue;
-					// Where is this tick in column vector?
-					size_t index = (size_t)(meta.max_y() - tick);
-					// Pick type
-					double energy = 0;
-					::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
-					for (auto const& edep : tick_ides.second) {
-						if (edep.energy < energy) continue;
-						if (edep.trackID >= (int)(track2type_v.size())) continue;
-						auto temp_roi_type = track2type_v[edep.trackID];
-						if (temp_roi_type ==::larcv::kROIUnknown) continue;
-						energy = edep.energy;
-						roi_type = temp_roi_type;
-					}
-					column[index] = roi_type;
-				}
-				// mem-copy column vector
-				img.copy(0, col, column, img.meta().rows());
-			}
+		  for (auto const& sch : sch_v) {
+		    
+		    auto ch = sch.Channel();
+		    auto const& wid = ::larcv::supera::ChannelToWireID(ch);
+		    auto const& plane = wid.Plane;
+		    auto& img = img_v.at(plane);
+		    auto const& meta = img.meta();
+		    
+		    size_t col = wid.Wire;
+		    if (col < meta.min_x()) continue;
+		    if (meta.max_x() <= col) continue;
+		    if (plane != img.meta().plane()) continue;
+		    
+		    col -= (size_t)(meta.min_x());
+		    
+		    // Initialize column vector
+		    for (auto& v : column) v = (float)(::larcv::kROIUnknown);
+		    //for (auto& v : column) v = (float)(-1);
+		    
+		    for (auto const tick_ides : sch.TDCIDEMap()) {
+		      int tick = TPCTDC2Tick((double)(tick_ides.first)) + time_offset;
+		      if (tick < meta.min_y()) continue;
+		      if (tick >= meta.max_y()) continue;
+		      // Where is this tick in column vector?
+		      size_t index = (size_t)(meta.max_y() - tick);
+		      // Pick type
+		      double energy = 0;
+		      ::larcv::ROIType_t roi_type =::larcv::kROIUnknown;
+		      for (auto const& edep : tick_ides.second) {
+			if (edep.energy < energy) continue;
+			if ( interaction_trackids.find( edep.trackID )==interaction_trackids.end() ) continue;
+			//if (edep.trackID >= (int)(track2type_v.size())) continue;
+			auto temp_roi_type = track2type_v[edep.trackID];
+			if (temp_roi_type ==::larcv::kROIUnknown) continue;
+			energy = edep.energy;
+			roi_type = temp_roi_type;
+		      }
+		      column[index] = roi_type;
+		    }
+		    // mem-copy column vector
+		    img.copy(0, col, column, img.meta().rows());
+		  }
 		}
+	  
+        template <class R, class S, class T, class U, class V, class W, class Q>
+        void SuperaCore<R, S, T, U, V, W, Q>::fill(Image2D& img, const std::vector<Q>& hits, const int time_offset)
+        {
+			//int nticks = meta.rows();
+			//int nwires = meta.cols();
+			auto const& meta = img.meta();
+			size_t row_comp_factor = (size_t)(meta.pixel_height());
+			const int ymax = meta.max_y() - 1; // Need in terms of row coordinate
+			const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
+			img.paint(0.);
 
-		template <class R, class S, class T, class U, class V, class W>
-		void SuperaCore<R, S, T, U, V, W>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
+			LARCV_INFO() << "Filling an image: " << meta.dump();
+			LARCV_INFO() << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl;
+
+			for(auto const& h : hits) {
+				auto const& wire_id = ChannelToWireID(h.Channel());
+
+				if ((int)(wire_id.Plane) != meta.plane()) continue;
+
+				size_t col = 0;
+				try { col = meta.col(wire_id.Wire); }
+				catch (const larbys&) { continue; }
+
+				int row = int(h.PeakTime()+0.5) + time_offset;
+				if(row > ymax || row < ymin) continue;
+				img.set_pixel(ymax-row,col,h.Integral());
+			}
+        }
+
+		template <class R, class S, class T, class U, class V, class W, class Q>
+		void SuperaCore<R, S, T, U, V, W, Q>::fill(Image2D& img, const std::vector<S>& wires, const int time_offset)
 		{
 			//int nticks = meta.rows();
 			//int nwires = meta.cols();
@@ -735,3 +818,7 @@ namespace larcv {
 	}
 }
 #endif
+
+// Local Variables:
+// mode: c++
+// End:

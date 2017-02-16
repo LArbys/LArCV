@@ -31,6 +31,7 @@
 #pragma link C++ class larcv::CropROI+;
 #pragma link C++ class larcv::ROIMask+;
 #pragma link C++ class larcv::SegWeightTrackShower+;
+#pragma link C++ class larcv::ImageFromPixel2D+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

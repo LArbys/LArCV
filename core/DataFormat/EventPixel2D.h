@@ -44,6 +44,12 @@ namespace larcv {
     /// Retrieve Pixel2DCluster for a plane
     const std::vector<larcv::Pixel2DCluster>& Pixel2DClusterArray(const ::larcv::PlaneID_t plane);
 
+    const std::map< ::larcv::PlaneID_t, std::vector<larcv::Pixel2D> >& Pixel2DArray() const
+    { return _pixel_m; }
+    
+    const std::map< ::larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster> >& Pixel2DClusterArray() const
+    { return _cluster_m; }
+
     /// Insert larcv::Pixel2D into a collection
     void Append(const larcv::PlaneID_t plane, const Pixel2D& pixel);
     /// Insert larcv::Pixel2DCluster into a collection

@@ -44,7 +44,9 @@ namespace larcv {
   private:
 
     std::string _roi_producer;
-    std::string _image_producer;
+    std::string _input_producer;
+    std::string _output_producer;
+    std::vector<size_t> _image_idx;
   };
 
   /**
