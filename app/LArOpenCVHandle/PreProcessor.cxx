@@ -6,6 +6,7 @@
 #include "LArOpenCV/ImageCluster/AlgoFunction/ImagePatchAnalysis.h"
 #include "Geo2D/Core/Line.h"
 #include <array>
+#include <limits>
 
 namespace larcv {
 
@@ -16,14 +17,18 @@ namespace larcv {
     _pi_threshold=1;
     _min_ctor_size=4;
     _min_track_size=3;
-    _allowed_neighbor_dist=10;//10;
-    _blur = 4;//0
+    _allowed_neighbor_dist=10; //10;
+    _blur = 4; //0
     _pca_box_size=5;
     _min_overall_angle=10;
     _min_pca_angle=10;
     _merge_pixel_frac=true;
+    _claim_showers=true;
     _min_track_frac = 0.8;
     _min_shower_frac = 0.8;
+    _save_straight_tracks_frac = 0.1;
+    _max_track_in_shower_frac = 0.1;
+    _mean_distance_pca = 3;
     LARCV_DEBUG() << "end" << std::endl;
   }
 
@@ -44,16 +49,60 @@ namespace larcv {
   }
 
   bool
-  PreProcessor::IsStraight(const LinearTrack& track) {
+  PreProcessor::IsStraight(const LinearTrack& track,const cv::Mat& img) {
     
-    auto edgePCA_a = std::abs(geo2d::angle(track.edge1PCA,track.edge2PCA));
+    auto e1e2_a = std::abs(geo2d::angle(track.edge1PCA,track.edge2PCA));
+    auto e1oA_a = std::abs(geo2d::angle(track.edge1PCA,track.overallPCA));
+    auto e2oA_a = std::abs(geo2d::angle(track.edge2PCA,track.overallPCA));
+    
     // auto oe1PCA_a  = std::abs(geo2d::angle(track.overallPCA,track.edge1PCA));
-    // auto oe1PCA_a  = std::abs(geo2d::angle(track.overallPCA,track.edge2PCA));
+    bool e1e2_b = false;
+    bool e1oA_b = false;
+    bool e2oA_b = false;
+    bool pca_b = false;
     
-    if ((edgePCA_a < _min_pca_angle) or (edgePCA_a > 180-_min_pca_angle)) // probably straight...
-      return true;
-      
-    return false;
+    if ((e1e2_a < _min_pca_angle) or (e1e2_a > 180-_min_pca_angle)) // probably straight
+      e1e2_b=true;
+    if ((e1oA_a < _min_pca_angle) or (e1oA_a > 180-_min_pca_angle)) // probably straight
+      e1oA_b=true;
+    if ((e2oA_a < _min_pca_angle) or (e2oA_a > 180-_min_pca_angle)) // probably straight
+      e2oA_b=true;
+    
+    if ( track.mean_pixel_dist < _mean_distance_pca)
+      pca_b = true;
+    
+    return (pca_b and (e1e2_b or e1oA_b or e2oA_b));
+  }
+  
+  float
+  PreProcessor::GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2,
+			       geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2) {
+    
+
+    geo2d::Vector<float> e1,e2;
+    float dist=std::numeric_limits<float>::max();
+    
+    auto dt1e1t2e1 = geo2d::dist(track1.edge1,track2.edge1);
+    auto dt1e1t2e2 = geo2d::dist(track1.edge1,track2.edge2);
+    auto dt1e2t2e1 = geo2d::dist(track1.edge2,track2.edge1);
+    auto dt1e2t2e2 = geo2d::dist(track1.edge2,track2.edge2);
+
+    if (dt1e1t2e1 < dist)
+      { dist = dt1e1t2e1; edge1=track1.edge1; edge2=track2.edge1; }
+    if (dt1e1t2e2 < dist)
+      { dist = dt1e1t2e2; edge1=track1.edge1; edge2=track2.edge2; }
+    if (dt1e2t2e1 < dist)
+      { dist = dt1e2t2e1; edge1=track1.edge2; edge2=track2.edge1; }
+    if (dt1e2t2e2 < dist)
+      { dist = dt1e2t2e1; edge1=track1.edge2; edge2=track2.edge2; }
+    
+    return dist;
+  }
+
+  float
+  PreProcessor::GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2) {
+    geo2d::Vector<float> temp1,temp2;
+    return GetClosestEdge(track1,track2,temp1,temp2);
   }
 
   
@@ -102,16 +151,18 @@ namespace larcv {
 
 	//set parameters from rotated rect
 	auto rect = min_rect.size;
-	lintrack.length     = rect.height > rect.width ? rect.height : rect.width;
-	lintrack.width      = rect.height > rect.width ? rect.width  : rect.height;
-	lintrack.perimeter  = cv::arcLength(ctor,1);
-	lintrack.area       = cv::contourArea(ctor);
+	lintrack.length = rect.height > rect.width ? rect.height : rect.width;
+	lintrack.width = rect.height > rect.width ? rect.width  : rect.height;
+	lintrack.perimeter = cv::arcLength(ctor,1);
+	lintrack.area = cv::contourArea(ctor);
 	lintrack.overallPCA = larocv::CalcPCA(ctor);
-	lintrack.edge1PCA   = larocv::SquarePCA(img,edge1,_pca_box_size,_pca_box_size);
-	lintrack.edge2PCA   = larocv::SquarePCA(img,edge2,_pca_box_size,_pca_box_size);
-	lintrack.type       = type;
+	lintrack.edge1PCA = larocv::SquarePCA(img,edge1,_pca_box_size,_pca_box_size);
+	lintrack.edge2PCA = larocv::SquarePCA(img,edge2,_pca_box_size,_pca_box_size);
+	lintrack.type = type;
 	lintrack.track_frac = type==Type_t::kTrack  ? 1 : 0;
-	lintrack.shower_frac= type==Type_t::kShower ? 1 : 0;
+	lintrack.shower_frac = type==Type_t::kShower ? 1 : 0;
+	lintrack.mean_pixel_dist = larocv::MeanDistanceToLine(larocv::MaskImage(img,ctor,0,false),lintrack.overallPCA);
+	lintrack.straight = IsStraight(lintrack,img);
       }
       // axis aligned
       //auto bounding_rect = cv::boundingRect(ctor);
@@ -226,21 +277,53 @@ namespace larcv {
 
     std::vector<LinearTrack> adc_lintrk_v,track_lintrk_v,shower_lintrk_v;
 
-    if (_merge_pixel_frac) {
-      LARCV_DEBUG() << "Attempting simple merge via pixel fraction" << std::endl;
+    if (_claim_showers) {
+      LARCV_DEBUG() << "Cleaning up showers first..." << std::endl;
       // Make simple linear tracks
-      LARCV_DEBUG() << "Generating simple ADC linear tracks..." << std::endl;
       adc_lintrk_v = MakeLinearTracks(adc_ctor_v,adc_img_t,Type_t::kUnknown,false);
-      LARCV_DEBUG() << "... made " << adc_lintrk_v.size() << " adc tracks " << std::endl;
-
-      LARCV_DEBUG() << "Generating simple Track linear tracks..." << std::endl;
       track_lintrk_v = MakeLinearTracks(track_ctor_v,track_img_t,Type_t::kTrack,false);
-      LARCV_DEBUG() << "... made " << track_lintrk_v.size() << " track tracks " << std::endl;
-
-      LARCV_DEBUG() << "Generating simple Shower linear tracks..." << std::endl;
       shower_lintrk_v = MakeLinearTracks(shower_ctor_v,shower_img_t,Type_t::kShower,false);
-      LARCV_DEBUG() << "... made " << shower_lintrk_v.size() << " shower tracks " << std::endl;
 
+      for(auto& shower_lintrk : shower_lintrk_v) {
+	auto& shower_ctor = shower_lintrk.ctor;
+	auto& track_frac = shower_lintrk.track_frac;
+	for(const auto& track_lintrk : track_lintrk_v) {
+	  auto& track_ctor = track_lintrk.ctor;
+	  track_frac += larocv::PixelFraction(adc_img_t,shower_ctor,track_ctor);
+	}
+
+	if (track_frac < _max_track_in_shower_frac) {
+	  //mask these pixels out of the track image
+	  auto mask_shower = larocv::MaskImage(track_img,shower_ctor,0,false);
+	  //mask away these pixels in the track image
+	  track_img = larocv::MaskImage(track_img,shower_ctor,0,true);
+	  //update the shower
+	  shower_img = shower_img + mask_shower;
+	}
+      }
+
+      //re-prepare the track and shower images
+      track_img_t = PrepareImage(track_img);
+      shower_img_t = PrepareImage(shower_img);
+
+      //re-prepare the track and shower contours
+      track_ctor_v = larocv::FindContours(track_img_t);
+      shower_ctor_v = larocv::FindContours(shower_img_t);
+
+      // Filter them by by number of contour points
+      FilterContours(track_ctor_v);
+      FilterContours(shower_ctor_v);
+      LARCV_DEBUG() << "Re-Found " << track_ctor_v.size() << " track contours" << std::endl;
+      LARCV_DEBUG() << "Re-Found " << shower_ctor_v.size() << " shower contours" << std::endl;      
+      
+    }
+    
+    if (_merge_pixel_frac) {
+
+      adc_lintrk_v = MakeLinearTracks(adc_ctor_v,adc_img_t,Type_t::kUnknown,false);
+      track_lintrk_v = MakeLinearTracks(track_ctor_v,track_img_t,Type_t::kTrack,true);
+      shower_lintrk_v = MakeLinearTracks(shower_ctor_v,shower_img_t,Type_t::kShower,true);
+     
       LARCV_DEBUG() << "Found " << adc_lintrk_v.size() << " adc & " << track_lintrk_v.size() << " tracks & " << shower_lintrk_v.size() << " shower linear track" << std::endl;
 
       /// determine track/shower fraction of ADC contours
@@ -251,17 +334,42 @@ namespace larcv {
 
 	LARCV_DEBUG() << "ADC track @ " << &adc_lintrk << " contour size " << adc_ctor.size() << std::endl;
 
-	for(const auto& track_lintrk : track_lintrk_v)
-	  track_frac += larocv::PixelFraction(adc_img_t,adc_ctor,track_lintrk.ctor);
+	const LinearTrack* track = nullptr;
+	const LinearTrack* shower = nullptr;
+	float largest_track_frac(std::numeric_limits<float>::min());
+	float largest_shower_frac(std::numeric_limits<float>::min());
+	
+	for(const auto& track_lintrk : track_lintrk_v) {
+	  auto frac = larocv::PixelFraction(adc_img_t,adc_ctor,track_lintrk.ctor);
+
+	  if (frac > largest_track_frac)
+	    {largest_track_frac = frac; track = &track_lintrk;}
 	  
-	for(const auto& shower_lintrk : shower_lintrk_v)
-	  shower_frac += larocv::PixelFraction(adc_img_t,adc_ctor,shower_lintrk.ctor);
-      
+	  track_frac += frac;
+	}
+	  
+	for(const auto& shower_lintrk : shower_lintrk_v) { 
+	  auto frac = larocv::PixelFraction(adc_img_t,adc_ctor,shower_lintrk.ctor);
+
+	  if (frac>largest_shower_frac)
+	    {largest_shower_frac = frac; shower = &shower_lintrk;}
+
+	  shower_frac += frac;
+	}
+	
+	if (!track or !shower) continue;
+	
+	//if((largest_track_frac > _save_straight_tracks_frac) and track->straight)
+	if(largest_track_frac > _save_straight_tracks_frac)
+	  if (GetClosestEdge(*track,*shower) < _allowed_neighbor_dist)
+	    adc_lintrk.ignore=true;
+	
 	LARCV_DEBUG() << " ... track frac " << track_frac << " & shower_frac " << shower_frac << std::endl;
       }
     
       // loop over the ADC contours, claim contours above threshold as track and shower
       for(auto& adc_lintrk : adc_lintrk_v) {
+
 	auto& adc_ctor = adc_lintrk.ctor;
 	// auto& adc_small_ctor = adc_raw_ctor_v.at(larocv::FindContainingContour(adc_raw_ctor_v,adc_ctor));
 	auto& track_frac = adc_lintrk.track_frac;
@@ -279,7 +387,7 @@ namespace larcv {
 	  shower_img = larocv::MaskImage(shower_img,adc_ctor,0,true);
 	}
 
-	if (shower_frac > _min_shower_frac) {
+	if (shower_frac > _min_shower_frac and !adc_lintrk.ignore) {
 	  LARCV_INFO() << "Claiming a mostly shower ADC contour as shower" << std::endl;
 	  //mask these pixels out of the ADC image
 	  auto mask_adc = larocv::MaskImage(adc_img,adc_ctor,0,false);
@@ -307,7 +415,6 @@ namespace larcv {
       LARCV_DEBUG() << "Re-Found " << shower_ctor_v.size() << " shower contours" << std::endl;
     }
 	
-    
     // Make extended linear tracks
     LARCV_DEBUG() << "Generating extended ADC linear tracks..." << std::endl;
     adc_lintrk_v = MakeLinearTracks(adc_ctor_v,adc_img_t,Type_t::kUnknown);
@@ -327,12 +434,12 @@ namespace larcv {
     for(size_t shower_id=0;shower_id<shower_lintrk_v.size();++shower_id) {
       LARCV_DEBUG() << "On shower " << shower_id << std::endl;
       const auto& shower = shower_lintrk_v[shower_id];
-      
+
       for(size_t track1_id=0;track1_id<track_lintrk_v.size();++track1_id) {
 	const auto& track1 = track_lintrk_v[track1_id];
 
 	//Determine the straightness of this track and this shower
-	if (IsStraight(track1) and IsStraight(shower)) {
+	if (track1.straight and shower.straight) {
 	  LARCV_DEBUG() << "Straight shower and straight track identified" << std::endl;
 	  auto angle = std::abs(geo2d::angle(shower.overallPCA,track1.overallPCA));
 	  if ((angle < _min_overall_angle) or (angle > 180 - _min_overall_angle)) {
@@ -341,32 +448,30 @@ namespace larcv {
 	  }
 	}
 
-
 	if (!EdgeConnected(shower,track1))
 	  continue;
 
 	// Find "sandwich" showers -- showers between two tracks    
 	for(size_t track2_id=track1_id+1;track2_id<track_lintrk_v.size();++track2_id) {
 	  const auto& track2 = track_lintrk_v[track2_id];
+
 	  if (!EdgeConnected(shower,track2))
 	    continue;
 	  
-	  LARCV_DEBUG() << "Shower " << shower_id
+	  LARCV_CRITICAL() << "Shower " << shower_id
 			<< " sandwich btw"
 			<< " track " << track1_id
 			<< " & track " << track2_id
 			<< std::endl;
 	  
-	  cidx_v.push_back(shower_id);
+	  LARCV_CRITICAL() << "This shower of size " << shower.npixel
+			   << " e1 " << shower.edge1 << " e2 " << shower.edge2
+			   << "mean dist " << shower.mean_pixel_dist << std::endl;
+	  LARCV_CRITICAL() << "Straight " << shower.straight << std::endl;
+	  if (shower.straight)
+	    cidx_v.push_back(shower_id);
+	  
 	} // end track2
-	
-	// Find nearby contours with similar overall PCA
-	auto angle = std::abs(geo2d::angle(shower.overallPCA,track1.overallPCA));
-	if ((angle < _min_overall_angle) or (angle > 180 - _min_overall_angle)) {
-	  LARCV_DEBUG() << "Compatible angle detected" << std::endl;
-	  cidx_v.push_back(shower_id);
-	}
-	
       } // end track1
     } // end this shower
 

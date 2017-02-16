@@ -31,7 +31,8 @@ larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetManager(larbysimg.Manager())
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
-for event in xrange(10):
+
+for event in xrange(0,100):
     proc.batch_process(event,1)
 
     if (filter_proc.selected()==False): continue
@@ -40,11 +41,21 @@ for event in xrange(10):
 
     
     mgr=larbysimg.Manager()
-    img_v = []
-    track_img_v=[]
-    shower_img_v=[]
     pygeo = geo2d.PyDraw()
+    img_v = []
+    oimg_v = []
+    track_img_v=[]
+    otrack_img_v=[]
+    shower_img_v=[]
+    oshower_img_v=[]
 
+    for mat in mgr.OriginalInputImages(0):
+        oimg_v.append(pygeo.image(mat))
+    for mat in mgr.OriginalInputImages(1):
+        otrack_img_v.append(pygeo.image(mat))
+    for mat in mgr.OriginalInputImages(2):
+        oshower_img_v.append(pygeo.image(mat))
+    
     for mat in mgr.InputImages(0):
         img_v.append(pygeo.image(mat))
     for mat in mgr.InputImages(1):
@@ -53,17 +64,26 @@ for event in xrange(10):
         shower_img_v.append(pygeo.image(mat))
 
 
-    for plane in xrange(len(track_img_v)):                                                                                                    
-        shower_img=np.where(shower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)                                                                 
-        track_img=np.where(track_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)                                                                  
-        fig,ax=plt.subplots(figsize=(12,12),facecolor='w')                                                                                      
-        plt.imshow(shower_img+track_img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)                                                      
-        plt.xlabel('Time [6 ticks]',fontsize=20)                                                                                                
-        plt.ylabel('Wire',fontsize=20)                                                                                                          
-        plt.tick_params(labelsize=20)                                                                                                           
-        ax.set_aspect(0.8)                                                                                                                      
+    for plane in xrange(len(track_img_v)):
+        oshower_img = np.where(oshower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)
+        otrack_img = np.where(otrack_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
+        shower_img = np.where(shower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)
+        track_img = np.where(track_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
+        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True,figsize=(15,10))
+        oimg=oshower_img+otrack_img
+        img=shower_img+track_img
+        ax1.imshow(oimg,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+        ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+        ax1.set_xlabel('Time [6 ticks]',fontsize=20)
+        ax2.set_xlabel('Time [6 ticks]',fontsize=20)
+        ax1.set_xlim(0,512)
+        ax2.set_xlim(0,512)
+        ax1.set_ylim(0,512)
+        ax2.set_ylim(0,512)
+        ax1.set_ylabel('Wire',fontsize=20)
+        ax1.tick_params(labelsize=20)
         plt.tight_layout()        
-        SS="out/%04d_00_track_shower_%d.png"%(event,plane)
+        SS="out2/%04d_00_track_shower_%d.png"%(event,plane)
         print "Saving ",SS
         plt.savefig(SS)
         plt.cla()
@@ -120,7 +140,7 @@ for event in xrange(10):
         plt.tick_params(labelsize=20)
         ax.set_aspect(0.8)
         plt.grid()
-        SS="out/%04d_01_atomics_%d.png"%(event,plane)
+        SS="out2/%04d_01_atomics_%d.png"%(event,plane)
         print "Saving ",SS
         plt.savefig(SS)
         plt.cla()
@@ -184,7 +204,7 @@ for event in xrange(10):
         plt.ylabel('Wire [2 wires]',fontsize=20)
         plt.tick_params(labelsize=20)
         ax.set_aspect(0.8)
-        SS="out/%04d_02_vertex_%d.png"%(event,plane)
+        SS="out2/%04d_02_vertex_%d.png"%(event,plane)
         print "Saving ",SS
         plt.savefig(SS)
         plt.cla()
@@ -247,7 +267,7 @@ for event in xrange(10):
     ax.set_xlim(tickscore0_x.min(),tickscore0_x.max())
     plt.grid()
     #ax.set_xlim(450,480)
-    SS="out/%04d_03_score_%d.png"%(event,plane)
+    SS="out2/%04d_03_score_%d.png"%(event,plane)
     print "Saving ",SS
     plt.savefig(SS)
     plt.cla()
@@ -290,7 +310,7 @@ for event in xrange(10):
     #         plt.ylabel('Wire [2 wires]',fontsize=20)
     #         plt.tick_params(labelsize=20)
     #         plt.grid()
-    #         SS="out/%04d_04_particle_%d_%d.png"%(event,ix,plane)
+    #         SS="out2/%04d_04_particle_%d_%d.png"%(event,ix,plane)
     #         print "Saving ",SS
     #         plt.savefig(SS)
     #         plt.cla()

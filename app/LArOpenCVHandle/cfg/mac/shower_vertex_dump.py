@@ -14,58 +14,80 @@ plt.rc('grid', linestyle="-", color='black')
 
 import numpy as np
 
-proc = larcv.ProcessDriver("ProcessDriver")
-proc.configure('../reco_shower_debug.cfg')
-f=ROOT.std.string("/Users/vgenty/Desktop/nue_track_shower.root")
-flist=ROOT.std.vector('string')()
-flist.push_back(f)
+proc = larcv.ProcessDriver('ProcessDriver')
+
+CFG="../reco_shower.cfg"
+print "Loading config... ",CFG
+proc.configure(CFG)
+flist=ROOT.std.vector('std::string')()
+flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
 proc.override_input_file(flist)
+filter_id = proc.process_id("NuFilter")
+mcinfo_id = proc.process_id("LArbysImageMC")
+reco_id   = proc.process_id("LArbysImage")
+ana_id    = proc.process_id("LArbysImageAna")
+filter_proc   = proc.process_ptr(filter_id)
+mcinfo_proc   = proc.process_ptr(mcinfo_id)
+mcinfo_proc.SetFilter(filter_proc)
+larbysimg     = proc.process_ptr(reco_id)
+larbysimg_ana = proc.process_ptr(ana_id)
+larbysimg_ana.SetManager(larbysimg.Manager())
+proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 
-mcinfo_id = proc.process_id("LArbysImageMC")                                                                                                        
-reco_id   = proc.process_id("LArbysImage")
-                                                                                                                                                    
-mcinfo_proc   = proc.process_ptr(mcinfo_id)
-larbysimg     = proc.process_ptr(reco_id)
-#array=np.array([157, 173, 222, 228, 240, 271, 366, 372])
-array = np.array([304])
-for event in array:
+for event in xrange(0,100):
 
-    print "Processing event: ",event
     proc.batch_process(event,1)
-    print "Done"
-    pygeo   = geo2d.PyDraw()
-    iom=proc.io()
-    print iom.current_entry()
+
+    if (filter_proc.selected()==False): continue
+
+    print event
 
     mgr=larbysimg.Manager()
+    pygeo = geo2d.PyDraw()
     img_v = []
-    shower_img_v = []
-    track_img_v  = []
+    oimg_v = []
+    track_img_v=[]
+    otrack_img_v=[]
+    shower_img_v=[]
+    oshower_img_v=[]
 
-    print "My name is ",mgr.Name()
-    print "Requesting image id: ",0
-    adc_mat_v    = mgr.InputImages(0)
-    print "Requesting image id: ",1
-    track_mat_v  = mgr.InputImages(1)
-    print "Requesting image id: ",2
-    shower_mat_v = mgr.InputImages(2)
+    for mat in mgr.OriginalInputImages(0):
+        oimg_v.append(pygeo.image(mat))
+    for mat in mgr.OriginalInputImages(1):
+        otrack_img_v.append(pygeo.image(mat))
+    for mat in mgr.OriginalInputImages(2):
+        oshower_img_v.append(pygeo.image(mat))
+    
+    for mat in mgr.InputImages(0):
+        img_v.append(pygeo.image(mat))
+    for mat in mgr.InputImages(1):
+        track_img_v.append(pygeo.image(mat))
+    for mat in mgr.InputImages(2):
+        shower_img_v.append(pygeo.image(mat))
 
-    for plane in xrange(track_mat_v.size()):
-        shower_img_v.append(pygeo.image(shower_mat_v[plane]))
-        track_img_v.append(pygeo.image(track_mat_v[plane]))
-        img_v.append(shower_img_v[-1] + track_img_v[-1])
-        shower_img=np.where(shower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)
-        track_img=np.where(track_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
-        fig,ax=plt.subplots(figsize=(12,12),facecolor='w')
-        plt.imshow(shower_img+track_img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
-        plt.xlabel('Time [6 ticks]',fontsize=20)
-        plt.ylabel('Wire',fontsize=20)
-        plt.tick_params(labelsize=20)
-        ax.set_aspect(0.8)
-        plt.tight_layout()
-        SS="out/%04d_00_plane_%02d.png"%(event,plane)
-        ax.set_title(SS,fontsize=30)
+
+    for plane in xrange(len(track_img_v)):
+        oshower_img = np.where(oshower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)
+        otrack_img = np.where(otrack_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
+        shower_img = np.where(shower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)
+        track_img = np.where(track_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
+        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True,figsize=(15,10))
+        oimg=oshower_img+otrack_img
+        img=shower_img+track_img
+        ax1.imshow(oimg,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+        ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+        ax1.set_xlabel('Time [6 ticks]',fontsize=20)
+        ax2.set_xlabel('Time [6 ticks]',fontsize=20)
+        ax1.set_xlim(0,512)
+        ax2.set_xlim(0,512)
+        ax1.set_ylim(0,512)
+        ax2.set_ylim(0,512)
+        ax1.set_ylabel('Wire',fontsize=20)
+        ax1.tick_params(labelsize=20)
+        plt.tight_layout()        
+        SS="out/%04d_00_track_shower_%d.png"%(event,plane)
+        print "Saving ",SS
         plt.savefig(SS)
         plt.cla()
         plt.clf()
@@ -178,7 +200,7 @@ for event in array:
     for vtx in vtx_data:
         for plane in xrange(3):
             fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
-            shape_img = trk_img_v[plane]+shr_img_v[plane]
+            shape_img = img_v[plane]
             shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)

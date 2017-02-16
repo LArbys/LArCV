@@ -52,6 +52,7 @@ namespace larcv {
     std::string _roi_producer_name;
     
     uint _nu_pdg;
+    uint _interaction_mode;
     
     double _min_nu_init_e;
     double _max_nu_init_e;
@@ -70,6 +71,7 @@ namespace larcv {
     };
 
     uint _n_fail_nupdg;
+    uint _n_fail_ccqe;
     uint _n_fail_nuE;
     uint _n_fail_lepton_dep;
     uint _n_fail_proton_dep;

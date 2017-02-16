@@ -9,7 +9,14 @@ namespace larcv {
   enum class Type_t { kUnknown, kTrack, kShower };
   
   struct LinearTrack {
-    LinearTrack() : track_frac(0), shower_frac(0), type(Type_t::kUnknown){}
+    LinearTrack() :
+      track_frac(0),
+      shower_frac(0),
+      type(Type_t::kUnknown),
+      ignore(false),
+      straight(false)
+    {}
+    
     ~LinearTrack() {}
 
     larocv::GEO2D_Contour_t ctor;
@@ -26,6 +33,9 @@ namespace larcv {
     float track_frac;
     float shower_frac;
     Type_t type;
+    bool ignore;
+    double mean_pixel_dist;
+    bool straight;
   };
 
   
@@ -45,7 +55,8 @@ namespace larcv {
 
 
     bool
-    IsStraight(const LinearTrack& track);
+    IsStraight(const LinearTrack& track,
+	       const cv::Mat& img);
     
     void
     FilterContours(larocv::GEO2D_ContourArray_t& ctor_v);
@@ -62,8 +73,14 @@ namespace larcv {
     EdgeConnected(const LinearTrack& track1,
 		  const LinearTrack& track2);
 
-    cv::Mat PrepareImage(const cv::Mat& img);
+    cv::Mat
+    PrepareImage(const cv::Mat& img);
 
+    float
+    GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2,
+		   geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2);
+    float
+    GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2);
     
   private:
     uint _pi_threshold;
@@ -75,8 +92,12 @@ namespace larcv {
     float _min_pca_angle;
     float _min_track_size;
     bool _merge_pixel_frac;
+    bool _claim_showers;
     float _min_track_frac;
     float _min_shower_frac;
+    float _max_track_in_shower_frac;
+    float _save_straight_tracks_frac;
+    double _mean_distance_pca;
     larocv::SingleLinearTrack _SingleLinearTrack;
 
     
