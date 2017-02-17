@@ -18,7 +18,6 @@ namespace larcv {
     {}
     
     ~LinearTrack() {}
-
     larocv::GEO2D_Contour_t ctor;
     geo2d::Vector<float> edge1;
     geo2d::Vector<float> edge2;
@@ -35,6 +34,7 @@ namespace larcv {
     Type_t type;
     bool ignore;
     double mean_pixel_dist;
+    double sigma_pixel_dist;
     bool straight;
   };
 
@@ -99,8 +99,6 @@ namespace larcv {
     float _save_straight_tracks_frac;
     double _mean_distance_pca;
     larocv::SingleLinearTrack _SingleLinearTrack;
-
-    
   };
 }
 #endif

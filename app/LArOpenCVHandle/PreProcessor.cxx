@@ -161,7 +161,9 @@ namespace larcv {
 	lintrack.type = type;
 	lintrack.track_frac = type==Type_t::kTrack  ? 1 : 0;
 	lintrack.shower_frac = type==Type_t::kShower ? 1 : 0;
-	lintrack.mean_pixel_dist = larocv::MeanDistanceToLine(larocv::MaskImage(img,ctor,0,false),lintrack.overallPCA);
+	auto masked_pts=larocv::MaskImage(img,ctor,0,false);
+	lintrack.mean_pixel_dist = larocv::MeanDistanceToLine(masked_pts,lintrack.overallPCA);
+	lintrack.sigma_pixel_dist = larocv::SigmaDistanceToLine(masked_pts,lintrack.overallPCA);
 	lintrack.straight = IsStraight(lintrack,img);
       }
       // axis aligned
@@ -359,7 +361,6 @@ namespace larcv {
 	
 	if (!track or !shower) continue;
 	
-	//if((largest_track_frac > _save_straight_tracks_frac) and track->straight)
 	if(largest_track_frac > _save_straight_tracks_frac)
 	  if (GetClosestEdge(*track,*shower) < _allowed_neighbor_dist)
 	    adc_lintrk.ignore=true;
@@ -429,8 +430,8 @@ namespace larcv {
     LARCV_DEBUG() << "... made " << shower_lintrk_v.size() << " shower tracks " << std::endl;
     
     std::vector<size_t> cidx_v;
+
     //Loop to determine track and shower compatibility
-    
     for(size_t shower_id=0;shower_id<shower_lintrk_v.size();++shower_id) {
       LARCV_DEBUG() << "On shower " << shower_id << std::endl;
       const auto& shower = shower_lintrk_v[shower_id];
@@ -468,6 +469,7 @@ namespace larcv {
 			   << " e1 " << shower.edge1 << " e2 " << shower.edge2
 			   << "mean dist " << shower.mean_pixel_dist << std::endl;
 	  LARCV_CRITICAL() << "Straight " << shower.straight << std::endl;
+
 	  if (shower.straight)
 	    cidx_v.push_back(shower_id);
 	  
