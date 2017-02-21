@@ -19,8 +19,18 @@ namespace larcv {
     _track_producer  = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
     _output_producer = cfg.get<std::string>("OutputImageProducer","");
+
     _preprocess = cfg.get<bool>("PreProcess",true);
-    LARCV_INFO() << "Preprocessing image" << std::endl;
+    if (_preprocess) {
+      LARCV_INFO() << "Preprocessing image" << std::endl;
+      _tsana.Configure(cfg.get<larocv::Config_t>("PreProcessor"));
+    }
+    
+    _tsanalyze = cfg.get<bool>("TSAnalyzeOnly",false);
+    if (_tsanalyze) {
+      LARCV_INFO() << "Analyzing Tracks and Showers only" << std::endl;
+      _tsana.Configure(cfg.get<larocv::Config_t>("TrackShowerAnalysis"));
+    }
     
     _process_count = 0;
     _process_time_image_extraction = 0;
@@ -113,7 +123,23 @@ namespace larcv {
 	}
       }
     }
-
+    
+    if(_tsanalyze) {
+      //given a single plane @ a time run track shower analyzis
+      auto& adc_img_v= _alg_mgr.InputImages(0);
+      auto& trk_img_v= _alg_mgr.InputImages(1);
+      auto& shr_img_v= _alg_mgr.InputImages(2);
+      auto nplanes = adc_img_v.size();
+      for(size_t plane_id=0;plane_id<nplanes;++plane_id) {
+	LARCV_DEBUG() << "TrackShowerAnalyze image set @ "<< " plane " << plane_id << std::endl;
+	if (!_tsana.Analyze(adc_img_v[plane_id],trk_img_v[plane_id],shr_img_v[plane_id])) {
+	  LARCV_CRITICAL() << "... could not be preprocessed, abort!" << std::endl;
+	  throw larbys();
+	}
+      }      
+      return true;
+    }
+    
     _alg_mgr.Process();
 
     watch_one.Start();
@@ -337,9 +363,12 @@ namespace larcv {
 
   void LArbysImage::finalize()
   {
-    if ( has_ana_file() ) {
+    if ( has_ana_file() ) 
       _alg_mgr.Finalize(&(ana_file()));
-    }
+
+    if ( _tsanalyze ) 
+      _tsana.Finalize(&(ana_file()));
+    
   }
 
 }

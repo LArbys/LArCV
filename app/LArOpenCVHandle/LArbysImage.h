@@ -8,6 +8,7 @@
 #include "LArOpenCV/ImageCluster/Base/ImageClusterViewer.h"
 #include "DataFormat/user_info.h"
 #include "PreProcessor.h"
+#include "TrackShowerAna.h"
 
 namespace larcv {
 
@@ -37,6 +38,7 @@ namespace larcv {
     const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
 
     const PreProcessor& PProcessor() const { return _pre_processor; }
+    const TrackShowerAna& TSAna() const { return _tsana; }
     
   protected:
 
@@ -55,7 +57,10 @@ namespace larcv {
     double _charge_to_gray_scale;
     double _charge_min;
     double _charge_max;
+
     bool _preprocess;
+    bool _tsanalyze;
+    
     std::vector<float> _plane_weights;
     std::string _adc_producer;
     std::string _track_producer;
@@ -69,6 +74,7 @@ namespace larcv {
     void Report() const;
     
     PreProcessor _pre_processor;
+    TrackShowerAna _tsana;
   };
 
   /**
@@ -88,5 +94,4 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group 
 

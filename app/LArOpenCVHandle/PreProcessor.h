@@ -3,44 +3,12 @@
 #include "Base/larcv_base.h"
 #include <opencv2/opencv.hpp>
 #include "LArOpenCV/ImageCluster/AlgoClass/SingleLinearTrack.h"
+#include "LinearTrack.h"
 
 namespace larcv {
-
-  enum class Type_t { kUnknown, kTrack, kShower };
   
-  struct LinearTrack {
-    LinearTrack() :
-      track_frac(0),
-      shower_frac(0),
-      type(Type_t::kUnknown),
-      ignore(false),
-      straight(false)
-    {}
+  class PreProcessor : public larcv_base {
     
-    ~LinearTrack() {}
-    larocv::GEO2D_Contour_t ctor;
-    geo2d::Vector<float> edge1;
-    geo2d::Vector<float> edge2;
-    float length;
-    float width;
-    float perimeter;
-    float area;
-    uint npixel;
-    geo2d::Line<float> overallPCA;
-    geo2d::Line<float> edge1PCA;
-    geo2d::Line<float> edge2PCA;
-    float track_frac;
-    float shower_frac;
-    Type_t type;
-    bool ignore;
-    double mean_pixel_dist;
-    double sigma_pixel_dist;
-    bool straight;
-  };
-
-  
-  class PreProcessor : public larcv_base{
-
   public:
     
     PreProcessor();
@@ -50,9 +18,8 @@ namespace larcv {
     PreProcess(cv::Mat& adc_img,
 	       cv::Mat& track_img,
 	       cv::Mat& shower_img);
-
+    
   private:
-
 
     bool
     IsStraight(const LinearTrack& track,
@@ -81,8 +48,10 @@ namespace larcv {
 		   geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2);
     float
     GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2);
+
     
   private:
+    
     uint _pi_threshold;
     uint _min_ctor_size;
     uint _blur;
@@ -99,6 +68,8 @@ namespace larcv {
     float _save_straight_tracks_frac;
     double _mean_distance_pca;
     larocv::SingleLinearTrack _SingleLinearTrack;
+
+    
   };
 }
 #endif
