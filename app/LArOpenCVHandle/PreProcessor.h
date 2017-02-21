@@ -1,9 +1,11 @@
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
+
 #include "Base/larcv_base.h"
 #include <opencv2/opencv.hpp>
 #include "LArOpenCV/ImageCluster/AlgoClass/SingleLinearTrack.h"
 #include "LinearTrack.h"
+#include "Base/PSet.h"
 
 namespace larcv {
   
@@ -18,6 +20,10 @@ namespace larcv {
     PreProcess(cv::Mat& adc_img,
 	       cv::Mat& track_img,
 	       cv::Mat& shower_img);
+
+    void
+    Configure(const PSet& pset);
+
     
   private:
 
@@ -28,9 +34,6 @@ namespace larcv {
     void
     FilterContours(larocv::GEO2D_ContourArray_t& ctor_v);
 		   
-    void
-    Configure(const fcllite::PSet& pset);
-
     std::vector<LinearTrack>
     MakeLinearTracks(const larocv::GEO2D_ContourArray_t& ctor_v,
 		     const cv::Mat& img,

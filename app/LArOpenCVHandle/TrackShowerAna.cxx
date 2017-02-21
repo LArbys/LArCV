@@ -11,14 +11,13 @@ namespace larcv {
     _track_tree(nullptr),
     _shower_tree(nullptr)
   {
-    this->set_verbosity((msg::Level_t)0);
     LARCV_DEBUG() << "start" << std::endl;
-    
+    this->set_verbosity((msg::Level_t)0);
     LARCV_DEBUG() << "end" << std::endl;
   }
   
   void
-  TrackShowerAna::Configure(const fcllite::PSet& pset) {
+  TrackShowerAna::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
     _min_ctor_size = pset.get<uint>("MinContourSize",3);
@@ -81,11 +80,11 @@ namespace larcv {
     return;
   }
   
-
   void
   TrackShowerAna::CalcAndFill(const larocv::GEO2D_ContourArray_t& ctor_v,
 			      const cv::Mat& img,
 			      TTree* tree) {
+    LARCV_DEBUG() << "calculating for " << ctor_v.size() << " contours" << std::endl;
     
     for(const auto& ctor : ctor_v) {
 
@@ -113,21 +112,18 @@ namespace larcv {
       _sigma_pix_dist = larocv::SigmaDistanceToLine(masked_pts,overallPCA);
       _weighted_angle = larocv::CircumferenceAngluarSum(ctor);
 	
-      tree->Write();
+      tree->Fill();
       Clear();
     } // end this contour
     
   }
-
-  
   
   bool
   TrackShowerAna::Analyze(const cv::Mat& adc_img,
 			  const cv::Mat& track_img,
 			  const cv::Mat& shower_img)
   {
-
-
+    LARCV_DEBUG() << "start" << std::endl;
     auto track_img_t = larocv::Threshold(track_img,10,1);
     auto shower_img_t = larocv::Threshold(shower_img,10,1);
     
@@ -145,14 +141,18 @@ namespace larcv {
     CalcAndFill(shower_ctor_v,shower_img,_shower_tree);
     
     return true;
+    LARCV_DEBUG() << "end" << std::endl;
   }
   
   void TrackShowerAna::Finalize(TFile* file) {
+    LARCV_DEBUG() << "TS Finalize" << std::endl;
     if(file && _track_tree && _shower_tree) {
       file->cd();
       _track_tree->Write();
       _shower_tree->Write();
+      LARCV_DEBUG() << "wrote" << std::endl;
     }
+    LARCV_DEBUG() << "done" << std::endl;
   }
   
 }

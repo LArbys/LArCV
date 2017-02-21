@@ -7,7 +7,6 @@ PACKAGE_NAME = LArOpenCVBandle
 SOURCES = $(wildcard *.cxx)
 FMWK_HEADERS = LinkDef.h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
-#HEADERS += IOManager.inl
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
@@ -26,15 +25,10 @@ LDFLAGS += -lLArOpenCV_ImageClusterBase
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoData
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoModule
 LDFLAGS += -lLArOpenCV_ImageClusterCluster
-# LDFLAGS += -lLArOpenCV_ImageClusterDirection
 LDFLAGS += -lLArOpenCV_ImageClusterUtil
-# LDFLAGS += -lLArOpenCV_ImageClusterMatch
-# LDFLAGS += -lLArOpenCV_ImageClusterMerge
-# LDFLAGS += -lLArOpenCV_ImageClusterFilter
-#LDFLAGS += -lLArOpenCV_ImageClusterReCluster
-# LDFLAGS += -lLArOpenCV_ImageClusterStartPoint
-# LDFLAGS += -lLArOpenCV_ImageClusterDebug
-LDFLAGS += -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil
+LDFLAGS += -lLArOpenCV_Utils
+LDFLAGS += -lLArOpenCV_Core
+LDFLAGS += -lRecoTool_ClusterRecoUtil
 LDFLAGS += -lBasicTool_FhiclLite
 
 # platform-specific options

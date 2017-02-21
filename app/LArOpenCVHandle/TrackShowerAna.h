@@ -1,9 +1,10 @@
 #ifndef TRACKSHOWERANA_H
 #define TRACKSHOWERANA_H
+
 #include "Base/larcv_base.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterTypes.h"
+#include "Base/PSet.h"
 #include <opencv2/opencv.hpp>
-#include "BasicTool/FhiclLite/ConfigManager.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -17,7 +18,7 @@ namespace larcv {
     ~TrackShowerAna(){}
 
     void
-    Configure(const fcllite::PSet& pset);
+    Configure(const PSet& pset);
     
     bool
     Analyze(const cv::Mat& adc_img,

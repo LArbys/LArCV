@@ -33,7 +33,7 @@ namespace larcv {
   }
 
   void
-  PreProcessor::Configure(const fcllite::PSet& pset) {
+  PreProcessor::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
     _pi_threshold = pset.get<uint>("PiThreshold",1);

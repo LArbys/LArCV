@@ -23,13 +23,13 @@ namespace larcv {
     _preprocess = cfg.get<bool>("PreProcess",true);
     if (_preprocess) {
       LARCV_INFO() << "Preprocessing image" << std::endl;
-      _tsana.Configure(cfg.get<larocv::Config_t>("PreProcessor"));
+      _pre_processor.Configure(cfg.get<larcv::PSet>("PreProcessor"));
     }
     
     _tsanalyze = cfg.get<bool>("TSAnalyzeOnly",false);
     if (_tsanalyze) {
       LARCV_INFO() << "Analyzing Tracks and Showers only" << std::endl;
-      _tsana.Configure(cfg.get<larocv::Config_t>("TrackShowerAnalysis"));
+      _tsana.Configure(cfg.get<larcv::PSet>("TrackShowerAnalysis"));
     }
     
     _process_count = 0;
@@ -41,7 +41,6 @@ namespace larcv {
     _charge_max = cfg.get<double>("QMax");
     _charge_min = cfg.get<double>("QMin");
     _plane_weights = cfg.get<std::vector<float> >("MatchPlaneWeights");
-    _debug = cfg.get<bool>("Debug");
 
     ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
@@ -131,11 +130,11 @@ namespace larcv {
       auto& shr_img_v= _alg_mgr.InputImages(2);
       auto nplanes = adc_img_v.size();
       for(size_t plane_id=0;plane_id<nplanes;++plane_id) {
-	LARCV_DEBUG() << "TrackShowerAnalyze image set @ "<< " plane " << plane_id << std::endl;
-	if (!_tsana.Analyze(adc_img_v[plane_id],trk_img_v[plane_id],shr_img_v[plane_id])) {
-	  LARCV_CRITICAL() << "... could not be preprocessed, abort!" << std::endl;
-	  throw larbys();
-	}
+    	LARCV_DEBUG() << "TrackShowerAnalyze image set @ "<< " plane " << plane_id << std::endl;
+    	if (!_tsana.Analyze(adc_img_v[plane_id],trk_img_v[plane_id],shr_img_v[plane_id])) {
+    	  LARCV_CRITICAL() << "... could not be preprocessed, abort!" << std::endl;
+    	  throw larbys();
+    	}
       }      
       return true;
     }
