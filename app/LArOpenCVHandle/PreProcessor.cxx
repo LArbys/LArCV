@@ -12,7 +12,6 @@ namespace larcv {
 
   PreProcessor::PreProcessor()
   {
-    this->set_verbosity((msg::Level_t)0);
     LARCV_DEBUG() << "start" << std::endl;
     _pi_threshold=1;
     _min_ctor_size=4;
@@ -36,6 +35,8 @@ namespace larcv {
   PreProcessor::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
+    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity",2));
+    
     _pi_threshold = pset.get<uint>("PiThreshold",1);
     _min_ctor_size = pset.get<uint>("MinContourSize",4);
     _min_track_size = pset.get<uint>("MinTrackSize",3);
@@ -459,16 +460,16 @@ namespace larcv {
 	  if (!EdgeConnected(shower,track2))
 	    continue;
 	  
-	  LARCV_CRITICAL() << "Shower " << shower_id
+	  LARCV_DEBUG() << "Shower " << shower_id
 			<< " sandwich btw"
 			<< " track " << track1_id
 			<< " & track " << track2_id
 			<< std::endl;
 	  
-	  LARCV_CRITICAL() << "This shower of size " << shower.npixel
+	  LARCV_DEBUG() << "This shower of size " << shower.npixel
 			   << " e1 " << shower.edge1 << " e2 " << shower.edge2
 			   << "mean dist " << shower.mean_pixel_dist << std::endl;
-	  LARCV_CRITICAL() << "Straight " << shower.straight << std::endl;
+	  LARCV_DEBUG() << "Straight " << shower.straight << std::endl;
 
 	  if (shower.straight)
 	    cidx_v.push_back(shower_id);

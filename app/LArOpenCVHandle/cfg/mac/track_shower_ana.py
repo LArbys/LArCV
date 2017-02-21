@@ -33,6 +33,6 @@ mcinfo_proc.SetFilter(filter_proc)
 larbysimg     = proc.process_ptr(reco_id)
 proc.override_ana_file("track_shower.root")
 proc.initialize()
-proc.batch_process(0,10)
+proc.batch_process(0,100)
 proc.finalize()
 

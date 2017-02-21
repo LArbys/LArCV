@@ -12,7 +12,6 @@ namespace larcv {
     _shower_tree(nullptr)
   {
     LARCV_DEBUG() << "start" << std::endl;
-    this->set_verbosity((msg::Level_t)0);
     LARCV_DEBUG() << "end" << std::endl;
   }
   
@@ -20,8 +19,10 @@ namespace larcv {
   TrackShowerAna::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
+    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity",2));
+
     _min_ctor_size = pset.get<uint>("MinContourSize",3);
-    _min_points_inside = pset.get<uint>("MinPointsInside",3);
+    _min_points_inside = pset.get<uint>("MinPointsInside",10);
     
     std::string tree_prefix = pset.get<std::string>("TSTreePrefix","truth");
     std::stringstream ss;
