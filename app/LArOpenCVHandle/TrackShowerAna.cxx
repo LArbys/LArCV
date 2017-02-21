@@ -24,7 +24,7 @@ namespace larcv {
     _min_ctor_size = pset.get<uint>("MinContourSize",3);
     _min_points_inside = pset.get<uint>("MinPointsInside",10);
     
-    std::string tree_prefix = pset.get<std::string>("TSTreePrefix","truth");
+    std::string tree_prefix = pset.get<std::string>("TreePrefix");
     std::stringstream ss;
     
     ss.str("");
