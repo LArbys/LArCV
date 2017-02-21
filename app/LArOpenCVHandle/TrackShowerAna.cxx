@@ -110,7 +110,7 @@ namespace larcv {
 	
       _mean_pix_dist = larocv::MeanDistanceToLine(masked_pts,overallPCA);
       _sigma_pix_dist = larocv::SigmaDistanceToLine(masked_pts,overallPCA);
-      _weighted_angle = larocv::CircumferenceAngluarSum(ctor);
+      _weighted_angle = larocv::CircumferenceAngularSum(ctor);
 	
       tree->Fill();
       Clear();
