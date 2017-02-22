@@ -13,7 +13,14 @@ import numpy as np
 
 proc = larcv.ProcessDriver('ProcessDriver')
 
-CFG="../reco_combined.cfg"
+CFG="../reco_combined_true.cfg"
+import os
+cfg_ = os.path.basename(CFG)
+truth=cfg_.split(".")[0].split("_")[-1]
+processed=True
+if truth=="true":
+    processed=False
+    
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
@@ -32,7 +39,7 @@ larbysimg_ana.SetManager(larbysimg.Manager())
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 
-for event in xrange(38,38+1):
+for event in xrange(0,1000):
     proc.batch_process(event,1)
 
     if (filter_proc.selected()==False): continue
@@ -70,16 +77,21 @@ for event in xrange(38,38+1):
         f, (ax1, ax2) = plt.subplots(1, 2, sharey=True,figsize=(15,10))
         oimg = oshower_img + otrack_img
         img  = shower_img  + track_img
-        ax1.imshow(oimg,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+        if processed==True:
+            ax1.imshow(oimg,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+            ax1.set_xlabel('Time [6 ticks]',fontsize=20)
+            ax1.set_ylabel('Wire',fontsize=20)
+            ax1.set_xlim(0,512)
+            ax1.set_ylim(0,512)
+            ax1.tick_params(labelsize=20)
+        else:
+            ax2.set_xlabel('Time [6 ticks]',fontsize=20)
+            
         ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
         print oimg.shape,img.shape
-        ax1.set_xlabel('Time [6 ticks]',fontsize=20)
         ax2.set_xlabel('Time [6 ticks]',fontsize=20)
-        ax1.set_ylabel('Wire',fontsize=20)
-        ax1.set_xlim(0,512)
         ax2.set_xlim(0,512)
-        ax1.set_ylim(0,512)
-        ax1.tick_params(labelsize=20)
+        ax2.set_ylim(0,512)
         ax2.tick_params(labelsize=20)
         SS="out3/%04d_00_track_shower_%d.png"%(event,plane)
         plt.savefig(SS)
@@ -452,7 +464,7 @@ for event in xrange(38,38+1):
             
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
-            SS="out3/%04d_07_shower_%02d_%02_.png"%(event,vtxid,plane)
+            SS="out3/%04d_07_shower_%02d_%02d_.png"%(event,vtxid,plane)
             ax.set_title(SS,fontsize=30)
             plt.savefig(SS)
             plt.cla()

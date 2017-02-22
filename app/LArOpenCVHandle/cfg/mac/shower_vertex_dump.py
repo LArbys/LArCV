@@ -16,7 +16,7 @@ import numpy as np
 
 proc = larcv.ProcessDriver('ProcessDriver')
 
-CFG="../reco_shower.cfg"
+CFG="../reco_shower_true.cfg"
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
@@ -35,7 +35,7 @@ larbysimg_ana.SetManager(larbysimg.Manager())
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 
-for event in xrange(0,100):
+for event in xrange(0,1000):
 
     proc.batch_process(event,1)
 
