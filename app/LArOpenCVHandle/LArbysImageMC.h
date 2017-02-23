@@ -86,6 +86,7 @@ namespace larcv {
     uint _nneutron;
 
     int _hi_lep_pdg;
+    double _hi_lep_e;
     
     double _dep_sum_lepton;
     double _ke_sum_lepton;

@@ -2,9 +2,6 @@
 #define __LARBYSIMAGEANA_CXX__
 #include "LArbysImageAna.h"
 
-#include "LArUtil/GeometryHelper.h"
-#include "LArUtil/LArProperties.h"
-#include "DataFormat/EventImage2D.h"
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 
 namespace larcv {
@@ -19,7 +16,7 @@ namespace larcv {
       
   void LArbysImageAna::configure(const PSet& cfg)
   {
-    _track_vertex_estimate_algo_name = cfg.get<std::string>("TrackVertexEstimateAlgoName");
+    _track_vertex_estimate_algo_name = cfg.get<std::string>("TrackVertexEstimateAlgoName","");
   }
   
   void LArbysImageAna::ClearVertex() {
@@ -47,23 +44,21 @@ namespace larcv {
     _event_tree->Branch("event"  ,&_event  , "event/i");
     _event_tree->Branch("entry"  ,&_entry  , "entry/i");
     
-    _vtx3d_tree = new TTree("Vtx3DTree","");
+    _vtx3d_tree = new TTree("Vertex3DTree","");
     _vtx3d_tree->Branch("run"    ,&_run    , "run/i");
     _vtx3d_tree->Branch("subrun" ,&_subrun , "subrun/i");
     _vtx3d_tree->Branch("event"  ,&_event  , "event/i");
     _vtx3d_tree->Branch("entry"  ,&_entry  , "entry/i");
-    _vtx3d_tree->Branch("vtx3d_id", &_vtx3d_id, "vtx3d_id/i");
-    _vtx3d_tree->Branch("vtx3d_type", &_vtx3d_type, "vtx3d_type/i");
-    _vtx3d_tree->Branch("vtx3d_x", &_vtx3d_x, "vtx3d_x/D"  );
-    _vtx3d_tree->Branch("vtx3d_y", &_vtx3d_y, "vtx3d_y/D"  );
-    _vtx3d_tree->Branch("vtx3d_z", &_vtx3d_z, "vtx3d_z/D"  );
+    _vtx3d_tree->Branch("id", &_vtx3d_id, "id/i");
+    _vtx3d_tree->Branch("type", &_vtx3d_type, "type/i");
+    _vtx3d_tree->Branch("x", &_vtx3d_x, "x/D"  );
+    _vtx3d_tree->Branch("y", &_vtx3d_y, "y/D"  );
+    _vtx3d_tree->Branch("z", &_vtx3d_z, "z/D"  );
     _vtx3d_tree->Branch("vtx2d_x_v", &_vtx2d_x_v );
     _vtx3d_tree->Branch("vtx2d_y_v", &_vtx2d_y_v );
-    _vtx3d_tree->Branch("circle_vtx_x_v",&_circle_x_v);
-    _vtx3d_tree->Branch("circle_vtx_y_v",&_circle_y_v);
-    _vtx3d_tree->Branch("circle_vtx_xs_v",&_circle_xs_v);
-
-    _vtx3d_tree->Branch("vtx3d_n_planes",&_vtx3d_n_planes,"vtx3d_n_planes/i");
+    _vtx3d_tree->Branch("cvtx2d_x_v",&_circle_x_v);
+    _vtx3d_tree->Branch("cvtx2d_y_v",&_circle_y_v);
+    _vtx3d_tree->Branch("cvtx2d_xs_v",&_circle_xs_v);
   }
 
   bool LArbysImageAna::process(IOManager& mgr)
@@ -85,7 +80,8 @@ namespace larcv {
     _entry =  (uint) mgr.current_entry();
 
     /// get the track estimate data
-    const auto vtx3d_array = (larocv::data::Vertex3DArray*)data_mgr.Data( data_mgr.ID(_track_vertex_estimate_algo_name), 0);
+    const auto vtx3d_array = (larocv::data::Vertex3DArray*)
+      data_mgr.Data(data_mgr.ID(_track_vertex_estimate_algo_name), 0);
     
     auto& vtx_cluster_v = vtx3d_array->as_vector();
 
@@ -98,7 +94,6 @@ namespace larcv {
 	
       // set the vertex index number
       _vtx3d_id=vtx_id;
-
       
       // get this 3D vertex
       const auto& vtx3d = vtx_cluster_v[vtx_id];
@@ -112,7 +107,7 @@ namespace larcv {
       _vtx3d_z = vtx3d.z;
       
       // set the number of planes this vertex was reconstructed from
-      _vtx3d_n_planes = (uint) vtx3d.num_planes;
+      _vtx3d_n_planes = (uint)vtx3d.num_planes;
 
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
 
@@ -132,16 +127,13 @@ namespace larcv {
 	// store the 2D vertex information for this plane
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
-	  
+	
 	vtx2d_x = vtx3d.vtx2d_v[plane_id].pt.x;
 	vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
 	  
       } // end plane
-
       _vtx3d_tree->Fill();
-
     } // end loop over vtx
-    
     _event_tree->Fill();
     
     return true;

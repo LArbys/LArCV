@@ -18,7 +18,8 @@ namespace larcv {
     _n_fail_lepton_dep = 0;
     _n_fail_proton_dep = 0;
     _n_pass = 0;
-
+    _n_fail_unknowns=0;
+    _n_fail_inter=0;
     _event_tree = new TTree("event_tree","");
     _event_tree->Branch("run"   ,&_run,    "run/i");
     _event_tree->Branch("subrun",&_subrun, "subrun/i");
@@ -31,6 +32,8 @@ namespace larcv {
     this->set_verbosity((msg::Level_t)cfg.get<uint>("Verbosity",2));
     _nu_pdg         = cfg.get<unsigned int>("NuPDG");
     _interaction_mode         = cfg.get<unsigned int>("InteractionMode",1001);
+    _dep_sum_lepton=0.0;
+    _dep_sum_proton=0.0;
     
     _min_nu_init_e  = cfg.get<double>("MinNuEnergy");
     _max_nu_init_e  = cfg.get<double>("MaxNuEnergy");
@@ -50,19 +53,14 @@ namespace larcv {
     bool pdg_b = false;
     bool interaction_mode_b = false;
     bool engini_b = false;
-    bool nlepton_b = false;
-    bool dep_sum_lepton_b = false;
-    bool nproton_b = false;
-    bool dep_sum_proton_b = false;
     bool vis_lepton_b = false;
     bool vis_one_proton_b = false;
+    bool vis_no_unknowns_b = false;
     
     uint nlepton  = 0;
     uint nproton  = 0;
-    uint nprimary = 0;
     
-    double dep_sum_lepton=0.0;
-    double dep_sum_proton=0.0;
+    uint unknown_ctr=0.0;
     
     // Get neutrino ROI
     auto roi = ev_roi->at(0);
@@ -73,6 +71,7 @@ namespace larcv {
 
     std::vector<aparticle> protons_v;
     std::vector<aparticle> leptons_v;
+    std::vector<aparticle> unknown_v;
 
     bool first=false;
     
@@ -85,7 +84,7 @@ namespace larcv {
       if (pdgcode==2212) {
 
 	aparticle thispro;
-	
+	thispro.pdg           = pdgcode;
 	thispro.trackid       = roi.TrackID();
 	thispro.ptrackid      = roi.ParentTrackID();
 	thispro.depeng        = roi.EnergyDeposit();
@@ -93,15 +92,26 @@ namespace larcv {
 	protons_v.push_back(std::move(thispro));
       }
       
-      if (pdgcode==11 or pdgcode==13) {
-
-	aparticle thislep;
+      else if (pdgcode==11 or pdgcode==13) {
 	
+	aparticle thislep;
+	thislep.pdg           = pdgcode;
 	thislep.trackid       = roi.TrackID();
 	thislep.ptrackid      = roi.ParentTrackID();
 	thislep.depeng        = roi.EnergyDeposit();
 	thislep.primary       = ( roi.TrackID() == roi.ParentTrackID() );
 	leptons_v.push_back(std::move(thislep));
+      }
+
+      else {
+	
+	aparticle thisunknown;
+	thisunknown.pdg           = pdgcode;
+	thisunknown.trackid       = roi.TrackID();
+	thisunknown.ptrackid      = roi.ParentTrackID();
+	thisunknown.depeng        = roi.EnergyDeposit();
+	thisunknown.primary       = ( roi.TrackID() == roi.ParentTrackID() );
+	unknown_v.push_back(std::move(thisunknown));
       }
       
     }
@@ -138,6 +148,13 @@ namespace larcv {
       if ( this_proton_eng > _dep_sum_proton ) proton_engs_ctr ++;
     }
 
+
+    for(const auto& unknown : unknown_v) {
+      if (!unknown.primary) continue;
+      unknown_ctr+=1;
+    }
+
+    
     // requested nu PDG code
     if (pdgcode == _nu_pdg)  pdg_b=true;
 
@@ -153,15 +170,19 @@ namespace larcv {
     // There must be 1 visible proton
     if (proton_engs_ctr == 1) vis_one_proton_b =true;
 
-    bool selected = pdg_b && interaction_mode_b && engini_b  && vis_lepton_b && vis_one_proton_b;
+    // There must be no primary unknowns
+    if (unknown_ctr==0) vis_no_unknowns_b = true;
+    
+    bool selected = pdg_b && interaction_mode_b && engini_b  && vis_lepton_b && vis_one_proton_b && vis_no_unknowns_b;
     
     _selected = selected;
 
-    if (! pdg_b)            _n_fail_nupdg      += 1;
-    if (! engini_b)         _n_fail_nuE        += 1;
-    if (! vis_lepton_b)     _n_fail_lepton_dep += 1;
-    if (! vis_one_proton_b) _n_fail_proton_dep += 1;
-    
+    if (! pdg_b)              _n_fail_nupdg      += 1;
+    if (! interaction_mode_b) _n_fail_inter      += 1;
+    if (! engini_b)           _n_fail_nuE        += 1;
+    if (! vis_lepton_b)       _n_fail_lepton_dep += 1;
+    if (! vis_one_proton_b)   _n_fail_proton_dep += 1;
+    if (! vis_no_unknowns_b)  _n_fail_unknowns   += 1;
     
     return selected;
   }
@@ -171,8 +192,10 @@ namespace larcv {
 
   bool NuFilter::process(IOManager& mgr)
   {
-    //LARCV_DEBUG() << "Event " << mgr.current_entry() << std::endl;
-    std::cout << "Event " << mgr.current_entry() << std::endl;
+    uint entry=mgr.current_entry();
+    if (!(entry%100) and entry)
+      LARCV_DEBUG() << "Event " << entry << std::endl;
+
     auto ev_roi = (EventROI*) mgr.get_data(kProductROI, _roi_producer_name);
 
     _run   = ev_roi->run();
@@ -188,7 +211,6 @@ namespace larcv {
       if ( _select_background and  signal_selected ) return false;
     }
 
-    
     _n_pass+=1;
 
     _event_tree->Fill();
@@ -212,14 +234,14 @@ namespace larcv {
     LARCV_DEBUG() << "\t<~~~~~ NuFilter statistics ~~~~~>" << std::endl;
     LARCV_DEBUG() << "Called: " << _n_calls << std::endl;
     LARCV_DEBUG() << "N fail Nu PDG: " << _n_fail_nupdg << std::endl;
+    LARCV_DEBUG() << "N fail Nu INTER: " << _n_fail_inter << std::endl;
     LARCV_DEBUG() << "N fail Nu E: " << _n_fail_nuE << std::endl;
     LARCV_DEBUG() << "N fail lepton dep: " << _n_fail_lepton_dep << std::endl;
     LARCV_DEBUG() << "N fail proton dep: " << _n_fail_proton_dep << std::endl;
+    LARCV_DEBUG() << "N fail unknowns:   " << _n_fail_unknowns << std::endl;
     LARCV_DEBUG() << "N pass : " << _n_pass << std::endl;
     LARCV_DEBUG() << std::endl;
-
     _event_tree->Write();
-    
   }
 
 }

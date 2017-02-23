@@ -25,7 +25,8 @@ if truth=="true":
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
-flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+#flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
 proc.override_input_file(flist)
 filter_id = proc.process_id("NuFilter")
 mcinfo_id = proc.process_id("LArbysImageMC")
@@ -37,10 +38,10 @@ larbysimg     = proc.process_ptr(reco_id)
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 
-#for event in xrange(0,1000):
 #for event in xrange(156,156+1):
-ee=52
+ee=256
 for event in xrange(ee,ee+1):
+#for event in xrange(0,1000):
     print "Event is... ",event
     proc.batch_process(event,1)
 
@@ -476,3 +477,4 @@ for event in xrange(ee,ee+1):
             plt.clf()
             plt.close()
 
+proc.finalize()

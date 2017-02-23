@@ -23,29 +23,8 @@ namespace larcv {
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
 
-    _min_nu_dep_e  = cfg.get<float>("MinNuDepE",0);
-    _max_nu_dep_e  = cfg.get<float>("MaxNuDepE",0);
-    _min_nu_init_e = cfg.get<float>("MinNuInitE",0);
-    _max_nu_init_e = cfg.get<float>("MaxNuInitE",0);
-
-    _min_n_proton = cfg.get<int>("MinNProton",0);
-    _min_n_lepton = cfg.get<int>("MinNLepton",0);
-    _min_n_meson  = cfg.get<int>("MinNMeson",0);
-    _min_n_shower = cfg.get<int>("MinNShower",0);
-    _min_n_neutron = cfg.get<int>("MinNNeutron",0);
-
-    _check_vis         = cfg.get<bool>("CheckVisibility",false);
-
-    _min_proton_dep = cfg.get<float>("ProtonMinDepE",0);
-    _max_proton_dep = cfg.get<float>("ProtonMaxDepE",0);
-    
-    _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",0);
-    _do_not_reco       = cfg.get<bool>("DoNotReco");
-
-    // _select_signal     = cfg.get<bool>("SelectSignal");
-    // _select_background = cfg.get<bool>("SelectBackground");
-    
-    eee=-1;
+    _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",35);
+    _do_not_reco       = cfg.get<bool>("DoNotReco",false);
   }
 
   cv::Rect LArbysImageMC::Get2DRoi(const ImageMeta& meta,
@@ -187,7 +166,7 @@ namespace larcv {
   
   void LArbysImageMC::initialize()
   {
-    _mc_tree = new TTree("mctree","MC infomation");
+    _mc_tree = new TTree("MCTree","MC infomation");
 
     _mc_tree->Branch("run",&_run,"run/i");
     _mc_tree->Branch("subrun",&_subrun,"subrun/i");
@@ -265,7 +244,6 @@ namespace larcv {
   bool LArbysImageMC::process(IOManager& mgr)
   {
     Clear();
-    eee+=1;
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
 
@@ -283,36 +261,26 @@ namespace larcv {
     auto roi = ev_roi->at(0);
 
     _parent_pdg     = roi.PdgCode();
-
     _energy_deposit = roi.EnergyDeposit();
-
     _energy_init    = roi.EnergyInit();
-
     _parent_x       = roi.X(); 
     _parent_y       = roi.Y(); 
     _parent_z       = roi.Z(); 
     _parent_t       = roi.T(); 
-
     _parent_px      = roi.Px(); 
     _parent_py      = roi.Py(); 
     _parent_pz      = roi.Pz(); 
-
     _current_type     = roi.NuCurrentType();
     _interaction_type = roi.NuInteractionType();
     
     //Get 2D projections from 3D
     for (uint plane = 0 ; plane<3;++plane){
-      
-      ///Convert [cm] to [pixel]
       const auto& img = ev_image2d->Image2DArray()[plane];
       const auto& meta = img.meta();
-      
       double x_pixel(0), y_pixel(0);
       Project3D(meta,_parent_x,_parent_y,_parent_z,plane,x_pixel,y_pixel);
-      
       _vtx_2d_w_v[plane] = x_pixel;
       _vtx_2d_t_v[plane] = y_pixel;
-      
     }
 
     // for each ROI not nu, lets get the 3D line in direction of particle trajectory.
@@ -330,9 +298,7 @@ namespace larcv {
     _nshower=0;
     
     _hi_lep_pdg=-1;
-
-    float hi_lep_e = 0;
-    
+    _hi_lep_e = 0;
     _dep_sum_lepton=0;
     _ke_sum_lepton=0;
     _dep_sum_proton=0;
@@ -346,7 +312,6 @@ namespace larcv {
 
     bool visibility=false;
     bool hadron_vis=false;
-    bool lepton_vis=false;
 
     uint ic=0;
     std::vector<this_proton> protons;
@@ -436,7 +401,6 @@ namespace larcv {
 	// we need to intersection point between the edge and this half line, find it
 
 	auto pt_edge = Intersection(hline,roi_on_plane);
-
 	
 	daughter_length_v.push_back(geo2d::length(pt_edge - start));
 
@@ -460,87 +424,70 @@ namespace larcv {
       
       int pdgcode = roi.PdgCode();
       
-      //if (pdgcode > 1e6) { LARCV_DEBUG() << "Entry is " << eee << std::endl; throw larbys("Fucked up pdg code");}
-      
       _daughter_pdg_v.push_back((int) roi.PdgCode());
       _daughter_trackid_v.push_back((uint) roi.TrackID());
       _daughter_parenttrackid_v.push_back((uint) roi.ParentTrackID());
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
-      //check if this particle is primary...Moved after storing proton since we care secondary proton
-
       _ntotal+=1;
+
+      pdgcode=std::abs(pdgcode);
       
       //this is proton
-      
       if (pdgcode==2212) {
-
 	//primary protons
 	if (roi.TrackID() == roi.ParentTrackID()) {
 	  _nproton++;
-	  //_dep_sum_proton += roi.EnergyDeposit();
 	  _ke_sum_proton  += roi.EnergyInit() - 938.0;
 	}
-	
-	//all protons go into vector
-	
+	//capture proton
 	this_proton thispro;
-	
 	thispro.trackid       = roi.TrackID();
 	thispro.parenttrackid = roi.ParentTrackID();
 	thispro.depeng        = roi.EnergyDeposit();
-	
-	protons.push_back(thispro);
+	protons.emplace_back(std::move(thispro));
       }
-	    
-      //its not move on
+      // its not a primary, skip
       if (roi.TrackID() != roi.ParentTrackID()) continue;
       
       //it is
-      _nprimary+=1;
-      
-      
+      _nprimary++;
+            
       //this is neutron
-      if (pdgcode==2112 or pdgcode==-2112) {
+      if (pdgcode==2112) {
 	_nneutron++;
 	_dep_sum_neutron += roi.EnergyDeposit();
 	_ke_sum_neutron  += roi.EnergyInit() - 939.5;
       }
 
       //mesons are pion,kaon,...
-      if (pdgcode==211 or pdgcode==-211 or
-	  pdgcode==321 or pdgcode==-321) {
+      if (pdgcode==211 or pdgcode==321) {
 	_nmeson++;
 	_dep_sum_meson += roi.EnergyDeposit();
 	_ke_sum_meson  += roi.EnergyInit();
       }
 
-      //leptons are electron, muon also (anti...)
-      if (pdgcode==11 or pdgcode==-11 or
-	  pdgcode==13 or pdgcode==-13) {
-
+      //leptons are electron, muon also...
+      if (pdgcode==11 or pdgcode==13) {
 	_nlepton++;
 	_dep_sum_lepton += roi.EnergyDeposit();
 	_ke_sum_lepton  += roi.EnergyInit();
-
-	if (roi.EnergyInit() > hi_lep_e) _hi_lep_pdg = pdgcode;
-
-	if (roi.EnergyInit() > _min_lepton_init_e) lepton_vis = true;
-	
+	if (roi.EnergyInit() > _hi_lep_e)  {
+	  _hi_lep_e = roi.EnergyInit();
+	  _hi_lep_pdg = pdgcode;
+	}
       }
       
       //shower are electron, gamma, pi0
-      if (pdgcode==11 or pdgcode==-11 or
-	  pdgcode==22 or
-	  pdgcode==111) {
+      if (pdgcode==11 or pdgcode==22 or pdgcode==111) {
 	_nshower++;
 	_dep_sum_shower += roi.EnergyDeposit();
 	_ke_sum_shower  += roi.EnergyInit();
       }
 
     }
-
+    
     float highest_primary_proton_eng = 0;
     std::vector<float> proton_engs;
     proton_engs.clear();
@@ -552,8 +499,7 @@ namespace larcv {
 	highest_primary_proton_eng = 0;
 	trackid = protons.at(x).trackid;
 	highest_primary_proton_eng += protons.at(x).depeng;
-	for (int y=0;y < protons.size() ; y++ ){
-	  if (x==y) continue;
+	for (int y=x+1;y < protons.size() ; y++ ){
 	  if (protons.at(y).parenttrackid == trackid) {
 	    highest_primary_proton_eng+=protons.at(y).depeng;
 	  }
@@ -562,13 +508,11 @@ namespace larcv {
       }
       highest_primary_proton_eng = 0;
       for (auto const each : proton_engs) {
-	if (each > highest_primary_proton_eng) highest_primary_proton_eng = each;
+	if (each > highest_primary_proton_eng)
+	  highest_primary_proton_eng = each;
       }
       _dep_sum_proton = highest_primary_proton_eng;
     }
-
-
-    //_is_signal = signal_selected;
 
     if (_filter_ptr)
       _is_signal = _filter_ptr->selected();
@@ -576,8 +520,6 @@ namespace larcv {
     _mc_tree->Fill();
 
     _enum+=1;
-    
-    // LARCV_DEBUG() << "Next: " << _enum << std::endl;
     
     if (_do_not_reco) return false;
     

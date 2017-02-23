@@ -36,13 +36,9 @@ namespace larcv {
     ~NuFilter(){}
 
     void configure(const PSet&);
-
     void initialize();
-
     bool process(IOManager& mgr);
-
     void finalize();
-
     const bool selected() const { return _selected; }
     
   private:
@@ -64,6 +60,7 @@ namespace larcv {
     bool _select_background;
     
     struct aparticle{
+      int pdg;
       int trackid;
       int ptrackid;
       bool primary;
@@ -77,7 +74,9 @@ namespace larcv {
     uint _n_fail_proton_dep;
     uint _n_pass;
     uint _n_calls;
-
+    uint _n_fail_unknowns;
+    uint _n_fail_inter;
+    
     TTree* _event_tree;
     
     uint _run;

@@ -11,20 +11,14 @@ namespace larcv {
 
   public:
     
-    /// Default constructor
     LArbysImageAna(const std::string name="LArbysImageAna");
-    
-    /// Default destructor
     ~LArbysImageAna(){}
 
     void configure(const PSet&);
-
     void initialize();
-
     bool process(IOManager& mgr);
-    
     void finalize();
-    
+
     void SetManager(const::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
     
   private:
@@ -61,23 +55,13 @@ namespace larcv {
     
   };
 
-  /**
-     \class larcv::LArbysImageAnaFactory
-     \brief A concrete factory class for larcv::LArbysImageAna
-  */
   class LArbysImageAnaProcessFactory : public ProcessFactoryBase {
   public:
-    /// ctor
     LArbysImageAnaProcessFactory() { ProcessFactory::get().add_factory("LArbysImageAna",this); }
-    /// dtor
     ~LArbysImageAnaProcessFactory() {}
-    /// creation method
     ProcessBase* create(const std::string instance_name) { return new LArbysImageAna(instance_name); }
   };
 
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
-
