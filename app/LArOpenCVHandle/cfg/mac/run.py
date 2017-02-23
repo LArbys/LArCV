@@ -38,6 +38,6 @@ larbysimg_ana.SetManager(larbysimg.Manager())
 proc.override_ana_file(sys.argv[2] + ".root")
 proc.initialize()
 #proc.batch_process(evstart,step)
-proc.batch_process(0,1000)
+proc.batch_process(0,1000)#2500)
 proc.finalize()
 
