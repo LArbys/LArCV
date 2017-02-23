@@ -14,7 +14,7 @@ import numpy as np
 proc = larcv.ProcessDriver('ProcessDriver')
 
 #CFG="../reco_combined_true.cfg"
-CFG="../reco_combined_ssnet.cfg"
+CFG="../shower_on_track_end.cfg"
 import os
 cfg_ = os.path.basename(CFG)
 truth=cfg_.split(".")[0].split("_")[-1]
@@ -30,25 +30,22 @@ proc.override_input_file(flist)
 filter_id = proc.process_id("NuFilter")
 mcinfo_id = proc.process_id("LArbysImageMC")
 reco_id   = proc.process_id("LArbysImage")
-ana_id    = proc.process_id("LArbysImageAna")
 filter_proc   = proc.process_ptr(filter_id)
 mcinfo_proc   = proc.process_ptr(mcinfo_id)
 mcinfo_proc.SetFilter(filter_proc)
 larbysimg     = proc.process_ptr(reco_id)
-larbysimg_ana = proc.process_ptr(ana_id)
-larbysimg_ana.SetManager(larbysimg.Manager())
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 
-for event in xrange(0,1000):
+#for event in xrange(0,1000):
 #for event in xrange(156,156+1):
-#for event in xrange(85,85+1):
+ee=52
+for event in xrange(ee,ee+1):
+    print "Event is... ",event
     proc.batch_process(event,1)
 
     if (filter_proc.selected()==False): continue
 
-    print "Event is... ",event
-    
     mgr=larbysimg.Manager()
     pygeo = geo2d.PyDraw()
     img_v = []
@@ -409,7 +406,7 @@ for event in xrange(0,1000):
         print "<===================End   LinearTrack number ",strack_n," ==========================>"
         
     dm=mgr.DataManager()
-    data=dm.Data(8,0)
+    data=dm.Data(9,0)
     print data
     vtxid=-1;
     print "Got ",data.as_vector().size()," 3D vertex"
@@ -449,7 +446,7 @@ for event in xrange(0,1000):
         
     assman=dm.AssManager()
     #New VertexCluster
-    vtx_data=dm.Data(8,0).as_vector()
+    vtx_data=dm.Data(9,0).as_vector()
     vtxid=-1
     for vtx in vtx_data:
         vtxid+=1
@@ -460,7 +457,7 @@ for event in xrange(0,1000):
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
             
-            par_data=dm.Data(9,plane)
+            par_data=dm.Data(10,plane)
             
             ass_t = np.array(assman.GetManyAss(vtx,par_data.ID()))
             if ass_t.size==0:continue
