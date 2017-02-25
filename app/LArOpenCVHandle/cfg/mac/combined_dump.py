@@ -25,8 +25,8 @@ if truth=="true":
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
-flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
-#flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
+#flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
 proc.override_input_file(flist)
 
 filter_id = proc.process_id("NuFilter")
@@ -56,12 +56,12 @@ events=array([  3,  34,  36,  52,  54,  72,  75, 100, 102, 108, 119, 125, 131,
                        850, 853, 854, 865, 869, 873, 878, 884, 887, 913, 918, 923, 929,
                        933, 939, 959, 962, 976])
 
-for event in events:
-    print "Event is... ",event
+for event in xrange(290,291):
+
     proc.batch_process(event,1)
 
     if (filter_proc.selected()==False): continue
-
+    print "Event is... ",event
     mgr=larbysimg.Manager()
     pygeo = geo2d.PyDraw()
     img_v = []
@@ -97,8 +97,6 @@ for event in events:
             ax1.imshow(oimg,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
             ax1.set_xlabel('Time [6 ticks]',fontsize=20)
             ax1.set_ylabel('Wire',fontsize=20)
-            ax1.set_xlim(0,520)
-            ax1.set_ylim(0,520)
             ax1.tick_params(labelsize=20)
         else:
             ax2.set_xlabel('Time [6 ticks]',fontsize=20)
@@ -106,9 +104,8 @@ for event in events:
         ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
         print oimg.shape,img.shape
         ax2.set_xlabel('Time [6 ticks]',fontsize=20)
-        ax2.set_xlim(0,520)
-        ax2.set_ylim(0,520)
         ax2.tick_params(labelsize=20)
+        plt.tight_layout()
         SS="out3/%04d_00_track_shower_%d.png"%(event,plane)
         plt.savefig(SS)
         plt.cla()
@@ -492,6 +489,36 @@ for event in events:
             plt.clf()
             plt.close()
 
+    #track output
+    vtx_data=dm.Data(11,0).as_vector()
+    vtxid=-1
+    for vtx in vtx_data:
+        vtxid+=1
+        for plane in xrange(3):
+            fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
+            shape_img = img_v[plane]
+            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            plt.imshow(shape_img,cmap='Greys',interpolation='none')
+            nz_pixels=np.where(shape_img>0.0)
+
+            vtx2d=vtx.cvtx2d_v[plane].center
+            
+            ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)            
+
+            tru_vtx_w = tru_vtx_w_v[plane]
+            tru_vtx_t = tru_vtx_t_v[plane]
+            plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+            
+            ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
+            ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
+            SS="out3/%04d_08_trackvtx_%02d_%02d_.png"%(event,vtxid,plane)
+            ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
+            plt.savefig(SS)
+            plt.cla()
+            plt.clf()
+            plt.close()
+
+            
     #Shower output
     vtx_data=dm.Data(12,0).as_vector()
     vtxid=-1
@@ -514,7 +541,7 @@ for event in events:
             
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
-            SS="out3/%04d_08_shower_%02d_%02d_.png"%(event,vtxid,plane)
+            SS="out3/%04d_09_showervtx_%02d_%02d_.png"%(event,vtxid,plane)
             ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
             plt.savefig(SS)
             plt.cla()
