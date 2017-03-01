@@ -45,19 +45,8 @@ larbysimg_ana.SetManager(larbysimg.Manager())
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 from numpy import array
-events=array([  3,  34,  36,  52,  54,  72,  75, 100, 102, 108, 119, 125, 131,
-                       138, 143, 156, 159, 171, 208, 230, 232, 238, 246, 253, 281, 293,
-                       297, 300, 306, 308, 324, 327, 335, 338, 348, 362, 368, 371, 389,
-                       395, 397, 400, 405, 414, 418, 419, 423, 440, 450, 452, 458, 459,
-                       460, 464, 495, 498, 506, 515, 530, 555, 568, 578, 584, 602, 605,
-                       608, 616, 620, 628, 638, 649, 654, 655, 658, 663, 666, 669, 682,
-                       690, 697, 699, 701, 703, 706, 709, 713, 719, 734, 748, 761, 767,
-                       772, 773, 785, 795, 798, 801, 805, 817, 826, 829, 831, 833, 843,
-                       850, 853, 854, 865, 869, 873, 878, 884, 887, 913, 918, 923, 929,
-                       933, 939, 959, 962, 976])
 
-for event in xrange(108,109):
-#for event in xrange(2500):
+for event in [989]:
 
     proc.batch_process(event,1)
 
@@ -491,7 +480,7 @@ for event in xrange(108,109):
             plt.close()
 
     #track output
-    vtx_data=dm.Data(11,0).as_vector()
+    vtx_data=dm.Data(12,0).as_vector()
     vtxid=-1
     for vtx in vtx_data:
         vtxid+=1
@@ -521,7 +510,7 @@ for event in xrange(108,109):
 
             
     #Shower output
-    vtx_data=dm.Data(12,0).as_vector()
+    vtx_data=dm.Data(13,0).as_vector()
     vtxid=-1
     for vtx in vtx_data:
         vtxid+=1
@@ -543,6 +532,55 @@ for event in xrange(108,109):
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
             SS="out3/%04d_09_showervtx_%02d_%02d_.png"%(event,vtxid,plane)
+            ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
+            plt.savefig(SS)
+            plt.cla()
+            plt.clf()
+            plt.close()
+
+
+    #Shower output
+    vtx_data=dm.Data(13,0).as_vector()
+    vtxid=-1
+    for vtx in vtx_data:
+        vtxid+=1
+        for plane in xrange(3):
+            fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
+            shape_img = img_v[plane]
+            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            plt.imshow(shape_img,cmap='Greys',interpolation='none')
+            nz_pixels=np.where(shape_img>0.0)
+
+            vtx2d=vtx.cvtx2d_v[plane].center            
+            ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)            
+
+            tru_vtx_w = tru_vtx_w_v[plane]
+            tru_vtx_t = tru_vtx_t_v[plane]
+            plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+
+            par_data=dm.Data(13,plane+1)
+
+            ass_t = np.array(assman.GetManyAss(vtx,par_data.ID()))
+            if ass_t.size==0:continue
+
+            par_data_v=par_data.as_vector()
+            for id_ in ass_t:
+                ctor=np.array([[pt.x,pt.y] for pt in par_data_v[id_]._ctor])
+                ax.plot(ctor[:,0],ctor[:,1],'-o',lw=2)
+
+            ax.plot(cvtx.center.x,cvtx.center.y,'o',color='red',markersize=10)
+            circl=matplotlib.patches.Circle((cvtx.center.x,cvtx.center.y),
+                                            cvtx.radius,fc='none',ec='cyan',lw=5,alpha=0.5)
+            print "Vertex ",ix," plane ",plane,"..."
+            for xs in cvtx.xs_v:
+                print  "xs @ [",xs.pt.x,",",xs.pt.y,"]"
+                ax.plot(xs.pt.x,xs.pt.y,'o',color='orange',markersize=10,alpha=0.7)
+            print
+            ax.add_patch(circl)
+
+            ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
+            ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
+            SS="out3/%04d_10_showerpar_%02d_%02d_.png"%(event,vtxid,plane)
             ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
             plt.savefig(SS)
             plt.cla()

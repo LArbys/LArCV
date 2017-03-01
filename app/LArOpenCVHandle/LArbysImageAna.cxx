@@ -117,10 +117,14 @@ namespace larcv {
       _vtx3d_n_planes = (uint)vtx3d.num_planes;
 
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
+
+	LARCV_DEBUG() << "Got track particle cluster name " << _track_particle_cluster_algo_name << std::endl;
+	auto track_particle_cluster_id = data_mgr.ID(_track_particle_cluster_algo_name);
+	LARCV_DEBUG() << "Got track particle cluster ID " << track_particle_cluster_id << std::endl;
 	
 	const auto par_array = (larocv::data::ParticleClusterArray*)
-	  data_mgr.Data(data_mgr.ID(_track_particle_cluster_algo_name), plane_id);
-    
+	  data_mgr.Data(track_particle_cluster_id, plane_id+1);
+	
 	auto ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
 	_par_multi[plane_id] = (uint)ass_idx_v.size();
 	  

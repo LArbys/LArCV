@@ -242,7 +242,7 @@ namespace larcv {
       static uint call0=0;
       std::stringstream ss;
       ss << "img_" << call0 << ".png";
-      cv::imwrite(ss.str(),img_t);
+      //cv::imwrite(ss.str(),img_t);
       call0+=1;
     }
     
@@ -253,7 +253,7 @@ namespace larcv {
 	static uint call1=0;
 	std::stringstream ss;
 	ss << "img_t0_" << call1 << ".png";
-	cv::imwrite(ss.str(),img_t);
+	//cv::imwrite(ss.str(),img_t);
 	call1+=1;
       }
     }
@@ -265,7 +265,7 @@ namespace larcv {
       static uint call2=0;
       std::stringstream ss;
       ss << "img_t1_" << call2 << ".png";
-      cv::imwrite(ss.str(),img_t);
+      //cv::imwrite(ss.str(),img_t);
       call2+=1;
     }
 
