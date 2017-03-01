@@ -3,8 +3,7 @@
 
 #include "Base/larcv_base.h"
 #include <opencv2/opencv.hpp>
-#include "LArOpenCV/ImageCluster/AlgoClass/SingleLinearTrack.h"
-#include "LinearTrack.h"
+#include "PixelChunk.h"
 #include "Base/PSet.h"
 
 namespace larcv {
@@ -24,33 +23,55 @@ namespace larcv {
     void
     Configure(const PSet& pset);
 
+
+
+    void
+    MergeTracklets(cv::Mat& track_img, cv::Mat& shower_img);
+
+    void
+    ClaimShowers(cv::Mat& adc_img,
+		 cv::Mat& track_img,
+		 cv::Mat& shower_img);
+
+    void
+    MergePixelByFraction(cv::Mat& adc_img,
+			 cv::Mat& track_img,
+			 cv::Mat& shower_img);
+
+    void
+    MergeStraightShowers(cv::Mat& adc_img,
+			 cv::Mat& track_img,
+			 cv::Mat& shower_img);
     
   private:
-
     bool
-    IsStraight(const LinearTrack& track,
+    OverallStraightCompatible(const PixelChunk& pchunk1,
+			      const PixelChunk& pchunk2);
+    
+    bool
+    IsStraight(const PixelChunk& track,
 	       const cv::Mat& img);
     
     void
     FilterContours(larocv::GEO2D_ContourArray_t& ctor_v);
 		   
-    std::vector<LinearTrack>
-    MakeLinearTracks(const larocv::GEO2D_ContourArray_t& ctor_v,
-		     const cv::Mat& img,
-		     Type_t type,
-		     bool calc_params=true);
+    std::vector<PixelChunk>
+    MakePixelChunks(const cv::Mat& img,
+		    Type_t type,
+		    bool calc_params=true,
+		    size_t min_track_size=0);
     bool
-    EdgeConnected(const LinearTrack& track1,
-		  const LinearTrack& track2);
+    EdgeConnected(const PixelChunk& track1,
+		  const PixelChunk& track2);
 
     cv::Mat
     PrepareImage(const cv::Mat& img);
 
     float
-    GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2,
+    GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2,
 		   geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2);
     float
-    GetClosestEdge(const LinearTrack& track1, const LinearTrack& track2);
+    GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2);
 
     
   private:
@@ -63,15 +84,16 @@ namespace larcv {
     float _min_overall_angle;
     float _min_pca_angle;
     float _min_track_size;
+    bool _merge_tracklets;
     bool _merge_pixel_frac;
     bool _claim_showers;
     float _min_track_frac;
     float _min_shower_frac;
     float _max_track_in_shower_frac;
-    float _save_straight_tracks_frac;
     double _mean_distance_pca;
-    larocv::SingleLinearTrack _SingleLinearTrack;
-
+    uint _min_merge_track_size;
+    bool _merge_straight_showers;
+    uint _min_merge_track_shower_dist;
     
   };
 }

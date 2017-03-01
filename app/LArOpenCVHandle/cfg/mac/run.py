@@ -39,5 +39,6 @@ proc.override_ana_file(sys.argv[2] + ".root")
 proc.initialize()
 #proc.batch_process(evstart,step)
 proc.batch_process(0,2500)
+#proc.batch_process(0,1000)
 proc.finalize()
 

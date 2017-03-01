@@ -3,6 +3,7 @@
 #include "LArbysImageAna.h"
 
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
+#include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
 
 namespace larcv {
 
@@ -17,6 +18,7 @@ namespace larcv {
   void LArbysImageAna::configure(const PSet& cfg)
   {
     _track_vertex_estimate_algo_name = cfg.get<std::string>("TrackVertexEstimateAlgoName","");
+    _track_particle_cluster_algo_name = cfg.get<std::string>("TrackParticleClusterAlgoName","");
   }
   
   void LArbysImageAna::ClearVertex() {
@@ -33,6 +35,9 @@ namespace larcv {
     _circle_y_v.resize(3);
 
     _circle_xs_v.resize(3);
+
+    _par_multi.clear();
+    _par_multi.resize(3);
   }
 
   void LArbysImageAna::initialize()
@@ -59,6 +64,7 @@ namespace larcv {
     _vtx3d_tree->Branch("cvtx2d_x_v",&_circle_x_v);
     _vtx3d_tree->Branch("cvtx2d_y_v",&_circle_y_v);
     _vtx3d_tree->Branch("cvtx2d_xs_v",&_circle_xs_v);
+    _vtx3d_tree->Branch("multi_v",&_par_multi);
   }
 
   bool LArbysImageAna::process(IOManager& mgr)
@@ -68,7 +74,8 @@ namespace larcv {
 
     /// get the data manager
     const auto& data_mgr  = _mgr_ptr->DataManager();
-
+    const auto& ass_man   = data_mgr.AssManager();
+    
     /// get the ass man to associate algo manager
     const auto& data_ass_mgr  = data_mgr.AssManager();
     
@@ -110,7 +117,13 @@ namespace larcv {
       _vtx3d_n_planes = (uint)vtx3d.num_planes;
 
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
-
+	
+	const auto par_array = (larocv::data::ParticleClusterArray*)
+	  data_mgr.Data(data_mgr.ID(_track_particle_cluster_algo_name), plane_id);
+    
+	auto ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
+	_par_multi[plane_id] = (uint)ass_idx_v.size();
+	  
 	// query the vertex type it's 0 (time vtx) or 1 (wire vtx)
 	if (_vtx3d_type < 2) {
 	  // store circle vertex information
@@ -124,13 +137,20 @@ namespace larcv {
 	  circle_xs = (uint) circle_vtx.xs_v.size();
 	}
 
-	// store the 2D vertex information for this plane
+	
 	auto& vtx2d_x = _vtx2d_x_v[plane_id];
 	auto& vtx2d_y = _vtx2d_y_v[plane_id];
+
+	// store the 2D vertex information for this plane
+	if (_vtx3d_type != 3) {
+	  vtx2d_x = vtx3d.vtx2d_v[plane_id].pt.x;
+	  vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
+	} else {
+	  vtx2d_x = vtx3d.cvtx2d_v[plane_id].center.x;
+	  vtx2d_y = vtx3d.cvtx2d_v[plane_id].center.y;
+	}
+
 	
-	vtx2d_x = vtx3d.vtx2d_v[plane_id].pt.x;
-	vtx2d_y = vtx3d.vtx2d_v[plane_id].pt.y;
-	  
       } // end plane
       _vtx3d_tree->Fill();
     } // end loop over vtx

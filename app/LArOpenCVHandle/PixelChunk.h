@@ -1,13 +1,16 @@
-#ifndef LINEARTRACK_H
-#define LINEARTRACK_H
+#ifndef PIXELCHUNK_H
+#define PIXELCHUNK_H
+
 #include "LArOpenCV/Core/LArOCVTypes.h"
+#include "LArOpenCV/ImageCluster/Base/ImageClusterTypes.h"
+#include "Geo2D/Core/Line.h"
 
 namespace larcv {
 
   enum class Type_t { kUnknown, kTrack, kShower };
   
-  struct LinearTrack {
-    LinearTrack() :
+  struct PixelChunk {
+    PixelChunk() :
       track_frac(0),
       shower_frac(0),
       type(Type_t::kUnknown),
@@ -15,7 +18,7 @@ namespace larcv {
       straight(false)
     {}
     
-    ~LinearTrack() {}
+    ~PixelChunk() {}
     larocv::GEO2D_Contour_t ctor;
     geo2d::Vector<float> edge1;
     geo2d::Vector<float> edge2;

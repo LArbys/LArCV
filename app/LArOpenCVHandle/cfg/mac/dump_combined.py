@@ -25,8 +25,8 @@ if truth=="true":
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
-#flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
-flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
+flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+#flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
 proc.override_input_file(flist)
 
 filter_id = proc.process_id("NuFilter")
@@ -56,7 +56,8 @@ events=array([  3,  34,  36,  52,  54,  72,  75, 100, 102, 108, 119, 125, 131,
                        850, 853, 854, 865, 869, 873, 878, 884, 887, 913, 918, 923, 929,
                        933, 939, 959, 962, 976])
 
-for event in xrange(290,291):
+for event in xrange(108,109):
+#for event in xrange(2500):
 
     proc.batch_process(event,1)
 

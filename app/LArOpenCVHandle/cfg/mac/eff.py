@@ -142,32 +142,20 @@ good_vtx_tmp=good_vtx_tmp.query("good==1.0")
 sig_good_vtx_df=sig_vtx3d.ix[good_vtx_tmp.index]
 del good_vtx_tmp
 
-
 # In[5]:
 
 print signal_df_m['MCTree'].index.size
 print len(signal_df_m['Vertex3DTree'].reset_index().groupby(base_index))
 print sig_good_vtx_df.index.size
-
-
-# In[6]:
+print sig_good_vtx_df.multi_v.apply(lambda x : np.where(x==2)[0].size>=2).sum()
 
 a=sig_good_vtx_df.reset_index().set_index(base_index)
 
-
-# In[7]:
 
 bad_mc=signal_df_m['MCTree'].drop(a.index,inplace=False)
 bad_reco=signal_df_m['EventTree'].drop(a.index,inplace=False)
 
 
-# In[8]:
-
-#print bad_reco.entry.values.size
-bad_reco.entry.values
-
-
-# In[ ]:
 
 
 
