@@ -139,18 +139,25 @@ namespace larcv {
   PreProcessor::MakePixelChunks(const cv::Mat& img,
 				Type_t type,
 				bool calc_params,
+				size_t min_ctor_size,
 				size_t min_track_size) {
+
     
     auto ctor_v = larocv::FindContours(img);
 
     std::vector<PixelChunk> track_v;
     track_v.reserve(ctor_v.size());
 
-    for(auto& ctor : ctor_v) {
+    LARCV_DEBUG() << "Found " << ctor_v.size() << " contours" << std::endl;
+      
+    for(auto& ctor_ : ctor_v) {
+      LARCV_DEBUG() << "... size " << ctor_.size() << std::endl;
+      if (ctor_.size() < min_ctor_size) continue;
       PixelChunk pchunk;
-      pchunk.npixel     = cv::countNonZero(larocv::MaskImage(img,ctor,0,false));
+      pchunk.npixel = cv::countNonZero(larocv::MaskImage(img,ctor_,0,false));
       pchunk.type = type;
-      pchunk.ctor = std::move(ctor);
+      pchunk.ctor = std::move(ctor_);
+      auto& ctor = pchunk.ctor;
       
       if (pchunk.npixel<min_track_size) continue;
       
@@ -159,8 +166,8 @@ namespace larcv {
 	// make the edge
 	geo2d::Vector<float> edge1,edge2;
 	larocv::FindEdges(ctor,edge1,edge2);
-	
-	//rotated rect coordinates      
+
+	//rotated rect coordinates
 	auto min_rect  = cv::minAreaRect(ctor);
 	cv::Point2f vertices[4];
 	min_rect.points(vertices);
@@ -275,7 +282,6 @@ namespace larcv {
     auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,false);
     auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,false);
 
-
     for(auto& track : track_pchunk_v) {
 	LARCV_DEBUG() << "npixel ... " << track.npixel << std::endl;
 	if (track.npixel > _min_merge_track_size) continue;
@@ -297,7 +303,7 @@ namespace larcv {
     auto adc_img_t = PrepareImage(adc_img);
     auto track_img_t = PrepareImage(track_img);
     auto shower_img_t = PrepareImage(shower_img);
-        
+    
     auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,true);
     auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,true);
 

@@ -16,8 +16,10 @@
 #pragma link C++ class larcv::PreProcessor+;
 #pragma link C++ class larcv::TrackShowerAna+;
 
+#pragma link C++ class larcv::PreProcessorAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

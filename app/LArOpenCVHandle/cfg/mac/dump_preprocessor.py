@@ -55,7 +55,7 @@ def extractimage(mgr):
 
     return (img_v,track_img_v,shower_img_v,oimg_v,otrack_img_v,oshower_img_v)
 
-for event in xrange(100):
+for event in [int(sys.argv[1])]:
     proc.batch_process(event,1)
     mgr=larbysimg.Manager()
     (img_v,track_img_v,shower_img_v,oimg_v,otrack_img_v,oshower_img_v)=extractimage(mgr)
@@ -72,7 +72,6 @@ for event in xrange(100):
 
         f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True,figsize=(30,10))
 
-
         true_shower_img=true_shower_img[:,::-1]
         true_track_img=true_track_img[:,::-1]
         
@@ -86,15 +85,20 @@ for event in xrange(100):
 
         #label the fraction correct#
         #sum total true pixels
+        print "============> Plane ",plane," <================"
+        print "fraction raw ss"
         tot_true_label = float(timg[timg>0].size)
-
+        print "tot_true_label ",tot_true_label
 
         #find total number of shower pixels correctly labeled out of SSNET!
         res_shower = true_shower_img & oshower_img
         res_shower = float(res_shower[res_shower>0].size)
+        print "res_shower ",res_shower
         res_track  = true_track_img  & otrack_img
         res_track = float(res_track[res_track>0].size)
+        print "res_track ",res_track
         ss_frac=(res_track+res_shower)/tot_true_label
+        print "ss_frac ",ss_frac
         ax2.text(156,456,
                  "%f + %f = %f"%(res_track/tot_true_label,
                                  res_shower/tot_true_label,
@@ -105,11 +109,15 @@ for event in xrange(100):
         
         
         #find total number of shower pixels correctly labeled after pre process
+        print "fraction post ss"
         res_shower = true_shower_img & shower_img
         res_shower = float(res_shower[res_shower>0].size)
+        print "res_shower ",res_shower
         res_track  = true_track_img  & track_img
         res_track = float(res_track[res_track>0].size)
+        print "res_track ",res_track
         pre_frac = (res_track+res_shower)/tot_true_label
+        print "pss_frac ",pre_frac
         ax3.text(156,456,
                  "%f + %f = %f"%(res_track/tot_true_label,
                                  res_shower/tot_true_label,
