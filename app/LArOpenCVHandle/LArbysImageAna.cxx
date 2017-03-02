@@ -19,6 +19,8 @@ namespace larcv {
   {
     _track_vertex_estimate_algo_name = cfg.get<std::string>("TrackVertexEstimateAlgoName","");
     _track_particle_cluster_algo_name = cfg.get<std::string>("TrackParticleClusterAlgoName","");
+    _track_particle_offset = cfg.get<uint>("TrackParticleOffset");
+					  
   }
   
   void LArbysImageAna::ClearVertex() {
@@ -76,8 +78,6 @@ namespace larcv {
     const auto& data_mgr  = _mgr_ptr->DataManager();
     const auto& ass_man   = data_mgr.AssManager();
     
-    /// get the ass man to associate algo manager
-    const auto& data_ass_mgr  = data_mgr.AssManager();
     
     /// unique event keys
     const auto& event_id = mgr.event_id();
@@ -123,7 +123,7 @@ namespace larcv {
 	LARCV_DEBUG() << "Got track particle cluster ID " << track_particle_cluster_id << std::endl;
 	
 	const auto par_array = (larocv::data::ParticleClusterArray*)
-	  data_mgr.Data(track_particle_cluster_id, plane_id+1);
+	  data_mgr.Data(track_particle_cluster_id, plane_id+_track_particle_offset);
 	
 	auto ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
 	_par_multi[plane_id] = (uint)ass_idx_v.size();

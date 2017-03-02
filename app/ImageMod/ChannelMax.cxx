@@ -36,6 +36,7 @@ namespace larcv {
 	float maxpx(-1),maxpl(-1);
 	for(size_t plane_id=0;plane_id<_nplanes;++plane_id) {
 	  auto px=img_v[plane_id].pixel(row,col);
+	  //px*=_plane_weight_v[plane_id];
 	  if (px>maxpx) { maxpx=px; maxpl=plane_id; }
 	}
 	if (maxpx<0 or maxpl<0) throw larbys("No max plan identified");

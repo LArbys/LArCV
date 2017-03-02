@@ -54,6 +54,8 @@ namespace larcv {
     std::vector<uint>   _circle_xs_v;
     std::vector<uint> _par_multi;
     std::string _track_particle_cluster_algo_name ;
+
+    uint _track_particle_offset;
     
   };
 
