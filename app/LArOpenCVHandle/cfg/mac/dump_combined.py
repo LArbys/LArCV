@@ -10,14 +10,23 @@ from ROOT import std
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 proc = larcv.ProcessDriver('ProcessDriver')
 
-#CFG="../reco_combined_true.cfg"
-CFG="../reco_combined_ssnet.cfg"
-import os
-cfg_ = os.path.basename(CFG)
-truth=cfg_.split(".")[0].split("_")[-1]
+#if NOT mc
+
+#CFG="../reco_combined_ssnet_fullchain.cfg"
+#CFG="../reco_combined_ssnet_nue.cfg"
+CFG="../reco_combined_true_nue.cfg"
+ISMC=True
+if ISMC:
+    print "This is MC"
+else:
+    print "This is NOT MC"
+
+cfg_=os.path.basename(CFG)
+truth=cfg_.split(".")[0].split("_")[-2]
 processed=True
 if truth=="true":
     processed=False
@@ -27,16 +36,19 @@ proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
 flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
 #flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
+#flist.push_back("/Users/vgenty/Desktop/shit.root")
 proc.override_input_file(flist)
 
-filter_id = proc.process_id("NuFilter")
-mcinfo_id = proc.process_id("LArbysImageMC")
+if ISMC:
+    filter_id = proc.process_id("NuFilter")
+    mcinfo_id = proc.process_id("LArbysImageMC")
 reco_id   = proc.process_id("LArbysImage")
 ana_id    = proc.process_id("LArbysImageAna")
 
-filter_proc   = proc.process_ptr(filter_id)
-mcinfo_proc   = proc.process_ptr(mcinfo_id)
-mcinfo_proc.SetFilter(filter_proc)
+if ISMC:
+    filter_proc   = proc.process_ptr(filter_id)
+    mcinfo_proc   = proc.process_ptr(mcinfo_id)
+    mcinfo_proc.SetFilter(filter_proc)
 
 larbysimg     = proc.process_ptr(reco_id)
 larbysimg_ana = proc.process_ptr(ana_id)
@@ -46,11 +58,14 @@ proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 from numpy import array
 
-for event in [989]:
+evt=306
+for event in xrange(evt,evt+1):
 
     proc.batch_process(event,1)
 
-    if (filter_proc.selected()==False): continue
+    if ISMC:
+        if (filter_proc.selected()==False): continue
+        
     print "Event is... ",event
     mgr=larbysimg.Manager()
     pygeo = geo2d.PyDraw()
@@ -92,10 +107,13 @@ for event in [989]:
             ax2.set_xlabel('Time [6 ticks]',fontsize=20)
             
         ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
-        print oimg.shape,img.shape
         ax2.set_xlabel('Time [6 ticks]',fontsize=20)
         ax2.tick_params(labelsize=20)
         plt.tight_layout()
+        ax2.set_ylim(0,256)
+        ax2.set_xlim(0,256)
+        ax1.set_ylim(0,256)
+        ax1.set_xlim(0,256)
         SS="out3/%04d_00_track_shower_%d.png"%(event,plane)
         plt.savefig(SS)
         plt.cla()
@@ -159,9 +177,9 @@ for event in [989]:
         plt.close()
         
 
-    # In[ ]:
-    tru_vtx_w_v = mcinfo_proc._vtx_2d_w_v;
-    tru_vtx_t_v = mcinfo_proc._vtx_2d_t_v;
+    if ISMC:
+        tru_vtx_w_v = mcinfo_proc._vtx_2d_w_v;
+        tru_vtx_t_v = mcinfo_proc._vtx_2d_t_v;
     colors=['red','green','blue','orange','magenta','cyan','pink']
     colors*=10
     plane=0
@@ -198,11 +216,10 @@ for event in [989]:
             print "Vertex Candidates @\n",pts_v
             plt.plot(pts_v[:,0],pts_v[:,1],'*',markersize=30,color='cyan')
 
-
-        tru_vtx_w = tru_vtx_w_v[plane]
-        tru_vtx_t = tru_vtx_t_v[plane]
-
-        plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+        if ISMC:
+            tru_vtx_w = tru_vtx_w_v[plane]
+            tru_vtx_t = tru_vtx_t_v[plane]
+            plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
         
         ax.set_aspect(1.0)
         plt.tight_layout()
@@ -277,7 +294,6 @@ for event in [989]:
     ax.set_ylim(-1,ymax*1.1)
     ax.set_xlim(tickscore0_x.min(),tickscore0_x.max())
     plt.grid()
-    #ax.set_xlim(450,480)
     SS="out3/%04d_03_score_%d.png"%(event,plane)
     print "Saving ",SS
     plt.savefig(SS)
@@ -341,7 +357,7 @@ for event in [989]:
             plt.close()
 
         print "<===================End   Vertex3D number ",ix," ==========================>"
-    #["LinearTrackFinder","SuperClusterMaker","ShowerVertexSeeds","ShowerVertexEstimate"]
+
     dm=mgr.DataManager()
     colors=['red','green','blue','orange','magenta','cyan','pink']
     colors*=10
@@ -362,7 +378,7 @@ for event in [989]:
             strack2d = strack.get_cluster(plane)
             fig,ax=plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]
-            shape_img=np.where(img_v[plane]>0.0,1.0,0.0).astype(np.uint8)
+            shape_img=np.where(img_v[plane]>10.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
             if strack2d.ctor.size()>0:
@@ -419,7 +435,7 @@ for event in [989]:
         for plane in xrange(3):
             fig,ax=plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]
-            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            shape_img=np.where(shape_img>10.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
     
@@ -448,6 +464,7 @@ for event in [989]:
         print "<===================end concrete vertex ",vtxid," ==========================>"
         
     assman=dm.AssManager()
+
     #New VertexCluster
     vtx_data=dm.Data(9,0).as_vector()
     vtxid=-1
@@ -456,7 +473,7 @@ for event in [989]:
         for plane in xrange(3):
             fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]
-            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            shape_img=np.where(shape_img>10.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
             
@@ -487,17 +504,17 @@ for event in [989]:
         for plane in xrange(3):
             fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]
-            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            shape_img=np.where(shape_img>10.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
 
             vtx2d=vtx.cvtx2d_v[plane].center
             
             ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)            
-
-            tru_vtx_w = tru_vtx_w_v[plane]
-            tru_vtx_t = tru_vtx_t_v[plane]
-            plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+            if ISMC:
+                tru_vtx_w = tru_vtx_w_v[plane]
+                tru_vtx_t = tru_vtx_t_v[plane]
+                plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
             
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
@@ -517,7 +534,7 @@ for event in [989]:
         for plane in xrange(3):
             fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]
-            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            shape_img=np.where(shape_img>10.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
 
@@ -525,9 +542,10 @@ for event in [989]:
             
             ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)            
 
-            tru_vtx_w = tru_vtx_w_v[plane]
-            tru_vtx_t = tru_vtx_t_v[plane]
-            plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+            if ISMC:
+                tru_vtx_w = tru_vtx_w_v[plane]
+                tru_vtx_t = tru_vtx_t_v[plane]
+                plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
             
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
@@ -547,16 +565,17 @@ for event in [989]:
         for plane in xrange(3):
             fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]
-            shape_img=np.where(shape_img>0.0,1.0,0.0).astype(np.uint8)
+            shape_img=np.where(shape_img>10.0,1.0,0.0).astype(np.uint8)
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
 
             vtx2d=vtx.cvtx2d_v[plane].center            
             ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)            
 
-            tru_vtx_w = tru_vtx_w_v[plane]
-            tru_vtx_t = tru_vtx_t_v[plane]
-            plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+            if ISMC:
+                tru_vtx_w = tru_vtx_w_v[plane]
+                tru_vtx_t = tru_vtx_t_v[plane]
+                plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
 
             par_data=dm.Data(13,plane+1)
 
@@ -566,22 +585,23 @@ for event in [989]:
             par_data_v=par_data.as_vector()
             for id_ in ass_t:
                 ctor=np.array([[pt.x,pt.y] for pt in par_data_v[id_]._ctor])
-                ax.plot(ctor[:,0],ctor[:,1],'-o',lw=2)
+                ax.plot(ctor[:,0],ctor[:,1],'-',lw=5)
 
-            ax.plot(cvtx.center.x,cvtx.center.y,'o',color='red',markersize=10)
+            #ax.plot(cvtx.center.x,cvtx.center.y,'o',color='red',markersize=10)
             circl=matplotlib.patches.Circle((cvtx.center.x,cvtx.center.y),
                                             cvtx.radius,fc='none',ec='cyan',lw=5,alpha=0.5)
-            print "Vertex ",ix," plane ",plane,"..."
-            for xs in cvtx.xs_v:
-                print  "xs @ [",xs.pt.x,",",xs.pt.y,"]"
-                ax.plot(xs.pt.x,xs.pt.y,'o',color='orange',markersize=10,alpha=0.7)
-            print
-            ax.add_patch(circl)
+
+            # print "Vertex ",ix," plane ",plane,"..."
+            # for xs in cvtx.xs_v:
+            #     print  "xs @ [",xs.pt.x,",",xs.pt.y,"]"
+            #     ax.plot(xs.pt.x,xs.pt.y,'o',color='orange',markersize=10,alpha=0.7)
+            # print
+            #ax.add_patch(circl)
 
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
             SS="out3/%04d_10_showerpar_%02d_%02d_.png"%(event,vtxid,plane)
-            ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
+            #ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
             plt.savefig(SS)
             plt.cla()
             plt.clf()

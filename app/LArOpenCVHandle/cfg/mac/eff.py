@@ -154,7 +154,7 @@ a=sig_good_vtx_df.reset_index().set_index(base_index)
 
 bad_mc=signal_df_m['MCTree'].drop(a.index,inplace=False)
 bad_reco=signal_df_m['EventTree'].drop(a.index,inplace=False)
-
+print bad_reco.entry.values
 
 
 
