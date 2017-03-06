@@ -21,7 +21,7 @@ print "Loading config... ",CFG
 proc.configure(CFG)
 
 flist=ROOT.std.vector('std::string')()
-flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
+flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
 proc.override_input_file(flist)
 reco_id = proc.process_id("LArbysImage")
 larbysimg = proc.process_ptr(reco_id)
@@ -55,7 +55,9 @@ def extractimage(mgr):
 
     return (img_v,track_img_v,shower_img_v,oimg_v,otrack_img_v,oshower_img_v)
 
-for event in [int(sys.argv[1])]:
+#events=[306,338,440,452,459,533,555,654,701,824,843,878,947,1125,1335]
+events=[701]
+for event in events:##int(sys.argv[1])]:
     proc.batch_process(event,1)
     mgr=larbysimg.Manager()
     (img_v,track_img_v,shower_img_v,oimg_v,otrack_img_v,oshower_img_v)=extractimage(mgr)

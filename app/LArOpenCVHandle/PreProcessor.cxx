@@ -39,7 +39,9 @@ namespace larcv {
     _min_track_frac = 0.8;
     _min_shower_frac = 0.8;
     _allowed_neighbor_dist = 10;
-    
+    _allowed_merge_neighbor_dist=10;
+    _allowed_edge_overlap=20;
+      
     /// MergeStraightShowers
     _merge_straight_showers=true;
       
@@ -94,7 +96,7 @@ namespace larcv {
   PreProcessor::GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2,
 			       geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2) {
     
-
+    
     geo2d::Vector<float> e1,e2;
     float dist=std::numeric_limits<float>::max();
     
@@ -110,7 +112,7 @@ namespace larcv {
     if (dt1e2t2e1 < dist)
       { dist = dt1e2t2e1; edge1=track1.edge2; edge2=track2.edge1; }
     if (dt1e2t2e2 < dist)
-      { dist = dt1e2t2e1; edge1=track1.edge2; edge2=track2.edge2; }
+      { dist = dt1e2t2e2; edge1=track1.edge2; edge2=track2.edge2; }
     
     return dist;
   }
@@ -242,7 +244,7 @@ namespace larcv {
       static uint call0=0;
       std::stringstream ss;
       ss << "img_" << call0 << ".png";
-      //cv::imwrite(ss.str(),img_t);
+      cv::imwrite(ss.str(),img_t);
       call0+=1;
     }
     
@@ -253,7 +255,7 @@ namespace larcv {
 	static uint call1=0;
 	std::stringstream ss;
 	ss << "img_t0_" << call1 << ".png";
-	//cv::imwrite(ss.str(),img_t);
+	cv::imwrite(ss.str(),img_t);
 	call1+=1;
       }
     }
@@ -265,7 +267,7 @@ namespace larcv {
       static uint call2=0;
       std::stringstream ss;
       ss << "img_t1_" << call2 << ".png";
-      //cv::imwrite(ss.str(),img_t);
+      cv::imwrite(ss.str(),img_t);
       call2+=1;
     }
 
@@ -283,15 +285,16 @@ namespace larcv {
     auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,false);
 
     for(auto& track : track_pchunk_v) {
-	LARCV_DEBUG() << "npixel ... " << track.npixel << std::endl;
-	if (track.npixel > _min_merge_track_size) continue;
-	for(auto& shower : shower_pchunk_v) {
-	  if (larocv::Pt2PtDistance(track.ctor,shower.ctor) > _min_merge_track_shower_dist) continue;
-	  auto mask_shower = larocv::MaskImage(track_img,track.ctor,0,false);
-	  track_img = larocv::MaskImage(track_img,track.ctor,0,true);
-	  shower_img = shower_img + mask_shower;
-	}
+      LARCV_DEBUG() << "npixel ... " << track.npixel << std::endl;
+      if (track.npixel > _min_merge_track_size) continue;
+      for(auto& shower : shower_pchunk_v) {
+	if (larocv::Pt2PtDistance(track.ctor,shower.ctor) > _min_merge_track_shower_dist) continue;
+	auto mask_shower = larocv::MaskImage(track_img,track.ctor,0,false);
+	track_img = larocv::MaskImage(track_img,track.ctor,0,true);
+	shower_img = shower_img + mask_shower;
+      }
     }
+    
   }
 
 
@@ -321,6 +324,7 @@ namespace larcv {
 	shower_img = shower_img + mask_shower;
       }
     }
+    
   }
 
   void
@@ -332,24 +336,25 @@ namespace larcv {
     auto track_img_t = PrepareImage(track_img);
     auto shower_img_t = PrepareImage(shower_img);
     
-    auto adc_pchunk_v = MakePixelChunks(adc_img_t,Type_t::kUnknown,false);
+    auto adc_pchunk_v = MakePixelChunks(adc_img_t,Type_t::kUnknown,true);
     auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,true);
     auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,true);
      
     /// determine track/shower fraction of ADC contours
     for(auto& adc_pchunk : adc_pchunk_v) {
-
+      
       auto& adc_ctor = adc_pchunk.ctor;
       auto& track_frac = adc_pchunk.track_frac;
       auto& shower_frac = adc_pchunk.shower_frac;
       
-      LARCV_DEBUG() << "ADC track @ " << &adc_pchunk << " contour size " << adc_ctor.size() << std::endl;
-      
+      LARCV_DEBUG() << "ADC track @ " << &adc_pchunk << " contour size " << adc_ctor.size() << " w/ " << adc_pchunk.npixel << " pixels" << std::endl;
+      LARCV_DEBUG() << "Edge 1 " << adc_pchunk.edge1 << " & Edge 2 " << adc_pchunk.edge2 << std::endl;
       const PixelChunk* track = nullptr;
       const PixelChunk* shower = nullptr;
-      float largest_track_frac(std::numeric_limits<float>::min());
-      float largest_shower_frac(std::numeric_limits<float>::min());
-      
+      float largest_track_frac = std::numeric_limits<float>::min();
+      float largest_shower_frac = std::numeric_limits<float>::min();
+
+      bool track_at_edge=false;
       for(const auto& track_pchunk : track_pchunk_v) {
 	auto frac = larocv::PixelFraction(adc_img_t,adc_ctor,track_pchunk.ctor);	
 	if (frac > largest_track_frac) {
@@ -357,21 +362,30 @@ namespace larcv {
 	  track = &track_pchunk;
 	}
 	track_frac += frac;
+	auto dist = GetClosestEdge(track_pchunk,adc_pchunk);
+	if (dist<_allowed_edge_overlap) track_at_edge=true;
       }
-      
+
+      bool shower_at_edge=false;      
       for(const auto& shower_pchunk : shower_pchunk_v) { 
 	auto frac = larocv::PixelFraction(adc_img_t,adc_ctor,shower_pchunk.ctor);
 	if (frac > largest_shower_frac) {
 	  largest_shower_frac = frac;
 	  shower = &shower_pchunk;
-	}	
+	}
 	shower_frac += frac;
+	auto dist = GetClosestEdge(shower_pchunk,adc_pchunk);
+	if (dist<_allowed_edge_overlap) shower_at_edge=true;
       }
 	
       if (!track or !shower) continue;
-	
-      if (GetClosestEdge(*track,*shower) < _allowed_neighbor_dist)
+
+      geo2d::Vector<float> ed1,ed2;
+      auto dist = GetClosestEdge(*track,*shower,ed1,ed2);
+      LARCV_DEBUG() << "Distance is " << dist << " and track @ edge " << track_at_edge << " & shower @ edge " << shower_at_edge << std::endl;
+      if (dist < _allowed_merge_neighbor_dist or (track_at_edge and shower_at_edge)) 
 	adc_pchunk.ignore=true;
+      
     }
     
     // loop over the ADC contours, claim contours above threshold as track and shower
@@ -380,10 +394,10 @@ namespace larcv {
       if (adc_pchunk.ignore) continue;
       
       auto& adc_ctor = adc_pchunk.ctor;
-
+      LARCV_DEBUG() << "Merging adc contour of size " << adc_pchunk.npixel << std::endl;
       auto& track_frac = adc_pchunk.track_frac;
       auto& shower_frac = adc_pchunk.shower_frac;    
-	
+      LARCV_DEBUG() << "...with relative fractions (trk,shr)=("<<track_frac<<","<<shower_frac<<")"<<std::endl;
       if (track_frac > _min_track_frac) {
 	LARCV_INFO() << "Claiming a mostly track ADC contour as track" << std::endl;
 	auto mask_adc = larocv::MaskImage(adc_img,adc_ctor,0,false);
@@ -503,6 +517,7 @@ namespace larcv {
     // extra pixel value from masking
     adc_img.copyTo(track_img,larocv::Threshold(track_img,1,1));
     adc_img.copyTo(shower_img,larocv::Threshold(shower_img,1,1));
+
     
     LARCV_DEBUG() << "end" << std::endl;    
     return true;

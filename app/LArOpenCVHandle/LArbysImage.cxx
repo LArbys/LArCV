@@ -10,7 +10,8 @@ namespace larcv {
   static LArbysImageProcessFactory __global_LArbysImageProcessFactory__;
 
   LArbysImage::LArbysImage(const std::string name)
-    : ProcessBase(name)
+    : ProcessBase(name),
+      _pre_processor()
   {}
     
   void LArbysImage::configure(const PSet& cfg)

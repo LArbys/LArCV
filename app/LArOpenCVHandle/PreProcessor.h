@@ -95,6 +95,8 @@ namespace larcv {
     uint _min_merge_track_size;
     bool _merge_straight_showers;
     uint _min_merge_track_shower_dist;
+    double _allowed_merge_neighbor_dist;
+    double _allowed_edge_overlap;
     
   };
 }
