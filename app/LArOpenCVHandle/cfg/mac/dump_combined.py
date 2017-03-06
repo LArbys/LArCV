@@ -10,7 +10,7 @@ from ROOT import std
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import os
+import os,sys
 
 proc = larcv.ProcessDriver('ProcessDriver')
 
@@ -18,7 +18,7 @@ proc = larcv.ProcessDriver('ProcessDriver')
 
 #CFG="../reco_combined_ssnet_fullchain.cfg"
 #CFG="../reco_combined_ssnet_nue.cfg"
-CFG="../reco_combined_true_nue.cfg"
+CFG="../reco_combined_ssnet_nue.cfg"
 ISMC=True
 if ISMC:
     print "This is MC"
@@ -36,7 +36,6 @@ proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
 flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
 #flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
-#flist.push_back("/Users/vgenty/Desktop/shit.root")
 proc.override_input_file(flist)
 
 if ISMC:
@@ -58,14 +57,39 @@ proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 from numpy import array
 
-evt=306
-for event in xrange(evt,evt+1):
 
+event_v=np.array([3, 54,100,102,119,131,138,143,156,159,171,208,232,238,253,
+                  281,293,300,306,308,327,338,368,371,374,395,397,400,401,405,
+                  414,418,419,423,440,450,452,458,459,464,495,498,506,508,515,
+                  530,533,555,584,602,605,608,616,620,638,654,658,669,690,697,
+                  699,701,703,706,709,713,719,734,748,767,772,773,785,795,798,
+                  801,805,817,824,829,831,833,843,850,853,854,873,878,884,913,
+                  918,933,939,947,959,1013,1026,1055,1076,1083,1105,1108,1117,
+                  1125,1129,1149,1173,1182,1200,1208,1225,1234,1260,1262,1280,
+                  1287,1322,1335,1345,1361,1366,1383,1390,1422,1425,1443,1449,
+                  1455,1461,1467,1479,1482,1483,1484,1486,1491,1494,1510,1511,
+                  1512,1518,1521,1523,1535,1547,1550,1554,1558,1561,1573,1605,
+                  1622,1628,1643,1650,1654,1658,1667,1672,1677,1691,1693,1737,
+                  1738,1757,1768,1769,1782,1807,1821,1822,1831,1840,1859,1868,
+                  1898,1899,1908,1913,1927,1928,1942,1948,1955,1959,1963,1968,
+                  1970,1988,1992,1993,2004,2008,2016,2048,2050,2061,2063,2066,
+                  2067,2073,2089,2096,2125,2143,2156,2159,2165,2180,2192,2202,
+                  2221,2224,2228,2238,2257,2260,2286,2291,2329,2351,2368,2369,
+                  2384,2399,2407,2408,2419,2420,2432,2433,2436,2442,2457,2461,
+                  2470,2485,2498])
+
+ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
+                        918,1085,1450,1547,1702,1844,1970,2368,2470])
+
+event_v = [348]
+
+for event in event_v:
+    if event in ignore_list_v: continue
+    
     proc.batch_process(event,1)
 
     if ISMC:
         if (filter_proc.selected()==False): continue
-        
     print "Event is... ",event
     mgr=larbysimg.Manager()
     pygeo = geo2d.PyDraw()
@@ -103,22 +127,25 @@ for event in xrange(evt,evt+1):
             ax1.set_xlabel('Time [6 ticks]',fontsize=20)
             ax1.set_ylabel('Wire',fontsize=20)
             ax1.tick_params(labelsize=20)
+            ax1.set_xbound(lower=0,upper=640)
+            ax1.set_ybound(lower=512,upper=0)
+            ax1.set_ylim(512,0)
         else:
             ax2.set_xlabel('Time [6 ticks]',fontsize=20)
             
         ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
+        ax2.set_xbound(lower=0,upper=640)
+        ax2.set_ybound(lower=512,upper=0)
+        ax2.set_ylim(512,0)
         ax2.set_xlabel('Time [6 ticks]',fontsize=20)
         ax2.tick_params(labelsize=20)
         plt.tight_layout()
-        ax2.set_ylim(0,256)
-        ax2.set_xlim(0,256)
-        ax1.set_ylim(0,256)
-        ax1.set_xlim(0,256)
         SS="out3/%04d_00_track_shower_%d.png"%(event,plane)
         plt.savefig(SS)
         plt.cla()
         plt.clf()
         plt.close()
+
 
     colors=['red','green','blue','orange','magenta','cyan','pink']
     colors*=10
@@ -477,7 +504,7 @@ for event in xrange(evt,evt+1):
             plt.imshow(shape_img,cmap='Greys',interpolation='none')
             nz_pixels=np.where(shape_img>0.0)
             
-            par_data=dm.Data(10,plane)
+            par_data=dm.Data(11,plane)
             
             ass_t = np.array(assman.GetManyAss(vtx,par_data.ID()))
             if ass_t.size==0:continue
@@ -587,21 +614,11 @@ for event in xrange(evt,evt+1):
                 ctor=np.array([[pt.x,pt.y] for pt in par_data_v[id_]._ctor])
                 ax.plot(ctor[:,0],ctor[:,1],'-',lw=5)
 
-            #ax.plot(cvtx.center.x,cvtx.center.y,'o',color='red',markersize=10)
-            circl=matplotlib.patches.Circle((cvtx.center.x,cvtx.center.y),
-                                            cvtx.radius,fc='none',ec='cyan',lw=5,alpha=0.5)
-
-            # print "Vertex ",ix," plane ",plane,"..."
-            # for xs in cvtx.xs_v:
-            #     print  "xs @ [",xs.pt.x,",",xs.pt.y,"]"
-            #     ax.plot(xs.pt.x,xs.pt.y,'o',color='orange',markersize=10,alpha=0.7)
-            # print
-            #ax.add_patch(circl)
-
+            
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
             SS="out3/%04d_10_showerpar_%02d_%02d_.png"%(event,vtxid,plane)
-            #ax.set_title("Vertex Type: %d\n"%vtx.type + SS,fontsize=30)
+            ax.set_title("Vertex Type: %d\ndist=%f"%(vtx.type,np.sqrt(np.power(tru_vtx_t-vtx2d.x,2)+np.power(tru_vtx_w-vtx2d.y,2))),fontsize=30)
             plt.savefig(SS)
             plt.cla()
             plt.clf()

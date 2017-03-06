@@ -81,9 +81,9 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
         DEBUG=False
         # NOTE YOU HAVE TO BE CAREFUL HERE WITH THIS LINE BELOW
         vtx_entry = sb_vtx_tree.loc[index]
-#         entry=signal_df_m['EventTree'].loc[index]['entry']
-#         if entry==156:
-#             DEBUG=True
+        entry=signal_df_m['EventTree'].loc[index]['entry']
+        if entry==552:
+            DEBUG=True
         
         if type(vtx_entry) != pd.core.frame.DataFrame: 
             good_vtx_sb_v[index]  = False
@@ -154,7 +154,7 @@ a=sig_good_vtx_df.reset_index().set_index(base_index)
 
 bad_mc=signal_df_m['MCTree'].drop(a.index,inplace=False)
 bad_reco=signal_df_m['EventTree'].drop(a.index,inplace=False)
-print bad_reco.entry.values
+print list(bad_reco.entry.values)
 
 
 

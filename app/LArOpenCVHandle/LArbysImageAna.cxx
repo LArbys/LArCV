@@ -17,29 +17,29 @@ namespace larcv {
       
   void LArbysImageAna::configure(const PSet& cfg)
   {
-    _track_vertex_estimate_algo_name = cfg.get<std::string>("TrackVertexEstimateAlgoName","");
-    _track_particle_cluster_algo_name = cfg.get<std::string>("TrackParticleClusterAlgoName","");
-    _track_particle_offset = cfg.get<uint>("TrackParticleOffset");
-					  
+    _combined_vertex_name = cfg.get<std::string>("CombinedVertexName");
+    _combined_particle_offset = cfg.get<uint>("ParticleOffset");
   }
   
   void LArbysImageAna::ClearVertex() {
     _vtx2d_x_v.clear();
     _vtx2d_y_v.clear();
-
     _circle_x_v.clear();
     _circle_y_v.clear();
-
     _vtx2d_x_v.resize(3);
     _vtx2d_y_v.resize(3);
-
     _circle_x_v.resize(3);
     _circle_y_v.resize(3);
-
     _circle_xs_v.resize(3);
-
     _par_multi.clear();
     _par_multi.resize(3);
+    _ntrack_par_v.clear();
+    _nshower_par_v.clear();
+    _ntrack_par_v.resize(3);
+    _nshower_par_v.resize(3);
+    std::fill(_ntrack_par_v.begin(), _ntrack_par_v.end(), 0);
+    std::fill(_nshower_par_v.begin(), _nshower_par_v.end(), 0);
+    
   }
 
   void LArbysImageAna::initialize()
@@ -67,6 +67,8 @@ namespace larcv {
     _vtx3d_tree->Branch("cvtx2d_y_v",&_circle_y_v);
     _vtx3d_tree->Branch("cvtx2d_xs_v",&_circle_xs_v);
     _vtx3d_tree->Branch("multi_v",&_par_multi);
+    _vtx3d_tree->Branch("ntrack_par_v",&_ntrack_par_v);
+    _vtx3d_tree->Branch("nshower_par_v",&_nshower_par_v);
   }
 
   bool LArbysImageAna::process(IOManager& mgr)
@@ -88,12 +90,12 @@ namespace larcv {
 
     /// get the track estimate data
     const auto vtx3d_array = (larocv::data::Vertex3DArray*)
-      data_mgr.Data(data_mgr.ID(_track_vertex_estimate_algo_name), 0);
+      data_mgr.Data(data_mgr.ID(_combined_vertex_name), 0);
     
-    auto& vtx_cluster_v = vtx3d_array->as_vector();
-
+    const auto& vtx_cluster_v = vtx3d_array->as_vector();
+    
     _n_vtx3d = (uint) vtx_cluster_v.size();
-
+    
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) { 
       
       // clear vertex
@@ -115,19 +117,13 @@ namespace larcv {
       
       // set the number of planes this vertex was reconstructed from
       _vtx3d_n_planes = (uint)vtx3d.num_planes;
-
+      
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
-
-	LARCV_DEBUG() << "Got track particle cluster name " << _track_particle_cluster_algo_name << std::endl;
-	auto track_particle_cluster_id = data_mgr.ID(_track_particle_cluster_algo_name);
+	
+	LARCV_DEBUG() << "Got particle cluster name " << _combined_vertex_name << std::endl;
+	auto track_particle_cluster_id = data_mgr.ID(_combined_vertex_name);
 	LARCV_DEBUG() << "Got track particle cluster ID " << track_particle_cluster_id << std::endl;
 	
-	const auto par_array = (larocv::data::ParticleClusterArray*)
-	  data_mgr.Data(track_particle_cluster_id, plane_id+_track_particle_offset);
-	
-	auto ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
-	_par_multi[plane_id] = (uint)ass_idx_v.size();
-	  
 	// query the vertex type it's 0 (time vtx) or 1 (wire vtx)
 	if (_vtx3d_type < 2) {
 	  // store circle vertex information
@@ -154,6 +150,20 @@ namespace larcv {
 	  vtx2d_y = vtx3d.cvtx2d_v[plane_id].center.y;
 	}
 
+	//get the particle cluster array
+	const auto par_array = (larocv::data::ParticleClusterArray*)
+	  data_mgr.Data(track_particle_cluster_id, plane_id+_combined_particle_offset);
+	
+	auto ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
+	_par_multi[plane_id] = (uint)ass_idx_v.size();
+
+	for(auto ass_idx : ass_idx_v) {
+	  if (ass_idx==kINVALID_SIZE) throw larbys("Invalid association detected");
+	  const auto& par = par_array->as_vector()[ass_idx];
+	  if (par.type==larocv::data::ParticleType_t::kTrack) _ntrack_par_v[plane_id]++;
+	  if (par.type==larocv::data::ParticleType_t::kShower)_nshower_par_v[plane_id]++;
+	  else LARCV_WARNING() << "Unknown particle found" << std::endl;
+	}
 	
       } // end plane
       _vtx3d_tree->Fill();

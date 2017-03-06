@@ -25,7 +25,7 @@ namespace larcv {
     
     TTree* _event_tree;
     TTree* _vtx3d_tree;
-
+    
     std::string _track_vertex_estimate_algo_name;
 
     const ::larocv::ImageClusterManager* _mgr_ptr;
@@ -43,20 +43,20 @@ namespace larcv {
     uint _n_vtx3d;
     uint _vtx3d_n_planes;
     uint _vtx3d_type;
-    
-    double _vtx3d_x, _vtx3d_y, _vtx3d_z;
-
-    std::vector<double> _vtx2d_x_v, _vtx2d_y_v;
-    
+    double _vtx3d_x;
+    double _vtx3d_y;
+    double _vtx3d_z;
+    std::vector<double> _vtx2d_x_v;
+    std::vector<double> _vtx2d_y_v;
     uint _vtx3d_id;
-
-    std::vector<double> _circle_x_v,_circle_y_v;
-    std::vector<uint>   _circle_xs_v;
+    std::vector<uint> _ntrack_par_v;
+    std::vector<uint> _nshower_par_v;
+    std::vector<double> _circle_x_v;
+    std::vector<double> _circle_y_v;
+    std::vector<uint> _circle_xs_v;
     std::vector<uint> _par_multi;
-    std::string _track_particle_cluster_algo_name ;
-
-    uint _track_particle_offset;
-    
+    std::string _combined_vertex_name;
+    uint _combined_particle_offset;
   };
 
   class LArbysImageAnaProcessFactory : public ProcessFactoryBase {
