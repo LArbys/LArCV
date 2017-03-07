@@ -18,7 +18,7 @@ proc = larcv.ProcessDriver('ProcessDriver')
 
 #CFG="../reco_combined_ssnet_fullchain.cfg"
 #CFG="../reco_combined_ssnet_nue.cfg"
-CFG="../reco_combined_ssnet_nue.cfg"
+CFG="../reco_combined_ssnet_nue_nopp.cfg"
 ISMC=True
 if ISMC:
     print "This is MC"
@@ -30,7 +30,8 @@ truth=cfg_.split(".")[0].split("_")[-2]
 processed=True
 if truth=="true":
     processed=False
-    
+processed=False
+
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
@@ -57,11 +58,11 @@ proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 from numpy import array
 
-
-
 ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
                         918,1085,1450,1547,1702,1844,1970,2368,2470])
-event_v=[1125]
+
+event_v=np.array([34, 74, 143, 186, 1119, 1955, 1992, 2004, 2008, 2016, 293, 300, 306, 418, 458, 510, 552, 719, 725, 825, 865, 884, 923, 929, 938, 959, 987, 1013, 1056, 1067, 1220, 1225, 1280, 1291, 1335, 1348, 1364, 1380, 1412, 1438, 1449, 1477, 1514, 1523, 1561, 1566, 1582, 1628, 1677, 1702, 1747, 1799, 1807, 1844, 1883, 1935, 2133, 2194, 2216, 2219, 2224, 2228, 2238])
+
 for event in event_v:
     if event in ignore_list_v: continue
     
@@ -564,7 +565,7 @@ for event in event_v:
 
 
     #Shower output
-    vtx_data=dm.Data(13,0).as_vector()
+    vtx_data=dm.Data(14,0).as_vector()
     vtxid=-1
     for vtx in vtx_data:
         vtxid+=1
@@ -576,17 +577,23 @@ for event in event_v:
             nz_pixels=np.where(shape_img>0.0)
 
             vtx2d=vtx.cvtx2d_v[plane].center            
-            ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)            
-
+            ax.plot(vtx2d.x,vtx2d.y,'*',color='red',markersize=35,alpha=0.8)
+            circl=matplotlib.patches.Circle((vtx2d.x,vtx2d.y),vtx.cvtx2d_v[plane].radius,fc='none',ec='cyan',lw=5)
+            ax.add_patch(circl)
+            for xs in vtx.cvtx2d_v[plane].xs_v:
+                ax.plot(xs.pt.x,xs.pt.y,'o',color='orange',markersize=10)
+                
             if ISMC:
                 tru_vtx_w = tru_vtx_w_v[plane]
                 tru_vtx_t = tru_vtx_t_v[plane]
-                plt.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
+                ax.plot(tru_vtx_t,tru_vtx_w,marker='*',markersize=35,color='yellow',alpha=0.5)
 
-            par_data=dm.Data(13,plane+1)
+            par_data=dm.Data(14,plane+1)
 
             ass_t = np.array(assman.GetManyAss(vtx,par_data.ID()))
-            if ass_t.size==0:continue
+            if ass_t.size==0:
+                print "No particle data found for vertex ID ",vtxid," plane ",plane
+                continue
 
             par_data_v=par_data.as_vector()
             for id_ in ass_t:
@@ -596,7 +603,7 @@ for event in event_v:
             
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
-            SS="out3/%04d_10_showerpar_%02d_%02d_.png"%(event,vtxid,plane)
+            SS="out3/%04d_10_par_%02d_%02d_.png"%(event,vtxid,plane)
             ax.set_title("Vertex Type: %d\ndist=%f"%(vtx.type,np.sqrt(np.power(tru_vtx_t-vtx2d.x,2)+np.power(tru_vtx_w-vtx2d.y,2))),fontsize=30)
             plt.savefig(SS)
             plt.cla()

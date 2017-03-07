@@ -82,7 +82,7 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
         # NOTE YOU HAVE TO BE CAREFUL HERE WITH THIS LINE BELOW
         vtx_entry = sb_vtx_tree.loc[index]
         entry=signal_df_m['EventTree'].loc[index]['entry']
-        if entry==36:
+        if entry==74:
             DEBUG=False
         
         if type(vtx_entry) != pd.core.frame.DataFrame: 
@@ -96,8 +96,13 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
 
         dx = vtx_x_vv - row.vtx2d_t
         dy = vtx_y_vv - row.vtx2d_w
-
         dt = np.sqrt(dx*dx + dy*dy)            # compute the distance from true to all candidates
+
+        # remove really poor multiplicity events
+        a=~vtx_entry.multi_v.apply(lambda x : len(np.where(x>0)[0])>1).values
+        b=999*np.ones(list(dt[a].shape))
+        dt[a]=b
+
         min_idx=dt.mean(axis=1).argmin()       # get the smallest mean distance from candidates
         dt_b = (dt <= 7).sum(axis=1)           # vtx must be less than 7 pixels away
         n_close_vtx = len(np.where(dt_b>1)[0]) # event has >0 close verticies
@@ -111,7 +116,8 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
             print "dy ",dy
             print "dt ",dt
             print "min_idx ",min_idx
-            #break 
+            print vtx_entry.multi_v
+
         good_vtx_sb_v[index]  = n_close_vtx>0
         good_vtx_id_v[index]  = vtx_entry.id.values[min_idx]
 
