@@ -61,19 +61,7 @@ from numpy import array
 
 ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
                         918,1085,1450,1547,1702,1844,1970,2368,2470])
-event_v=array([   3,  100,  131,  138,  159,  238,  253,  281,  293,  306,  308,
-                          371,  395,  397,  450,  458,  464,  495,  498,  506,  508,  515,
-                          530,  584,  602,  605,  620,  638,  669,  690,  697,  706,  709,
-                          713,  719,  767,  785,  795,  801,  829,  833,  853,  854,  884,
-                          933,  939,  959,  962, 1013, 1055, 1076, 1083, 1105, 1108, 1117,
-                         1125, 1149, 1182, 1208, 1234, 1260, 1262, 1322, 1335, 1345, 1366,
-                         1383, 1422, 1425, 1449, 1455, 1461, 1467, 1479, 1484, 1486, 1491,
-                         1494, 1518, 1535, 1550, 1554, 1558, 1561, 1569, 1602, 1605, 1622,
-                         1628, 1643, 1650, 1658, 1672, 1693, 1738, 1769, 1821, 1840, 1908,
-                         1942, 1948, 1955, 1959, 1963, 1988, 1992, 2008, 2016, 2048, 2061,
-                         2066, 2073, 2089, 2125, 2143, 2156, 2165, 2192, 2202, 2221, 2260,
-                         2286, 2291, 2329, 2351, 2369, 2399, 2407, 2408, 2433, 2436, 2457,
-                         2485])
+event_v=[1125]
 for event in event_v:
     if event in ignore_list_v: continue
     
@@ -446,7 +434,7 @@ for event in event_v:
     data=dm.Data(9,0)
     print data
     vtxid=-1;
-    print "Got ",data.as_vector().size()," 3D vertex"
+    print "Got ",data.as_vector().size()," shower 3D vertex estimate"
     for vtx3d in data.as_vector():
         vtxid+=1
         print "<===================Start concrete vertex ",vtxid," ==========================>"
@@ -473,7 +461,7 @@ for event in event_v:
             plt.tick_params(labelsize=20)
             ax.set_aspect(0.8)
 
-            SS="out3/%04d_06_cvtx_%02d_%02d.png"%(event,vtxid,plane)
+            SS="out3/%04d_06_shower_cvtx_%02d_%02d.png"%(event,vtxid,plane)
             ax.set_title("Vertex Type: %d\n"%vtx3d.type + SS,fontsize=30)
             plt.savefig(SS)
             plt.cla()

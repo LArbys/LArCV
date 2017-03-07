@@ -56,7 +56,10 @@ def extractimage(mgr):
     return (img_v,track_img_v,shower_img_v,oimg_v,otrack_img_v,oshower_img_v)
 
 #events=[306,338,440,452,459,533,555,654,701,824,843,878,947,1125,1335]
-events=[701]
+events=np.array([ 293,  306,  308,  458,  638,  709,  719,  801,  833,  853,  884,
+                  939,  959, 1013, 1117, 1125, 1262, 1335, 1449, 1455, 1491, 1518,
+                  1550, 1561, 1569, 1605, 1622, 1628, 1643, 1955, 1959, 1992, 2008,
+                  2016, 2073, 2156, 2260, 2351, 2408, 2433])
 for event in events:##int(sys.argv[1])]:
     proc.batch_process(event,1)
     mgr=larbysimg.Manager()
