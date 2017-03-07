@@ -82,12 +82,13 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
         # NOTE YOU HAVE TO BE CAREFUL HERE WITH THIS LINE BELOW
         vtx_entry = sb_vtx_tree.loc[index]
         entry=signal_df_m['EventTree'].loc[index]['entry']
-        if entry==552:
-            DEBUG=True
+        if entry==36:
+            DEBUG=False
         
         if type(vtx_entry) != pd.core.frame.DataFrame: 
             good_vtx_sb_v[index]  = False
             good_vtx_id_v[index] = -1
+            raise Exception
             continue
 
         vtx_x_vv= np.row_stack(vtx_entry.vtx2d_x_v.values)
@@ -143,18 +144,26 @@ sig_good_vtx_df=sig_vtx3d.ix[good_vtx_tmp.index]
 del good_vtx_tmp
 
 # In[5]:
-
-print signal_df_m['MCTree'].index.size
-print len(signal_df_m['Vertex3DTree'].reset_index().groupby(base_index))
-print sig_good_vtx_df.index.size
-print sig_good_vtx_df.multi_v.apply(lambda x : np.where(x==2)[0].size>=2).sum()
+print
+print
+nsignal=float(signal_df_m['MCTree'].index.size)
+print "Signal -------",int(nsignal)
+print "Good vertex --",sig_good_vtx_df.index.size,"/",int(nsignal)," = ",float(sig_good_vtx_df.index.size)/nsignal
+multi2_v=sig_good_vtx_df.multi_v.apply(lambda x : np.where(x==2)[0].size>=2)
+print "Multi (2) ----",multi2_v.sum(),"/",int(nsignal)," = ",float(multi2_v.sum())/nsignal
 
 a=sig_good_vtx_df.reset_index().set_index(base_index)
-
+b=sig_good_vtx_df[multi2_v]
 
 bad_mc=signal_df_m['MCTree'].drop(a.index,inplace=False)
 bad_reco=signal_df_m['EventTree'].drop(a.index,inplace=False)
+bad_mult=sig_good_vtx_df.drop(b.index,inplace=False)
+print
+print "Poorly reconstructed"
 print list(bad_reco.entry.values)
+print
+print "Poor multiplicity"
+print list(bad_mult.entry.values.astype(np.uint32))
 
 
 
