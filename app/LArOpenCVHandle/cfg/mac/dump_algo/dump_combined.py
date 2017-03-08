@@ -18,7 +18,7 @@ proc = larcv.ProcessDriver('ProcessDriver')
 
 #CFG="../reco_combined_ssnet_fullchain.cfg"
 #CFG="../reco_combined_ssnet_nue.cfg"
-CFG="../reco_combined_ssnet_nue_nopp.cfg"
+CFG="../../reco_combined_ssnet_nue_nopp_notunique.cfg"
 ISMC=True
 if ISMC:
     print "This is MC"
@@ -60,10 +60,8 @@ from numpy import array
 
 ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
                         918,1085,1450,1547,1702,1844,1970,2368,2470])
-
-event_v=np.array([34, 74, 143, 186, 1119, 1955, 1992, 2004, 2008, 2016, 293, 300, 306, 418, 458, 510, 552, 719, 725, 825, 865, 884, 923, 929, 938, 959, 987, 1013, 1056, 1067, 1220, 1225, 1280, 1291, 1335, 1348, 1364, 1380, 1412, 1438, 1449, 1477, 1514, 1523, 1561, 1566, 1582, 1628, 1677, 1702, 1747, 1799, 1807, 1844, 1883, 1935, 2133, 2194, 2216, 2219, 2224, 2228, 2238])
-
-for event in event_v:
+event_v=[143, 2004, 2010, 293, 300, 306, 506, 552, 655, 725, 829, 843, 865, 929, 938, 939, 959, 1220, 1280, 1291, 1322, 1335, 1348, 1364, 1412, 1514, 1566, 1628, 1799, 1807, 1844, 1883, 1935, 2194, 2216, 2219, 2224, 2380]
+for event in [506]:#event_v:
     if event in ignore_list_v: continue
     
     proc.batch_process(event,1)
@@ -567,8 +565,10 @@ for event in event_v:
     #Shower output
     vtx_data=dm.Data(14,0).as_vector()
     vtxid=-1
+    print "=============<>==========="
     for vtx in vtx_data:
         vtxid+=1
+        print "vtx id ",vtxid
         for plane in xrange(3):
             fig,ax = plt.subplots(figsize=(12,12),facecolor='w')
             shape_img = img_v[plane]

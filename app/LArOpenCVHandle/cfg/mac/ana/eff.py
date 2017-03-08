@@ -82,8 +82,10 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
         # NOTE YOU HAVE TO BE CAREFUL HERE WITH THIS LINE BELOW
         vtx_entry = sb_vtx_tree.loc[index]
         entry=signal_df_m['EventTree'].loc[index]['entry']
-        if entry==74:
-            DEBUG=False
+
+        if entry==1968:
+            DEBUG=True
+
         
         if type(vtx_entry) != pd.core.frame.DataFrame: 
             good_vtx_sb_v[index]  = False
@@ -99,13 +101,15 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
         dt = np.sqrt(dx*dx + dy*dy)            # compute the distance from true to all candidates
 
         # remove really poor multiplicity events
-        a=~vtx_entry.multi_v.apply(lambda x : len(np.where(x>0)[0])>1).values
-        b=999*np.ones(list(dt[a].shape))
-        dt[a]=b
-
-        min_idx=dt.mean(axis=1).argmin()       # get the smallest mean distance from candidates
-        dt_b = (dt <= 7).sum(axis=1)           # vtx must be less than 7 pixels away
-        n_close_vtx = len(np.where(dt_b>1)[0]) # event has >0 close verticies
+        a=vtx_entry.multi_v.apply(lambda x : len(np.where(x>0)[0])>1).values
+        b=~a
+        c=999*np.ones(list(dt[b].shape))
+        dt[b]=c
+        
+        min_idx_v   = np.argsort(dt.mean(axis=1)) # get the smallest mean distance from candidates
+        dt_b        = (dt <= 7).sum(axis=1)       # vtx must be less than 7 pixels away
+        close_vtx   = np.where(dt_b>1)[0]
+        n_close_vtx = len(close_vtx)
         
         if DEBUG:
             print 
@@ -115,10 +119,26 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree):
             print "dx ",dx
             print "dy ",dy
             print "dt ",dt
-            print "min_idx ",min_idx
-            print vtx_entry.multi_v
-
+            print "min_idx ",min_idx_v
+            print "multi_v ",vtx_entry.multi_v
+            print "a ",a
+            print "b ",b
+            print "c ",c
+            print "dt_b ",dt_b
+            print "close vtx ",close_vtx
+            
         good_vtx_sb_v[index]  = n_close_vtx>0
+
+        min_idx=min_idx_v[0]
+        if DEBUG:
+            print "Set min_idx ",min_idx
+        if n_close_vtx>1:
+            for vtx_id in close_vtx:
+                if np.sum(vtx_entry.multi_v.values[vtx_id]==2)>=2:
+                    min_idx=vtx_id
+                    if DEBUG:
+                        print "Set min_idx ",vtx_id
+            
         good_vtx_id_v[index]  = vtx_entry.id.values[min_idx]
 
     good_vtx_sb_v  = pd.Series(good_vtx_sb_v)
