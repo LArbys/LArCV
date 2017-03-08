@@ -20,20 +20,20 @@ namespace larcv {
     _n_pass = 0;
     _n_fail_unknowns=0;
     _n_fail_inter=0;
-    _event_tree = new TTree("event_tree","");
+    _event_tree = new TTree("NuFilterTree","");
     _event_tree->Branch("run"   ,&_run,    "run/i");
     _event_tree->Branch("subrun",&_subrun, "subrun/i");
     _event_tree->Branch("event" ,&_event,  "event/i");
-    
+    _event_tree->Branch("entry" ,&_entry,  "entry/i");
   }
     
   void NuFilter::configure(const PSet& cfg)
   {
     this->set_verbosity((msg::Level_t)cfg.get<uint>("Verbosity",2));
-    _nu_pdg         = cfg.get<unsigned int>("NuPDG");
-    _interaction_mode         = cfg.get<unsigned int>("InteractionMode",1001);
-    _dep_sum_lepton=0.0;
-    _dep_sum_proton=0.0;
+    _nu_pdg = cfg.get<unsigned int>("NuPDG");
+    _interaction_mode = cfg.get<unsigned int>("InteractionMode",1001);
+    _dep_sum_lepton = 0.0;
+    _dep_sum_proton = 0.0;
     
     _min_nu_init_e  = cfg.get<double>("MinNuEnergy");
     _max_nu_init_e  = cfg.get<double>("MaxNuEnergy");
@@ -198,10 +198,10 @@ namespace larcv {
 
     auto ev_roi = (EventROI*) mgr.get_data(kProductROI, _roi_producer_name);
 
-    _run   = ev_roi->run();
-    _subrun= ev_roi->subrun();
-    _event = ev_roi->event();
-
+    _run    = ev_roi->run();
+    _subrun = ev_roi->subrun();
+    _event  = ev_roi->event();
+    _entry  = mgr.current_entry();
     
     bool signal_selected = MCSelect(ev_roi);
     

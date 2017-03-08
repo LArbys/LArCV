@@ -82,6 +82,7 @@ namespace larcv {
     uint _run;
     uint _subrun;
     uint _event; 
+    uint _entry;
     
   };
 

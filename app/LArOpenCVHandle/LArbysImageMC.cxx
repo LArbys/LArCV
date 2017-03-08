@@ -250,7 +250,7 @@ namespace larcv {
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
     _event  = (uint) ev_roi->event();
-    _entry =  (uint) mgr.current_entry();
+    _entry  = (uint) mgr.current_entry();
    
     _entry_info.run    = _run;
     _entry_info.subrun = _subrun;
