@@ -7,7 +7,6 @@ matplotlib.rcParams['font.size']=20
 matplotlib.rcParams['font.family']='serif'
 
 
-
 def pick_good_vertex(sb_mc_tree,sb_vtx_tree,signal_df_m):
     
     good_vtx_sb_v={}
