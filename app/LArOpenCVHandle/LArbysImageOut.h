@@ -68,6 +68,14 @@ namespace larcv {
     std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > _particle_cluster_vvv;
     //per vertex, per plane, multiple per plane
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > _track_compound_vvv;
+
+
+    //test
+    // larocv::data::Vertex3DArray _vertex3d_array;
+    // std::vector<const larocv::data::ParticleClusterArray*> _particle_cluster_array_v;
+    // std::vector<const larocv::data::TrackClusterCompoundArray*> _track_cluster_compound_array_v;
+    // larocv::data::AlgoDataAssManager _ass_man;
+    //test
     
   };
 

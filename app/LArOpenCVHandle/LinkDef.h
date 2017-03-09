@@ -20,9 +20,10 @@
 
 #pragma link C++ class larcv::PreProcessorAna+;
 
-#pragma link C++ class larlite::LArbysImageAna+;
+#pragma link C++ class larcv::LArbysImageAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

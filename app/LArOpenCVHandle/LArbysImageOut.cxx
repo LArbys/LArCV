@@ -2,8 +2,6 @@
 #define __LARBYSIMAGEOUT_CXX__
 #include "LArbysImageOut.h"
 
-
-
 namespace larcv {
 
   static LArbysImageOutProcessFactory __global_LArbysImageOutProcessFactory__;
@@ -38,7 +36,6 @@ namespace larcv {
     _nshower_par_v.resize(3);
     std::fill(_ntrack_par_v.begin(), _ntrack_par_v.end(), 0);
     std::fill(_nshower_par_v.begin(), _nshower_par_v.end(), 0);
-    
   }
 
   void LArbysImageOut::initialize()
@@ -72,7 +69,13 @@ namespace larcv {
     _event_tree->Branch("Vertex3D_v",&_vertex3d_v);
     _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
     _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
-    
+
+    //test
+    // _event_tree->Branch("Vertex3DArray",&_vertex3d_array);
+    // _event_tree->Branch("ParticleClusterArray_v",&_particle_cluster_array_v);
+    // _event_tree->Branch("TrackClusterCompoundArray_v",&_track_cluster_compound_array_v);
+    // _event_tree->Branch("AlgoDataAssManager",&_ass_man);
+    //test
   }
 
   bool LArbysImageOut::process(IOManager& mgr)
@@ -81,9 +84,12 @@ namespace larcv {
     LARCV_DEBUG() << "process" << std::endl;
 
     /// get the data manager
-    const auto& data_mgr  = _mgr_ptr->DataManager();
-    const auto& ass_man   = data_mgr.AssManager();
-    
+    const larocv::data::AlgoDataManager& data_mgr   = _mgr_ptr->DataManager();
+    const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
+
+    //test
+    // _ass_man = ass_man;
+    //test
     
     /// unique event keys
     const auto& event_id = mgr.event_id();
@@ -95,18 +101,20 @@ namespace larcv {
     /// get the track estimate data
     const auto vtx3d_array = (larocv::data::Vertex3DArray*)
       data_mgr.Data(data_mgr.ID(_combined_vertex_name), 0);
+
+    //test
+    // _vertex3d_array = *vtx3d_array;
+    // _particle_cluster_array_v.resize(3,nullptr);
+    // _track_cluster_compound_array_v.resize(3,nullptr);
+    //test
     
     const auto& vtx_cluster_v = vtx3d_array->as_vector();
-    
     _n_vtx3d = (uint) vtx_cluster_v.size();
-
 
     _vertex3d_v.clear();
     _vertex3d_v.resize(vtx_cluster_v.size(),nullptr);
-
     _particle_cluster_vvv.clear();
     _particle_cluster_vvv.resize(vtx_cluster_v.size());
-
     _track_compound_vvv.clear();
     _track_compound_vvv.resize(vtx_cluster_v.size());
     
@@ -114,8 +122,7 @@ namespace larcv {
 
       auto& particle_cluster_vv = _particle_cluster_vvv[vtx_id];
       auto& track_compound_vv = _track_compound_vvv[vtx_id];
-      
-      // clear vertex
+
       ClearVertex();
 	
       // set the vertex index number
@@ -143,6 +150,11 @@ namespace larcv {
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
 	auto& particle_cluster_v = particle_cluster_vv[plane_id];
 	auto& track_compound_v = track_compound_vv[plane_id];
+
+	//test
+	// auto& particle_cluster_array = _particle_cluster_array_v[plane_id];
+	// auto& track_cluster_compound_array = _track_cluster_compound_array_v[plane_id];
+	//test
 	
 	auto track_particle_cluster_id = data_mgr.ID(_combined_vertex_name);
 	// query the vertex type it's 0 (time vtx) or 1 (wire vtx)
@@ -180,6 +192,11 @@ namespace larcv {
 	particle_cluster_v.resize(par_ass_idx_v.size(),nullptr);
 	track_compound_v.resize(par_ass_idx_v.size(),nullptr);
 
+	//test
+	// particle_cluster_array = par_array;
+	// track_cluster_compound_array = comp_array;
+	//test
+	
 	for(size_t ass_id=0;ass_id<par_ass_idx_v.size();++ass_id) {
 	  auto ass_idx = par_ass_idx_v[ass_id];
 	  if (ass_idx==kINVALID_SIZE) throw larbys("Invalid vertex->particle association detected");
