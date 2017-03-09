@@ -5,6 +5,10 @@
 #include "Processor/ProcessFactory.h"
 #include "LArbysImage.h"
 
+#include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
+#include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
+#include "LArOpenCV/ImageCluster/AlgoData/TrackClusterCompound.h"
+
 namespace larcv {
 
   class LArbysImageAna : public ProcessBase {
@@ -57,6 +61,14 @@ namespace larcv {
     std::vector<uint> _par_multi;
     std::string _combined_vertex_name;
     uint _combined_particle_offset;
+
+    //multiple vertex per event
+    std::vector<const larocv::data::Vertex3D*> _vertex3d_v;
+    //per plane
+    std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > _particle_cluster_vvv;
+    //per vertex, per plane, multiple per plane
+    std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > _track_compound_vvv;
+    
   };
 
   class LArbysImageAnaProcessFactory : public ProcessFactoryBase {
