@@ -310,8 +310,6 @@ namespace larcv {
     _dep_sum_neutron=0;
     _ke_sum_neutron=0;
 
-    bool visibility=false;
-    bool hadron_vis=false;
 
     uint ic=0;
     std::vector<this_proton> protons;

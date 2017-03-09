@@ -10,6 +10,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
+INCFLAGS += $(shell larlite-config --includes)
 INCFLAGS += $(shell basictool-config --includes)
 INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += $(shell basictool-config --includes)
@@ -21,6 +22,7 @@ INCFLAGS += -I$(LARLITE_USERDEVDIR)
 INCFLAGS += -I$(LARCV_APPDIR)/NuFilter
 
 LDFLAGS += -L$(LARLITE_LIBDIR)
+LDFLAGS += $(shell larlite-config --libs)
 LDFLAGS += -lLArOpenCV_ImageClusterBase
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoData
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoModule
@@ -44,3 +46,4 @@ include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
 pkg_build:
 pkg_clean:
+

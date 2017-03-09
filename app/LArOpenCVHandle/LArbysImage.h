@@ -9,6 +9,7 @@
 #include "DataFormat/user_info.h"
 #include "PreProcessor.h"
 #include "TrackShowerAna.h"
+#include "LArbysImageMaker.h"
 
 namespace larcv {
 
@@ -37,13 +38,13 @@ namespace larcv {
 
     const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
 
-    const PreProcessor& PProcessor() const { return _pre_processor; }
-    const TrackShowerAna& TSAna() const { return _tsana; }
+    const PreProcessor& PProcessor() const { return _PreProcessor; }
+    const TrackShowerAna& TSAna() const { return _TrackShowerAna; }
+    const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
     
   protected:
 
     void store_clusters(IOManager& mgr);
-    void extract_image(IOManager& mgr);
 
     TTree* _tree;
     ::larlite::event_user* _eui;
@@ -73,9 +74,9 @@ namespace larcv {
     double _process_time_cluster_storage;
     void Report() const;
     
-    PreProcessor _pre_processor;
-    TrackShowerAna _tsana;
-    
+    PreProcessor _PreProcessor;
+    TrackShowerAna _TrackShowerAna;
+    LArbysImageMaker _LArbysImageMaker;
   };
 
   /**

@@ -21,7 +21,7 @@ if len(sys.argv) > 1:
 filter_id = proc.process_id("NuFilter")
 mcinfo_id = proc.process_id("LArbysImageMC")
 reco_id   = proc.process_id("LArbysImage")
-ana_id    = proc.process_id("LArbysImageAna")
+ana_id    = proc.process_id("LArbysImageOut")
 
 filter_proc   = proc.process_ptr(filter_id)
 mcinfo_proc   = proc.process_ptr(mcinfo_id)

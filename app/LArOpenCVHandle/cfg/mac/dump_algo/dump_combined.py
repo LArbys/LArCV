@@ -43,7 +43,7 @@ if ISMC:
     filter_id = proc.process_id("NuFilter")
     mcinfo_id = proc.process_id("LArbysImageMC")
 reco_id   = proc.process_id("LArbysImage")
-ana_id    = proc.process_id("LArbysImageAna")
+ana_id    = proc.process_id("LArbysImageOut")
 
 if ISMC:
     filter_proc   = proc.process_ptr(filter_id)

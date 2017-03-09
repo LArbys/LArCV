@@ -1,83 +1,64 @@
-#ifndef __LARBYSIMAGEANA_H__
-#define __LARBYSIMAGEANA_H__
+/**
+ * \file LArbysImageAna.h
+ *
+ * \ingroup LArOpenCVHandle
+ * 
+ * \brief Class def header for a class LArbysImageAna
+ *
+ * @author vgenty
+ */
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
-#include "LArbysImage.h"
+/** \addtogroup LArOpenCVHandle
 
-#include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
-#include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
-#include "LArOpenCV/ImageCluster/AlgoData/TrackClusterCompound.h"
+    @{*/
 
-namespace larcv {
+#ifndef LARLITE_LARBYSIMAGEANA_H
+#define LARLITE_LARBYSIMAGEANA_H
 
-  class LArbysImageAna : public ProcessBase {
+#include "Analysis/ana_base.h"
 
+namespace larlite {
+  /**
+     \class LArbysImageAna
+     User custom analysis class made by SHELL_USER_NAME
+   */
+  class LArbysImageAna : public ana_base{
+  
   public:
-    
-    LArbysImageAna(const std::string name="LArbysImageAna");
-    ~LArbysImageAna(){}
 
-    void configure(const PSet&);
-    void initialize();
-    bool process(IOManager& mgr);
-    void finalize();
+    /// Default constructor
+    LArbysImageAna(){ _name="LArbysImageAna"; _fout=0;}
 
-    void SetManager(const::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
-    
-  private:
-    
-    TTree* _event_tree;
-    TTree* _vtx3d_tree;
-    
-    std::string _track_vertex_estimate_algo_name;
+    /// Default destructor
+    virtual ~LArbysImageAna(){}
 
-    const ::larocv::ImageClusterManager* _mgr_ptr;
+    /** IMPLEMENT in LArbysImageAna.cc!
+        Initialization method to be called before the analysis event loop.
+    */ 
+    virtual bool initialize();
 
-    /// Clear vertex
-    void ClearVertex();
+    /** IMPLEMENT in LArbysImageAna.cc! 
+        Analyze a data event-by-event  
+    */
+    virtual bool analyze(storage_manager* storage);
 
-    /// Unique event keys
-    uint _run;
-    uint _subrun;
-    uint _event;
-    uint _entry;
-    
-    /// Vtx3d data
-    uint _n_vtx3d;
-    uint _vtx3d_n_planes;
-    uint _vtx3d_type;
-    double _vtx3d_x;
-    double _vtx3d_y;
-    double _vtx3d_z;
-    std::vector<double> _vtx2d_x_v;
-    std::vector<double> _vtx2d_y_v;
-    uint _vtx3d_id;
-    std::vector<uint> _ntrack_par_v;
-    std::vector<uint> _nshower_par_v;
-    std::vector<double> _circle_x_v;
-    std::vector<double> _circle_y_v;
-    std::vector<uint> _circle_xs_v;
-    std::vector<uint> _par_multi;
-    std::string _combined_vertex_name;
-    uint _combined_particle_offset;
+    /** IMPLEMENT in LArbysImageAna.cc! 
+        Finalize method to be called after all events processed.
+    */
+    virtual bool finalize();
 
-    //multiple vertex per event
-    std::vector<const larocv::data::Vertex3D*> _vertex3d_v;
-    //per plane
-    std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > _particle_cluster_vvv;
-    //per vertex, per plane, multiple per plane
-    std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > _track_compound_vvv;
+  protected:
     
   };
-
-  class LArbysImageAnaProcessFactory : public ProcessFactoryBase {
-  public:
-    LArbysImageAnaProcessFactory() { ProcessFactory::get().add_factory("LArbysImageAna",this); }
-    ~LArbysImageAnaProcessFactory() {}
-    ProcessBase* create(const std::string instance_name) { return new LArbysImageAna(instance_name); }
-  };
-
 }
-
 #endif
+
+//**************************************************************************
+// 
+// For Analysis framework documentation, read Manual.pdf here:
+//
+// http://microboone-docdb.fnal.gov:8080/cgi-bin/ShowDocument?docid=3183
+//
+//**************************************************************************
+
+/** @} */ // end of doxygen group 
