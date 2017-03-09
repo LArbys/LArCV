@@ -28,8 +28,8 @@ namespace dbscan {
     // utility functions. seems like useful, common tasks, but would make more sense to separate these from the data itself?
     int findMatchingCluster( const std::vector<double>& testpoint, const dbPoints& data, const double radius ) const;
     void closestHitsInCluster( const int clusterid, const std::vector<double>& test_pos, const dbPoints& src_data, 
-			       const larcv::ImageMeta& meta, const float cm_per_tick, const float cm_per_wire,
-			       std::vector< std::pair<int,double> >& hitlist, const int max_nhits=-1 ) const;
+                               const larcv::ImageMeta& meta, const float cm_per_tick, const float cm_per_wire,
+                               std::vector< std::pair<int,double> >& hitlist, const int max_nhits=-1 ) const;
 
   };
   
@@ -74,7 +74,8 @@ namespace dbscan {
       const std::vector<double>& leftmost()   const  { return m_extrema[kleftmost]; }
       const std::vector<double>& rightmost()  const  { return m_extrema[krightmost]; }
       const std::vector<double>& topmost()    const  { return m_extrema[ktopmost]; }
-      const std::vector<double>& bottommost() const  { return m_extrema[kbottommost]; }      
+      const std::vector<double>& bottommost() const  { return m_extrema[kbottommost]; } 
+      const std::vector<double>& extrema( const Extrema_t whichpoint ) const { return m_extrema[(size_t)whichpoint]; }
       std::vector<double>& leftmost()   { return m_extrema[kleftmost]; }
       std::vector<double>& rightmost()  { return m_extrema[krightmost]; }
       std::vector<double>& topmost()    { return m_extrema[ktopmost]; }
