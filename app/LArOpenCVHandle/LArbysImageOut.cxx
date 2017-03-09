@@ -68,7 +68,7 @@ namespace larcv {
     _event_tree->Branch("entry"  ,&_entry  , "entry/i");
     _event_tree->Branch("Vertex3D_v",&_vertex3d_v);
     _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
-    _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
+    //_event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
 
     //test
     // _event_tree->Branch("Vertex3DArray",&_vertex3d_array);
@@ -80,7 +80,7 @@ namespace larcv {
 
   bool LArbysImageOut::process(IOManager& mgr)
   {
-        
+    
     LARCV_DEBUG() << "process" << std::endl;
 
     /// get the data manager
@@ -113,11 +113,15 @@ namespace larcv {
 
     _vertex3d_v.clear();
     _vertex3d_v.resize(vtx_cluster_v.size(),nullptr);
-    _particle_cluster_vvv.clear();
-    _particle_cluster_vvv.resize(vtx_cluster_v.size());
-    _track_compound_vvv.clear();
-    _track_compound_vvv.resize(vtx_cluster_v.size());
-    
+     _particle_cluster_vvv.clear();
+     _particle_cluster_vvv.resize(vtx_cluster_v.size());
+     _track_compound_vvv.clear();
+     _track_compound_vvv.resize(vtx_cluster_v.size());
+
+     const larocv::data::Vertex3D vtx3d_tmp;
+     const larocv::data::ParticleCluster par_tmp;
+     const larocv::data::TrackClusterCompound comp_tmp;
+     
     for(uint vtx_id=0;vtx_id<_n_vtx3d;++vtx_id) { 
 
       auto& particle_cluster_vv = _particle_cluster_vvv[vtx_id];
@@ -143,9 +147,8 @@ namespace larcv {
       // set the number of planes this vertex was reconstructed from
       _vtx3d_n_planes = (uint)vtx3d.num_planes;
 
-
-      particle_cluster_vv.resize(3);
-      track_compound_vv.resize(3);
+       particle_cluster_vv.resize(3);
+       track_compound_vv.resize(3);
       
       for(uint plane_id=0; plane_id<3;  ++plane_id) {
 	auto& particle_cluster_v = particle_cluster_vv[plane_id];
@@ -189,9 +192,9 @@ namespace larcv {
 
 	_par_multi[plane_id] = (uint)par_ass_idx_v.size();
 
-	particle_cluster_v.resize(par_ass_idx_v.size(),nullptr);
-	track_compound_v.resize(par_ass_idx_v.size(),nullptr);
-
+	 particle_cluster_v.resize(par_ass_idx_v.size(),nullptr);
+	 track_compound_v.resize(par_ass_idx_v.size(),nullptr);
+	 
 	//test
 	// particle_cluster_array = par_array;
 	// track_cluster_compound_array = comp_array;
@@ -201,15 +204,17 @@ namespace larcv {
 	  auto ass_idx = par_ass_idx_v[ass_id];
 	  if (ass_idx==kINVALID_SIZE) throw larbys("Invalid vertex->particle association detected");
 	  const auto& par = par_array->as_vector()[ass_idx];
-	  particle_cluster_v[ass_id] = &par;
+	   particle_cluster_v[ass_id] = &par;
 	  if (par.type==larocv::data::ParticleType_t::kTrack) _ntrack_par_v[plane_id]++;
 	  if (par.type==larocv::data::ParticleType_t::kShower)_nshower_par_v[plane_id]++;
 	  else LARCV_WARNING() << "Unknown particle found" << std::endl;
 	  
 	  auto comp_ass_id = ass_man.GetOneAss(par,comp_array->ID());
+	  track_compound_v[ass_id] = &comp_tmp;
 	  if (comp_ass_id==kINVALID_SIZE) continue;
 	  const auto& comp = comp_array->as_vector()[comp_ass_id];
 	  track_compound_v[ass_id] = &comp;
+	  
 	}
 	
 	
