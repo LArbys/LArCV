@@ -11,16 +11,18 @@ if len(sys.argv) > 1:
    for x in xrange(len(sys.argv)-3):
       flist.push_back(sys.argv[x+3])
    proc.override_input_file(flist)
-ana_id    = proc.process_id("LArbysImageAna")
+ana_id = proc.process_id("LArbysImageAna")
+extract_id = proc.process_id("LArbysImageExtract")
 larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetInputLArbysFile(sys.argv[2])
+larbysimg_extract = proc.process_ptr(extract_id)
 proc.initialize()
 
 for entry in xrange(100):
    if not proc.process_entry(entry): continue
    
    print "Do analysis here"
-
+   print larbysimg_extract.ADCImages()
 
 proc.finalize()
 

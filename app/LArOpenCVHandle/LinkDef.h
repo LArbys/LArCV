@@ -21,8 +21,10 @@
 #pragma link C++ class larcv::PreProcessorAna+;
 
 #pragma link C++ class larcv::LArbysImageAna+;
+#pragma link C++ class larcv::LArbysImageExtract+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

@@ -3,7 +3,6 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
-#include "LArbysImageMaker.h"
 
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
@@ -24,14 +23,6 @@ namespace larcv {
     void SetInputLArbysFile(std::string file)
     { _input_larbys_root_file = file; }
 
-    const std::vector<cv::Mat>&
-    ADCImages()
-    { return _adc_mat_v; }
-    
-    const cv::Mat&
-    ADCImage(size_t planeid)
-    { return _adc_mat_v[planeid]; }
-    
     const std::vector<const larocv::data::Vertex3D*>&
     Verticies()
     { return *_reco_vertex_v; }
@@ -45,13 +36,11 @@ namespace larcv {
     { return (*_particle_cluster_vvv)[vertexid][planeid]; }
     
   private:
-    std::string _adc_producer;
+
     std::string _mc_tree_name;
     std::string _reco_tree_name;
     std::string _input_larbys_root_file;
 
-    LArbysImageMaker _LArbysImageMaker;
-    
     TChain* _mc_chain;
     TChain* _reco_chain;
 
@@ -72,9 +61,6 @@ namespace larcv {
     size_t _reco_index;
 
     bool increment(uint entry);
-
-    // The images
-    std::vector<cv::Mat> _adc_mat_v;
     
     // Reconstructed quantities
     std::vector<const larocv::data::Vertex3D*> * _reco_vertex_v;

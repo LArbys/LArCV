@@ -9,7 +9,6 @@ namespace larcv {
 
   LArbysImageAna::LArbysImageAna(const std::string name)
     : ProcessBase(name),
-      _LArbysImageMaker(),
       _mc_chain(nullptr),
       _reco_chain(nullptr),
       _reco_vertex_v(nullptr),
@@ -19,8 +18,6 @@ namespace larcv {
   
   void LArbysImageAna::configure(const PSet& cfg)
   {
-    _adc_producer = cfg.get<std::string>("ADCImageProducer");
-    _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
     _mc_tree_name = cfg.get<std::string>("MCTreeName");
     _reco_tree_name = cfg.get<std::string>("RecoTreeName");
   }
@@ -84,9 +81,8 @@ namespace larcv {
 
     LARCV_INFO() << "(this,mc,reco) entry & index @ (" << entry <<","<<_mc_entry<<","<<_reco_entry<<")"
 		 << " & " << "(-,"<<_mc_index<<","<<_reco_index<<")"<<std::endl;
-    
-    _adc_mat_v = _LArbysImageMaker.ExtractMat(mgr,_adc_producer);
 
+    
     return true;
   }
   
