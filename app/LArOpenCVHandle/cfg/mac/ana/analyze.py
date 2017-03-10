@@ -20,14 +20,9 @@ proc.initialize()
 
 for entry in xrange(100):
    if not proc.process_entry(entry): continue
-   
-   print "Do analysis here"
-   print "\tADC images... ",larbysimg_extract.ADCImages()
-   print "\tTrack images... ",larbysimg_extract.TrackImages()
-   print "\tShower images... ",larbysimg_extract.ShowerImages()
+
    for ix,vertex in enumerate(larbysimg_ana.Verticies()):
       print ix,") ",vertex
-   print ""
 
 proc.finalize()
 
