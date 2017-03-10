@@ -63,13 +63,13 @@ namespace larcv {
     uint _combined_particle_offset;
 
     //multiple vertex per event
-    std::vector<const larocv::data::Vertex3D*> _vertex3d_v;
+    std::vector<larocv::data::Vertex3D> _vertex3d_v;
     //per plane
-    std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > _particle_cluster_vvv;
+    std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > > _particle_cluster_vvv;
     //per vertex, per plane, multiple per plane
-    std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > _track_compound_vvv;
+    std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > > _track_compound_vvv;
 
-
+    
     //test
     // larocv::data::Vertex3DArray _vertex3d_array;
     // std::vector<const larocv::data::ParticleClusterArray*> _particle_cluster_array_v;

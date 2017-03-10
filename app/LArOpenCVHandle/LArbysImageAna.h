@@ -23,17 +23,21 @@ namespace larcv {
     void SetInputLArbysFile(std::string file)
     { _input_larbys_root_file = file; }
 
-    const std::vector<const larocv::data::Vertex3D*>&
+    const std::vector<larocv::data::Vertex3D>&
     Verticies()
     { return *_reco_vertex_v; }
 
-    const larocv::data::Vertex3D*
+    const larocv::data::Vertex3D&
     Vertex(size_t vertexid)
     { return (*_reco_vertex_v)[vertexid]; }
 
-    const std::vector<const larocv::data::ParticleCluster*>&
+    const std::vector<larocv::data::ParticleCluster>&
     Particles(size_t vertexid,size_t planeid)
     { return (*_particle_cluster_vvv)[vertexid][planeid]; }
+
+    const std::vector<larocv::data::TrackClusterCompound>&
+    Tracks(size_t vertexid,size_t planeid)
+    { return (*_track_cluster_comp_vvv)[vertexid][planeid]; }
     
   private:
 
@@ -63,9 +67,9 @@ namespace larcv {
     bool increment(uint entry);
     
     // Reconstructed quantities
-    std::vector<const larocv::data::Vertex3D*> * _reco_vertex_v;
-    std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > >* _particle_cluster_vvv;
-    std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > >* _track_cluster_comp_vvv;
+    std::vector<larocv::data::Vertex3D> * _reco_vertex_v;
+    std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > >* _particle_cluster_vvv;
+    std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > >* _track_cluster_comp_vvv;
 
   };
 

@@ -45,7 +45,7 @@ namespace larcv {
     _reco_chain->SetBranchAddress("entry",&_reco_entry);
     _reco_chain->SetBranchAddress("Vertex3D_v",&_reco_vertex_v);
     _reco_chain->SetBranchAddress("ParticleCluster_vvv",&_particle_cluster_vvv);
-    //_reco_chain->SetBranchAddress("TrackClusterCompound_vvv",&_track_cluster_comp_vvv);
+    _reco_chain->SetBranchAddress("TrackClusterCompound_vvv",&_track_cluster_comp_vvv);
     _reco_index=0;
     _reco_chain->GetEntry(_reco_index);
     _reco_entries = _reco_chain->GetEntries();
@@ -79,9 +79,7 @@ namespace larcv {
 
     if ( !increment(entry) ) return false;
 
-    LARCV_INFO() << "(this,mc,reco) entry & index @ (" << entry <<","<<_mc_entry<<","<<_reco_entry<<")"
-		 << " & " << "(-,"<<_mc_index<<","<<_reco_index<<")"<<std::endl;
-
+    LARCV_DEBUG() << "...passed..." << std::endl;
     
     return true;
   }
