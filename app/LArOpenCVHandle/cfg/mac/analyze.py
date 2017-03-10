@@ -14,8 +14,13 @@ if len(sys.argv) > 1:
 ana_id    = proc.process_id("LArbysImageAna")
 larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetInputLArbysFile(sys.argv[2])
-#proc.override_ana_file(sys.argv[2] + ".root")
 proc.initialize()
-proc.batch_process()
+
+for entry in xrange(100):
+   if not proc.process_entry(entry): continue
+   
+   print "Do analysis here"
+
+
 proc.finalize()
 

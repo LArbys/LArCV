@@ -18,6 +18,15 @@ namespace larcv {
     return;
   }
 
+  std::vector<cv::Mat>
+  LArbysImageMaker::ExtractMat(IOManager& mgr,std::string producer) {
+    std::vector<cv::Mat> mat_v;
+    auto img_data_v = ExtractImage(mgr,producer);
+    mat_v.reserve(img_data_v.size());
+    for(auto& image_data : img_data_v)
+      mat_v.emplace_back(std::move(std::get<0>(image_data)));
+    return mat_v;
+  }
   
   std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
   LArbysImageMaker::ExtractImage(IOManager& mgr,std::string producer) {

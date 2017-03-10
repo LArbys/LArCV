@@ -54,11 +54,23 @@ namespace larcv {
     _reco_entries = _reco_chain->GetEntries();
   }
 
-  void LArbysImageAna::increment(uint entry) {
+  bool LArbysImageAna::increment(uint entry)
+  {
+
+    _mc_chain->GetEntry(_mc_index);
+    _reco_chain->GetEntry(_reco_index);
+
     if (_mc_entry<entry && _mc_index!=_mc_entries)
       { _mc_index++; }
     if (_reco_entry<entry && _reco_index!=_reco_entries)
       { _reco_index++; }
+
+    if ( entry     != _reco_entry) return false;
+    if ( entry     !=  _mc_entry ) return false;
+    if ( _mc_entry != _reco_entry) return false;
+
+    return true;
+
   }
   
   bool LArbysImageAna::process(IOManager& mgr)
@@ -68,23 +80,13 @@ namespace larcv {
     LARCV_DEBUG() << "(this,mc,reco) entry & index @ (" << entry <<","<<_mc_entry<<","<<_reco_entry<<")"
 		  << " & " << "(-,"<<_mc_index<<","<<_reco_index<<")"<<std::endl;
 
-    _mc_chain->GetEntry(_mc_index);
-    _reco_chain->GetEntry(_reco_index);
-
-    increment(entry);
-
-    if (entry != _reco_entry) return false;
-    if (entry != _mc_entry) return false;
-    if (_mc_entry != _reco_entry) return false;
+    if ( !increment(entry) ) return false;
 
     LARCV_INFO() << "(this,mc,reco) entry & index @ (" << entry <<","<<_mc_entry<<","<<_reco_entry<<")"
 		 << " & " << "(-,"<<_mc_index<<","<<_reco_index<<")"<<std::endl;
-
     
-    auto img_data_v = _LArbysImageMaker.ExtractImage(mgr,_adc_producer);
+    _adc_mat_v = _LArbysImageMaker.ExtractMat(mgr,_adc_producer);
 
-    LARCV_DEBUG() << "I see " << _reco_vertex_v->size() << " verticies!" << std::endl;
-    
     return true;
   }
   

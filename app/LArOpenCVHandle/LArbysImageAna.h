@@ -23,6 +23,26 @@ namespace larcv {
 
     void SetInputLArbysFile(std::string file)
     { _input_larbys_root_file = file; }
+
+    const std::vector<cv::Mat>&
+    ADCImages()
+    { return _adc_mat_v; }
+    
+    const cv::Mat&
+    ADCImage(size_t planeid)
+    { return _adc_mat_v[planeid]; }
+    
+    const std::vector<const larocv::data::Vertex3D*>&
+    Verticies()
+    { return *_reco_vertex_v; }
+
+    const larocv::data::Vertex3D*
+    Vertex(size_t vertexid)
+    { return (*_reco_vertex_v)[vertexid]; }
+
+    const std::vector<const larocv::data::ParticleCluster*>&
+    Particles(size_t vertexid,size_t planeid)
+    { return (*_particle_cluster_vvv)[vertexid][planeid]; }
     
   private:
     std::string _adc_producer;
@@ -51,8 +71,11 @@ namespace larcv {
     size_t _mc_index;
     size_t _reco_index;
 
-    void increment(uint entry);
+    bool increment(uint entry);
 
+    // The images
+    std::vector<cv::Mat> _adc_mat_v;
+    
     // Reconstructed quantities
     std::vector<const larocv::data::Vertex3D*> * _reco_vertex_v;
     std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > >* _particle_cluster_vvv;
