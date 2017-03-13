@@ -44,6 +44,8 @@ namespace larcv {
     _select_background = cfg.get<bool>("SelectBackground");
 
     _roi_producer_name = cfg.get<std::string>("ROIProducer");
+
+    _mc_available = cfg.get<bool>("MCAvailable",true);
   }
 
   //from rui an.
@@ -192,6 +194,10 @@ namespace larcv {
 
   bool NuFilter::process(IOManager& mgr)
   {
+
+    if(!_mc_available)
+      return true;
+    
     uint entry=mgr.current_entry();
     if (!(entry%100) and entry)
       LARCV_DEBUG() << "Event " << entry << std::endl;

@@ -179,6 +179,7 @@ namespace larcv {
 
     entry_info _entry_info;
     bool _is_signal;
+    bool _mc_available;
     
   private:
     ///Project 3D track into 2D Image(per plane) 

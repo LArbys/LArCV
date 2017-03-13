@@ -16,6 +16,7 @@ namespace larcv {
   {
     _combined_vertex_name = cfg.get<std::string>("CombinedVertexName");
     _combined_particle_offset = cfg.get<uint>("ParticleOffset");
+    
   }
   
   void LArbysImageOut::ClearVertex() {

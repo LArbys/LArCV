@@ -25,6 +25,7 @@ namespace larcv {
 
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",35);
     _do_not_reco       = cfg.get<bool>("DoNotReco",false);
+    _mc_available = cfg.get<bool>("MCAvailable",true);
   }
 
   cv::Rect LArbysImageMC::Get2DRoi(const ImageMeta& meta,
@@ -243,6 +244,10 @@ namespace larcv {
 
   bool LArbysImageMC::process(IOManager& mgr)
   {
+
+    if(!_mc_available)
+      return true;
+    
     Clear();
     auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
     auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);

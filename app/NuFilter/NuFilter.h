@@ -42,6 +42,8 @@ namespace larcv {
     const bool selected() const { return _selected; }
     
   private:
+
+    bool _mc_available;
     
     bool MCSelect(const EventROI* ev_roi);
     
