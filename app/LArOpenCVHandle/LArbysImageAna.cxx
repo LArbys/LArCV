@@ -36,8 +36,8 @@ namespace larcv {
     _mc_chain->SetBranchAddress("parentX",&_true_x);
     _mc_chain->SetBranchAddress("parentY",&_true_y);
     _mc_chain->SetBranchAddress("parentZ",&_true_z);
-    // _mc_chain->SetBranchAddress("vtx2d_w",&_vtx2d_w_v);
-    // _mc_chain->SetBranchAddress("vtx2d_t",&_vtx2d_t_v);
+    _mc_chain->SetBranchAddress("vtx2d_w",&_vtx2d_w_v);
+    _mc_chain->SetBranchAddress("vtx2d_t",&_vtx2d_t_v);
     _mc_index=0;
     _mc_chain->GetEntry(_mc_index);
     _mc_entries = _mc_chain->GetEntries();
@@ -86,17 +86,18 @@ namespace larcv {
 
     LARCV_DEBUG() << "...passed..." << std::endl;
     
-    // _mc_vertex._Clear_();
-    // _mc_vertex.x=_true_x;
-    // _mc_vertex.y=_true_y;
-    // _mc_vertex.z=_true_z;
-    
-    // for(size_t plane=0;plane<_vtx2d_w_v->size();++plane) {
-    //   larocv::data::Vertex2D vtx2d;
-    //   vtx2d.pt.x=(*_vtx2d_t_v)[plane];
-    //   vtx2d.pt.y=(*_vtx2d_w_v)[plane];
-    //   _mc_vertex.vtx2d_v.emplace_back(std::move(vtx2d));
-    // }
+    _mc_vertex._Clear_();
+    _mc_vertex.x=_true_x;
+    _mc_vertex.y=_true_y;
+    _mc_vertex.z=_true_z;
+    _mc_vertex.vtx2d_v.clear();
+
+    for(size_t plane=0;plane<_vtx2d_w_v->size();++plane) {
+      larocv::data::Vertex2D vtx2d;
+      vtx2d.pt.x=(*_vtx2d_t_v)[plane];
+      vtx2d.pt.y=(*_vtx2d_w_v)[plane];
+      _mc_vertex.vtx2d_v.emplace_back(std::move(vtx2d));
+    }
     
     return true;
   }
