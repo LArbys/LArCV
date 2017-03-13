@@ -43,6 +43,7 @@ namespace larcv {
 
   private:
 
+    size_t _roi_idx;
     std::string _roi_producer;
     std::string _input_producer;
     std::string _output_producer;
