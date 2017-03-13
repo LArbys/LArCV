@@ -23,6 +23,10 @@ namespace larcv {
     void SetInputLArbysFile(std::string file)
     { _input_larbys_root_file = file; }
 
+    const larocv::data::Vertex3D&
+    TrueVertex()
+    { return _mc_vertex; }
+    
     const std::vector<larocv::data::Vertex3D>&
     Verticies()
     { return *_reco_vertex_v; }
@@ -71,6 +75,14 @@ namespace larcv {
     std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > >* _particle_cluster_vvv;
     std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > >* _track_cluster_comp_vvv;
 
+    // MC quantities
+    larocv::data::Vertex3D _mc_vertex;
+    double _true_x;
+    double _true_y;
+    double _true_z;
+    std::vector<double>* _vtx2d_w_v;
+    std::vector<double>* _vtx2d_t_v;
+    
   };
 
   class LArbysImageAnaProcessFactory : public ProcessFactoryBase {
