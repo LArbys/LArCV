@@ -62,9 +62,9 @@ namespace larcv {
     _mc_chain->GetEntry(_mc_index);
     _reco_chain->GetEntry(_reco_index);
 
-    if (_mc_entry<entry && _mc_index!=_mc_entries)
+    if ((_mc_entry<=entry) && (_mc_index!=_mc_entries))
       { _mc_index++; }
-    if (_reco_entry<entry && _reco_index!=_reco_entries)
+    if ((_reco_entry<=entry) && (_reco_index!=_reco_entries))
       { _reco_index++; }
 
     if ( entry     != _reco_entry) return false;
