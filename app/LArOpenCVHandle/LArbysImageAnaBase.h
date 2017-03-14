@@ -16,10 +16,10 @@ namespace larcv {
     LArbysImageAnaBase(const std::string name="LArbysImageAnaBase");
     ~LArbysImageAnaBase(){}
 
-    virtual void Configure(const PSet&) = 0;
-    virtual void Initialize ()  {}
-    virtual bool Analyze    (const ::larocv::ImageClusterManager& mgr) = 0;
-    virtual void Finalize   (TFile* fout = nullptr);
+    virtual void Configure(const larcv::PSet&) = 0;
+    virtual void Initialize () = 0;
+    virtual bool Analyze    (const ::larocv::ImageClusterManager& mgr) =0;
+    virtual void Finalize   (TFile* fout = nullptr) = 0;
       
     void EventID(const size_t entry,
 		 const size_t run, const size_t subrun, const size_t event)
