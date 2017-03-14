@@ -1,31 +1,26 @@
 #ifndef __LARBYSIMAGEOUT_H__
 #define __LARBYSIMAGEOUT_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
-#include "LArbysImage.h"
-
+#include <TTree.h>
+#include "LArbysImageAnaBase.h"
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
 #include "LArOpenCV/ImageCluster/AlgoData/TrackClusterCompound.h"
 
 namespace larcv {
 
-  class LArbysImageOut : public ProcessBase {
+  class LArbysImageOut : public LArbysImageAnaBase {
 
   public:
     
     LArbysImageOut(const std::string name="LArbysImageOut");
     ~LArbysImageOut(){}
 
-    void configure(const PSet&);
-    void initialize();
-    bool process(IOManager& mgr);
-    void finalize();
+    void Configure(const PSet&);
+    void Initialize();
+    bool Analyze(const ::larocv::ImageClusterManager& mgr);
+    void Finalize(TFile* fout=nullptr);
 
-    void SetManager(const::larocv::ImageClusterManager* icm)
-    { _mgr_ptr = icm; }
-    
   private:
     
     TTree* _event_tree;
@@ -33,17 +28,9 @@ namespace larcv {
     
     std::string _track_vertex_estimate_algo_name;
 
-    const ::larocv::ImageClusterManager* _mgr_ptr;
-
     /// Clear vertex
     void ClearVertex();
 
-    /// Unique event keys
-    uint _run;
-    uint _subrun;
-    uint _event;
-    uint _entry;
-    
     /// Vtx3d data
     uint _n_vtx3d;
     uint _vtx3d_n_planes;
@@ -78,13 +65,6 @@ namespace larcv {
     // larocv::data::AlgoDataAssManager _ass_man;
     //test
     
-  };
-
-  class LArbysImageOutProcessFactory : public ProcessFactoryBase {
-  public:
-    LArbysImageOutProcessFactory() { ProcessFactory::get().add_factory("LArbysImageOut",this); }
-    ~LArbysImageOutProcessFactory() {}
-    ProcessBase* create(const std::string instance_name) { return new LArbysImageOut(instance_name); }
   };
 
 }

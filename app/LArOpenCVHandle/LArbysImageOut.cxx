@@ -4,15 +4,13 @@
 
 namespace larcv {
 
-  static LArbysImageOutProcessFactory __global_LArbysImageOutProcessFactory__;
-
   LArbysImageOut::LArbysImageOut(const std::string name)
-    : ProcessBase(name),
+    : LArbysImageAnaBase(name),
       _event_tree(nullptr),
       _vtx3d_tree(nullptr)
   {}
       
-  void LArbysImageOut::configure(const PSet& cfg)
+  void LArbysImageOut::Configure(const PSet& cfg)
   {
     _combined_vertex_name = cfg.get<std::string>("CombinedVertexName");
     _combined_particle_offset = cfg.get<uint>("ParticleOffset");
@@ -38,7 +36,7 @@ namespace larcv {
     std::fill(_nshower_par_v.begin(), _nshower_par_v.end(), 0);
   }
 
-  void LArbysImageOut::initialize()
+  void LArbysImageOut::Initialize()
   {
     
     _vtx3d_tree = new TTree("Vertex3DTree","");
@@ -78,26 +76,19 @@ namespace larcv {
     //test
   }
 
-  bool LArbysImageOut::process(IOManager& mgr)
+  bool LArbysImageOut::Analyze(const larocv::ImageClusterManager& mgr)
   {
     
     LARCV_DEBUG() << "process" << std::endl;
 
     /// get the data manager
-    const larocv::data::AlgoDataManager& data_mgr   = _mgr_ptr->DataManager();
+    const larocv::data::AlgoDataManager& data_mgr   = mgr.DataManager();
     const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
 
     //test
     // _ass_man = ass_man;
     //test
     
-    /// unique event keys
-    const auto& event_id = mgr.event_id();
-    _run    = (uint) event_id.run();
-    _subrun = (uint) event_id.subrun();
-    _event  = (uint) event_id.event();
-    _entry =  (uint) mgr.current_entry();
-
     /// get the track estimate data
     const auto vtx3d_array = (larocv::data::Vertex3DArray*)
       data_mgr.Data(data_mgr.ID(_combined_vertex_name), 0);
@@ -219,10 +210,12 @@ namespace larcv {
     return true;
   }
 
-  void LArbysImageOut::finalize()
+  void LArbysImageOut::Finalize(TFile* fout)
   {
-    _event_tree->Write();
-    _vtx3d_tree->Write();
+    if(fout) {
+      _event_tree->Write();
+      _vtx3d_tree->Write();
+    }
   }
 
 }

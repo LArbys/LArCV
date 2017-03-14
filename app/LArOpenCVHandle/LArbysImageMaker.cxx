@@ -19,9 +19,9 @@ namespace larcv {
   }
 
   std::vector<cv::Mat>
-  LArbysImageMaker::ExtractMat(IOManager& mgr,std::string producer) {
+  LArbysImageMaker::ExtractMat(const std::vector<larcv::Image2D>& image_v) {
     std::vector<cv::Mat> mat_v;
-    auto img_data_v = ExtractImage(mgr,producer);
+    auto img_data_v = ExtractImage(image_v);
     mat_v.reserve(img_data_v.size());
     for(auto& image_data : img_data_v)
       mat_v.emplace_back(std::move(std::get<0>(image_data)));
@@ -29,21 +29,7 @@ namespace larcv {
   }
   
   std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
-  LArbysImageMaker::ExtractImage(IOManager& mgr,std::string producer) {
-
-    LARCV_DEBUG() << "Extracting " << producer << " Image\n" << std::endl;
-    
-    EventImage2D* ev_image = nullptr;
-    
-    if(!producer.empty()) {
-      ev_image = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
-      if(!ev_image) {
-	LARCV_CRITICAL() << "Image by producer " << producer << " not found..." << std::endl;
-	throw larbys();
-      }
-    }
-
-    auto const& image_v = ev_image->Image2DArray();
+  LArbysImageMaker::ExtractImage(const std::vector<larcv::Image2D>& image_v) {
 
     std::vector<std::tuple<cv::Mat,larocv::ImageMeta> > ret_v;
     ret_v.resize(image_v.size(),std::make_tuple(cv::Mat(),larocv::ImageMeta()));

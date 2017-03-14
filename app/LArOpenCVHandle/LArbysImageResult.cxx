@@ -5,26 +5,22 @@
 
 namespace larcv {
 
-  static LArbysImageResultProcessFactory __global_LArbysImageResultProcessFactory__;
-
   LArbysImageResult::LArbysImageResult(const std::string name)
-    : ProcessBase(name)
+    : LArbysImageAnaBase(name)
   {}
     
-  void LArbysImageResult::configure(const PSet& cfg)
+  void LArbysImageResult::Configure(const PSet& cfg)
   {
     _combined_vertex_name = cfg.get<std::string>("CombinedVertexName");
     _combined_particle_offset = cfg.get<uint>("ParticleOffset");
   }
 
-  void LArbysImageResult::initialize()
+  void LArbysImageResult::Initialize()
   {}
   
-  bool LArbysImageResult::process(IOManager& mgr)
+  bool LArbysImageResult::Analyze(const ::larocv::ImageClusterManager& mgr) 
   {
-    if (!_mgr_ptr) throw larbys("No manager pointer set");
-    
-    const larocv::data::AlgoDataManager& data_mgr   = _mgr_ptr->DataManager();
+    const larocv::data::AlgoDataManager& data_mgr   = mgr.DataManager();
     const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
     auto track_particle_cluster_id = data_mgr.ID(_combined_vertex_name);
     
@@ -80,7 +76,7 @@ namespace larcv {
     return true;
   }
 
-  void LArbysImageResult::finalize()
+  void LArbysImageResult::Finalize(TFile* fout)
   {}
 
 }

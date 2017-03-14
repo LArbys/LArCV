@@ -26,10 +26,10 @@ namespace larcv {
     Configure(const PSet& pset);
 
     std::vector<cv::Mat>
-    ExtractMat(IOManager& mgr,std::string producer);
+    ExtractMat(const std::vector<larcv::Image2D>& image_v);
     
     std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
-    ExtractImage(IOManager& mgr,std::string producer);
+    ExtractImage(const std::vector<larcv::Image2D>& image_v);
 
   private:
     float _charge_max;
