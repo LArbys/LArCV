@@ -27,9 +27,29 @@ namespace larlite {
     _core.clear_data();
     _core.set_id(storage->run_id(),storage->subrun_id(),storage->event_id());
 
-    auto wire_h = storage->get_data<event_wire>(_core.producer_wire());
+    event_wire* wire_h = nullptr;
+    event_hit*  hit_h  = nullptr;
 
-    if(!wire_h) { throw DataFormatException("Could not load wire data!"); }
+    if(!_core.producer_wire().empty()) {
+
+      wire_h = storage->get_data<event_wire>(_core.producer_wire());
+
+      if(!wire_h) { throw DataFormatException("Could not load wire data!"); }
+
+    }
+
+    if(!_core.producer_hit().empty()) {
+
+      hit_h = storage->get_data<event_hit>(_core.producer_hit());
+
+      if(!hit_h) { throw DataFormatException("Could not load hit data!"); }
+
+    }
+
+    if(!hit_h && !wire_h)
+      throw DataFormatException("No wire nor hit producer specified...");
+    if(hit_h && wire_h) 
+      throw DataFormatException("Both hit and wire producer specified (one has to be empty)");
 
     auto opdigit_h = storage->get_data<event_opdetwaveform>(_core.producer_opdigit());
 
@@ -63,35 +83,74 @@ namespace larlite {
       if(_core.producer_simch().empty()) {
 
         std::vector<larlite::simch> empty_simch;
-        if(opdigit_h) 
-          status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+        std::vector<larlite::wire> empty_wire;
+        std::vector<larlite::hit> empty_hit;
+        if(opdigit_h) {
+          if(wire_h)
+            status = _core.process_event(*opdigit_h, *wire_h, empty_hit, 
+              *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+          else
+            status = _core.process_event(*opdigit_h, empty_wire, *hit_h, 
+              *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+        }
         else{
           std::vector<larlite::opdetwaveform> empty_opdigit;
-          status = _core.process_event(empty_opdigit, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+          if(wire_h)
+            status = _core.process_event(empty_opdigit, *wire_h, empty_hit, 
+              *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
+          else
+            status = _core.process_event(empty_opdigit, empty_wire, *hit_h, 
+              *mctruth_h, *mctrack_h, *mcshower_h, empty_simch);
         }	
       }else{
 
         auto simch_h = storage->get_data<event_simch>(_core.producer_simch());
         if(!simch_h) throw DataFormatException("SimChannel requested but not available");
 
-        if(opdigit_h)
-          status = _core.process_event(*opdigit_h, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+        std::vector<larlite::wire> empty_wire;
+        std::vector<larlite::hit> empty_hit;
+        if(opdigit_h) {
+          if(wire_h)
+            status = _core.process_event(*opdigit_h, *wire_h, empty_hit, 
+              *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+          else
+            status = _core.process_event(*opdigit_h, empty_wire, *hit_h, 
+              *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+        }
         else{
           std::vector<larlite::opdetwaveform> empty_opdigit;
-          status = _core.process_event(empty_opdigit, *wire_h, *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
-        }
+          if(wire_h)
+            status = _core.process_event(empty_opdigit, *wire_h, empty_hit, 
+              *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+          else
+            status = _core.process_event(empty_opdigit, empty_wire, *hit_h, 
+              *mctruth_h, *mctrack_h, *mcshower_h, *simch_h);
+        } 
       }
     }else{
       std::vector<larlite::mctruth>  empty_mctruth;
       std::vector<larlite::mctrack>  empty_mctrack;
       std::vector<larlite::mcshower> empty_mcshower;
       std::vector<larlite::simch>    empty_simch;
-      if(opdigit_h)
-        status = _core.process_event(*opdigit_h, *wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);
-      else {
-        std::vector<larlite::opdetwaveform> empty_opdigit;
-        status = _core.process_event(empty_opdigit, *wire_h,empty_mctruth,empty_mctrack,empty_mcshower,empty_simch);        
+      std::vector<larlite::wire> empty_wire;
+      std::vector<larlite::hit> empty_hit;
+      if(opdigit_h) {
+        if(wire_h)
+          status = _core.process_event(*opdigit_h, *wire_h, empty_hit, 
+            empty_mctruth, empty_mctrack, empty_mcshower, empty_simch);
+        else
+          status = _core.process_event(*opdigit_h, empty_wire, *hit_h, 
+            empty_mctruth, empty_mctrack, empty_mcshower, empty_simch);
       }
+      else{
+        std::vector<larlite::opdetwaveform> empty_opdigit;
+        if(wire_h)
+          status = _core.process_event(empty_opdigit, *wire_h, empty_hit, 
+            empty_mctruth, empty_mctrack, empty_mcshower, empty_simch);
+        else
+          status = _core.process_event(empty_opdigit, empty_wire, *hit_h, 
+            empty_mctruth, empty_mctrack, empty_mcshower, empty_simch);
+      } 
     }
     return status;
   }
