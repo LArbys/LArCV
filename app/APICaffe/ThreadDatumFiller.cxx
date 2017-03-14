@@ -102,7 +102,7 @@ namespace larcv {
     PSet cfg(_driver.name());
     for (auto const& value_key : orig_cfg.value_keys())
       cfg.add_value(value_key, orig_cfg.get<std::string>(value_key));
-
+    std::cout<<"\033[93m setting verbosity \033[00m" << cfg.get<unsigned short>("Verbosity", 2) << std::endl;
     set_verbosity( (msg::Level_t)(cfg.get<unsigned short>("Verbosity", 2)) );
     _enable_filter = cfg.get<bool>("EnableFilter");
     _random_access = cfg.get<bool>("RandomAccess");
@@ -191,31 +191,71 @@ namespace larcv {
     return _filler->dim(image);
   }
 
-  const std::vector<float>& ThreadDatumFiller::data() const
+  const std::string& ThreadDatumFiller::producer(DatumFillerBase::FillerDataType_t dtype) const
   {
     if (!_processing) {
-      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
+      LARCV_CRITICAL() << "Data is not available before start processing!" << std::endl;
       throw larbys();
     }
     if (thread_running()) {
       LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
       throw larbys();
     }
-    return _filler->data();
+    return _filler->producer(dtype);
+  }
+
+  const std::vector<float>& ThreadDatumFiller::data() const
+  {
+    if (!_processing) {
+      LARCV_CRITICAL() << "Data is not available before start processing!" << std::endl;
+      throw larbys();
+    }
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+    return _filler->data(DatumFillerBase::kFillerImageData);
   }
 
   const std::vector<float>& ThreadDatumFiller::labels() const
   {
     if (!_processing) {
-      LARCV_CRITICAL() << "Dimension is not known before start processing!" << std::endl;
+      LARCV_CRITICAL() << "Label is not available before start processing!" << std::endl;
       throw larbys();
     }
     if (thread_running()) {
       LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
       throw larbys();
     }
-    return _filler->data(false);
+    return _filler->data(DatumFillerBase::kFillerLabelData);
   }
+
+  const std::vector<float>& ThreadDatumFiller::weights() const
+  {
+    if (!_processing) {
+      LARCV_CRITICAL() << "Weight is not available before start processing!" << std::endl;
+      throw larbys();
+    }
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+    return _filler->data(DatumFillerBase::kFillerWeightData);
+  }
+
+  const std::vector<std::vector<larcv::ImageMeta> >& ThreadDatumFiller::meta() const
+  {
+    if (!_processing) {
+      LARCV_CRITICAL() << "Weight is not available before start processing!" << std::endl;
+      throw larbys();
+    }
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+    return _filler->meta();
+  }
+  
 
   bool ThreadDatumFiller::batch_process(size_t nentries)
   {
@@ -306,7 +346,7 @@ namespace larcv {
       }
 
       LARCV_INFO() << "Processing entry: " << entry
-                   << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
+		   << " (tree index=" << _driver.get_tree_index( entry ) << ")" << std::endl;
 
       last_entry = entry;
       bool good_status = _driver.process_entry(entry, true);

@@ -15,8 +15,9 @@ namespace larcv {
     , _slice_v()
     , _max_ch(0)
   { 
-    _image_product_type = kProductImage2D;
-    _label_product_type = kProductImage2D;
+    _image_product_type  = kProductImage2D;
+    _label_product_type  = kProductImage2D;
+    _weight_product_type = kProductImage2D;
     _seg_channel = kINVALID_SIZE;
   }
 
@@ -78,7 +79,7 @@ namespace larcv {
   {
     if(logger().level() <= msg::kINFO) {
       std::vector<size_t> ctr_v;
-      for(auto const& v : data(false)) {
+      for(auto const& v : data(kFillerLabelData)) {
         if(v>=ctr_v.size()) ctr_v.resize(v+1,0);
         ctr_v[v] += 1;
       }
@@ -193,24 +194,37 @@ namespace larcv {
     }
   }
 
-  void SegFiller::fill_entry_data( const EventBase* image_data, const EventBase* label_data)
+  void SegFiller::fill_entry_data( const EventBase* image_data, 
+				   const EventBase* label_data,
+				   const EventBase* weight_data)
   {
     LARCV_DEBUG() << "Start" << std::endl;
     auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
     this->assert_dimension(image_v);
 
+    /* Let's not require weight to exist on all channel by default
+    if(weight_data) {
+      auto const& weight_v = ((EventImage2D*)weight_data)->Image2DArray();
+      this->assert_dimension(weight_data);
+    }
+    */
+
     auto const& label_v = ((EventImage2D*)label_data)->Image2DArray();
+
     // Check label validity
     if(_seg_channel >= label_v.size()) {
       LARCV_CRITICAL() << "Segmentation image channel (" << _seg_channel << ") does not exist in data!" << std::endl;
       throw larbys();
     }
-    
+
     if(_entry_image_data.empty()) _entry_image_data.resize(entry_image_size(),0.);
     for(auto& v : _entry_image_data) v = 0.;
 
     if(_entry_label_data.empty()) _entry_label_data.resize(entry_label_size(),0.);
     for(auto& v : _entry_label_data) v = 0.;
+
+    if(_entry_weight_data.empty()) _entry_weight_data.resize(entry_weight_size(),0.);
+    for(auto& v : _entry_weight_data) v = 0.;
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -230,12 +244,14 @@ namespace larcv {
 	LARCV_INFO() << "Filling for an image channel " << input_ch << std::endl;
 
         auto const& input_img2d = image_v[input_ch];
-
+	auto const& input_meta  = input_img2d.meta();
+	_entry_meta_data.push_back(input_meta);
+	
         if(!ch && _crop_image) {
 
 	  LARCV_INFO() << "First image: setting cropping region (" 
 		       << _cropper.rows() << "x" << _cropper.cols() << std::endl;
-          _cropper.set_crop_region(input_img2d.meta().rows(), input_img2d.meta().cols());
+          _cropper.set_crop_region(input_meta.rows(), input_meta.cols());
 
 	}
 
@@ -245,21 +261,60 @@ namespace larcv {
         size_t caffe_idx=0;
         size_t output_idx = ch * _rows * _cols;
 	LARCV_INFO() << "Start filling image from output data index " << output_idx << " for " << _rows * _cols << " pixels" << std::endl;
-        for(size_t row=0; row<_rows; ++row) {
-          for(size_t col=0; col<_cols; ++col) {
-          
-            if(mirror_image)
 
-              _entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
+	if(!weight_data) {
+	  for(size_t row=0; row<_rows; ++row) {
+	    for(size_t col=0; col<_cols; ++col) {
+	      
+	      if(mirror_image)
+		
+		_entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
+	      
+	      else
+		
+		_entry_image_data[output_idx] = input_image[_caffe_idx_to_img_idx[caffe_idx]];
+	      
+	      ++output_idx;
+	      ++caffe_idx;
+	    }
+	  }
+	}else{
 
-            else
+	  auto const& weight_img2d = ((EventImage2D*)(weight_data))->Image2DArray()[input_ch];
 
-              _entry_image_data[output_idx] = input_image[_caffe_idx_to_img_idx[caffe_idx]];
+	  // Make sure dimension matches
+	  if(weight_img2d.meta().cols() != input_meta.cols() ||
+	     weight_img2d.meta().rows() != input_meta.rows() ) {
+	    LARCV_CRITICAL() << "Channel " << input_ch << ": weight dim (col,row) = ("
+			     << weight_img2d.meta().rows() << "," << weight_img2d.meta().cols() << ")"
+			     << " vs. Image dim ("
+			     << input_meta.rows() << "," << input_meta.cols() << ")"
+			     << std::endl;
+	    throw larbys();
+	  }
+	  
+	  auto const& weight_image = (_crop_image ? _cropper.crop(weight_img2d) : weight_img2d.as_vector());
 
-            ++output_idx;
-            ++caffe_idx;
-        }
-      }
+	  for(size_t row=0; row<_rows; ++row) {
+	    for(size_t col=0; col<_cols; ++col) {
+	      
+	      if(mirror_image) {
+		
+		_entry_image_data  [output_idx] = input_image  [_mirror_caffe_idx_to_img_idx[caffe_idx]];
+		_entry_weight_data [output_idx] = weight_image [_mirror_caffe_idx_to_img_idx[caffe_idx]];
+
+	      }else{
+		
+		_entry_image_data  [output_idx] = input_image  [_caffe_idx_to_img_idx[caffe_idx]];
+		_entry_weight_data [output_idx] = weight_image [_caffe_idx_to_img_idx[caffe_idx]];
+
+	      }
+
+	      ++output_idx;
+	      ++caffe_idx;
+	    }
+	  }
+	}
     }
 
     // Label

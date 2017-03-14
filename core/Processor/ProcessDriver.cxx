@@ -15,6 +15,8 @@ namespace larcv {
     , _processing(false)
     , _fout(nullptr)
     , _fout_name("")
+    , _batch_start_entry(0)
+    , _batch_num_entry(0)
   {}
 
   void ProcessDriver::reset()
@@ -143,7 +145,8 @@ namespace larcv {
     _enable_filter = cfg.get<bool>("EnableFilter");
     _random_access = cfg.get<bool>("RandomAccess");
     _fout_name = cfg.get<std::string>("AnaFile","");
-
+    _batch_start_entry = cfg.get<int>("StartEntry",0);
+    _batch_num_entry   = cfg.get<int>("NumEntries",0);
     // Process list
     auto process_instance_type_v = cfg.get<std::vector<std::string> >("ProcessType");
     auto process_instance_name_v = cfg.get<std::vector<std::string> >("ProcessName");
@@ -326,6 +329,8 @@ namespace larcv {
   void ProcessDriver::batch_process(size_t start_entry,size_t num_entries){
     LARCV_DEBUG() << "Called" << std::endl;
     // Public method to execute num_entries starting from start_entry
+    if(!start_entry) start_entry = _batch_start_entry;
+    if(!num_entries) num_entries = _batch_num_entry;
 
     // Check state
     if(!_processing) {

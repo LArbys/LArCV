@@ -171,6 +171,9 @@ namespace larcv {
 
   std::vector<float> Image2D::copy_compress(size_t rows, size_t cols, CompressionModes_t mode) const
   { 
+    if(mode == kOverWrite) 
+      throw larbys("kOverWrite is invalid for copy_compress!");
+
     const size_t self_cols = _meta.cols();
     const size_t self_rows = _meta.rows();
     if(self_cols % cols || self_rows % rows) {
@@ -311,6 +314,14 @@ namespace larcv {
 	for(size_t row_index=0; row_index < nrows; ++row_index) 
 
 	  _img[index1+row_index] = std::max(_img[index1+row_index],img2[index2+row_index]);
+
+	break;
+	
+      case kOverWrite:
+
+	for(size_t row_index=0; row_index < nrows; ++row_index) 
+
+	  _img[index1+row_index] = img2[index2+row_index];
 
 	break;
       }

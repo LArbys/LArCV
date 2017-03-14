@@ -17,7 +17,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "PyUtils.h"
-
+#include "DataFormat/ImageMeta.h"
 namespace larcv {
 
   /**
@@ -44,6 +44,8 @@ namespace larcv {
     void finalize();
 
     void append_ndarray(PyObject* img);
+
+    void append_ndarray_meta(PyObject* img, const ImageMeta& meta);
 
     void set_id(size_t run, size_t subrun, size_t event)
     { _run = run; _subrun = subrun; _event = event; }
