@@ -18,7 +18,6 @@ namespace larcv {
     _require_match            = cfg.get<bool>("RequireMatch",true);
     _filtervertextreename     = cfg.get<std::string>("FilterVertexTreeName","FilterVertexTree");
     _filtereventtreename      = cfg.get<std::string>("FilterEventTreeName","FilterEventTree");
-
   }
   void LArbysImageFilter::initialize()
   {
@@ -53,10 +52,6 @@ namespace larcv {
     _vtx3d_z=kINVALID_DOUBLE;
     _vtx2d_x_v.clear();
     _vtx2d_y_v.clear();
-    _ntrack_par_v.clear();
-    _nshower_par_v.clear();
-    _circle_x_v.clear();
-    _circle_y_v.clear();
     _par_multi.clear();
   }
   void LArbysImageFilter::ClearEvent() {
@@ -102,9 +97,12 @@ namespace larcv {
       if (_require_two_multiplicity) { 
 	auto multiplicity=_vtx_ana.RequireParticleCount(pcluster_vv,2,2);
 	if (!multiplicity) continue;
+
       }
-      auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,_larbysext_ptr->ADCImages(),0.5,2,2);
-      if (match_vv.empty()) continue;
+      if(_require_match) {
+	auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,_larbysext_ptr->ADCImages(),0.5,2,2);
+	if (match_vv.empty()) continue;
+      }
       WriteOut(vertexid);
       _vtx3d_tree->Fill();
     }

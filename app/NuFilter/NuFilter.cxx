@@ -46,6 +46,8 @@ namespace larcv {
     _roi_producer_name = cfg.get<std::string>("ROIProducer");
 
     _mc_available = cfg.get<bool>("MCAvailable",true);
+    _write_tree   = cfg.get<bool>("WriteTree",true);
+    
   }
 
   //from rui an.
@@ -247,7 +249,7 @@ namespace larcv {
     LARCV_DEBUG() << "N fail unknowns:   " << _n_fail_unknowns << std::endl;
     LARCV_DEBUG() << "N pass : " << _n_pass << std::endl;
     LARCV_DEBUG() << std::endl;
-    _event_tree->Write();
+    if (_write_tree) _event_tree->Write();
   }
 
 }

@@ -25,7 +25,8 @@ namespace larcv {
 
     _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",35);
     _do_not_reco       = cfg.get<bool>("DoNotReco",false);
-    _mc_available = cfg.get<bool>("MCAvailable",true);
+    _mc_available      = cfg.get<bool>("MCAvailable",true);
+    _write_tree        = cfg.get<bool>("WriteTree",true);
   }
 
   cv::Rect LArbysImageMC::Get2DRoi(const ImageMeta& meta,
@@ -532,7 +533,8 @@ namespace larcv {
 
   void LArbysImageMC::finalize()
   {
-    _mc_tree->Write();
+    if (_write_tree)
+      _mc_tree->Write();
   }
 
 }

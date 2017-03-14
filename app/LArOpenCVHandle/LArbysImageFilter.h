@@ -46,10 +46,6 @@ namespace larcv {
     double _vtx3d_z;
     std::vector<double> _vtx2d_x_v;
     std::vector<double> _vtx2d_y_v;
-    std::vector<uint> _ntrack_par_v;
-    std::vector<uint> _nshower_par_v;
-    std::vector<double> _circle_x_v;
-    std::vector<double> _circle_y_v;
     std::vector<uint> _par_multi;
   };
   class LArbysImageFilterProcessFactory : public ProcessFactoryBase {
