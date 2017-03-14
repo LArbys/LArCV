@@ -31,14 +31,8 @@ larbysimg     = proc.process_ptr(reco_id)
 larbysimg_ana = proc.process_ptr(ana_id)
 larbysimg_ana.SetManager(larbysimg.Manager())
 
-#evstart=int(sys.argv[2])
-#step=int(1717)
-#step=int(3434)
-#proc.override_ana_file("nue_%05d_%05d.root"%(evstart,evstart+step))
 proc.override_ana_file(sys.argv[2] + ".root")
 proc.initialize()
-#proc.batch_process(evstart,step)
-proc.batch_process(0,2500)
-#proc.batch_process(0,50)
+proc.batch_process()
+#proc.batch_process(25,1) #for adrien
 proc.finalize()
-

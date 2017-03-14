@@ -222,6 +222,8 @@ namespace larcv {
       _vtx3d_tree->Fill();
     } //end loop over vertex
 
+    _event_tree->Fill();
+    
     //For adrien...
     /*
     auto& adc_img_v=_mgr_ptr->InputImages(0);
@@ -477,9 +479,9 @@ namespace larcv {
   void LArbysImageOut::finalize()
   {
     _event_tree->Write();
-    // _vtx3d_tree->Write();
+    _vtx3d_tree->Write();
   }
-
+  
 }
 #endif
 
