@@ -50,7 +50,13 @@ namespace larcv {
     const std::vector<larocv::data::TrackClusterCompound>&
     Tracks(size_t vertexid,size_t planeid)
     { return (*_track_cluster_comp_vvv)[vertexid][planeid]; }
+
+    const std::string GetMCTreeName ()
+    { return _mc_tree_name; }
     
+    const std::string GetRootName ()
+    { return _input_larbys_root_file; }
+
   private:
 
     std::string _mc_tree_name;

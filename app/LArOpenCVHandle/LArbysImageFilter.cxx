@@ -1,6 +1,8 @@
 #ifndef __LARBYSIMAGEFILTER_CXX__
 #define __LARBYSIMAGEFILTER_CXX__
 #include "LArbysImageFilter.h"
+#include "TFile.h"
+#include "TTree.h"
 
 namespace larcv {
   static LArbysImageFilterProcessFactory __global_LArbysImageFilterProcessFactory__;
@@ -16,8 +18,8 @@ namespace larcv {
   {
     _require_two_multiplicity = cfg.get<bool>("RequireMultiplicityTwo",true);
     _require_match            = cfg.get<bool>("RequireMatch",true);
-    _filtervertextreename     = cfg.get<std::string>("FilterVertexTreeName","FilterVertexTree");
-    _filtereventtreename      = cfg.get<std::string>("FilterEventTreeName","FilterEventTree");
+    _filtervertextreename     = cfg.get<std::string>("FilterVertexTreeName","Vertex3DTree");
+    _filtereventtreename      = cfg.get<std::string>("FilterEventTreeName","EventTree");
 
   }
   void LArbysImageFilter::initialize()
@@ -43,6 +45,7 @@ namespace larcv {
     _event_tree->Branch("Vertex3D_v",&_vertex3d_v);
     _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
     _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
+    //_mc_tree = 
   }
   void LArbysImageFilter::ClearVertex() {
     _vtx3d_id=kINVALID_INT;
@@ -115,8 +118,25 @@ namespace larcv {
   }
   void LArbysImageFilter::finalize()
   {
+
     _event_tree->Write();
     _vtx3d_tree->Write();
+
+    std::string oldfilename;
+    std::string oldtreename;
+	
+    oldfilename = _larbysana_ptr->GetRootName();
+    oldtreename = _larbysana_ptr->GetMCTreeName();
+    
+    TFile *oldfile = new TFile(oldfilename.c_str(),"read");
+    TTree *oldtree = (TTree*)oldfile->Get(oldtreename.c_str());
+    
+    //_mc_tree->Print();
+    _mc_tree = oldtree->CloneTree();
+    //_mc_tree->CopyEntries(oldtree);
+    ana_file().cd();
+    _mc_tree->Write();
+    
   }
 }
 #endif

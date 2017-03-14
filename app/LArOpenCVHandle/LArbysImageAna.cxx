@@ -11,6 +11,8 @@ namespace larcv {
     : ProcessBase(name),
       _mc_chain(nullptr),
       _reco_chain(nullptr),
+      _vtx2d_w_v(nullptr),
+      _vtx2d_t_v(nullptr),
       _reco_vertex_v(nullptr),
       _particle_cluster_vvv(nullptr),
       _track_cluster_comp_vvv(nullptr)
