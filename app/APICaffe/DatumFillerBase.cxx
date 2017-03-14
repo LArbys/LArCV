@@ -129,11 +129,13 @@ namespace larcv {
     auto const image_data = mgr.get_data(_image_producer_id);
     auto const label_data = mgr.get_data(_label_producer_id);
     LARCV_INFO() << std::endl;
-    if(_entry_image_size==kINVALID_SIZE) {
+    if(_entry_image_size==kINVALID_SIZE || _nentries == 1) {
 
       _entry_image_size = compute_image_size(image_data);
-
       _entry_label_size = compute_label_size(label_data);
+
+      LARCV_INFO() << "Recomputed image size: " << _entry_image_size << std::endl;
+      LARCV_INFO() << "Recomputed label size: " << _entry_label_size << std::endl;
 
       if( _entry_image_size == kINVALID_SIZE || _entry_label_size == kINVALID_SIZE ) {
         LARCV_CRITICAL() << "Rows/Cols/NumChannels not set!" << std::endl;
@@ -147,7 +149,6 @@ namespace larcv {
 
       _image_data.resize  (_entry_image_size  * _nentries, 0.);
       _label_data.resize  (_entry_label_size  * _nentries, 0.);
-
     }
 
     EventBase* weight_data=nullptr;

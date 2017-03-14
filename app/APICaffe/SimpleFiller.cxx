@@ -60,6 +60,8 @@ namespace larcv {
   void SimpleFiller::child_batch_end()   
   {
     if(logger().level() <= msg::kINFO) {
+      LARCV_INFO() << "Total data size: " << data().size() << std::endl;
+
       std::vector<size_t> ctr_v;
       for(auto const& v : data(kFillerLabelData)) {
         if(v>=ctr_v.size()) ctr_v.resize(v+1,0);
@@ -131,6 +133,8 @@ namespace larcv {
       _cols = std::min( image_v.front().meta().cols(), _cropper.cols() );
     }
 
+    LARCV_INFO() << "Rows = " << _rows << " ... Cols = " << _cols << std::endl;
+
     // Define caffe idx to Image2D idx (assuming no crop)
     _caffe_idx_to_img_idx.resize(_rows*_cols,0);
     _mirror_caffe_idx_to_img_idx.resize(_rows*_cols,0);
@@ -154,16 +158,30 @@ namespace larcv {
     }
     bool valid_ch   = (image_v.size() > _max_ch);
     bool valid_rows = true;
-    for(auto const& img : image_v) {
+    for(size_t ch=0;ch<_num_channels;++ch) {
+      size_t input_ch = _slice_v[ch];
+      auto const& img = image_v[input_ch];
+
       if ( !_crop_image )
         valid_rows = ( _rows == img.meta().rows() );
-      if(!valid_rows) break;
+      if(!valid_rows) {
+	LARCV_ERROR() << "# of rows changed! (row,col): (" << _rows << "," << _cols << ") => (" 
+		      << img.meta().rows() << "," << img.meta().cols() << ")" << std::endl;
+	break;
+      }
     }
+
     bool valid_cols = true;
-    for(auto const& img : image_v) {
+    for(size_t ch=0;ch<_num_channels;++ch) {
+      size_t input_ch = _slice_v[ch];
+      auto const& img = image_v[input_ch];
       if ( !_crop_image )
         valid_cols = ( _cols == img.meta().cols() );
-      if(!valid_cols) break;
+      if(!valid_cols) {
+	LARCV_ERROR() << "# of cols changed! (row,col): (" << _rows << "," << _cols << ") => (" 
+		      << img.meta().rows() << "," << img.meta().cols() << ")" << std::endl;
+	break;
+      }
     }
     if(!valid_rows) {
       LARCV_CRITICAL() << "# of rows in the input image have changed!" << std::endl;
@@ -192,7 +210,8 @@ namespace larcv {
     auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
     this->assert_dimension(image_v);
 
-    if(_entry_image_data.empty()) _entry_image_data.resize(entry_image_size(),0.);
+    if(_entry_image_data.size() != entry_image_size())
+      _entry_image_data.resize(entry_image_size(),0.);
     for(auto& v : _entry_image_data) v = 0.;
 
     std::random_device rd;

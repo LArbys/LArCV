@@ -41,6 +41,16 @@ namespace larcv {
     return PyArray_FromDimsAndData( 2, dim_data, NPY_FLOAT, (char*) &(vec[0]));
   }
 
+  PyObject* as_caffe_ndarray(const Image2D& img)
+  {
+    SetPyUtil();
+    int* dim_data = new int[2];
+    dim_data[0] = img.meta().rows();
+    dim_data[1] = img.meta().cols();
+    auto const& vec = img.as_vector();
+    return PyArray_FromDimsAndData( 2, dim_data, NPY_FLOAT, (char*) &(vec[0]));
+  }
+
   larcv::Image2D as_image2d_meta(PyObject* pyarray,ImageMeta meta)
   {
     SetPyUtil();
@@ -57,7 +67,7 @@ namespace larcv {
     std::vector<float> res_data(dims[0]*dims[1],0.);
     for(int i=0; i<dims[0]; ++i) {
       for(int j=0; j<dims[1]; ++j) {
-	res_data[i * dims[1] + j] = (float)(carray[i][j]);
+	res_data[i * dims[1] + j] = (float)(carray[j][i]);
       }
     }
     PyArray_Free(pyarray,(void *)carray);
@@ -82,7 +92,7 @@ namespace larcv {
     std::vector<float> res_data(dims[0]*dims[1],0.);
     for(int i=0; i<dims[0]; ++i) {
       for(int j=0; j<dims[1]; ++j) {
-	res_data[i * dims[1] + j] = (float)(carray[i][j]);
+	res_data[i * dims[1] + j] = (float)(carray[j][i]);
       }
     }
     PyArray_Free(pyarray,(void *)carray);

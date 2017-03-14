@@ -31,8 +31,12 @@
 #pragma link C++ class larcv::CropROI+;
 #pragma link C++ class larcv::ROIMask+;
 #pragma link C++ class larcv::SegWeightTrackShower+;
+#pragma link C++ class larcv::ModularPadImage+;
+#pragma link C++ class larcv::MultiROICropper+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 
