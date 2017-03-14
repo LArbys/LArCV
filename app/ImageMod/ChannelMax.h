@@ -43,9 +43,11 @@ namespace larcv {
 
   private:
     
-    std::string _in_producer;
     size_t _nplanes;
+    std::string _in_producer;
     std::string _out_producer;
+    std::vector<float> _plane_weight_v;
+    
   };
 
   /**

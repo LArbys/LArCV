@@ -14,9 +14,14 @@ namespace larcv {
     
   void ChannelMax::configure(const PSet& cfg)
   {
-    _in_producer  = cfg.get<std::string>("InProducer");
-    _nplanes      = cfg.get<size_t>("NPlanes");
-    _out_producer = cfg.get<std::string>("OutputProducer");
+    _in_producer    = cfg.get<std::string>("InProducer");
+    _nplanes        = cfg.get<size_t>("NPlanes");
+    _out_producer   = cfg.get<std::string>("OutputProducer");
+    _plane_weight_v = cfg.get<std::vector<float> >("PlaneWeights",{});
+
+    if (_plane_weight_v.empty())
+      _plane_weight_v.resize(_nplanes,1.0);
+    
   }
 
   void ChannelMax::initialize()
@@ -36,7 +41,7 @@ namespace larcv {
 	float maxpx(-1),maxpl(-1);
 	for(size_t plane_id=0;plane_id<_nplanes;++plane_id) {
 	  auto px=img_v[plane_id].pixel(row,col);
-	  //px*=_plane_weight_v[plane_id];
+	  px*=_plane_weight_v[plane_id];
 	  if (px>maxpx) { maxpx=px; maxpl=plane_id; }
 	}
 	if (maxpx<0 or maxpl<0) throw larbys("No max plan identified");
