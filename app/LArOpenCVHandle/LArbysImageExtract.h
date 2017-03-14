@@ -23,10 +23,18 @@ namespace larcv {
     const std::vector<cv::Mat>&
     ADCImages()
     { return _adc_mat_v; }
+
+    const std::vector<larocv::ImageMeta>&
+    ADCMetas()
+    { return _adc_meta_v; }
     
     const cv::Mat&
     ADCImage(size_t planeid)
     { return _adc_mat_v[planeid]; }
+
+    const larocv::ImageMeta&
+    ADCMeta(size_t planeid)
+    { return _adc_meta_v[planeid]; }
     
     const std::vector<cv::Mat>&
     TrackImages()
@@ -53,6 +61,7 @@ namespace larcv {
 
     // The images
     std::vector<cv::Mat> _adc_mat_v;
+    std::vector<larocv::ImageMeta> _adc_meta_v;
     std::vector<cv::Mat> _track_mat_v;
     std::vector<cv::Mat> _shower_mat_v;
     

@@ -19,7 +19,7 @@ namespace larcv {
 
   void LArbysImageResult::initialize()
   {}
-
+  
   bool LArbysImageResult::process(IOManager& mgr)
   {
     if (!_mgr_ptr) throw larbys("No manager pointer set");
@@ -45,15 +45,13 @@ namespace larcv {
 	const auto comp_array = (larocv::data::TrackClusterCompoundArray*)
 	  data_mgr.Data(track_particle_cluster_id, plane_id+_combined_particle_offset+3);
 
-
 	auto par_ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
 	
 	for(auto ass_idx : par_ass_idx_v) {
 
 	  if (ass_idx==kINVALID_SIZE) throw larbys("Invalid vertex->particle association detected");
 	  const auto& par = par_array->as_vector()[ass_idx];
-
-
+	  
 	  const auto par_ctor = par._ctor;
 
 	  //Here the particle contour and do something, like cluster hits

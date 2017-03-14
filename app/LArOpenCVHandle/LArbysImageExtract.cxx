@@ -26,13 +26,24 @@ namespace larcv {
   bool LArbysImageExtract::process(IOManager& mgr)
   {
 
-    _adc_mat_v = _LArbysImageMaker.ExtractMat(mgr,_adc_producer);
+    auto adc_img_data_v = _LArbysImageMaker.ExtractImage(mgr,_adc_producer);
+    _adc_mat_v.clear();
+    _adc_mat_v.reserve(3);
+    
+    _adc_meta_v.clear();
+    _adc_meta_v.reserve(3);
+    
+    for(auto& img_data : adc_img_data_v) {
+      _adc_mat_v.emplace_back(std::move(std::get<0>(img_data)));
+      _adc_meta_v.emplace_back(std::move(std::get<1>(img_data)));
+    }
+    
     _track_mat_v = _LArbysImageMaker.ExtractMat(mgr,_track_producer);
     _shower_mat_v = _LArbysImageMaker.ExtractMat(mgr,_shower_producer);
 
     return true;
   }
-
+  
   void LArbysImageExtract::finalize()
   {}
 
