@@ -1,6 +1,8 @@
 #ifndef __LARBYSIMAGEFILTER_CXX__
 #define __LARBYSIMAGEFILTER_CXX__
 #include "LArbysImageFilter.h"
+#include "TFile.h"
+#include "TTree.h"
 
 namespace larcv {
   static LArbysImageFilterProcessFactory __global_LArbysImageFilterProcessFactory__;
@@ -18,7 +20,6 @@ namespace larcv {
     _require_match            = cfg.get<bool>("RequireMatch",true);
     _filtervertextreename     = cfg.get<std::string>("FilterVertexTreeName","FilterVertexTree");
     _filtereventtreename      = cfg.get<std::string>("FilterEventTreeName","FilterEventTree");
-
   }
   void LArbysImageFilter::initialize()
   {
@@ -43,6 +44,7 @@ namespace larcv {
     _event_tree->Branch("Vertex3D_v",&_vertex3d_v);
     _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
     _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
+    //_mc_tree = 
   }
   void LArbysImageFilter::ClearVertex() {
     _vtx3d_id=kINVALID_INT;
@@ -53,10 +55,6 @@ namespace larcv {
     _vtx3d_z=kINVALID_DOUBLE;
     _vtx2d_x_v.clear();
     _vtx2d_y_v.clear();
-    _ntrack_par_v.clear();
-    _nshower_par_v.clear();
-    _circle_x_v.clear();
-    _circle_y_v.clear();
     _par_multi.clear();
   }
   void LArbysImageFilter::ClearEvent() {
@@ -102,9 +100,12 @@ namespace larcv {
       if (_require_two_multiplicity) { 
 	auto multiplicity=_vtx_ana.RequireParticleCount(pcluster_vv,2,2);
 	if (!multiplicity) continue;
+
       }
-      auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,_larbysext_ptr->ADCImages(),0.5,2,2);
-      if (match_vv.empty()) continue;
+      if(_require_match) {
+	auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,_larbysext_ptr->ADCImages(),0.5,2,2);
+	if (match_vv.empty()) continue;
+      }
       WriteOut(vertexid);
       _vtx3d_tree->Fill();
     }
@@ -115,8 +116,25 @@ namespace larcv {
   }
   void LArbysImageFilter::finalize()
   {
+
     _event_tree->Write();
     _vtx3d_tree->Write();
+
+    std::string oldfilename;
+    std::string oldtreename;
+	
+    oldfilename = _larbysana_ptr->GetRootName();
+    oldtreename = _larbysana_ptr->GetMCTreeName();
+    
+    TFile *oldfile = new TFile(oldfilename.c_str(),"read");
+    TTree *oldtree = (TTree*)oldfile->Get(oldtreename.c_str());
+    
+    //_mc_tree->Print();
+    _mc_tree = oldtree->CloneTree();
+    //_mc_tree->CopyEntries(oldtree);
+    ana_file().cd();
+    _mc_tree->Write();
+    
   }
 }
 #endif

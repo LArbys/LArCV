@@ -17,7 +17,6 @@ namespace larcv {
       ignore(false),
       straight(false)
     {}
-    
     ~PixelChunk() {}
     larocv::GEO2D_Contour_t ctor;
     geo2d::Vector<float> edge1;
