@@ -20,19 +20,11 @@ if len(sys.argv) > 1:
 
 filter_id = proc.process_id("NuFilter")
 mcinfo_id = proc.process_id("LArbysImageMC")
-reco_id   = proc.process_id("LArbysImage")
-ana_id    = proc.process_id("LArbysImageOut")
 
 filter_proc   = proc.process_ptr(filter_id)
 mcinfo_proc   = proc.process_ptr(mcinfo_id)
 mcinfo_proc.SetFilter(filter_proc)
-
-larbysimg     = proc.process_ptr(reco_id)
-larbysimg_ana = proc.process_ptr(ana_id)
-larbysimg_ana.SetManager(larbysimg.Manager())
-
 proc.override_ana_file(sys.argv[2] + ".root")
 proc.initialize()
 proc.batch_process()
-#proc.batch_process(25,1) #for adrien
 proc.finalize()

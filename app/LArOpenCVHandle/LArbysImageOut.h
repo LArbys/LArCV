@@ -1,14 +1,11 @@
 #ifndef __LARBYSIMAGEOUT_H__
 #define __LARBYSIMAGEOUT_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include <TTree.h>
+#include "LArbysImageAnaBase.h"
 
 #include "DataFormat/EventImage2D.h"
-
-#include "/Users/vgenty/sw/larcv/core/DataFormat/Vertex.h"
-
-#include "LArbysImage.h"
+#include "DataFormat/Vertex.h"
 
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
@@ -18,21 +15,18 @@
 
 namespace larcv {
 
-  class LArbysImageOut : public ProcessBase {
+  class LArbysImageOut : public LArbysImageAnaBase {
 
   public:
     
     LArbysImageOut(const std::string name="LArbysImageOut");
     ~LArbysImageOut(){}
 
-    void configure(const PSet&);
-    void initialize();
-    bool process(IOManager& mgr);
-    void finalize();
+    void Configure(const PSet&);
+    void Initialize();
+    bool Analyze(const ::larocv::ImageClusterManager& mgr);
+    void Finalize(TFile* fout=nullptr);
 
-    void SetManager(const::larocv::ImageClusterManager* icm)
-    { _mgr_ptr = icm; }
-    
   private:
     
     TTree* _event_tree;
@@ -40,20 +34,12 @@ namespace larcv {
     
     std::string _track_vertex_estimate_algo_name;
 
-    const ::larocv::ImageClusterManager* _mgr_ptr;
-
     /// Clear vertex
     void ClearVertex();
 
+    /// Vtx3d data
     std::string _combined_vertex_name;
-    
-    /// Unique event keys
-    uint _run;
-    uint _subrun;
-    uint _event;
-    uint _entry;
-    
-    // vertex3d data
+
     uint _n_vtx3d;
     uint _vtx3d_n_planes;
     uint _vtx3d_type;
@@ -102,13 +88,6 @@ namespace larcv {
       larocv::data::AlgoDataAssManager _ass_man;
     */
     
-  };
-
-  class LArbysImageOutProcessFactory : public ProcessFactoryBase {
-  public:
-    LArbysImageOutProcessFactory() { ProcessFactory::get().add_factory("LArbysImageOut",this); }
-    ~LArbysImageOutProcessFactory() {}
-    ProcessBase* create(const std::string instance_name) { return new LArbysImageOut(instance_name); }
   };
 
 }

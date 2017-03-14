@@ -6,11 +6,11 @@
 #include "LArOpenCV/Core/ImageManager.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterViewer.h"
-#include "DataFormat/user_info.h"
+#include "DataFormat/Image2D.h"
 #include "PreProcessor.h"
 #include "TrackShowerAna.h"
 #include "LArbysImageMaker.h"
-
+#include "LArbysImageAnaBase.h"
 namespace larcv {
 
   /**
@@ -44,10 +44,13 @@ namespace larcv {
     
   protected:
 
-    void store_clusters(IOManager& mgr);
+    const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
 
+    bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
+		     const std::vector<larcv::Image2D>& track_image_v,
+		     const std::vector<larcv::Image2D>& shower_image_v);
+      
     TTree* _tree;
-    ::larlite::event_user* _eui;
     
     ::larocv::ImageClusterManager _alg_mgr;
     ::larocv::ImageManager _adc_img_mgr;
@@ -64,6 +67,7 @@ namespace larcv {
     
     std::vector<float> _plane_weights;
     std::string _adc_producer;
+    std::string _roi_producer;
     std::string _track_producer;
     std::string _shower_producer;
     std::string _output_producer;
@@ -77,6 +81,9 @@ namespace larcv {
     PreProcessor _PreProcessor;
     TrackShowerAna _TrackShowerAna;
     LArbysImageMaker _LArbysImageMaker;
+    LArbysImageAnaBase* _LArbysImageAnaBase_ptr;
+
+    std::vector<larcv::Image2D> _empty_image_v;
   };
 
   /**
