@@ -50,7 +50,9 @@ namespace larcv {
 
   protected:
 
-    void fill_entry_data(const EventBase* image_data, const EventBase* label_data);
+    void fill_entry_data(const EventBase* image_data, 
+			 const EventBase* label_data,
+			 const EventBase* weight_data);
 
     size_t compute_image_size(const EventBase* image_data);
 

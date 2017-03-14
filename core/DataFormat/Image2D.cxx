@@ -171,6 +171,9 @@ namespace larcv {
 
   std::vector<float> Image2D::copy_compress(size_t rows, size_t cols, CompressionModes_t mode) const
   { 
+    if(mode == kOverWrite) 
+      throw larbys("kOverWrite is invalid for copy_compress!");
+
     const size_t self_cols = _meta.cols();
     const size_t self_rows = _meta.rows();
     if(self_cols % cols || self_rows % rows) {
@@ -313,6 +316,14 @@ namespace larcv {
 	  _img[index1+row_index] = std::max(_img[index1+row_index],img2[index2+row_index]);
 
 	break;
+	
+      case kOverWrite:
+
+	for(size_t row_index=0; row_index < nrows; ++row_index) 
+
+	  _img[index1+row_index] = img2[index2+row_index];
+
+	break;
       }
     }
   }
@@ -321,6 +332,18 @@ namespace larcv {
   {
     if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!");
     for(size_t i=0; i<_img.size(); ++i) _img[i] += rhs[i];
+    return (*this);
+  }
+
+  Image2D& Image2D::operator+=(const larcv::Image2D& rhs)
+  {
+    if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!"); 
+    for (size_t col=0; col<meta().cols(); col++) {
+      for ( size_t row=0; row<meta().rows(); row++ ) {
+        float val = pixel(row,col);
+        set_pixel(row,col,val+rhs.pixel(row,col));
+      }
+    }
     return (*this);
   }
 

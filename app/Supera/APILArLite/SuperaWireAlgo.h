@@ -22,6 +22,7 @@
 #include "DataFormat/Image2D.h"
 
 #include "DataFormat/wire.h"
+ #include "DataFormat/hit.h"
 #include "DataFormat/mctruth.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/mcshower.h"
@@ -42,10 +43,12 @@ namespace larlite {
 
   protected:
     
-    ::larcv::supera::SuperaCore<larlite::opdetwaveform, larlite::wire,
+    ::larcv::supera::SuperaCore<larlite::opdetwaveform,
+      larlite::wire,
       larlite::mctruth,
       larlite::mctrack, larlite::mcshower,
-      larlite::simch> _core;
+      larlite::simch,
+      larlite::hit> _core;
   };
   
 }

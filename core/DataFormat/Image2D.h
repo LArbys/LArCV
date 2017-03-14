@@ -47,7 +47,7 @@ namespace larcv {
     /// Reset contents w/ new larcv::ImageMeta
     void reset(const ImageMeta&);
     /// Various modes used to combine pixels
-    enum CompressionModes_t { kSum, kAverage, kMaxPool};
+    enum CompressionModes_t { kSum, kAverage, kMaxPool, kOverWrite};
     /// Move origin position
     void reset_origin(double x, double y) {_meta.reset_origin(x,y);}
     /// Return image index ID number (should be unique within larcv::EventImage2D)
@@ -121,6 +121,7 @@ namespace larcv {
 
     Image2D& operator +=(const std::vector<float>& rhs);
     Image2D& operator -=(const std::vector<float>& rhs);
+    Image2D& operator +=(const larcv::Image2D& rhs);
 
     // Matrix Multiplication
     /// Matrix multiplicaition

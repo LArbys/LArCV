@@ -90,9 +90,12 @@ namespace larcv {
       for (auto& step : mct) {
 
         // Figure out time
-        int tick = (unsigned int)( ::larcv::supera::TPCG4Time2Tick(step.T() + ((step.X() + wireplaneoffset_cm) / drift_velocity))) + 1;
+        int tick = (int)(::larcv::supera::TPCG4Time2Tick(step.T() + ((step.X() + wireplaneoffset_cm) / drift_velocity))) + 1;
 
-        if (tick < 0 || tick >= tick_max) continue;
+        if (tick < 0 || tick >= tick_max) {
+	  LARCV_DEBUG() << "tick out of time: " << tick << std::endl;
+	  continue;
+	}
 
         auto& trange = result.back();
         if (!trange.valid()) trange.Set((unsigned int)tick, (unsigned int)tick); // 1st time: "set" it
@@ -430,3 +433,6 @@ namespace larcv {
 }
 #endif
 
+// Local Variables:
+// mode: c++
+// End:

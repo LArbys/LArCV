@@ -95,6 +95,9 @@ namespace larcv {
       for(auto const& key_value : _key_list[type]) res.push_back(key_value.first);
       return res;
     }
+
+    const std::vector<std::string>& file_list() const
+    { return _in_file_v; }
     
   private:
     void   set_id();
