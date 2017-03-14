@@ -23,8 +23,10 @@
 #pragma link C++ class larcv::LArbysImageAna+;
 #pragma link C++ class larcv::LArbysImageExtract+;
 #pragma link C++ class larcv::LArbysImageResult+;
+#pragma link C++ class larcv::LArbysImageFilter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

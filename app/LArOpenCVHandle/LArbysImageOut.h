@@ -23,7 +23,8 @@ namespace larcv {
     bool process(IOManager& mgr);
     void finalize();
 
-    void SetManager(const::larocv::ImageClusterManager* icm) { _mgr_ptr = icm; }
+    void SetManager(const::larocv::ImageClusterManager* icm)
+    { _mgr_ptr = icm; }
     
   private:
     

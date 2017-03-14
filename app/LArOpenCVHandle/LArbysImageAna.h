@@ -35,9 +35,17 @@ namespace larcv {
     Vertex(size_t vertexid)
     { return (*_reco_vertex_v)[vertexid]; }
 
+    const std::vector<std::vector<larocv::data::ParticleCluster> >&
+    PlaneParticles(size_t vertexid)
+    { return (*_particle_cluster_vvv)[vertexid]; }
+    
     const std::vector<larocv::data::ParticleCluster>&
     Particles(size_t vertexid,size_t planeid)
     { return (*_particle_cluster_vvv)[vertexid][planeid]; }
+
+    const std::vector<std::vector<larocv::data::TrackClusterCompound> >&
+    PlaneTracks(size_t vertexid)
+    { return (*_track_cluster_comp_vvv)[vertexid]; }
 
     const std::vector<larocv::data::TrackClusterCompound>&
     Tracks(size_t vertexid,size_t planeid)
