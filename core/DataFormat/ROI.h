@@ -48,6 +48,7 @@ namespace larcv {
       , _pz             (0.)
       , _current_type   (-1)
       , _interaction_type (-1)
+      , _process ("")
     {}
     
     /// Default destructor
@@ -84,6 +85,8 @@ namespace larcv {
     const ImageMeta& BB(PlaneID_t plane) const;
     short NuCurrentType() const { return _current_type; }
     short NuInteractionType() const { return _interaction_type; }
+    const std::string& CreationProcess() const { return _process; }
+    const larcv::Vertex& EndPosition() const { return _end_pt; }
     
     void Index         (ROIIndex_t id  )    { _index = id;         }
     void Type          (ROIType_t type )    { _type  = type;       }
@@ -96,7 +99,7 @@ namespace larcv {
     void ParentPdgCode (int code)           { _parent_pdg = code;  }
     void TrackID       (unsigned int id )   { _trackid = id;       }
     void ParentTrackID (unsigned int id )   { _parent_trackid = id;}
-    void Position      (const larcv::Vertex& vtx) { _vtx = vtx;          }
+    void Position      (const larcv::Vertex& vtx) { _vtx = vtx;    }
     void Position      (double x, double y, double z, double t) { _vtx = Vertex(x,y,z,t); }
     void Momentum      (double px, double py, double pz) { _px = px; _py = py; _pz = pz; }
     void ParentPosition (const larcv::Vertex& vtx) { _parent_vtx = vtx; }
@@ -104,8 +107,11 @@ namespace larcv {
     void ParentMomentum (double px, double py, double pz) { _parent_px = px; _parent_py = py; _parent_pz = pz; }
     void AppendBB      (const larcv::ImageMeta& bb);
     void SetBB         (const std::vector<larcv::ImageMeta>& bb_v);
-    void NuCurrentType (short curr=-1) { _current_type = curr; }
-    void NuInteractionType (short itype=-1) { _interaction_type = itype; }
+    void NuCurrentType (short curr) { curr = -1; _current_type = curr; }
+    void NuInteractionType (short itype) { itype = -1; _interaction_type = itype; }
+    void CreationProcess (const std::string& proc) { _process = proc; }
+    void EndPosition   (const larcv::Vertex& vtx) { _end_pt = vtx; }
+    void EndPosition   (double x, double y, double z, double t) { _end_pt = Vertex(x,y,z,t); }
 
     std::string dump() const;
     
@@ -130,6 +136,9 @@ namespace larcv {
     std::vector<larcv::ImageMeta> _bb_v;
     short _current_type;
     short _interaction_type;
+
+    std::string _process;
+    Vertex      _end_pt;
   };
 }
 #endif

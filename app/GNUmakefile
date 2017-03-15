@@ -1,4 +1,3 @@
-
 ifndef LARCV_APPDIR
 ERROR_MESSAGE := $(error LARCV_APPDIR is not set... run configure.sh!)
 endif
@@ -7,7 +6,7 @@ endif
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := ImageMod Filter PMTWeights HiResDivider Merger
+SUBDIRS := ImageMod Filter PMTWeights HiResDivider Merger 
 ifdef LARLITE_BASEDIR
 SUBDIRS += Supera/APILArLite
 endif
@@ -27,7 +26,7 @@ endif
 endif
 
 ifdef LAROPENCV_BASEDIR
-SUBDIRS += LArOpenCVBandle
+SUBDIRS += NuFilter LArOpenCVHandle
 endif
 
 #####################################################################################

@@ -14,6 +14,7 @@ namespace larcv {
     case kProductROI:      return "partroi";
     case kProductChStatus: return "chstatus";
     case kProductPixel2D:  return "pixel2d";
+    case kProductPGraph:   return "pgraph";
       //case kProductGeo2D:    return "geo2d";
     default:
       std::stringstream ss;
@@ -26,6 +27,7 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::ROI      > () { return kProductROI;      }
   template<> ProductType_t ProductType< larcv::ChStatus > () { return kProductChStatus; }
   template<> ProductType_t ProductType< larcv::Pixel2D  > () { return kProductPixel2D;  }
+  template<> ProductType_t ProductType< larcv::PGraph   > () { return kProductPGraph;   }
 }
 
 #endif

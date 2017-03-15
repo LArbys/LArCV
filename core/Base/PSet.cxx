@@ -340,16 +340,16 @@ namespace larcv {
   {
 
     std::string res;
-    res = _name + ":{";
+    res = _name + ": {";
     for(auto const& key_value : _data_value)
 
-      res += key_value.first + ":" + key_value.second + " ";
+      res += key_value.first + ": " + key_value.second + " ";
 
     for(auto const& key_value : _data_pset)
 
       res += key_value.second.data_string();
 
-    res += "}";
+    res += "} ";
     return res;
   }
 

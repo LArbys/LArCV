@@ -25,8 +25,30 @@ namespace larcv {
     return img;
   }
 
+  cv::Mat as_gray_mat(const Image2D& larcv_img,
+		      float q_min,float q_max,float q_to_gray)
+  {
+    auto const& meta = larcv_img.meta();
+    cv::Mat img(meta.rows(),meta.cols(),CV_8UC1);
+    
+    unsigned char* px_ptr = (unsigned char*)img.data;
+    
+    for(size_t i=0;i<meta.rows();i++) {
+      for (size_t j=0;j<meta.cols();j++) {
+	float q = larcv_img.pixel(i,j);
+	q -= q_min;
+	if(q < 0) q = 0;
+	if(q > q_max) q = q_max;
+	q /= q_to_gray;
+	px_ptr[i*img.cols + j] = (uchar)((int)q);
+	//img.at<uchar>(j,meta.rows()-1-i) = (uchar)((int)q);
+      }
+    }
+    return img;
+  }
   cv::Mat as_mat_1FC(const Image2D& larcv_img)
   {
+
     auto const& meta = larcv_img.meta();
     cv::Mat img(meta.rows(),meta.cols(),CV_32FC1);
         
@@ -47,10 +69,10 @@ namespace larcv {
     
     unsigned char* px_ptr = (unsigned char*)img.data;
     int cn = img.channels();
+
     
     for(size_t i=0;i<meta.rows();i++) {
       for (size_t j=0;j<meta.cols();j++) {
-	
 	float q = larcv_img.pixel(i,j);
 	if ( q>max ) q = max;
 	if ( q<min ) q = min;
@@ -121,6 +143,7 @@ namespace larcv {
     return larcv_img;
   }
 
+  
   Image2D imread_gray(const std::string file_name)
   {
     ::cv::Mat image;

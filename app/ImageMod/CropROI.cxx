@@ -18,6 +18,7 @@ namespace larcv {
     _input_producer = cfg.get<std::string>("InputProducer");
     _output_producer = cfg.get<std::string>("OutputProducer");
     _image_idx = cfg.get<std::vector<size_t> >("ImageIndex");
+    _roi_idx = cfg.get<size_t>("ROIIndex",0);
   }
 
   void CropROI::initialize()
@@ -54,8 +55,8 @@ namespace larcv {
     
     auto const& roi_v = event_roi->ROIArray();
 
-    if(roi_v.size() != 1) {
-      LARCV_CRITICAL() << "More than 1 ROI (not supported)!" << std::endl;
+    if(roi_v.size() <= _roi_idx) {
+      LARCV_CRITICAL() << "ROI index " << _roi_idx << " not found!" << std::endl;
       throw larbys();
     }
 
@@ -71,7 +72,7 @@ namespace larcv {
 	image_v.push_back(tmp_v[idx]);
     }
     
-    auto const& bb_v = roi_v[0].BB();
+    auto const& bb_v = roi_v[_roi_idx].BB();
     if(bb_v.size() < _image_idx.size()) {
       LARCV_CRITICAL() << "Not enough bounding box!" << std::endl;
       throw larbys();

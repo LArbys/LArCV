@@ -42,6 +42,8 @@
 #pragma link C++ class larcv::Pixel2DCluster+;
 #pragma link C++ class larcv::EventPixel2D+;
 
+#pragma link C++ class larcv::PGraph+;
+
 #pragma link C++ class larcv::DataProductFactory+;
 #pragma link C++ class larcv::IOManager+;
 #ifndef __CINT__
@@ -49,6 +51,9 @@
 #pragma link C++ function larcv::ROIType2String(larcv::ROIType_t)+;
 #pragma link C++ function larcv::String2ROIType(const string&)+;
 #endif
+
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
+
+

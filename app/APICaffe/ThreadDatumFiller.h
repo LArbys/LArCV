@@ -48,6 +48,9 @@ namespace larcv {
 
     bool batch_process(size_t nentries=0);
 
+    void set_random_access(bool do_random)
+    { _random_access=do_random;}
+
     void set_next_index(size_t index);
 
     void set_next_batch(const std::vector<size_t>& index_v);
@@ -64,14 +67,20 @@ namespace larcv {
 
     const std::vector<larcv::EventBase>& processed_events() const { return _batch_events; }
 
+    const std::string& producer(DatumFillerBase::FillerDataType_t dtype) const;
+
     const std::vector<int> dim(bool image=true) const;
 
     const std::vector<float>& data() const;
 
     const std::vector<float>& labels() const;
+
+    const std::vector<float>& weights() const;
+
+    const std::vector<std::vector<larcv::ImageMeta> >& meta() const;
     
     const ProcessDriver* pd() { return &_driver; }
-    
+
   private:
 
     bool _batch_process_(size_t nentries);

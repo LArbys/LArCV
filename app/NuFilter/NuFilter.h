@@ -36,39 +36,57 @@ namespace larcv {
     ~NuFilter(){}
 
     void configure(const PSet&);
-
     void initialize();
-
     bool process(IOManager& mgr);
-
     void finalize();
-
-    const bool selected() { return _selected; }
+    const bool selected() const { return _selected; }
     
   private:
+
+    bool _mc_available;
     
     bool MCSelect(const EventROI* ev_roi);
     
     std::string _roi_producer_name;
     
     uint _nu_pdg;
+    uint _interaction_mode;
     
     double _min_nu_init_e;
     double _max_nu_init_e;
     double _dep_sum_lepton;
     double _dep_sum_proton;
-
+    
     bool _selected;
     bool _select_signal;
     bool _select_background;
-
-    struct this_proton{
+    
+    struct aparticle{
+      int pdg;
       int trackid;
-      int parenttrackid;
+      int ptrackid;
+      bool primary;
       float depeng;
     };
 
+    uint _n_fail_nupdg;
+    uint _n_fail_ccqe;
+    uint _n_fail_nuE;
+    uint _n_fail_lepton_dep;
+    uint _n_fail_proton_dep;
+    uint _n_pass;
+    uint _n_calls;
+    uint _n_fail_unknowns;
+    uint _n_fail_inter;
     
+    TTree* _event_tree;
+    
+    uint _run;
+    uint _subrun;
+    uint _event; 
+    uint _entry;
+
+    bool _write_tree;
   };
 
   /**

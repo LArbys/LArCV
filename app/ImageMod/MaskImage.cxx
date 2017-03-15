@@ -17,7 +17,7 @@ namespace larcv {
 
     _pi_thresh_min = cfg.get<float>("MinPIThreshold");
     _mask_value = cfg.get<float>("MaskValue");
-
+    _output_producer = cfg.get<std::string>("OutputProducer","");
     _reference_image_producer = cfg.get<std::string>("ReferenceProducer");
     _target_image_producer = cfg.get<std::string>("TargetProducer");
 
@@ -40,11 +40,23 @@ namespace larcv {
       throw larbys();
     }
 
+    EventImage2D* out_event_image = nullptr;
+    if(_output_producer.empty()) out_event_image = tar_event_image;
+    else out_event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_output_producer));
+
+    if(!out_event_image) {
+      LARCV_CRITICAL() << "Output EventImage2D could not be made " << _output_producer << std::endl;
+      throw larbys();
+    }
+
     auto const& ref_image_v = ref_event_image->Image2DArray();
 
     std::vector<larcv::Image2D> tar_image_v;
-    tar_event_image->Move(tar_image_v);
-
+    if(_output_producer.empty())
+      tar_event_image->Move(tar_image_v);
+    else
+      tar_image_v = tar_event_image->Image2DArray();
+    
     // Check # planes
     if(ref_image_v.size() != tar_image_v.size()) {
       LARCV_CRITICAL() << "# planes in target (" << tar_image_v.size()
@@ -72,7 +84,7 @@ namespace larcv {
 
     }
 
-    tar_event_image->Emplace(std::move(tar_image_v));
+    out_event_image->Emplace(std::move(tar_image_v));
     return true;
   }
 

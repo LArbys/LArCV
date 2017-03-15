@@ -27,6 +27,12 @@ namespace larcv {
     _image_v.emplace_back(std::move(as_image2d(img))); 
   }
 
+  void PyImageMaker::append_ndarray_meta(PyObject* img,const ImageMeta& meta)
+  { 
+    LARCV_INFO() << "Appending an image (current size=" << _image_v.size() << ")" << std::endl;
+    _image_v.emplace_back(std::move(as_image2d_meta(img,meta))); 
+  }
+
   bool PyImageMaker::process(IOManager& mgr)
   {
     auto image_v = (EventImage2D*)(mgr.get_data(kProductImage2D,_producer_name));
