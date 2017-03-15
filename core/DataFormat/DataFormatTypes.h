@@ -83,6 +83,7 @@ namespace larcv {
     kProductChStatus, ///< ChStatus, EventChStatus
     kProductPixel2D,  ///< Pixel2D, Pixel2DCluster
     //kProductGeo2D,    ///< Vector2D, LineSegment2D
+    kProductPGraph,   ///< PGraph, EventPGraph
     kProductUnknown   ///< LArbys
   };
 
