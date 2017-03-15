@@ -57,6 +57,18 @@ namespace larcv {
     const std::string GetRootName ()
     { return _input_larbys_root_file; }
 
+    const uint GetEvent() 
+    { return _mc_event; }
+
+    const uint GetEntry()
+    { return _mc_entry; }
+    
+    const uint GetRun()
+    { return _mc_run; }
+
+    const uint GetSubrun()
+    { return _mc_subrun; }
+    
   private:
 
     std::string _mc_tree_name;
