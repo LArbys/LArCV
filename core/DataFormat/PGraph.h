@@ -36,9 +36,12 @@ namespace larcv {
     size_t NumParticles() const { return _part_v.size(); }
     
     // Register
-    void Add(const larcv::ROI& roi) { _part_v.push_back(roi); }
-    void Emplace(larcv::ROI&& roi)  { _part_v.emplace_back(std::move(roi)); }
+    void Add(const larcv::ROI& roi,size_t pcluster_idx)
+    { _part_v.push_back(roi); _pcluster_idx_v.push_back(pcluster_idx); }
 
+    void Emplace(larcv::ROI&& roi,size_t pcluster_idx)
+    { _part_v.emplace_back(std::move(roi)); _pcluster_idx_v.push_back(pcluster_idx); }
+    
     const std::vector<larcv::ROI>& Particles() const
     { return _part_v; }
 
