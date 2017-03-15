@@ -87,7 +87,6 @@ namespace larcv {
 
   bool LArbysImageOut::Analyze(const larocv::ImageClusterManager& mgr)
   {
-    
     LARCV_DEBUG() << "process" << std::endl;
     
     /// get the data manager

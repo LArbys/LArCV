@@ -57,7 +57,6 @@ namespace larcv {
     std::vector<uint> _circle_xs_v;
     std::vector<uint> _par_multi;
 
-
     /*
     //per vertex
     //per particle

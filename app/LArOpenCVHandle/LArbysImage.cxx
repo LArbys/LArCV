@@ -6,7 +6,7 @@
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
 #include "LArbysImageOut.h"
-#include "LArbysImageResult.h"
+
 namespace larcv {
 
   static LArbysImageProcessFactory __global_LArbysImageProcessFactory__;
@@ -14,7 +14,6 @@ namespace larcv {
   LArbysImage::LArbysImage(const std::string name)
     : ProcessBase(name),
       _PreProcessor(),
-      _TrackShowerAna(),
       _LArbysImageMaker(),
       _LArbysImageAnaBase_ptr(nullptr)
   {}
@@ -24,7 +23,7 @@ namespace larcv {
     _adc_producer    = cfg.get<std::string>("ADCImageProducer");
     _track_producer  = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
-    _adc_producer    = cfg.get<std::string>("ROIProducer","");
+    _roi_producer    = cfg.get<std::string>("ROIProducer","");
     _output_producer = cfg.get<std::string>("OutputImageProducer","");
 
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
@@ -33,12 +32,6 @@ namespace larcv {
     if (_preprocess) {
       LARCV_INFO() << "Preprocessing image" << std::endl;
       _PreProcessor.Configure(cfg.get<larcv::PSet>("PreProcessor"));
-    }
-    
-    _tsanalyze = cfg.get<bool>("TSAnalyzeOnly",false);
-    if (_tsanalyze) {
-      LARCV_INFO() << "Analyzing Tracks and Showers only" << std::endl;
-      _TrackShowerAna.Configure(cfg.get<larcv::PSet>("TrackShowerAnalysis"));
     }
     
     _process_count = 0;
@@ -61,7 +54,6 @@ namespace larcv {
     if(ana_class_name.empty()) return;
 
     if      (ana_class_name == "LArbysImageOut"    ) _LArbysImageAnaBase_ptr = new LArbysImageOut("LArbysImageOut");
-    else if (ana_class_name == "LArbysImageResult" ) _LArbysImageAnaBase_ptr = new LArbysImageResult("LArbysImageResult");
     else {
       LARCV_CRITICAL() << "LArbysImageAna class name " << ana_class_name << " not recognized..." << std::endl;
       throw larbys();
@@ -149,16 +141,16 @@ namespace larcv {
 	  auto const& bb           = bb_v[plane];
 	  
 	  auto const& adc_image    = adc_image_v[plane];
-	  crop_adc_image_v.emplace_back(std::move(adc_image.crop(bb)));
+	  crop_adc_image_v.emplace_back(adc_image.crop(bb));
 
 	  if(!track_image_v.empty()) {
 	    auto const& track_image  = track_image_v[plane];
-	    crop_track_image_v.emplace_back(std::move(track_image.crop(bb)));
+	    crop_track_image_v.emplace_back(track_image.crop(bb));
 	  }
 
 	  if(!shower_image_v.empty()) {
 	    auto const& shower_image = shower_image_v[plane];
-	    crop_shower_image_v.emplace_back(std::move(shower_image.crop(bb)));
+	    crop_shower_image_v.emplace_back(shower_image.crop(bb));
 	  }
 	}
 
@@ -189,7 +181,6 @@ namespace larcv {
     
     for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v)) 
       _track_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
-    
     
     for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v))
       _shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
@@ -227,7 +218,6 @@ namespace larcv {
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
 
       _alg_mgr.Add(img, meta, roi, 2);
-
     }
 
     if (_preprocess) {
@@ -243,22 +233,6 @@ namespace larcv {
 	  throw larbys();
 	}
       }
-    }
-    
-    if(_tsanalyze) {
-      //given a single plane @ a time run track shower analyzis
-      auto& adc_img_v= _alg_mgr.InputImages(0);
-      auto& trk_img_v= _alg_mgr.InputImages(1);
-      auto& shr_img_v= _alg_mgr.InputImages(2);
-      auto nplanes = adc_img_v.size();
-      for(size_t plane_id=0;plane_id<nplanes;++plane_id) {
-    	LARCV_DEBUG() << "TrackShowerAnalyze image set @ "<< " plane " << plane_id << std::endl;
-    	if (!_TrackShowerAna.Analyze(adc_img_v[plane_id],trk_img_v[plane_id],shr_img_v[plane_id])) {
-    	  LARCV_CRITICAL() << "... could not be preprocessed, abort!" << std::endl;
-    	  throw larbys();
-    	}
-      }      
-      return true;
     }
     
     _alg_mgr.Process();
@@ -281,9 +255,6 @@ namespace larcv {
     if ( has_ana_file() ) 
       _alg_mgr.Finalize(&(ana_file()));
 
-    if ( _tsanalyze ) 
-      _TrackShowerAna.Finalize(&(ana_file()));
-
     if ( _LArbysImageAnaBase_ptr ) {
       if( has_ana_file() )
 	_LArbysImageAnaBase_ptr->Finalize(&(ana_file()));
@@ -292,6 +263,6 @@ namespace larcv {
     }
 
   }
-
+  
 }
 #endif

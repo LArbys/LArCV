@@ -8,16 +8,11 @@
 #include "LArOpenCV/ImageCluster/Base/ImageClusterViewer.h"
 #include "DataFormat/Image2D.h"
 #include "PreProcessor.h"
-#include "TrackShowerAna.h"
 #include "LArbysImageMaker.h"
 #include "LArbysImageAnaBase.h"
+
 namespace larcv {
 
-  /**
-     \class ProcessBase
-     User defined class LArbysImage ... these comments are used to generate
-     doxygen documentation!
-  */
   class LArbysImage : public ProcessBase {
 
   public:
@@ -39,7 +34,6 @@ namespace larcv {
     const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
 
     const PreProcessor& PProcessor() const { return _PreProcessor; }
-    const TrackShowerAna& TSAna() const { return _TrackShowerAna; }
     const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
     
   protected:
@@ -63,8 +57,7 @@ namespace larcv {
     double _charge_max;
 
     bool _preprocess;
-    bool _tsanalyze;
-    
+
     std::vector<float> _plane_weights;
     std::string _adc_producer;
     std::string _roi_producer;
@@ -79,7 +72,6 @@ namespace larcv {
     void Report() const;
     
     PreProcessor _PreProcessor;
-    TrackShowerAna _TrackShowerAna;
     LArbysImageMaker _LArbysImageMaker;
     LArbysImageAnaBase* _LArbysImageAnaBase_ptr;
 
