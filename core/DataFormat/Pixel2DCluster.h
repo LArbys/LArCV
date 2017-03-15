@@ -17,7 +17,7 @@
 #include <iostream>
 #include "DataFormatTypes.h"
 #include "Pixel2D.h"
-
+#include "ImageMeta.h"
 namespace larcv {
 
   class EventPixelCollection;
@@ -68,6 +68,7 @@ namespace larcv {
     size_t argmin_y() const;
     size_t argmax_x() const;
     size_t argmax_y() const;
+    ImageMeta bounds() const;
     // Intensity bounds
     float min() const;
     float max() const;
