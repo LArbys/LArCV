@@ -10,6 +10,7 @@
 #include "DataFormat/EventPixel2D.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/ImagePatchAnalysis.h"
+#include <array>
 
 namespace larcv {
 
@@ -19,8 +20,8 @@ namespace larcv {
     : ProcessBase(name),
       _PreProcessor(),
       _LArbysImageMaker(),
-      _LArbysImageAnaBase_ptr(nullptr)
-      //_geo()
+      _LArbysImageAnaBase_ptr(nullptr),
+      _vtx_ana()
   {}
       
   void LArbysImage::configure(const PSet& cfg)
@@ -115,7 +116,7 @@ namespace larcv {
       
       if(_LArbysImageAnaBase_ptr) _LArbysImageAnaBase_ptr->Analyze(_alg_mgr);
 
-      //return status;
+      status = status && StoreParticles(mgr,_alg_mgr);
       
     }else{
 
@@ -164,22 +165,19 @@ namespace larcv {
 	status = status && Reconstruct(crop_adc_image_v, crop_track_image_v, crop_shower_image_v);
 
 	if(_LArbysImageAnaBase_ptr) _LArbysImageAnaBase_ptr->Analyze(_alg_mgr);
+	
+	status = status && StoreParticles(mgr,_alg_mgr);
       }
     }
-
-    LARCV_DEBUG() << "...Storing particles..." << std::endl;
-    
-    status = status && StoreParticles(mgr,_alg_mgr);
-
-    LARCV_DEBUG() << "...Stored..." << std::endl;
     
     return status;
   }
 
   bool LArbysImage::StoreParticles(IOManager& iom, const larocv::ImageClusterManager& mgr) {
     LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
-    auto const& adc_image_v = get_image2d(iom,_adc_producer);
-    
+    const auto& adc_image_v = get_image2d(iom,_adc_producer);
+    const auto& adc_cvimg_v = mgr.InputImages(0);
+      
     auto event_pgraph   = (EventPGraph*) iom.get_data(kProductPGraph,_output_producer);
     auto event_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer);
 
@@ -190,99 +188,262 @@ namespace larcv {
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(output_module_id, 0);
     const auto& vertex3d_v = vtx3d_array->as_vector();
 
-    LARCV_DEBUG() << "Obsered " << vertex3d_v.size() << " verticies" << std::endl;
+    LARCV_DEBUG() << "Observed " << vertex3d_v.size() << " verticies" << std::endl;
+
+    std::vector<const larocv::data::Vertex3D*> vertex_ptr_v;
+    std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > particle_cluster_ptr_vvv;
+    std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > track_comp_ptr_vvv;
     
     for(size_t vtxid=0;vtxid<vertex3d_v.size();++vtxid) {
       const auto& vtx3d = vertex3d_v[vtxid];
       LARCV_DEBUG() << "On vertex " << vtxid << " of type " << (uint) vtx3d.type << std::endl;
+      vertex_ptr_v.push_back(&vtx3d);
+
+      std::vector<std::vector<const larocv::data::ParticleCluster* > > pcluster_vv;
+      std::vector<std::vector<const larocv::data::TrackClusterCompound* > > tcluster_vv;
+      pcluster_vv.resize(3);
+      tcluster_vv.resize(3);
       
-      PGraph pgraph;
-      size_t pidx=0;
       for(size_t plane=0;plane<3;++plane) {
-    	//get the particle cluster array
-    	const auto par_array = (larocv::data::ParticleClusterArray*)
-    	  data_mgr.Data(output_module_id, plane+_output_module_offset);
 	
-    	//get the compound array
-    	const auto comp_array = (larocv::data::TrackClusterCompoundArray*)
-    	  data_mgr.Data(output_module_id, plane+_output_module_offset+3);
-
-    	auto par_ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
+	auto& pcluster_v=pcluster_vv[plane];
+	auto& tcluster_v=tcluster_vv[plane];
 	
-    	for(size_t ass_id=0;ass_id<par_ass_idx_v.size();++ass_id) {
+	auto output_module_id = data_mgr.ID(_output_module_name);
+	
+	const auto par_array = (larocv::data::ParticleClusterArray*)
+	  data_mgr.Data(output_module_id, plane+_output_module_offset);
 
+	const auto comp_array = (larocv::data::TrackClusterCompoundArray*)
+	  data_mgr.Data(output_module_id, plane+_output_module_offset+3);
+	
+	auto par_ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
+	pcluster_v.resize(par_ass_idx_v.size());
+	tcluster_v.resize(par_ass_idx_v.size());
+	
+	for(size_t ass_id=0;ass_id<par_ass_idx_v.size();++ass_id) {
 	  auto ass_idx = par_ass_idx_v[ass_id];
-	  if (ass_idx==kINVALID_SIZE)
-	    throw larbys("Invalid vertex->particle association detected");
-    	  const auto& par = par_array->as_vector()[ass_idx];
+	  if (ass_idx==kINVALID_SIZE) throw larbys("Invalid vertex->particle association detected");
+	  const auto& par = par_array->as_vector()[ass_idx];
+	  pcluster_v[ass_id] = &par;
+	  auto comp_ass_id = ass_man.GetOneAss(par,comp_array->ID());
+	  if (comp_ass_id==kINVALID_SIZE && par.type==larocv::data::ParticleType_t::kTrack)
+	    throw larbys("Track particle with no track!");
+	  const auto& comp = comp_array->as_vector()[comp_ass_id];
+	  tcluster_v[ass_id] = &comp;
+	} 
+	_vtx_ana.ResetPlaneInfo(mgr.InputImageMetas(0)[plane]);
+      }
 
+      particle_cluster_ptr_vvv.emplace_back(std::move(pcluster_vv));
+      track_comp_ptr_vvv.emplace_back(std::move(tcluster_vv));
+    } //end this vertex
+    
+    
+
+    size_t pidx=0;
+    for(size_t vtxid=0;vtxid<vertex3d_v.size();++vtxid) {
+      const auto& vtx3d = *vertex_ptr_v[vtxid];
+      const auto& pcluster_vv = particle_cluster_ptr_vvv[vtxid];
+      const auto& tcluster_vv = track_comp_ptr_vvv[vtxid];
+      
+      bool _require_two_multiplicity=true;
+      if (_require_two_multiplicity) { 
+	auto multiplicity=_vtx_ana.RequireParticleCount(pcluster_vv,2,2);
+	if (!multiplicity) continue;
+      }
+      
+      bool _require_fiducial=true;
+      if (_require_fiducial) {
+	auto fiduciality=_vtx_ana.CheckFiducial(vtx3d);
+	if (!fiduciality) continue;
+      }      
+      
+      auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,adc_cvimg_v,0.5,2,2);
+      if (match_vv.empty()) continue;
+
+      PGraph pgraph;
+      for( auto match_v : match_vv ) {
+	//for this match
+	if (match_v.size()==2) {
+	  LARCV_DEBUG() << "2 plane match found" << std::endl;
+	  auto& plane0 = match_v[0].first;
+	  auto& id0    = match_v[0].second;
+	  auto& plane1 = match_v[1].first;
+	  auto& id1    = match_v[1].second;
+
+	  const auto& cvimg0 = adc_cvimg_v[plane0];
+	  const auto& cvimg1 = adc_cvimg_v[plane1];
+
+	  const auto& par0   = *(pcluster_vv[plane0][id0]);
+	  const auto& par1   = *(pcluster_vv[plane1][id1]);
+
+	  auto partype=par0.type;
+	  bool endok=false;
+	  larocv::data::Vertex3D endpt3d;
+	  
+	  if (partype==larocv::data::ParticleType_t::kTrack) {
+	    const auto& track0 = *(tcluster_vv[plane0][id0]);
+	    const auto& track1 = *(tcluster_vv[plane1][id1]);
+	    auto end0 = track0.end_pt();
+	    auto end1 = track1.end_pt();
+	    endok = _vtx_ana.Geo().YZPoint(end0,plane0,end1,plane1,endpt3d);
+	  }	    
+	  
 	  ROI proi;
 
-	  LARCV_DEBUG() << "Particle " << (uint) par.type
-			<< " on plane " << plane
-			<< " @ ass_id " << ass_id
-			<< " @ parid " << pidx << std::endl;
-	  
-	  if (par.type==larocv::data::ParticleType_t::kTrack) {
-	    LARCV_DEBUG() << "... track" << std::endl;
-	    proi.Shape(kShapeTrack);
-	  }
-	  else if (par.type==larocv::data::ParticleType_t::kShower) {
-	    LARCV_DEBUG() << "... shower" << std::endl;
-	    proi.Shape(kShapeShower);
-	  }
+	  if (par0.type==larocv::data::ParticleType_t::kTrack) proi.Shape(kShapeTrack);
+	  else if (par0.type==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
 	  else throw larbys("Unknown?");
-	  
-	  //set particle position
-	  proi.Position(vtx3d.x,
-			vtx3d.y,
-			vtx3d.z,
-			kINVALID_DOUBLE);
+
+	  // set particle position
+	  proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
+	  // set end position
+	  if (endok)
+	    proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
 	  
 	  // set particle meta (bbox)
-	  const auto& pmeta = adc_image_v[plane].meta();
-	  proi.AppendBB(pmeta);
-
-	  /*
-    	  auto comp_ass_id = ass_man.GetOneAss(par,comp_array->ID());
-	  if (comp_ass_id==kINVALID_SIZE)
-	    continue;
-    	  const auto& comp = comp_array->as_vector()[comp_ass_id];
-	  //set particle end point if exists
-	  const auto& endpt = comp.end_pt();
-	  //proi.EndPosition(x,y,z,t);
-	  */
-	  
-	  pgraph.Emplace(std::move(proi),pidx);
-
-	  Pixel2DCluster pcluster;
-	  
-	  const auto& img2d = adc_image_v[plane];
-	  const auto& cvimg = mgr.InputImages(0)[plane];
-
-	  auto par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,par._ctor,0,false));
-	  std::vector<Pixel2D> pixel_v;
-	  pixel_v.reserve(par_pixel_v.size());
-
-	  float isum=0;
-	  for (const auto& px : par_pixel_v) {
-	    auto row=cvimg.cols-px.x;
-	    auto col=px.y;
-	    auto iii=img2d.pixel(row,col);
-	    pixel_v.emplace_back(row,col);
-	    pixel_v.back().Intensity(iii);
-	    isum+=iii;
+	  for(size_t plane=0;plane<3;++plane) {
+	    const auto& pmeta = adc_image_v[plane].meta();
+	    proi.AppendBB(pmeta);
 	  }
-	  if (isum==0) throw larbys("No pixels in cluster?");
-	  Pixel2DCluster pixcluster(std::move(pixel_v));
-	  event_pixel->Emplace(plane,std::move(pixcluster));
-	  
+
+	  pgraph.Emplace(std::move(proi),pidx);
 	  pidx++;
-	} // end this particle
-      } // end this plane
-      
+
+	  std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
+	  pcluster_arr[plane0] = &par0;
+	  pcluster_arr[plane1] = &par1;
+	    
+	  for(size_t plane=0;plane<3;++plane) {
+	    std::vector<Pixel2D> pixel_v;
+	    
+	    const auto& par = pcluster_arr[plane];
+	    const auto& img2d = adc_image_v[plane];
+	    const auto& cvimg = adc_cvimg_v[plane];
+
+	    larocv::GEO2D_Contour_t par_pixel_v;
+	    if(par) {
+	      par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,(*par)._ctor,0,false));
+	      pixel_v.reserve(par_pixel_v.size());
+	    }
+	    float isum=0;
+	    for (const auto& px : par_pixel_v) {
+	      auto row=cvimg.cols-px.x;
+	      auto col=px.y;
+	      auto iii=img2d.pixel(row,col);
+	      pixel_v.emplace_back(row,col);
+	      pixel_v.back().Intensity(iii);
+	      isum+=iii;
+	    }
+	    LARCV_DEBUG() << "isum = " << isum << std::endl;
+	    LARCV_CRITICAL() << " PUTTING IN EVENT PIXEL SIZE " << pixel_v.size() << std::endl;
+	    Pixel2DCluster pixcluster(std::move(pixel_v));
+	    event_pixel->Emplace(plane,std::move(pixcluster));
+	  }
+	  
+	} // end match size 2
+	else if (match_v.size()==3) {
+	  LARCV_DEBUG() << "3 plane match found" << std::endl;
+
+	  auto& plane0 = match_v[0].first;
+	  auto& id0    = match_v[0].second;
+	  auto& plane1 = match_v[1].first;
+	  auto& id1    = match_v[1].second;
+	  auto& plane2 = match_v[2].first;
+	  auto& id2    = match_v[2].second;
+
+	  const auto& cvimg0 = adc_cvimg_v[plane0];
+	  const auto& cvimg1 = adc_cvimg_v[plane1];
+	  const auto& cvimg2 = adc_cvimg_v[plane2];
+	  
+	  const auto& par0   = *(pcluster_vv[plane0][id0]);
+	  const auto& par1   = *(pcluster_vv[plane1][id1]);
+	  const auto& par2   = *(pcluster_vv[plane2][id2]);
+
+	  auto partype=par0.type;
+	  bool endok=false;
+	  larocv::data::Vertex3D endpt3d;
+	  
+	  if (partype==larocv::data::ParticleType_t::kTrack) {
+
+	    const auto& track0 = *(tcluster_vv[plane0][id0]);
+	    const auto& track1 = *(tcluster_vv[plane1][id1]);
+	    const auto& track2 = *(tcluster_vv[plane2][id2]);
+	  
+	    auto end0 = track0.end_pt();
+	    auto end1 = track1.end_pt();
+	    auto end2 = track2.end_pt();
+	    
+	    larocv::data::Vertex3D vertex;
+	    endok = _vtx_ana.Geo().YZPoint(end0,plane0,end1,plane1,vertex);
+	    LARCV_DEBUG() << "Testing end0 @ " << end0 << " on plane " << plane0 << " & end1 " << end1 << " @ plane " << plane1 << std::endl;
+	    if (!endok) { 
+	      endok = _vtx_ana.Geo().YZPoint(end0,plane0,end2,plane2,vertex);
+	      LARCV_DEBUG() << "Testing end0 @ " << end0 << " on plane " << plane0 << " & end2 " << end2 << " @ plane " << plane2 << std::endl;
+	    }
+	    if (!endok) {
+	      endok = _vtx_ana.Geo().YZPoint(end1,plane1,end2,plane2,vertex);
+	      LARCV_DEBUG() << "Testing end1 @ " << end1 << " on plane " << plane1 << " & end2 " << end2 << " @ plane " << plane2 << std::endl;
+	    }
+	  }	    
+	  
+	  ROI proi;
+
+	  if (par0.type==larocv::data::ParticleType_t::kTrack) proi.Shape(kShapeTrack);
+	  else if (par0.type==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
+	  else throw larbys("Unknown?");
+
+	  // set particle position
+	  proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
+	  // set end position
+	  if (endok)
+	    proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
+	  
+	  // set particle meta (bbox)
+	  for(size_t plane=0;plane<3;++plane) {
+	    const auto& pmeta = adc_image_v[plane].meta();
+	    proi.AppendBB(pmeta);
+	  }
+
+	  pgraph.Emplace(std::move(proi),pidx);
+	  pidx++;
+
+	  std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
+	  pcluster_arr[plane0] = &par0;
+	  pcluster_arr[plane1] = &par1;
+	  pcluster_arr[plane2] = &par2;
+	    
+	  for(size_t plane=0;plane<3;++plane) {
+	    std::vector<Pixel2D> pixel_v;
+	    
+	    const auto& par = pcluster_arr[plane];
+	    const auto& img2d = adc_image_v[plane];
+	    const auto& cvimg = adc_cvimg_v[plane];
+
+	    larocv::GEO2D_Contour_t par_pixel_v;
+	    if(par) {
+	      par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,(*par)._ctor,0,false));
+	      pixel_v.reserve(par_pixel_v.size());
+	    }
+	    float isum=0;
+	    for (const auto& px : par_pixel_v) {
+	      auto row=cvimg.cols-px.x;
+	      auto col=px.y;
+	      auto iii=img2d.pixel(row,col);
+	      pixel_v.emplace_back(row,col);
+	      pixel_v.back().Intensity(iii);
+	      isum+=iii;
+	    }
+	    LARCV_DEBUG() << "isum = " << isum << std::endl;
+	    Pixel2DCluster pixcluster(std::move(pixel_v));
+	    event_pixel->Emplace(plane,std::move(pixcluster));
+	  }
+	} // end match 3
+      }//end this match
       event_pgraph->Emplace(std::move(pgraph));
-    }// end this vertex
+    }//end vertex
+    
     
     return true;
   }

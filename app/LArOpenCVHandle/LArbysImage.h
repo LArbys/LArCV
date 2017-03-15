@@ -10,7 +10,7 @@
 #include "PreProcessor.h"
 #include "LArbysImageMaker.h"
 #include "LArbysImageAnaBase.h"
-// #include "LArOpenCV/ImageCluster/AlgoClass/LArPlaneGeo.h"
+#include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
 
 namespace larcv {
 
@@ -76,7 +76,7 @@ namespace larcv {
     PreProcessor _PreProcessor;
     LArbysImageMaker _LArbysImageMaker;
     LArbysImageAnaBase* _LArbysImageAnaBase_ptr;
-    //LArPlaneGeo _geo;
+    larocv::VertexAnalysis _vtx_ana;
     
     std::vector<larcv::Image2D> _empty_image_v;
   };
