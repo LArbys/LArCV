@@ -52,13 +52,12 @@ namespace larcv {
     _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
     _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
     /*
-      _event_tree->Branch("particle_vv",&_particle_vv);
-      _event_tree->Branch("particle_start_vv",&_particle_start_vv);
-      _event_tree->Branch("particle_end_vv",&_particle_end_vv);
-      _event_tree->Branch("particle_start2d_vvv",&_particle_start2d_vvv);
-      _event_tree->Branch("particle_end2d_vvv",&_particle_end2d_vvv);
+    _event_tree->Branch("particle_vv",&_particle_vv);
+    _event_tree->Branch("particle_start_vv",&_particle_start_vv);
+    _event_tree->Branch("particle_end_vv",&_particle_end_vv);
+    _event_tree->Branch("particle_start2d_vvv",&_particle_start2d_vvv);
+    _event_tree->Branch("particle_end2d_vvv",&_particle_end2d_vvv);
     */
-
     _vtx3d_tree = new TTree("Vertex3DTree","");
     _vtx3d_tree->Branch("run",&_run,"run/i");
     _vtx3d_tree->Branch("subrun",&_subrun,"subrun/i");
@@ -215,12 +214,12 @@ namespace larcv {
       _vtx3d_tree->Fill();
     } //end loop over vertex
 
-    _event_tree->Fill();
+    //_event_tree->Fill();
     
     //For adrien...
-    /*
-    auto& adc_img_v=_mgr_ptr->InputImages(0);
-    auto& adc_meta_v=_mgr_ptr->InputImageMetas(0);
+
+    auto& adc_img_v=mgr.InputImages(0);
+    auto& adc_meta_v=mgr.InputImageMetas(0);
 
     for(size_t vtxid=0;vtxid<vertex3d_v.size();++vtxid) { 
       
@@ -255,14 +254,16 @@ namespace larcv {
 	  const auto& par = par_array->as_vector()[ass_idx];
 	  pcluster_v[ass_id] = &par;
 	  auto comp_ass_id = ass_man.GetOneAss(par,comp_array->ID());
-	  if (comp_ass_id==kINVALID_SIZE) throw larbys("Bad compound ID");
+	  if (comp_ass_id==kINVALID_SIZE) continue;//throw larbys("Bad compound ID");
 	  const auto& comp = comp_array->as_vector()[comp_ass_id];
 	  tcluster_v[ass_id] = &comp;
 	} // end particle
 	
 	_vtx_ana.ResetPlaneInfo(adc_meta_v[plane]);
       } //end plane
-      
+    }
+    _event_tree->Fill();
+      /*
       //do the matching
       auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,adc_img_v,0.5,2,2);
 
@@ -335,7 +336,6 @@ namespace larcv {
 
 	  particle_end2d_vv.emplace_back(std::move(endpt2D_v));
 	  particle_start2d_vv.emplace_back(std::move(startpt2D_v));
-
 
 	  auto cvimg0_m = larocv::MaskImage(cvimg0,par0._ctor,0,false);
 	  auto cvimg1_m = larocv::MaskImage(cvimg1,par1._ctor,0,false);
@@ -435,6 +435,14 @@ namespace larcv {
 	  auto cvimg0_m = larocv::MaskImage(cvimg0,par0._ctor,0,false);
 	  auto cvimg1_m = larocv::MaskImage(cvimg1,par1._ctor,0,false);
 	  auto cvimg2_m = larocv::MaskImage(cvimg2,par2._ctor,0,false);
+
+	  cv::flip(cvimg0_m,cvimg0_m,-1);
+	  cv::flip(cvimg1_m,cvimg1_m,-1);
+	  cv::flip(cvimg2_m,cvimg2_m,-1);
+	  
+	  cv::transpose(cvimg0_m,cvimg0_m);
+	  cv::transpose(cvimg1_m,cvimg1_m);
+	  cv::transpose(cvimg2_m,cvimg2_m);
 	  
 	  auto img2d0 = mat_to_image2d(cvimg0_m);
 	  auto img2d1 = mat_to_image2d(cvimg1_m);
@@ -459,6 +467,7 @@ namespace larcv {
       _particle_start2d_vvv.emplace_back(std::move(particle_start2d_vv));
       _particle_end2d_vvv.emplace_back(std::move(particle_end2d_vv));
     } // end vertex
+
     _event_tree->Fill();
     _particle_vv.clear();
     _particle_start_vv.clear();
@@ -468,12 +477,12 @@ namespace larcv {
     */
     return true;
   }
-
+  
   void LArbysImageOut::Finalize(TFile* fout)
   {
     if(fout) {
       _event_tree->Write();
-      _vtx3d_tree->Write();
+       _vtx3d_tree->Write();
     }
   }
   
