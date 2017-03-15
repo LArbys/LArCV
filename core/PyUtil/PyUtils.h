@@ -24,6 +24,10 @@ namespace larcv {
         Image2D as_image2d(PyObject*,ImageMeta meta);
 
         Image2D as_image2d(PyObject*);
+
+	// allows one to avoid some loops in python
+	void fill_img_col( Image2D& img, std::vector<short>& adcs, const int col, const int timedownsampling, const float pedestal=0.0 );
+	
 }
 
 #endif
