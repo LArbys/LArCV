@@ -43,6 +43,7 @@
 #pragma link C++ class larcv::EventPixel2D+;
 
 #pragma link C++ class larcv::PGraph+;
+#pragma link C++ class larcv::EventPGraph+;
 
 #pragma link C++ class larcv::DataProductFactory+;
 #pragma link C++ class larcv::IOManager+;

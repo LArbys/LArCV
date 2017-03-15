@@ -40,13 +40,13 @@ namespace larcv {
       }
     }
 
-    // auto channel_mask_v = cfg.get<std::vector<float> >("ChannelMask",{});
-    // _channel_mask_v.resize(_nplanes);
-    // if (channel_mask_v.empty()) {
-    //   for(size_t plane=0;plane<_nplanes;++plane) _channel_mask_v[plane] = (float)plane;
-    // } else {
-    //   if _channel_mask_v[plane]
-    // }
+    auto channel_mask_v = cfg.get<std::vector<float> >("ChannelMask",{});
+    _channel_mask_v.resize(_nplanes);
+    if (channel_mask_v.empty()) {
+      for(size_t plane=0;plane<_nplanes;++plane) _channel_mask_v[plane] = (float)plane;
+    } else {
+      _channel_mask_v = channel_mask_v;
+    }
   }
 
   void ChannelMax::initialize()
@@ -71,7 +71,7 @@ namespace larcv {
 	  if (px>maxpx) { maxpx=px; maxpl=plane; }
 	}
 	if (maxpx<0 or maxpl<0) throw larbys("No max plane identified");
-	image.set_pixel(row,col,maxpl);
+	image.set_pixel(row,col,_channel_mask_v[maxpl]);
       }
     }
     
