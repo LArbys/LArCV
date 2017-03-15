@@ -6,6 +6,10 @@
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
 #include "LArbysImageOut.h"
+#include "DataFormat/EventPGraph.h"
+#include "DataFormat/EventPixel2D.h"
+#include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
+#include "LArOpenCV/ImageCluster/AlgoFunction/ImagePatchAnalysis.h"
 
 namespace larcv {
 
@@ -16,6 +20,7 @@ namespace larcv {
       _PreProcessor(),
       _LArbysImageMaker(),
       _LArbysImageAnaBase_ptr(nullptr)
+      //_geo()
   {}
       
   void LArbysImage::configure(const PSet& cfg)
@@ -25,7 +30,9 @@ namespace larcv {
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
     _roi_producer    = cfg.get<std::string>("ROIProducer","");
     _output_producer = cfg.get<std::string>("OutputImageProducer","");
-
+    _output_module_name   = cfg.get<std::string>("OutputModuleName","");
+    _output_module_offset = cfg.get<size_t>("OutputModuleOffset",kINVALID_SIZE);
+    
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
     
     _preprocess = cfg.get<bool>("PreProcess",true);
@@ -160,9 +167,110 @@ namespace larcv {
       
       }
     }
+
+    status = status && StoreParticles(mgr,_alg_mgr);
+    
     return status;
   }
 
+  bool LArbysImage::StoreParticles(IOManager& iom, const larocv::ImageClusterManager& mgr) {
+
+    auto const& adc_image_v = get_image2d(iom,_adc_producer);
+    
+    auto event_pgraph   = (EventPGraph*) iom.get_data(kProductPGraph,_output_producer);
+    auto event_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer);
+
+    const larocv::data::AlgoDataManager& data_mgr   = mgr.DataManager();
+    const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
+
+    auto output_module_id = data_mgr.ID(_output_module_name);
+    const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(output_module_id, 0);
+    const auto& vertex3d_v = vtx3d_array->as_vector();
+
+    for(size_t vtxid=0;vtxid<vertex3d_v.size();++vtxid) {
+
+      const auto& vtx3d = vertex3d_v[vtxid];
+	
+      PGraph pgraph;
+
+      size_t pidx=0;
+
+      for(size_t plane=0;plane<3;++plane) {
+
+    	//get the particle cluster array
+    	const auto par_array = (larocv::data::ParticleClusterArray*)
+    	  data_mgr.Data(output_module_id, plane+_output_module_offset);
+	
+    	//get the compound array
+    	const auto comp_array = (larocv::data::TrackClusterCompoundArray*)
+    	  data_mgr.Data(output_module_id, plane+_output_module_offset+3);
+
+    	auto par_ass_idx_v = ass_man.GetManyAss(vtx3d,par_array->ID());
+	
+    	for(size_t ass_id=0;ass_id<par_ass_idx_v.size();++ass_id) {
+
+	  auto ass_idx = par_ass_idx_v[ass_id];
+	  if (ass_idx==kINVALID_SIZE)
+	    throw larbys("Invalid vertex->particle association detected");
+    	  const auto& par = par_array->as_vector()[ass_idx];
+
+	  ROI proi;
+	  if (par.type==larocv::data::ParticleType_t::kTrack)
+	    proi.Shape(kShapeTrack);
+	  if (par.type==larocv::data::ParticleType_t::kShower)
+	    proi.Shape(kShapeShower);
+	  else throw larbys("Unknown?");
+
+	  
+	  //set particle position
+	  proi.Position(vtx3d.x,
+			vtx3d.y,
+			vtx3d.z,
+			kINVALID_DOUBLE);
+	  
+	  // set particle meta (bbox)
+	  const auto& pmeta = adc_image_v[plane].meta();
+	  proi.AppendBB(pmeta);
+
+	  /*
+    	  auto comp_ass_id = ass_man.GetOneAss(par,comp_array->ID());
+	  if (comp_ass_id==kINVALID_SIZE)
+	    continue;
+    	  const auto& comp = comp_array->as_vector()[comp_ass_id];
+	  //set particle end point if exists
+	  const auto& endpt = comp.end_pt();
+	  //proi.EndPosition(x,y,z,t);
+	  */
+	  
+	  pgraph.Emplace(std::move(proi),pidx);
+	  event_pgraph->Emplace(std::move(pgraph));
+
+	  Pixel2DCluster pcluster;
+	  
+	  const auto& img2d = adc_image_v[plane];
+	  const auto& cvimg = mgr.InputImages(0)[plane];
+
+	  auto par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,par._ctor,0,false));
+	  std::vector<Pixel2D> pixel_v;
+	  pixel_v.reserve(par_pixel_v.size());
+	  for (const auto& px : par_pixel_v) {
+	    pixel_v.emplace_back(px.x,px.y);
+	    pixel_v.back().Intensity(img2d.pixel(px.x,px.y));
+	  }
+	  Pixel2DCluster pixcluster(std::move(pixel_v));
+	  event_pixel->Emplace(plane,std::move(pixcluster));
+	  
+	  pidx++;
+	} // end this particle
+	
+      } // end this plane
+      
+    }// end this vertex
+    
+    return true;
+  }
+
+  
   bool LArbysImage::Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
 				const std::vector<larcv::Image2D>& track_image_v,
 				const std::vector<larcv::Image2D>& shower_image_v)
@@ -204,9 +312,7 @@ namespace larcv {
       auto const& roi  = _track_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-
       _alg_mgr.Add(img, meta, roi, 1);
-
     }
 
     for (size_t plane = 0; plane < _shower_img_mgr.size(); ++plane) {
@@ -216,7 +322,6 @@ namespace larcv {
       auto const& roi  = _shower_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-
       _alg_mgr.Add(img, meta, roi, 2);
     }
 
@@ -234,6 +339,10 @@ namespace larcv {
 	}
       }
     }
+
+    //update LArPlaneGeo
+    // for (size_t plane = 0; plane < _adc_img_mgr.size(); ++plane)
+    //   _geo.ResetPlaneInfo(_alg_mgr.mgr.meta_at(plane));
     
     _alg_mgr.Process();
 
