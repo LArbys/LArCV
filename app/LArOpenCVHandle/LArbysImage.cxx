@@ -102,7 +102,6 @@ namespace larcv {
     }
 
     if(_roi_producer.empty()) {
-
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
       auto const& shower_image_v = get_image2d(mgr,_shower_producer);
@@ -115,8 +114,6 @@ namespace larcv {
 
       if(_LArbysImageAnaBase_ptr) _LArbysImageAnaBase_ptr->Analyze(_alg_mgr);
 
-      return status;
-							       
     }else{
 
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
@@ -164,11 +161,14 @@ namespace larcv {
 	status = status && Reconstruct(crop_adc_image_v, crop_track_image_v, crop_shower_image_v);
 
 	if(_LArbysImageAnaBase_ptr) _LArbysImageAnaBase_ptr->Analyze(_alg_mgr);
-      
       }
     }
 
+    LARCV_DEBUG() << "...Storing particles..." << std::endl;
+    
     status = status && StoreParticles(mgr,_alg_mgr);
+
+    LARCV_DEBUG() << "...Stored..." << std::endl;
     
     return status;
   }
@@ -186,9 +186,9 @@ namespace larcv {
     auto output_module_id = data_mgr.ID(_output_module_name);
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(output_module_id, 0);
     const auto& vertex3d_v = vtx3d_array->as_vector();
-
+    
     for(size_t vtxid=0;vtxid<vertex3d_v.size();++vtxid) {
-
+      LARCV_DEBUG() << "On vertex " << vtxid << std::endl;
       const auto& vtx3d = vertex3d_v[vtxid];
 	
       PGraph pgraph;
@@ -196,7 +196,6 @@ namespace larcv {
       size_t pidx=0;
 
       for(size_t plane=0;plane<3;++plane) {
-
     	//get the particle cluster array
     	const auto par_array = (larocv::data::ParticleClusterArray*)
     	  data_mgr.Data(output_module_id, plane+_output_module_offset);
@@ -215,12 +214,14 @@ namespace larcv {
     	  const auto& par = par_array->as_vector()[ass_idx];
 
 	  ROI proi;
+
+	  LARCV_DEBUG() << "Particle " << (uint)par.type << " on plane " << plane << std::endl;
+	  
 	  if (par.type==larocv::data::ParticleType_t::kTrack)
 	    proi.Shape(kShapeTrack);
-	  if (par.type==larocv::data::ParticleType_t::kShower)
+	  else if (par.type==larocv::data::ParticleType_t::kShower)
 	    proi.Shape(kShapeShower);
 	  else throw larbys("Unknown?");
-
 	  
 	  //set particle position
 	  proi.Position(vtx3d.x,
@@ -243,7 +244,6 @@ namespace larcv {
 	  */
 	  
 	  pgraph.Emplace(std::move(proi),pidx);
-	  event_pgraph->Emplace(std::move(pgraph));
 
 	  Pixel2DCluster pcluster;
 	  
@@ -262,9 +262,9 @@ namespace larcv {
 	  
 	  pidx++;
 	} // end this particle
-	
       } // end this plane
       
+      event_pgraph->Emplace(std::move(pgraph));
     }// end this vertex
     
     return true;
@@ -354,7 +354,7 @@ namespace larcv {
 
     ++_process_count;
 
-    _tree->Fill();
+    //_tree->Fill();
     
     return true;
   }
