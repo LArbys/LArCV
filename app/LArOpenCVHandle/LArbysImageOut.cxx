@@ -58,6 +58,7 @@ namespace larcv {
     _event_tree->Branch("particle_start2d_vvv",&_particle_start2d_vvv);
     _event_tree->Branch("particle_end2d_vvv",&_particle_end2d_vvv);
     */
+    
     _vtx3d_tree = new TTree("Vertex3DTree","");
     _vtx3d_tree->Branch("run",&_run,"run/i");
     _vtx3d_tree->Branch("subrun",&_subrun,"subrun/i");
@@ -213,11 +214,10 @@ namespace larcv {
       } // end plane
       _vtx3d_tree->Fill();
     } //end loop over vertex
+    _event_tree->Fill();
 
-    //_event_tree->Fill();
-    
     //For adrien...
-
+    /*
     auto& adc_img_v=mgr.InputImages(0);
     auto& adc_meta_v=mgr.InputImageMetas(0);
 
@@ -261,12 +261,13 @@ namespace larcv {
 	
 	_vtx_ana.ResetPlaneInfo(adc_meta_v[plane]);
       } //end plane
-    }
-    _event_tree->Fill();
-      /*
-      //do the matching
-      auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,adc_img_v,0.5,2,2);
-
+      //}
+    //_event_tree->Fill();
+    */
+    /*
+    //do the matching
+    auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,adc_img_v,0.5,2,2);
+    
       std::vector<EventImage2D> particle_v;
 	
       std::vector<larcv::Vertex> particle_start_v;
@@ -322,13 +323,13 @@ namespace larcv {
 	  
 	  for(size_t plane=0;plane<3;++plane) { 
 	    auto& startpt = startpt2D_v[plane];
-	    startpt.Reset(vtx3d.vtx2d_v[plane].pt.x,
+	    startpt.Reset(512-vtx3d.vtx2d_v[plane].pt.x,
 			  vtx3d.vtx2d_v[plane].pt.y,
 			  kINVALID_DOUBLE,
 			  kINVALID_DOUBLE);
 	    
 	    auto& endpt = endpt2D_v[plane];
-	    endpt.Reset(vertex.vtx2d_v[plane].pt.x,
+	    endpt.Reset(512-vertex.vtx2d_v[plane].pt.x,
 			vertex.vtx2d_v[plane].pt.y,
 			kINVALID_DOUBLE,
 			kINVALID_DOUBLE);
@@ -417,13 +418,13 @@ namespace larcv {
 	  
 	  for(size_t plane=0;plane<3;++plane) { 
 	    auto& startpt = startpt2D_v[plane];
-	    startpt.Reset(vtx3d.vtx2d_v[plane].pt.x,
+	    startpt.Reset(512-vtx3d.vtx2d_v[plane].pt.x,
 			  vtx3d.vtx2d_v[plane].pt.y,
 			  kINVALID_DOUBLE,
 			  kINVALID_DOUBLE);
 	    
 	    auto& endpt = endpt2D_v[plane];
-	    endpt.Reset(vertex.vtx2d_v[plane].pt.x,
+	    endpt.Reset(512-vertex.vtx2d_v[plane].pt.x,
 			vertex.vtx2d_v[plane].pt.y,
 			kINVALID_DOUBLE,
 			kINVALID_DOUBLE);
@@ -436,9 +437,9 @@ namespace larcv {
 	  auto cvimg1_m = larocv::MaskImage(cvimg1,par1._ctor,0,false);
 	  auto cvimg2_m = larocv::MaskImage(cvimg2,par2._ctor,0,false);
 
-	  cv::flip(cvimg0_m,cvimg0_m,-1);
-	  cv::flip(cvimg1_m,cvimg1_m,-1);
-	  cv::flip(cvimg2_m,cvimg2_m,-1);
+	  cv::flip(cvimg0_m,cvimg0_m,1);
+	  cv::flip(cvimg1_m,cvimg1_m,1);
+	  cv::flip(cvimg2_m,cvimg2_m,1);
 	  
 	  cv::transpose(cvimg0_m,cvimg0_m);
 	  cv::transpose(cvimg1_m,cvimg1_m);
@@ -475,6 +476,7 @@ namespace larcv {
     _particle_start2d_vvv.clear();
     _particle_end2d_vvv.clear();
     */
+    
     return true;
   }
   
@@ -482,7 +484,7 @@ namespace larcv {
   {
     if(fout) {
       _event_tree->Write();
-       _vtx3d_tree->Write();
+      _vtx3d_tree->Write();
     }
   }
   
