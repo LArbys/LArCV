@@ -6,10 +6,6 @@
 
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/Vertex.h"
-
-
-#include "/Users/vgenty/sw/larcv/core/DataFormat/Vertex.h"
-
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
 #include "LArOpenCV/ImageCluster/AlgoData/TrackClusterCompound.h"
