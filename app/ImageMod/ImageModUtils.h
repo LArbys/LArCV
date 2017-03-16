@@ -19,8 +19,7 @@
 
 namespace larcv {
 
-  Image2D as_image2d(const Pixel2DCluster& pcluster);
-  Image2D as_image2d(const Pixel2DCluster& pcluster, size_t target_rows, size_t target_cols);
+  Image2D cluster_to_image2d(const Pixel2DCluster& pcluster, size_t target_rows=0, size_t target_cols=0);
 
 }
 
