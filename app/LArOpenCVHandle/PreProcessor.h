@@ -19,11 +19,9 @@ namespace larcv {
     PreProcess(cv::Mat& adc_img,
 	       cv::Mat& track_img,
 	       cv::Mat& shower_img);
-
+    
     void
     Configure(const PSet& pset);
-
-
 
     void
     MergeTracklets(cv::Mat& track_img, cv::Mat& shower_img);
