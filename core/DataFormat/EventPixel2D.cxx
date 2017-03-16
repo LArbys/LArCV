@@ -50,6 +50,18 @@ namespace larcv {
     return (*iter).second;
   }
 
+  const ImageMeta& EventPixel2D::Meta(const ::larcv::PlaneID_t plane)
+  {
+    auto iter = _meta_m.find(plane);
+    if(iter == _meta_m.end()) {
+      // oops
+      logger::get("EventPixel2D").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
+	<< "No image meta for plane " << plane << std::endl;
+      throw larbys();	
+    }
+    return (*iter).second;
+  }
+
   void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2D& pixel)
   {
     _pixel_m[plane].push_back(pixel);
