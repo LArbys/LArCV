@@ -11,7 +11,7 @@
 #include "LArbysImageMaker.h"
 #include "LArbysImageAnaBase.h"
 #include "LArbysRecoHolder.h"
-//#include "ImageMod/ImageModUtils.h"
+#include "ImageMod/ImageModUtils.h"
 
 namespace larcv {
 
@@ -47,7 +47,7 @@ namespace larcv {
 		     const std::vector<larcv::Image2D>& track_image_v,
 		     const std::vector<larcv::Image2D>& shower_image_v);
 
-    bool StoreParticles(IOManager& iom, const larocv::ImageClusterManager& mgr);
+    bool StoreParticles(IOManager& iom, larocv::ImageClusterManager& mgr);
     
     TTree* _tree;
     

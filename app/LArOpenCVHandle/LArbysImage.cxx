@@ -47,7 +47,7 @@ namespace larcv {
     _process_time_analyze = 0;
     _process_time_cluster_storage = 0;
     
-    _plane_weights = cfg.get<std::vector<float> >("MatchPlaneWeights");
+    _plane_weights = cfg.get<std::vector<float> >("MatchPlaneWeights",{1,1,1});
 
     ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
@@ -170,10 +170,10 @@ namespace larcv {
     return status;
   }
 
-  bool LArbysImage::StoreParticles(IOManager& iom, const larocv::ImageClusterManager& mgr) {
+  bool LArbysImage::StoreParticles(IOManager& iom, larocv::ImageClusterManager& mgr) {
     LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
     const auto& adc_image_v = get_image2d(iom,_adc_producer);
-    const auto& adc_cvimg_v = mgr.InputImages(0);
+    auto& adc_cvimg_v = mgr.InputImages(0);
       
     auto event_pgraph   = (EventPGraph*) iom.get_data(kProductPGraph,_output_producer);
     auto event_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer);
@@ -270,6 +270,18 @@ namespace larcv {
 	    LARCV_DEBUG() << "isum = " << isum << std::endl;
 	    Pixel2DCluster pixcluster(std::move(pixel_v));
 	    event_pixel->Emplace(plane,std::move(pixcluster));
+
+	    
+	    //store the contour at the same index along size the pixels themselves
+	    std::vector<Pixel2D> ctor_v;
+	    if (par) {
+	      ctor_v.reserve(par->_ctor.size());
+	      for(const auto& pt : (*par)._ctor)  {
+		ctor_v.emplace_back(cvimg.cols-pt.x,pt.y);
+	      }
+	    }
+	    Pixel2DCluster pixctor(std::move(ctor_v));
+	    event_pixel->Emplace(plane,std::move(pixctor));
 	  }
 	  
 	} // end match size 2
@@ -352,6 +364,17 @@ namespace larcv {
 	    LARCV_DEBUG() << "isum = " << isum << std::endl;
 	    Pixel2DCluster pixcluster(std::move(pixel_v));
 	    event_pixel->Emplace(plane,std::move(pixcluster));
+
+	    //store the contour at the same index along size the pixels themselves
+	    std::vector<Pixel2D> ctor_v;
+	    if (par) {
+	      ctor_v.reserve(par->_ctor.size());
+	      for(const auto& pt : (*par)._ctor)  {
+		ctor_v.emplace_back(cvimg.cols-pt.x,pt.y);
+	      }
+	    }
+	    Pixel2DCluster pixctor(std::move(ctor_v));
+	    event_pixel->Emplace(plane,std::move(pixctor));
 	  }
 	} // end match 3
       }//end this match
@@ -388,19 +411,19 @@ namespace larcv {
 
     for (size_t plane = 0; plane < _adc_img_mgr.size(); ++plane) {
 
-      auto const& img  = _adc_img_mgr.img_at(plane);
-      auto      & meta = _adc_img_mgr.meta_at(plane);
-      auto const& roi  = _adc_img_mgr.roi_at(plane);
+      auto       & img  = _adc_img_mgr.img_at(plane);
+      const auto & meta = _adc_img_mgr.meta_at(plane);
+      const auto & roi  = _adc_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, roi, 0);
     }
 
     for (size_t plane = 0; plane < _track_img_mgr.size(); ++plane) {
-
-      auto const& img  = _track_img_mgr.img_at(plane);
-      auto      & meta = _track_img_mgr.meta_at(plane);
-      auto const& roi  = _track_img_mgr.roi_at(plane);
+      
+      auto       & img  = _track_img_mgr.img_at(plane);
+      const auto & meta = _track_img_mgr.meta_at(plane);
+      const auto & roi  = _track_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, roi, 1);
@@ -408,9 +431,9 @@ namespace larcv {
 
     for (size_t plane = 0; plane < _shower_img_mgr.size(); ++plane) {
 
-      auto const& img  = _shower_img_mgr.img_at(plane);
-      auto      & meta = _shower_img_mgr.meta_at(plane);
-      auto const& roi  = _shower_img_mgr.roi_at(plane);
+      auto       & img  = _shower_img_mgr.img_at(plane);
+      const auto & meta = _shower_img_mgr.meta_at(plane);
+      const auto & roi  = _shower_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, roi, 2);

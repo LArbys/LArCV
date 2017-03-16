@@ -18,6 +18,7 @@ namespace larcv {
   {
     _combined_vertex_name = cfg.get<std::string>("CombinedVertexName");
     _combined_particle_offset = cfg.get<uint>("ParticleOffset");
+    _analyze = cfg.get<bool>("Analyze");
   }
   
   void LArbysImageOut::ClearVertex() {
@@ -87,6 +88,9 @@ namespace larcv {
 
   bool LArbysImageOut::Analyze(const larocv::ImageClusterManager& mgr)
   {
+
+    if (!_analyze) return true;
+    
     LARCV_DEBUG() << "process" << std::endl;
     
     /// get the data manager
@@ -482,7 +486,7 @@ namespace larcv {
   
   void LArbysImageOut::Finalize(TFile* fout)
   {
-    if(fout) {
+    if(fout && _analyze) {
       _event_tree->Write();
       _vtx3d_tree->Write();
     }
