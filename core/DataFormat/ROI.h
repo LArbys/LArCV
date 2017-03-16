@@ -87,6 +87,7 @@ namespace larcv {
     short NuInteractionType() const { return _interaction_type; }
     const std::string& CreationProcess() const { return _process; }
     const larcv::Vertex& EndPosition() const { return _end_pt; }
+    const std::vector<float>& TypeScore() const { return _type_score_v; }
     
     void Index         (ROIIndex_t id  )    { _index = id;         }
     void Type          (ROIType_t type )    { _type  = type;       }
@@ -112,6 +113,7 @@ namespace larcv {
     void CreationProcess (const std::string& proc) { _process = proc; }
     void EndPosition   (const larcv::Vertex& vtx) { _end_pt = vtx; }
     void EndPosition   (double x, double y, double z, double t) { _end_pt = Vertex(x,y,z,t); }
+    void TypeScore (const std::vector<float>& score_v) { _type_score_v = score_v; }
 
     std::string dump() const;
     
@@ -139,6 +141,8 @@ namespace larcv {
 
     std::string _process;
     Vertex      _end_pt;
+    std::vector<float> _type_score_v;
+
   };
 }
 #endif

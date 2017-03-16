@@ -5,37 +5,47 @@
 
 namespace larcv {
 
-  Image2D as_image2d(const Pixel2DCluster& pcluster)
+  Image2D cluster_to_image2d(const Pixel2DCluster& pcluster,
+			     size_t target_rows, size_t target_cols)
   {
-    auto meta = pcluster.bounds();
-    Image2D res(meta);
-    res.paint(0.);
-    for(auto const& px : pcluster)
-      res.set_pixel( meta.max_y() - px.Y(),
-		     px.X() - meta.min_x(),
-		     px.Intensity() );
-    return res;
-  }
-
-  Image2D as_image2d(const Pixel2DCluster& pcluster,
-		     size_t target_rows, size_t target_cols)
-  {
-    // find charge centroid
-    double mean_x=0;
-    double mean_y=0;
-    double nonzero_npt=0;
-    for(auto const& px : pcluster) {
-      if(px.Intensity() <= 0) continue;
-      mean_x += px.X();
-      mean_y += px.Y();
-      nonzero_npt += 1.;
+    double origin_x = 0.;
+    if(!target_cols) {
+      double min_x = pcluster.min_x();
+      double max_x = pcluster.max_x();
+      origin_x = min_x;
+      target_cols = (max_x - min_x + 1);
+    }else{
+      // find charge centroid
+      double mean_x=0;
+      double nonzero_npt=0;
+      for(auto const& px : pcluster) {
+	if(px.Intensity() <= 0) continue;
+	mean_x += px.X();
+	nonzero_npt += 1.;
+      }
+      mean_x /= nonzero_npt;
+      // compute the origin from centroid position
+      origin_x = mean_x - ((double)target_cols)/2.;
     }
-    mean_x /= nonzero_npt;
-    mean_y /= nonzero_npt;
-
-    // compute the origin from centroid position
-    double origin_x = mean_x - ((double)target_cols)/2.;
-    double origin_y = mean_y + ((double)target_rows)/2.;
+    double origin_y = 0.;
+    if(!target_rows) {
+      double min_y = pcluster.min_y();
+      double max_y = pcluster.max_y();
+      origin_y = max_y;
+      target_rows = (max_y - min_y + 1);
+    }else{
+      // find charge centroid
+      double mean_y=0;
+      double nonzero_npt=0;
+      for(auto const& px : pcluster) {
+	if(px.Intensity() <= 0) continue;
+	mean_y += px.Y();
+	nonzero_npt += 1.;
+      }
+      mean_y /= nonzero_npt;
+      // compute the origin from centroid position
+      origin_y = mean_y + ((double)target_rows)/2.;
+    }
 
     ImageMeta meta(target_cols, target_rows,
 		   target_rows, target_cols,
