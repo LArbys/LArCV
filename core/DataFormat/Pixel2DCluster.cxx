@@ -84,6 +84,25 @@ namespace larcv {
     return min_idx;
   }
 
+  ImageMeta Pixel2DCluster::bounds() const
+  {
+    if(this->empty()) throw larbys("Empty Pixel2DCluster!");
+    size_t max_x = 0;
+    size_t min_x = std::numeric_limits<size_t>::max();
+    size_t max_y = 0;
+    size_t min_y = std::numeric_limits<size_t>::max();
+    for(auto const& px : (*this)) {
+      if(px.X() > max_x) max_x = px.X();
+      if(px.X() < min_x) min_x = px.X();
+      if(px.Y() > max_y) max_y = px.Y();
+      if(px.Y() < min_y) min_y = px.Y();
+    }
+    return ImageMeta(max_x - min_x, max_y - min_y,
+		     max_y - min_y, max_x - min_x,
+		     min_x, max_y,
+		     kINVALID_PLANE);
+  }
+
   void Pixel2DCluster::Pool(const PoolType_t type)
   {
     std::vector<larcv::Pixel2D> res;

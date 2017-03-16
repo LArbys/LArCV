@@ -12,45 +12,27 @@ namespace larcv {
 
   public:
     LArbysImageFilter(const std::string name="LArbysImageFilter");
-  
     ~LArbysImageFilter(){}
-    
     void configure(const PSet&);
-    
     void initialize();
-    
     bool process(IOManager& mgr);
-    
     void finalize();
-    
     void SetLArbysImageAna(LArbysImageAna* larbysana_ptr) 
     { _larbysana_ptr = larbysana_ptr; }
-    
     void SetLArbysImageExtract(LArbysImageExtract* larbysext_ptr) 
     { _larbysext_ptr = larbysext_ptr; }
-  
   private:
-    
     void ClearVertex();
-    
     void ClearEvent();
-    
     void WriteOut(size_t vertexid);
-    
     LArbysImageAna* _larbysana_ptr;
-    
     LArbysImageExtract* _larbysext_ptr;
-    
     larocv::VertexAnalysis _vtx_ana;
-    
     bool _require_two_multiplicity;
-    
     bool _require_match;
-    
+    bool _require_fiducial;
     std::string _filtereventtreename;
-    
     std::string _filtervertextreename;
-    
     //Event Tree
     TTree* _event_tree;
     uint _run;

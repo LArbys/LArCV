@@ -60,8 +60,8 @@ namespace larcv {
     // Check # planes
     if(ref_image_v.size() != tar_image_v.size()) {
       LARCV_CRITICAL() << "# planes in target (" << tar_image_v.size()
-		       << ") and reference (" << ref_image_v.size()
-		       << ") are not same!" << std::endl;
+		       << ") producer " << _target_image_producer << " and reference (" << ref_image_v.size()
+		       << ") producer " << _reference_image_producer << " are not same!" << std::endl;
       throw larbys();
     }
 

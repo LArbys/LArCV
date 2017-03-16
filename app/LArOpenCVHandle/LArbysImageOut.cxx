@@ -87,7 +87,6 @@ namespace larcv {
 
   bool LArbysImageOut::Analyze(const larocv::ImageClusterManager& mgr)
   {
-    
     LARCV_DEBUG() << "process" << std::endl;
     
     /// get the data manager
@@ -118,7 +117,8 @@ namespace larcv {
     _particle_cluster_vvv.resize(vertex3d_v.size());
     _track_compound_vvv.clear();
     _track_compound_vvv.resize(vertex3d_v.size());
-    
+
+
     for(uint vtxid=0;vtxid<_n_vtx3d;++vtxid) { 
       
       auto& particle_cluster_vv = _particle_cluster_vvv[vtxid];
@@ -131,6 +131,8 @@ namespace larcv {
       
       // get this 3D vertex
       const auto& vtx3d = vertex3d_v[vtxid];
+
+      // store this vertex
       _vertex3d_v[vtxid] = vtx3d;
       
       // set the vertex type

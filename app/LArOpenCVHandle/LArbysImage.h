@@ -8,16 +8,12 @@
 #include "LArOpenCV/ImageCluster/Base/ImageClusterViewer.h"
 #include "DataFormat/Image2D.h"
 #include "PreProcessor.h"
-#include "TrackShowerAna.h"
 #include "LArbysImageMaker.h"
 #include "LArbysImageAnaBase.h"
+// #include "LArOpenCV/ImageCluster/AlgoClass/LArPlaneGeo.h"
+
 namespace larcv {
 
-  /**
-     \class ProcessBase
-     User defined class LArbysImage ... these comments are used to generate
-     doxygen documentation!
-  */
   class LArbysImage : public ProcessBase {
 
   public:
@@ -39,7 +35,6 @@ namespace larcv {
     const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
 
     const PreProcessor& PProcessor() const { return _PreProcessor; }
-    const TrackShowerAna& TSAna() const { return _TrackShowerAna; }
     const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
     
   protected:
@@ -49,7 +44,9 @@ namespace larcv {
     bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
 		     const std::vector<larcv::Image2D>& track_image_v,
 		     const std::vector<larcv::Image2D>& shower_image_v);
-      
+
+    bool StoreParticles(IOManager& iom, const larocv::ImageClusterManager& mgr);
+    
     TTree* _tree;
     
     ::larocv::ImageClusterManager _alg_mgr;
@@ -58,12 +55,10 @@ namespace larcv {
     ::larocv::ImageManager _shower_img_mgr;
 
     bool   _debug;
-    double _charge_to_gray_scale;
-    double _charge_min;
-    double _charge_max;
-
     bool _preprocess;
-    bool _tsanalyze;
+
+    std::string _output_module_name;
+    size_t _output_module_offset;
     
     std::vector<float> _plane_weights;
     std::string _adc_producer;
@@ -79,10 +74,10 @@ namespace larcv {
     void Report() const;
     
     PreProcessor _PreProcessor;
-    TrackShowerAna _TrackShowerAna;
     LArbysImageMaker _LArbysImageMaker;
     LArbysImageAnaBase* _LArbysImageAnaBase_ptr;
-
+    //LArPlaneGeo _geo;
+    
     std::vector<larcv::Image2D> _empty_image_v;
   };
 

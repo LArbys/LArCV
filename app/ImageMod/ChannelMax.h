@@ -47,7 +47,8 @@ namespace larcv {
     std::string _in_producer;
     std::string _out_producer;
     std::vector<float> _plane_weight_v;
-    
+    std::vector<bool> _relevant_chan_v;
+    std::vector<float> _channel_mask_v;
   };
 
   /**
