@@ -20,7 +20,6 @@ namespace larcv {
     : ProcessBase(name),
       _PreProcessor(),
       _LArbysImageMaker(),
-      _LArbysImageAnaBase_ptr(nullptr),
       _reco_holder()
   {}
       
@@ -31,8 +30,10 @@ namespace larcv {
     _shower_producer      = cfg.get<std::string>("ShowerImageProducer","");
     _roi_producer         = cfg.get<std::string>("ROIProducer","");
     _output_producer      = cfg.get<std::string>("OutputImageProducer","");
-    
+
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
+
+    _write_reco = cfg.get<bool>("WriteAnaReco");
     _reco_holder.Configure(cfg.get<larcv::PSet>("LArbysRecoHolder"));
 
     _preprocess = cfg.get<bool>("PreProcess",true);
@@ -51,28 +52,13 @@ namespace larcv {
     ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
     _alg_mgr.MatchPlaneWeights() = _plane_weights;
-
-    auto const ana_class_name = cfg.get<std::string>("LArbysImageAnaClass","");
-    if(ana_class_name.empty()) return;
-    
-    if(ana_class_name == "LArbysImageOut") _LArbysImageAnaBase_ptr = new LArbysImageOut("LArbysImageOut");
-    else {
-      LARCV_CRITICAL() << "LArbysImageAna class name " << ana_class_name << " not recognized..." << std::endl;
-      throw larbys();
-    }
-    
-    if(_LArbysImageAnaBase_ptr)
-      _LArbysImageAnaBase_ptr->Configure(cfg.get<larcv::PSet>("LArbysImageAnaConfig"));
-    
   }
   
   void LArbysImage::initialize()
-  {
-    if( _LArbysImageAnaBase_ptr ) _LArbysImageAnaBase_ptr->Initialize();
-  }
-
+  {}
+  
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {
-
+    
     LARCV_DEBUG() << "Extracting " << producer << " Image\n" << std::endl;
     if(!producer.empty()) {
       auto ev_image = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
@@ -91,12 +77,6 @@ namespace larcv {
 
     bool status = true;
 
-    if(_LArbysImageAnaBase_ptr) {
-      auto const& event_id = mgr.event_id();
-      _LArbysImageAnaBase_ptr->EventID(mgr.current_entry(),
-				       event_id.run(), event_id.subrun(), event_id.event());
-    }
-
     if(_roi_producer.empty()) {
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
@@ -109,8 +89,6 @@ namespace larcv {
       LARCV_DEBUG() << "Reconstruct" << std::endl;
       status = Reconstruct(adc_image_v,track_image_v,shower_image_v);
       
-      if(_LArbysImageAnaBase_ptr) _LArbysImageAnaBase_ptr->Analyze(_alg_mgr);
-
       status = status && StoreParticles(mgr,_alg_mgr,adc_image_v);
       
     }else{
@@ -160,10 +138,13 @@ namespace larcv {
 	LARCV_DEBUG() << "Reconstruct" << std::endl;
 	status = status && Reconstruct(crop_adc_image_v, crop_track_image_v, crop_shower_image_v);
 
-	if(_LArbysImageAnaBase_ptr) _LArbysImageAnaBase_ptr->Analyze(_alg_mgr);
-	
 	status = status && StoreParticles(mgr,_alg_mgr,crop_adc_image_v);
       }
+    }
+
+    if (_write_reco) {
+      _reco_holder.Write();
+      _reco_holder.ResetOutput();
     }
     
     return status;
@@ -207,9 +188,6 @@ namespace larcv {
 	  auto& id0    = match_v[0].second;
 	  auto& plane1 = match_v[1].first;
 	  auto& id1    = match_v[1].second;
-
-	  const auto& cvimg0 = adc_cvimg_v[plane0];
-	  const auto& cvimg1 = adc_cvimg_v[plane1];
 
 	  const auto& par0 = *(pcluster_vv[plane0][id0]);
 	  const auto& par1 = *(pcluster_vv[plane1][id1]);
@@ -302,10 +280,6 @@ namespace larcv {
 	  auto& plane2 = match_v[2].first;
 	  auto& id2    = match_v[2].second;
 
-	  const auto& cvimg0 = adc_cvimg_v[plane0];
-	  const auto& cvimg1 = adc_cvimg_v[plane1];
-	  const auto& cvimg2 = adc_cvimg_v[plane2];
-	  
 	  const auto& par0 = *(pcluster_vv[plane0][id0]);
 	  const auto& par1 = *(pcluster_vv[plane1][id1]);
 	  const auto& par2 = *(pcluster_vv[plane2][id2]);
@@ -392,6 +366,12 @@ namespace larcv {
       event_pgraph->Emplace(std::move(pgraph));
     }//end vertex
 
+
+    if (_write_reco) {
+      const auto& eid = iom.event_id();
+      _reco_holder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
+    }
+    
     _reco_holder.Reset();
     return true;
   }
@@ -491,13 +471,9 @@ namespace larcv {
   {
     if ( has_ana_file() ) 
       _alg_mgr.Finalize(&(ana_file()));
-
-    if ( _LArbysImageAnaBase_ptr ) {
-      if( has_ana_file() )
-	_LArbysImageAnaBase_ptr->Finalize(&(ana_file()));
-      else
-	_LArbysImageAnaBase_ptr->Finalize();
-    }
+    
+    if (_write_reco)
+      _reco_holder.WriteOut(&(ana_file()));
 
   }
   

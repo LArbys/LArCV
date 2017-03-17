@@ -22,30 +22,36 @@ namespace larcv {
   {
     _mc_tree_name = cfg.get<std::string>("MCTreeName");
     _reco_tree_name = cfg.get<std::string>("RecoTreeName");
+    _mc_exists = cfg.get<bool>("MCExists");
   }
 
   void LArbysImageAna::initialize()
   {
 
-    if (_input_larbys_root_file.empty()) throw larbys("No input root file specified");
-    LARCV_DEBUG() << "Setting input ROOT file... " << _input_larbys_root_file << std::endl;
-    _mc_chain = new TChain(_mc_tree_name.c_str());
-    _mc_chain->AddFile(_input_larbys_root_file.c_str());
-    _mc_chain->SetBranchAddress("run",&_mc_run);
-    _mc_chain->SetBranchAddress("subrun",&_mc_subrun);
-    _mc_chain->SetBranchAddress("event",&_mc_event);
-    _mc_chain->SetBranchAddress("entry",&_mc_entry);
-    _mc_chain->SetBranchAddress("parentX",&_true_x);
-    _mc_chain->SetBranchAddress("parentY",&_true_y);
-    _mc_chain->SetBranchAddress("parentZ",&_true_z);
-    _mc_chain->SetBranchAddress("vtx2d_w",&_vtx2d_w_v);
-    _mc_chain->SetBranchAddress("vtx2d_t",&_vtx2d_t_v);
-    _mc_index=0;
-    _mc_chain->GetEntry(_mc_index);
-    _mc_entries = _mc_chain->GetEntries();
+    if (_mc_exists) {
+      if (_input_larbys_mc_root_file.empty()) throw larbys("No input root file specified");
+      LARCV_DEBUG() << "Setting input MC ROOT file: " << _input_larbys_mc_root_file << std::endl;
+      _mc_chain = new TChain(_mc_tree_name.c_str());
+      _mc_chain->AddFile(_input_larbys_mc_root_file.c_str());
+      _mc_chain->SetBranchAddress("run",&_mc_run);
+      _mc_chain->SetBranchAddress("subrun",&_mc_subrun);
+      _mc_chain->SetBranchAddress("event",&_mc_event);
+      _mc_chain->SetBranchAddress("entry",&_mc_entry);
+      _mc_chain->SetBranchAddress("parentX",&_true_x);
+      _mc_chain->SetBranchAddress("parentY",&_true_y);
+      _mc_chain->SetBranchAddress("parentZ",&_true_z);
+      _mc_chain->SetBranchAddress("vtx2d_w",&_vtx2d_w_v);
+      _mc_chain->SetBranchAddress("vtx2d_t",&_vtx2d_t_v);
+      _mc_index=0;
+      _mc_chain->GetEntry(_mc_index);
+      _mc_entries = _mc_chain->GetEntries();
+      LARCV_DEBUG() << "Got " << _reco_entries << " mc entries" << std::endl;
+    }
     
+    if (_input_larbys_reco_root_file.empty()) throw larbys("No input root file specified");
+    LARCV_DEBUG() << "Setting input Reco ROOT file: " << _input_larbys_reco_root_file << std::endl;
     _reco_chain = new TChain(_reco_tree_name.c_str());
-    _reco_chain->AddFile(_input_larbys_root_file.c_str());
+    _reco_chain->AddFile(_input_larbys_reco_root_file.c_str());
     _reco_chain->SetBranchAddress("run",&_reco_run);
     _reco_chain->SetBranchAddress("subrun",&_reco_subrun);
     _reco_chain->SetBranchAddress("event",&_reco_event);
@@ -56,25 +62,25 @@ namespace larcv {
     _reco_index=0;
     _reco_chain->GetEntry(_reco_index);
     _reco_entries = _reco_chain->GetEntries();
+    LARCV_DEBUG() << "Got " << _reco_entries << " reco entries" << std::endl;
   }
 
   bool LArbysImageAna::increment(uint entry)
   {
-
-    _mc_chain->GetEntry(_mc_index);
+    if(_mc_exists)
+      _mc_chain->GetEntry(_mc_index);
     _reco_chain->GetEntry(_reco_index);
 
-    if ((_mc_entry<=entry) && (_mc_index!=_mc_entries))
-      { _mc_index++; }
-    if ((_reco_entry<=entry) && (_reco_index!=_reco_entries))
-      { _reco_index++; }
+    if ((_mc_entry   <= entry) && (_mc_index   != _mc_entries))   { _mc_index++;   }
+    if ((_reco_entry <= entry) && (_reco_index != _reco_entries)) { _reco_index++; }
 
     if ( entry     != _reco_entry) return false;
-    if ( entry     !=  _mc_entry ) return false;
-    if ( _mc_entry != _reco_entry) return false;
+    if (_mc_exists) {
+      if ( entry     !=  _mc_entry ) return false;
+      if ( _mc_entry != _reco_entry) return false;
+    }
 
     return true;
-
   }
   
   bool LArbysImageAna::process(IOManager& mgr)
@@ -87,6 +93,9 @@ namespace larcv {
     if ( !increment(entry) ) return false;
 
     LARCV_DEBUG() << "...passed..." << std::endl;
+    
+    if (!_mc_exists)
+      return true;
     
     _mc_vertex._Clear_();
     _mc_vertex.x=_true_x;

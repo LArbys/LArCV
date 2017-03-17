@@ -16,7 +16,7 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree,signal_df_m):
         DEBUG=False
         # NOTE YOU HAVE TO BE CAREFUL HERE WITH THIS LINE BELOW
         vtx_entry = sb_vtx_tree.loc[index]
-        entry=signal_df_m['EventTree'].loc[index]['entry']
+        entry=signal_df_m['FilterEventTree'].loc[index]['entry']
 
         # if entry==1968:
         #     DEBUG=True

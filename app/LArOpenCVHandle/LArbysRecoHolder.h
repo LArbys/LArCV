@@ -6,7 +6,7 @@
 #include "LArOpenCV/Core/ImageManager.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
-
+#include "TTree.h"
 
 namespace larcv {
 
@@ -14,9 +14,12 @@ namespace larcv {
     
   public:
 
-    LArbysRecoHolder() : _vtx_ana() {}
+    LArbysRecoHolder() :
+      _vtx_ana(),
+      _out_tree(nullptr)
+    {  Reset(); }
     ~LArbysRecoHolder(){}
-
+    
     void
     ShapeData(const larocv::ImageClusterManager& mgr);
     
@@ -30,9 +33,21 @@ namespace larcv {
     std::vector<std::vector<std::pair<size_t,size_t> > >
     Match(size_t vtx_id,
 	  const std::vector<cv::Mat>& adc_cvimg_v);
-    
+
     void
     Reset();
+    
+    void
+    ResetOutput();
+
+    void
+    StoreEvent(size_t run, size_t subrun, size_t event, size_t entry);
+    
+    bool
+    WriteOut(TFile* fout);
+
+    void
+    Write();
     
     //
     //-> Getters
@@ -50,6 +65,10 @@ namespace larcv {
     Verticies()
     { return _vertex_ptr_v; }
 
+    const std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > >&
+    VertexPlaneParticles()
+    { return _particle_cluster_ptr_vvv; }
+    
     const std::vector<std::vector<const larocv::data::ParticleCluster*> >&
     PlaneParticles(size_t vertexid)
     { return _particle_cluster_ptr_vvv[vertexid]; }
@@ -61,6 +80,10 @@ namespace larcv {
     const larocv::data::ParticleCluster*
     Particle(size_t vertexid,size_t planeid,size_t particleid)
     { return _particle_cluster_ptr_vvv[vertexid][planeid][particleid]; }
+
+    const std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > >&
+    VertexPlaneTracks(size_t vertexid)
+    { return _track_comp_ptr_vvv; }
     
     const std::vector<std::vector<const larocv::data::TrackClusterCompound*> >&
     PlaneTracks(size_t vertexid)
@@ -90,6 +113,16 @@ namespace larcv {
     std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > _particle_cluster_ptr_vvv;
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > _track_comp_ptr_vvv;
 
+    TTree* _out_tree;
+    uint _run;
+    uint _subrun;
+    uint _event;
+    uint _entry;
+    std::vector<larocv::data::Vertex3D> _vertex_v;
+    std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > > _particle_cluster_vvv;
+    std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > > _track_comp_vvv;
+    std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > > _match_pvvv;
+      
   };
 }
 

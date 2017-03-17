@@ -20,8 +20,11 @@ namespace larcv {
     bool process(IOManager& mgr);
     void finalize();
 
-    void SetInputLArbysFile(std::string file)
-    { _input_larbys_root_file = file; }
+    void SetInputLArbysRecoFile(std::string file)
+    { _input_larbys_reco_root_file = file; }
+    
+    void SetInputLArbysMCFile(std::string file)
+    { _input_larbys_mc_root_file = file; }
 
     const larocv::data::Vertex3D&
     TrueVertex()
@@ -35,6 +38,10 @@ namespace larcv {
     Vertex(size_t vertexid)
     { return (*_reco_vertex_v)[vertexid]; }
 
+    const std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > >&
+    VertexPlaneParticles(size_t vertexid)
+    { return (*_particle_cluster_vvv); }
+    
     const std::vector<std::vector<larocv::data::ParticleCluster> >&
     PlaneParticles(size_t vertexid)
     { return (*_particle_cluster_vvv)[vertexid]; }
@@ -43,6 +50,10 @@ namespace larcv {
     Particles(size_t vertexid,size_t planeid)
     { return (*_particle_cluster_vvv)[vertexid][planeid]; }
 
+    const std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > >&
+    VertexPlaneTracks(size_t vertexid)
+    { return (*_track_cluster_comp_vvv); }
+    
     const std::vector<std::vector<larocv::data::TrackClusterCompound> >&
     PlaneTracks(size_t vertexid)
     { return (*_track_cluster_comp_vvv)[vertexid]; }
@@ -54,26 +65,34 @@ namespace larcv {
     const std::string GetMCTreeName ()
     { return _mc_tree_name; }
     
-    const std::string GetRootName ()
-    { return _input_larbys_root_file; }
+    const std::string GetMCRootName ()
+    { return _input_larbys_mc_root_file; }
 
-    const uint GetEvent() 
-    { return _mc_event; }
-
-    const uint GetEntry()
-    { return _mc_entry; }
+    const std::string GetRecoRootName ()
+    { return _input_larbys_reco_root_file; }
     
-    const uint GetRun()
-    { return _mc_run; }
-
-    const uint GetSubrun()
-    { return _mc_subrun; }
+    const uint GetEvent()  {
+      if (_mc_event!=_reco_event) throw larbys("Invalid mc-reco alignment");
+      return _mc_event;
+    }
+    const uint GetSubrun()  {
+      if (_mc_subrun!=_reco_subrun) throw larbys("Invalid mc-reco alignment");
+      return _mc_subrun;
+    }
+    const uint GetRun()  {
+      if (_mc_run!=_reco_run) throw larbys("Invalid mc-reco alignment");
+      return _mc_run;
+    }
+    const uint GetEntry()  {
+      if (_mc_entry!=_reco_entry) throw larbys("Invalid mc-reco alignment");
+      return _mc_entry;
+    }
     
   private:
-
     std::string _mc_tree_name;
     std::string _reco_tree_name;
-    std::string _input_larbys_root_file;
+    std::string _input_larbys_reco_root_file;
+    std::string _input_larbys_mc_root_file;
 
     TChain* _mc_chain;
     TChain* _reco_chain;
@@ -95,13 +114,13 @@ namespace larcv {
     size_t _reco_index;
 
     bool increment(uint entry);
+
+    bool _mc_exists;
     
-    // Reconstructed quantities
     std::vector<larocv::data::Vertex3D> * _reco_vertex_v;
     std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > >* _particle_cluster_vvv;
     std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > >* _track_cluster_comp_vvv;
 
-    // MC quantities
     larocv::data::Vertex3D _mc_vertex;
     double _true_x;
     double _true_y;
