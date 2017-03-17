@@ -47,7 +47,9 @@ namespace larcv {
 		     const std::vector<larcv::Image2D>& track_image_v,
 		     const std::vector<larcv::Image2D>& shower_image_v);
 
-    bool StoreParticles(IOManager& iom, larocv::ImageClusterManager& mgr);
+    bool StoreParticles(IOManager& iom,
+			larocv::ImageClusterManager& mgr,
+			const std::vector<larcv::Image2D>& adcimg_v);
     
     TTree* _tree;
     
