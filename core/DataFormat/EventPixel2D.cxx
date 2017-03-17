@@ -112,7 +112,6 @@ namespace larcv {
     col.back()._id = col.size() - 1;
     _cluster_meta_m[plane].push_back(meta);
   }
-
 }
 
 #endif
