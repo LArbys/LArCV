@@ -69,18 +69,22 @@ namespace larcv {
 
       auto& tar_image = tar_image_v[pid];
 
-      auto const& ref_image = ref_image_v[pid].as_vector();
+      auto ref_image = Image2D(tar_image.meta());
+      ref_image.paint(0);
+      ref_image.overlay( ref_image_v[pid] );
 
-      if(tar_image.as_vector().size() != ref_image.size()) {
+      if(tar_image.as_vector().size() != ref_image.as_vector().size()) {
 	LARCV_CRITICAL() << "Different size among the target (" << tar_image.as_vector().size()
-			 << ") and reference (" << ref_image.size()
+			 << ") and reference (" << ref_image.as_vector().size()
 			 << ")!" << std::endl;
 	throw larbys();
       }
 
-      for(size_t px_idx = 0; px_idx < ref_image.size(); ++px_idx)
+      auto const& ref_vector = ref_image.as_vector();
 
-	if(ref_image[px_idx] < _pi_thresh_min) tar_image.set_pixel(px_idx,_mask_value);
+      for(size_t px_idx = 0; px_idx < ref_vector.size(); ++px_idx)
+
+	if(ref_vector[px_idx] < _pi_thresh_min) tar_image.set_pixel(px_idx,_mask_value);
 
     }
 
