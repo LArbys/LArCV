@@ -18,7 +18,8 @@ proc = larcv.ProcessDriver('ProcessDriver')
 
 #CFG="../reco_combined_ssnet_fullchain.cfg"
 #CFG="../reco_combined_ssnet_nue.cfg"
-CFG="../../reco_combined_ssnet_nue_nopp_notunique.cfg"
+#CFG="../../reco_combined_ssnet_nue_nopp_notunique.cfg"
+CFG="../../fullchain_ssnet_nue.cfg"
 ISMC=True
 if ISMC:
     print "This is MC"
@@ -35,7 +36,8 @@ processed=False
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
-flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+#flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+flist.push_back("/Users/vgenty/Desktop/Cincinnati/fcn_out.root")
 #flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
 proc.override_input_file(flist)
 
@@ -58,17 +60,19 @@ proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 from numpy import array
 
-ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
-                        918,1085,1450,1547,1702,1844,1970,2368,2470])
+# ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
+#                         918,1085,1450,1547,1702,1844,1970,2368,2470])
+ignore_list_v=np.array([])
+event_v=range(90)
 
-event_v=[100, 138, 238, 253, 397, 405, 460, 495, 498, 515, 637, 697, 706, 873, 918, 1041, 1055, 1076, 1149, 1366, 1383, 1422, 1554, 1602, 1738, 1963, 2125, 2369, 2470]
 for event in event_v:#event_v:
     if event in ignore_list_v: continue
     
     proc.batch_process(event,1)
 
-    if ISMC:
-        if (filter_proc.selected()==False): continue
+    # if ISMC:
+    #     if (filter_proc.selected()==False): continue
+    
     print "Event is... ",event
     mgr=larbysimg.Manager()
     pygeo = geo2d.PyDraw()

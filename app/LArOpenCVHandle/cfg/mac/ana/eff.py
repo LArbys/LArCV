@@ -23,7 +23,7 @@ a=sig_good_vtx_df.reset_index().set_index(base_index)
 b=sig_good_vtx_df[multi2_v]
 
 bad_mc=signal_df_m['MCTree'].drop(a.index,inplace=False)
-bad_reco=signal_df_m['EventTree'].drop(a.index,inplace=False)
+bad_reco=signal_df_m['FilterEventTree'].drop(a.index,inplace=False)
 bad_mult=sig_good_vtx_df.drop(b.index,inplace=False)
 
 print

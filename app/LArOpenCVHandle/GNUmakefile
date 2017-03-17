@@ -1,7 +1,7 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = LArOpenCVBandle
+PACKAGE_NAME = LArOpenCVHandle
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)

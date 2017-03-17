@@ -9,7 +9,6 @@
 #include "DataFormat/Image2D.h"
 #include "PreProcessor.h"
 #include "LArbysImageMaker.h"
-#include "LArbysImageAnaBase.h"
 #include "LArbysRecoHolder.h"
 #include "ImageMod/ImageModUtils.h"
 
@@ -58,9 +57,10 @@ namespace larcv {
     ::larocv::ImageManager _track_img_mgr;
     ::larocv::ImageManager _shower_img_mgr;
 
-    bool   _debug;
+    bool _debug;
     bool _preprocess;
-
+    bool _write_reco;
+    
     std::string _output_module_name;
     size_t _output_module_offset;
     
@@ -71,22 +71,24 @@ namespace larcv {
     std::string _shower_producer;
     std::string _output_producer;
     ::larocv::AlgorithmID_t _output_cluster_alg_id;
+
     double _process_count;
     double _process_time_image_extraction;
     double _process_time_analyze;
     double _process_time_cluster_storage;
+
     void Report() const;
     
     PreProcessor _PreProcessor;
     LArbysImageMaker _LArbysImageMaker;
-    LArbysImageAnaBase* _LArbysImageAnaBase_ptr;
     LArbysRecoHolder _reco_holder;
     
     std::vector<larcv::Image2D> _empty_image_v;
   };
 
   /**
-     \class larcv::LArbysImageFactory
+     \class larcv::LAr
+bysImageFactory
      \brief A concrete factory class for larcv::LArbysImage
   */
   class LArbysImageProcessFactory : public ProcessFactoryBase {
