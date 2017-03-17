@@ -45,6 +45,9 @@ namespace larcv {
     const std::vector<larcv::ROI>& Particles() const
     { return _part_v; }
 
+    const std::vector<size_t>& ClusterIndexArray() const
+    { return _pcluster_idx_v; }
+
     void Clear();
 
   private:

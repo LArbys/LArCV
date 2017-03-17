@@ -50,7 +50,7 @@ namespace larcv {
     return (*iter).second;
   }
 
-  const ImageMeta& EventPixel2D::Meta(const ::larcv::PlaneID_t plane)
+  const ImageMeta& EventPixel2D::Meta(const ::larcv::PlaneID_t plane) const
   {
     auto iter = _meta_m.find(plane);
     if(iter == _meta_m.end()) {
@@ -62,16 +62,41 @@ namespace larcv {
     return (*iter).second;
   }
 
+  const std::vector<larcv::ImageMeta>& EventPixel2D::ClusterMetaArray(const ::larcv::PlaneID_t plane) const
+  {
+    auto iter = _cluster_meta_m.find(plane);
+    if(iter == _cluster_meta_m.end()) {
+      // oops
+      logger::get("EventPixel2D").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
+	<< "No image meta for plane " << plane << std::endl;
+      throw larbys();	
+    }
+    return (*iter).second;
+  }
+
+  const ImageMeta& EventPixel2D::ClusterMeta(const ::larcv::PlaneID_t plane, const size_t cluster_id) const
+  {
+    auto const& meta_v = ClusterMetaArray(plane);
+    if(meta_v.size() <= cluster_id) {
+      // oops
+      logger::get("EventPixel2D").send(msg::kCRITICAL, __FUNCTION__, __LINE__)
+	<< "No image meta for plane " << plane << " index " << cluster_id <<std::endl;
+      throw larbys();	
+    }
+    return meta_v[cluster_id];
+  }
+
   void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2D& pixel)
   {
     _pixel_m[plane].push_back(pixel);
   }
 
-  void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster)
+  void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster, const ImageMeta& meta)
   {
     auto& col = _cluster_m[plane];
     col.push_back(cluster);
     col.back()._id = col.size() - 1;
+    _cluster_meta_m[plane].push_back(meta);
   }
   
   void EventPixel2D::Emplace(const larcv::PlaneID_t plane, Pixel2D&& pixel)
@@ -80,11 +105,12 @@ namespace larcv {
     col.emplace_back(std::move(pixel));
   }
 
-  void EventPixel2D::Emplace(const larcv::PlaneID_t plane, Pixel2DCluster&& cluster)
+  void EventPixel2D::Emplace(const larcv::PlaneID_t plane, Pixel2DCluster&& cluster, const ImageMeta& meta)
   {
     auto& col = _cluster_m[plane];
     col.emplace_back(std::move(cluster));
     col.back()._id = col.size() - 1;
+    _cluster_meta_m[plane].push_back(meta);
   }
 
 }
