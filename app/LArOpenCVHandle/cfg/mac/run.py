@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+from larcv import larcv
 import ROOT, sys
 from ROOT import std
-from larcv import larcv
+
 
 if len(sys.argv) < 2:
    print 'Usage: python',sys.argv[0],'CONFIG_FILE [LARCV_FILE1 LARCV_FILE2 ...]'
@@ -11,20 +11,24 @@ proc = larcv.ProcessDriver('ProcessDriver')
 
 print "Loading config... ",sys.argv[1]
 proc.configure(sys.argv[1])
-
+print "Loaded"
+print sys.argv
 if len(sys.argv) > 1:
    flist=ROOT.std.vector('std::string')()
-   for x in xrange(len(sys.argv)-3):
-      flist.push_back(sys.argv[x+3])
+   for x in xrange(len(sys.argv)-4):
+      print "Pushing back...",sys.argv[x+4]
+      flist.push_back(sys.argv[x+4])
+   
    proc.override_input_file(flist)
 
-filter_id = proc.process_id("NuFilter")
-mcinfo_id = proc.process_id("LArbysImageMC")
-
-filter_proc   = proc.process_ptr(filter_id)
-mcinfo_proc   = proc.process_ptr(mcinfo_id)
-mcinfo_proc.SetFilter(filter_proc)
 proc.override_ana_file(sys.argv[2] + ".root")
+proc.override_output_file(sys.argv[3] + ".root")
 proc.initialize()
+
+
+#proc.batch_process(0,2)
+#proc.batch_process(0,131)
 proc.batch_process()
+
+
 proc.finalize()
