@@ -34,8 +34,10 @@
 #pragma link C++ class larcv::SegWeightTrackShower+;
 #pragma link C++ class larcv::ModularPadImage+;
 #pragma link C++ class larcv::MultiROICropper+;
+#pragma link C++ class larcv::ROIMerger+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

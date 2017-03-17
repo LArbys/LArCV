@@ -35,7 +35,6 @@ namespace larcv {
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
     _reco_holder.Configure(cfg.get<larcv::PSet>("LArbysRecoHolder"));
 
-    
     _preprocess = cfg.get<bool>("PreProcess",true);
     if (_preprocess) {
       LARCV_INFO() << "Preprocessing image" << std::endl;
@@ -64,7 +63,6 @@ namespace larcv {
     
     if(_LArbysImageAnaBase_ptr)
       _LArbysImageAnaBase_ptr->Configure(cfg.get<larcv::PSet>("LArbysImageAnaConfig"));
-
     
   }
   
@@ -247,6 +245,8 @@ namespace larcv {
 	  pcluster_arr[plane1] = &par1;
 	    
 	  for(size_t plane=0;plane<3;++plane) {
+	    const auto& pmeta = adc_image_v[plane].meta();
+
 	    std::vector<Pixel2D> pixel_v;
 	    
 	    const auto& par = pcluster_arr[plane];
@@ -269,19 +269,19 @@ namespace larcv {
 	    }
 	    LARCV_DEBUG() << "isum = " << isum << std::endl;
 	    Pixel2DCluster pixcluster(std::move(pixel_v));
-	    event_pixel->Emplace(plane,std::move(pixcluster));
-
-	    
+	    event_pixel->Emplace(plane,std::move(pixcluster),pmeta);
+	    	    
 	    //store the contour at the same index along size the pixels themselves
 	    std::vector<Pixel2D> ctor_v;
 	    if (par) {
 	      ctor_v.reserve(par->_ctor.size());
 	      for(const auto& pt : (*par)._ctor)  {
 		ctor_v.emplace_back(cvimg.cols-pt.x,pt.y);
+		ctor_v.back().Intensity(1.0);
 	      }
 	    }
 	    Pixel2DCluster pixctor(std::move(ctor_v));
-	    event_pixel->Emplace(plane,std::move(pixctor));
+	    event_pixel->Emplace(plane,std::move(pixctor),pmeta);
 	  }
 	  
 	} // end match size 2
@@ -341,6 +341,7 @@ namespace larcv {
 	  pcluster_arr[plane2] = &par2;
 	    
 	  for(size_t plane=0;plane<3;++plane) {
+	    const auto& pmeta = adc_image_v[plane].meta();
 	    std::vector<Pixel2D> pixel_v;
 	    
 	    const auto& par = pcluster_arr[plane];
@@ -363,18 +364,21 @@ namespace larcv {
 	    }
 	    LARCV_DEBUG() << "isum = " << isum << std::endl;
 	    Pixel2DCluster pixcluster(std::move(pixel_v));
-	    event_pixel->Emplace(plane,std::move(pixcluster));
+	    event_pixel->Emplace(plane,std::move(pixcluster),pmeta);
 
 	    //store the contour at the same index along size the pixels themselves
 	    std::vector<Pixel2D> ctor_v;
 	    if (par) {
 	      ctor_v.reserve(par->_ctor.size());
 	      for(const auto& pt : (*par)._ctor)  {
-		ctor_v.emplace_back(cvimg.cols-pt.x,pt.y);
+		auto row=cvimg.cols-pt.x;
+		auto col=pt.y;
+		ctor_v.emplace_back(row,col);
+		ctor_v.back().Intensity(1.0);
 	      }
 	    }
 	    Pixel2DCluster pixctor(std::move(ctor_v));
-	    event_pixel->Emplace(plane,std::move(pixctor));
+	    event_pixel->Emplace(plane,std::move(pixctor),pmeta);
 	  }
 	} // end match 3
       }//end this match
