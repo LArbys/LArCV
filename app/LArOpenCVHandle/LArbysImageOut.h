@@ -11,8 +11,6 @@
 #include "LArOpenCV/ImageCluster/AlgoData/TrackClusterCompound.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
 
-#include "/Users/vgenty/sw/larcv/core/DataFormat/Vertex.h"
-
 namespace larcv {
 
   class LArbysImageOut : public LArbysImageAnaBase {
@@ -60,20 +58,20 @@ namespace larcv {
     std::vector<uint> _circle_xs_v;
     std::vector<uint> _par_multi;
 
-    ///*
-    //per vertex
-    //per particle
-    std::vector<std::vector<EventImage2D> > _particle_vv;
-    //per vertex
-    //per particle
-    std::vector<std::vector<larcv::Vertex> > _particle_start_vv;
-    std::vector<std::vector<larcv::Vertex> > _particle_end_vv;
-    //per vertex
-    //per particle
-    //per plane
-    std::vector<std::vector<std::vector<larcv::Vertex> > > _particle_start2d_vvv;
-    std::vector<std::vector<std::vector<larcv::Vertex> > > _particle_end2d_vvv;
-    //*/
+    // ///*
+    // //per vertex
+    // //per particle
+    // std::vector<std::vector<EventImage2D> > _particle_vv;
+    // //per vertex
+    // //per particle
+    // std::vector<std::vector<larcv::Vertex> > _particle_start_vv;
+    // std::vector<std::vector<larcv::Vertex> > _particle_end_vv;
+    // //per vertex
+    // //per particle
+    // //per plane
+    // std::vector<std::vector<std::vector<larcv::Vertex> > > _particle_start2d_vvv;
+    // std::vector<std::vector<std::vector<larcv::Vertex> > > _particle_end2d_vvv;
+    // //*/
     
     //multiple vertex per event
     std::vector<larocv::data::Vertex3D> _vertex3d_v;

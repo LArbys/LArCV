@@ -94,11 +94,11 @@ namespace larcv {
 
     if (!_analyze) return true;
 
-    _particle_vv.clear();
-    _particle_start_vv.clear();
-    _particle_end_vv.clear();
-    _particle_start2d_vvv.clear();
-    _particle_end2d_vvv.clear();
+    // _particle_vv.clear();
+    // _particle_start_vv.clear();
+    // _particle_end_vv.clear();
+    // _particle_start2d_vvv.clear();
+    // _particle_end2d_vvv.clear();
     
     LARCV_DEBUG() << "process" << std::endl;
     
