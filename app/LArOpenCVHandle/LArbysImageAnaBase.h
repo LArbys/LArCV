@@ -18,7 +18,7 @@ namespace larcv {
 
     virtual void Configure(const larcv::PSet&) = 0;
     virtual void Initialize () = 0;
-    virtual bool Analyze    (const ::larocv::ImageClusterManager& mgr) =0;
+    virtual bool Analyze    (larocv::ImageClusterManager& mgr) =0;
     virtual void Finalize   (TFile* fout = nullptr) = 0;
       
     void EventID(const size_t entry,

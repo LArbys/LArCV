@@ -27,7 +27,7 @@ namespace larcv {
     void Finalize(TFile* fout=nullptr);
 
   private:
-    
+
     TTree* _event_tree;
     TTree* _vtx3d_tree;
     
@@ -39,6 +39,9 @@ namespace larcv {
     /// Vtx3d data
     std::string _combined_vertex_name;
 
+    // store info
+    bool _analyze;
+    
     uint _n_vtx3d;
     uint _vtx3d_n_planes;
     uint _vtx3d_type;

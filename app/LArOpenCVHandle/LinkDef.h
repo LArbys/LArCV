@@ -23,9 +23,15 @@
 #pragma link C++ class larcv::LArbysImageAna+;
 #pragma link C++ class larcv::LArbysImageExtract+;
 #pragma link C++ class larcv::LArbysImageResult+;
-#pragma link C++ class larcv::LArbysImageFilter+;
+#pragma link C++ class larcv::LArbysRecoHolder+;
+
+#pragma link C++ namespace handshake+;
+#pragma link C++ class handshake::HandShaker+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
+
 
 
 

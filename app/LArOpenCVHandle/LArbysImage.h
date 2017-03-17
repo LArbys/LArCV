@@ -10,7 +10,8 @@
 #include "PreProcessor.h"
 #include "LArbysImageMaker.h"
 #include "LArbysImageAnaBase.h"
-#include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
+#include "LArbysRecoHolder.h"
+#include "ImageMod/ImageModUtils.h"
 
 namespace larcv {
 
@@ -36,6 +37,7 @@ namespace larcv {
 
     const PreProcessor& PProcessor() const { return _PreProcessor; }
     const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
+    const LArbysRecoHolder& LArbysHolder() const { return _reco_holder; }
     
   protected:
 
@@ -45,7 +47,7 @@ namespace larcv {
 		     const std::vector<larcv::Image2D>& track_image_v,
 		     const std::vector<larcv::Image2D>& shower_image_v);
 
-    bool StoreParticles(IOManager& iom, const larocv::ImageClusterManager& mgr);
+    bool StoreParticles(IOManager& iom, larocv::ImageClusterManager& mgr);
     
     TTree* _tree;
     
@@ -76,7 +78,7 @@ namespace larcv {
     PreProcessor _PreProcessor;
     LArbysImageMaker _LArbysImageMaker;
     LArbysImageAnaBase* _LArbysImageAnaBase_ptr;
-    larocv::VertexAnalysis _vtx_ana;
+    LArbysRecoHolder _reco_holder;
     
     std::vector<larcv::Image2D> _empty_image_v;
   };
