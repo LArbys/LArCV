@@ -49,9 +49,11 @@ namespace larcv {
     _event_tree->Branch("subrun",&_subrun,"subrun/i");
     _event_tree->Branch("event",&_event,"event/i");
     _event_tree->Branch("entry",&_entry,"entry/i");
-    _event_tree->Branch("Vertex3D_v",&_vertex3d_v);
-    _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
-    _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
+    /*
+      _event_tree->Branch("Vertex3D_v",&_vertex3d_v);
+      _event_tree->Branch("ParticleCluster_vvv",&_particle_cluster_vvv);
+      _event_tree->Branch("TrackClusterCompound_vvv",&_track_compound_vvv);
+    */
     /*
     _event_tree->Branch("particle_vv",&_particle_vv);
     _event_tree->Branch("particle_start_vv",&_particle_start_vv);
@@ -59,25 +61,26 @@ namespace larcv {
     _event_tree->Branch("particle_start2d_vvv",&_particle_start2d_vvv);
     _event_tree->Branch("particle_end2d_vvv",&_particle_end2d_vvv);
     */
-    
-    _vtx3d_tree = new TTree("Vertex3DTree","");
-    _vtx3d_tree->Branch("run",&_run,"run/i");
-    _vtx3d_tree->Branch("subrun",&_subrun,"subrun/i");
-    _vtx3d_tree->Branch("event",&_event,"event/i");
-    _vtx3d_tree->Branch("entry",&_entry,"entry/i");
-    _vtx3d_tree->Branch("id",&_vtx3d_id,"id/i");
-    _vtx3d_tree->Branch("type",&_vtx3d_type,"type/i");
-    _vtx3d_tree->Branch("x",&_vtx3d_x,"x/D");
-    _vtx3d_tree->Branch("y",&_vtx3d_y,"y/D");
-    _vtx3d_tree->Branch("z",&_vtx3d_z,"z/D");
-    _vtx3d_tree->Branch("vtx2d_x_v", &_vtx2d_x_v );
-    _vtx3d_tree->Branch("vtx2d_y_v", &_vtx2d_y_v );
-    _vtx3d_tree->Branch("cvtx2d_x_v",&_circle_x_v);
-    _vtx3d_tree->Branch("cvtx2d_y_v",&_circle_y_v);
-    _vtx3d_tree->Branch("cvtx2d_xs_v",&_circle_xs_v);
-    _vtx3d_tree->Branch("multi_v",&_par_multi);
-    _vtx3d_tree->Branch("ntrack_par_v",&_ntrack_par_v);
-    _vtx3d_tree->Branch("nshower_par_v",&_nshower_par_v);
+    /*
+      _vtx3d_tree = new TTree("Vertex3DTree","");
+      _vtx3d_tree->Branch("run",&_run,"run/i");
+      _vtx3d_tree->Branch("subrun",&_subrun,"subrun/i");
+      _vtx3d_tree->Branch("event",&_event,"event/i");
+      _vtx3d_tree->Branch("entry",&_entry,"entry/i");
+      _vtx3d_tree->Branch("id",&_vtx3d_id,"id/i");
+      _vtx3d_tree->Branch("type",&_vtx3d_type,"type/i");
+      _vtx3d_tree->Branch("x",&_vtx3d_x,"x/D");
+      _vtx3d_tree->Branch("y",&_vtx3d_y,"y/D");
+      _vtx3d_tree->Branch("z",&_vtx3d_z,"z/D");
+      _vtx3d_tree->Branch("vtx2d_x_v", &_vtx2d_x_v );
+      _vtx3d_tree->Branch("vtx2d_y_v", &_vtx2d_y_v );
+      _vtx3d_tree->Branch("cvtx2d_x_v",&_circle_x_v);
+      _vtx3d_tree->Branch("cvtx2d_y_v",&_circle_y_v);
+      _vtx3d_tree->Branch("cvtx2d_xs_v",&_circle_xs_v);
+      _vtx3d_tree->Branch("multi_v",&_par_multi);
+      _vtx3d_tree->Branch("ntrack_par_v",&_ntrack_par_v);
+      _vtx3d_tree->Branch("nshower_par_v",&_nshower_par_v);
+    */
     /*
       _event_tree->Branch("Vertex3DArray",&_vertex3d_array);
       _event_tree->Branch("ParticleClusterArray_v",&_particle_cluster_array_v);
@@ -86,10 +89,16 @@ namespace larcv {
     */
   }
 
-  bool LArbysImageOut::Analyze(const larocv::ImageClusterManager& mgr)
+  bool LArbysImageOut::Analyze(larocv::ImageClusterManager& mgr)
   {
 
     if (!_analyze) return true;
+
+    _particle_vv.clear();
+    _particle_start_vv.clear();
+    _particle_end_vv.clear();
+    _particle_start2d_vvv.clear();
+    _particle_end2d_vvv.clear();
     
     LARCV_DEBUG() << "process" << std::endl;
     
@@ -122,7 +131,7 @@ namespace larcv {
     _track_compound_vvv.clear();
     _track_compound_vvv.resize(vertex3d_v.size());
 
-
+    if (_n_vtx3d==0) return false;
     for(uint vtxid=0;vtxid<_n_vtx3d;++vtxid) { 
       
       auto& particle_cluster_vv = _particle_cluster_vvv[vtxid];
@@ -216,12 +225,12 @@ namespace larcv {
     	  track_compound_v[ass_id] = comp;
     	}
       } // end plane
-      _vtx3d_tree->Fill();
+      //_vtx3d_tree->Fill();
     } //end loop over vertex
     _event_tree->Fill();
-
-    //For adrien...
     /*
+    //For adrien...
+    
     auto& adc_img_v=mgr.InputImages(0);
     auto& adc_meta_v=mgr.InputImageMetas(0);
 
@@ -266,11 +275,11 @@ namespace larcv {
 	_vtx_ana.ResetPlaneInfo(adc_meta_v[plane]);
       } //end plane
       //}
-    //_event_tree->Fill();
-    */
-    /*
-    //do the matching
-    auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,adc_img_v,0.5,2,2);
+      //_event_tree->Fill();
+      //do the matching
+      auto match_vv = _vtx_ana.MatchClusters(pcluster_vv,adc_img_v,0.5,2,2);
+      if (match_vv.empty())
+	continue;
     
       std::vector<EventImage2D> particle_v;
 	
@@ -304,8 +313,11 @@ namespace larcv {
 	  auto end1 = track1.end_pt();
 
 	  larocv::data::Vertex3D vertex;
-	  _vtx_ana.Geo().YZPoint(end0,plane0,end1,plane1,vertex);
+	  bool found = _vtx_ana.Geo().YZPoint(end0,plane0,end1,plane1,vertex);
+	  if (!found)
+	    return false;
 
+	
 	  larcv::Vertex startpt3D;
 	  startpt3D.Reset(vtx3d.x,
 			  vtx3d.y,
@@ -338,7 +350,7 @@ namespace larcv {
 			kINVALID_DOUBLE,
 			kINVALID_DOUBLE);
 	  }
-
+	  
 	  particle_end2d_vv.emplace_back(std::move(endpt2D_v));
 	  particle_start2d_vv.emplace_back(std::move(startpt2D_v));
 
@@ -356,8 +368,7 @@ namespace larcv {
 	  ev_img.Emplace(std::move(img2d_v));
 	  particle_v.emplace_back(std::move(ev_img));
 	}
-	
-	if (match_v.size()==3) {
+	else if (match_v.size()==3) {
 	  std::cout << "3 plane match found" << std::endl;
 	  auto& plane0 = match_v[0].first;
 	  auto& id0    = match_v[0].second;
@@ -399,7 +410,8 @@ namespace larcv {
 	    std::cout << "Testing end1 @ " << end1 << " on plane " << plane1 << " & end2 " << end2 << " @ plane " << plane2 << std::endl;
 	  }
 
-	  if (!found) throw larbys("NOT FOUND!!");
+	  if (!found)
+	    return false;
 
 	  larcv::Vertex startpt3D;
 	  startpt3D.Reset(vtx3d.x,
@@ -474,6 +486,7 @@ namespace larcv {
     } // end vertex
 
     _event_tree->Fill();
+
     _particle_vv.clear();
     _particle_start_vv.clear();
     _particle_end_vv.clear();
@@ -488,7 +501,7 @@ namespace larcv {
   {
     if(fout && _analyze) {
       _event_tree->Write();
-      _vtx3d_tree->Write();
+      //_vtx3d_tree->Write();
     }
   }
   
