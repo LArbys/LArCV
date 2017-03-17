@@ -219,7 +219,7 @@ namespace handshake {
       size_t parent_id = _ev_pfpart->size();
       double vtx_xyz[3];
       // Get secondaries
-      auto const& roi_v = pgraph.Particles();
+      auto const& roi_v = pgraph.ParticleArray();
       auto const& pxcluster_idx_v = pgraph.ClusterIndexArray();
       std::vector<larlite::pfpart> child_pfpart_v;
       std::vector<size_t> child_id_v;
