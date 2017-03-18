@@ -105,6 +105,17 @@ namespace larcv {
     Image2D res(std::move(meta),std::move(res_data));
     return res;
   }
+
+  void fill_img_col( Image2D& img, std::vector<short>& adcs, const int col, const int timedownsampling, const float pedestal ) {
+    if (col<0 || col>=img.meta().cols() ) return;
+    
+    for (int iadc=0; iadc<(int)adcs.size(); iadc++) {
+      if ( iadc<=img.meta().min_y() || iadc>=img.meta().max_y() ) continue;
+      int irow = img.meta().row( iadc );
+      float val = img.pixel(irow,col);
+      img.set_pixel( irow, col, val+((float)adcs.at(iadc)-pedestal) );
+    }
+  }
 }
 
 #endif
