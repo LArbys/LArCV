@@ -28,6 +28,8 @@ namespace larcv {
     _adc_producer         = cfg.get<std::string>("ADCImageProducer");
     _track_producer       = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer      = cfg.get<std::string>("ShowerImageProducer","");
+    _thrumu_producer      = cfg.get<std::string>("ThruMuImageProducer","");
+    _stopmu_producer      = cfg.get<std::string>("StopMuImageProducer","");
     _roi_producer         = cfg.get<std::string>("ROIProducer","");
     _output_producer      = cfg.get<std::string>("OutputImageProducer","");
 
@@ -55,7 +57,10 @@ namespace larcv {
   }
   
   void LArbysImage::initialize()
-  {}
+  {
+    _thrumu_image_v.clear();
+    _stopmu_image_v.clear();
+  }
   
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {
     
@@ -70,6 +75,35 @@ namespace larcv {
     }
     return _empty_image_v;
   }
+
+  void LArbysImage::construct_cosmic_image(IOManager& mgr, std::string producer,
+					   const std::vector<larcv::Image2D>& adc_image_v,
+					   std::vector<larcv::Image2D>& mu_image_v) {
+    LARCV_DEBUG() << "Constructing " << _thrumu_producer << " Pixel2D => Image2D" << std::endl;
+    if(!_thrumu_producer.empty()) {
+      auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,producer));
+      if(!ev_pixel2d) {
+	LARCV_CRITICAL() << "Pixel2D by producer " << producer << " not found..." << std::endl;
+	throw larbys();
+      }
+      auto const& pixel2d_m = ev_pixel2d->Pixel2DArray();
+      for(size_t img_idx=0; img_idx<adc_image_v.size(); ++img_idx) {
+	auto const& meta = adc_image_v[img_idx].meta();
+	if(mu_image_v.size() <= img_idx)
+	  mu_image_v.emplace_back(larcv::Image2D(meta));
+	if(mu_image_v[img_idx].meta() != meta)
+	  mu_image_v[img_idx] = larcv::Image2D(meta);
+	auto& mu_image = mu_image_v[img_idx];
+	mu_image.paint(0);
+	auto itr = pixel2d_m.find(img_idx);
+	if(itr == pixel2d_m.end()) continue;
+	else{
+	  for(auto const& pixel2d : (*itr).second)
+	    mu_image.set_pixel( (pixel2d.Y() + meta.rows() * pixel2d.X()), 100 );
+	}
+      }
+    }
+  }
   
   bool LArbysImage::process(IOManager& mgr)
   {
@@ -82,25 +116,40 @@ namespace larcv {
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
       auto const& shower_image_v = get_image2d(mgr,_shower_producer);
-
+      construct_cosmic_image(mgr, _thrumu_producer, adc_image_v, _thrumu_image_v);
+      construct_cosmic_image(mgr, _stopmu_producer, adc_image_v, _stopmu_image_v);
+      auto const& thrumu_image_v = _thrumu_image_v;
+      auto const& stopmu_image_v = _stopmu_image_v;
+      
       assert(adc_image_v.size());
       assert(track_image_v.empty()  || adc_image_v.size() == track_image_v.size());
       assert(shower_image_v.empty() || adc_image_v.size() == shower_image_v.size());
+      assert(thrumu_image_v.empty() || adc_image_v.size() == thrumu_image_v.size());
+      assert(stopmu_image_v.empty() || adc_image_v.size() == stopmu_image_v.size());
 
       LARCV_DEBUG() << "Reconstruct" << std::endl;
-      status = Reconstruct(adc_image_v,track_image_v,shower_image_v);
-      
+
+      status = Reconstruct(adc_image_v,
+			   track_image_v,shower_image_v,
+			   thrumu_image_v, stopmu_image_v);
       status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
+
       
     }else{
       size_t pidx = 0;
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
       auto const& shower_image_v = get_image2d(mgr,_shower_producer);
+      construct_cosmic_image(mgr, _thrumu_producer, adc_image_v, _thrumu_image_v);
+      construct_cosmic_image(mgr, _stopmu_producer, adc_image_v, _stopmu_image_v);
+      auto const& thrumu_image_v = _thrumu_image_v;
+      auto const& stopmu_image_v = _stopmu_image_v;
 
       assert(adc_image_v.size());
       assert(track_image_v.empty()  || adc_image_v.size() == track_image_v.size());
       assert(shower_image_v.empty() || adc_image_v.size() == shower_image_v.size());
+      assert(thrumu_image_v.empty() || adc_image_v.size() == thrumu_image_v.size());
+      assert(stopmu_image_v.empty() || adc_image_v.size() == stopmu_image_v.size());
 
       LARCV_DEBUG() << "Extracting " << _roi_producer << " ROI\n" << std::endl;
       if( !(mgr.get_data(kProductROI,_roi_producer)) ) {
@@ -117,6 +166,8 @@ namespace larcv {
 	std::vector<larcv::Image2D> crop_adc_image_v;
 	std::vector<larcv::Image2D> crop_track_image_v;
 	std::vector<larcv::Image2D> crop_shower_image_v;
+	std::vector<larcv::Image2D> crop_thrumu_image_v;
+	std::vector<larcv::Image2D> crop_stopmu_image_v;
 
 	for(size_t plane=0; plane<bb_v.size(); ++plane) {
 
@@ -134,11 +185,24 @@ namespace larcv {
 	    auto const& shower_image = shower_image_v[plane];
 	    crop_shower_image_v.emplace_back(shower_image.crop(bb));
 	  }
+
+	  if(!thrumu_image_v.empty()) {
+	    auto const& thrumu_image = thrumu_image_v[plane];
+	    crop_thrumu_image_v.emplace_back(thrumu_image.crop(bb));
+	  }
+
+	  if(!stopmu_image_v.empty()) {
+	    auto const& stopmu_image = stopmu_image_v[plane];
+	    crop_stopmu_image_v.emplace_back(stopmu_image.crop(bb));
+	  }
 	  
 	}
+	
 	LARCV_DEBUG() << "Reconstruct" << std::endl;
-	status = status && Reconstruct(crop_adc_image_v, crop_track_image_v, crop_shower_image_v);
 
+	status = status && Reconstruct(crop_adc_image_v,
+				       crop_track_image_v, crop_shower_image_v,
+				       thrumu_image_v, stopmu_image_v);
 	status = status && StoreParticles(mgr,_alg_mgr,crop_adc_image_v,pidx);
       }
     }
@@ -382,11 +446,15 @@ namespace larcv {
   
   bool LArbysImage::Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
 				const std::vector<larcv::Image2D>& track_image_v,
-				const std::vector<larcv::Image2D>& shower_image_v)
+				const std::vector<larcv::Image2D>& shower_image_v,
+				const std::vector<larcv::Image2D>& thrumu_image_v,
+				const std::vector<larcv::Image2D>& stopmu_image_v)
   {
     _adc_img_mgr.clear();
     _track_img_mgr.clear();
     _shower_img_mgr.clear();
+    _thrumu_img_mgr.clear();
+    _stopmu_img_mgr.clear();
     _alg_mgr.ClearData();
 
     ::larocv::Watch watch_all, watch_one;
@@ -403,6 +471,14 @@ namespace larcv {
     
     for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v)) {
       _shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+    }
+
+    for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
+      _thrumu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+    }
+
+    for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
+      _stopmu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
     }
     
     _process_time_image_extraction += watch_one.WallTime();
@@ -435,6 +511,26 @@ namespace larcv {
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, roi, 2);
+    }
+
+    for (size_t plane = 0; plane < _thrumu_img_mgr.size(); ++plane) {
+
+      auto       & img  = _thrumu_img_mgr.img_at(plane);
+      const auto & meta = _thrumu_img_mgr.meta_at(plane);
+      const auto & roi  = _thrumu_img_mgr.roi_at(plane);
+
+      if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      _alg_mgr.Add(img, meta, roi, 3);
+    }
+
+    for (size_t plane = 0; plane < _stopmu_img_mgr.size(); ++plane) {
+
+      auto       & img  = _stopmu_img_mgr.img_at(plane);
+      const auto & meta = _stopmu_img_mgr.meta_at(plane);
+      const auto & roi  = _stopmu_img_mgr.roi_at(plane);
+
+      if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      _alg_mgr.Add(img, meta, roi, 4);
     }
 
     if (_preprocess) {

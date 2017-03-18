@@ -85,7 +85,8 @@ namespace handshake {
 			     const larcv::EventPixel2D& ev_pixel2d,
 			     const larlite::event_hit*  ev_hit)
   {
-
+    if(ev_pgraph.PGraphArray().empty())
+      return;
     //
     // handle clusters
     //
@@ -102,10 +103,10 @@ namespace handshake {
 
       if(pxcluster_to_hit.size() <= plane) pxcluster_to_hit.resize(plane+1);
       if(pxcluster_to_cluster.size() <= plane) pxcluster_to_cluster.resize(plane+1);
-      if(contours_v.size()  < plane) contours_v.resize(plane+1);
-      if(time_bounds.size() < plane) time_bounds.resize(plane+1);
-      if(wire_bounds.size() < plane) wire_bounds.resize(plane+1);
-      if(meta_vv.size() < plane) meta_vv.resize(plane+1);
+      if(contours_v.size()  <= plane) contours_v.resize(plane+1);
+      if(time_bounds.size() <= plane) time_bounds.resize(plane+1);
+      if(wire_bounds.size() <= plane) wire_bounds.resize(plane+1);
+      if(meta_vv.size() <= plane) meta_vv.resize(plane+1);
       
       meta_vv[plane] = ev_pixel2d.ClusterMetaArray(plane);
       auto const& meta_v = meta_vv[plane];
@@ -120,18 +121,31 @@ namespace handshake {
       for(unsigned int contour_idx=0; contour_idx < key_value.second.size(); ++contour_idx) {
 	auto const& contour = key_value.second[contour_idx];
 	auto const& image_meta = meta_v[contour_idx];
+	double ctime_min=1e9;
+	double ctime_max=0;
+	double cwire_min=1e9;
+	double cwire_max=0;
 	for(auto const& pt : contour) {
 	  double time = image_meta.max_y() - image_meta.pixel_height() * pt.Y();
 	  double wire = image_meta.min_x() + image_meta.pixel_width() * pt.X();
-	  if(time_min > time) time_min = time;
-	  if(time_max < time) time_max = time;
-	  if(wire_min > wire) wire_min = wire;
-	  if(wire_max < wire) wire_max = wire;
+	  if(ctime_min > time) ctime_min = time;
+	  if(ctime_max < time) ctime_max = time;
+	  if(cwire_min > wire) cwire_min = wire;
+	  if(cwire_max < wire) cwire_max = wire;
 	}
 	pxcluster_to_cluster[plane][contour_idx] = _ev_cluster->size();
 	larlite::cluster c;
 	c.set_id(_ev_cluster->size());
 	_ev_cluster->push_back(c);
+
+	if(time_min > ctime_min) time_min = ctime_min;
+	if(time_max < ctime_max) time_max = ctime_max;
+	if(wire_min > cwire_min) wire_min = cwire_min;
+	if(wire_max < cwire_max) wire_max = cwire_max;
+
+	std::cout<<"    cluster " << plane << "-" << contour_idx << " time bounds: " << ctime_min << " => " << ctime_max
+		 <<" ... wire bounds: " << cwire_min << " => " << cwire_max << std::endl;
+	
       }
       wire_min -=2;
       wire_max +=2;
@@ -142,6 +156,9 @@ namespace handshake {
       time_bounds[plane].second = time_max;
       wire_bounds[plane].first  = wire_min;
       wire_bounds[plane].second = wire_max;
+
+      std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
+	       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
 
       contours_v[plane] = std::move(this->as_contour_array(key_value.second));
 
@@ -154,32 +171,36 @@ namespace handshake {
     double time=0;
     for(auto const& h : *ev_hit) {
       plane = h.WireID().Plane;
-      auto const& meta_v     = meta_vv[plane];
-      auto const& time_bound = time_bounds[plane];
-      auto const& wire_bound = wire_bounds[plane];
-      time = h.PeakTime();
+      auto const& meta_v     = meta_vv.at(plane);
+      auto const& time_bound = time_bounds.at(plane);
+      auto const& wire_bound = wire_bounds.at(plane);
+      time = h.PeakTime() + 2400;
       wire = h.WireID().Wire;
       if(time > time_bound.second) continue;
       if(time < time_bound.first ) continue;
       if(wire > wire_bound.second) continue;
       if(wire < wire_bound.first ) continue;
       auto const& contours = contours_v[plane];
-      double min_dist = 1e9;
+      double max_dist = -1.e9;
       double dist = 0.;
       size_t parent_ctor_idx  = larcv::kINVALID_INDEX;
       size_t parent_ctor_size = 0;
       for(size_t contour_idx=0; contour_idx<contours.size(); ++contour_idx) {
 	auto const& contour = contours[contour_idx];
+	if(contour.empty()) continue;
 	auto const& meta    = meta_v[contour_idx];
 	if(meta.min_x() > wire || meta.max_x() < wire) continue;
 	if(meta.min_y() > time || meta.max_y() < time) continue;
 	pt.x = (wire - meta.min_x()) / meta.pixel_width();
 	pt.y = (meta.max_y() - time) / meta.pixel_height();
 	dist = cv::pointPolygonTest(contour,pt,true);
-	if(dist < -2 || dist < min_dist) continue;
+	if(dist < -10 || dist < max_dist) continue;
+	//std::cout <<"wire " << wire << " time " << time << " px " << pt.x << " py " << pt.y <<  std::endl;
 	if(dist >= 0 && parent_ctor_size > contour.size()) continue;
+	//std::cout <<"good!"<<std::endl;
 	parent_ctor_idx = contour_idx;
 	parent_ctor_size = contour.size();
+	max_dist = dist;
       }
       if(parent_ctor_idx == larcv::kINVALID_INDEX) continue;
       pxcluster_to_hit[plane][parent_ctor_idx].push_back(_ev_hit->size());
