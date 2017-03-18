@@ -83,13 +83,14 @@ namespace larcv {
 					   const std::vector<larcv::Image2D>& adc_image_v,
 					   std::vector<larcv::Image2D>& mu_image_v) {
     LARCV_DEBUG() << "Constructing " << _thrumu_producer << " Pixel2D => Image2D" << std::endl;
-    if(!_thrumu_producer.empty()) {
+    if(!producer.empty()) {
       auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,producer));
       if(!ev_pixel2d) {
 	LARCV_CRITICAL() << "Pixel2D by producer " << producer << " not found..." << std::endl;
 	throw larbys();
       }
-      auto const& pixel2d_m = ev_pixel2d->Pixel2DArray();
+      LARCV_DEBUG() << "Using Pixel2D producer " << producer << std::endl;
+      auto const& pixel2d_m = ev_pixel2d->Pixel2DClusterArray();
       for(size_t img_idx=0; img_idx<adc_image_v.size(); ++img_idx) {
 	auto const& meta = adc_image_v[img_idx].meta();
 	if(mu_image_v.size() <= img_idx)
@@ -99,10 +100,16 @@ namespace larcv {
 	auto& mu_image = mu_image_v[img_idx];
 	mu_image.paint(0);
 	auto itr = pixel2d_m.find(img_idx);
-	if(itr == pixel2d_m.end()) continue;
+	if(itr == pixel2d_m.end()) {
+	  LARCV_DEBUG() << "No Pixel2D found for plane " << img_idx << std::endl;
+	  continue;
+	}
 	else{
-	  for(auto const& pixel2d : (*itr).second)
-	    mu_image.set_pixel( (pixel2d.Y() + meta.rows() * pixel2d.X()), 100 );
+	  for(auto const& pixel_cluster : (*itr).second) {
+	    for(auto const& pixel : pixel_cluster) {
+	      mu_image.set_pixel( (pixel.X() * meta.rows() + pixel.Y()), 100 );
+	    }
+	  }
 	}
       }
     }
@@ -110,6 +117,7 @@ namespace larcv {
 
   void LArbysImage::mask_image(Image2D& target, const Image2D& ref)
   {
+    LARCV_DEBUG() << "Masking: " << target.meta().dump() << std::flush;
     if(target.meta() != ref.meta()) {
       LARCV_CRITICAL() << "Cannot mask images w/ different meta!" << std::endl;
       throw larbys();
@@ -118,7 +126,7 @@ namespace larcv {
     std::vector<float> data = target.move();
     auto const& ref_vec = ref.as_vector();
 
-    for(size_t i=0; i<data.size(); ++i) { if(ref_vec[i]>0) data[i]=0; }
+    for(size_t i=0; i<data.size(); ++i) { if(ref_vec[i]>0) data[i]=0; }	
 
     target.move(std::move(data));
   }
@@ -163,12 +171,14 @@ namespace larcv {
 	for(size_t plane=0; plane<adc_image_v.size(); ++plane) {
 	  
 	  if(mask_thrumu) {
+	    LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
 	    mask_image(copy_adc_image_v[plane], thrumu_image_v[plane]);
 	    if(!copy_track_image_v.empty() ) mask_image(copy_track_image_v[plane],  thrumu_image_v[plane]);
 	    if(!copy_shower_image_v.empty()) mask_image(copy_shower_image_v[plane], thrumu_image_v[plane]);
 	  }
 	  
 	  if(mask_stopmu) {
+	    LARCV_DEBUG() << "Masking stopmu plane " << plane << std::endl;
 	    mask_image(copy_adc_image_v[plane], stopmu_image_v[plane]);
 	    if(!copy_track_image_v.empty() ) mask_image(copy_track_image_v[plane],  stopmu_image_v[plane]);
 	    if(!copy_shower_image_v.empty()) mask_image(copy_shower_image_v[plane], stopmu_image_v[plane]);
@@ -244,12 +254,14 @@ namespace larcv {
 	  }
 
 	  if(!crop_thrumu_image_v.empty() && _mask_thrumu_pixels) {
+	    LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
 	    mask_image(crop_adc_image_v[plane], crop_thrumu_image_v[plane]);
 	    if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_thrumu_image_v[plane]);
 	    if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_thrumu_image_v[plane]);
 	  }
 
 	  if(!crop_stopmu_image_v.empty() && _mask_stopmu_pixels) {
+	    LARCV_DEBUG() << "Masking stopmu plane " << plane << std::endl;
 	    mask_image(crop_adc_image_v[plane], crop_stopmu_image_v[plane]);
 	    if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_stopmu_image_v[plane]);
 	    if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_stopmu_image_v[plane]);
@@ -520,8 +532,15 @@ namespace larcv {
     watch_all.Start();
     watch_one.Start();
 
+    static int ctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(adc_image_v)) {
+      cv::Mat thresholded;
+      cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+      std::stringstream ss;
+      ss << "plane_" << std::get<1>(img_data).plane() << "_" << ctr << ".png";
+      cv::imwrite(std::string(ss.str()),thresholded);
       _adc_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+      ctr++;
     }
     
     for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v))  {
