@@ -101,6 +101,10 @@ namespace larcv {
     void compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum);
     /// Overlay with another Image2D: overlapped pixel region is merged
     void overlay(const Image2D&, CompressionModes_t mode=kSum);
+    /// Move data contents out
+    std::vector<float>&& move();
+    /// Move data contents in
+    void move(std::vector<float>&&);
 
     inline Image2D& operator+=(const float val)
     { for(auto& v : _img) v+= val; return (*this);}

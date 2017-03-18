@@ -42,6 +42,8 @@ namespace larcv {
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
 
+    void mask_image(Image2D& target, const Image2D& ref);
+
     void construct_cosmic_image(IOManager& mgr, std::string producer,
 				const std::vector<larcv::Image2D>& adc_image_v,
 				std::vector<larcv::Image2D>& mu_image_v);
@@ -69,6 +71,9 @@ namespace larcv {
     bool _debug;
     bool _preprocess;
     bool _write_reco;
+
+    bool _mask_thrumu_pixels;
+    bool _mask_stopmu_pixels;
     
     std::string _output_module_name;
     size_t _output_module_offset;

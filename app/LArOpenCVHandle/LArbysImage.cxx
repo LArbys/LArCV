@@ -33,6 +33,9 @@ namespace larcv {
     _roi_producer         = cfg.get<std::string>("ROIProducer","");
     _output_producer      = cfg.get<std::string>("OutputImageProducer","");
 
+    _mask_thrumu_pixels = cfg.get<bool>("MaskThruMu",false);
+    _mask_stopmu_pixels = cfg.get<bool>("MaskStopMu",false);
+
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
 
     _write_reco = cfg.get<bool>("WriteAnaReco");
@@ -104,6 +107,21 @@ namespace larcv {
       }
     }
   }
+
+  void LArbysImage::mask_image(Image2D& target, const Image2D& ref)
+  {
+    if(target.meta() != ref.meta()) {
+      LARCV_CRITICAL() << "Cannot mask images w/ different meta!" << std::endl;
+      throw larbys();
+    }
+    auto meta = target.meta();
+    std::vector<float> data = target.move();
+    auto const& ref_vec = ref.as_vector();
+
+    for(size_t i=0; i<data.size(); ++i) { if(ref_vec[i]>0) data[i]=0; }
+
+    target.move(std::move(data));
+  }
   
   bool LArbysImage::process(IOManager& mgr)
   {
@@ -127,14 +145,43 @@ namespace larcv {
       assert(thrumu_image_v.empty() || adc_image_v.size() == thrumu_image_v.size());
       assert(stopmu_image_v.empty() || adc_image_v.size() == stopmu_image_v.size());
 
-      LARCV_DEBUG() << "Reconstruct" << std::endl;
+      bool mask_thrumu = _mask_thrumu_pixels && !thrumu_image_v.empty();
+      bool mask_stopmu = _mask_stopmu_pixels && !stopmu_image_v.empty();
 
-      status = Reconstruct(adc_image_v,
-			   track_image_v,shower_image_v,
-			   thrumu_image_v, stopmu_image_v);
-      status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
+      if(!mask_thrumu && !mask_stopmu) {
+	LARCV_DEBUG() << "Reconstruct" << std::endl;
+	status = Reconstruct(adc_image_v,
+			     track_image_v,shower_image_v,
+			     thrumu_image_v, stopmu_image_v);
+	status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
+      }else{
 
-      
+	auto copy_adc_image_v    = adc_image_v;
+	auto copy_track_image_v  = track_image_v;
+	auto copy_shower_image_v = shower_image_v;
+
+	for(size_t plane=0; plane<adc_image_v.size(); ++plane) {
+	  
+	  if(mask_thrumu) {
+	    mask_image(copy_adc_image_v[plane], thrumu_image_v[plane]);
+	    if(!copy_track_image_v.empty() ) mask_image(copy_track_image_v[plane],  thrumu_image_v[plane]);
+	    if(!copy_shower_image_v.empty()) mask_image(copy_shower_image_v[plane], thrumu_image_v[plane]);
+	  }
+	  
+	  if(mask_stopmu) {
+	    mask_image(copy_adc_image_v[plane], stopmu_image_v[plane]);
+	    if(!copy_track_image_v.empty() ) mask_image(copy_track_image_v[plane],  stopmu_image_v[plane]);
+	    if(!copy_shower_image_v.empty()) mask_image(copy_shower_image_v[plane], stopmu_image_v[plane]);
+	  }
+
+	}
+
+	LARCV_DEBUG() << "Reconstruct" << std::endl;
+	status = Reconstruct(copy_adc_image_v,
+			     copy_track_image_v,copy_shower_image_v,
+			     thrumu_image_v, stopmu_image_v);
+	status = status && StoreParticles(mgr,_alg_mgr,copy_adc_image_v,pidx);
+      }
     }else{
       size_t pidx = 0;
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
@@ -195,14 +242,26 @@ namespace larcv {
 	    auto const& stopmu_image = stopmu_image_v[plane];
 	    crop_stopmu_image_v.emplace_back(stopmu_image.crop(bb));
 	  }
-	  
+
+	  if(!crop_thrumu_image_v.empty() && _mask_thrumu_pixels) {
+	    mask_image(crop_adc_image_v[plane], crop_thrumu_image_v[plane]);
+	    if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_thrumu_image_v[plane]);
+	    if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_thrumu_image_v[plane]);
+	  }
+
+	  if(!crop_stopmu_image_v.empty() && _mask_stopmu_pixels) {
+	    mask_image(crop_adc_image_v[plane], crop_stopmu_image_v[plane]);
+	    if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_stopmu_image_v[plane]);
+	    if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_stopmu_image_v[plane]);
+	  }
+
 	}
 	
 	LARCV_DEBUG() << "Reconstruct" << std::endl;
 
 	status = status && Reconstruct(crop_adc_image_v,
 				       crop_track_image_v, crop_shower_image_v,
-				       thrumu_image_v, stopmu_image_v);
+				       crop_thrumu_image_v, crop_stopmu_image_v);
 	status = status && StoreParticles(mgr,_alg_mgr,crop_adc_image_v,pidx);
       }
     }
