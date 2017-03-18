@@ -33,11 +33,17 @@ namespace larcv {
 
       if (_require_two_multiplicity) { 
 	auto multiplicity=_vtx_ana.RequireParticleCount(this->PlaneParticles(vertexid),2,2);
-	if (!multiplicity) continue;
+	if (!multiplicity) {
+	  LARCV_DEBUG() << "Filtered id " << vertexid << " @ multiplicity" << std::endl;
+	  continue;
+	}
       }
       if (_require_fiducial) {
 	auto fiduciality=_vtx_ana.CheckFiducial(*this->Vertex(vertexid));
-	if (!fiduciality) continue;
+	if (!fiduciality) {
+	  LARCV_DEBUG() << "Filtered id " << vertexid << " @ fiduciality" << std::endl;
+	  continue;
+	}
       }
       
       vertex_ptr_v.emplace_back(this->Vertex(vertexid));
@@ -45,7 +51,7 @@ namespace larcv {
       track_comp_ptr_vvv.emplace_back(this->PlaneTracks(vertexid));
     }
     
-    std::cout <<"Filtered "<<this->Verticies().size()<<" to "<<vertex_ptr_v.size()<<std::endl;
+    LARCV_DEBUG() <<"Filtered "<<this->Verticies().size()<<" to "<<vertex_ptr_v.size()<<std::endl;
     std::swap(vertex_ptr_v,            _vertex_ptr_v);
     std::swap(particle_cluster_ptr_vvv,_particle_cluster_ptr_vvv);
     std::swap(track_comp_ptr_vvv,      _track_comp_ptr_vvv);
@@ -231,7 +237,7 @@ namespace larcv {
 	  auto& track_comp = track_comp_v[particleid];
 	  particle_cluster = *(this->Particle(vertexid,plane,particleid));
 	  if (!(this->Track(vertexid,plane,particleid))) {
-	    std::cout << "SKIP!" << std::endl;
+	    LARCV_DEBUG() << "SKIP!" << std::endl;
 	    continue;
 	  }
 	  track_comp = *(this->Track(vertexid,plane,particleid));

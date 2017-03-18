@@ -13,7 +13,10 @@ namespace larcv {
   void EventPixel2D::clear()
   {
     EventBase::clear();
-    _pixel_m.clear(); _cluster_m.clear();
+    _pixel_m.clear();
+    _cluster_m.clear();
+    _meta_m.clear();
+    _cluster_meta_m.clear();
   }
 
   const std::vector<larcv::Pixel2D>& EventPixel2D::Pixel2DArray(const ::larcv::PlaneID_t plane)

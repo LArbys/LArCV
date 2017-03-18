@@ -78,6 +78,7 @@ namespace larcv {
     bool status = true;
 
     if(_roi_producer.empty()) {
+      size_t pidx = 0;          
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
       auto const& shower_image_v = get_image2d(mgr,_shower_producer);
@@ -89,10 +90,10 @@ namespace larcv {
       LARCV_DEBUG() << "Reconstruct" << std::endl;
       status = Reconstruct(adc_image_v,track_image_v,shower_image_v);
       
-      status = status && StoreParticles(mgr,_alg_mgr,adc_image_v);
+      status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
       
     }else{
-      
+      size_t pidx = 0;
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
       auto const& shower_image_v = get_image2d(mgr,_shower_producer);
@@ -107,9 +108,9 @@ namespace larcv {
 	throw larbys();
       }
       auto const& roi_v = ((EventROI*)(mgr.get_data(kProductROI,_roi_producer)))->ROIArray();
-
+      
       for(auto const& roi : roi_v) {
-
+	LARCV_DEBUG() << " @ fresh roi " << &roi << std::endl;
 	auto const& bb_v = roi.BB();
 	assert(bb_v.size() == adc_image_v.size());
 
@@ -138,11 +139,12 @@ namespace larcv {
 	LARCV_DEBUG() << "Reconstruct" << std::endl;
 	status = status && Reconstruct(crop_adc_image_v, crop_track_image_v, crop_shower_image_v);
 
-	status = status && StoreParticles(mgr,_alg_mgr,crop_adc_image_v);
+	status = status && StoreParticles(mgr,_alg_mgr,crop_adc_image_v,pidx);
       }
     }
 
     if (_write_reco) {
+      LARCV_DEBUG() << "Writing RecoHolder tree & reset" << std::endl;
       _reco_holder.Write();
       _reco_holder.ResetOutput();
     }
@@ -152,15 +154,16 @@ namespace larcv {
 
   bool LArbysImage::StoreParticles(IOManager& iom,
 				   larocv::ImageClusterManager& mgr,
-				   const std::vector<Image2D>& adc_image_v) {
+				   const std::vector<Image2D>& adc_image_v,
+				   size_t& pidx) {
     
     LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
     //const auto& adc_image_v = get_image2d(iom,_adc_producer);
     auto& adc_cvimg_v = mgr.InputImages(0);
-    auto& adc_cvmeta_v = mgr.InputImageMetas(0);
-    
-    auto event_pgraph   = (EventPGraph*) iom.get_data(kProductPGraph,_output_producer);
-    auto event_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer);
+
+    auto event_pgraph        = (EventPGraph*) iom.get_data(kProductPGraph,_output_producer);
+    auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
+    auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
 
     _reco_holder.ShapeData(mgr);
 
@@ -170,7 +173,7 @@ namespace larcv {
     
     const auto& vtx_ana = _reco_holder.ana();
       
-    size_t pidx = 0;
+    LARCV_DEBUG() << "Matching... " << _reco_holder.Verticies().size() << " vertices" << std::endl;
     for(size_t vtxid=0;vtxid<_reco_holder.Verticies().size();++vtxid) {
       const auto& vtx3d = *(_reco_holder.Vertex(vtxid));
       const auto& pcluster_vv = _reco_holder.PlaneParticles(vtxid);
@@ -178,7 +181,10 @@ namespace larcv {
       
       auto match_vv = _reco_holder.Match(vtxid,adc_cvimg_v);
 	
-      if (match_vv.empty()) continue;
+      if (match_vv.empty()) {
+	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
+	continue;
+      }
 
       PGraph pgraph;
       for( auto match_v : match_vv ) {
@@ -194,13 +200,15 @@ namespace larcv {
 
 	  auto partype=par0.type;
 	  bool endok=false;
+
 	  larocv::data::Vertex3D endpt3d;
-	  
 	  if (partype==larocv::data::ParticleType_t::kTrack) {
 	    const auto& track0 = *(tcluster_vv[plane0][id0]);
 	    const auto& track1 = *(tcluster_vv[plane1][id1]);
 	    endok = vtx_ana.MatchEdge(track0,plane0,track1,plane1,endpt3d);
 	  }	    
+
+	  LARCV_DEBUG() << "Storing particle of type " << (uint)partype << std::endl;
 	  
 	  ROI proi;
 
@@ -208,28 +216,25 @@ namespace larcv {
 	  else if (par0.type==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
 	  else throw larbys("Unknown?");
 
-	  // set particle position
 	  proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
-	  // set end position
 	  if (endok)
 	    proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
+
+	  LARCV_DEBUG() << " @ pg array index " << pidx << std::endl;
 	  
 	  // set particle meta (bbox)
-	  for(size_t plane=0;plane<3;++plane) {
-	    const auto& pmeta = adc_image_v[plane].meta();
-	    proi.AppendBB(pmeta);
-	  }
-
+	  for(size_t plane=0;plane<3;++plane) 
+	    proi.AppendBB(adc_image_v[plane].meta());
+	  
 	  pgraph.Emplace(std::move(proi),pidx);
 	  pidx++;
-
+	  
 	  std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
 	  pcluster_arr[plane0] = &par0;
 	  pcluster_arr[plane1] = &par1;
 	    
 	  for(size_t plane=0;plane<3;++plane) {
 	    const auto& pmeta = adc_image_v[plane].meta();
-	    auto& cvmeta = adc_cvmeta_v[plane];
 	    
 	    std::vector<Pixel2D> pixel_v;
 	    
@@ -242,33 +247,34 @@ namespace larcv {
 	      par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,(*par)._ctor,0,false));
 	      pixel_v.reserve(par_pixel_v.size());
 	    }
+	    
 	    float isum=0;
-	    std::cout << cvmeta.origin().x << " , " << cvmeta.origin().y << std::endl;
 	    for (const auto& px : par_pixel_v) {
-	      auto row=cvimg.cols-px.x;
-	      auto col=px.y;
-	      auto iii=img2d.pixel(row,col);
-	      pixel_v.emplace_back(row,col);
+	      auto col = cvimg.cols-px.x;
+	      auto row = px.y;
+	      auto iii = img2d.pixel(col,row);
+	      pixel_v.emplace_back(col,row);
 	      pixel_v.back().Intensity(iii);
 	      isum+=iii;
 	    }
-	    LARCV_DEBUG() << "isum = " << isum << std::endl;
+	    
 	    Pixel2DCluster pixcluster(std::move(pixel_v));
-	    event_pixel->Emplace(plane,std::move(pixcluster),pmeta);
-	    	    
+	    event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
+	    
 	    //store the contour at the same index along size the pixels themselves
 	    std::vector<Pixel2D> ctor_v;
 	    if (par) {
 	      ctor_v.reserve(par->_ctor.size());
 	      for(const auto& pt : (*par)._ctor)  {
-		ctor_v.emplace_back(cvimg.cols-pt.x,pt.y);
+		auto col=cvimg.cols-pt.x;
+		auto row=pt.y;
+		ctor_v.emplace_back(row,col);
 		ctor_v.back().Intensity(1.0);
 	      }
 	    }
 	    Pixel2DCluster pixctor(std::move(ctor_v));
-	    event_pixel->Emplace(plane,std::move(pixctor),pmeta);
+	    event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
 	  }
-	  
 	} // end match size 2
 	else if (match_v.size()==3) {
 	  LARCV_DEBUG() << "3 plane match found" << std::endl;
@@ -294,24 +300,22 @@ namespace larcv {
 	    const auto& track2 = *(tcluster_vv[plane2][id2]);
 	    endok = vtx_ana.MatchEdge(track0,plane0,track1,plane1,track2,plane2,endpt3d);
 	  }	    
-	  
+
+
+	  LARCV_DEBUG() << "Storing particle of type " << (uint) partype << std::endl;
 	  ROI proi;
 
-	  if      (par0.type==larocv::data::ParticleType_t::kTrack)  proi.Shape(kShapeTrack);
-	  else if (par0.type==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
+	  if      (partype==larocv::data::ParticleType_t::kTrack)  proi.Shape(kShapeTrack);
+	  else if (partype==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
 	  else throw larbys("Unknown?");
 
-	  // set particle position
 	  proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
-	  // set end position
+
 	  if (endok)
 	    proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
 	  
-	  // set particle meta (bbox)
-	  for(size_t plane=0;plane<3;++plane) {
-	    const auto& pmeta = adc_image_v[plane].meta();
-	    proi.AppendBB(pmeta);
-	  }
+	  for(size_t plane=0;plane<3;++plane)
+	    proi.AppendBB(adc_image_v[plane].meta());
 
 	  pgraph.Emplace(std::move(proi),pidx);
 	  pidx++;
@@ -336,30 +340,30 @@ namespace larcv {
 	    }
 	    float isum=0;
 	    for (const auto& px : par_pixel_v) {
-	      auto row=cvimg.cols-px.x;
-	      auto col=px.y;
-	      auto iii=img2d.pixel(row,col);
+	      auto col=cvimg.cols-px.x;
+	      auto row=px.y;
+	      auto iii=img2d.pixel(col,row);
 	      pixel_v.emplace_back(row,col);
 	      pixel_v.back().Intensity(iii);
 	      isum+=iii;
 	    }
-	    LARCV_DEBUG() << "isum = " << isum << std::endl;
+	    
 	    Pixel2DCluster pixcluster(std::move(pixel_v));
-	    event_pixel->Emplace(plane,std::move(pixcluster),pmeta);
+	    event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
 
 	    //store the contour at the same index along size the pixels themselves
 	    std::vector<Pixel2D> ctor_v;
 	    if (par) {
 	      ctor_v.reserve(par->_ctor.size());
 	      for(const auto& pt : (*par)._ctor)  {
-		auto row=cvimg.cols-pt.x;
-		auto col=pt.y;
+		auto col=cvimg.cols-pt.x;
+		auto row=pt.y;
 		ctor_v.emplace_back(row,col);
 		ctor_v.back().Intensity(1.0);
 	      }
 	    }
 	    Pixel2DCluster pixctor(std::move(ctor_v));
-	    event_pixel->Emplace(plane,std::move(pixctor),pmeta);
+	    event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
 	  }
 	} // end match 3
       }//end this match

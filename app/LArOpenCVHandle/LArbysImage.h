@@ -48,7 +48,8 @@ namespace larcv {
 
     bool StoreParticles(IOManager& iom,
 			larocv::ImageClusterManager& mgr,
-			const std::vector<larcv::Image2D>& adcimg_v);
+			const std::vector<larcv::Image2D>& adcimg_v,
+			size_t& pidx);
     
     TTree* _tree;
     

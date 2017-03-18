@@ -19,7 +19,6 @@ namespace larcv {
     bool process(IOManager& mgr);
     void finalize();
 
-
     const std::vector<cv::Mat>&
     ADCImages()
     { return _adc_mat_v; }
@@ -43,7 +42,7 @@ namespace larcv {
     const cv::Mat&
     TrackImage(size_t planeid)
     { return _track_mat_v[planeid]; }
-
+    
     const std::vector<cv::Mat>&
     ShowerImages()
     { return _shower_mat_v; }
@@ -51,6 +50,10 @@ namespace larcv {
     const cv::Mat&
     ShowerImage(size_t planeid)
     { return _shower_mat_v[planeid]; }
+
+    LArbysImageMaker*
+    maker()
+    { return &_LArbysImageMaker; }
     
   private:
     std::string _adc_producer;
@@ -64,6 +67,11 @@ namespace larcv {
     std::vector<larocv::ImageMeta> _adc_meta_v;
     std::vector<cv::Mat> _track_mat_v;
     std::vector<cv::Mat> _shower_mat_v;
+
+  public:
+    EventImage2D _ev_adc;
+    EventImage2D _ev_trk;
+    EventImage2D _ev_shr;    
     
   };
 

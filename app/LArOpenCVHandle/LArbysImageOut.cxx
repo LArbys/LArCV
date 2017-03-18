@@ -70,9 +70,14 @@ namespace larcv {
     _subrun = event_id.subrun();
     _event = event_id.event();
     _entry = mgr.current_entry();
+
+    LARCV_DEBUG()<<"At (r,s,e,e) -- ["<<_run<<","<< _subrun<<","<<_event<<","<<_entry<<"]"<<std::endl;
     
     const auto& vertex_v = _LArbysImageAna->Verticies();
-    
+
+    if (vertex_v.empty()) return false;
+
+    LARCV_DEBUG() << "... " << vertex_v.size() << " verticies" << std::endl;
     _n_vtx3d = vertex_v.size();
     
     for(size_t vtxid=0;vtxid<_n_vtx3d;++vtxid) { 

@@ -26,9 +26,13 @@ namespace larcv {
   bool LArbysImageExtract::process(IOManager& mgr)
   {
 
-    auto ev_adc = (EventImage2D*)mgr.get_data(kProductImage2D,_adc_producer);
-    auto ev_trk = (EventImage2D*)mgr.get_data(kProductImage2D,_track_producer);
-    auto ev_shr = (EventImage2D*)mgr.get_data(kProductImage2D,_shower_producer);
+    const auto ev_adc = (EventImage2D*)mgr.get_data(kProductImage2D,_adc_producer);
+    const auto ev_trk = (EventImage2D*)mgr.get_data(kProductImage2D,_track_producer);
+    const auto ev_shr = (EventImage2D*)mgr.get_data(kProductImage2D,_shower_producer);
+
+    _ev_adc = *ev_adc;
+    _ev_trk = *ev_trk;
+    _ev_shr = *ev_shr;
     
     auto adc_img_data_v = _LArbysImageMaker.ExtractImage(ev_adc->Image2DArray());
     _adc_mat_v.clear();
