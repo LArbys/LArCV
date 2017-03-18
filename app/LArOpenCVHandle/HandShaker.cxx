@@ -341,6 +341,7 @@ namespace handshake {
     _ev_ass->set_association( _ev_pfpart->id(),  _ev_vertex->id(),  _ass_pfpart_to_vertex  );
     _ev_ass->set_association( _ev_pfpart->id(),  _ev_shower->id(),  _ass_pfpart_to_shower  );
     _ev_ass->set_association( _ev_pfpart->id(),  _ev_track->id(),   _ass_pfpart_to_track   );
+    _ev_ass->set_association( _ev_pfpart->id(),  _ev_cluster->id(), _ass_pfpart_to_cluster );
     _ev_ass->set_association( _ev_vertex->id(),  _ev_shower->id(),  _ass_vertex_to_shower  );
     _ev_ass->set_association( _ev_vertex->id(),  _ev_track->id(),   _ass_vertex_to_track   );
     _ev_ass->set_association( _ev_shower->id(),  _ev_cluster->id(), _ass_shower_to_cluster );
