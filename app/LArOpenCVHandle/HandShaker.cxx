@@ -121,18 +121,31 @@ namespace handshake {
       for(unsigned int contour_idx=0; contour_idx < key_value.second.size(); ++contour_idx) {
 	auto const& contour = key_value.second[contour_idx];
 	auto const& image_meta = meta_v[contour_idx];
+	double ctime_min=1e9;
+	double ctime_max=0;
+	double cwire_min=1e9;
+	double cwire_max=0;
 	for(auto const& pt : contour) {
 	  double time = image_meta.max_y() - image_meta.pixel_height() * pt.Y();
 	  double wire = image_meta.min_x() + image_meta.pixel_width() * pt.X();
-	  if(time_min > time) time_min = time;
-	  if(time_max < time) time_max = time;
-	  if(wire_min > wire) wire_min = wire;
-	  if(wire_max < wire) wire_max = wire;
+	  if(ctime_min > time) ctime_min = time;
+	  if(ctime_max < time) ctime_max = time;
+	  if(cwire_min > wire) cwire_min = wire;
+	  if(cwire_max < wire) cwire_max = wire;
 	}
 	pxcluster_to_cluster[plane][contour_idx] = _ev_cluster->size();
 	larlite::cluster c;
 	c.set_id(_ev_cluster->size());
 	_ev_cluster->push_back(c);
+
+	if(time_min > ctime_min) time_min = ctime_min;
+	if(time_max < ctime_max) time_max = ctime_max;
+	if(wire_min > cwire_min) wire_min = cwire_min;
+	if(wire_max < cwire_max) wire_max = cwire_max;
+
+	std::cout<<"    cluster " << plane << "-" << contour_idx << " time bounds: " << ctime_min << " => " << ctime_max
+		 <<" ... wire bounds: " << cwire_min << " => " << cwire_max << std::endl;
+	
       }
       wire_min -=2;
       wire_max +=2;
@@ -144,8 +157,8 @@ namespace handshake {
       wire_bounds[plane].first  = wire_min;
       wire_bounds[plane].second = wire_max;
 
-      //std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
-      //       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
+      std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
+	       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
 
       contours_v[plane] = std::move(this->as_contour_array(key_value.second));
 

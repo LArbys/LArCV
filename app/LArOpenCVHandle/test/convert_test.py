@@ -27,7 +27,7 @@ while io1.next_event() and io2.read_entry(ctr):
 
     ev_hit_in  = io1.get_data(fmwk1.data.kHit, "gaushit")
     ev_pgraph  = io2.get_data(fmwk2.kProductPGraph,'test')
-    ev_pixel2d = io2.get_data(fmwk2.kProductPixel2D,'test')
+    ev_pixel2d = io2.get_data(fmwk2.kProductPixel2D,'test_ctor')
 
     hs.set_larlite_pointers(ev_pfpart, ev_vertex,
                             ev_shower, ev_track,
