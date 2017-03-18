@@ -11,30 +11,32 @@ namespace larcv {
 				 const std::vector<std::string> particle_types, 
 				 const std::vector<std::string> interaction_types)
     : ProcessBase(name)
-    , _particle_types(particle_types)
-    , _interaction_types(interaction_types)
+    , _particle_types_v(particle_types)
+    , _interaction_types_v(interaction_types)
   {}
     
   void LArbysImagePID::Clear(){
-    _ptype_ctr.clear();
-    _ptype_ctr.resize(5,0);
+    _ptype_ctr_v.clear();
+    _ptype_ctr_v.resize(5,0);
 
-    _rois_score.clear();
-    _rois_score.resize(2);
-    _ptype_scores.clear();
+    _rois_score_vv.clear();
+    _rois_score_vv.resize(2);
+    _ptype_scores_vvv.clear();
     
+    _score_sum_v.clear();
+    
+    _interaction_pair_v.clear();
+
     //_roi_score.resize(5,0.0);
-    //_rois_score[0]=_roi_score;
-    //_rois_score[1]=_roi_score;
+    //_rois_score_vv[0]=_roi_score;
+    //_rois_score_vv[1]=_roi_score;
 
-    
-    _interaction_scores.clear();
-    _interaction_scores.resize(2,0.0);
   }
   
   void LArbysImagePID::configure(const PSet& cfg)
   {
     _use_shape = cfg.get<bool>("UseShape");
+    _verbosity = cfg.get<bool>("Verbosity");
   }
 
   void LArbysImagePID::initialize()
@@ -43,7 +45,7 @@ namespace larcv {
   bool LArbysImagePID::process(IOManager& mgr)
   {
     Clear();
-    _ptype_ctr.resize(5,0);
+    _ptype_ctr_v.resize(5,0);
     
     auto ev_pgraph = (EventPGraph*)mgr.get_data(kProductPGraph,"test");
     _run    = ev_pgraph->run();
@@ -60,10 +62,11 @@ namespace larcv {
 		 <<", has "<<pgraphs.size()<<" vertices."
 		 <<std::endl;
 
-    _ptype_scores.resize(pgraphs.size());
+    _ptype_scores_vvv.resize(pgraphs.size());
+    _score_sum_v.resize(pgraphs.size(),0.0);
     LARCV_DEBUG()<<"number of vtx is "<<pgraphs.size()<<std::endl;
     std::vector<std::vector<float>> ptype_scor(2, std::vector<float>(5,0.0));
-    for(auto &ptype_score : _ptype_scores) ptype_score = ptype_scor;
+    for(auto &ptype_score : _ptype_scores_vvv) ptype_score = ptype_scor;
         
     for (size_t vtx_idx=0; vtx_idx< pgraphs.size(); ++vtx_idx)
       {
@@ -76,34 +79,35 @@ namespace larcv {
 	auto rois = rois_obj.ParticleArray();
 	for (int roi_idx=0; roi_idx<2; ++roi_idx){
 	  auto roi = rois[roi_idx];
-	  _rois_score[roi_idx] = roi.TypeScore();
+	  _rois_score_vv[roi_idx] = roi.TypeScore();
 	  if (_use_shape){
 	    if (roi.Shape()==0&& roi.Type()==0){
-	      _ptype_ctr[roi.Type()]++;  
-	      _ptype_scores[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
+	      _ptype_ctr_v[roi.Type()]++;  
+	      _ptype_scores_vvv[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
 	    }
 	    if (roi.Shape()==0&& roi.Type()==1){
-	      _ptype_ctr[roi.Type()]++;  
-	      _ptype_scores[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
+	      _ptype_ctr_v[roi.Type()]++;  
+	      _ptype_scores_vvv[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
 	    }
 	    if (roi.Shape()==1&& roi.Type()==2){
-	      _ptype_ctr[roi.Type()]++;  
-	      _ptype_scores[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
+	      _ptype_ctr_v[roi.Type()]++;  
+	      _ptype_scores_vvv[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
 	    }
 	    if (roi.Shape()==0&& roi.Type()==3){
-	      _ptype_ctr[roi.Type()]++;  
-	      _ptype_scores[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
+	      _ptype_ctr_v[roi.Type()]++;  
+	      _ptype_scores_vvv[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
 	    }
 	    if (roi.Shape()==1&& roi.Type()==4){
-	      _ptype_ctr[roi.Type()]++;  
-	      _ptype_scores[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
+	      _ptype_ctr_v[roi.Type()]++;  
+	      _ptype_scores_vvv[vtx_idx][roi_idx][roi.Type()]=roi.TypeScore()[roi.Type()];
 	    }
 	  }
 	  if(!_use_shape){
 	    for (int type=0; type<5; ++type){
 	      if (roi.Type()==type) {
-		_ptype_ctr[type]++;
-		_ptype_scores[vtx_idx][roi_idx][type]=roi.TypeScore()[type];
+		_ptype_ctr_v[type]++;
+		_ptype_scores_vvv[vtx_idx][roi_idx][type]=roi.TypeScore()[type];
+		_score_sum_v[vtx_idx]+=roi.TypeScore()[type];
 	      }
 	    }
 	  }
@@ -111,23 +115,25 @@ namespace larcv {
 	  //LARCV_DEBUG()<<particle_types[roi.Type()]<<std::endl;
 	}
 	
-	for (auto x : _ptype_ctr) std::cout<< x <<" ";
-	std::cout<<std::endl;
-	for (auto scores : _rois_score) {
-	  for (auto score : scores) std::cout<<score<<" ";
-	  std::cout<<std::endl;
+	for (auto x : _ptype_ctr_v) if(_verbosity) std::cout<< x <<" ";
+	if(_verbosity) std::cout<<std::endl;
+	for (auto scores : _rois_score_vv) {
+	  for (auto score : scores) if(_verbosity) std::cout<<score<<" ";
+	  if(_verbosity) std::cout<<std::endl;
 	}
-	std::cout<<std::endl;
-	for (auto scores : _ptype_scores) {
+	if(_verbosity) std::cout<<std::endl;
+	for (auto scores : _ptype_scores_vvv) {
 	  for (auto score : scores) {
-	    for (auto scor : score)std::cout<<scor<<" ";
+	    for (auto scor : score)if(_verbosity) std::cout<<scor<<" ";
 	  }
-	  std::cout<<std::endl;
+	  if(_verbosity) std::cout<<std::endl;
 	}
-	std::cout<<std::endl;
-	_ptype_ctr.clear();
-	_ptype_ctr.resize(5,0);
+	if(_verbosity) std::cout<<std::endl;
+	_ptype_ctr_v.clear();
+	_ptype_ctr_v.resize(5,0);
       }
+    
+    return true;
   }
   
   void LArbysImagePID::finalize()

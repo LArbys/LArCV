@@ -53,21 +53,25 @@ namespace larcv {
     
     bool _use_shape;
 
-    std::vector<std::string> _particle_types;
-    std::vector<std::string> _interaction_types;
+    std::vector<std::string> _particle_types_v;
+    std::vector<std::string> _interaction_types_v;
 
-    std::vector<std::vector<float>> _rois_score; //Store all info from ROI
+    std::vector<std::vector<float>> _rois_score_vv; //Store all info from ROI
     //Store only matched ROI, per vertex per roi(for 2 p cases...)
-    std::vector<std::vector<std::vector<float>>> _ptype_scores;
-    std::vector<int> _ptype_ctr;
+    std::vector<std::vector<std::vector<float>>> _ptype_scores_vvv;
+    std::vector<int> _ptype_ctr_v;
     
-    std::vector<float> _interaction_scores;
+    std::vector<std::pair<int, int>> _interaction_pair_v;
+    
+    std::vector<float> _score_sum_v;
 
     uint _run;
     uint _subrun;
     uint _event;
     uint _entry; 
     
+    bool _verbosity;
+
   };
 
   /**
