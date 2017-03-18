@@ -42,9 +42,15 @@ namespace larcv {
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
 
+    void construct_cosmic_image(IOManager& mgr, std::string producer,
+				const std::vector<larcv::Image2D>& adc_image_v,
+				std::vector<larcv::Image2D>& mu_image_v);
+
     bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
 		     const std::vector<larcv::Image2D>& track_image_v,
-		     const std::vector<larcv::Image2D>& shower_image_v);
+		     const std::vector<larcv::Image2D>& shower_image_v,
+		     const std::vector<larcv::Image2D>& thrumu_image_v,
+		     const std::vector<larcv::Image2D>& stopmu_image_v);
 
     bool StoreParticles(IOManager& iom,
 			larocv::ImageClusterManager& mgr,
@@ -56,6 +62,8 @@ namespace larcv {
     ::larocv::ImageManager _adc_img_mgr;
     ::larocv::ImageManager _track_img_mgr;
     ::larocv::ImageManager _shower_img_mgr;
+    ::larocv::ImageManager _thrumu_img_mgr;
+    ::larocv::ImageManager _stopmu_img_mgr;
 
     bool _debug;
     bool _preprocess;
@@ -69,6 +77,8 @@ namespace larcv {
     std::string _roi_producer;
     std::string _track_producer;
     std::string _shower_producer;
+    std::string _thrumu_producer;
+    std::string _stopmu_producer;
     std::string _output_producer;
     ::larocv::AlgorithmID_t _output_cluster_alg_id;
 
@@ -84,6 +94,9 @@ namespace larcv {
     LArbysRecoHolder _reco_holder;
     
     std::vector<larcv::Image2D> _empty_image_v;
+    std::vector<larcv::Image2D> _thrumu_image_v;
+    std::vector<larcv::Image2D> _stopmu_image_v;
+    
   };
 
   /**

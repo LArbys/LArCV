@@ -144,8 +144,8 @@ namespace handshake {
       wire_bounds[plane].first  = wire_min;
       wire_bounds[plane].second = wire_max;
 
-      std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
-	       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
+      //std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
+      //       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
 
       contours_v[plane] = std::move(this->as_contour_array(key_value.second));
 
@@ -182,9 +182,9 @@ namespace handshake {
 	pt.y = (meta.max_y() - time) / meta.pixel_height();
 	dist = cv::pointPolygonTest(contour,pt,true);
 	if(dist < -10 || dist < max_dist) continue;
-	std::cout <<"wire " << wire << " time " << time << " px " << pt.x << " py " << pt.y <<  std::endl;
+	//std::cout <<"wire " << wire << " time " << time << " px " << pt.x << " py " << pt.y <<  std::endl;
 	if(dist >= 0 && parent_ctor_size > contour.size()) continue;
-	std::cout <<"good!"<<std::endl;
+	//std::cout <<"good!"<<std::endl;
 	parent_ctor_idx = contour_idx;
 	parent_ctor_size = contour.size();
 	max_dist = dist;
