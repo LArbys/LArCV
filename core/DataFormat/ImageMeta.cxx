@@ -29,7 +29,7 @@ namespace larcv {
   {
     if(y < (_origin.y - _height) || y > _origin.y) {
       std::stringstream ss;
-      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y << " => " << _origin.y + _width << "!" << std::endl;
+      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y - _height << " => " << _origin.y << "!" << std::endl;
       throw larbys(ss.str());
     }
     return (size_t)((_origin.y - y) / pixel_height());
