@@ -20,7 +20,7 @@ namespace larcv {
     _output_producer = cfg.get<std::string>("OutputProducer","");
     _reference_image_producer = cfg.get<std::string>("ReferenceProducer");
     _target_image_producer = cfg.get<std::string>("TargetProducer");
-
+    _ignore_ref_origin = cfg.get<bool>("IgnoreRefOrigin",false);
   }
 
   void MaskImage::initialize()
@@ -68,10 +68,22 @@ namespace larcv {
     for(size_t pid=0; pid<tar_image_v.size(); ++pid) {
 
       auto& tar_image = tar_image_v[pid];
-
+      
       auto ref_image = Image2D(tar_image.meta());
       ref_image.paint(0);
-      ref_image.overlay( ref_image_v[pid] );
+
+      LARCV_DEBUG() << "Overlaying:\n" << tar_image.meta().dump() << ref_image_v[pid].meta().dump() << std::flush;
+
+      if(_ignore_ref_origin) {
+	if(tar_image.meta().cols() != ref_image_v[pid].meta().cols() ||
+	   tar_image.meta().rows() != ref_image_v[pid].meta().rows() ) {
+	  LARCV_CRITICAL() << "IgnoreRefOrigin option = true ... only allowed if ref and target image dimensions are identical!" << std::endl;
+	  throw larbys();
+	}
+	std::vector<float> ref_data = ref_image_v[pid].as_vector();
+	ref_image.move(std::move(ref_data));
+      }
+      else{ ref_image.overlay( ref_image_v[pid] ); }
 
       if(tar_image.as_vector().size() != ref_image.as_vector().size()) {
 	LARCV_CRITICAL() << "Different size among the target (" << tar_image.as_vector().size()
