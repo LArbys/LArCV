@@ -84,7 +84,7 @@ my_proc.set_io_mode(fmwk.storage_manager.kBOTH)
 
 # Specify output root file name
 my_proc.set_ana_output_file("")
-my_proc.set_output_file(LL_outfile)
+my_proc.set_output_file('%s/%s'%(JOBDIR_O,LL_outfile))
 
 # Pre cuts
 precut=fmwk.LEEPreCut()
@@ -97,6 +97,7 @@ unit.set_config('%s/%s' % (JOBDIR_I,config))
 unit.supera_fname('%s/%s' % (JOBDIR_O,LC_outfile))
 my_proc.add_process(unit)
 
+my_proc.set_data_to_read(fmwk.data.kSimChannel,       "largeant")
 my_proc.set_data_to_read(fmwk.data.kMCTruth,        "generator")
 my_proc.set_data_to_read(fmwk.data.kMCShower,       "mcreco")
 my_proc.set_data_to_read(fmwk.data.kMCTrack,        "mcreco")

@@ -14,7 +14,7 @@ t2=table(in_project2)
 if not t2.exist():
     print 'Project does not exist:',sys.argv[2]
     sys.exit(1)
-jobid  = int(sys.argv[3])
+jobid  = int(sys.argv[4])
 session = t1.job_session(job_index=jobid)
 
 t1.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
@@ -25,11 +25,14 @@ t2.update_job_status(status=kSTATUS_RUNNING,job_index=jobid)
 import time
 time.sleep(jobid%60)
 
-config = sys.argv[4]
+config = sys.argv[3]
 storage = sys.argv[5]
 out_project=''
 if len(sys.argv) > 6:
     out_project = sys.argv[6]
+if out_project=='':
+    print sys.argv
+    raise Exception
 
 if not os.path.isdir(storage):
     print 'Not present:',storage

@@ -65,6 +65,35 @@ print
 print  "Finished configuring ana_processor. Start event loop!"
 print
 
+my_proc.set_data_to_read(fmwk.data.kSimChannel,       "largeant")
+my_proc.set_data_to_read(fmwk.data.kMCTruth,        "generator")
+my_proc.set_data_to_read(fmwk.data.kMCShower,       "mcreco")
+my_proc.set_data_to_read(fmwk.data.kMCTrack,        "mcreco")
+my_proc.set_data_to_read(fmwk.data.kWire,           "caldata")
+my_proc.set_data_to_read(fmwk.data.kOpFlash,        "simpleFlashBeam")
+my_proc.set_data_to_read(fmwk.data.kOpHit,          "ophitBeam")
+my_proc.set_data_to_read(fmwk.data.kOpFlash,        "simpleFlashCosmic")
+my_proc.set_data_to_read(fmwk.data.kOpHit,          "ophitCosmic")
+my_proc.set_data_to_read(fmwk.data.kOpDetWaveform,  "saturation")
+my_proc.set_data_to_read(fmwk.data.kTrigger,        "triggersim")
+my_proc.set_data_to_read(fmwk.data.kSWTrigger,      "swtrigger")
+my_proc.set_data_to_read(fmwk.data.kHit,            "gaushit")
+my_proc.set_data_to_read(fmwk.data.kChStatus,       "chstatus")
+
+my_proc.set_data_to_write(fmwk.data.kMCTruth,        "generator")
+my_proc.set_data_to_write(fmwk.data.kMCShower,       "mcreco")
+my_proc.set_data_to_write(fmwk.data.kMCTrack,        "mcreco")
+my_proc.set_data_to_write(fmwk.data.kWire,           "caldata")
+my_proc.set_data_to_write(fmwk.data.kOpFlash,        "simpleFlashBeam")
+my_proc.set_data_to_write(fmwk.data.kOpHit,          "ophitBeam")
+my_proc.set_data_to_write(fmwk.data.kOpFlash,        "simpleFlashCosmic")
+my_proc.set_data_to_write(fmwk.data.kOpHit,          "ophitCosmic")
+my_proc.set_data_to_write(fmwk.data.kOpDetWaveform,  "saturation")
+my_proc.set_data_to_write(fmwk.data.kTrigger,        "triggersim")
+my_proc.set_data_to_write(fmwk.data.kSWTrigger,      "swtrigger")
+my_proc.set_data_to_write(fmwk.data.kHit,            "gaushit")
+my_proc.set_data_to_write(fmwk.data.kChStatus,       "chstatus")
+
 # Let's run it.
 my_proc.run()
 

@@ -61,7 +61,7 @@ os.system('scp %s %s/' % (config,JOBDIR_I))
 config = config[config.rfind('/')+1:len(config)]
 
 os.mkdir(JOBDIR_O)
-outfile = out_project + '_out_%04d.root' % session
+outfile = 'larcv_' + out_project + '_out_%04d.root' % session
 
 #
 # supera.py part
