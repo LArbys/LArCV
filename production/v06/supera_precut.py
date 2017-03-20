@@ -1,25 +1,30 @@
 #!/usr/bin/env python
 import sys,os
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 3:
     msg  = '\n'
     msg += "Usage 1: %s CONFIG_FILE OUT_FILENAME $INPUT_ROOT_FILE(s)\n" % sys.argv[0]
     msg += '\n'
     sys.stderr.write(msg)
     sys.exit(1)
-#import ROOT
 #from ROOT import larlite as fmwk
-##from larlite import larlite as fmwk
 import ROOT
+from ROOT import fcllite
+fcllite.PSet
 from larlite import larlite as fmwk
+#import ROOT
+#from ROOT import fcllite
+#from ROOT import larlite
+#from larlite import larlite as fmwk
+#from larcv import larcv
 fmwk.storage_manager
-from larcv import larcv
 
-LL_OUTFILE='larlite_supera_out.root'
-LC_OUTFILE='larcv_supera_out.root'
+#fmwk.LEEPreCut()
+OUTFILE='out.root'
 
-if os.path.exists(LL_OUTFILE) or os.path.exists(LC_OUTFILE):
-    print "Output file exists. Please remove:",LL_OUTFILE,LC_OUTFILE
+if os.path.exists(OUTFILE):
+    print "Output file exists. Please remove."
+    print "Output file specified: ", OUTFILE
     print "Giving up."
     sys.exit(1)
 
@@ -36,17 +41,24 @@ for argv in sys.argv:
 # Specify IO mode
 my_proc.set_io_mode(fmwk.storage_manager.kBOTH)
 
-my_proc.set_output_file(LL_OUTFILE)
+my_proc.set_output_file('larlite_%s' % OUTFILE)
 
 # Specify output root file name
 my_proc.set_ana_output_file("")
 
 # Attach an analysis unit ... here we use a base class which does nothing.
 # Replace with your analysis unit if you wish.
+
+precut=fmwk.LEEPreCut()
+#precut_cfg=fcllite.CreatePSetFromFile(sys.argv[1],'precut').get_pset('LEEPreCut')
+#precut.configure(precut_cfg)
+my_proc.add_process(precut)
+
 unit = fmwk.Supera()
 unit.set_config(sys.argv[1])
-unit.supera_fname(LC_OUTFILE)
+unit.supera_fname('larcv_%s' % OUTFILE)
 my_proc.add_process(unit)
+
 my_proc.enable_filter()
 
 print
