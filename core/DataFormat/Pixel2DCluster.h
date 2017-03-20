@@ -17,7 +17,7 @@
 #include <iostream>
 #include "DataFormatTypes.h"
 #include "Pixel2D.h"
-
+#include "ImageMeta.h"
 namespace larcv {
 
   class EventPixelCollection;
@@ -58,6 +58,24 @@ namespace larcv {
 
     // Pool among duplicate pixels
     void Pool(const PoolType_t type);
+
+    // 2D Bounds 
+    float min_x() const;
+    float min_y() const;
+    float max_x() const;
+    float max_y() const;
+    size_t argmin_x() const;
+    size_t argmin_y() const;
+    size_t argmax_x() const;
+    size_t argmax_y() const;
+    ImageMeta bounds() const;
+    // Intensity bounds
+    float min() const;
+    float max() const;
+    float std() const;
+    float mean() const;
+    size_t argmax() const;
+    size_t argmin() const;
 
     //
     // uniry operator

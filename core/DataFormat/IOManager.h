@@ -59,7 +59,8 @@ namespace larcv {
     void finalize();
     void clear_entry();
     void set_id(const size_t run, const size_t subrun, const size_t event);
-
+    size_t current_entry() const { return _in_tree_index; }
+    
     size_t get_n_entries() const
     { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
     
@@ -94,6 +95,9 @@ namespace larcv {
       for(auto const& key_value : _key_list[type]) res.push_back(key_value.first);
       return res;
     }
+
+    const std::vector<std::string>& file_list() const
+    { return _in_file_v; }
     
   private:
     void   set_id();

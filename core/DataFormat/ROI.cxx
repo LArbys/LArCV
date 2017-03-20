@@ -47,9 +47,10 @@ namespace larcv {
 
     ss << buf.str() << "Vertex   (x, y, z, t) = (" << X() << "," << Y() << "," << Z() << "," << T() << ")" << std::endl
        << buf.str() << "Momentum (px, py, pz) = (" << Px() << "," << Py() << "," << Pz() << ")" << std::endl
-       << buf.str() << "Inittial Energy = " << EnergyInit() << std::endl
-       << buf.str() << "Deposit  Energy = " << EnergyDeposit() << std::endl
-       << buf.str() << "# Bounding Box  = " << BB().size() << std::endl;
+       << buf.str() << "Inittial Energy  = " << EnergyInit() << std::endl
+       << buf.str() << "Deposit  Energy  = " << EnergyDeposit() << std::endl
+       << buf.str() << "Creation Process = " << CreationProcess() << std::endl
+       << buf.str() << "# Bounding Box   = " << BB().size() << std::endl;
 
     buf << "    ";
 

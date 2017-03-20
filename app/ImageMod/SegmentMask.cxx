@@ -12,11 +12,14 @@ namespace larcv {
 
   SegmentMask::SegmentMask(const std::string name)
     : ProcessBase(name)
-  {}
+  {
+    _output_producer = "";
+  }
     
   void SegmentMask::configure(const PSet& cfg)
   {
     _roi_producer = cfg.get<std::string>("ROIProducer","");
+    _output_producer = cfg.get<std::string>("OutputProducer","");
     _valid_roi_v.clear();
     auto valid_roi = cfg.get<std::vector<std::string> >("ValidROI");
     for(auto const& name : valid_roi) {
@@ -46,9 +49,28 @@ namespace larcv {
       LARCV_CRITICAL() << "EventImage2D not found: " << _image_producer << std::endl;
       throw larbys();
     }
-    std::vector<Image2D> image_v;
-    event_image->Move(image_v);
 
+
+    EventImage2D* output_event_image = nullptr;
+    
+    std::vector<Image2D> image_v;
+    if(_output_producer.empty()) {
+      event_image->Move(image_v);
+      output_event_image = event_image;
+    }
+    else {
+      output_event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_output_producer));
+      if(!output_event_image) {
+	LARCV_CRITICAL() << "Failed to create an output data product w/ name " <<_output_producer << std::endl;
+	throw larbys();
+      }
+      if(output_event_image->Image2DArray().size()) {
+	LARCV_CRITICAL() << "Output producer not empty! " << _output_producer << std::endl;
+	throw larbys();
+      }
+      image_v = event_image->Image2DArray();
+    }
+    
     std::vector<bool> valid_roi_v(kROITypeMax,false);
     if(!_roi_producer.empty()) {
       auto event_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
@@ -85,13 +107,23 @@ namespace larcv {
 	}
 	else if(!valid_roi_v[(size_t)(data[px_idx])]) 
 	  image.set_pixel(px_idx,_mask_value);
-
       }
+      
+      size_t pixel_val;
+      for(size_t px_idx=0; px_idx < data.size(); ++px_idx) {
 
+	if(data[px_idx]<0) image.set_pixel(px_idx,_mask_value);
+	else{
+	  pixel_val = (size_t)(data[px_idx]);
+
+	  if(pixel_val >= valid_roi_v.size() || !valid_roi_v[pixel_val])
+	    image.set_pixel(px_idx,_mask_value);
+	}
+      }
     }
-
-    event_image->Emplace(std::move(image_v));
-
+      
+    output_event_image->Emplace(std::move(image_v));
+    
     return true;
   }
 

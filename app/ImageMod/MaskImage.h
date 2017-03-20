@@ -45,7 +45,8 @@ namespace larcv {
 
     float _pi_thresh_min;
     float _mask_value;
-
+    bool  _ignore_ref_origin;
+    std::string _output_producer;
     std::string _reference_image_producer;
     std::string _target_image_producer;
 

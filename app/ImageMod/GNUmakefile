@@ -13,6 +13,15 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
 
+ifdef GEO2D_BASEDIR
+INCFLAGS += -I$(GEO2D_BASEDIR)
+LDFLAGS  += -L$(GEO2D_LIBDIR) -lGeo2D_Core
+else
+SOURCES = $(filter-out ROIMerger.cxx, $(wildcard *.cxx))
+EXCLUDE_HEADERS = LinkDef.h ROIMerger.h
+HEADERS = $(filter-out $(EXCLUDE_HEADERS), $(wildcard *.h))
+endif
+
 # platform-specific options
 OSNAME          = $(shell uname -s)
 HOST            = $(shell uname -n)

@@ -318,6 +318,23 @@ namespace larcv {
         res.EnergyDeposit(0);
       res.EnergyInit(mct.Start().E());
       res.Position(mct.Start().X(), mct.Start().Y(), mct.Start().Z(), mct.Start().T());
+      res.EndPosition(mct.End().X(), mct.End().Y(), mct.End().Z(), mct.End().T());
+      res.CreationProcess(mct.Process());
+      if(mct.size()>0) {
+	auto const& first_step = mct.front();
+	res.FirstStep(first_step.X(), first_step.Y(), first_step.Z(), first_step.T());
+      }
+      if(mct.size()>1) {
+	auto const& last_step = mct.back();
+	res.LastStep(last_step.X(), last_step.Y(), last_step.Z(), last_step.T());
+	double length=0;
+	for(size_t step_idx=1; step_idx<mct.size(); ++step_idx) {
+	  auto const& step1 = mct[step_idx-1];
+	  auto const& step2 = mct[step_idx];
+	  length += sqrt(pow(step1.X()-step2.X(),2) + pow(step1.Y()-step2.Y(),2) + pow(step1.Z()-step2.Z(),2));
+	}
+	res.DistanceTravel(length);
+      }
       res.Momentum(mct.Start().Px(), mct.Start().Py(), mct.Start().Pz());
       res.PdgCode(mct.PdgCode());
       res.ParentPdgCode(mct.MotherPdgCode());
@@ -352,6 +369,23 @@ namespace larcv {
         res.EnergyDeposit(0);
       res.EnergyInit(mct.Start().E());
       res.Position(mct.Start().X(), mct.Start().Y(), mct.Start().Z(), mct.Start().T());
+      res.EndPosition(mct.End().X(), mct.End().Y(), mct.End().Z(), mct.End().T());
+      res.CreationProcess(mct.Process());
+      if(mct.size()>0) {
+	auto const& first_step = mct.front();
+	res.FirstStep(first_step.X(), first_step.Y(), first_step.Z(), first_step.T());
+      }
+      if(mct.size()>1) {
+	auto const& last_step = mct.back();
+	res.LastStep(last_step.X(), last_step.Y(), last_step.Z(), last_step.T());
+	double length=0;
+	for(size_t step_idx=1; step_idx<mct.size(); ++step_idx) {
+	  auto const& step1 = mct[step_idx-1];
+	  auto const& step2 = mct[step_idx];
+	  length += sqrt(pow(step1.X()-step2.X(),2) + pow(step1.Y()-step2.Y(),2) + pow(step1.Z()-step2.Z(),2));
+	}
+	res.DistanceTravel(length);
+      }
       res.Momentum(mct.Start().Px(), mct.Start().Py(), mct.Start().Pz());
       res.PdgCode(mct.PdgCode());
       res.ParentPdgCode(mct.MotherPdgCode());
@@ -383,6 +417,10 @@ namespace larcv {
       //res.EnergyDeposit(0);
       res.EnergyInit(mcs.Start().E());
       res.Position(mcs.Start().X(), mcs.Start().Y(), mcs.Start().Z(), mcs.Start().T());
+      res.EndPosition(mcs.End().X(), mcs.End().Y(), mcs.End().Z(), mcs.End().T());
+      res.CreationProcess(mcs.Process());
+      auto const& first_step = mcs.DetProfile();
+      res.FirstStep(first_step.X(), first_step.Y(), first_step.Z(), first_step.T());
       res.Momentum(mcs.Start().Px(), mcs.Start().Py(), mcs.Start().Pz());
       res.PdgCode(mcs.PdgCode());
       res.ParentPdgCode(mcs.MotherPdgCode());
@@ -414,6 +452,10 @@ namespace larcv {
       //res.EnergyDeposit(0);
       res.EnergyInit(mcs.Start().E());
       res.Position(mcs.Start().X(), mcs.Start().Y(), mcs.Start().Z(), mcs.Start().T());
+      res.EndPosition(mcs.End().X(), mcs.End().Y(), mcs.End().Z(), mcs.End().T());
+      res.CreationProcess(mcs.Process());
+      auto const& first_step = mcs.DetProfile();
+      res.FirstStep(first_step.X(), first_step.Y(), first_step.Z(), first_step.T());
       res.Momentum(mcs.Start().Px(), mcs.Start().Py(), mcs.Start().Pz());
       res.PdgCode(mcs.PdgCode());
       res.ParentPdgCode(mcs.MotherPdgCode());

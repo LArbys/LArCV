@@ -11,22 +11,20 @@ if 'LARLITE_BASEDIR' in os.environ:
     libs+= commands.getoutput('larlite-config --libs').split()
     if 'LAROPENCV_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterBase']
+        libs += [' -lLArOpenCV_ImageClusterAlgoData']
+        libs += [' -lLArOpenCV_ImageClusterAlgoFunction']
+        libs += [' -lLArOpenCV_ImageClusterAlgoClass']
+        libs += [' -lLArOpenCV_ImageClusterAlgoModule']
         libs += [' -lLArOpenCV_ImageClusterCluster']
-        libs += [' -lLArOpenCV_ImageClusterDirection']
-        libs += [' -lLArOpenCV_ImageClusterUtil']
-        libs += [' -lLArOpenCV_ImageClusterMatch']
-        libs += [' -lLArOpenCV_ImageClusterMerge']
-        libs += [' -lLArOpenCV_ImageClusterFilter']
-        #libs += [' -lLArOpenCV_ImageClusterReCluster']
-        libs += [' -lLArOpenCV_ImageClusterStartPoint']
-        libs += [' -lLArOpenCV_ImageClusterDebug']
         libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
         libs += [' -lBasicTool_FhiclLite']
-
+    if 'GEO2D_BASEDIR' in os.environ:
+        libs += [' -L%s' % os.environ['GEO2D_LIBDIR']]
+        libs += [' -lGeo2D_Core']
+        libs += [' -lGeo2D_Algorithm']
 if 'ANN_LIBDIR' in os.environ:
     libs+= ["%s/libANN.a" % ( os.environ["ANN_LIBDIR"].strip() )]
 
-    
 objs_list=[]
 dict_list=[]
 for l in dirs:
@@ -54,20 +52,15 @@ if os.path.isfile(libname):
 
 skip_build = base_ts is not None
 for objs in objs_list:
-
     for obj in objs:
-
         cmd += '%s ' % obj
-
         ts = os.path.getmtime(obj)
-
         if skip_build and ts > base_ts:
             skip_build = False
 
 if skip_build: sys.exit(0)
-    
-for d in dict_list:
 
+for d in dict_list:
     if d: cmd += '%s ' % d[0]
 
 for l in libs:

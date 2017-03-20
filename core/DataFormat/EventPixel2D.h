@@ -4,7 +4,7 @@
  * \ingroup DataFormat
  * 
  * \brief Class def header for a class EventPixel2D
-1;2c *
+ *
  * @author kazuhiro
  */
 
@@ -19,6 +19,7 @@
 #include "EventBase.h"
 #include "Pixel2D.h"
 #include "Pixel2DCluster.h"
+#include "ImageMeta.h"
 #include "DataProductFactory.h"
 namespace larcv {
   
@@ -43,24 +44,47 @@ namespace larcv {
     const std::vector<larcv::Pixel2D>& Pixel2DArray(const ::larcv::PlaneID_t plane);
     /// Retrieve Pixel2DCluster for a plane
     const std::vector<larcv::Pixel2DCluster>& Pixel2DClusterArray(const ::larcv::PlaneID_t plane);
+    /// Retrieve ImageMeta for a plane (for simple Pixel2D collection)
+    const ImageMeta& Meta(const ::larcv::PlaneID_t plane) const;
+    /// Retrieve ImageMeta for a plane (for Pixel2DCluster)
+    const std::vector<larcv::ImageMeta>& ClusterMetaArray(const ::larcv::PlaneID_t plane) const;
+    /// Retrieve ImageMeta for a plane (for Pixel2DCluster)
+    const ImageMeta& ClusterMeta(const ::larcv::PlaneID_t plane, const size_t) const;
+
+    const std::map< ::larcv::PlaneID_t, std::vector<larcv::Pixel2D> >& Pixel2DArray() const
+    { return _pixel_m; }
+    
+    const std::map< ::larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster> >& Pixel2DClusterArray() const
+    { return _cluster_m; }
+
+    const std::map< ::larcv::PlaneID_t, larcv::ImageMeta>& MetaArray() const
+    { return _meta_m; }
+
+    const std::map< ::larcv::PlaneID_t, std::vector< ::larcv::ImageMeta> >& ClusterMetaArray() const
+    { return _cluster_meta_m; }
+
+    /// Set ImageMeta
+    void SetMeta(const larcv::PlaneID_t plane, const ImageMeta& meta)
+    { _meta_m[plane] = meta;}
 
     /// Insert larcv::Pixel2D into a collection
     void Append(const larcv::PlaneID_t plane, const Pixel2D& pixel);
     /// Insert larcv::Pixel2DCluster into a collection
-    void Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster);
+    void Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster, const ImageMeta&);
     
 #ifndef __CINT__
     /// Emplace larcv::Pixel2D into a collection
     void Emplace(const larcv::PlaneID_t plane, Pixel2D&& pixel);
     /// Emplace larcv::Pixel2DCluster into a collection
-    void Emplace(const larcv::PlaneID_t plane, Pixel2DCluster&& cluster);
+    void Emplace(const larcv::PlaneID_t plane, Pixel2DCluster&& cluster, const ImageMeta&);
 #endif
 
   private:
 
     std::map< ::larcv::PlaneID_t, std::vector< ::larcv::Pixel2D > >        _pixel_m;
     std::map< ::larcv::PlaneID_t, std::vector< ::larcv::Pixel2DCluster > > _cluster_m;
-
+    std::map< ::larcv::PlaneID_t, ::larcv::ImageMeta > _meta_m;
+    std::map< ::larcv::PlaneID_t, std::vector< ::larcv::ImageMeta > > _cluster_meta_m;
   };
 
   /**

@@ -177,7 +177,7 @@ namespace larcv {
     
     for (int p0=0;p0<nplanes;p0++) {
       // loop through first wire plane
-      for (int idx0=0; idx0<wirelists.at(p0).size(); idx0++) {
+      for (int idx0=0; idx0<(int)wirelists.at(p0).size(); idx0++) {
       
 	// get the first wire
 	int wid0 = wirelists.at(p0).at(idx0);
@@ -187,7 +187,7 @@ namespace larcv {
 	// go to the other planes and check the wires there
 	for (int p1=p0+1; p1<nplanes; p1++) {
 	  // get wire on this plane
-	  for (int idx1=0; idx1<wirelists.at(p1).size(); idx1++) {
+	  for (int idx1=0; idx1<(int)wirelists.at(p1).size(); idx1++) {
 	    int wid1 = wirelists.at(p1).at(idx1);
 
 	    std::vector< int > combo2d(3,-1);
@@ -330,16 +330,33 @@ namespace larcv {
     // maybe think about caching all these values
     UBWireTool* _g = UBWireTool::_get_global_instance();
     
-    const std::vector<float>& start1 = _g->m_WireData[plane1].wireStart.find(wireid1)->second;
-    const std::vector<float>& end1   = _g->m_WireData[plane1].wireEnd.find(wireid1)->second;
-    const std::vector<float>& start2 = _g->m_WireData[plane2].wireStart.find(wireid2)->second;
-    const std::vector<float>& end2   = _g->m_WireData[plane2].wireEnd.find(wireid2)->second;
+    auto it_start1 = _g->m_WireData[plane1].wireStart.find(wireid1);
+    auto it_end1   = _g->m_WireData[plane1].wireEnd.find(wireid1);
+    auto it_start2 = _g->m_WireData[plane2].wireStart.find(wireid2);
+    auto it_end2   = _g->m_WireData[plane2].wireEnd.find(wireid2);
+
+    // check if in bounds
+    if ( it_start1==_g->m_WireData[plane1].wireStart.end() 
+      || it_end1  ==_g->m_WireData[plane1].wireEnd.end() 
+      || it_start2==_g->m_WireData[plane2].wireStart.end() 
+      || it_end2  ==_g->m_WireData[plane2].wireEnd.end() ) {
+      intersection.resize(2,0);
+      crosses = 0;
+      return;
+    }
+
+    const std::vector<float>& start1 = it_start1->second;
+    const std::vector<float>& end1   = it_end1->second;
+    const std::vector<float>& start2 = it_start2->second;
+    const std::vector<float>& end2   = it_end2->second;
     
     std::vector< std::vector<float> > ls1(2); 
-    ls1[0].push_back( start1[2] );
-    ls1[0].push_back( start1[1] );
-    ls1[1].push_back( end1[2] );
-    ls1[1].push_back( end1[1] );
+    ls1[0].resize(2,0);
+    ls1[1].resize(2,0);    
+    ls1[0][0] = start1[2];
+    ls1[0][1] = start1[1];
+    ls1[1][0] = end1[2];
+    ls1[1][1] = end1[1];
     
     std::vector< std::vector<float> > ls2(2); 
     ls2[0].push_back( start2[2] );

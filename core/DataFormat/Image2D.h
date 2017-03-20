@@ -47,7 +47,7 @@ namespace larcv {
     /// Reset contents w/ new larcv::ImageMeta
     void reset(const ImageMeta&);
     /// Various modes used to combine pixels
-    enum CompressionModes_t { kSum, kAverage, kMaxPool};
+    enum CompressionModes_t { kSum, kAverage, kMaxPool, kOverWrite};
     /// Move origin position
     void reset_origin(double x, double y) {_meta.reset_origin(x,y);}
     /// Return image index ID number (should be unique within larcv::EventImage2D)
@@ -101,6 +101,10 @@ namespace larcv {
     void compress(size_t row_count, size_t col_count, CompressionModes_t mode=kSum);
     /// Overlay with another Image2D: overlapped pixel region is merged
     void overlay(const Image2D&, CompressionModes_t mode=kSum);
+    /// Move data contents out
+    std::vector<float>&& move();
+    /// Move data contents in
+    void move(std::vector<float>&&);
 
     inline Image2D& operator+=(const float val)
     { for(auto& v : _img) v+= val; return (*this);}

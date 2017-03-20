@@ -37,4 +37,6 @@ app/Supera/APILArSoft/supera.fcl
 *.pyc
 .ipynb_checkpoints
 *.ipynb
+.DS_Store
+*.pdf
 *.o

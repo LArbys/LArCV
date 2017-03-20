@@ -57,6 +57,20 @@ namespace larcv {
     /// Default destructor
     ~ImageMeta(){}
 
+    inline bool operator== (const ImageMeta& rhs) const
+    {
+      return ( _origin.x  == rhs._origin.x  &&
+	       _origin.y  == rhs._origin.y  &&
+	       _width     == rhs._width     &&
+	       _height    == rhs._height    &&
+	       _plane     == rhs._plane     &&
+	       _row_count == rhs._row_count &&
+	       _col_count == rhs._col_count );
+    }
+
+    inline bool operator!= (const ImageMeta& rhs) const
+    { return !((*this) == rhs); }
+
     ImageIndex_t image_index() const  { return _image_id; }
     void image_index(ImageIndex_t id) { _image_id = id;   }
     /// Top-left corner point
