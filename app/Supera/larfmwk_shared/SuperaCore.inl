@@ -204,6 +204,7 @@ namespace larcv {
 			_mctp.clear();
 			_mctp.DefinePrimary(mctruth_v);
 			_mctp.DefinePrimaries(mctrack_v,_mc_tick_offset);
+			_mctp.DefinePrimaries(mcshower_v,_mc_tick_offset);
 			if (_producer_simch.empty()) {
 				_mctp.RegisterSecondary(mctrack_v,_mc_tick_offset);
 				_mctp.RegisterSecondary(mcshower_v,_mc_tick_offset);
