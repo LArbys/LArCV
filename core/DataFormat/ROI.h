@@ -49,6 +49,7 @@ namespace larcv {
       , _current_type   (-1)
       , _interaction_type (-1)
       , _process ("")
+      , _dist_travel(-1)
     {}
     
     /// Default destructor
@@ -87,6 +88,9 @@ namespace larcv {
     short NuInteractionType() const { return _interaction_type; }
     const std::string& CreationProcess() const { return _process; }
     const larcv::Vertex& EndPosition() const { return _end_pt; }
+    const larcv::Vertex& FirstStep() const { return _first_step; }
+    const larcv::Vertex& LastStep() const { return _last_step; }
+    double         DistanceTravel() const { return _dist_travel; }
     const std::vector<float>& TypeScore() const { return _type_score_v; }
     
     void Index         (ROIIndex_t id  )    { _index = id;         }
@@ -113,6 +117,11 @@ namespace larcv {
     void CreationProcess (const std::string& proc) { _process = proc; }
     void EndPosition   (const larcv::Vertex& vtx) { _end_pt = vtx; }
     void EndPosition   (double x, double y, double z, double t) { _end_pt = Vertex(x,y,z,t); }
+    void FirstStep     (const larcv::Vertex& vtx) { _first_step = vtx; }
+    void FirstStep     (double x, double y, double z, double t) { _first_step = Vertex(x,y,z,t); }
+    void LastStep      (const larcv::Vertex& vtx) { _last_step = vtx; }
+    void LastStep      (double x, double y, double z, double t) { _last_step = Vertex(x,y,z,t); }
+    void DistanceTravel ( double dist ) { _dist_travel = dist; }
     void TypeScore (const std::vector<float>& score_v) { _type_score_v = score_v; }
 
     std::string dump() const;
@@ -142,7 +151,9 @@ namespace larcv {
     std::string _process;
     Vertex      _end_pt;
     std::vector<float> _type_score_v;
-
+    Vertex      _first_step;
+    Vertex      _last_step;
+    double      _dist_travel;
   };
 }
 #endif
