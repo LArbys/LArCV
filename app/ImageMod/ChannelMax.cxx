@@ -58,6 +58,8 @@ namespace larcv {
     auto event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_in_producer));    
     if(!event_image) throw larbys("No event image found");
     auto& img_v = event_image->Image2DArray();
+
+    if (img_v.empty()) return false;
     
     larcv::Image2D image(img_v[0].meta());
     
