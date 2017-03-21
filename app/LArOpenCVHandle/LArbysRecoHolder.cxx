@@ -59,36 +59,43 @@ namespace larcv {
 
   void
   LArbysRecoHolder::Reset() {
+    LARCV_DEBUG() << "Reset pointers" << std::endl;
     _vertex_ptr_v.clear();
     _particle_cluster_ptr_vvv.clear();
     _track_comp_ptr_vvv.clear();
+    LARCV_DEBUG() << "done." << std::endl;
   }
 
   void
   LArbysRecoHolder::ResetOutput() {
+    LARCV_DEBUG() << "Reset output copies" << std::endl;
     _vertex_v.clear();
     _particle_cluster_vvv.clear();
     _track_comp_vvv.clear();
 
     _match_pvvv.clear();
-    _run=kINVALID_INT;
-    _subrun=kINVALID_INT;
-    _event=kINVALID_INT;
-    _entry=kINVALID_INT;
+
+    _run   = kINVALID_INT;
+    _subrun= kINVALID_INT;
+    _event = kINVALID_INT;
+    _entry = kINVALID_INT;
 
     this->Reset();
+    LARCV_DEBUG() << "done." << std::endl;
   }
   void
   LArbysRecoHolder::Write() {
+    LARCV_DEBUG() << "Writing " << _vertex_v.size() << " verticies" << std::endl;
     if(_vertex_v.empty()) return;
     _out_tree->Fill();
+    LARCV_DEBUG() << "done." << std::endl;
   }
   
   void
   LArbysRecoHolder::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
-    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity",2));
+    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
 
     _require_two_multiplicity  = pset.get<bool>("RequireMultiplicityTwo",true);
     _require_fiducial          = pset.get<bool>("RequireFiducial",true);
@@ -116,9 +123,9 @@ namespace larcv {
     _out_tree->Branch("subrun",&_subrun,"subrun/i");
     _out_tree->Branch("event" ,&_event ,"event/i");
     _out_tree->Branch("entry" ,&_entry ,"entry/i");
-    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v);
-    _out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv);
-    _out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv,128000);
+    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v,5*28000);
+    //_out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv);
+    //_out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv,128000);
     _out_tree->Branch("Match_pvvv"              ,&_match_pvvv);
     return;
   }
@@ -201,7 +208,8 @@ namespace larcv {
   void
   LArbysRecoHolder::StoreEvent(size_t run, size_t subrun, size_t event, size_t entry) {
 
-    if (!_vertex_ptr_v.size()) return;
+    LARCV_DEBUG() << "Copying " << _vertex_ptr_v.size() << " verticies" << std::endl;
+    if (_vertex_ptr_v.empty()) return;
 
     size_t n_old=_vertex_v.size();
     size_t n_new=_vertex_ptr_v.size();

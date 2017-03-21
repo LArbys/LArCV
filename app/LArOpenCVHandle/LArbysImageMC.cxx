@@ -320,7 +320,7 @@ namespace larcv {
     uint ic=0;
     std::vector<this_proton> protons;
     protons.clear();
-    
+    if(!ev_roi) throw larbys("Bad ROI producer specified");
     for(const auto& roi : ev_roi->ROIArray()) {
 
       // //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events

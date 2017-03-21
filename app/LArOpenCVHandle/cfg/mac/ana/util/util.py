@@ -6,21 +6,20 @@ import matplotlib.pyplot as plt
 matplotlib.rcParams['font.size']=20
 matplotlib.rcParams['font.family']='serif'
 
-
+DEBUG=False
 def pick_good_vertex(sb_mc_tree,sb_vtx_tree,signal_df_m):
     
     good_vtx_sb_v={}
     good_vtx_id_v={}
     
     for index, row in sb_mc_tree.iterrows():
-        DEBUG=False
+
         # NOTE YOU HAVE TO BE CAREFUL HERE WITH THIS LINE BELOW
         vtx_entry = sb_vtx_tree.loc[index]
-        entry=signal_df_m['FilterEventTree'].loc[index]['entry']
+        entry=signal_df_m['MCTree'].loc[index]['entry']
 
         # if entry==1968:
         #     DEBUG=True
-
         
         if type(vtx_entry) != pd.core.frame.DataFrame: 
             good_vtx_sb_v[index]  = False
@@ -36,10 +35,10 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree,signal_df_m):
         dt = np.sqrt(dx*dx + dy*dy)            # compute the distance from true to all candidates
 
         # remove really poor multiplicity events
-        a=vtx_entry.multi_v.apply(lambda x : len(np.where(x>0)[0])>1).values
-        b=~a
-        c=999*np.ones(list(dt[b].shape))
-        dt[b]=c
+        # a=vtx_entry.multi_v.apply(lambda x : len(np.where(x>0)[0])>1).values
+        # b=~a
+        # c=999*np.ones(list(dt[b].shape))
+        # dt[b]=c
         
         min_idx_v   = np.argsort(dt.mean(axis=1)) # get the smallest mean distance from candidates
         dt_b        = (dt <= 7).sum(axis=1)       # vtx must be less than 7 pixels away
@@ -75,7 +74,6 @@ def pick_good_vertex(sb_mc_tree,sb_vtx_tree,signal_df_m):
                     min_idx=vtx_id
                     if DEBUG:
                         print "Set min_idx ",vtx_id
-            
         good_vtx_id_v[index]  = vtx_entry.id.values[min_idx]
 
     good_vtx_sb_v  = pd.Series(good_vtx_sb_v)

@@ -113,6 +113,8 @@ namespace larcv {
 	}
       }
     }
+    
+    
   }
 
   void LArbysImage::mask_image(Image2D& target, const Image2D& ref)
@@ -157,17 +159,16 @@ namespace larcv {
       bool mask_stopmu = _mask_stopmu_pixels && !stopmu_image_v.empty();
 
       if(!mask_thrumu && !mask_stopmu) {
-	LARCV_DEBUG() << "Reconstruct" << std::endl;
+	LARCV_DEBUG() << "Reconstruct no mask thrumu and no mask stopmu" << std::endl;
 	status = Reconstruct(adc_image_v,
 			     track_image_v,shower_image_v,
 			     thrumu_image_v, stopmu_image_v);
 	status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
       }else{
-
 	auto copy_adc_image_v    = adc_image_v;
 	auto copy_track_image_v  = track_image_v;
 	auto copy_shower_image_v = shower_image_v;
-
+	LARCV_DEBUG() << "ADC image size " << adc_image_v.size() << std::endl;
 	for(size_t plane=0; plane<adc_image_v.size(); ++plane) {
 	  
 	  if(mask_thrumu) {
@@ -185,7 +186,6 @@ namespace larcv {
 	  }
 
 	}
-
 	LARCV_DEBUG() << "Reconstruct" << std::endl;
 	status = Reconstruct(copy_adc_image_v,
 			     copy_track_image_v,copy_shower_image_v,
@@ -283,7 +283,8 @@ namespace larcv {
       _reco_holder.Write();
       _reco_holder.ResetOutput();
     }
-    
+
+    LARCV_DEBUG() << "return " << status << std::endl;
     return status;
   }
 
@@ -296,7 +297,7 @@ namespace larcv {
     //const auto& adc_image_v = get_image2d(iom,_adc_producer);
     auto& adc_cvimg_v = mgr.InputImages(0);
 
-    auto event_pgraph        = (EventPGraph*) iom.get_data(kProductPGraph,_output_producer);
+    auto event_pgraph        = (EventPGraph*)  iom.get_data(kProductPGraph,_output_producer);
     auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
     auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
 
@@ -505,7 +506,7 @@ namespace larcv {
       event_pgraph->Emplace(std::move(pgraph));
     }//end vertex
 
-
+    
     if (_write_reco) {
       const auto& eid = iom.event_id();
       _reco_holder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
@@ -532,23 +533,37 @@ namespace larcv {
     watch_all.Start();
     watch_one.Start();
 
-    static int ctr=0;
+    static int adcctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(adc_image_v)) {
-      cv::Mat thresholded;
-      cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
-      std::stringstream ss;
-      ss << "plane_" << std::get<1>(img_data).plane() << "_" << ctr << ".png";
-      cv::imwrite(std::string(ss.str()),thresholded);
+      // cv::Mat thresholded;
+      // cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+      // std::stringstream ss;
+      // ss << "adc_plane_" << std::get<1>(img_data).plane() << "_" << adcctr << ".png";
+      // cv::imwrite(std::string(ss.str()),thresholded);
       _adc_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
-      ctr++;
+      //adcctr++;
     }
-    
+
+    static int trkctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v))  {
+      // cv::Mat thresholded;
+      // cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+      // std::stringstream ss;
+      // ss << "track_plane_" << std::get<1>(img_data).plane() << "_" << trkctr << ".png";
+      // cv::imwrite(std::string(ss.str()),thresholded);
       _track_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+      // trkctr++;
     }
-    
+
+    static int shrctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v)) {
+      // cv::Mat thresholded;
+      // cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+      // std::stringstream ss;
+      // ss << "shower_plane_" << std::get<1>(img_data).plane() << "_" << shrctr << ".png";
+      // cv::imwrite(std::string(ss.str()),thresholded);
       _shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+      // shrctr++;
     }
 
     for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
@@ -626,10 +641,6 @@ namespace larcv {
       }
     }
 
-    //update LArPlaneGeo
-    // for (size_t plane = 0; plane < _adc_img_mgr.size(); ++plane)
-    //   _geo.ResetPlaneInfo(_alg_mgr.mgr.meta_at(plane));
-    
     _alg_mgr.Process();
 
     watch_one.Start();
