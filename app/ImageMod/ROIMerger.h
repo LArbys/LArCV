@@ -41,6 +41,10 @@ namespace larcv {
 
     void finalize();
 
+    const std::string& output_producer() const
+    { return _output_roi_producer; }
+
+
   private:
     std::string _input_roi_producer;
     std::string _output_roi_producer;

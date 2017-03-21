@@ -50,6 +50,11 @@ namespace larcv {
     void set_id(size_t run, size_t subrun, size_t event)
     { _run = run; _subrun = subrun; _event = event; }
 
+    void set_producer_name(std::string name)
+    { _producer_name = name; }
+
+    const std::string& producer_name() const { return _producer_name; }
+
   private:
 
     std::vector< std::vector<larcv::Image2D> > _image_vv;

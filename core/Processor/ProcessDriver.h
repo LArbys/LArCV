@@ -70,6 +70,9 @@ namespace larcv {
 
     const IOManager& io() const { return _io; }
 
+    void set_id(size_t run, size_t subrun, size_t event)
+    { _io.set_id(run,subrun,event); }
+
     size_t get_tree_index( size_t entry ) const;
 
   private:

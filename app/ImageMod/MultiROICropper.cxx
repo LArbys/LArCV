@@ -28,13 +28,6 @@ namespace larcv {
   {
     _cropped_v.clear();
 
-    // assert valid pointer
-    auto event_img_v = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
-    if(!event_img_v){
-      LARCV_CRITICAL() << "EventImage2D not found for label " << _image_producer << std::endl;
-      throw larbys();
-    }
-
     auto event_roi_v = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
     if(!event_roi_v){
       LARCV_CRITICAL() << "EventROI not found for label " << _roi_producer << std::endl;
@@ -42,6 +35,14 @@ namespace larcv {
     }
 
     auto const& roi_v = event_roi_v->ROIArray();
+    if(roi_v.empty()) return false;
+
+    // assert valid pointer
+    auto event_img_v = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
+    if(!event_img_v){
+      LARCV_CRITICAL() << "EventImage2D not found for label " << _image_producer << std::endl;
+      throw larbys();
+    }
 
     // assert target image ch
     auto const& img_v = event_img_v->Image2DArray();
