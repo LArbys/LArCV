@@ -21,6 +21,9 @@ namespace larcv {
     ~LArbysRecoHolder(){}
     
     void
+    FilterMatches();
+
+    void
     ShapeData(const larocv::ImageClusterManager& mgr);
     
     void
