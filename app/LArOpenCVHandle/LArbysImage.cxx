@@ -105,8 +105,16 @@ namespace larcv {
 	  continue;
 	}
 	else{
+	  size_t npx_x = meta.cols();
+	  size_t npx_y = meta.rows();
 	  for(auto const& pixel_cluster : (*itr).second) {
 	    for(auto const& pixel : pixel_cluster) {
+	      if(pixel.X() >= npx_x || pixel.Y() >= npx_y) {
+		LARCV_WARNING() << "Ignoring cosmic pixel (row,col) = ("
+				<< pixel.Y() << "," << pixel.X() << ")"
+				<< " as it is out of bounds (ncol=" << npx_x << ", nrow=" << npx_y << ")" << std::endl;
+		continue;
+	      }
 	      mu_image.set_pixel( (pixel.X() * meta.rows() + pixel.Y()), 100 );
 	    }
 	  }
