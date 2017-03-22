@@ -92,7 +92,12 @@ namespace larcv {
 
     if ( !increment(entry) ) return false;
 
-    LARCV_DEBUG() << "...passed..." << std::endl;
+    const auto& event_id = mgr.event_id();
+    auto run    = event_id.run();
+    auto subrun = event_id.subrun();
+    auto event  = event_id.event();
+
+    LARCV_DEBUG()<<"Passed @ (r,s,e,e) -- ["<<run<<","<<subrun<<","<<event<<","<<entry<<"]"<<std::endl;
     
     if (!_mc_exists)
       return true;

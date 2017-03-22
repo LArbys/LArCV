@@ -64,12 +64,11 @@ namespace larcv {
     
     if(!_LArbysImageAna) throw larbys("Invalid pointer to LArbysImageAna instance specified");
 
-
     const auto& event_id = mgr.event_id();
-    _run = event_id.run();
+    _run    = event_id.run();
     _subrun = event_id.subrun();
-    _event = event_id.event();
-    _entry = mgr.current_entry();
+    _event  = event_id.event();
+    _entry  = mgr.current_entry();
 
     LARCV_DEBUG()<<"At (r,s,e,e) -- ["<<_run<<","<< _subrun<<","<<_event<<","<<_entry<<"]"<<std::endl;
     

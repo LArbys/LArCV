@@ -294,9 +294,14 @@ namespace larcv {
 				   size_t& pidx) {
     
     LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
-    //const auto& adc_image_v = get_image2d(iom,_adc_producer);
-    auto& adc_cvimg_v = mgr.InputImages(0);
+    const auto& adc_cvimg_v_ = mgr.InputImages(0);
 
+    std::vector<cv::Mat> adc_cvimg_v;
+    adc_cvimg_v.resize(3);
+
+    for(size_t plane=0;plane<3;++plane)
+      adc_cvimg_v[plane] = adc_cvimg_v_[plane].clone();
+    
     auto event_pgraph        = (EventPGraph*)  iom.get_data(kProductPGraph,_output_producer);
     auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
     auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
@@ -315,13 +320,43 @@ namespace larcv {
       const auto& pcluster_vv = _reco_holder.PlaneParticles(vtxid);
       const auto& tcluster_vv = _reco_holder.PlaneTracks(vtxid);
       
-      auto match_vv = _reco_holder.Match(vtxid,adc_cvimg_v);
+      auto match_vv = _reco_holder.Match(vtxid,adc_cvimg_v_);
 	
       if (match_vv.empty()) {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
 	continue;
       }
 
+      //sort the match so that the tracks come first
+      std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
+
+      //put the tracks first
+      for( auto match_v : match_vv ) {
+	auto& plane0     = match_v[0].first;
+	auto& id0        = match_v[0].second;
+	const auto& par0 = *(pcluster_vv[plane0][id0]);
+	auto partype=par0.type;
+	if (partype==larocv::data::ParticleType_t::kTrack) {
+	  match_temp_vv.push_back(match_v);
+	}
+      }
+      
+      //put the showers second
+      for( auto match_v : match_vv ) {
+	auto& plane0     = match_v[0].first;
+	auto& id0        = match_v[0].second;
+	const auto& par0 = *(pcluster_vv[plane0][id0]);
+	auto partype=par0.type;
+	if (partype==larocv::data::ParticleType_t::kShower) {
+	  match_temp_vv.push_back(match_v);
+	}
+      }
+
+      if(match_vv.size() != match_temp_vv.size()) 
+	throw larbys("Invalid match_vv ordering");
+
+      std::swap(match_vv,match_temp_vv);
+      
       PGraph pgraph;
       for( auto match_v : match_vv ) {
 	if (match_v.size()==2) {
@@ -376,12 +411,14 @@ namespace larcv {
 	    
 	    const auto& par = pcluster_arr[plane];
 	    const auto& img2d = adc_image_v[plane];
-	    const auto& cvimg = adc_cvimg_v[plane];
+	    auto& cvimg = adc_cvimg_v[plane];
 
 	    larocv::GEO2D_Contour_t par_pixel_v;
 	    if(par) {
-	      par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,(*par)._ctor,0,false));
+	      auto masked = larocv::MaskImage(cvimg,(*par)._ctor,0,false);
+	      par_pixel_v = larocv::FindNonZero(masked);
 	      pixel_v.reserve(par_pixel_v.size());
+	      cvimg = larocv::MaskImage(cvimg,(*par)._ctor,0,true);
 	    }
 	    
 	    float isum=0;
@@ -467,12 +504,14 @@ namespace larcv {
 	    
 	    const auto& par = pcluster_arr[plane];
 	    const auto& img2d = adc_image_v[plane];
-	    const auto& cvimg = adc_cvimg_v[plane];
+	    auto& cvimg = adc_cvimg_v[plane];
 
 	    larocv::GEO2D_Contour_t par_pixel_v;
 	    if(par) {
-	      par_pixel_v = larocv::FindNonZero(larocv::MaskImage(cvimg,(*par)._ctor,0,false));
+	      auto masked = larocv::MaskImage(cvimg,(*par)._ctor,0,false);
+	      par_pixel_v = larocv::FindNonZero(masked);
 	      pixel_v.reserve(par_pixel_v.size());
+	      cvimg = larocv::MaskImage(cvimg,(*par)._ctor,0,true);
 	    }
 	    float isum=0;
 	    for (const auto& px : par_pixel_v) {
