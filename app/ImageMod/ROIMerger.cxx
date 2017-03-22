@@ -164,7 +164,7 @@ namespace larcv {
       roi.SetBB(res_meta_v);
       out_ev_roi->Emplace(std::move(roi));
     }
-    
+
     return true;
   }
 

@@ -5,6 +5,27 @@
 
 namespace larcv {
 
+  void
+  LArbysRecoHolder::FilterMatches() {
+
+    std::vector<const larocv::data::Vertex3D*> vertex_ptr_v;
+    std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > particle_cluster_ptr_vvv;
+    std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > track_comp_ptr_vvv;
+    
+    for(size_t vertexid=0; vertexid<this->Verticies().size(); ++vertexid) {
+      if (_match_pvvv[vertexid].empty()) continue;
+      vertex_ptr_v.emplace_back(this->Vertex(vertexid));
+      particle_cluster_ptr_vvv.emplace_back(this->PlaneParticles(vertexid));
+      track_comp_ptr_vvv.emplace_back(this->PlaneTracks(vertexid));
+    }
+    
+    LARCV_DEBUG() <<"Filtered "<<this->Verticies().size()<<" to "<<vertex_ptr_v.size()<<std::endl;
+    std::swap(vertex_ptr_v,            _vertex_ptr_v);
+    std::swap(particle_cluster_ptr_vvv,_particle_cluster_ptr_vvv);
+    std::swap(track_comp_ptr_vvv,      _track_comp_ptr_vvv);
+  }
+  
+  
   std::vector<std::vector<std::pair<size_t,size_t> > >
   LArbysRecoHolder::Match(size_t vtx_id,
 			  const std::vector<cv::Mat>& adc_cvimg_v) {
@@ -14,7 +35,7 @@ namespace larcv {
 					_match_coverage,
 					_match_particles_per_plane,
 					_match_min_number);
-    
+
     if (vtx_id >= _match_pvvv.size())
       _match_pvvv.resize(vtx_id+1);
 
@@ -123,9 +144,9 @@ namespace larcv {
     _out_tree->Branch("subrun",&_subrun,"subrun/i");
     _out_tree->Branch("event" ,&_event ,"event/i");
     _out_tree->Branch("entry" ,&_entry ,"entry/i");
-    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v,5*28000);
-    //_out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv);
-    //_out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv,128000);
+    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v,5*128000);
+    _out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv,10*128000);
+    _out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv,10*128000);
     _out_tree->Branch("Match_pvvv"              ,&_match_pvvv);
     return;
   }

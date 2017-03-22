@@ -72,20 +72,20 @@ namespace larcv {
     { return _input_larbys_reco_root_file; }
     
     const uint GetEvent()  {
-      if (_mc_event!=_reco_event) throw larbys("Invalid mc-reco alignment");
-      return _mc_event;
+      if (_mc_event!=_reco_event && _mc_exists) throw larbys("Invalid mc-reco alignment");
+      return _mc_exists ? _mc_event : _reco_event;
     }
     const uint GetSubrun()  {
-      if (_mc_subrun!=_reco_subrun) throw larbys("Invalid mc-reco alignment");
-      return _mc_subrun;
+      if (_mc_subrun!=_reco_subrun && _mc_exists) throw larbys("Invalid mc-reco alignment");
+      return _mc_exists ? _mc_subrun : _reco_subrun;
     }
     const uint GetRun()  {
-      if (_mc_run!=_reco_run) throw larbys("Invalid mc-reco alignment");
-      return _mc_run;
+      if (_mc_run!=_reco_run && _mc_exists) throw larbys("Invalid mc-reco alignment");
+      return _mc_exists ? _mc_run : _reco_run;
     }
     const uint GetEntry()  {
-      if (_mc_entry!=_reco_entry) throw larbys("Invalid mc-reco alignment");
-      return _mc_entry;
+      if (_mc_entry!=_reco_entry && _mc_exists) throw larbys("Invalid mc-reco alignment");
+      return _mc_exists ? _mc_entry : _reco_entry;
     }
     
   private:
