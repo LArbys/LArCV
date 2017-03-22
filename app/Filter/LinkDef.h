@@ -16,8 +16,10 @@
 #pragma link C++ class larcv::QSumFilter+;
 #pragma link C++ class larcv::MCSingleParticleFilter+;
 #pragma link C++ class larcv::VtxInRegion+;
+#pragma link C++ class larcv::EmptyImageFilter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
