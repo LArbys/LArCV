@@ -332,12 +332,8 @@ namespace larcv {
   { return std::move(_img); }
 
   void Image2D::move(std::vector<float>&& data)
-  {
-    if(_meta.cols() * _meta.rows() != data.size())
-      throw larbys("Data size mismatch between meta and move-in data");
-    _img = std::move(data);
-  }
-  
+  { _img = std::move(data); }
+
   Image2D& Image2D::operator+=(const std::vector<float>& rhs)
   {
     if(rhs.size()!=_img.size()) throw larbys("Cannot call += uniry operator w/ incompatible size!");
