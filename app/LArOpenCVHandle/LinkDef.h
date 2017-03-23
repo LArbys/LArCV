@@ -24,7 +24,8 @@
 #pragma link C++ class larcv::LArbysImageExtract+;
 #pragma link C++ class larcv::LArbysImageResult+;
 #pragma link C++ class larcv::LArbysRecoHolder+;
-#pragma link C++ class larcv::LArbusImagePID+;
+#pragma link C++ class larcv::LArbysImagePID+;
+#pragma link C++ class larcv::LArbysImageMaker+;
 
 #pragma link C++ namespace handshake+;
 #pragma link C++ class handshake::HandShaker+;
