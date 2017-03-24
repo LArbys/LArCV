@@ -45,6 +45,7 @@ namespace larcv {
     
     
   private:
+
     float _charge_max;
     float _charge_min;
     float _charge_to_gray_scale;

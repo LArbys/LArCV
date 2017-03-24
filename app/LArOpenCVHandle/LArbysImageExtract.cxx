@@ -43,8 +43,6 @@ namespace larcv {
     _ev_adc = *ev_adc;
     _ev_trk = *ev_trk;
     _ev_shr = *ev_shr;
-    std::cout << "Got... " << ev_thrumu_pix->Pixel2DArray().size() << " planes" << std::endl;
-    std::cout << "Got... " << ev_stopmu_pix->Pixel2DArray().size() << " planes" << std::endl;
     
     _ev_thrumu_pix = *ev_thrumu_pix;
     _ev_stopmu_pix = *ev_stopmu_pix;
