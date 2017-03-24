@@ -52,13 +52,13 @@ namespace larcv {
     ShowerImage(size_t planeid)
     { return _shower_mat_v[planeid]; }
 
-    LArbysImageMaker*
+    const LArbysImageMaker&
     maker()
-    { return &_LArbysImageMaker; }
+    { return _LArbysImageMaker; }
 
-    PreProcessor*
+    const PreProcessor&
     pproc()
-    { return &_PreProcessor; }
+    { return _PreProcessor; }
     
   private:
     std::string _adc_producer;
@@ -77,13 +77,38 @@ namespace larcv {
     std::vector<cv::Mat> _track_mat_v;
     std::vector<cv::Mat> _shower_mat_v;
 
-  public:
+
     EventImage2D _ev_adc;
     EventImage2D _ev_trk;
     EventImage2D _ev_shr;    
 
     EventPixel2D _ev_thrumu_pix;
     EventPixel2D _ev_stopmu_pix;
+
+  public:
+
+    const EventImage2D& ev_adc() const { return _ev_adc; }
+    const EventImage2D& ev_trk() const { return _ev_trk; }
+    const EventImage2D& ev_shr() const { return _ev_shr; }
+    const std::vector<Image2D>& adc_img_v() const { return _ev_adc.Image2DArray(); }
+    const std::vector<Image2D>& trk_img_v() const { return _ev_trk.Image2DArray(); }
+    const std::vector<Image2D>& shr_img_v() const { return _ev_shr.Image2DArray(); }
+    const Image2D& adc_img(size_t plane) const { return _ev_adc.Image2DArray().at(plane); }
+    const Image2D& trk_img(size_t plane) const { return _ev_trk.Image2DArray().at(plane); }
+    const Image2D& shr_img(size_t plane) const { return _ev_shr.Image2DArray().at(plane); }
+    
+    
+    const EventPixel2D& ev_thrumu_pix() const { return _ev_thrumu_pix; }
+    const EventPixel2D& ev_stopmu_pix() const { return _ev_stopmu_pix; }
+    const std::map<PlaneID_t,std::vector<Pixel2DCluster> >& thrumu_pix_m() const
+    { return _ev_thrumu_pix.Pixel2DClusterArray(); }
+    const std::map<PlaneID_t,std::vector<Pixel2DCluster> >& stopmu_pix_m() const
+    { return _ev_stopmu_pix.Pixel2DClusterArray(); }
+    const std::vector<Pixel2DCluster>& thrumu_pix_v(size_t plane) const
+    { return _ev_thrumu_pix.Pixel2DClusterArray().at(plane); }
+    const std::vector<Pixel2DCluster>& stopmu_pix_v(size_t plane) const
+    { return _ev_stopmu_pix.Pixel2DClusterArray().at(plane); }
+    
   };
 
   class LArbysImageExtractProcessFactory : public ProcessFactoryBase {
