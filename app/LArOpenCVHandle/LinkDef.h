@@ -26,6 +26,8 @@
 #pragma link C++ class larcv::LArbysRecoHolder+;
 #pragma link C++ class larcv::LArbusImagePID+;
 
+#pragma link C++ class larcv::LEE1e1p+;
+
 #pragma link C++ namespace handshake+;
 #pragma link C++ class handshake::HandShaker+;
 //ADD_NEW_CLASS ... do not change this line
