@@ -61,9 +61,14 @@ namespace handshake {
 
     void reset();
 
+    void pixel_distance_threshold(double dist)
+    { _dist_thresh = -1. * dist; }
+
     bool ready() const;
 
   protected:
+
+    double _dist_thresh;
 
     larocv::GEO2D_Contour_t as_contour(const larcv::Pixel2DCluster& ctor);
 

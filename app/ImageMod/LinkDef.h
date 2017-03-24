@@ -37,8 +37,10 @@
 #pragma link C++ function larcv::cluster_to_image2d(const larcv::Pixel2DCluster&, size_t, size_t)+;
 #pragma link C++ class larcv::LoadImageMod+;
 #pragma link C++ class larcv::ROIMerger+;
+#pragma link C++ class larcv::ImageFromPixel2D+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

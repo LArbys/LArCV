@@ -33,6 +33,7 @@ namespace handshake {
 
   void HandShaker::reset() 
   {
+    _dist_thresh = 1.;
     _ass_pfpart_to_vertex.clear();
     _ass_pfpart_to_track.clear();
     _ass_pfpart_to_shower.clear();
@@ -194,7 +195,7 @@ namespace handshake {
 	pt.x = (wire - meta.min_x()) / meta.pixel_width();
 	pt.y = (meta.max_y() - time) / meta.pixel_height();
 	dist = cv::pointPolygonTest(contour,pt,true);
-	if(dist < -10 || dist < max_dist) continue;
+	if(dist < _dist_thresh || dist < max_dist) continue;
 	//std::cout <<"wire " << wire << " time " << time << " px " << pt.x << " py " << pt.y <<  std::endl;
 	if(dist >= 0 && parent_ctor_size > contour.size()) continue;
 	//std::cout <<"good!"<<std::endl;

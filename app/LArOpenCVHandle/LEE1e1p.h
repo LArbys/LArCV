@@ -17,7 +17,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include <TTree.h>
-#include "SCE/SpaceChargeMicroBooNE.h"
+#include "LArUtil/SpaceChargeMicroBooNE.h"
 namespace larcv {
 
   /**
@@ -98,7 +98,7 @@ namespace larcv {
     int _good_croi2;
     int _num_croi;
     double _min_vtx_dist;
-    ::larlite::SpaceChargeMicroBooNE _sce;
+    ::larutil::SpaceChargeMicroBooNE _sce;
   };
 
   /**
