@@ -121,8 +121,6 @@ namespace larcv {
 	}
       }
     }
-    
-    
   }
 
   void LArbysImage::mask_image(Image2D& target, const Image2D& ref)
@@ -329,226 +327,104 @@ namespace larcv {
       const auto& tcluster_vv = _reco_holder.PlaneTracks(vtxid);
       
       auto match_vv = _reco_holder.Match(vtxid,adc_cvimg_v_);
-	
+      
       if (match_vv.empty()) {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
 	continue;
       }
-
-      //sort the match so that the tracks come first
-      std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
-
-      //put the tracks first
-      for( auto match_v : match_vv ) {
-	auto& plane0     = match_v[0].first;
-	auto& id0        = match_v[0].second;
-	const auto& par0 = *(pcluster_vv[plane0][id0]);
-	auto partype=par0.type;
-	if (partype==larocv::data::ParticleType_t::kTrack) {
-	  match_temp_vv.push_back(match_v);
-	}
-      }
-      
-      //put the showers second
-      for( auto match_v : match_vv ) {
-	auto& plane0     = match_v[0].first;
-	auto& id0        = match_v[0].second;
-	const auto& par0 = *(pcluster_vv[plane0][id0]);
-	auto partype=par0.type;
-	if (partype==larocv::data::ParticleType_t::kShower) {
-	  match_temp_vv.push_back(match_v);
-	}
-      }
-
-      if(match_vv.size() != match_temp_vv.size()) 
-	throw larbys("Invalid match_vv ordering");
-
-      std::swap(match_vv,match_temp_vv);
       
       PGraph pgraph;
       for( auto match_v : match_vv ) {
-	if (match_v.size()==2) {
-	  LARCV_DEBUG() << "2 plane match found" << std::endl;
-	  auto& plane0 = match_v[0].first;
-	  auto& id0    = match_v[0].second;
-	  auto& plane1 = match_v[1].first;
-	  auto& id1    = match_v[1].second;
+	std::array<size_t,3> plane_arr{{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
+	std::array<size_t,3> id_arr{{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
+	std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
+	std::array<const larocv::data::TrackClusterCompound*,3> tcluster_arr{{nullptr,nullptr,nullptr}};
 
-	  const auto& par0 = *(pcluster_vv[plane0][id0]);
-	  const auto& par1 = *(pcluster_vv[plane1][id1]);
-
-	  auto partype=par0.type;
-	  bool endok=false;
-
-	  larocv::data::Vertex3D endpt3d;
-	  if (partype==larocv::data::ParticleType_t::kTrack) {
-	    const auto& track0 = *(tcluster_vv[plane0][id0]);
-	    const auto& track1 = *(tcluster_vv[plane1][id1]);
-	    endok = vtx_ana.MatchEdge(track0,plane0,track1,plane1,endpt3d);
-	  }	    
-
-	  LARCV_DEBUG() << "Storing particle of type " << (uint)partype << std::endl;
+	larocv::data::ParticleType_t partype;
+	LARCV_DEBUG() << "Examining " << match_v.size() << " match." << std::endl;
+	for (auto match : match_v) {
 	  
-	  ROI proi;
-
-	  if      (par0.type==larocv::data::ParticleType_t::kTrack) proi.Shape(kShapeTrack);
-	  else if (par0.type==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
-	  else throw larbys("Unknown?");
-
-	  proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
-	  if (endok)
-	    proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
-
-	  LARCV_DEBUG() << " @ pg array index " << pidx << std::endl;
+	  auto plane = match.first;
+	  auto id    = match.second;
+	  plane_arr[plane] = plane;
+	  id_arr[plane]    = id;
 	  
-	  // set particle meta (bbox)
-	  for(size_t plane=0;plane<3;++plane) 
-	    proi.AppendBB(adc_image_v[plane].meta());
+	  pcluster_arr[plane]=pcluster_vv[plane][id];
+	  tcluster_arr[plane]=tcluster_vv[plane][id];
 	  
-	  pgraph.Emplace(std::move(proi),pidx);
-	  pidx++;
-	  
-	  std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
-	  pcluster_arr[plane0] = &par0;
-	  pcluster_arr[plane1] = &par1;
-	    
-	  for(size_t plane=0;plane<3;++plane) {
-	    const auto& pmeta = adc_image_v[plane].meta();
-	    
-	    std::vector<Pixel2D> pixel_v;
-	    
-	    const auto& par = pcluster_arr[plane];
-	    const auto& img2d = adc_image_v[plane];
-	    auto& cvimg = adc_cvimg_v[plane];
+	  partype=pcluster_arr[plane]->type;
+	}
+	
+	bool endok=false;
 
-	    larocv::GEO2D_Contour_t par_pixel_v;
-	    if(par) {
-	      auto masked = larocv::MaskImage(cvimg,(*par)._ctor,0,false);
-	      par_pixel_v = larocv::FindNonZero(masked);
-	      pixel_v.reserve(par_pixel_v.size());
-	      cvimg = larocv::MaskImage(cvimg,(*par)._ctor,0,true);
-	    }
+	larocv::data::Vertex3D endpt3d;
+	if (partype==larocv::data::ParticleType_t::kTrack) 
+	  endok = vtx_ana.MatchEdge(tcluster_arr,endpt3d);
+	
+	LARCV_DEBUG() << "Storing particle of type " << (uint)partype << std::endl;
+	  
+	ROI proi;
+
+	if      (partype==larocv::data::ParticleType_t::kTrack)  proi.Shape(kShapeTrack);
+	else if (partype==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
+	else throw larbys("Unknown particle type matched");
+
+	proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
+	if (endok)
+	  proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
+	
+	LARCV_DEBUG() << " @ pg array index " << pidx << std::endl;
+	  
+	for(size_t plane=0;plane<3;++plane) 
+	  proi.AppendBB(adc_image_v[plane].meta());
+	  
+	pgraph.Emplace(std::move(proi),pidx);
+	pidx++;
+	  
+	for(size_t plane=0;plane<3;++plane) {
+	  const auto& pmeta = adc_image_v[plane].meta();
 	    
-	    float isum=0;
-	    for (const auto& px : par_pixel_v) {
-	      auto col = cvimg.cols-px.x;
-	      auto row = px.y;
-	      auto iii = img2d.pixel(col,row);
-	      pixel_v.emplace_back(col,row);
-	      pixel_v.back().Intensity(iii);
-	      isum+=iii;
-	    }
+	  std::vector<Pixel2D> pixel_v;
 	    
-	    Pixel2DCluster pixcluster(std::move(pixel_v));
-	    event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
-	    
-	    //store the contour at the same index along size the pixels themselves
-	    std::vector<Pixel2D> ctor_v;
-	    if (par) {
-	      ctor_v.reserve(par->_ctor.size());
-	      for(const auto& pt : (*par)._ctor)  {
-		auto col=cvimg.cols-pt.x;
-		auto row=pt.y;
-		ctor_v.emplace_back(row,col);
-		ctor_v.back().Intensity(1.0);
-	      }
-	    }
-	    Pixel2DCluster pixctor(std::move(ctor_v));
-	    event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
+	  const auto& par = pcluster_arr[plane];
+	  const auto& img2d = adc_image_v[plane];
+	  auto& cvimg = adc_cvimg_v[plane];
+
+	  larocv::GEO2D_Contour_t par_pixel_v;
+	  if(par) {
+	    auto masked = larocv::MaskImage(cvimg,(*par)._ctor,0,false);
+	    par_pixel_v = larocv::FindNonZero(masked);
+	    pixel_v.reserve(par_pixel_v.size());
+	    cvimg = larocv::MaskImage(cvimg,(*par)._ctor,0,true);
 	  }
-	} // end match size 2
-	else if (match_v.size()==3) {
-	  LARCV_DEBUG() << "3 plane match found" << std::endl;
-
-	  auto& plane0 = match_v[0].first;
-	  auto& id0    = match_v[0].second;
-	  auto& plane1 = match_v[1].first;
-	  auto& id1    = match_v[1].second;
-	  auto& plane2 = match_v[2].first;
-	  auto& id2    = match_v[2].second;
-
-	  const auto& par0 = *(pcluster_vv[plane0][id0]);
-	  const auto& par1 = *(pcluster_vv[plane1][id1]);
-	  const auto& par2 = *(pcluster_vv[plane2][id2]);
-
-	  auto partype=par0.type;
-	  bool endok=false;
-	  larocv::data::Vertex3D endpt3d;
-	  
-	  if (partype==larocv::data::ParticleType_t::kTrack) {
-	    const auto& track0 = *(tcluster_vv[plane0][id0]);
-	    const auto& track1 = *(tcluster_vv[plane1][id1]);
-	    const auto& track2 = *(tcluster_vv[plane2][id2]);
-	    endok = vtx_ana.MatchEdge(track0,plane0,track1,plane1,track2,plane2,endpt3d);
-	  }	    
-
-
-	  LARCV_DEBUG() << "Storing particle of type " << (uint) partype << std::endl;
-	  ROI proi;
-
-	  if      (partype==larocv::data::ParticleType_t::kTrack)  proi.Shape(kShapeTrack);
-	  else if (partype==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
-	  else throw larbys("Unknown?");
-
-	  proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
-
-	  if (endok)
-	    proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
-	  
-	  for(size_t plane=0;plane<3;++plane)
-	    proi.AppendBB(adc_image_v[plane].meta());
-
-	  pgraph.Emplace(std::move(proi),pidx);
-	  pidx++;
-
-	  std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
-	  pcluster_arr[plane0] = &par0;
-	  pcluster_arr[plane1] = &par1;
-	  pcluster_arr[plane2] = &par2;
 	    
-	  for(size_t plane=0;plane<3;++plane) {
-	    const auto& pmeta = adc_image_v[plane].meta();
-	    std::vector<Pixel2D> pixel_v;
-	    
-	    const auto& par = pcluster_arr[plane];
-	    const auto& img2d = adc_image_v[plane];
-	    auto& cvimg = adc_cvimg_v[plane];
-
-	    larocv::GEO2D_Contour_t par_pixel_v;
-	    if(par) {
-	      auto masked = larocv::MaskImage(cvimg,(*par)._ctor,0,false);
-	      par_pixel_v = larocv::FindNonZero(masked);
-	      pixel_v.reserve(par_pixel_v.size());
-	      cvimg = larocv::MaskImage(cvimg,(*par)._ctor,0,true);
-	    }
-	    float isum=0;
-	    for (const auto& px : par_pixel_v) {
-	      auto col=cvimg.cols-px.x;
-	      auto row=px.y;
-	      auto iii=img2d.pixel(col,row);
-	      pixel_v.emplace_back(row,col);
-	      pixel_v.back().Intensity(iii);
-	      isum+=iii;
-	    }
-	    
-	    Pixel2DCluster pixcluster(std::move(pixel_v));
-	    event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
-
-	    //store the contour at the same index along size the pixels themselves
-	    std::vector<Pixel2D> ctor_v;
-	    if (par) {
-	      ctor_v.reserve(par->_ctor.size());
-	      for(const auto& pt : (*par)._ctor)  {
-		auto col=cvimg.cols-pt.x;
-		auto row=pt.y;
-		ctor_v.emplace_back(row,col);
-		ctor_v.back().Intensity(1.0);
-	      }
-	    }
-	    Pixel2DCluster pixctor(std::move(ctor_v));
-	    event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
+	  float isum=0;
+	  for (const auto& px : par_pixel_v) {
+	    auto col = cvimg.cols-px.x;
+	    auto row = px.y;
+	    auto iii = img2d.pixel(col,row);
+	    pixel_v.emplace_back(col,row);
+	    pixel_v.back().Intensity(iii);
+	    isum+=iii;
 	  }
-	} // end match 3
+	    
+	  Pixel2DCluster pixcluster(std::move(pixel_v));
+	  event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
+	    
+	  //store the contour at the same index along size the pixels themselves
+	  std::vector<Pixel2D> ctor_v;
+	  if (par) {
+	    ctor_v.reserve(par->_ctor.size());
+	    for(const auto& pt : (*par)._ctor)  {
+	      auto col=cvimg.cols-pt.x;
+	      auto row=pt.y;
+	      ctor_v.emplace_back(row,col);
+	      ctor_v.back().Intensity(1.0);
+	    }
+	  }
+	  Pixel2DCluster pixctor(std::move(ctor_v));
+	  event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
+	}
       }//end this match
       event_pgraph->Emplace(std::move(pgraph));
     }//end vertex
@@ -583,35 +459,41 @@ namespace larcv {
 
     static int adcctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(adc_image_v)) {
-      // cv::Mat thresholded;
-      // cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
-      // std::stringstream ss;
-      // ss << "adc_plane_" << std::get<1>(img_data).plane() << "_" << adcctr << ".png";
-      // cv::imwrite(std::string(ss.str()),thresholded);
+      /*
+	cv::Mat thresholded;
+	cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+	std::stringstream ss;
+	ss << "adc_plane_" << std::get<1>(img_data).plane() << "_" << adcctr << ".png";
+	cv::imwrite(std::string(ss.str()),thresholded);
+	adcctr++;
+      */
       _adc_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
-      //adcctr++;
     }
 
     static int trkctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v))  {
-      // cv::Mat thresholded;
-      // cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
-      // std::stringstream ss;
-      // ss << "track_plane_" << std::get<1>(img_data).plane() << "_" << trkctr << ".png";
-      // cv::imwrite(std::string(ss.str()),thresholded);
+      /*
+	cv::Mat thresholded;
+	cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+	std::stringstream ss;
+	ss << "track_plane_" << std::get<1>(img_data).plane() << "_" << trkctr << ".png";
+	cv::imwrite(std::string(ss.str()),thresholded);
+	trkctr++;
+      */
       _track_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
-      // trkctr++;
     }
 
     static int shrctr=0;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v)) {
-      // cv::Mat thresholded;
-      // cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
-      // std::stringstream ss;
-      // ss << "shower_plane_" << std::get<1>(img_data).plane() << "_" << shrctr << ".png";
-      // cv::imwrite(std::string(ss.str()),thresholded);
+      /*
+	cv::Mat thresholded;
+	cv::threshold( std::get<0>(img_data), thresholded, 1, 255, 0);
+	std::stringstream ss;
+	ss << "shower_plane_" << std::get<1>(img_data).plane() << "_" << shrctr << ".png";
+	cv::imwrite(std::string(ss.str()),thresholded);
+	shrctr++;
+      */
       _shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
-      // shrctr++;
     }
 
     for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
@@ -643,7 +525,7 @@ namespace larcv {
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, roi, 1);
     }
-
+    
     for (size_t plane = 0; plane < _shower_img_mgr.size(); ++plane) {
 
       auto       & img  = _shower_img_mgr.img_at(plane);

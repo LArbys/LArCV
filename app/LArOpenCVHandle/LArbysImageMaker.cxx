@@ -2,6 +2,7 @@
 #define LARBYSIMAGEMAKER_CXX
 
 #include "LArbysImageMaker.h"
+#include "DataFormat/EventPixel2D.h"
 
 namespace larcv {
 
@@ -19,7 +20,7 @@ namespace larcv {
   }
 
   std::vector<cv::Mat>
-  LArbysImageMaker::ExtractMat(const std::vector<larcv::Image2D>& image_v) {
+  LArbysImageMaker::ExtractMat(const std::vector<Image2D>& image_v) {
     std::vector<cv::Mat> mat_v;
     auto img_data_v = ExtractImage(image_v);
     mat_v.reserve(img_data_v.size());
@@ -29,15 +30,15 @@ namespace larcv {
   }
   
   cv::Mat
-  LArbysImageMaker::ExtractMat(const larcv::Image2D& image) {
+  LArbysImageMaker::ExtractMat(const Image2D& image) {
     std::vector<cv::Mat> mat_v;
-    std::vector<larcv::Image2D> image_v(1,image);
+    std::vector<Image2D> image_v(1,image);
     auto img_data_v = ExtractImage(image_v);
     return std::get<0>(img_data_v.front());
   }
   
   std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
-  LArbysImageMaker::ExtractImage(const std::vector<larcv::Image2D>& image_v) {
+  LArbysImageMaker::ExtractImage(const std::vector<Image2D>& image_v) {
 
     std::vector<std::tuple<cv::Mat,larocv::ImageMeta> > ret_v;
     ret_v.resize(image_v.size(),std::make_tuple(cv::Mat(),larocv::ImageMeta()));
@@ -69,12 +70,48 @@ namespace larcv {
 	  if(charge < 0) charge = 0;
 	  if(charge > _charge_max) charge = _charge_max;
 	  charge /= _charge_to_gray_scale;
-	  mat.at<unsigned char>(col,cvmeta.rows()-1-row) = (unsigned char)((int)charge);
+	  mat.at<uchar>(col,cvmeta.rows()-1-row) = (uchar)((int)charge);
 	}
       }
     } // end collection of images
 
     return ret_v;
   } // end extract image
+  
+  
+  Image2D
+  LArbysImageMaker::ConstructCosmicImage(const EventPixel2D* ev_pixel2d,
+					 const Image2D& adc_image,
+					 const size_t plane,
+					 float value) {
+    
+    
+    auto const& pixel2d_m = ev_pixel2d->Pixel2DClusterArray();
+    auto img_idx=plane;
+    auto const& meta = adc_image.meta();
+    Image2D mu_image(meta);
+    mu_image.paint(0);
+    auto itr = pixel2d_m.find(img_idx);
+    if(itr == pixel2d_m.end()) {
+      LARCV_DEBUG() << "No Pixel2D found for plane " << img_idx << std::endl;
+      return mu_image;
+    }
+    size_t npx_x = meta.cols();
+    size_t npx_y = meta.rows();
+    for(auto const& pixel_cluster : (*itr).second) {
+      for(auto const& pixel : pixel_cluster) {
+	if(pixel.X() >= npx_x || pixel.Y() >= npx_y) {
+	  LARCV_WARNING() << "Ignoring cosmic pixel (row,col) = ("
+			  << pixel.Y() << "," << pixel.X() << ")"
+			  << " as it is out of bounds (ncol=" << npx_x << ", nrow=" << npx_y << ")" << std::endl;
+	  continue;
+	}
+	mu_image.set_pixel( (pixel.X() * meta.rows() + pixel.Y()), value );
+      }
+    }
+
+    return mu_image;
+  }
+  
 }
 #endif

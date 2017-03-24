@@ -4,6 +4,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "LArbysImageMaker.h"
+#include "PreProcessor.h"
 
 namespace larcv {
 
@@ -54,13 +55,21 @@ namespace larcv {
     LArbysImageMaker*
     maker()
     { return &_LArbysImageMaker; }
+
+    PreProcessor*
+    pproc()
+    { return &_PreProcessor; }
     
   private:
     std::string _adc_producer;
     std::string _track_producer;
     std::string _shower_producer;
+    std::string _thrumu_producer;
+    std::string _stopmu_producer;
     
     LArbysImageMaker _LArbysImageMaker;
+    PreProcessor _PreProcessor;
+    
 
     // The images
     std::vector<cv::Mat> _adc_mat_v;
@@ -72,7 +81,9 @@ namespace larcv {
     EventImage2D _ev_adc;
     EventImage2D _ev_trk;
     EventImage2D _ev_shr;    
-    
+
+    EventPixel2D _ev_thrumu_pix;
+    EventPixel2D _ev_stopmu_pix;
   };
 
   class LArbysImageExtractProcessFactory : public ProcessFactoryBase {

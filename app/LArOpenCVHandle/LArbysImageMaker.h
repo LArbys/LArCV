@@ -6,6 +6,8 @@
 #include "LArOpenCV/Core/ImageManager.h"
 #include "DataFormat/IOManager.h"
 #include "DataFormat/EventImage2D.h"
+#include "DataFormat/EventPixel2D.h"
+
 #include <opencv2/opencv.hpp>
 #include <tuple>
 
@@ -26,14 +28,22 @@ namespace larcv {
     Configure(const PSet& pset);
 
     std::vector<cv::Mat>
-    ExtractMat(const std::vector<larcv::Image2D>& image_v);
+    ExtractMat(const std::vector<Image2D>& image_v);
 
     cv::Mat
-    ExtractMat(const larcv::Image2D& image);
+    ExtractMat(const Image2D& image);
     
     std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
-    ExtractImage(const std::vector<larcv::Image2D>& image_v);
+    ExtractImage(const std::vector<Image2D>& image_v);
 
+
+    Image2D
+    ConstructCosmicImage(const EventPixel2D* ev_pixel2d,
+			 const Image2D& adc_image,
+			 const size_t plane,
+			 float value=100);
+    
+    
   private:
     float _charge_max;
     float _charge_min;

@@ -17,7 +17,10 @@ namespace larcv {
     _adc_producer = cfg.get<std::string>("ADCImageProducer");
     _track_producer = cfg.get<std::string>("TrackImageProducer");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer");
+    _thrumu_producer = cfg.get<std::string>("ThruMuProducer","");
+    _stopmu_producer = cfg.get<std::string>("StopMuProducer","");
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
+    _PreProcessor.Configure(cfg.get<larcv::PSet>("PreProcessor"));
   }
 
   void LArbysImageExtract::initialize()
@@ -29,10 +32,22 @@ namespace larcv {
     const auto ev_adc = (EventImage2D*)mgr.get_data(kProductImage2D,_adc_producer);
     const auto ev_trk = (EventImage2D*)mgr.get_data(kProductImage2D,_track_producer);
     const auto ev_shr = (EventImage2D*)mgr.get_data(kProductImage2D,_shower_producer);
+    EventPixel2D* ev_thrumu_pix = nullptr;
+    EventPixel2D* ev_stopmu_pix = nullptr;
+
+    if (!_thrumu_producer.empty())
+      ev_thrumu_pix = (EventPixel2D*)mgr.get_data(kProductPixel2D,_thrumu_producer);
+    if (!_stopmu_producer.empty())
+      ev_stopmu_pix = (EventPixel2D*)mgr.get_data(kProductPixel2D,_stopmu_producer);
 
     _ev_adc = *ev_adc;
     _ev_trk = *ev_trk;
     _ev_shr = *ev_shr;
+    std::cout << "Got... " << ev_thrumu_pix->Pixel2DArray().size() << " planes" << std::endl;
+    std::cout << "Got... " << ev_stopmu_pix->Pixel2DArray().size() << " planes" << std::endl;
+    
+    _ev_thrumu_pix = *ev_thrumu_pix;
+    _ev_stopmu_pix = *ev_stopmu_pix;
     
     auto adc_img_data_v = _LArbysImageMaker.ExtractImage(ev_adc->Image2DArray());
     _adc_mat_v.clear();

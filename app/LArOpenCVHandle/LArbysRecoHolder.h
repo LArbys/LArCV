@@ -35,7 +35,8 @@ namespace larcv {
 
     std::vector<std::vector<std::pair<size_t,size_t> > >
     Match(size_t vtx_id,
-	  const std::vector<cv::Mat>& adc_cvimg_v);
+	  const std::vector<cv::Mat>& adc_cvimg_v,
+	  bool stort=true);
 
     void
     Reset();
