@@ -28,19 +28,53 @@ namespace larcv {
   
   std::vector<std::vector<std::pair<size_t,size_t> > >
   LArbysRecoHolder::Match(size_t vtx_id,
-			  const std::vector<cv::Mat>& adc_cvimg_v) {
+			  const std::vector<cv::Mat>& adc_cvimg_v,
+			  bool sort) {
     
-    auto match = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id),
+    auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id),
 					adc_cvimg_v,
 					_match_coverage,
 					_match_particles_per_plane,
 					_match_min_number);
 
+
+    if (sort) {
+      //sort the match so that the tracks come first
+      std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
+
+      //put the tracks first
+      for( auto match_v : match_vv ) {
+	auto& plane0     = match_v.front().first;
+	auto& id0        = match_v.front().second;
+	const auto& par0 = *(this->Particle(vtx_id,plane0,id0));
+	auto partype=par0.type;
+	if (partype==larocv::data::ParticleType_t::kTrack) {
+	  match_temp_vv.push_back(match_v);
+	}
+      }
+      
+      //put the showers second
+      for( auto match_v : match_vv ) {
+	auto& plane0     = match_v.front().first;
+	auto& id0        = match_v.front().second;
+	const auto& par0 = *(this->Particle(vtx_id,plane0,id0));
+	auto partype=par0.type;
+	if (partype==larocv::data::ParticleType_t::kShower) {
+	  match_temp_vv.push_back(match_v);
+	}
+      }
+
+      if(match_vv.size() != match_temp_vv.size()) 
+	throw larbys("Invalid match_vv ordering");
+      
+      std::swap(match_vv,match_temp_vv);
+    }
+    
     if (vtx_id >= _match_pvvv.size())
       _match_pvvv.resize(vtx_id+1);
 
-    _match_pvvv[vtx_id] = match;
-    return match;
+    _match_pvvv[vtx_id] = match_vv;
+    return match_vv;
   }
 
   void
