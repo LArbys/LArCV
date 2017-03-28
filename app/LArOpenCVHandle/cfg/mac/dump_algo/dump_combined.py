@@ -19,7 +19,7 @@ proc = larcv.ProcessDriver('ProcessDriver')
 #CFG="../reco_combined_ssnet_fullchain.cfg"
 #CFG="../reco_combined_ssnet_nue.cfg"
 #CFG="../../reco_combined_ssnet_nue_nopp_notunique.cfg"
-CFG="../../fullchain_ssnet_nue.cfg"
+CFG="../../fullchain_ssnet_combined_fcn.cfg"
 ISMC=True
 if ISMC:
     print "This is MC"
@@ -31,21 +31,23 @@ truth=cfg_.split(".")[0].split("_")[-2]
 processed=True
 if truth=="true":
     processed=False
-processed=False
+processed=True
 
 print "Loading config... ",CFG
 proc.configure(CFG)
 flist=ROOT.std.vector('std::string')()
 #flist.push_back("/Users/vgenty/Desktop/nue_8000.root")
+#flist.push_back("/Users/vgenty/Desktop/ssnet_output.root")
 flist.push_back("/Users/vgenty/Desktop/Cincinnati/fcn_out.root")
 #flist.push_back("/Users/vgenty/Desktop/numu_8000.root")
 proc.override_input_file(flist)
+proc.override_output_file("/tmp/cacca")
 
 if ISMC:
     filter_id = proc.process_id("NuFilter")
     mcinfo_id = proc.process_id("LArbysImageMC")
 reco_id   = proc.process_id("LArbysImage")
-ana_id    = proc.process_id("LArbysImageOut")
+#ana_id    = proc.process_id("LArbysImageOut")
 
 if ISMC:
     filter_proc   = proc.process_ptr(filter_id)
@@ -53,17 +55,14 @@ if ISMC:
     mcinfo_proc.SetFilter(filter_proc)
 
 larbysimg     = proc.process_ptr(reco_id)
-larbysimg_ana = proc.process_ptr(ana_id)
-larbysimg_ana.SetManager(larbysimg.Manager())
 
 proc.override_ana_file("/tmp/test.root")
 proc.initialize()
 from numpy import array
 
-# ignore_list_v=np.array([54,208,405,608,699,748,772,773,798,865,873,
-#                         918,1085,1450,1547,1702,1844,1970,2368,2470])
 ignore_list_v=np.array([])
-event_v=range(90)
+#event_v=[3, 12, 13, 14, 17, 20, 22, 24, 28, 29, 30, 32, 36, 37, 40, 41, 43, 45, 46, 49, 52, 54, 56, 58, 61, 62, 65, 67, 69, 70, 71, 72, 77, 79, 80, 82, 83, 87, 89]
+event_v=[0,1,2,4]
 
 for event in event_v:#event_v:
     if event in ignore_list_v: continue
@@ -102,7 +101,7 @@ for event in event_v:#event_v:
         otrack_img = np.where(otrack_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
         shower_img = np.where(shower_img_v[plane]>10.0,85.0,0.0).astype(np.uint8)
         track_img = np.where(track_img_v[plane]>10.0,160.0,0.0).astype(np.uint8)
-        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True,figsize=(15,10))
+        f, (ax1, ax2) = plt.subplots(1, 2, sharey=True,figsize=(30,15))
         oimg = oshower_img + otrack_img
         img  = shower_img  + track_img
         if processed==True:
@@ -110,14 +109,14 @@ for event in event_v:#event_v:
             ax1.set_xlabel('Time [6 ticks]',fontsize=20)
             ax1.set_ylabel('Wire',fontsize=20)
             ax1.tick_params(labelsize=20)
-            ax1.set_xbound(lower=0,upper=640)
+            ax1.set_xbound(lower=0,upper=512)
             ax1.set_ybound(lower=512,upper=0)
             ax1.set_ylim(512,0)
         else:
             ax2.set_xlabel('Time [6 ticks]',fontsize=20)
             
         ax2.imshow(img,cmap='jet',interpolation='none',vmin=0.,vmax=255.)
-        ax2.set_xbound(lower=0,upper=640)
+        ax2.set_xbound(lower=0,upper=512)
         ax2.set_ybound(lower=512,upper=0)
         ax2.set_ylim(512,0)
         ax2.set_xlabel('Time [6 ticks]',fontsize=20)
@@ -609,7 +608,8 @@ for event in event_v:#event_v:
             ax.set_ylim(np.min(nz_pixels[0])-10,np.max(nz_pixels[0])+10)
             ax.set_xlim(np.min(nz_pixels[1])-10,np.max(nz_pixels[1])+10)
             SS="out3/%04d_10_par_%02d_%02d_.png"%(event,vtxid,plane)
-            ax.set_title("Vertex Type: %d\ndist=%f"%(vtx.type,np.sqrt(np.power(tru_vtx_t-vtx2d.x,2)+np.power(tru_vtx_w-vtx2d.y,2))),fontsize=30)
+            if ISMC:
+                ax.set_title("Vertex Type: %d\ndist=%f"%(vtx.type,np.sqrt(np.power(tru_vtx_t-vtx2d.x,2)+np.power(tru_vtx_w-vtx2d.y,2))),fontsize=30)
             plt.savefig(SS)
             plt.cla()
             plt.clf()

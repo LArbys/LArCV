@@ -433,6 +433,7 @@ namespace larcv {
     _reco_holder.FilterMatches();
     if (_write_reco) {
       const auto& eid = iom.event_id();
+      _reco_holder.SetMeta(adc_image_v);
       _reco_holder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
     }
     

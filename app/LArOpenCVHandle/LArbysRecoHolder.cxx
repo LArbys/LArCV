@@ -5,6 +5,16 @@
 
 namespace larcv {
 
+
+  void
+  LArbysRecoHolder::SetMeta(const std::vector<Image2D>& adc_img_v) {
+    std::vector<ImageMeta> meta_v;
+    meta_v.reserve(3);
+    for(const auto& adc_img : adc_img_v) meta_v.emplace_back(adc_img.meta());
+    for (size_t vtxid=0; vtxid<this->Verticies().size(); ++vtxid) 
+      _meta_vv.emplace_back(meta_v);
+  }
+  
   void
   LArbysRecoHolder::FilterMatches() {
 
@@ -23,6 +33,7 @@ namespace larcv {
     std::swap(vertex_ptr_v,            _vertex_ptr_v);
     std::swap(particle_cluster_ptr_vvv,_particle_cluster_ptr_vvv);
     std::swap(track_comp_ptr_vvv,      _track_comp_ptr_vvv);
+    
   }
   
   
@@ -32,11 +43,11 @@ namespace larcv {
 			  bool sort) {
     
     auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id),
-					adc_cvimg_v,
-					_match_coverage,
-					_match_particles_per_plane,
-					_match_min_number);
-
+					   adc_cvimg_v,
+					   _match_coverage,
+					   _match_particles_per_plane,
+					   _match_min_number);
+    
 
     if (sort) {
       //sort the match so that the tracks come first
@@ -129,7 +140,8 @@ namespace larcv {
     _track_comp_vvv.clear();
 
     _match_pvvv.clear();
-
+    _meta_vv.clear();
+    
     _run   = kINVALID_INT;
     _subrun= kINVALID_INT;
     _event = kINVALID_INT;
@@ -157,7 +169,10 @@ namespace larcv {
     _match_coverage            = pset.get<float>("MatchCoverage",0.5);
     _match_particles_per_plane = pset.get<float>("MatchParticlesPerPlane",2);
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);
-
+    _vtx3d_buffer_size         = pset.get<uint>("Vertex3DBufferSize"   , 5*128000);
+    _parclus_buffer_size       = pset.get<uint>("ParticleClusterBuffSz",10*128000);
+    _trkclus_buffer_size       = pset.get<uint>("TrackClusterBuffSz"   ,10*128000);
+    
     _output_module_name   = pset.get<std::string>("OutputModuleName");
     if (_output_module_name.empty()) {
       LARCV_CRITICAL() << "Must specify output module name" << std::endl;
@@ -170,6 +185,9 @@ namespace larcv {
     LARCV_DEBUG() << "MatchCoverage: " << _match_coverage << std::endl;
     LARCV_DEBUG() << "MatchParticlesPerPlane: " << _match_particles_per_plane << std::endl;
     LARCV_DEBUG() << "MatchMinimumNumber: " << _match_min_number << std::endl;
+    LARCV_DEBUG() << "Vertex3DBufferSize: " << _vtx3d_buffer_size << std::endl;
+    LARCV_DEBUG() << "ParticleClusterBufferSize: " << _parclus_buffer_size << std::endl;
+    LARCV_DEBUG() << "TrackClusterCompoundBufferSize: " << _trkclus_buffer_size << std::endl;
     
     LARCV_DEBUG() << "end" << std::endl;
 
@@ -178,15 +196,17 @@ namespace larcv {
     _out_tree->Branch("subrun",&_subrun,"subrun/i");
     _out_tree->Branch("event" ,&_event ,"event/i");
     _out_tree->Branch("entry" ,&_entry ,"entry/i");
-    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v,5*128000);
-    _out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv,10*128000);
-    _out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv,10*128000);
+    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v            ,_vtx3d_buffer_size);
+    _out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv,_parclus_buffer_size);
+    _out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv      ,_trkclus_buffer_size);
+    _out_tree->Branch("Meta_vv"                 ,&_meta_vv);
     _out_tree->Branch("Match_pvvv"              ,&_match_pvvv);
     return;
   }
 
   void
   LArbysRecoHolder::ShapeData(const larocv::ImageClusterManager& mgr) {
+
     const larocv::data::AlgoDataManager& data_mgr   = mgr.DataManager();
     const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
 
@@ -242,9 +262,8 @@ namespace larcv {
 	  const auto& comp = comp_array->as_vector()[comp_ass_id];
 	  tcluster_v[ass_id] = &comp;
 	} 
-	_vtx_ana.ResetPlaneInfo(mgr.InputImageMetas(0)[plane]);
+	_vtx_ana.ResetPlaneInfo(mgr.InputImageMetas(0).at(plane));
       }
-
       _particle_cluster_ptr_vvv.emplace_back(std::move(pcluster_vv));
       _track_comp_ptr_vvv.emplace_back(std::move(tcluster_vv));
     } //end this vertex

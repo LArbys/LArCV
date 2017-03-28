@@ -38,8 +38,13 @@
 #pragma link C++ class larcv::LoadImageMod+;
 #pragma link C++ class larcv::ROIMerger+;
 #pragma link C++ class larcv::ImageFromPixel2D+;
+#pragma link C++ class larcv::ROIPad+;
+
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
+
 
 
 

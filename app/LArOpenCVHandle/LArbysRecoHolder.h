@@ -7,6 +7,8 @@
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
 #include "TTree.h"
+#include "DataFormat/Image2D.h"
+#include "DataFormat/ImageMeta.h"
 
 namespace larcv {
 
@@ -19,6 +21,9 @@ namespace larcv {
       _out_tree(nullptr)
     {  Reset(); }
     ~LArbysRecoHolder(){}
+
+    void
+    SetMeta(const std::vector<Image2D>& adc_img_v);
     
     void
     FilterMatches();
@@ -102,7 +107,7 @@ namespace larcv {
     { return _track_comp_ptr_vvv[vertexid][planeid][trackid]; }
 
   private:
-
+    
     std::string _output_module_name;
     size_t _output_module_offset;
     bool _require_two_multiplicity;
@@ -110,6 +115,11 @@ namespace larcv {
     float _match_coverage;
     float _match_particles_per_plane;
     float _match_min_number;
+
+    uint _vtx3d_buffer_size;
+    uint _trkclus_buffer_size;
+    uint _parclus_buffer_size;
+
 
     larocv::VertexAnalysis _vtx_ana;
     
@@ -126,6 +136,7 @@ namespace larcv {
     std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > > _particle_cluster_vvv;
     std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > > _track_comp_vvv;
     std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > > _match_pvvv;
+    std::vector<std::vector<ImageMeta> > _meta_vv;
       
   };
 }
