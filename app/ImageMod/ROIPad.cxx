@@ -27,24 +27,35 @@ namespace larcv {
   void ROIPad::initialize()
   {}
 
+  ImageMeta ROIPad::PadMeta(const ImageMeta& bb,float row_pad, float col_pad) {
+
+    float width   = bb.width()  + col_pad*bb.pixel_width();
+    float height  = bb.height() + row_pad*bb.pixel_height();
+    uint  rows    = bb.rows()   + row_pad;
+    uint  cols    = bb.cols()   + col_pad;
+    float originx = bb.tl().x   - col_pad/2.0;
+    float originy = bb.tl().y   - row_pad/2.0;
+    uint  plane   = bb.plane();
+    
+    ImageMeta bb_copy(width, height, rows, cols, originx, originy, plane);
+
+    return bb_copy;
+  }
+  
   bool ROIPad::process(IOManager& mgr)
   {
     const auto evimg2d = (EventImage2D*)mgr.get_data(kProductImage2D,_img_producer);
     const auto inroi = (EventROI*)mgr.get_data(kProductROI,_input_roi_producer);
     auto ouroi = (EventROI*)mgr.get_data(kProductROI,_output_roi_producer);
-    
+
     for (auto roi_pad : inroi->ROIArray()) {
       auto bb_v = roi_pad.BB();
       bb_v.clear();
       bb_v.reserve(roi_pad.BB().size());
       for( auto bb : roi_pad.BB() ) {
-	ImageMeta bb_copy(bb.width()  + _col_pad*bb.pixel_width(),
-			  bb.height() + _row_pad*bb.pixel_height(),
-			  bb.rows()   + _row_pad,
-			  bb.cols()   + _col_pad,
-			  bb.tl().x - _col_pad,
-			  bb.tl().y - _row_pad,
-			  bb.plane());
+
+	auto bb_copy = PadMeta(bb,_row_pad,_col_pad);
+	
 	bool outside=false;
 	const auto& meta = evimg2d->Image2DArray().at(bb.plane()).meta();
 	if (bb_copy.max_x() > meta.max_x()) outside=true;

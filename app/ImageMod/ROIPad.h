@@ -3,6 +3,8 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
+#include "DataFormat/ImageMeta.h"
+
 namespace larcv {
 
   class ROIPad : public ProcessBase {
@@ -16,6 +18,12 @@ namespace larcv {
     bool process(IOManager& mgr);
     void finalize();
 
+    ImageMeta PadMeta(const ImageMeta& bb,
+		      float row_pad,
+		      float col_pad);
+    
+
+    
   private:
     
     std::string _img_producer;
@@ -24,6 +32,7 @@ namespace larcv {
     
     float _row_pad;
     float _col_pad;
+
     
   };
 
