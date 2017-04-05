@@ -332,7 +332,13 @@ namespace larcv {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
 	continue;
       }
-      
+
+      LARCV_DEBUG() << "Examining vertex id " << vtxid << std::endl;
+      LARCV_DEBUG() << "... type " << (uint)vtx3d.type << std::endl;
+      LARCV_DEBUG() << "Plane 0 " << vtx3d.vtx2d_v[0].pt << std::endl;
+      LARCV_DEBUG() << "Plane 1 " << vtx3d.vtx2d_v[1].pt << std::endl;
+      LARCV_DEBUG() << "Plane 2 " << vtx3d.vtx2d_v[2].pt << std::endl;
+	
       PGraph pgraph;
       for( auto match_v : match_vv ) {
 	std::array<size_t,3> plane_arr{{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
@@ -429,14 +435,14 @@ namespace larcv {
       event_pgraph->Emplace(std::move(pgraph));
     }//end vertex
 
-
+    LARCV_DEBUG() << "Event pgraph size " << event_pgraph->PGraphArray().size() << std::endl;
     _reco_holder.FilterMatches();
     if (_write_reco) {
       const auto& eid = iom.event_id();
       _reco_holder.SetMeta(adc_image_v);
       _reco_holder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
     }
-    
+
     _reco_holder.Reset();
     return true;
   }

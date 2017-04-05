@@ -119,8 +119,7 @@ namespace larcv {
     uint _vtx3d_buffer_size;
     uint _trkclus_buffer_size;
     uint _parclus_buffer_size;
-
-
+    
     larocv::VertexAnalysis _vtx_ana;
     
     std::vector<const larocv::data::Vertex3D*> _vertex_ptr_v;

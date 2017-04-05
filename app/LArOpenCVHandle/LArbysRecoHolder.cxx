@@ -52,7 +52,7 @@ namespace larcv {
     if (sort) {
       //sort the match so that the tracks come first
       std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
-
+      
       //put the tracks first
       for( auto match_v : match_vv ) {
 	auto& plane0     = match_v.front().first;

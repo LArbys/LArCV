@@ -16,7 +16,6 @@ namespace larcv {
     /// General...
     _pi_threshold=1;
     _min_ctor_size=4;
-    _min_track_size=3;
     _blur = 4; 
     _pca_box_size=5;
     _min_overall_angle=10;
@@ -56,11 +55,20 @@ namespace larcv {
     
     _pi_threshold = pset.get<uint>("PiThreshold",1);
     _min_ctor_size = pset.get<uint>("MinContourSize",4);
-    _min_track_size = pset.get<uint>("MinTrackSize",3);
     _allowed_neighbor_dist = pset.get<float>("AllowedNeighborSeparation",10);
     _blur = pset.get<uint>("BlurSize",4);
     _pca_box_size = pset.get<uint>("EdgePCABoxSize",5);
     _min_overall_angle = pset.get<float>("MinPCAOverallAngle",10);
+
+    _merge_tracklets = pset.get<bool>("MergeTracklets",false);
+    if(_merge_tracklets) {
+      _min_merge_track_size = pset.get<uint>("MergeTrackletsSize");
+      _min_merge_track_shower_dist = pset.get<uint>("MergeTrackletsDist");
+    }
+    
+    _claim_showers         = pset.get<bool>("ClaimShowers",false);
+    _merge_pixel_frac      = pset.get<bool>("MergePixelFrac",false);
+    _merge_straight_showers= pset.get<bool>("MergeStraightShowers",false);
     
     LARCV_DEBUG() << "end" << std::endl;
     return;
@@ -283,14 +291,21 @@ namespace larcv {
 
     auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,false);
     auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,false);
-
+    
+    LARCV_DEBUG() << "Track chunks " << track_pchunk_v.size()
+		  << " & Shower chunks " << shower_pchunk_v.size() << std::endl;
     for(auto& track : track_pchunk_v) {
       LARCV_DEBUG() << "npixel ... " << track.npixel << std::endl;
       if (track.npixel > _min_merge_track_size) continue;
       for(auto& shower : shower_pchunk_v) {
-	if (larocv::Pt2PtDistance(track.ctor,shower.ctor) > _min_merge_track_shower_dist) continue;
-	auto mask_shower = larocv::MaskImage(track_img,track.ctor,0,false);
-	track_img = larocv::MaskImage(track_img,track.ctor,0,true);
+	auto dist=larocv::Pt2PtDistance(track.ctor,shower.ctor);
+	LARCV_DEBUG() << "shower npix " << shower.npixel << " @ dist " << dist << std::endl;
+	if ( dist > _min_merge_track_shower_dist) continue;
+	LARCV_DEBUG() << "masking!" << std::endl;
+	uint tol=0;
+	if (track.npixel<4) tol=1;
+	auto mask_shower = larocv::MaskImage(track_img,track.ctor,tol,false);
+	track_img = larocv::MaskImage(track_img,track.ctor,tol,true);
 	shower_img = shower_img + mask_shower;
       }
     }
@@ -503,16 +518,20 @@ namespace larcv {
 
     LARCV_DEBUG() << "Merging tracklets" << std::endl;
     if (_merge_tracklets) MergeTracklets(track_img,shower_img);
-
+    else LARCV_DEBUG() << "... not" << std::endl;
+    
     LARCV_DEBUG() << "Cleaning up showers first" << std::endl;
     if (_claim_showers) ClaimShowers(adc_img,track_img,shower_img);
+    else LARCV_DEBUG() << "... not" << std::endl;
 
     LARCV_DEBUG() << "Merge via pixel frac" << std::endl;
     if (_merge_pixel_frac) MergePixelByFraction(adc_img,track_img,shower_img);
-
+    else LARCV_DEBUG() << "... not" << std::endl;
+    
     LARCV_DEBUG() << "Merging straight showers to track" << std::endl;
     if(_merge_straight_showers) MergeStraightShowers(adc_img,track_img,shower_img);
-
+    else LARCV_DEBUG() << "... not" << std::endl;
+    
     // Lets make sure the track and shower images do not gain
     // extra pixel value from masking
     adc_img.copyTo(track_img,larocv::Threshold(track_img,1,1));

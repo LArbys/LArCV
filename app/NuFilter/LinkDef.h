@@ -10,9 +10,11 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::NuFilter+;
+#pragma link C++ class larcv::MichelFilter+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
+
 
 
 
