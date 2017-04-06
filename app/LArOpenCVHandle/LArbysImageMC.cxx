@@ -49,20 +49,23 @@ namespace larcv {
 
   
   void LArbysImageMC::Project3D(const ImageMeta& meta,
-				  double _parent_x,double _parent_y,double _parent_z,uint plane,
-				  double& xpixel, double& ypixel) 
+				double parent_x,
+				double parent_y,
+				double parent_z,
+				double parent_t,
+				uint plane,
+				double& xpixel, double& ypixel) 
   {
     
     auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
     auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
 
-    auto vtx_2d = geohelp->Point_3Dto2D(_parent_x, _parent_y, _parent_z, plane );
+    auto vtx_2d = geohelp->Point_3Dto2D(parent_x, parent_y, parent_z, plane );
     
     double x_compression  = meta.width()  / meta.cols();
     double y_compression  = meta.height() / meta.rows();
     xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
-    ypixel = (((_parent_x/larpro->DriftVelocity() + _parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
-    
+    ypixel = (((parent_x/larpro->DriftVelocity() + parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
   }
   
 
@@ -284,7 +287,7 @@ namespace larcv {
       const auto& img = ev_image2d->Image2DArray()[plane];
       const auto& meta = img.meta();
       double x_pixel(0), y_pixel(0);
-      Project3D(meta,_parent_x,_parent_y,_parent_z,plane,x_pixel,y_pixel);
+      Project3D(meta,_parent_x,_parent_y,_parent_z,_parent_t,plane,x_pixel,y_pixel);
       _vtx_2d_w_v[plane] = x_pixel;
       _vtx_2d_t_v[plane] = y_pixel;
     }
@@ -347,14 +350,15 @@ namespace larcv {
       auto x0 = roi.X();
       auto y0 = roi.Y();
       auto z0 = roi.Z();
-      //auto t  = roi.T();
+      auto t0 = roi.T();
 
       // here is another point in the direction of p.
       // Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
       auto x1 = x0+px;
       auto y1 = y0+py;
       auto z1 = z0+pz;
-
+      auto t1 = t0; 
+      
       _daughter_length_vv.resize(3);
       _daughter_2dstartx_vv.resize(3);
       _daughter_2dstarty_vv.resize(3);
@@ -377,10 +381,10 @@ namespace larcv {
 	const auto& meta = img.meta();
 	
 	double x_pixel0(0), y_pixel0(0);
-	Project3D(meta,x0,y0,z0,plane,x_pixel0,y_pixel0);
+	Project3D(meta,x0,y0,z0,t0,plane,x_pixel0,y_pixel0);
 	
 	double x_pixel1(0), y_pixel1(0);
-	Project3D(meta,x1,y1,z1,plane,x_pixel1,y_pixel1);
+	Project3D(meta,x1,y1,z1,t1, plane,x_pixel1,y_pixel1);
 
 	// start and end in 2D
 	geo2d::Vector<float> start(x_pixel0,y_pixel0);
