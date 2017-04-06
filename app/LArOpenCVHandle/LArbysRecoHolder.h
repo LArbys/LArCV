@@ -1,14 +1,15 @@
 #ifndef LARBYSVERTEXFILTER_H
 #define LARBYSVERTEXFILTER_H
 
+#include "TTree.h"
 #include "Base/larcv_base.h"
 #include "Base/PSet.h"
 #include "LArOpenCV/Core/ImageManager.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
-#include "TTree.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/ImageMeta.h"
+#include "LArOCVSerial.h"
 
 namespace larcv {
 
@@ -18,8 +19,10 @@ namespace larcv {
 
     LArbysRecoHolder() :
       _vtx_ana(),
-      _out_tree(nullptr)
+      _out_tree(nullptr),
+      _larocvserial(nullptr)
     {  Reset(); }
+
     ~LArbysRecoHolder(){}
 
     void
@@ -36,7 +39,9 @@ namespace larcv {
 
     void
     Configure(const PSet& pset);    
-    
+
+    void
+    Initialize();
 
     std::vector<std::vector<std::pair<size_t,size_t> > >
     Match(size_t vtx_id,
@@ -116,10 +121,6 @@ namespace larcv {
     float _match_particles_per_plane;
     float _match_min_number;
 
-    uint _vtx3d_buffer_size;
-    uint _trkclus_buffer_size;
-    uint _parclus_buffer_size;
-    
     larocv::VertexAnalysis _vtx_ana;
     
     std::vector<const larocv::data::Vertex3D*> _vertex_ptr_v;
@@ -131,12 +132,8 @@ namespace larcv {
     uint _subrun;
     uint _event;
     uint _entry;
-    std::vector<larocv::data::Vertex3D> _vertex_v;
-    std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > > _particle_cluster_vvv;
-    std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > > _track_comp_vvv;
-    std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > > _match_pvvv;
-    std::vector<std::vector<ImageMeta> > _meta_vv;
-      
+    LArOCVSerial* _larocvserial;
+    
   };
 }
 

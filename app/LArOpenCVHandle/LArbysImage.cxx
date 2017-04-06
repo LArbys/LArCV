@@ -63,6 +63,7 @@ namespace larcv {
   {
     _thrumu_image_v.clear();
     _stopmu_image_v.clear();
+    _reco_holder.Initialize();
   }
   
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {

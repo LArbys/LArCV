@@ -10,9 +10,10 @@ namespace larcv {
   LArbysRecoHolder::SetMeta(const std::vector<Image2D>& adc_img_v) {
     std::vector<ImageMeta> meta_v;
     meta_v.reserve(3);
+    auto& meta_vv = _larocvserial->_meta_vv;
     for(const auto& adc_img : adc_img_v) meta_v.emplace_back(adc_img.meta());
     for (size_t vtxid=0; vtxid<this->Verticies().size(); ++vtxid) 
-      _meta_vv.emplace_back(meta_v);
+      meta_vv.emplace_back(meta_v);
   }
   
   void
@@ -21,9 +22,11 @@ namespace larcv {
     std::vector<const larocv::data::Vertex3D*> vertex_ptr_v;
     std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > particle_cluster_ptr_vvv;
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > track_comp_ptr_vvv;
+
+    auto& match_pvvv = _larocvserial->_match_pvvv;
     
     for(size_t vertexid=0; vertexid<this->Verticies().size(); ++vertexid) {
-      if (_match_pvvv[vertexid].empty()) continue;
+      if (match_pvvv[vertexid].empty()) continue;
       vertex_ptr_v.emplace_back(this->Vertex(vertexid));
       particle_cluster_ptr_vvv.emplace_back(this->PlaneParticles(vertexid));
       track_comp_ptr_vvv.emplace_back(this->PlaneTracks(vertexid));
@@ -33,7 +36,6 @@ namespace larcv {
     std::swap(vertex_ptr_v,            _vertex_ptr_v);
     std::swap(particle_cluster_ptr_vvv,_particle_cluster_ptr_vvv);
     std::swap(track_comp_ptr_vvv,      _track_comp_ptr_vvv);
-    
   }
   
   
@@ -80,11 +82,12 @@ namespace larcv {
       
       std::swap(match_vv,match_temp_vv);
     }
-    
-    if (vtx_id >= _match_pvvv.size())
-      _match_pvvv.resize(vtx_id+1);
 
-    _match_pvvv[vtx_id] = match_vv;
+    auto& match_pvvv = _larocvserial->_match_pvvv;
+    if (vtx_id >= match_pvvv.size())
+      match_pvvv.resize(vtx_id+1);
+    
+    match_pvvv[vtx_id] = match_vv;
     return match_vv;
   }
 
@@ -135,12 +138,8 @@ namespace larcv {
   void
   LArbysRecoHolder::ResetOutput() {
     LARCV_DEBUG() << "Reset output copies" << std::endl;
-    _vertex_v.clear();
-    _particle_cluster_vvv.clear();
-    _track_comp_vvv.clear();
 
-    _match_pvvv.clear();
-    _meta_vv.clear();
+    _larocvserial->Clear();
     
     _run   = kINVALID_INT;
     _subrun= kINVALID_INT;
@@ -150,10 +149,12 @@ namespace larcv {
     this->Reset();
     LARCV_DEBUG() << "done." << std::endl;
   }
+
   void
   LArbysRecoHolder::Write() {
-    LARCV_DEBUG() << "Writing " << _vertex_v.size() << " verticies" << std::endl;
-    if(_vertex_v.empty()) return;
+    const auto& vertex_v = _larocvserial->_vertex_v;
+    LARCV_DEBUG() << "Writing " << vertex_v.size() << " verticies" << std::endl;
+    //if(vertex_v.empty()) return;
     _out_tree->Fill();
     LARCV_DEBUG() << "done." << std::endl;
   }
@@ -169,10 +170,7 @@ namespace larcv {
     _match_coverage            = pset.get<float>("MatchCoverage",0.5);
     _match_particles_per_plane = pset.get<float>("MatchParticlesPerPlane",2);
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);
-    _vtx3d_buffer_size         = pset.get<uint>("Vertex3DBufferSize"   , 5*128000);
-    _parclus_buffer_size       = pset.get<uint>("ParticleClusterBuffSz",10*128000);
-    _trkclus_buffer_size       = pset.get<uint>("TrackClusterBuffSz"   ,10*128000);
-    
+
     _output_module_name   = pset.get<std::string>("OutputModuleName");
     if (_output_module_name.empty()) {
       LARCV_CRITICAL() << "Must specify output module name" << std::endl;
@@ -185,23 +183,21 @@ namespace larcv {
     LARCV_DEBUG() << "MatchCoverage: " << _match_coverage << std::endl;
     LARCV_DEBUG() << "MatchParticlesPerPlane: " << _match_particles_per_plane << std::endl;
     LARCV_DEBUG() << "MatchMinimumNumber: " << _match_min_number << std::endl;
-    LARCV_DEBUG() << "Vertex3DBufferSize: " << _vtx3d_buffer_size << std::endl;
-    LARCV_DEBUG() << "ParticleClusterBufferSize: " << _parclus_buffer_size << std::endl;
-    LARCV_DEBUG() << "TrackClusterCompoundBufferSize: " << _trkclus_buffer_size << std::endl;
     
     LARCV_DEBUG() << "end" << std::endl;
 
+    return;
+  }
+
+  void LArbysRecoHolder::Initialize()
+  {
     _out_tree = new TTree("RecoTree","");
     _out_tree->Branch("run"   ,&_run   ,"run/i");
     _out_tree->Branch("subrun",&_subrun,"subrun/i");
     _out_tree->Branch("event" ,&_event ,"event/i");
     _out_tree->Branch("entry" ,&_entry ,"entry/i");
-    _out_tree->Branch("Vertex3D_v"              ,&_vertex_v            ,_vtx3d_buffer_size);
-    _out_tree->Branch("ParticleCluster_vvv"     ,&_particle_cluster_vvv,_parclus_buffer_size);
-    _out_tree->Branch("TrackClusterCompound_vvv",&_track_comp_vvv      ,_trkclus_buffer_size);
-    _out_tree->Branch("Meta_vv"                 ,&_meta_vv);
-    _out_tree->Branch("Match_pvvv"              ,&_match_pvvv);
-    return;
+    _larocvserial = new LArOCVSerial();
+    _out_tree->Branch("kazu" ,&_larocvserial);
   }
 
   void
@@ -217,12 +213,17 @@ namespace larcv {
     }
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(output_module_id, 0);
     const auto& vertex3d_v = vtx3d_array->as_vector();
-
+    
     LARCV_DEBUG() << "Observed " << vertex3d_v.size() << " verticies" << std::endl;
     for(size_t vtxid=0;vtxid<vertex3d_v.size();++vtxid) {
       const auto& vtx3d = vertex3d_v[vtxid];
-      LARCV_DEBUG() << "On vertex " << vtxid << " of type " << (uint) vtx3d.type << std::endl;
+      LARCV_DEBUG() << "On vertex " << vtxid
+		    << " of type " << (uint) vtx3d.type
+		    << " @ " << &vtx3d << std::endl;
+
+      LARCV_DEBUG() << "Current size " << _vertex_ptr_v.size() << std::endl;
       _vertex_ptr_v.push_back(&vtx3d);
+      LARCV_DEBUG() << ".. now size  " << _vertex_ptr_v.size() << std::endl;
 
       std::vector<std::vector<const larocv::data::ParticleCluster* > > pcluster_vv;
       std::vector<std::vector<const larocv::data::TrackClusterCompound* > > tcluster_vv;
@@ -282,26 +283,35 @@ namespace larcv {
   void
   LArbysRecoHolder::StoreEvent(size_t run, size_t subrun, size_t event, size_t entry) {
 
-    LARCV_DEBUG() << "Copying " << _vertex_ptr_v.size() << " verticies" << std::endl;
-    if (_vertex_ptr_v.empty()) return;
-
-    size_t n_old=_vertex_v.size();
-    size_t n_new=_vertex_ptr_v.size();
-    size_t n_total=n_old+n_new;
-    _vertex_v.resize(n_total);
-    _particle_cluster_vvv.resize(n_total);
-    _track_comp_vvv.resize(n_total);
-    
     _run    = run;
     _subrun = subrun;
     _event  = event;
     _entry  = entry;
+
+    
+    LARCV_DEBUG() << "Copying " << _vertex_ptr_v.size() << " verticies" << std::endl;
+    if (_vertex_ptr_v.empty()) return;
+
+    auto& vertex_v             = _larocvserial->_vertex_v;
+    auto& particle_cluster_vvv = _larocvserial->_particle_cluster_vvv;
+    auto& track_comp_vvv       = _larocvserial->_track_comp_vvv;
+      
+    size_t n_old   = vertex_v.size();
+    size_t n_new   = _vertex_ptr_v.size();
+    size_t n_total = n_old + n_new;
+    LARCV_DEBUG() << "Already stored " << n_old << " vertices" << std::endl;
+    LARCV_DEBUG() << "Now adding     " << n_new << " vertices" << std::endl;
+    LARCV_DEBUG() << "Total          " << n_total << std::endl;
+    
+    vertex_v.resize(n_total);
+    particle_cluster_vvv.resize(n_total);
+    track_comp_vvv.resize(n_total);
     
     for(size_t vertexid=0;vertexid<this->Verticies().size();++vertexid) {
       
-      auto& vertex              = _vertex_v.at(n_old+vertexid);
-      auto& particle_cluster_vv = _particle_cluster_vvv.at(n_old+vertexid);
-      auto& track_comp_vv       = _track_comp_vvv.at(n_old+vertexid);
+      auto& vertex              = vertex_v.at(n_old+vertexid);
+      auto& particle_cluster_vv = particle_cluster_vvv.at(n_old+vertexid);
+      auto& track_comp_vv       = track_comp_vvv.at(n_old+vertexid);
     
       vertex = *(this->Vertex(vertexid));
 
