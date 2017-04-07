@@ -18,6 +18,11 @@
 #include "Processor/ProcessFactory.h"
 #include <TTree.h>
 #include "LArUtil/SpaceChargeMicroBooNE.h"
+#include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
+#include "Geo2D/Core/Line.h"
+#include "Geo2D/Core/Vector.h"
+#include <math.h>
+
 namespace larcv {
 
   /**
@@ -42,9 +47,16 @@ namespace larcv {
     bool process(IOManager& mgr);
 
     void finalize();
+    //Get the x in a ctor w.r.t to the vtx to determine the dir of PCA w.r.t the vertex
+    double Getx2vtxmean(::larocv::GEO2D_Contour_t ctor, float x2d, float y2d);
 
   private:
-
+    
+    uint _plane;
+    double _radius;
+    double _mean0; //mean value of x in a ctor w.r.t the vertex
+                   //to determine the direction of PCA w.r.t to the vertex
+    double _mean1;
     TTree* _tree;
     TTree* _event_tree;
     int _entry;
@@ -90,6 +102,10 @@ namespace larcv {
     double _area1;
     double _len0;
     double _len1;
+    std::vector<double> _dir0_c;//particle direction from contour
+    std::vector<double> _dir1_c;
+    std::vector<double> _dir0_p;//particle direction from pixels close to vertex
+    std::vector<double> _dir1_p;
     double _area_croi0;
     double _area_croi1;
     double _area_croi2;

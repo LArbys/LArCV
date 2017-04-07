@@ -5,10 +5,12 @@
 #include "DataFormat/EventROI.h"
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
+#include "DataFormat/EventImage2D.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterTypes.h"
 #include "opencv2/imgproc.hpp"
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
+#include "LArbysImageMC.h"
 namespace larcv {
 
   static LEE1e1pProcessFactory __global_LEE1e1pProcessFactory__;
@@ -18,7 +20,21 @@ namespace larcv {
   {}
     
   void LEE1e1p::configure(const PSet& cfg)
-  {}
+  {
+    _radius = cfg.get<double>("Radius");
+    _plane = cfg.get<double>("Plane");
+  }
+
+  double LEE1e1p::Getx2vtxmean( ::larocv::GEO2D_Contour_t ctor, float x2d, float y2d){
+    double sum = 0;
+    double mean = -999; 
+    for(size_t idx= 0;idx < ctor.size(); ++idx){
+      sum += ctor[idx].x - x2d;
+      //sum += ctor[idx].y - y2d;
+    }
+    if (ctor.size()>0) mean = sum / ctor.size();
+    return mean;
+  }
 
   void LEE1e1p::initialize()
   {
@@ -67,6 +83,8 @@ namespace larcv {
     _tree->Branch("dr",&_dr,"dr/D");
     _tree->Branch("scedr",&_scedr,"scedr/D");
     
+    _tree->Branch("plane",&_plane,"plane/I");
+    
     _tree->Branch("shape0",&_shape0,"shape0/I");
     _tree->Branch("shape1",&_shape1,"shape1/I");
     _tree->Branch("score0","std::vector<double>",&_score0);
@@ -87,6 +105,13 @@ namespace larcv {
     _tree->Branch("len0",&_len0,"len0/D");
     _tree->Branch("len1",&_len1,"len1/D");
 
+    _tree->Branch("dir0_c",&_dir0_c);
+    _tree->Branch("dir1_c",&_dir1_c);
+    _tree->Branch("dir0_p",&_dir0_p);
+    _tree->Branch("dir1_p",&_dir1_p);
+    _tree->Branch("mean0",&_mean0,"mean0/D");
+    _tree->Branch("mean1",&_mean1,"mean1/D");
+    
     _tree->Branch("score1_e",&_score1_e,"score1_e/D");
     _tree->Branch("score1_g",&_score1_g,"score1_g/D");
     _tree->Branch("score1_pi",&_score1_pi,"score1_pi/D");
@@ -103,21 +128,21 @@ namespace larcv {
 
   bool LEE1e1p::process(IOManager& mgr)
   {
-    auto ev_pgraph     = (EventPGraph*)(mgr.get_data(kProductPGraph,"test"));
-    auto ev_ctor_v     = (EventPixel2D*)(mgr.get_data(kProductPixel2D,"test_ctor"));
-    auto ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,"test_img"));
-    auto ev_roi_v      = (EventROI*)(mgr.get_data(kProductROI,"tpc"));
-    auto ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,"croi"));
-
+    auto const ev_pgraph     = (EventPGraph*)(mgr.get_data(kProductPGraph,"test"));
+    auto const ev_ctor_v     = (EventPixel2D*)(mgr.get_data(kProductPixel2D,"test_ctor"));
+    auto const ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,"test_img"));
+    auto const ev_roi_v      = (EventROI*)(mgr.get_data(kProductROI,"tpc"));
+    auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,"croi"));
+        
     _run = ev_pgraph->run();
     _subrun = ev_pgraph->subrun();
     _event = ev_pgraph->event();
-
+    
     _entry = mgr.current_entry();
     
     _tx = _ty = _tz = _tt = _te = -1.;
     _scex = _scey = _scez = -1.;
-
+    
     for(auto const& roi : ev_roi_v->ROIArray()){
       if(roi.PdgCode() == 12 || roi.PdgCode() == 14) {
 	_tx = roi.X();
@@ -131,12 +156,12 @@ namespace larcv {
 	_scez = _tz + offset[2];
       }
     }
-
+    
     double xyz[3];
     xyz[0] = _scex;
     xyz[1] = _scey;
     xyz[2] = _scez;
-
+    
     auto geo = larutil::Geometry::GetME();
     auto larp = larutil::LArProperties::GetME();
     double wire_v[3];
@@ -152,7 +177,7 @@ namespace larcv {
     _good_croi1 = 0;
     _good_croi2 = 0;
     for(auto const& croi : ev_croi_v->ROIArray()) {
-
+      
       auto const& bb_v = croi.BB();
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
@@ -169,15 +194,15 @@ namespace larcv {
 	if(plane == 2) _area_croi2 += (croi_meta.rows() * croi_meta.cols());
       }
     }
-				     
+    
     auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
-
+    
     std::vector<size_t> plane_order_v;
     plane_order_v.push_back(2);
     plane_order_v.push_back(0);
     plane_order_v.push_back(1);
-
+    
     _min_vtx_dist = 1.e9;
     
     for(auto const& pgraph : ev_pgraph->PGraphArray()) {
@@ -196,7 +221,7 @@ namespace larcv {
       _x = roi0.X();
       _y = roi0.Y();
       _z = roi0.Z();
-
+      
       _dr = sqrt(pow(_x - _tx,2)+pow(_y - _ty,2)+pow(_z - _tz,2));
       _scedr = sqrt(pow(_x - _scex,2)+pow(_y - _scey,2)+pow(_z - _scez,2));
       if(_scedr < _min_vtx_dist) _min_vtx_dist = _scedr;
@@ -234,8 +259,21 @@ namespace larcv {
       _npx0 = _npx1 = 0;
       _len0 = _len1 = _area0 = _area1 = 0.;
       _q0 = _q1 = 0.;
+      _dir0_c.clear();
+      _dir0_c.resize(3,-99999);
+      _dir1_c.clear();
+      _dir1_c.resize(3,-99999);
+      _dir0_p.clear();
+      _dir0_p.resize(3,-99999);
+      _dir1_p.clear();
+      _dir1_p.resize(3,-99999);
+
       for(auto const& plane : plane_order_v) {
 
+	//const auto& img = ev_image2d->Image2DArray()[plane];
+	//const auto& meta = img.meta();
+	LArbysImageMC larbysimagemc;
+	
 	auto iter_pcluster = pcluster_m.find(plane);
 	if(iter_pcluster == pcluster_m.end()) continue;
 
@@ -248,14 +286,23 @@ namespace larcv {
 	auto const& pcluster0 = pcluster_v.at(cluster_idx0);
 	auto const& ctor0 = ctor_v.at(cluster_idx0);
 	if(!done0 && ctor0.size()>2) {
+	  
+	  double x_vtx2d(0), y_vtx2d(0);
+	  
+	  larbysimagemc.Project3D(pgraph.ParticleArray().back().BB(plane), _x, _y, _z, 0, plane, x_vtx2d, y_vtx2d);
+	  
+	  auto tmp = pgraph.ParticleArray().back().BB(plane).rows()-y_vtx2d;
+	  y_vtx2d = tmp;
+	  
 	  _npx0 = pcluster0.size();
-	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
+	  	  
 	  for(size_t i=1; i<ctor0.size(); ++i) {
 	    auto const& pt0 = ctor0[i-1];
 	    auto const& pt1 = ctor0[i];
 	    _len0 += sqrt(pow(pt0.X()-pt1.X(),2)+pow(pt0.Y()-pt1.Y(),2));
 	  }
 	  _len0 += sqrt(pow(ctor0.front().X()-ctor0.back().X(),2)+pow(ctor0.front().Y()-ctor0.back().Y(),2));
+	  
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor0.size());
 	  for(size_t i=0; i<ctor0.size(); ++i) {
@@ -263,20 +310,55 @@ namespace larcv {
 	    ctor[i].y = ctor0[i].Y();
 	  }
 	  _area0 = ::cv::contourArea(ctor);
+
+	  auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
+	  _mean0 = mean;
+	  auto dir0_c = larocv::CalcPCA(ctor).dir;
+	  if(dir0_c.x!=0 ) _dir0_c[plane] =  (dir0_c.y/dir0_c.x);
+	  
+	  ::larocv::GEO2D_Contour_t pclus;
+	  pclus.clear();
+	  
+	  for(auto const& pt : pcluster0) {
+	    _q0 += pt.Intensity();
+	    geo2d::Vector<double> ppt(pt.X(),pt.Y());
+	    double x = pt.X();
+	    double y = pt.Y();
+	    auto d = pow((pow(y-x_vtx2d,2)+pow(x-y_vtx2d,2)),0.5);
+	    if (d < _radius) pclus.emplace_back(ppt);
+	  }
+	  
+	  if (pclus.size()>=2) {
+	    auto dir0_p = larocv::CalcPCA(pclus).dir;
+	    geo2d::Vector<double> DIR(dir0_p);
+	    auto angle =  geo2d::angle(DIR);
+	    //if(dir0_p.x!=0) _dir0_p[plane] = angle;
+	    if(dir0_p.x!=0  ) _dir0_p[plane] = dir0_p.y/ dir0_p.x;
+	  }
 	  
 	  done0 = true;
 	}
+	
 	auto const& pcluster1 = pcluster_v.at(cluster_idx1);
 	auto const& ctor1 = ctor_v.at(cluster_idx1);
+	
 	if(!done1 && ctor1.size()>2) {
+	  
+	  double x_vtx2d(0), y_vtx2d(0);
+	  larbysimagemc.Project3D(pgraph.ParticleArray().back().BB(plane), _x, _y, _z, 0, plane, x_vtx2d, y_vtx2d);
+	  
+	  auto tmp = pgraph.ParticleArray().back().BB(plane).rows()-y_vtx2d;
+	  y_vtx2d = tmp;
+	  
 	  _npx1 = pcluster1.size();
-	  for(auto const& pt : pcluster1) _q1 += pt.Intensity();
+	  
 	  for(size_t i=1; i<ctor1.size(); ++i) {
 	    auto const& pt0 = ctor1[i-1];
 	    auto const& pt1 = ctor1[i];
 	    _len1 += sqrt(pow(pt0.X()-pt1.X(),2)+pow(pt0.Y()-pt1.Y(),2));
 	  }
 	  _len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
+	  
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
@@ -284,9 +366,35 @@ namespace larcv {
 	    ctor[i].y = ctor1[i].Y();
 	  }
 	  _area1 = ::cv::contourArea(ctor);
+
+	  auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
+	  _mean1 = mean;
+	  auto dir1_c = larocv::CalcPCA(ctor).dir;
+	  if(dir1_c.x!=0 ) _dir1_c[plane] =  (dir1_c.y/dir1_c.x);
+
+	  ::larocv::GEO2D_Contour_t pclus;
+	  pclus.clear();
+	  
+	  for(auto const& pt : pcluster1) {
+	    _q1 += pt.Intensity();
+	    auto x = pt.X();
+	    auto y = pt.Y();
+	    geo2d::Vector<double> ppt(pt.X(),pt.Y());
+	    auto d = pow((pow(x-x_vtx2d,2)+pow(y-y_vtx2d,2)),0.5);
+	    if (d < _radius) pclus.emplace_back(ppt);
+	  }
+	  
+	  if (pclus.size()>=2) {
+	    auto dir1_p = larocv::CalcPCA(pclus).dir;
+	    geo2d::Vector<double> DIR(dir1_p);
+	    auto angle =  geo2d::angle(DIR);
+	    //if(dir1_p.x!=0) _dir1_p[plane] = angle;
+	    if(dir1_p.x!=0 ) _dir1_p[plane] = dir1_p.y/dir1_p.x;
+	  }
 	  
 	  done1 = true;
 	}
+	_plane = plane;
 	if(done0 && done1) break;
       }
       _tree->Fill();
