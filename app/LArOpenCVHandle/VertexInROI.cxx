@@ -20,6 +20,8 @@ namespace larcv {
     _input_roi_producer  = cfg.get<std::string>("InputROIProducer");
     _output_roi_producer = cfg.get<std::string>("OutputROIProducer");
     _planes_inside_threshold = cfg.get<uint>("NPlanesInside",2);
+    _switch   = cfg.get<bool>("Switch", true);
+    _croi_idx = cfg.get<int>("CROI_IDX");
   }
 
   void VertexInROI::initialize()
@@ -63,13 +65,14 @@ namespace larcv {
     wire_v[2] = geo->NearestWire(xyz,2);
     const double tick = (scex / larp->DriftVelocity() + 4) * 2. + 3200.;
     
-    for(auto const& croi : ev_croi_v->ROIArray()) {
-
+    //for(auto const& croi : ev_croi_v->ROIArray()) {
+    for(size_t croi_idx = 0; croi_idx < ev_croi_v->ROIArray().size(); ++croi_idx) { 
       uint good_croi0 = 0;
       uint good_croi1 = 0;
       uint good_croi2 = 0;
 
-      auto const& bb_v = croi.BB();
+      //auto const& bb_v = croi.BB();
+      auto const& bb_v = ev_croi_v->ROIArray()[croi_idx].BB();
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
 	auto const& wire = wire_v[plane];
@@ -83,9 +86,10 @@ namespace larcv {
       
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
       
-      if (good_croi < _planes_inside_threshold) continue;
+      //if (_switch && (good_croi < _planes_inside_threshold) ) continue;
       
-      ev_croi_true_v->Append(croi);
+      //ev_croi_true_v->Append(croi);
+      if( croi_idx == _croi_idx ) ev_croi_true_v->Append(ev_croi_v->ROIArray()[croi_idx]);
     }
     
     LARCV_DEBUG() << "Converted " << ev_croi_v->ROIArray().size()
