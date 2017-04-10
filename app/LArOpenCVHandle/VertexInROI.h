@@ -17,7 +17,11 @@ namespace larcv {
     void initialize();
     bool process(IOManager& mgr);
     void finalize();
+
+    bool _switch;
     
+    uint _croi_idx;
+
   private:
     ::larutil::SpaceChargeMicroBooNE _sce;
 

@@ -18,6 +18,15 @@
 #include "Processor/ProcessFactory.h"
 #include <TTree.h>
 #include "LArUtil/SpaceChargeMicroBooNE.h"
+#include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
+#include "LArOpenCV/ImageCluster/AlgoFunction/ImagePatchAnalysis.h"
+#include "Geo2D/Core/Line.h"
+#include "Geo2D/Core/Vector.h"
+#include "Geo2D/Core/Circle.h"
+#include "LArbysImageMaker.h"
+#include <math.h>
+#include <numeric>
+
 namespace larcv {
 
   /**
@@ -42,8 +51,33 @@ namespace larcv {
     bool process(IOManager& mgr);
 
     void finalize();
+    //Get the x in a ctor w.r.t to the vtx to determine the dir of PCA w.r.t the vertex
+    double Getx2vtxmean(::larocv::GEO2D_Contour_t ctor, float x2d, float y2d);
+    
+    ::cv::Point PointShift(::cv::Point pt, geo2d::Line<float> pca);
+    
+    template <class T>
+      T Mean(std::vector<T> v);
 
+    template <class T>
+      T STD (std::vector<T> v);
+    
   private:
+    
+    uint _plane;
+    double _pradius;
+    double _maskradius;
+    std::string _eventimg_producer;
+    uint _bins;
+    float _open_angle_cut;
+    float _adc_threshold;
+
+    std::vector<double> _angle0_c;
+    std::vector<double> _angle1_c;
+    uint _straight_lines;
+    
+    double _mean0; //mean value of x in a ctor w.r.t the vertex
+    double _mean1;//to determine the direction of PCA w.r.t to the vertex
 
     TTree* _tree;
     TTree* _event_tree;
@@ -90,6 +124,10 @@ namespace larcv {
     double _area1;
     double _len0;
     double _len1;
+    std::vector<double> _dir0_c;//particle direction from contour
+    std::vector<double> _dir1_c;
+    std::vector<double> _dir0_p;//particle direction from pixels close to vertex
+    std::vector<double> _dir1_p;
     double _area_croi0;
     double _area_croi1;
     double _area_croi2;
@@ -99,6 +137,15 @@ namespace larcv {
     int _num_croi;
     double _min_vtx_dist;
     ::larutil::SpaceChargeMicroBooNE _sce;
+    LArbysImageMaker _LArbysImageMaker;
+
+    float _meanl;
+    float _meanr;
+    float _stdl;
+    float _stdr;
+    float _dqdxdelta;
+    float _dqdxratio;
+    
   };
 
   /**
