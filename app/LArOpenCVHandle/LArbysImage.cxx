@@ -19,7 +19,7 @@ namespace larcv {
     : ProcessBase(name),
       _PreProcessor(),
       _LArbysImageMaker(),
-      _reco_holder()
+      _RecoHolder()
   {}
       
   void LArbysImage::configure(const PSet& cfg)
@@ -38,7 +38,7 @@ namespace larcv {
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
 
     _write_reco = cfg.get<bool>("WriteAnaReco");
-    _reco_holder.Configure(cfg.get<larcv::PSet>("LArbysRecoHolder"));
+    _RecoHolder.Configure(cfg.get<larcv::PSet>("LArbysRecoHolder"));
 
     _preprocess = cfg.get<bool>("PreProcess",true);
     if (_preprocess) {
@@ -61,7 +61,7 @@ namespace larcv {
   {
     _thrumu_image_v.clear();
     _stopmu_image_v.clear();
-    _reco_holder.Initialize();
+    _RecoHolder.Initialize();
   }
   
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {
@@ -285,8 +285,8 @@ namespace larcv {
 
     if (_write_reco) {
       LARCV_DEBUG() << "Writing RecoHolder tree & reset" << std::endl;
-      _reco_holder.Write();
-      _reco_holder.ResetOutput();
+      _RecoHolder.Write();
+      _RecoHolder.ResetOutput();
     }
 
     LARCV_DEBUG() << "return " << status << std::endl;
@@ -311,20 +311,20 @@ namespace larcv {
     auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
     auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
 
-    _reco_holder.ShapeData(mgr);
+    _RecoHolder.ShapeData(mgr);
 
     if (_filter_reco)
-      _reco_holder.Filter();
+      _RecoHolder.Filter();
     
-    const auto& vtx_ana = _reco_holder.ana();
+    const auto& vtx_ana = _RecoHolder.ana();
       
-    LARCV_DEBUG() << "Matching... " << _reco_holder.Verticies().size() << " vertices" << std::endl;
-    for(size_t vtxid=0;vtxid<_reco_holder.Verticies().size();++vtxid) {
-      const auto& vtx3d = *(_reco_holder.Vertex(vtxid));
-      const auto& pcluster_vv = _reco_holder.PlaneParticles(vtxid);
-      const auto& tcluster_vv = _reco_holder.PlaneTracks(vtxid);
+    LARCV_DEBUG() << "Matching... " << _RecoHolder.Verticies().size() << " vertices" << std::endl;
+    for(size_t vtxid=0;vtxid<_RecoHolder.Verticies().size();++vtxid) {
+      const auto& vtx3d = *(_RecoHolder.Vertex(vtxid));
+      const auto& pcluster_vv = _RecoHolder.PlaneParticles(vtxid);
+      const auto& tcluster_vv = _RecoHolder.PlaneTracks(vtxid);
       
-      auto match_vv = _reco_holder.Match(vtxid,adc_cvimg_v_);
+      auto match_vv = _RecoHolder.Match(vtxid,adc_cvimg_v_);
       
       if (match_vv.empty()) {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
@@ -436,14 +436,14 @@ namespace larcv {
     }//end vertex
 
     LARCV_DEBUG() << "Event pgraph size " << event_pgraph->PGraphArray().size() << std::endl;
-    _reco_holder.FilterMatches();
+    _RecoHolder.FilterMatches();
     if (_write_reco) {
       const auto& eid = iom.event_id();
-      _reco_holder.SetMeta(adc_image_v);
-      _reco_holder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
+      _RecoHolder.SetMeta(adc_image_v);
+      _RecoHolder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
     }
 
-    _reco_holder.Reset();
+    _RecoHolder.Reset();
     return true;
   }
   
@@ -599,7 +599,7 @@ namespace larcv {
       _alg_mgr.Finalize(&(ana_file()));
     
     if (_write_reco)
-      _reco_holder.WriteOut(&(ana_file()));
+      _RecoHolder.WriteOut(&(ana_file()));
 
   }
   

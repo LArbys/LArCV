@@ -36,7 +36,7 @@ namespace larcv {
 
     const PreProcessor& PProcessor() const { return _PreProcessor; }
     const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
-    const LArbysRecoHolder& LArbysHolder() const { return _reco_holder; }
+    const LArbysRecoHolder& LArbysHolder() const { return _RecoHolder; }
     
   protected:
 
@@ -98,7 +98,7 @@ namespace larcv {
     
     PreProcessor     _PreProcessor;
     LArbysImageMaker _LArbysImageMaker;
-    LArbysRecoHolder _reco_holder;
+    LArbysRecoHolder _RecoHolder;
     
     std::vector<larcv::Image2D> _empty_image_v;
     std::vector<larcv::Image2D> _thrumu_image_v;

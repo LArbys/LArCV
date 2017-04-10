@@ -19,6 +19,7 @@
 #pragma link C++ class larcv::LArOCVSerial+;
 #pragma link C++ class larcv::LArbysRecoHolder+;
 #pragma link C++ class larcv::LArbysImageMaker+;
+#pragma link C++ class larcv::LArbysImageExtract+;
 #pragma link C++ class larcv::LEE1e1p+;
 #pragma link C++ class larcv::VertexInROI+;
 
