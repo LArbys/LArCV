@@ -117,9 +117,8 @@ namespace larcv {
     
     _tx = _ty = _tz = _tt = _te = -1.;
     _scex = _scey = _scez = -1.;
-
     for(auto const& roi : ev_roi_v->ROIArray()){
-      if(roi.PdgCode() == 12 || roi.PdgCode() == 14) {
+      if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14) {
 	_tx = roi.X();
 	_ty = roi.Y();
 	_tz = roi.Z();
@@ -140,9 +139,14 @@ namespace larcv {
     auto geo = larutil::Geometry::GetME();
     auto larp = larutil::LArProperties::GetME();
     double wire_v[3];
-    wire_v[0] = geo->NearestWire(xyz,0);
-    wire_v[1] = geo->NearestWire(xyz,1);
-    wire_v[2] = geo->NearestWire(xyz,2);
+    try {
+      wire_v[0] = geo->NearestWire(xyz,0);
+      wire_v[1] = geo->NearestWire(xyz,1);
+      wire_v[2] = geo->NearestWire(xyz,2);
+    }catch(const std::exception& e) {
+      std::cout<<xyz[0]<<" "<<xyz[1]<<" " <<xyz[2]<<std::endl;
+      throw e;
+    }
     const double tick = (_scex / larp->DriftVelocity() + 4) * 2. + 3200.;
     _num_croi  = ev_croi_v->ROIArray().size();
     _area_croi0 = 0.;
@@ -253,9 +257,11 @@ namespace larcv {
 	  for(size_t i=1; i<ctor0.size(); ++i) {
 	    auto const& pt0 = ctor0[i-1];
 	    auto const& pt1 = ctor0[i];
-	    _len0 += sqrt(pow(pt0.X()-pt1.X(),2)+pow(pt0.Y()-pt1.Y(),2));
+	    _len0 += sqrt(pow((float)(pt0.X()) - (float)(pt1.X()),2) + pow((float)(pt0.Y()) - (float)(pt1.Y()),2));
 	  }
-	  _len0 += sqrt(pow(ctor0.front().X()-ctor0.back().X(),2)+pow(ctor0.front().Y()-ctor0.back().Y(),2));
+	  _len0 += sqrt(pow((float)(ctor0.front().X()) - (float)(ctor0.back().X()),2)
+			+
+			pow((float)(ctor0.front().Y()) - (float)(ctor0.back().Y()),2));
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor0.size());
 	  for(size_t i=0; i<ctor0.size(); ++i) {
@@ -274,8 +280,11 @@ namespace larcv {
 	  for(size_t i=1; i<ctor1.size(); ++i) {
 	    auto const& pt0 = ctor1[i-1];
 	    auto const& pt1 = ctor1[i];
-	    _len1 += sqrt(pow(pt0.X()-pt1.X(),2)+pow(pt0.Y()-pt1.Y(),2));
+	    _len1 += sqrt(pow((float)(pt0.X()) - (float)(pt1.X()),2) + pow((float)(pt0.Y()) - (float)(pt1.Y()),2));
 	  }
+	  _len1 += sqrt(pow((float)(ctor1.front().X()) - (float)(ctor1.back().X()),2)
+			+
+			pow((float)(ctor1.front().Y()) - (float)(ctor1.back().Y()),2));
 	  _len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
