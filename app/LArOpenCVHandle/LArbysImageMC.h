@@ -109,7 +109,7 @@ namespace larcv {
     std::vector<int>   _daughter_pdg_v;
     std::vector<uint>   _daughter_trackid_v;
     std::vector<uint>   _daughter_parenttrackid_v;    
-
+    
     std::vector<double> _daughter_energyinit_v;
     std::vector<double> _daughter_energydep_v;
 
@@ -133,6 +133,12 @@ namespace larcv {
     std::vector<double> _vtx_2d_w_v;
     std::vector<double> _vtx_2d_t_v;
 
+    ///Project 3D track into 2D Image(per plane) 
+    void Project3D(const ImageMeta& meta,
+		   double _parent_x,double _parent_y,double _parent_z,double _parent_t,uint plane,
+		   double& xpixel, double& ypixel);
+    
+    
   protected:
     /// LARCV Image2D data
     std::vector<larcv::Image2D> _image_v;
@@ -181,12 +187,10 @@ namespace larcv {
     bool _is_signal;
     bool _mc_available;
     bool _write_tree;
+
+
     
   private:
-    ///Project 3D track into 2D Image(per plane) 
-    void Project3D(const ImageMeta& meta,
-		   double _parent_x,double _parent_y,double _parent_z,uint plane,
-		   double& xpixel, double& ypixel);
     
     ///Calculate edge point on 2D ROI
     geo2d::Vector<float> Intersection (const geo2d::HalfLine<float>& hline,
