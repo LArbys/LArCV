@@ -35,7 +35,7 @@ namespace larcv {
     
     std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
     ExtractImage(const std::vector<Image2D>& image_v);
-
+    
 
     Image2D
     ConstructCosmicImage(const EventPixel2D* ev_pixel2d,

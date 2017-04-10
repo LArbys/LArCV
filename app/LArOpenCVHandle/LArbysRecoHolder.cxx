@@ -18,7 +18,7 @@ namespace larcv {
   
   void
   LArbysRecoHolder::FilterMatches() {
-
+    
     std::vector<const larocv::data::Vertex3D*> vertex_ptr_v;
     std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > particle_cluster_ptr_vvv;
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > track_comp_ptr_vvv;

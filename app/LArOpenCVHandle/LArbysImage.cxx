@@ -5,7 +5,6 @@
 #include "Base/ConfigManager.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
-#include "LArbysImageOut.h"
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
@@ -52,11 +51,10 @@ namespace larcv {
     _process_time_analyze = 0;
     _process_time_cluster_storage = 0;
     
-    _plane_weights = cfg.get<std::vector<float> >("MatchPlaneWeights",{1,1,1});
-
     ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
-    _alg_mgr.MatchPlaneWeights() = _plane_weights;
+
+    _filter_reco = cfg.get<bool>("FilterReco",true);
   }
   
   void LArbysImage::initialize()
@@ -315,7 +313,6 @@ namespace larcv {
 
     _reco_holder.ShapeData(mgr);
 
-    bool _filter_reco=true;
     if (_filter_reco)
       _reco_holder.Filter();
     
@@ -342,10 +339,12 @@ namespace larcv {
 	
       PGraph pgraph;
       for( auto match_v : match_vv ) {
-	std::array<size_t,3> plane_arr{{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
-	std::array<size_t,3> id_arr{{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
-	std::array<const larocv::data::ParticleCluster*,3> pcluster_arr{{nullptr,nullptr,nullptr}};
-	std::array<const larocv::data::TrackClusterCompound*,3> tcluster_arr{{nullptr,nullptr,nullptr}};
+
+	std::array<size_t,3> plane_arr, id_arr;
+	plane_arr = id_arr = {{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
+
+	std::array<const larocv::data::ParticleCluster*,3>      pcluster_arr {{nullptr,nullptr,nullptr}};
+	std::array<const larocv::data::TrackClusterCompound*,3> tcluster_arr {{nullptr,nullptr,nullptr}};
 
 	larocv::data::ParticleType_t partype;
 	LARCV_DEBUG() << "Examining " << match_v.size() << " match." << std::endl;

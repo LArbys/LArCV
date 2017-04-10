@@ -92,10 +92,11 @@ namespace larcv {
     double _process_time_image_extraction;
     double _process_time_analyze;
     double _process_time_cluster_storage;
-
+    bool   _filter_reco;
+    
     void Report() const;
     
-    PreProcessor _PreProcessor;
+    PreProcessor     _PreProcessor;
     LArbysImageMaker _LArbysImageMaker;
     LArbysRecoHolder _reco_holder;
     
