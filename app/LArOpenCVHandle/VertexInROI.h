@@ -18,10 +18,7 @@ namespace larcv {
     bool process(IOManager& mgr);
     void finalize();
 
-    bool _switch;
     
-    uint _croi_idx;
-
   private:
     ::larutil::SpaceChargeMicroBooNE _sce;
 
@@ -29,7 +26,7 @@ namespace larcv {
     std::string _input_roi_producer;
     std::string _output_roi_producer;
     uint _planes_inside_threshold;
-    
+    int _croi_idx;
   };
 
   class VertexInROIProcessFactory : public ProcessFactoryBase {

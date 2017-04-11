@@ -44,11 +44,12 @@ namespace larcv {
 			  const std::vector<cv::Mat>& adc_cvimg_v,
 			  bool sort) {
     
-    auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id),
-					   adc_cvimg_v,
-					   _match_coverage,
-					   _match_particles_per_plane,
-					   _match_min_number);
+    auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id), // particles per plane
+					   adc_cvimg_v,                  // adc cv imaage
+					   _match_coverage,              // required coverage
+					   _match_particles_per_plane,   // requires # particles per plane
+					   _match_min_number,            // min number of matches
+					   true);                        // ensure particle type is same
     
 
     if (sort) {

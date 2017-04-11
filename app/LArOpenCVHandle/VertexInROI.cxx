@@ -86,7 +86,7 @@ namespace larcv {
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
       
       //do you want a certain croi?
-      if (_croi_idx>0) {
+      if (_croi_idx>=0) {
 	if( croi_idx == _croi_idx ) {
 	  ev_croi_true_v->Append(ev_croi_v->ROIArray()[croi_idx]);
 	}
