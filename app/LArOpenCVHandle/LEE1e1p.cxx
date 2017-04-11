@@ -100,6 +100,7 @@ namespace larcv {
     _event_tree->Branch("area_croi0",&_area_croi0,"area_croi0/D");
     _event_tree->Branch("area_croi1",&_area_croi1,"area_croi1/D");
     _event_tree->Branch("area_croi2",&_area_croi2,"area_croi2/D");
+    _event_tree->Branch("good_croi_ctr",&_good_croi_ctr,"good_croi_ctr/I");
     _event_tree->Branch("num_croi",&_num_croi,"num_croi/I");
     _event_tree->Branch("min_vtx_dist",&_min_vtx_dist,"min_vtx_dist/D");
     
@@ -231,10 +232,22 @@ namespace larcv {
     _good_croi0 = 0;
     _good_croi1 = 0;
     _good_croi2 = 0;
+    _good_croi_ctr = 0;
     
     for(auto const& croi : ev_croi_v->ROIArray()) {
       
       auto const& bb_v = croi.BB();
+      size_t good_croi_ctr = 0;
+      for(size_t plane=0; plane<bb_v.size(); ++plane) {
+	auto const& croi_meta = bb_v[plane];
+	auto const& wire = wire_v[plane];
+	//double dist = 1.e9;
+	if( croi_meta.min_x() <= wire && wire <= croi_meta.max_x() &&
+	    croi_meta.min_y() <= tick && tick <= croi_meta.max_y() )
+	  ++good_croi_ctr;
+      }
+      if(good_croi_ctr <= _good_croi_ctr) continue;
+
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
 	auto const& wire = wire_v[plane];
@@ -250,7 +263,7 @@ namespace larcv {
 	if(plane == 2) _area_croi2 += (croi_meta.rows() * croi_meta.cols());
       }
     }
-    
+      
     auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
     

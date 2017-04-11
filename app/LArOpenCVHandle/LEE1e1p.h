@@ -134,6 +134,7 @@ namespace larcv {
     int _good_croi0;
     int _good_croi1;
     int _good_croi2;
+    int _good_croi_ctr;
     int _num_croi;
     double _min_vtx_dist;
     ::larutil::SpaceChargeMicroBooNE _sce;
