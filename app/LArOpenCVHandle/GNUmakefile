@@ -13,7 +13,6 @@ INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larlite-config --includes)
 INCFLAGS += $(shell basictool-config --includes)
 INCFLAGS += $(shell larcv-config --includes)
-INCFLAGS += $(shell basictool-config --includes)
 INCFLAGS += $(shell recotool-config --includes)
 INCFLAGS += -I$(LARLITE_COREDIR)
 INCFLAGS += -I$(LAROPENCV_BASEDIR)
@@ -23,13 +22,10 @@ INCFLAGS += -I$(LARCV_APPDIR)/NuFilter
 
 LDFLAGS += -L$(LARLITE_LIBDIR)
 LDFLAGS += $(shell larlite-config --libs)
+LDFLAGS += -lLArOpenCV_Core
 LDFLAGS += -lLArOpenCV_ImageClusterBase
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoData
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoModule
-LDFLAGS += -lLArOpenCV_ImageClusterCluster
-LDFLAGS += -lLArOpenCV_ImageClusterUtil
-LDFLAGS += -lLArOpenCV_Utils
-LDFLAGS += -lLArOpenCV_Core
 LDFLAGS += -lRecoTool_ClusterRecoUtil
 LDFLAGS += -lBasicTool_FhiclLite
 
