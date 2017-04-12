@@ -264,7 +264,7 @@ namespace larcv {
 	  const auto& comp = comp_array->as_vector()[comp_ass_id];
 	  tcluster_v[ass_id] = &comp;
 	} 
-	_vtx_ana.ResetPlaneInfo(mgr.InputImageMetas(0).at(plane));
+	_vtx_ana.ResetPlaneInfo(mgr.InputImageMetas(larocv::ImageSetID_t::kImageSetWire).at(plane));
       }
       _particle_cluster_ptr_vvv.emplace_back(std::move(pcluster_vv));
       _track_comp_ptr_vvv.emplace_back(std::move(tcluster_vv));

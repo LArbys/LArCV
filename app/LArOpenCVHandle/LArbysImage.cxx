@@ -299,7 +299,7 @@ namespace larcv {
 				   size_t& pidx) {
     
     LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
-    const auto& adc_cvimg_v_ = mgr.InputImages(0);
+    const auto& adc_cvimg_v_ = mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
 
     std::vector<cv::Mat> adc_cvimg_v;
     adc_cvimg_v.resize(3);
@@ -520,7 +520,7 @@ namespace larcv {
       const auto & roi  = _adc_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, 0);
+      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetWire);
     }
 
     for (size_t plane = 0; plane < _track_img_mgr.size(); ++plane) {
@@ -530,7 +530,7 @@ namespace larcv {
       const auto & roi  = _track_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, 1);
+      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetTrack);
     }
     
     for (size_t plane = 0; plane < _shower_img_mgr.size(); ++plane) {
@@ -540,7 +540,7 @@ namespace larcv {
       const auto & roi  = _shower_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, 2);
+      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetShower);
     }
 
     for (size_t plane = 0; plane < _thrumu_img_mgr.size(); ++plane) {
@@ -550,7 +550,7 @@ namespace larcv {
       const auto & roi  = _thrumu_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, 3);
+      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetThruMu);
     }
 
     for (size_t plane = 0; plane < _stopmu_img_mgr.size(); ++plane) {
@@ -560,14 +560,14 @@ namespace larcv {
       const auto & roi  = _stopmu_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, 4);
+      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetStopMu);
     }
 
     if (_preprocess) {
       //give a single plane @ a time to pre processor
-      auto& adc_img_v= _alg_mgr.InputImagesRW(0,true);
-      auto& trk_img_v= _alg_mgr.InputImagesRW(1,true);
-      auto& shr_img_v= _alg_mgr.InputImagesRW(2,true);
+      auto& adc_img_v= _alg_mgr.OriginalInputImages(larocv::ImageSetID_t::kImageSetWire);
+      auto& trk_img_v= _alg_mgr.OriginalInputImages(larocv::ImageSetID_t::kImageSetTrack);
+      auto& shr_img_v= _alg_mgr.OriginalInputImages(larocv::ImageSetID_t::kImageSetShower);
       auto nplanes = adc_img_v.size();
       for(size_t plane_id=0;plane_id<nplanes;++plane_id) {
 	LARCV_DEBUG() << "Preprocess image set @ "<< " plane " << plane_id << std::endl;
