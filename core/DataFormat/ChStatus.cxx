@@ -1,5 +1,5 @@
-#ifndef CHSTATUS_CXX
-#define CHSTATUS_CXX
+#ifndef __LARCV_CHSTATUS_CXX__
+#define __LARCV_CHSTATUS_CXX__
 
 #include <sstream>
 #include "ChStatus.h"
