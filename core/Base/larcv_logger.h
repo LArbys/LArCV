@@ -55,6 +55,9 @@ namespace larcv {
     /// Set of loggers
     static std::map<std::string,larcv::logger> *_logger_m;
 
+    /// Shared logger
+    static larcv::logger* _shared_logger;
+
     /// Default logger level
     static msg::Level_t _level_default;
     
@@ -88,6 +91,8 @@ namespace larcv {
       }
       return iter->second;
     };
+
+    static logger& get_shared();
 
     /// Default logger level getter
     static msg::Level_t default_level() { return _level_default; }
@@ -140,6 +145,13 @@ namespace larcv {
 #define LARCV_ERROR()    if( logger().error   () ) logger().send(::larcv::msg::kERROR,    __FUNCTION__, __LINE__          )
 /// Compiler macro for CRITICAL message
 #define LARCV_CRITICAL()                           logger().send(::larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__)
+
+#define LARCV_SDEBUG()    if(larcv::logger::get_shared().debug())    larcv::logger::get_shared().send(::larcv::msg::kDEBUG,    __FUNCTION__,__LINE__,__FILE__)
+#define LARCV_SINFO()     if(larcv::logger::get_shared().info())     larcv::logger::get_shared().send(::larcv::msg::kINFO,     __FUNCTION__,__LINE__         )
+#define LARCV_SNORMAL()   if(larcv::logger::get_shared().normal())   larcv::logger::get_shared().send(::larcv::msg::kNORMAL,   __FUNCTION__                  )
+#define LARCV_SWARNING()  if(larcv::logger::get_shared().warning())  larcv::logger::get_shared().send(::larcv::msg::kWARNING,  __FUNCTION__                  )
+#define LARCV_SERROR()    if(larcv::logger::get_shared().error())    larcv::logger::get_shared().send(::larcv::msg::kERROR,    __FUNCTION__,__LINE__         )
+#define LARCV_SCRITICAL() larcv::logger::get_shared().send(::larcv::msg::kCRITICAL, __FUNCTION__,__LINE__,__FILE__)
   
 /** @} */ // end of doxygen group logger
 #endif
