@@ -247,7 +247,8 @@ namespace larcv {
 	  ++good_croi_ctr;
       }
       if(good_croi_ctr <= _good_croi_ctr) continue;
-
+      if (good_croi_ctr>1)_good_croi_ctr+=1;
+      
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
 	auto const& wire = wire_v[plane];
