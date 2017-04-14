@@ -27,7 +27,7 @@ namespace larcv {
   public:
     
     /// Default constructor
-    load_pyutil(){}
+    load_pyutil();
 
     /// Default destructor
     ~load_pyutil(){}

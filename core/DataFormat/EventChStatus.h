@@ -11,8 +11,8 @@
 /** \addtogroup DataFormat
 
     @{*/
-#ifndef EVENTCHSTATUS_H
-#define EVENTCHSTATUS_H
+#ifndef __LARCV_EVENTCHSTATUS_H__
+#define __LARCV_EVENTCHSTATUS_H__
 
 #include <iostream>
 #include <map>

@@ -20,7 +20,7 @@ namespace larcv {
     _image_producer = cfg.get<std::string>("ImageProducer");
 
     _chstatus_producer = cfg.get<std::string>("ChStatusProducer","");
-    _plane_id = cfg.get<size_t>("PlaneID",-1);
+    _plane_id = cfg.get<int>("PlaneID",-1);
     _mask_val = cfg.get<float>("MaskValue",0);
     _threshold = (chstatus::ChannelStatus_t)(cfg.get<unsigned short>("ChStatusThreshold",chstatus::kGOOD));
 

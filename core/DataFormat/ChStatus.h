@@ -11,8 +11,8 @@
 /** \addtogroup DataFormat
 
     @{*/
-#ifndef CHSTATUS_H
-#define CHSTATUS_H
+#ifndef __LARCV_CHSTATUS_H__
+#define __LARCV_CHSTATUS_H__
 
 #include <iostream>
 #include "DataFormatTypes.h"

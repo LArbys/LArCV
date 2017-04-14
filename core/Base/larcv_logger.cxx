@@ -4,6 +4,8 @@
 #include "larcv_logger.h"
 namespace larcv {
 
+  logger *logger::_shared_logger = nullptr;
+  
   std::map<std::string,logger> *logger::_logger_m = nullptr;
 
   msg::Level_t logger::_level_default = msg::kNORMAL;
@@ -41,6 +43,12 @@ namespace larcv {
     // FIXME temporary operation to fetch file name from full path
     strm << file_name.substr(file_name.rfind("/")+1,file_name.size()).c_str() << "::L" << line_num << " ";
     return strm;
+  }
+  
+  logger& logger::get_shared()
+  {
+    if(!_shared_logger) _shared_logger = new logger("GLOBAL");
+    return *_shared_logger;
   }
 }
 #endif
