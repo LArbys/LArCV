@@ -3,6 +3,7 @@
 
 #include "HiResImageDivider.h"
 #include "DataFormat/EventImage2D.h"
+#include "LArUtil/SpaceChargeMicroBooNE.h"
 #include "TFile.h"
 #include "TTree.h"
 
@@ -19,10 +20,20 @@ namespace larcv {
     HiResImageDivider::HiResImageDivider(const std::string name)
       : ProcessBase(name)
     {}
+
+    void HiResImageDivider::ApplySCE(larcv::Vertex& vtx)
+    {
+      static larutil::SpaceChargeMicroBooNE sce;
+      auto pos = sce.GetPosOffsets(vtx.X(), vtx.Y(), vtx.Z());
+      vtx.Reset( (vtx.X() - pos[0] + 0.7),
+		 (vtx.Y() + pos[1]),
+		 (vtx.Z() + pos[2]),
+		 vtx.T());
+    }
     
     void HiResImageDivider::configure(const PSet& cfg)
     {
-
+      fApplySCE           = cfg.get<bool>("ApplySCE",true);   // apply space-charge-effect correction
       fUseDivFile         = cfg.get<bool>("UseDivFile",true);       // load division definitions from file
       if ( !fUseDivFile ) {
 	fDivisionFile       = cfg.get<std::string>("DivisionFile",""); // division file [not used]
@@ -280,8 +291,8 @@ namespace larcv {
     
     void HiResImageDivider::finalize()
     {
-      LARCV_WARNING() << "Skipped events due to vertex-box not overlapping with ROI: " << fROISkippedEvent << " / " << fProcessedEvent << std::endl;
-      LARCV_WARNING() << "Skipped ROI due to not within vertex-box: " << fROISkipped << " / " << fProcessedROI << std::endl;
+      LARCV_NORMAL() << "Skipped events due to vertex-box not overlapping with ROI: " << fROISkippedEvent << " / " << fProcessedEvent << std::endl;
+      LARCV_NORMAL() << "Skipped ROI due to not within vertex-box: " << fROISkipped << " / " << fProcessedROI << std::endl;
     }
 
     // -------------------------------------------------------
@@ -411,10 +422,12 @@ namespace larcv {
     }
     
     int HiResImageDivider::findVertexDivision( const larcv::ROI& roi ) {
+      auto vtx = roi.Position();
+      if(fApplySCE) ApplySCE(vtx);
       int regionindex = 0;
       for ( std::vector< larcv::hires::DivisionDef >::iterator it=m_divisions.begin(); it!=m_divisions.end(); it++) {
 	DivisionDef const& div = (*it);
-	if ( div.isInsideDetRegion( roi.X(), roi.Y(), roi.Z() ) )
+	if ( div.isInsideDetRegion( vtx.X(), vtx.Y(), vtx.Z() ) )
 	  return regionindex;
 	regionindex++;
       }

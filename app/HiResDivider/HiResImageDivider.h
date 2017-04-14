@@ -25,7 +25,7 @@
 #include "PMTWeights/PMTWireWeights.h"
 #include "DivisionDef.h"
 #include "DataFormat/EventImage2D.h"
-
+#include "DataFormat/Vertex.h"
 namespace larcv {
   namespace hires {
     /**
@@ -53,6 +53,7 @@ namespace larcv {
 
     protected:
 
+      bool fApplySCE;
       bool fUseDivFile;
       std::string fDivisionFile;
       int fNumZdivisions;
@@ -91,7 +92,7 @@ namespace larcv {
       size_t fProcessedROI;
       size_t fROISkipped;
       
-
+      void ApplySCE(larcv::Vertex& vtx);
       bool isInteresting( const larcv::ROI& roi );
       bool isAbovePixelThreshold( const larcv::EventImage2D& imgs );
       int findVertexDivision( const larcv::ROI& roi );
