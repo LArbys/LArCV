@@ -10,20 +10,21 @@ libs+= commands.getoutput('root-config --libs').split()
 if 'LARLITE_BASEDIR' in os.environ:
     libs+= commands.getoutput('larlite-config --libs').split()
     if 'LAROPENCV_BASEDIR' in os.environ:
+        libs += [' -lLArOpenCV_Core']
         libs += [' -lLArOpenCV_ImageClusterBase']
         libs += [' -lLArOpenCV_ImageClusterAlgoData']
         libs += [' -lLArOpenCV_ImageClusterAlgoFunction']
         libs += [' -lLArOpenCV_ImageClusterAlgoClass']
         libs += [' -lLArOpenCV_ImageClusterAlgoModule']
-        #libs += [' -lLArOpenCV_ImageClusterCluster']
-        libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
+        libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core']
+        libs += [' -lRecoTool_ClusterRecoUtil']
         libs += [' -lBasicTool_FhiclLite']
     if 'GEO2D_BASEDIR' in os.environ:
         libs += [' -L%s' % os.environ['GEO2D_LIBDIR']]
         libs += [' -lGeo2D_Core']
         libs += [' -lGeo2D_Algorithm']
-if 'ANN_LIBDIR' in os.environ:
-    libs+= ["%s/libANN.a" % ( os.environ["ANN_LIBDIR"].strip() )]
+# if 'ANN_LIBDIR' in os.environ:
+#     libs+= ["%s/libANN.a" % ( os.environ["ANN_LIBDIR"].strip() )]
 
 objs_list=[]
 dict_list=[]

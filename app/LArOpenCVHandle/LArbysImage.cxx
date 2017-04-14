@@ -565,9 +565,9 @@ namespace larcv {
 
     if (_preprocess) {
       //give a single plane @ a time to pre processor
-      auto& adc_img_v= _alg_mgr.OriginalInputImages(larocv::ImageSetID_t::kImageSetWire);
-      auto& trk_img_v= _alg_mgr.OriginalInputImages(larocv::ImageSetID_t::kImageSetTrack);
-      auto& shr_img_v= _alg_mgr.OriginalInputImages(larocv::ImageSetID_t::kImageSetShower);
+      auto& adc_img_v= _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
+      auto& trk_img_v= _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetTrack);
+      auto& shr_img_v= _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetShower);
       auto nplanes = adc_img_v.size();
       for(size_t plane_id=0;plane_id<nplanes;++plane_id) {
 	LARCV_DEBUG() << "Preprocess image set @ "<< " plane " << plane_id << std::endl;
