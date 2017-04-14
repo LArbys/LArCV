@@ -142,6 +142,7 @@ namespace larcv {
     // Set ProcessDriver
     LARCV_INFO() << "Retrieving self (ProcessDriver) config" << std::endl;
     set_verbosity((msg::Level_t)(cfg.get<unsigned short>("Verbosity",logger().level())));
+    larcv::logger::get_shared().set(logger().level());
     _enable_filter = cfg.get<bool>("EnableFilter");
     _random_access = cfg.get<bool>("RandomAccess");
     _fout_name = cfg.get<std::string>("AnaFile","");
@@ -267,9 +268,11 @@ namespace larcv {
     if(!_has_event_creator) {
       // If not read mode save entry
       if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) _io.save_entry();    
-      // Bump up entry record
+      _io.clear_entry();
     }
     if(_io.io_mode() == IOManager::kREAD) _io.clear_entry();
+
+    // Bump up entry record
     ++_current_entry;
 
     return good_status;
