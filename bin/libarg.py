@@ -15,7 +15,7 @@ if 'LARLITE_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterAlgoFunction']
         libs += [' -lLArOpenCV_ImageClusterAlgoClass']
         libs += [' -lLArOpenCV_ImageClusterAlgoModule']
-        libs += [' -lLArOpenCV_ImageClusterCluster']
+        #libs += [' -lLArOpenCV_ImageClusterCluster']
         libs += [' -lLArOpenCV_Utils -lLArOpenCV_Core -lRecoTool_ClusterRecoUtil']
         libs += [' -lBasicTool_FhiclLite']
     if 'GEO2D_BASEDIR' in os.environ:
