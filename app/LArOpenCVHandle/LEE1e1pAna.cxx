@@ -11,9 +11,6 @@
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
 #include "LArbysUtils.h"
-
-#define PI 3.14159265
-
 namespace larcv {
 
   static LEE1e1pAnaProcessFactory __global_LEE1e1pAnaProcessFactory__;
@@ -265,7 +262,6 @@ namespace larcv {
       _npx0 = _npx1 = 0;
       _len0 = _len1 = _area0 = _area1 = 0.;
       _q0 = _q1 = 0.;
-      
       for(auto const& plane : plane_order_v) {
 
 	auto iter_pcluster = pcluster_m.find(plane);
@@ -279,11 +275,9 @@ namespace larcv {
 	
 	auto const& pcluster0 = pcluster_v.at(cluster_idx0);
 	auto const& ctor0 = ctor_v.at(cluster_idx0);
-
 	if(!done0 && ctor0.size()>2) {
-	  	  
 	  _npx0 = pcluster0.size();
-	  	  
+	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
 	  for(size_t i=1; i<ctor0.size(); ++i) {
 	    auto const& pt0 = ctor0[i-1];
 	    auto const& pt1 = ctor0[i];
@@ -299,22 +293,14 @@ namespace larcv {
 	    ctor[i].y = ctor0[i].Y();
 	  }
 	  _area0 = larocv::ContourArea(ctor);
-	  	  
-	  ::larocv::GEO2D_Contour_t pclus;
-	  pclus.clear();
-	  
-	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
 
 	  done0 = true;
 	}
-	
 	auto const& pcluster1 = pcluster_v.at(cluster_idx1);
 	auto const& ctor1 = ctor_v.at(cluster_idx1);
-	
 	if(!done1 && ctor1.size()>2) {
-	  
 	  _npx1 = pcluster1.size();
-	  
+	  for(auto const& pt : pcluster1) _q1 += pt.Intensity();
 	  for(size_t i=1; i<ctor1.size(); ++i) {
 	    auto const& pt0 = ctor1[i-1];
 	    auto const& pt1 = ctor1[i];
@@ -324,7 +310,6 @@ namespace larcv {
 			+
 			pow((float)(ctor1.front().Y()) - (float)(ctor1.back().Y()),2));
 	  _len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
-	  
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
@@ -332,8 +317,6 @@ namespace larcv {
 	    ctor[i].y = ctor1[i].Y();
 	  }
 	  _area1 = ::larocv::ContourArea(ctor);
-	  
-	  for(auto const& pt : pcluster1)  _q1 += pt.Intensity();
 	  
 	  done1 = true;
 	}
