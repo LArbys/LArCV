@@ -4,6 +4,7 @@
 #include "ParticleAna.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/PixelChunk.h"
 #include "LArbysUtils.h"
+#include <numeric>
 
 #define PI 3.14159265
 
@@ -116,14 +117,14 @@ namespace larcv {
     _ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,_pcluster_img_prod);
     _ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,_pcluster_ctor_prod);
 
-    if(!_track_img_prod.empty())
+    if(!_trk_img_prod.empty())
       _ev_trk_img_v = (EventImage2D*)mgr.get_data(kProductImage2D,_trk_img_prod);
-    if(!_shower_img_prod.empty())
+    if(!_shr_img_prod.empty())
       _ev_shr_img_v = (EventImage2D*)mgr.get_data(kProductImage2D,_shr_img_prod);
     
-    _run    = ev_pgraph->run();
-    _subrun = ev_pgraph->subrun();
-    _event  = ev_pgraph->event();
+    _run    = _ev_pgraph_v->run();
+    _subrun = _ev_pgraph_v->subrun();
+    _event  = _ev_pgraph_v->event();
     _entry  = mgr.current_entry();
     
     if(_analyze_particle) AnalyzeParticle();
@@ -563,5 +564,24 @@ namespace larcv {
     return pt;
   }
 
+  double ParticleAna::Mean(const std::vector<float>& v)
+  {
+    double sum = std::accumulate(v.begin(), v.end(), 0.0);
+    double mean = sum / (double) v.size();
+    
+    return mean;
+  }
+
+  double ParticleAna::STD(const std::vector<float>& v)
+  {
+    double sum = std::accumulate(v.begin(), v.end(), 0.0);
+    double mean = sum / (double) v.size();
+    double sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
+    double stdev = std::sqrt(sq_sum / (double) v.size() - mean * mean);
+    
+    return stdev;
+  }
+
+  
 }
 #endif

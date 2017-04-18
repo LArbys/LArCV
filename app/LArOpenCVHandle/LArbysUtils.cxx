@@ -5,6 +5,7 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 #include <numeric>
+
 namespace larcv {
   
   cv::Rect Get2DRoi(const ImageMeta& meta,
@@ -104,27 +105,7 @@ namespace larcv {
     
   }
 
-
-  template <class T>
-  T Mean(std::vector<T> v)
-  {
-    T sum = std::accumulate(v.begin(), v.end(), 0.0);
-    T mean = sum / v.size();
-    
-    return mean;
-  }
-
-  template <class T>
-  T STD(std::vector<T> v)
-  {
-    T sum = std::accumulate(v.begin(), v.end(), 0.0);
-    T mean = sum / v.size();
-    T sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
-    T stdev = std::sqrt(sq_sum / v.size() - mean * mean);
-    
-    return stdev;
-  }
-
   
 }
+
 #endif

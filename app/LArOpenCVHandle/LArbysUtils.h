@@ -28,12 +28,6 @@ namespace larcv {
   Intersection(const geo2d::HalfLine<float>& hline,
 	       const cv::Rect& rect);
 
-  template <class T>
-  T Mean(std::vector<T> v);
-  
-  template <class T>
-  T STD(std::vector<T> v);
-  
 }
 
 #endif
