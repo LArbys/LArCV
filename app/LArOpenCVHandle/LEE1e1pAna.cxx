@@ -24,11 +24,11 @@ namespace larcv {
     
   void LEE1e1pAna::configure(const PSet& cfg)
   {
-    _pgraph_prod        = cfg.get<std::string>("test");
-    _pcluster_ctor_prod = cfg.get<std::string>("test_ctor");
-    _pcluster_img_prod  = cfg.get<std::string>("test_img");
-    _truth_roi_prod     = cfg.get<std::string>("tpc");
-    _reco_roi_prod      = cfg.get<std::string>("croi_merge");
+    _pgraph_prod        = cfg.get<std::string>("PGraphProducer","test");
+    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer","test_ctor");
+    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer","test_img");
+    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer","tpc");
+    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer","croi_merge");
   }
     
   
@@ -179,18 +179,16 @@ namespace larcv {
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
 	auto const& wire = wire_v[plane];
-	//double dist = 1.e9;
 	if( croi_meta.min_x() <= wire && wire <= croi_meta.max_x() &&
 	    croi_meta.min_y() <= tick && tick <= croi_meta.max_y() )
 	  ++good_croi_ctr;
       }
       if(good_croi_ctr <= _good_croi_ctr) continue;
-      if (good_croi_ctr>1)_good_croi_ctr+=1;
+      if(good_croi_ctr > 1) _good_croi_ctr+=1;
       
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
 	auto const& wire = wire_v[plane];
-	//double dist = 1.e9;
 	if( croi_meta.min_x() <= wire && wire <= croi_meta.max_x() &&
 	    croi_meta.min_y() <= tick && tick <= croi_meta.max_y() ) {
 	  if(plane == 0) _good_croi0 = 1;

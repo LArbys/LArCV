@@ -320,12 +320,13 @@ namespace larcv {
       
     LARCV_DEBUG() << "Matching... " << _RecoHolder.Verticies().size() << " vertices" << std::endl;
     for(size_t vtxid=0;vtxid<_RecoHolder.Verticies().size();++vtxid) {
-
-      const auto& vtx3d = *(_RecoHolder.Vertex(vtxid));
+      
+      const auto& vtx3d       = *(_RecoHolder.Vertex(vtxid));
       const auto& pcluster_vv = _RecoHolder.PlaneParticles(vtxid);
       const auto& tcluster_vv = _RecoHolder.PlaneTracks(vtxid);
-      
-      auto match_vv = _RecoHolder.Match(vtxid,adc_cvimg_v_);
+
+      LARCV_DEBUG() << vtxid << ") @ (x,y,z) : ("<<vtx3d.x<<","<<vtx3d.y<<","<<vtx3d.z<<")"<<std::endl;
+      auto match_vv = _RecoHolder.Match(vtxid,adc_cvimg_v);
       
       if (match_vv.empty()) {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
@@ -378,8 +379,9 @@ namespace larcv {
 	// Push the ROI into the PGraph
 	LARCV_DEBUG() << " @ pg array index " << pidx << std::endl;
 
-	for(size_t plane=0;plane<3;++plane) 
+	for(size_t plane=0; plane<3; ++plane) 
 	  proi.AppendBB(adc_image_v[plane].meta());
+	
 	pgraph.Emplace(std::move(proi),pidx);
 	pidx++;
 
@@ -411,7 +413,7 @@ namespace larcv {
 
 	    // Store contour
 	    ctor_v.reserve(par->_ctor.size());
-	    for(const auto& pt : (*par)._ctor)  {
+	    for(const auto& pt : par->_ctor)  {
 	      auto col  = cvimg.cols - pt.x;
 	      auto row  = pt.y;
 	      auto gray = 1.0;

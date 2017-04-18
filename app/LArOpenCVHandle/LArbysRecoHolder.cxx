@@ -5,7 +5,6 @@
 
 namespace larcv {
 
-
   void
   LArbysRecoHolder::SetMeta(const std::vector<Image2D>& adc_img_v) {
     std::vector<ImageMeta> meta_v;
@@ -43,6 +42,10 @@ namespace larcv {
   LArbysRecoHolder::Match(size_t vtx_id,
 			  const std::vector<cv::Mat>& adc_cvimg_v,
 			  bool sort) {
+    
+    LARCV_DEBUG() << "Requested coverage " << _match_coverage << " & "
+		  << _match_particles_per_plane << " particles per plane & "
+		  << _match_min_number << " min number of matches " << std::endl;
     
     auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id), // particles per plane
 					   adc_cvimg_v,                  // adc cv imaage
@@ -162,7 +165,7 @@ namespace larcv {
   
   void
   LArbysRecoHolder::Configure(const PSet& pset) {
-    LARCV_DEBUG() << "start" << std::endl;
+
 
     this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
 
@@ -178,15 +181,7 @@ namespace larcv {
       throw larbys();
     }
     _output_module_offset = pset.get<size_t>("OutputModuleOffset",kINVALID_SIZE);
-
-    LARCV_DEBUG() << "RequireMultiplicityTwo: " << _require_two_multiplicity << std::endl;
-    LARCV_DEBUG() << "RequireFiducial: " << _require_fiducial << std::endl;
-    LARCV_DEBUG() << "MatchCoverage: " << _match_coverage << std::endl;
-    LARCV_DEBUG() << "MatchParticlesPerPlane: " << _match_particles_per_plane << std::endl;
-    LARCV_DEBUG() << "MatchMinimumNumber: " << _match_min_number << std::endl;
     
-    LARCV_DEBUG() << "end" << std::endl;
-
     return;
   }
 
