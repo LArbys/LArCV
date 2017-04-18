@@ -89,7 +89,6 @@ namespace larcv {
     
     match_pvvv[vtx_id] = match_vv;
 
-    this->FilterMatches();
     return match_vv;
   }
 

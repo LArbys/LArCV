@@ -434,6 +434,8 @@ namespace larcv {
 
     LARCV_DEBUG() << "Event pgraph size " << event_pgraph->PGraphArray().size() << std::endl;
 
+    _RecoHolder.FilterMatches();
+    
     if (_write_reco) {
       const auto& eid = iom.event_id();
       _RecoHolder.SetMeta(adc_image_v);
