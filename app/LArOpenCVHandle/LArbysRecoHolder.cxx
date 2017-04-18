@@ -51,9 +51,8 @@ namespace larcv {
 					   _match_min_number,            // min number of matches
 					   true);                        // ensure particle type is same
     
-
     if (sort) {
-      //sort the match so that the tracks come first
+      // Sort the match so that the tracks come first
       std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
       
       //put the tracks first
@@ -67,7 +66,7 @@ namespace larcv {
 	}
       }
       
-      //put the showers second
+      // Put the showers second
       for( auto match_v : match_vv ) {
 	auto& plane0     = match_v.front().first;
 	auto& id0        = match_v.front().second;
@@ -89,6 +88,8 @@ namespace larcv {
       match_pvvv.resize(vtx_id+1);
     
     match_pvvv[vtx_id] = match_vv;
+
+    this->FilterMatches();
     return match_vv;
   }
 

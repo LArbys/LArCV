@@ -41,19 +41,25 @@
 #padded
 
 
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/nominal &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_refineq &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius_refineq &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refinedq &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refineq_seedradius &
-python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/seedradius &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/nominal &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_refineq &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius_refineq &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refinedq &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refineq_seedradius &
+# python eff2.py /Users/vgenty/Desktop/intrinsic_nue/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/seedradius &
 
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists &
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_refineq &
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius &
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius_refineq &
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refinedq &
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refineq_seedradius &
-python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/seedradius &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_refineq &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/pathexists_seedradius_refineq &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refinedq &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/refineq_seedradius &
+# python eff2.py /Users/vgenty/Desktop/bnbnc/out_pyroi/circle_10_pi_10_unique_yes_xs_1/path_exists/seedradius &
+
+python eff.py /Users/vgenty/Desktop/intrinsic_nue/testing_apr17/nominal &
+python eff.py /Users/vgenty/Desktop/intrinsic_nue/testing_apr17/rm_lineartrackfinder &
+python eff.py /Users/vgenty/Desktop/intrinsic_nue/testing_apr17/rm_showerontrackend &
+python eff.py /Users/vgenty/Desktop/intrinsic_nue/testing_apr17/rm_showerontrackend_trackvertexanalysis &
+python eff.py /Users/vgenty/Desktop/intrinsic_nue/testing_apr17/rm_trackvertexanalysis &
