@@ -44,6 +44,7 @@ namespace larcv {
 	tz = roi.Z();
 	tt = roi.T();
 	te = roi.EnergyInit();
+	std::cout << "(tx,ty,tz)=("<<tx<<","<<ty<<","<<tz<<")"<<std::endl;
 	auto const offset = _sce.GetPosOffsets(tx,ty,tz);
 	scex = tx - offset[0] + 0.7;
 	scey = ty + offset[1];
@@ -69,8 +70,8 @@ namespace larcv {
       uint good_croi0 = 0;
       uint good_croi1 = 0;
       uint good_croi2 = 0;
-
-      auto const& croi = ev_croi_v->ROIArray()[croi_idx];
+      
+      auto const& croi = ev_croi_v->ROIArray().at(croi_idx);
       auto const& bb_v = croi.BB();
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
@@ -85,18 +86,16 @@ namespace larcv {
       
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
       
-      // Do you want a certain croi?
-      if (_croi_idx>=0) {
-	if( croi_idx == _croi_idx ) {
-	  ev_croi_true_v->Append(ev_croi_v->ROIArray()[croi_idx]);
-	}
-      }
-      // No, I want the one with neutrino vertex in it
-      else {
-	if (good_croi>=_planes_inside_threshold) {
+      if (good_croi>=_planes_inside_threshold) 
 	  ev_croi_true_v->Append(croi);
-	}
-      }
+      
+    }
+
+
+    // Do you want a certain croi?
+    if (_croi_idx>=0) {
+      ev_croi_true_v->clear();
+      ev_croi_true_v->Append(ev_croi_v->ROIArray().at(_croi_idx));
     }
     
     LARCV_DEBUG() << "Converted " << ev_croi_v->ROIArray().size()

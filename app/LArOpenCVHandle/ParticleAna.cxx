@@ -51,14 +51,14 @@ namespace larcv {
 
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
 
-    _img_prod           = cfg.get<std::string>("tpc");
-    _pgraph_prod        = cfg.get<std::string>("test");
-    _pcluster_ctor_prod = cfg.get<std::string>("test_ctor");
-    _pcluster_img_prod  = cfg.get<std::string>("test_img");
-    _reco_roi_prod      = cfg.get<std::string>("croi_merge");
-
-    _trk_img_prod = cfg.get<std::string>("");
-    _shr_img_prod = cfg.get<std::string>("");
+    _img_prod           = cfg.get<std::string>("ImageProducer","tpc");
+    _pgraph_prod        = cfg.get<std::string>("PGraphProducer","test");
+    _pcluster_ctor_prod = cfg.get<std::string>("Pixel2DCtorProducer","test_ctor");
+    _pcluster_img_prod  = cfg.get<std::string>("Pixel2DImageProducer","test_img");
+    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer","croimerge");
+    
+    _trk_img_prod = cfg.get<std::string>("TrackImageProducer","");
+    _shr_img_prod = cfg.get<std::string>("ShowerImageProducer","");
     
   }
 
@@ -83,7 +83,6 @@ namespace larcv {
     _particle_tree->Branch("mean_pixel_dist"  , &_mean_pixel_dist , "mean_pixel_dist/D");
     _particle_tree->Branch("sigma_pixel_dist" , &_sigma_pixel_dist, "sigma_pixel_dist/D");
     _particle_tree->Branch("angular_sum"      , &_angular_sum     , "angular_sum/D");
-    
     
     /*
     _tree->Branch("plane",&_plane,"plane/I");    
@@ -152,7 +151,7 @@ namespace larcv {
     _angular_sum=...;
     */
 
-    _particle_tree->Fill();
+    //_particle_tree->Fill();
     return;
   }
 
@@ -361,7 +360,7 @@ namespace larcv {
       }
     }
       
-    _angle_tree->Fill();
+    //_angle_tree->Fill();
     return;
   }
   
@@ -533,7 +532,7 @@ namespace larcv {
 	save = true;
 	//if (save) break;
       }//dqdx_end
-      _dqdx_tree->Fill();
+      //_dqdx_tree->Fill();
     } // end vertex
   }
  
