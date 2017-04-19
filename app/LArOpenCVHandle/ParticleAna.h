@@ -49,7 +49,7 @@ namespace larcv {
 
     bool process(IOManager& mgr);
 
-    void finalize() {}
+    void finalize();
 
 
   private:

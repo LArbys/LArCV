@@ -84,25 +84,26 @@ namespace larcv {
     _particle_tree->Branch("sigma_pixel_dist" , &_sigma_pixel_dist, "sigma_pixel_dist/D");
     _particle_tree->Branch("angular_sum"      , &_angular_sum     , "angular_sum/D");
     
-    /*
-    _tree->Branch("plane",&_plane,"plane/I");    
-    _tree->Branch("straight_lines",&_straight_lines,"straight_lines/I");
-    _tree->Branch("dir0_c",&_dir0_c);
-    _tree->Branch("dir1_c",&_dir1_c);
-    _tree->Branch("angle0",&_angle0_c);
-    _tree->Branch("angle1",&_angle1_c);
-    _tree->Branch("dir0_p",&_dir0_p);
-    _tree->Branch("dir1_p",&_dir1_p);
-    _tree->Branch("mean0",&_mean0,"mean0/D");//position of cluste0 to 2d vtx
-    _tree->Branch("mean1",&_mean1,"mean1/D");//position of cluste1 to 2d vtx
-    _tree->Branch("meanl",&_meanl,"meanl/F");//dqdx mean of particle left to the vtx
-    _tree->Branch("meanr",&_meanr,"meanr/F");//dqdx mean of particle right to the vtx
-    _tree->Branch("stdl",&_stdl,"stdl/F");
-    _tree->Branch("stdr",&_stdr,"stdr/F");
-
-    _tree->Branch("dqdxdelta",&_dqdxdelta,"dqdxdelta/F");
-    _tree->Branch("dqdxratio",&_dqdxratio,"dqdxratio/F");
-    */
+    _angle_tree = new TTree("AngleTree","AngleTree");
+    _angle_tree->Branch("plane",&_plane,"plane/I");    
+    _angle_tree->Branch("straight_lines",&_straight_lines,"straight_lines/I");
+    _angle_tree->Branch("dir0_c",&_dir0_c);
+    _angle_tree->Branch("dir1_c",&_dir1_c);
+    _angle_tree->Branch("angle0",&_angle0_c);
+    _angle_tree->Branch("angle1",&_angle1_c);
+    _angle_tree->Branch("dir0_p",&_dir0_p);
+    _angle_tree->Branch("dir1_p",&_dir1_p);
+    _angle_tree->Branch("mean0",&_mean0,"mean0/D");//position of cluste0 to 2d vtx
+    _angle_tree->Branch("mean1",&_mean1,"mean1/D");//position of cluste1 to 2d vtx
+    _angle_tree->Branch("meanl",&_meanl,"meanl/F");//dqdx mean of particle left to the vtx
+    _angle_tree->Branch("meanr",&_meanr,"meanr/F");//dqdx mean of particle right to the vtx
+    _angle_tree->Branch("stdl",&_stdl,"stdl/F");
+    _angle_tree->Branch("stdr",&_stdr,"stdr/F");
+    
+    _dqdx_tree = new TTree("dqdxTree","dqdxTree");
+    _dqdx_tree->Branch("dqdxdelta",&_dqdxdelta,"dqdxdelta/F");
+    _dqdx_tree->Branch("dqdxratio",&_dqdxratio,"dqdxratio/F");
+    
 
   }
 
@@ -132,7 +133,13 @@ namespace larcv {
     return true;
   }
 
-
+  void ParticleAna::finalize()
+  {
+    _particle_tree->Write();
+    _dqdx_tree->Write();
+    _angle_tree->Write();
+  }  
+  
   //
   // Particle Related Functionality (Vic reponsible)
   //
@@ -151,7 +158,7 @@ namespace larcv {
     _angular_sum=...;
     */
 
-    //_particle_tree->Fill();
+    _particle_tree->Fill();
     return;
   }
 
@@ -160,6 +167,8 @@ namespace larcv {
   //
   void ParticleAna::AnalyzeAngle() {
 
+    std::cout<<"wtf"<<std::endl;
+    
     _dir0_c.clear();
     _dir0_c.resize(3,-99999);
     _dir1_c.clear();
@@ -360,7 +369,7 @@ namespace larcv {
       }
     }
       
-    //_angle_tree->Fill();
+    _angle_tree->Fill();
     return;
   }
   
@@ -532,7 +541,7 @@ namespace larcv {
 	save = true;
 	//if (save) break;
       }//dqdx_end
-      //_dqdx_tree->Fill();
+      _dqdx_tree->Fill();
     } // end vertex
   }
  
@@ -576,7 +585,6 @@ namespace larcv {
     
     return stdev;
   }
-
   
-}
+ }
 #endif
