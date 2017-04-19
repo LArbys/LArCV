@@ -1,5 +1,5 @@
-#ifndef LARBYSVERTEXFILTER_H
-#define LARBYSVERTEXFILTER_H
+#ifndef LARBYSRECOHOLDER_H
+#define LARBYSRECOHOLDER_H
 
 #include "TTree.h"
 #include "Base/larcv_base.h"
@@ -7,14 +7,27 @@
 #include "LArOpenCV/Core/ImageManager.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/VertexAnalysis.h"
+#include "LArOpenCV/ImageCluster/AlgoData/AlgoDataUtils.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/ImageMeta.h"
-#include "LArOCVSerial.h"
 
 namespace larcv {
+  
+  class LArOCVSerial{
+  public:
+    LArOCVSerial(){}
+    ~LArOCVSerial(){}
+    void Clear();
+    std::vector<larocv::data::Vertex3D> _vertex_v;
+    std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > > _particle_cluster_vvv;
+    std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > > _track_comp_vvv;
+    std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > > _match_pvvv;
+    std::vector<std::vector<larcv::ImageMeta> > _meta_vv;
+  };  
 
+  
   class LArbysRecoHolder : public larcv_base {
-    
+
   public:
 
     LArbysRecoHolder() :

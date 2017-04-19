@@ -16,11 +16,11 @@ namespace larcv {
     
   void VertexInROI::configure(const PSet& cfg)
   {
-    _truth_roi_producer  = cfg.get<std::string>("TruthROIProducer");
-    _input_roi_producer  = cfg.get<std::string>("InputROIProducer");
-    _output_roi_producer = cfg.get<std::string>("OutputROIProducer");
+    _truth_roi_producer      = cfg.get<std::string>("TruthROIProducer");
+    _input_roi_producer      = cfg.get<std::string>("InputROIProducer");
+    _output_roi_producer     = cfg.get<std::string>("OutputROIProducer");
     _planes_inside_threshold = cfg.get<uint>("NPlanesInside",2);
-    _croi_idx = cfg.get<int>("CROI_IDX",-1);
+    _croi_idx                = cfg.get<int>("CROI_IDX",-1);
   }
 
   void VertexInROI::initialize()
@@ -85,16 +85,17 @@ namespace larcv {
       
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
       
-      //do you want a certain croi?
+      // Do you want a certain croi?
       if (_croi_idx>=0) {
 	if( croi_idx == _croi_idx ) {
 	  ev_croi_true_v->Append(ev_croi_v->ROIArray()[croi_idx]);
 	}
       }
-      //no, I want the one with NU vertex in it
+      // No, I want the one with neutrino vertex in it
       else {
-	if (good_croi>=_planes_inside_threshold)
+	if (good_croi>=_planes_inside_threshold) {
 	  ev_croi_true_v->Append(croi);
+	}
       }
     }
     
@@ -104,8 +105,7 @@ namespace larcv {
     return true;
   }
 
-  void VertexInROI::finalize()
-  {}
+  void VertexInROI::finalize() {}
 
 }
 #endif

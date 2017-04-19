@@ -14,7 +14,6 @@
 #pragma link C++ class larcv::LArbysImageMC+;
 
 #pragma link C++ class larcv::PreProcessor+;
-#pragma link C++ class larcv::PreProcessorAna+;
 #pragma link C++ class larcv::LArOCVSerial+;
 #pragma link C++ class larcv::LArbysRecoHolder+;
 #pragma link C++ class larcv::LArbysImageMaker+;
@@ -31,8 +30,10 @@
 #pragma link C++ class std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > >+;
 #pragma link C++ class std::vector<std::vector<larcv::ImageMeta> >+;
 
+#pragma link C++ class larcv::LArbysTrash+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

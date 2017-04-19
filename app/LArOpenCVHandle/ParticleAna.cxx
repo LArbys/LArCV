@@ -65,7 +65,6 @@ namespace larcv {
   void ParticleAna::initialize()
   {
 
-
     //
     // Particle Tree
     //
@@ -84,7 +83,7 @@ namespace larcv {
     _particle_tree->Branch("mean_pixel_dist"  , &_mean_pixel_dist , "mean_pixel_dist/D");
     _particle_tree->Branch("sigma_pixel_dist" , &_sigma_pixel_dist, "sigma_pixel_dist/D");
     _particle_tree->Branch("angular_sum"      , &_angular_sum     , "angular_sum/D");
-
+    
     
     /*
     _tree->Branch("plane",&_plane,"plane/I");    
@@ -140,8 +139,6 @@ namespace larcv {
   //
   void ParticleAna::AnalyzeParticle() {
 
-
-    
     /*
     _length=...;
     _width=...;
@@ -154,7 +151,6 @@ namespace larcv {
     _sigma_pixel_dist=...;
     _angular_sum=...;
     */
-
 
     _particle_tree->Fill();
     return;

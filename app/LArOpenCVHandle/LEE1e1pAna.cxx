@@ -25,7 +25,7 @@ namespace larcv {
     _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer","test_ctor");
     _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer","test_img");
     _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer","tpc");
-    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer","croi_merge");
+    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer","croimerge");
   }
     
   

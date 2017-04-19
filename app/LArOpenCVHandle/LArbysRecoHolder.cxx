@@ -1,10 +1,19 @@
-#ifndef LARBYSVERTEXFILTER_CXX
-#define LARBYSVERTEXFILTER_CXX
+#ifndef LARBYSRECOHOLDER_CXX
+#define LARBYSRECOHOLDER_CXX
 
 #include "LArbysRecoHolder.h"
 
 namespace larcv {
 
+  void
+  LArOCVSerial::Clear() {
+    _vertex_v.clear();
+    _particle_cluster_vvv.clear();
+    _track_comp_vvv.clear();
+    _match_pvvv.clear();
+    _meta_vv.clear();
+  }
+  
   void
   LArbysRecoHolder::SetMeta(const std::vector<Image2D>& adc_img_v) {
     std::vector<ImageMeta> meta_v;
@@ -193,7 +202,7 @@ namespace larcv {
     _out_tree->Branch("event" ,&_event ,"event/i");
     _out_tree->Branch("entry" ,&_entry ,"entry/i");
     _larocvserial = new LArOCVSerial();
-    _out_tree->Branch("kazu" ,&_larocvserial);
+    _out_tree->Branch("AlgoData" ,&_larocvserial);
   }
 
   void

@@ -2,7 +2,7 @@
 #define LAROCVSERIAL_H
 
 #include "DataFormat/ImageMeta.h"
-#include "LArOpenCV/ImageCluster/AlgoData/AlgoDataUtils.h"
+
 
 namespace larcv {
 
