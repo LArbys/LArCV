@@ -81,7 +81,7 @@ namespace larcv {
   void LArbysImage::construct_cosmic_image(IOManager& mgr, std::string producer,
 					   const std::vector<larcv::Image2D>& adc_image_v,
 					   std::vector<larcv::Image2D>& mu_image_v) {
-    LARCV_DEBUG() << "Constructing " << _thrumu_producer << " Pixel2D => Image2D" << std::endl;
+    LARCV_DEBUG() << "Constructing " << producer << " Pixel2D => Image2D" << std::endl;
     if(!producer.empty()) {
       auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,producer));
       if(!ev_pixel2d) {

@@ -185,10 +185,7 @@ namespace larcv {
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);
 
     _output_module_name   = pset.get<std::string>("OutputModuleName");
-    if (_output_module_name.empty()) {
-      LARCV_CRITICAL() << "Must specify output module name" << std::endl;
-      throw larbys();
-    }
+
     _output_module_offset = pset.get<size_t>("OutputModuleOffset",kINVALID_SIZE);
     
     return;
@@ -210,10 +207,14 @@ namespace larcv {
 
     const larocv::data::AlgoDataManager& data_mgr   = mgr.DataManager();
     const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
-
+    
     auto output_module_id = data_mgr.ID(_output_module_name);
     if (output_module_id==kINVALID_SIZE)  {
-      LARCV_CRITICAL() << "Invalid algmodule name (" << _output_module_name <<") specified" << std::endl;
+      if(_output_module_name.empty()) {
+	LARCV_WARNING() << "Empty algo name specified, nothing to do" << std::endl;
+	return;
+      }
+      LARCV_WARNING() << "Invalid algmodule name (" << _output_module_name <<") specified" << std::endl;
       throw larbys();
     }
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(output_module_id, 0);

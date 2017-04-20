@@ -32,6 +32,13 @@ namespace larcv {
     auto ev_croi_v      = (EventROI*)(mgr.get_data(kProductROI,_input_roi_producer));
     auto ev_croi_true_v = (EventROI*)(mgr.get_data(kProductROI,_output_roi_producer));
 
+    // Do you want a certain croi?
+    if (_croi_idx>=0) {
+      ev_croi_true_v->clear();
+      ev_croi_true_v->Append(ev_croi_v->ROIArray().at(_croi_idx));
+      return true;
+    }
+    
     float tx, ty, tz, tt, te;
     tx = ty = tz = tt = te = -1.;
     float scex, scey, scez;
@@ -91,16 +98,7 @@ namespace larcv {
       
     }
 
-
-    // Do you want a certain croi?
-    if (_croi_idx>=0) {
-      ev_croi_true_v->clear();
-      ev_croi_true_v->Append(ev_croi_v->ROIArray().at(_croi_idx));
-    }
-    
-    LARCV_DEBUG() << "Converted " << ev_croi_v->ROIArray().size()
-		  << " rois to " << ev_croi_true_v->ROIArray().size() << std::endl;
-    
+  
     return true;
   }
 

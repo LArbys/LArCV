@@ -8,32 +8,33 @@
 
 namespace larcv {
   
-  cv::Rect Get2DRoi(const ImageMeta& meta,
-		    const ImageMeta& bb) {
+  cv::Rect
+  Get2DRoi(const ImageMeta& meta,
+	   const ImageMeta& bb) {
 
     //bb == ROI on plane META
     
     float x_compression = meta.width()  / (float) meta.cols();
     float y_compression = meta.height() / (float) meta.rows();
-    
 
     int x=(bb.bl().x - meta.bl().x)/x_compression;
     int y=(bb.bl().y - meta.bl().y)/y_compression;
     
-    int dx=(bb.tr().x-bb.bl().x)/x_compression;
-    int dy=(bb.tr().y-bb.bl().y)/y_compression;
+    int dx=(bb.tr().x - bb.bl().x)/x_compression;
+    int dy=(bb.tr().y - bb.bl().y)/y_compression;
 
     return cv::Rect(x,y,dx,dy);
   }
 
   
-  void Project3D(const ImageMeta& meta,
-		 double parent_x,
-		 double parent_y,
-		 double parent_z,
-		 double parent_t,
-		 uint plane,
-		 double& xpixel, double& ypixel) 
+  void
+  Project3D(const ImageMeta& meta,
+	    double parent_x,
+	    double parent_y,
+	    double parent_z,
+	    double parent_t,
+	    uint plane,
+	    double& xpixel, double& ypixel) 
   {
     
     auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
@@ -52,13 +53,14 @@ namespace larcv {
   // Function intersection finds the intersecion point of track
   // and ROI in particle direction
   
-  geo2d::Vector<float> Intersection (const geo2d::HalfLine<float>& hline,
-				     const cv::Rect& rect)
+  geo2d::Vector<float>
+  Intersection(const geo2d::HalfLine<float>& hline,
+	       const cv::Rect& rect)
   {
     
     geo2d::LineSegment<float> ls1(geo2d::Vector<float>(rect.x           ,rect.y            ),
 				  geo2d::Vector<float>(rect.x+rect.width,rect.y            ));
-
+    
     geo2d::LineSegment<float> ls2(geo2d::Vector<float>(rect.x+rect.width,rect.y            ),
 				  geo2d::Vector<float>(rect.x+rect.width,rect.y+rect.height));
 
@@ -102,9 +104,7 @@ namespace larcv {
     } catch(...){}
 
     return pt;
-    
   }
-
   
 }
 
