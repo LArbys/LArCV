@@ -12,7 +12,7 @@
 #include "DataFormat/ImageMeta.h"
 
 namespace larcv {
-  
+
   class LArOCVSerial{
   public:
     LArOCVSerial(){}
@@ -38,60 +38,50 @@ namespace larcv {
 
     ~LArbysRecoHolder(){}
 
-    void
-    SetMeta(const std::vector<Image2D>& adc_img_v);
+
+    void Configure(const PSet& pset);    
+
+    void Initialize();
+
+    void SetMeta(const std::vector<Image2D>& adc_img_v);
+
+    void FilterMatches();
+
+    void ShapeData(const larocv::ImageClusterManager& mgr);
     
-    void
-    FilterMatches();
-
-    void
-    ShapeData(const larocv::ImageClusterManager& mgr);
-    
-    void
-    Filter();
-
-    void
-    Configure(const PSet& pset);    
-
-    void
-    Initialize();
+    void Filter();
 
     std::vector<std::vector<std::pair<size_t,size_t> > >
     Match(size_t vtx_id,
 	  const std::vector<cv::Mat>& adc_cvimg_v,
 	  bool stort=true);
 
-    void
-    Reset();
-    
-    void
-    ResetOutput();
 
-    void
-    StoreEvent(size_t run, size_t subrun, size_t event, size_t entry);
-    
-    bool
-    WriteOut(TFile* fout);
-
-    void
-    Write();
+    void ResetOutput();
+    void StoreEvent(size_t run, size_t subrun, size_t event, size_t entry);
+    bool WriteOut(TFile* fout);
+    void Reset();
+    void Write();
     
     //
-    //-> Getters
+    // Vertex getters
     //
 
-    const larocv::VertexAnalysis&
-    ana()
+    const larocv::VertexAnalysis& ana()
     { return _vtx_ana; }
     
-    const larocv::data::Vertex3D*
-    Vertex(size_t vertexid)
-    { return _vertex_ptr_v[vertexid]; }
-
     const std::vector<const larocv::data::Vertex3D*>
     Verticies()
     { return _vertex_ptr_v; }
 
+    const larocv::data::Vertex3D*
+    Vertex(size_t vertexid)
+    { return _vertex_ptr_v[vertexid]; }
+
+    //
+    // ParticleCluster getters
+    //
+    
     const std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > >&
     VertexPlaneParticles()
     { return _particle_cluster_ptr_vvv; }
@@ -108,8 +98,11 @@ namespace larcv {
     Particle(size_t vertexid,size_t planeid,size_t particleid)
     { return _particle_cluster_ptr_vvv[vertexid][planeid][particleid]; }
 
+    //
+    // TrackClusterCompound getters
+    //
     const std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > >&
-    VertexPlaneTracks(size_t vertexid)
+    VertexPlaneTracks()
     { return _track_comp_ptr_vvv; }
     
     const std::vector<std::vector<const larocv::data::TrackClusterCompound*> >&

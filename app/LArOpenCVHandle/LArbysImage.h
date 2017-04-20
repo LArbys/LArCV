@@ -31,16 +31,16 @@ namespace larcv {
 
     void finalize();
 
-    const ::larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
+    const larocv::ImageClusterManager& Manager() const { return _alg_mgr; }
 
-    const PreProcessor& PProcessor() const { return _PreProcessor; }
+    const PreProcessor&     PProcessor()     const { return _PreProcessor; }
     const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
-    const LArbysRecoHolder& LArbysHolder() const { return _RecoHolder; }
+    const LArbysRecoHolder& LArbysHolder()   const { return _RecoHolder; }
     
   protected:
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
-
+    
     void mask_image(Image2D& target, const Image2D& ref);
 
     void construct_cosmic_image(IOManager& mgr, std::string producer,
@@ -60,12 +60,12 @@ namespace larcv {
     
     TTree* _tree;
     
-    ::larocv::ImageClusterManager _alg_mgr;
-    ::larocv::ImageManager _adc_img_mgr;
-    ::larocv::ImageManager _track_img_mgr;
-    ::larocv::ImageManager _shower_img_mgr;
-    ::larocv::ImageManager _thrumu_img_mgr;
-    ::larocv::ImageManager _stopmu_img_mgr;
+    larocv::ImageClusterManager _alg_mgr;
+    larocv::ImageManager _adc_img_mgr;
+    larocv::ImageManager _track_img_mgr;
+    larocv::ImageManager _shower_img_mgr;
+    larocv::ImageManager _thrumu_img_mgr;
+    larocv::ImageManager _stopmu_img_mgr;
 
     bool _debug;
     bool _preprocess;

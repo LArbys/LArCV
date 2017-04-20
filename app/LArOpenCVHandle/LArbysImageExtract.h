@@ -51,8 +51,8 @@ namespace larcv {
     PreProcessor _PreProcessor;
 
     // The images
-    std::vector<cv::Mat> _adc_mat_v;
     std::vector<larocv::ImageMeta> _adc_meta_v;
+    std::vector<cv::Mat> _adc_mat_v;
     std::vector<cv::Mat> _track_mat_v;
     std::vector<cv::Mat> _shower_mat_v;
     std::vector<cv::Mat> _thrumu_mat_v;

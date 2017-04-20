@@ -1,16 +1,3 @@
-/**
- * \file ParticleAna.h
- *
- * \ingroup Package_Name
- * 
- * \brief Class def header for a class ParticleAna
- *
- * @author vgenty
- */
-
-/** \addtogroup Package_Name
-
-    @{*/
 #ifndef __PARTICLEANA_H__
 #define __PARTICLEANA_H__
 
@@ -28,11 +15,6 @@
 
 namespace larcv {
 
-  /**
-     \class ProcessBase
-     User defined class ParticleAna ... these comments are used to generate
-     doxygen documentation!
-  */
   class ParticleAna : public ProcessBase {
 
   public:
@@ -44,16 +26,12 @@ namespace larcv {
     ~ParticleAna(){}
 
     void configure(const PSet&);
-
     void initialize();
-
     bool process(IOManager& mgr);
-
     void finalize();
 
-
   private:
-
+    
     EventImage2D* _ev_img_v;
     EventImage2D* _ev_trk_img_v;
     EventImage2D* _ev_shr_img_v;
@@ -78,7 +56,7 @@ namespace larcv {
     LArbysImageMaker _LArbysImageMaker;
     
     //
-    // Particle Related Fucntionality
+    // Particle Related Functionality -- vic
     //
     bool _analyze_particle;
 
@@ -98,7 +76,7 @@ namespace larcv {
     double _angular_sum;
     
     //
-    // Angle & dQdX Related Functionality
+    // Angle & dQdX Related Functionality -- rui
     //
     bool _analyze_angle;
     bool _analyze_dqdx;

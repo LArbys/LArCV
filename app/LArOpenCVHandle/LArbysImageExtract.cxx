@@ -14,8 +14,8 @@ namespace larcv {
     
   void LArbysImageExtract::configure(const PSet& cfg)
   {
-    _adc_producer = cfg.get<std::string>("ADCImageProducer");
-    _track_producer = cfg.get<std::string>("TrackImageProducer","");
+    _adc_producer    = cfg.get<std::string>("ADCImageProducer");
+    _track_producer  = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
     _thrumu_producer = cfg.get<std::string>("ThruMuProducer","");
     _stopmu_producer = cfg.get<std::string>("StopMuProducer","");
@@ -49,10 +49,11 @@ namespace larcv {
       ev_thrumu_pix = (EventPixel2D*)mgr.get_data(kProductPixel2D,_thrumu_producer);
       _ev_thrumu_pix = *ev_thrumu_pix;
 
+      _ev_thrumu.clear();
       for(size_t plane=0; plane < 3; ++plane) {
 	const auto& adc_img2d = ev_adc->Image2DArray().at(plane);
 	auto thrumuimg2d = _LArbysImageMaker.ConstructCosmicImage(_ev_thrumu_pix,adc_img2d,plane,100.0);
-	_ev_stopmu.Emplace(std::move(thrumuimg2d));
+	_ev_thrumu.Emplace(std::move(thrumuimg2d));
       }
       
     }
@@ -61,7 +62,8 @@ namespace larcv {
     if (!_stopmu_producer.empty()) {
       ev_stopmu_pix = (EventPixel2D*)mgr.get_data(kProductPixel2D,_stopmu_producer);
       _ev_stopmu_pix = *ev_stopmu_pix;
-      
+
+      _ev_stopmu.clear();
       for(size_t plane=0; plane < 3; ++plane) {
 	const auto& adc_img2d = ev_adc->Image2DArray().at(plane);
 	auto stopmuimg2d = _LArbysImageMaker.ConstructCosmicImage(_ev_stopmu_pix,adc_img2d,plane,100.0);
