@@ -21,6 +21,7 @@
 #pragma link C++ class larcv::VertexInROI+;
 #pragma link C++ class larcv::LEE1e1pAna+;
 #pragma link C++ class larcv::ParticleAna+;
+#pragma link C++ class larcv::AlgoDataAnalyze+;
 
 #pragma link C++ namespace handshake+;
 #pragma link C++ class handshake::HandShaker+;

@@ -165,10 +165,14 @@ namespace larcv {
     bool _select_signal;
     bool _select_background;
     
-    struct this_proton{
+    struct aparticle{
       int trackid;
       int parenttrackid;
       float depeng;
+      bool primary;
+      
+      bool daughterof (const aparticle& particle) const
+      { return (this->parenttrackid == particle.trackid); }
     };
 
     
@@ -180,9 +184,6 @@ namespace larcv {
 
     entry_info _entry_info;
     bool _is_signal;
-    bool _mc_available;
-    bool _write_tree;
-
     
     
   };
