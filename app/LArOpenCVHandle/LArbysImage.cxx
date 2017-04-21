@@ -40,7 +40,7 @@ namespace larcv {
     _write_reco = cfg.get<bool>("WriteAnaReco");
     _RecoHolder.Configure(cfg.get<larcv::PSet>("LArbysRecoHolder"));
 
-    _preprocess = cfg.get<bool>("PreProcess",true);
+    _preprocess = cfg.get<bool>("PreProcess");
     if (_preprocess) {
       LARCV_INFO() << "Preprocessing image" << std::endl;
       _PreProcessor.Configure(cfg.get<larcv::PSet>("PreProcessor"));

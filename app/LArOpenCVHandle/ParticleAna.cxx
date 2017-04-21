@@ -16,16 +16,16 @@ namespace larcv {
     : ProcessBase(name), _LArbysImageMaker()
   {
     _particle_tree = nullptr;
-    _angle_tree = nullptr;
-    _dqdx_tree = nullptr;
+    _angle_tree    = nullptr;
+    _dqdx_tree     = nullptr;
 
-    _ev_img_v = nullptr;
-    _ev_trk_img_v = nullptr;
-    _ev_shr_img_v = nullptr;
-    _ev_roi_v = nullptr;
-    _ev_pgraph_v = nullptr;
+    _ev_img_v      = nullptr;
+    _ev_trk_img_v  = nullptr;
+    _ev_shr_img_v  = nullptr;
+    _ev_roi_v      = nullptr;
+    _ev_pgraph_v   = nullptr;
     _ev_pcluster_v = nullptr;
-    _ev_ctor_v = nullptr;
+    _ev_ctor_v     = nullptr;
   }
     
   void ParticleAna::configure(const PSet& cfg)
@@ -114,7 +114,6 @@ namespace larcv {
 
   bool ParticleAna::process(IOManager& mgr)
   {
-
     _ev_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,_img_prod);
     _ev_roi_v      = (EventROI*)    mgr.get_data(kProductROI,_reco_roi_prod);
     _ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,_pgraph_prod);
@@ -165,9 +164,9 @@ namespace larcv {
       // the meta to be the same for each ROI, lets get it out and store in vector
       std::vector<ImageMeta> meta_v;
       meta_v.resize(3);
-      for(size_t plane=0; plane<3; ++plane) {
+      for(size_t plane=0; plane<3; ++plane) 
 	meta_v[plane] = roi_v.front().BB(plane);
-      }
+      
       
       // Now go retrieve the particle contours, and particle pixels
       // ...the indicies are stored in ClusterIndexArray
@@ -232,6 +231,7 @@ namespace larcv {
 	  _sigma_pixel_dist = pchunk.sigma_pixel_dist;
 	  _angular_sum      = pchunk.angular_sum;
 	  _plane            = plane;
+
 	  // To be filled if shower image is sent in
 	  // _track_frac = n/a
 	  // _shower_frac = n/a
@@ -265,7 +265,7 @@ namespace larcv {
       
     _straight_lines = 0;
     
-    auto const& ctor_m = _ev_ctor_v->Pixel2DClusterArray();
+    auto const& ctor_m     = _ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = _ev_pcluster_v->Pixel2DClusterArray();
 
     // Iterate over vertex

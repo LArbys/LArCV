@@ -58,7 +58,7 @@ namespace larcv {
     MakePixelChunks(const cv::Mat& img,
 		    larocv::ChunkType_t type,
 		    bool calc_params=true,
-		    size_t min_ctor_size=2,
+		    size_t min_ctor_size=0,
 		    size_t min_track_size=0);
     bool
     EdgeConnected(const larocv::PixelChunk& track1,

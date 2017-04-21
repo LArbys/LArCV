@@ -32,6 +32,7 @@ namespace larcv {
     uint _reco_entry;
 
     std::string _reco_tree_name;
+    std::string _serial_name;
 
     TTree* _vertex_tree;
     double _reco_vertex_x;

@@ -51,7 +51,7 @@ namespace larcv {
   PreProcessor::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
-    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity",2));
+    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
     
     _pi_threshold = pset.get<uint>("PiThreshold",1);
     _min_ctor_size = pset.get<uint>("MinContourSize",4);
@@ -158,18 +158,19 @@ namespace larcv {
     std::vector<larocv::PixelChunk> track_v;
     track_v.reserve(ctor_v.size());
 
-    LARCV_DEBUG() << "Found " << ctor_v.size() << " contours" << std::endl;
+    LARCV_DEBUG() << "Found " << ctor_v.size() << " contours of type " << (uint) type  << std::endl;
       
     for(auto& ctor_ : ctor_v) {
       LARCV_DEBUG() << "... size " << ctor_.size() << std::endl;
       if (ctor_.size() < min_ctor_size) continue;
+
       larocv::PixelChunk pchunk;
       pchunk.npixel = cv::countNonZero(larocv::MaskImage(img,ctor_,0,false));
       pchunk.type = type;
       pchunk.ctor = std::move(ctor_);
       auto& ctor = pchunk.ctor;
       
-      if (pchunk.npixel<min_track_size) continue;
+      if (pchunk.npixel < min_track_size) continue;
       
       if (calc_params) {
 
