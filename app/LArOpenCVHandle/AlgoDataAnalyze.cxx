@@ -51,7 +51,8 @@ namespace larcv {
 
       if(!_larocvserial)
 	throw larbys("Invalid pointer to LArOCVSerial type");
-      
+
+      _reco_entry = reco_entry;
       LARCV_DEBUG() << reco_entry << ") @("
 		    <<_reco_run    <<","
 		    <<_reco_subrun <<","
