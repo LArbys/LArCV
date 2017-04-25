@@ -324,7 +324,7 @@ namespace larcv {
 	  _len1 += sqrt(pow((float)(ctor1.front().X()) - (float)(ctor1.back().X()),2)
 			+
 			pow((float)(ctor1.front().Y()) - (float)(ctor1.back().Y()),2));
-	  _len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
+	  //_len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
