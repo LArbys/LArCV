@@ -70,6 +70,7 @@ namespace larcv {
     double _z;
     double _dr;
     double _scedr;
+    int _npar;
     int _shape0;
     int _shape1;
     std::vector<double> _score0;

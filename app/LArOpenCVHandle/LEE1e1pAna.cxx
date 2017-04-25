@@ -76,7 +76,7 @@ namespace larcv {
     _tree->Branch("z",&_z,"z/D");
     _tree->Branch("dr",&_dr,"dr/D");
     _tree->Branch("scedr",&_scedr,"scedr/D");
-
+    _tree->Branch("npar",&_npar,"npar/I");
     
     _tree->Branch("shape0",&_shape0,"shape0/I");
     _tree->Branch("shape1",&_shape1,"shape1/I");
@@ -210,7 +210,8 @@ namespace larcv {
     
     for(auto const& pgraph : ev_pgraph->PGraphArray()) {
       auto const& roi_v = pgraph.ParticleArray();
-      if(roi_v.size()!=2) continue;
+      _npar = pgraph.ClusterIndexArray().size();
+      //if(roi_v.size()!=2) continue;
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
       auto const& roi0 = roi_v[0];
       auto const& roi1 = roi_v[1];
@@ -275,6 +276,7 @@ namespace larcv {
 	
 	auto const& pcluster0 = pcluster_v.at(cluster_idx0);
 	auto const& ctor0 = ctor_v.at(cluster_idx0);
+	
 	if(!done0 && ctor0.size()>2) {
 	  _npx0 = pcluster0.size();
 	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
@@ -309,7 +311,6 @@ namespace larcv {
 	  _len1 += sqrt(pow((float)(ctor1.front().X()) - (float)(ctor1.back().X()),2)
 			+
 			pow((float)(ctor1.front().Y()) - (float)(ctor1.back().Y()),2));
-	  _len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
