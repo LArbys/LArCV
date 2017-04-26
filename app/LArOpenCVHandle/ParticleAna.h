@@ -44,6 +44,7 @@ namespace larcv {
     int _subrun;
     int _event;
     int _entry;
+    int _vtxid;
     
     std::string _img_prod;       
     std::string _reco_roi_prod;

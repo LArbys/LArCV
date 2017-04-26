@@ -62,6 +62,7 @@ namespace larcv {
     _tree->Branch("run",&_run,"run/I");
     _tree->Branch("subrun",&_subrun,"subrun/I");
     _tree->Branch("event",&_event,"event/I");
+    _tree->Branch("vtxid",&_vtxid,"vtxid/I");
     _tree->Branch("tx",&_tx,"tx/D");
     _tree->Branch("ty",&_ty,"ty/D");
     _tree->Branch("tz",&_tz,"tz/D");
@@ -132,6 +133,7 @@ namespace larcv {
 
     for(auto const& roi : ev_roi_v->ROIArray()){
       if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14) {
+	
 	_tx = roi.X();
 	_ty = roi.Y();
 	_tz = roi.Z();
@@ -151,14 +153,16 @@ namespace larcv {
     auto geo = larutil::Geometry::GetME();
     auto larp = larutil::LArProperties::GetME();
     double wire_v[3];
-    try {
-      wire_v[0] = geo->NearestWire(xyz,0);
-      wire_v[1] = geo->NearestWire(xyz,1);
-      wire_v[2] = geo->NearestWire(xyz,2);
-    }catch(const std::exception& e) {
+    try 
+      {
+	wire_v[0] = geo->NearestWire(xyz,0);
+	wire_v[1] = geo->NearestWire(xyz,1);
+	wire_v[2] = geo->NearestWire(xyz,2);
+      }catch(const std::exception& e) {
       std::cout<<xyz[0]<<" "<<xyz[1]<<" " <<xyz[2]<<std::endl;
       throw e;
     }
+    
     const double tick = (_scex / larp->DriftVelocity() + 4) * 2. + 3200.;
     _num_croi  = ev_croi_v->ROIArray().size();
     _area_croi0 = 0.;
@@ -208,7 +212,17 @@ namespace larcv {
     
     _min_vtx_dist = 1.e9;
     
-    for(auto const& pgraph : ev_pgraph->PGraphArray()) {
+
+    
+    auto vtx_counts = ev_pgraph->PGraphArray().size();
+    if(vtx_counts!=0) {
+    
+    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++ vtx_idx){
+      
+      _vtxid = vtx_idx;
+      
+      auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
+    //    for(auto const& pgraph : ev_pgraph->PGraphArray()) {
       auto const& roi_v = pgraph.ParticleArray();
       _npar = pgraph.ClusterIndexArray().size();
       //if(roi_v.size()!=2) continue;
@@ -276,7 +290,6 @@ namespace larcv {
 	
 	auto const& pcluster0 = pcluster_v.at(cluster_idx0);
 	auto const& ctor0 = ctor_v.at(cluster_idx0);
-	
 	if(!done0 && ctor0.size()>2) {
 	  _npx0 = pcluster0.size();
 	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
@@ -311,6 +324,7 @@ namespace larcv {
 	  _len1 += sqrt(pow((float)(ctor1.front().X()) - (float)(ctor1.back().X()),2)
 			+
 			pow((float)(ctor1.front().Y()) - (float)(ctor1.back().Y()),2));
+	  //_len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
@@ -323,9 +337,11 @@ namespace larcv {
 	}
 	if(done0 && done1) break;
       }
+
       _tree->Fill();
-    }
+    }}
     _event_tree->Fill();
+    
     return true;
   }
 

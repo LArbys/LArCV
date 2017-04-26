@@ -57,6 +57,8 @@ namespace larcv {
     int _run;
     int _subrun;
     int _event;
+    int _vtxid;
+
     double _tx;
     double _ty;
     double _tz;

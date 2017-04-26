@@ -113,6 +113,11 @@ namespace larcv {
     // Angle Tree
     //
     _angle_tree = new TTree("AngleTree","AngleTree");
+    _angle_tree->Branch("entry"  , &_entry  ,"entry/I");
+    _angle_tree->Branch("run"    , &_run    ,"run/I");
+    _angle_tree->Branch("subrun" , &_subrun ,"subrun/I");
+    _angle_tree->Branch("event"  , &_event  ,"event/I");
+    _angle_tree->Branch("vtxid"  , &_vtxid  ,"vtxid/I");
     _angle_tree->Branch("plane",&_plane,"plane/I");    
     _angle_tree->Branch("straight_lines",&_straight_lines,"straight_lines/I");
     _angle_tree->Branch("dir0_c",&_dir0_c);
@@ -132,6 +137,10 @@ namespace larcv {
     // dQdX Tree
     //
     _dqdx_tree = new TTree("dqdxTree","dqdxTree");
+    _dqdx_tree->Branch("entry"  , &_entry  ,"entry/I");
+    _dqdx_tree->Branch("run"    , &_run    ,"run/I");
+    _dqdx_tree->Branch("subrun" , &_subrun ,"subrun/I");
+    _dqdx_tree->Branch("event"  , &_event  ,"event/I");
     _dqdx_tree->Branch("dqdxdelta",&_dqdxdelta,"dqdxdelta/F");
     _dqdx_tree->Branch("dqdxratio",&_dqdxratio,"dqdxratio/F");
     
@@ -534,7 +543,16 @@ void ParticleAna::finalize()
     auto const& pcluster_m = _ev_pcluster_v->Pixel2DClusterArray();
 
     // Iterate over vertex
-    for(auto const& pgraph : _ev_pgraph_v->PGraphArray()) {
+
+    auto vtx_counts = _ev_pgraph_v->PGraphArray().size();
+    if(vtx_counts!=0) {
+    
+    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++ vtx_idx){
+
+      _vtxid = vtx_idx;
+      
+      auto pgraph = _ev_pgraph_v->PGraphArray().at(vtx_idx);
+      //for(auto const& pgraph : _ev_pgraph_v->PGraphArray()) {
 
       // Get a list of particles (each unique particle == 1 ROI)
       auto const& roi_v = pgraph.ParticleArray();
@@ -738,7 +756,7 @@ void ParticleAna::finalize()
 	}
       }
     }
-      
+    }
     _angle_tree->Fill();
     return;
   }
