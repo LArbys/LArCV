@@ -54,6 +54,27 @@ namespace larcv {
     std::string _shr_img_prod;
     
     LArbysImageMaker _LArbysImageMaker;
+
+    //
+    // Signal Related Functionality -- vic
+    //
+    bool _analyze_signal;
+
+    TTree* _signal_tree;
+
+    void AnalyzeSignal();
+    int _vtx_id;
+    float _vtx_x;
+    float _vtx_y;
+    float _vtx_z;
+    
+    int _pathexists;
+    std::vector<int> _pathexists_v;
+    int _nparticles;
+    std::vector<float> _track_frac_v;
+    std::vector<float> _shower_frac_v;
+    int _infiducial;
+
     
     //
     // Particle Related Functionality -- vic

@@ -5,6 +5,7 @@
 #include "LArOpenCV/ImageCluster/AlgoClass/PixelChunk.h"
 #include "LArbysUtils.h"
 #include <numeric>
+#include <unordered_map>
 
 #define PI 3.14159265
 
@@ -15,6 +16,7 @@ namespace larcv {
   ParticleAna::ParticleAna(const std::string name)
     : ProcessBase(name), _LArbysImageMaker()
   {
+    _signal_tree   = nullptr;
     _particle_tree = nullptr;
     _angle_tree    = nullptr;
     _dqdx_tree     = nullptr;
@@ -27,10 +29,13 @@ namespace larcv {
     _ev_pcluster_v = nullptr;
     _ev_ctor_v     = nullptr;
   }
-    
+  
   void ParticleAna::configure(const PSet& cfg)
   {
 
+    _analyze_signal = cfg.get<bool>("AnalyzeSignal",false);
+    if (_analyze_signal) {}
+    
     _analyze_particle = cfg.get<bool>("AnalyzeParticle",false);
     if(_analyze_particle) { }
 
@@ -64,7 +69,28 @@ namespace larcv {
   {
 
     //
-    // Particle Tree
+    // Event Tree (per vertex)
+    //
+    _signal_tree = new TTree("SignalTree","SignalTree");
+    _signal_tree->Branch("entry",&_entry,"entry/I");
+    _signal_tree->Branch("run",&_run,"run/I");
+    _signal_tree->Branch("subrun",&_subrun,"subrun/I");
+    _signal_tree->Branch("event",&_event,"event/I");
+    _signal_tree->Branch("vtx_id",&_vtx_id,"vtx_id/I");
+    _signal_tree->Branch("vtx_x",&_vtx_x,"vtx_x/F");
+    _signal_tree->Branch("vtx_y",&_vtx_y,"vtx_y/F");
+    _signal_tree->Branch("vtx_z",&_vtx_z,"vtx_z/F");
+
+    _signal_tree->Branch("pathexists",&_pathexists,"pathexists/I");
+    _signal_tree->Branch("pathexists_v",&_pathexists_v);
+    _signal_tree->Branch("nparticles",&_nparticles,"nparticles/I");
+    _signal_tree->Branch("track_frac_v",&_track_frac_v);
+    _signal_tree->Branch("shower_frac_v",&_shower_frac_v);
+    _signal_tree->Branch("infiducial",&_infiducial,"infiducial/I");
+      
+    
+    //
+    // Particle Tree (per particle)
     //
     _particle_tree = new TTree("ParticleTree","ParticleTree");
     _particle_tree->Branch("entry"  , &_entry  ,"entry/I");
@@ -115,6 +141,12 @@ namespace larcv {
   bool ParticleAna::process(IOManager& mgr)
   {
     _ev_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,_img_prod);
+
+    if(!_trk_img_prod.empty())
+      _ev_trk_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,_trk_img_prod);
+    if(!_shr_img_prod.empty())
+      _ev_shr_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,_shr_img_prod);
+    
     _ev_roi_v      = (EventROI*)    mgr.get_data(kProductROI,_reco_roi_prod);
     _ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,_pgraph_prod);
     _ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,_pcluster_img_prod);
@@ -129,7 +161,8 @@ namespace larcv {
     _subrun = _ev_pgraph_v->subrun();
     _event  = _ev_pgraph_v->event();
     _entry  = mgr.current_entry();
-    
+
+    if(_analyze_signal)   AnalyzeSignal();
     if(_analyze_particle) AnalyzeParticle();
     if(_analyze_dqdx)     AnalyzedQdX();
     if(_analyze_angle)    AnalyzeAngle();
@@ -137,12 +170,245 @@ namespace larcv {
     return true;
   }
 
-  void ParticleAna::finalize()
+void ParticleAna::finalize()
   {
-    _particle_tree->Write();
-    _dqdx_tree->Write();
-    _angle_tree->Write();
+    if(_analyze_signal)   _signal_tree->Write();
+    if(_analyze_particle) _particle_tree->Write();
+    if(_analyze_dqdx)     _dqdx_tree->Write();
+    if(_analyze_angle)    _angle_tree->Write();
   }  
+
+  //
+  // Signal Related Functionality (Vic reponsible)
+  //
+  void ParticleAna::AnalyzeSignal() {
+    
+    auto const& ctor_m = _ev_ctor_v->Pixel2DClusterArray();
+    auto const& pcluster_m = _ev_pcluster_v->Pixel2DClusterArray();
+
+    std::vector<ImageMeta> all_meta_v;
+    std::vector<cv::Mat>   adc_cvimg_v;
+    std::vector<cv::Mat>   trk_cvimg_v;
+    std::vector<cv::Mat>   shr_cvimg_v;
+    
+    for(auto const& pgraph : _ev_pgraph_v->PGraphArray()) {
+      auto const& roi_v = pgraph.ParticleArray();
+
+      for(size_t plane=0; plane<3; ++plane) {
+	auto meta = roi_v.front().BB(plane);
+      
+	auto meta_iter = std::find(std::begin(all_meta_v),std::end(all_meta_v),meta);
+	if ( meta_iter != all_meta_v.end()) continue;
+	
+	auto adc_img2d = _ev_img_v->Image2DArray().at(plane).crop(meta);
+	auto trk_img2d = _ev_trk_img_v->Image2DArray().at(plane).crop(meta);
+	auto shr_img2d = _ev_shr_img_v->Image2DArray().at(plane).crop(meta);
+
+	auto adc_cvimg = _LArbysImageMaker.ExtractMat(adc_img2d);
+	adc_cvimg = larocv::Transpose(adc_cvimg);
+	adc_cvimg = larocv::Flip(adc_cvimg,0);
+	
+	auto trk_cvimg = _LArbysImageMaker.ExtractMat(trk_img2d);
+	trk_cvimg = larocv::Transpose(trk_cvimg);
+	trk_cvimg = larocv::Flip(trk_cvimg,0);
+
+	auto shr_cvimg = _LArbysImageMaker.ExtractMat(shr_img2d);
+	shr_cvimg = larocv::Transpose(shr_cvimg);
+	shr_cvimg = larocv::Flip(shr_cvimg,0);
+
+	all_meta_v.emplace_back(std::move(meta));
+	adc_cvimg_v.emplace_back(std::move(adc_cvimg));
+	trk_cvimg_v.emplace_back(std::move(shr_cvimg));
+	shr_cvimg_v.emplace_back(std::move(trk_cvimg));
+      }
+    }
+    
+
+    for(size_t pgraph_id = 0; pgraph_id < _ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
+      auto const& pgraph = _ev_pgraph_v->PGraphArray().at(pgraph_id);
+
+      _vtx_id = (int) pgraph_id;
+      
+      auto const& roi_v = pgraph.ParticleArray();
+
+      // Get this 3D position
+      _vtx_x = pgraph.ParticleArray().front().X();
+      _vtx_y = pgraph.ParticleArray().front().Y();
+      _vtx_z = pgraph.ParticleArray().front().Z();
+
+      _infiducial=1;
+      if( _vtx_x < 5.     || _vtx_x > 251.35 ||
+	  _vtx_y < -111.5 || _vtx_y > 111.5  ||
+	  _vtx_z < 5.     || _vtx_z > 1031.8 )
+	_infiducial = 0;
+      
+
+      auto const& cluster_idx_v = pgraph.ClusterIndexArray();
+      _nparticles = (int) cluster_idx_v.size();
+
+      _track_frac_v.clear();
+      _track_frac_v.resize(_nparticles,0.0);
+
+      _shower_frac_v.clear();
+      _shower_frac_v.resize(_nparticles,0.0);
+
+      _pathexists = 0;
+      _pathexists_v.clear();
+      _pathexists_v.resize(_nparticles,0.0);
+
+      std::vector<std::vector<int> > path_exists_vv;
+      path_exists_vv.resize(_nparticles);
+      for(auto& v : path_exists_vv) v.resize(3,kINVALID_INT);
+      
+      // Loop per plane, get the particle contours and images for this plane
+      for(size_t plane=0; plane<3; ++plane) {
+	auto iter_pcluster = pcluster_m.find(plane);
+	if(iter_pcluster == pcluster_m.end()) continue;
+	
+	auto iter_ctor = ctor_m.find(plane);
+	if(iter_ctor == ctor_m.end()) continue;
+
+	// Retrieve the particle images and particle contours on this plane
+	const auto& pcluster_v = (*iter_pcluster).second;
+	const auto& ctor_v = (*iter_ctor).second;
+
+	// Get this planes meta
+	auto meta = roi_v.front().BB(plane);
+	
+	auto meta_iter = std::find(std::begin(all_meta_v),std::end(all_meta_v),meta);
+	if ( meta_iter == all_meta_v.end()) throw larbys("Where is this meta?");
+
+	auto meta_id = meta_iter - all_meta_v.begin();
+	auto& adc_cvimg = adc_cvimg_v.at(meta_id);
+	auto& trk_cvimg = trk_cvimg_v.at(meta_id);
+	auto& shr_cvimg = shr_cvimg_v.at(meta_id);
+      
+	// For each particle, get the contour and image on this plane (from pcluster_v/ctor_v)
+	for(size_t par_id=0; par_id < cluster_idx_v.size(); ++par_id) {
+	  auto cluster_idx = cluster_idx_v[par_id];
+	  auto& trk_frac = _track_frac_v[par_id];
+	  auto& shr_frac = _shower_frac_v[par_id];
+	  auto& path_ex  = path_exists_vv[par_id][plane];
+	  
+	  const auto& pcluster = pcluster_v.at(cluster_idx);
+	  const auto& pctor    = ctor_v.at(cluster_idx);
+
+	  // There is no particle cluster on this plane
+	  if (pctor.empty()) continue;
+
+	  // Convert the Pixel2DArray of contour points to a GEO2D_Contour_t
+	  larocv::GEO2D_Contour_t ctor;
+	  ctor.resize(pctor.size());
+	  for(size_t i=0;i<ctor.size();++i) {
+	    ctor[i].x = pctor[i].X();
+	    ctor[i].y = pctor[i].Y();
+	  }
+	  
+	  // Make a PixelChunk given this contour, and this adc image
+	  larocv::PixelChunk pchunk(ctor,adc_cvimg,trk_cvimg,shr_cvimg);
+	  trk_frac += pchunk.track_frac;
+	  shr_frac += pchunk.shower_frac;
+
+	  double x_pixel,y_pixel;
+	  x_pixel=y_pixel=kINVALID_DOUBLE;
+
+	  // Check if gap exists
+	  Project3D(meta,_vtx_x,_vtx_y,_vtx_z,0,plane,x_pixel,y_pixel);
+	  y_pixel = meta.rows() - y_pixel;
+	    
+	  geo2d::Circle<float> circle;
+	  circle.center.x = x_pixel;
+	  circle.center.y = y_pixel;
+	  circle.radius = 10;
+
+	  auto mask_img = larocv::MaskImage(adc_cvimg,circle,0,false);
+
+	  auto xs_v = larocv::QPointOnCircle(mask_img,circle,10,0);
+
+	  if (xs_v.empty()) continue;
+	  
+	  double min_dist = kINVALID_DOUBLE;
+	  geo2d::Vector<float> min_pt;
+	  
+	  for(const auto& xs : xs_v) {
+	    double dist = kINVALID_DOUBLE;
+	    auto inside = larocv::PointPolygonTest(ctor,xs,dist);
+	    if (inside) {
+	      min_dist = 0;
+	      min_pt = xs;
+	      break;
+	    }
+	    if (dist < min_dist) {
+	      min_dist = dist;
+	      min_pt = xs;
+	    }
+	  }
+
+
+	  path_ex = (int)larocv::PathExists(mask_img,circle.center,min_pt,5,10,1);
+
+	  /*
+	    static int iii=0;
+	    std::stringstream ss;
+	    ss << "adc_img_" << iii << ".png";
+	    cv::imwrite(ss.str(),larocv::Threshold(adc_cvimg,10,255));
+	    ss.str("");
+	    ss << "trk_img_" << iii << ".png";
+	    cv::imwrite(ss.str(),larocv::Threshold(trk_cvimg,10,255));
+	    ss.str("");
+	    ss << "shr_img_" << iii << ".png";
+	    cv::imwrite(ss.str(),larocv::Threshold(shr_cvimg,10,255));
+	    ss.str("");
+	    ss << "mask_img_" << iii << ".png";
+	    cv::imwrite(ss.str(),larocv::Threshold(mask_img,10,255));
+	    std::cout << "number of xs: " << xs_v.size() << std::endl;
+	    std::cout << iii << ") @ plane " << plane << " particle id " << par_id << " is path: " << path_ex << std::endl;
+	    std::cout << "2D vtx @ (" << x_pixel << "," << y_pixel << ")" << " & min pt (" << min_pt.x << "," << min_pt.y << ")" << std::endl;
+	    std::cout << std::endl;
+	    iii+=1;
+	  */
+
+	} // end this particle
+      } // end this plane
+
+
+
+      // per particle
+      for(size_t par_id = 0; par_id < path_exists_vv.size(); ++par_id) {
+
+	const auto path_exists_v = path_exists_vv[par_id];
+	int path_exists = 0;
+	int valid_planes = 0;
+	
+	// per plane
+	for(auto path_plane : path_exists_v) {
+	  if (path_plane == kINVALID_INT) continue;
+	  valid_planes += 1;
+	  path_exists  += path_plane;
+	}
+	
+	if (path_exists == valid_planes ) {
+	  _pathexists_v[par_id] = 1.0;
+	}
+	
+      }
+
+      _pathexists = 1.0;
+	
+      for(auto pe : _pathexists_v) {
+	if (pe == 0.0)  {
+	  _pathexists = 0.0;
+	  break;
+	}
+      }
+
+      //std::cout << _pathexists << std::endl;
+      _signal_tree->Fill();
+    } // end this vertex
+
+    return;
+    
+  }
   
   //
   // Particle Related Functionality (Vic reponsible)
@@ -166,7 +432,6 @@ namespace larcv {
       meta_v.resize(3);
       for(size_t plane=0; plane<3; ++plane) 
 	meta_v[plane] = roi_v.front().BB(plane);
-      
       
       // Now go retrieve the particle contours, and particle pixels
       // ...the indicies are stored in ClusterIndexArray
