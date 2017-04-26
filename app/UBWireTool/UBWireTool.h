@@ -8,6 +8,10 @@
 #include "Base/larbys.h"
 #include "WireData.h"
 
+#include "DataFormat/Pixel2DCluster.h"
+#include "DataFormat/ImageMeta.h"
+#include "DataFormat/Image2D.h"
+
 namespace larcv {
 
   class UBWireTool : public larcv::larcv_base {
@@ -33,6 +37,10 @@ namespace larcv {
       int& otherplane, int& otherwire, std::vector<float>& intersection, int& crosses );
 
     static const larcv::WireData& getWireData(int plane);
+
+    static void pixelsAlongLineSegment( const std::vector<float>& start, const std::vector<float>& end, const std::vector<larcv::Image2D>& img_v,
+					const std::vector<float>& thresholds, const std::vector<int>& neighborhood, const float max_stepsize,
+					std::vector< Pixel2DCluster >& pixels );
 
   private:
     

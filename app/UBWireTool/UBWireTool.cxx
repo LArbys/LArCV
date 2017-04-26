@@ -4,8 +4,10 @@
 
 #include <sstream>
 #include <exception>
+#include <set>
 
 #include "LArUtil/Geometry.h"
+#include "LArUtil/LArProperties.h"
 
 namespace larcv {
 
@@ -490,5 +492,93 @@ namespace larcv {
       intersection[i] = (intersection01[i]+intersection02[i]+intersection12[i] )/3.0;
     
   }
+
+  void UBWireTool::pixelsAlongLineSegment( const std::vector<float>& start, const std::vector<float>& end, const std::vector<larcv::Image2D>& img_v,
+					   const std::vector<float>& thresholds, const std::vector<int>& neighborhood, const float max_stepsize, std::vector< Pixel2DCluster >& pixels ) {
+    if ( pixels.size()!=img_v.size() ) {
+      if ( pixels.size()==0 )
+	pixels.resize(3);
+      else {
+	throw std::runtime_error("Number of images and number of pixel clusters does not agree."); 
+      }
+    }
+
+    float dist = 0;
+    float dir[3] = {0};
+    for ( int i=0; i<3; i++) {
+      dir[i] = end[i] - start[i];
+      dist += dir[i]*dir[i];
+    }
+    if ( dist==0 )
+      return; // nothing to do
+    dist = sqrt(dist);
+    for (int i=0; i<3; i++)
+      dir[i] /= dist;
+
+    int nsteps = dist/max_stepsize;
+    if ( fabs(dist - nsteps*max_stepsize)>1.0e-5 )
+      nsteps++;
+    float step = dist/nsteps;
+
+    const float cm_per_tick = 	larutil::LArProperties::GetME()->DriftVelocity()*0.5;
+
+    typedef std::array<int,2> pix_t;
+    std::vector< std::set< pix_t > > pixelset_v(img_v.size());
+    for ( size_t p=0; p<img_v.size(); p++ ) {
+      pixelset_v.reserve(1000);
+    }
+    
+    for (int n=0; n<=nsteps; n++) {
+      
+      Double_t xyz[3] = {0};
+      for (int i=0; i<3; i++)
+	xyz[i] = start[i] + (n*step)*dir[i];
+      
+      // get the tick
+      float tick = xyz[0]/cm_per_tick + 3200.0;
+      if ( tick<=img_v.front().meta().min_y() || tick>img_v.front().meta().max_y() )
+	continue;
+
+      int row = img_v.front().meta().row( tick );
+      
+      // get the plane coordinats
+      for (size_t p=0; p<img_v.size(); p++) {
+	float wire = larutil::Geometry::GetME()->WireCoordinate( xyz, p );
+	if ( wire<img_v.at(p).meta().min_x() || wire>=img_v.at(p).meta().max_x() )
+	  continue;
+	
+	int col = img_v.at(p).meta().col( wire );
+
+	// search for charge
+	for ( int dr=-neighborhood.at(p); dr<=neighborhood.at(p); dr++) {
+	  int r = row+dr;
+	  if ( r<0 || r>=(int)img_v[p].meta().rows() ) continue;
+	  for ( int dc=-neighborhood.at(p); dc<=neighborhood.at(p); dc++ ) {
+	    int c = col+dc;
+	    if ( c<0 || c>=(int)img_v[p].meta().cols() ) continue;
+
+	    if ( img_v.at(p).pixel(r,c)>=thresholds.at(p) ) {
+	      pix_t pix;
+	      pix[0] = c;
+	      pix[1] = r;
+	      pixelset_v.at(p).insert( pix );
+	    }
+	  }
+	}
+	
+      }// end of loop over planes
+    }//end of loop over steps
+
+    for ( size_t p=0; p<img_v.size(); p++) {
+      for ( auto const& pix : pixelset_v.at(p) ) {
+	larcv::Pixel2D pix2d( pix[0], pix[1] );
+	pix2d.Intensity( img_v.at(p).pixel( pix[1], pix[0] ) );
+	pixels.at(p).emplace_back( std::move(pix2d) );
+      }
+    }
+
+    return;
+  }
+  
   
 }
