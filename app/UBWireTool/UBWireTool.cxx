@@ -580,5 +580,27 @@ namespace larcv {
     return;
   }
   
+  std::vector<int> UBWireTool::getProjectedImagePixel( const std::vector<float>& pos3d, const larcv::ImageMeta& meta, const int nplanes ) {
+    std::vector<int> img_coords( nplanes+1, 0 );
+
+    // tick/row
+    float tick = pos3d[0]/(0.5*larutil::LArProperties::GetME()->DriftVelocity()) + 3200.0;
+    if ( tick<meta.min_y() || tick>=meta.max_y() )
+      img_coords[0] = -1;
+    else {
+      img_coords[0] = meta.row( tick );
+    }
+
+    Double_t xyz[3] = { pos3d[0], pos3d[1], pos3d[2] };
+    
+    for (int p=0; p<nplanes; p++) {
+      float wire = larutil::Geometry::GetME()->WireCoordinate( xyz, p );
+      if ( wire<meta.min_x() || wire>=meta.max_x() )
+	img_coords[p+1] = -1;
+      else
+	img_coords[p+1] = meta.col( wire );
+    }
+    return img_coords;
+  }
   
 }

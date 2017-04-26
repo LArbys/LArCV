@@ -4,10 +4,9 @@
 #include "LArbysImageMC.h"
 #include "DataFormat/ROI.h"
 #include "DataFormat/EventROI.h"
-#include "LArUtil/GeometryHelper.h"
-#include "LArUtil/LArProperties.h"
 #include "DataFormat/EventImage2D.h"
-#include "Geo2D/Core/Geo2D.h"
+
+#include "LArbysUtils.h"
 
 namespace larcv {
 
@@ -19,119 +18,11 @@ namespace larcv {
     
   void LArbysImageMC::configure(const PSet& cfg)
   {
-    _enum=0;
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
 
-    _min_lepton_init_e = cfg.get<float>("LeptonMinInitE",35);
-    _do_not_reco       = cfg.get<bool>("DoNotReco",false);
-    _mc_available      = cfg.get<bool>("MCAvailable",true);
-    _write_tree        = cfg.get<bool>("WriteTree",true);
   }
 
-  cv::Rect LArbysImageMC::Get2DRoi(const ImageMeta& meta,
-				     const ImageMeta& bb) {
-
-    //bb == ROI on plane META
-    
-    float x_compression = meta.width()  / (float) meta.cols();
-    float y_compression = meta.height() / (float) meta.rows();
-    
-
-    int x=(bb.bl().x - meta.bl().x)/x_compression;
-    int y=(bb.bl().y - meta.bl().y)/y_compression;
-    
-    int dx=(bb.tr().x-bb.bl().x)/x_compression;
-    int dy=(bb.tr().y-bb.bl().y)/y_compression;
-
-    return cv::Rect(x,y,dx,dy);
-  }
-
-  
-  void LArbysImageMC::Project3D(const ImageMeta& meta,
-				double parent_x,
-				double parent_y,
-				double parent_z,
-				double parent_t,
-				uint plane,
-				double& xpixel, double& ypixel) 
-  {
-    
-    auto geohelp = larutil::GeometryHelper::GetME();//Geohelper from LArLite
-    auto larpro  = larutil::LArProperties::GetME(); //LArProperties from LArLite
-
-    auto vtx_2d = geohelp->Point_3Dto2D(parent_x, parent_y, parent_z, plane );
-    
-    double x_compression  = meta.width()  / meta.cols();
-    double y_compression  = meta.height() / meta.rows();
-    xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
-    ypixel = (((parent_x/larpro->DriftVelocity() + parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
-  }
-  
-
-  //Input is track line and 4 linesegment consists the ROI
-  //Function intersection finds the intersecion point of track
-  //and ROI in particle direction
-  
-  geo2d::Vector<float> LArbysImageMC::Intersection (const geo2d::HalfLine<float>& hline,
-						      const cv::Rect& rect)
-  {
-    
-    geo2d::LineSegment<float> ls1(geo2d::Vector<float>(rect.x           ,rect.y            ),
-				  geo2d::Vector<float>(rect.x+rect.width,rect.y            ));
-
-    geo2d::LineSegment<float> ls2(geo2d::Vector<float>(rect.x+rect.width,rect.y            ),
-				  geo2d::Vector<float>(rect.x+rect.width,rect.y+rect.height));
-
-    geo2d::LineSegment<float> ls3(geo2d::Vector<float>(rect.x+rect.width,rect.y+rect.height),
-				  geo2d::Vector<float>(rect.x           ,rect.y+rect.height));
-
-    geo2d::LineSegment<float> ls4(geo2d::Vector<float>(rect.x           ,rect.y+rect.height),
-				  geo2d::Vector<float>(rect.x           ,rect.y            ));
-    
-
-    geo2d::Vector<float> pt(-1,-1);
-    
-    try {
-      auto x = hline.x(ls1.pt1.y);
-      pt.x=x;
-      pt.y=ls1.pt1.y;
-      if ( pt.x <= ls1.pt2.x and pt.x >= ls1.pt1.x ) return pt;
-    } catch(...){
-      //LARCV_DEBUG() << "No point found in this direction" << std::endl;
-    }
-
-    try {
-      auto y = hline.y(ls2.pt1.x);
-      pt.x=ls2.pt1.x;
-      pt.y=y;
-      if ( pt.y <= ls2.pt2.y and pt.y >= ls2.pt1.y ) return pt;
-    } catch(...){
-      //LARCV_DEBUG() << "No point found in this direction" << std::endl;
-    }
-
-    try {
-      auto x = hline.x(ls3.pt1.y);
-      pt.x=x;
-      pt.y=ls3.pt1.y;
-      if ( pt.x >= ls3.pt2.x and pt.x <= ls3.pt1.x ) return pt;
-    } catch(...){
-      //LARCV_DEBUG() << "No point found in this direction" << std::endl;
-    }
-
-    try {
-      auto y= hline.y(ls4.pt1.x);
-      pt.x=ls4.pt1.x;
-      pt.y=y;
-      if ( pt.y >= ls4.pt2.y and pt.y <= ls4.pt1.y ) return pt;
-    } catch(...){
-      //LARCV_DEBUG() << "No point found in this direction" << std::endl;
-    }
-    
-    // throw larbys("\nNo intersection point found?\n");
-    return pt;
-    
-  }
 
   void LArbysImageMC::Clear() {
     
@@ -249,12 +140,9 @@ namespace larcv {
   bool LArbysImageMC::process(IOManager& mgr)
   {
 
-    if(!_mc_available)
-      return true;
-    
     Clear();
-    auto ev_roi = (larcv::EventROI*)mgr.get_data(kProductROI,_producer_roi);
-    auto const ev_image2d = (larcv::EventImage2D*)mgr.get_data(kProductImage2D,_producer_image2d);
+    const auto ev_roi     = (larcv::EventROI*)     mgr.get_data(kProductROI,_producer_roi);
+    const auto ev_image2d = (larcv::EventImage2D*) mgr.get_data(kProductImage2D,_producer_image2d);
 
     _run    = (uint) ev_roi->run();
     _subrun = (uint) ev_roi->subrun();
@@ -265,28 +153,27 @@ namespace larcv {
     _entry_info.subrun = _subrun;
     _entry_info.event  = _event;
 
-    ///////////////////////////////
-    // Neutrino ROI
-    auto roi = ev_roi->at(0);
+    auto roi = (*ev_roi).at(0);
 
-    _parent_pdg     = roi.PdgCode();
-    _energy_deposit = roi.EnergyDeposit();
-    _energy_init    = roi.EnergyInit();
-    _parent_x       = roi.X(); 
-    _parent_y       = roi.Y(); 
-    _parent_z       = roi.Z(); 
-    _parent_t       = roi.T(); 
-    _parent_px      = roi.Px(); 
-    _parent_py      = roi.Py(); 
-    _parent_pz      = roi.Pz(); 
+    _parent_pdg       = roi.PdgCode();
+    _energy_deposit   = roi.EnergyDeposit();
+    _energy_init      = roi.EnergyInit();
+    _parent_x         = roi.X(); 
+    _parent_y         = roi.Y(); 
+    _parent_z         = roi.Z(); 
+    _parent_t         = roi.T(); 
+    _parent_px        = roi.Px(); 
+    _parent_py        = roi.Py(); 
+    _parent_pz        = roi.Pz(); 
     _current_type     = roi.NuCurrentType();
     _interaction_type = roi.NuInteractionType();
     
-    //Get 2D projections from 3D
+    // Get 2D projections from 3D
     for (uint plane = 0 ; plane<3;++plane){
-      const auto& img = ev_image2d->Image2DArray()[plane];
+      const auto& img  = ev_image2d->Image2DArray()[plane];
       const auto& meta = img.meta();
-      double x_pixel(0), y_pixel(0);
+      double x_pixel, y_pixel;
+      x_pixel=y_pixel=0;
       Project3D(meta,_parent_x,_parent_y,_parent_z,_parent_t,plane,x_pixel,y_pixel);
       _vtx_2d_w_v[plane] = x_pixel;
       _vtx_2d_t_v[plane] = y_pixel;
@@ -296,67 +183,67 @@ namespace larcv {
     // then project onto plane, and find the intersection with the edge of the particle
     // ROI box, I think this won't be such a bad proxy for the MC particle length and angle.
 
-    ///////////////////////////////
-    //Daughter ROI
-    _nprimary=0;
-    _ntotal=0;
-    _nproton=0;
-    _nneutron=0;
-    _nlepton=0;
-    _nmeson=0;
-    _nshower=0;
+    _nprimary = 0;
+    _ntotal   = 0;
+    _nproton  = 0;
+    _nneutron = 0;
+    _nlepton  = 0;
+    _nmeson   = 0;
+    _nshower  = 0;
     
-    _hi_lep_pdg=-1;
-    _hi_lep_e = 0;
-    _dep_sum_lepton=0;
-    _ke_sum_lepton=0;
-    _dep_sum_proton=0;
-    _ke_sum_proton=0;
-    _dep_sum_meson=0;
-    _ke_sum_meson=0;
-    _dep_sum_shower=0;
-    _ke_sum_shower=0;
-    _dep_sum_neutron=0;
-    _ke_sum_neutron=0;
+    _hi_lep_pdg      = -1;
+    _hi_lep_e        = 0;
+
+    _dep_sum_lepton  = 0;
+    _ke_sum_lepton   = 0;
+
+    _dep_sum_proton  = 0;
+    _ke_sum_proton   = 0;
+
+    _dep_sum_meson   = 0;
+    _ke_sum_meson    = 0;
+
+    _dep_sum_shower  = 0;
+    _ke_sum_shower   = 0;
+
+    _dep_sum_neutron = 0;
+    _ke_sum_neutron  = 0;
 
 
-    uint ic=0;
-    std::vector<this_proton> protons;
-    protons.clear();
+    bool first=true;
+    std::vector<aparticle> proton_v;
+    proton_v.clear();
     if(!ev_roi) throw larbys("Bad ROI producer specified");
     for(const auto& roi : ev_roi->ROIArray()) {
 
-      // //do not store super parent pdgcode 0? or any other neutrino 12 or 14 -- this means we may have 2 neutrino events
-
-      if (ic==0)
-	{ ic+=1; continue; }
+      if (first)
+	{ first=false; continue; }
 
 
       LARCV_DEBUG() << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
       
-      //get a unit vector for this pdg in 3 coordinates
+      // Get a unit vector for this pdg in 3 coordinates
       auto px = roi.Px();
       auto py = roi.Py();
       auto pz = roi.Pz();
 
-      //length of p
       auto lenp = sqrt(px*px+py*py+pz*pz);
       
-      px/=lenp;
-      py/=lenp;
-      pz/=lenp;
+      px /= lenp;
+      py /= lenp;
+      pz /= lenp;
 
-      // original location
+      // The Original location
       auto x0 = roi.X();
       auto y0 = roi.Y();
       auto z0 = roi.Z();
       auto t0 = roi.T();
 
-      // here is another point in the direction of p.
-      // Pxyz are info from genie(meaning that it won't be identical to PCA assumption).
-      auto x1 = x0+px;
-      auto y1 = y0+py;
-      auto z1 = z0+pz;
+      // Here is another point in the direction of p, ignore units...
+      // Pxyz are info from genie (meaning that it won't be identical to PCA assumption).
+      auto x1 = x0 + px;
+      auto y1 = y0 + py;
+      auto z1 = z0 + pz;
       auto t1 = t0; 
       
       _daughter_length_vv.resize(3);
@@ -368,44 +255,42 @@ namespace larcv {
       
       //lets project both points
 
-      for(uint plane=0; plane<3; ++plane) {
+      for(size_t plane=0; plane<3; ++plane) {
 
-	auto& daughter_length_v = _daughter_length_vv[plane];
-	auto& daughter_2dstartx_v = _daughter_2dstartx_vv[plane];
-	auto& daughter_2dstarty_v = _daughter_2dstarty_vv[plane];
-	auto& daughter_2dendx_v = _daughter_2dendx_vv[plane];
-	auto& daughter_2dendy_v = _daughter_2dendy_vv[plane];
+	auto& daughter_length_v      = _daughter_length_vv[plane];
+	auto& daughter_2dstartx_v    = _daughter_2dstartx_vv[plane];
+	auto& daughter_2dstarty_v    = _daughter_2dstarty_vv[plane];
+	auto& daughter_2dendx_v      = _daughter_2dendx_vv[plane];
+	auto& daughter_2dendy_v      = _daughter_2dendy_vv[plane];
 	auto& daughter_2dcosangle_v  = _daughter_2dcosangle_vv[plane];
 	
 	const auto& img  = ev_image2d->Image2DArray()[plane];
 	const auto& meta = img.meta();
 	
-	double x_pixel0(0), y_pixel0(0);
-	Project3D(meta,x0,y0,z0,t0,plane,x_pixel0,y_pixel0);
-	
-	double x_pixel1(0), y_pixel1(0);
-	Project3D(meta,x1,y1,z1,t1, plane,x_pixel1,y_pixel1);
+	double x_pixel0, y_pixel0, x_pixel1, y_pixel1;
+	x_pixel0 = y_pixel0 = 0;
+	x_pixel1 = y_pixel1 = 0;
 
-	// start and end in 2D
+	Project3D(meta,x0,y0,z0,t0,plane,x_pixel0,y_pixel0);
+	Project3D(meta,x1,y1,z1,t1,plane,x_pixel1,y_pixel1);
+
+	// Start and end in 2D
 	geo2d::Vector<float> start(x_pixel0,y_pixel0);
 	geo2d::Vector<float> end  (x_pixel1,y_pixel1);
 	
-	// get the line of particle
+	// Get the line of particle
 	geo2d::HalfLine<float> hline(start,end-start);
 	
-	//here is the bbox on this plane --> we need to get the single intersection point for the half line
-	//and this bbox
+	// Here is the bbox on this plane --> we need to get the single intersection point 
+	// for the half line and this bbox
 	ImageMeta bb;
-	try {
-	  bb = roi.BB(plane);
-	}
-	catch(...) {
-	  continue;
-	}
+	try { bb = roi.BB(plane); }
+	catch(...) // No intersection occurs?
+	  { continue; }
 	
-	cv::Rect roi_on_plane = Get2DRoi(meta,roi.BB(plane));
-
-	// the start point will be inside the 2D ROI
+	auto roi_on_plane = Get2DRoi(meta,roi.BB(plane));
+	
+	// The start point will be inside the 2D ROI
 	// we need to intersection point between the edge and this half line, find it
 
 	auto pt_edge = Intersection(hline,roi_on_plane);
@@ -417,7 +302,7 @@ namespace larcv {
 	daughter_2dendx_v.push_back(pt_edge.x);
 	daughter_2dendy_v.push_back(pt_edge.y);
 
-	auto dir=pt_edge - start;
+	auto dir = pt_edge - start;
 	double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
 	
 	daughter_2dcosangle_v.push_back(cosangle);
@@ -438,23 +323,24 @@ namespace larcv {
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
-      _ntotal+=1;
+      _ntotal++;
 
-      pdgcode=std::abs(pdgcode);
+      pdgcode = std::abs(pdgcode);
       
-      //this is proton
+      // This is proton
       if (pdgcode==2212) {
 	//primary protons
 	if (roi.TrackID() == roi.ParentTrackID()) {
 	  _nproton++;
-	  _ke_sum_proton  += roi.EnergyInit() - 938.0;
+	  _ke_sum_proton  += (roi.EnergyInit() - 938.0);
 	}
 	//capture proton
-	this_proton thispro;
+	aparticle thispro;
 	thispro.trackid       = roi.TrackID();
 	thispro.parenttrackid = roi.ParentTrackID();
 	thispro.depeng        = roi.EnergyDeposit();
-	protons.emplace_back(std::move(thispro));
+	thispro.primary = (roi.TrackID()==roi.ParentTrackID());
+	proton_v.emplace_back(std::move(thispro));
       }
       // its not a primary, skip
       if (roi.TrackID() != roi.ParentTrackID()) continue;
@@ -466,17 +352,17 @@ namespace larcv {
       if (pdgcode==2112) {
 	_nneutron++;
 	_dep_sum_neutron += roi.EnergyDeposit();
-	_ke_sum_neutron  += roi.EnergyInit() - 939.5;
+	_ke_sum_neutron  += (roi.EnergyInit() - 939.5);
       }
 
-      //mesons are pion,kaon,...
+      // mesons are pion,kaon, ... what else
       if (pdgcode==211 or pdgcode==321) {
 	_nmeson++;
 	_dep_sum_meson += roi.EnergyDeposit();
 	_ke_sum_meson  += roi.EnergyInit();
       }
 
-      //leptons are electron, muon also...
+      // leptons are electron, muon, ... what else
       if (pdgcode==11 or pdgcode==13) {
 	_nlepton++;
 	_dep_sum_lepton += roi.EnergyDeposit();
@@ -487,7 +373,7 @@ namespace larcv {
 	}
       }
       
-      //shower are electron, gamma, pi0
+      // shower are electron, gamma, pi0
       if (pdgcode==11 or pdgcode==22 or pdgcode==111) {
 	_nshower++;
 	_dep_sum_shower += roi.EnergyDeposit();
@@ -496,49 +382,47 @@ namespace larcv {
 
     }
     
-    float highest_primary_proton_eng = 0;
+    auto nprotons=proton_v.size();
+
+    float max_proton_e = 0;
     std::vector<float> proton_engs;
-    proton_engs.clear();
+    proton_engs.reserve(nprotons);
+			
+    
+    if (nprotons){
 
-    if (protons.size() > 0){
-      int trackid ;
-
-      for (int x=0;x < protons.size() ; x++ ){
-	highest_primary_proton_eng = 0;
-	trackid = protons.at(x).trackid;
-	highest_primary_proton_eng += protons.at(x).depeng;
-	for (int y=x+1;y < protons.size() ; y++ ){
-	  if (protons.at(y).parenttrackid == trackid) {
-	    highest_primary_proton_eng+=protons.at(y).depeng;
+      for (int x=0; x < nprotons; x++){
+	const auto& proton1 = proton_v[x];
+	max_proton_e  = 0;
+	max_proton_e += proton1.depeng;
+	auto trackid  = proton1.trackid;
+      
+	for (int y=x+1; y < nprotons; y++ ){
+	  const auto& proton2 = proton_v[y];
+	  if (proton2.daughterof(proton1)) {
+	    max_proton_e += proton2.depeng;
 	  }
 	}
-	proton_engs.push_back(highest_primary_proton_eng);
+	
+	proton_engs.push_back(max_proton_e);
       }
-      highest_primary_proton_eng = 0;
-      for (auto const each : proton_engs) {
-	if (each > highest_primary_proton_eng)
-	  highest_primary_proton_eng = each;
-      }
-      _dep_sum_proton = highest_primary_proton_eng;
+
+      auto max_proton_e = *(std::max_element(std::begin(proton_engs),
+					     std::end(proton_engs)));
+      _dep_sum_proton = max_proton_e;
     }
 
-    if (_filter_ptr)
-      _is_signal = _filter_ptr->selected();
+    if (_filter_ptr) _is_signal = _filter_ptr->selected();
       
     _mc_tree->Fill();
 
-    _enum+=1;
-    
-    if (_do_not_reco) return false;
-    
     return true;
   }
   
 
   void LArbysImageMC::finalize()
   {
-    if (_write_tree)
-      _mc_tree->Write();
+    _mc_tree->Write();
   }
 
 }

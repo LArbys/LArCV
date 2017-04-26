@@ -42,7 +42,13 @@ namespace larcv {
 			 const Image2D& adc_image,
 			 const size_t plane,
 			 float value=100);
-    
+
+    Image2D
+    ConstructCosmicImage(const EventPixel2D& ev_pixel2d,
+			 const Image2D& adc_image,
+			 const size_t plane,
+			 float value=100);
+
     
   private:
 

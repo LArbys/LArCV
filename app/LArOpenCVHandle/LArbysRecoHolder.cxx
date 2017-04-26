@@ -1,11 +1,19 @@
-#ifndef LARBYSVERTEXFILTER_CXX
-#define LARBYSVERTEXFILTER_CXX
+#ifndef LARBYSRECOHOLDER_CXX
+#define LARBYSRECOHOLDER_CXX
 
 #include "LArbysRecoHolder.h"
 
 namespace larcv {
 
-
+  void
+  LArOCVSerial::Clear() {
+    _vertex_v.clear();
+    _particle_cluster_vvv.clear();
+    _track_comp_vvv.clear();
+    _match_pvvv.clear();
+    _meta_vv.clear();
+  }
+  
   void
   LArbysRecoHolder::SetMeta(const std::vector<Image2D>& adc_img_v) {
     std::vector<ImageMeta> meta_v;
@@ -44,6 +52,10 @@ namespace larcv {
 			  const std::vector<cv::Mat>& adc_cvimg_v,
 			  bool sort) {
     
+    LARCV_DEBUG() << "Requested coverage " << _match_coverage << " & "
+		  << _match_particles_per_plane << " particles per plane & "
+		  << _match_min_number << " min number of matches " << std::endl;
+    
     auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id), // particles per plane
 					   adc_cvimg_v,                  // adc cv imaage
 					   _match_coverage,              // required coverage
@@ -51,9 +63,8 @@ namespace larcv {
 					   _match_min_number,            // min number of matches
 					   true);                        // ensure particle type is same
     
-
     if (sort) {
-      //sort the match so that the tracks come first
+      // Sort the match so that the tracks come first
       std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
       
       //put the tracks first
@@ -67,7 +78,7 @@ namespace larcv {
 	}
       }
       
-      //put the showers second
+      // Put the showers second
       for( auto match_v : match_vv ) {
 	auto& plane0     = match_v.front().first;
 	auto& id0        = match_v.front().second;
@@ -89,6 +100,7 @@ namespace larcv {
       match_pvvv.resize(vtx_id+1);
     
     match_pvvv[vtx_id] = match_vv;
+
     return match_vv;
   }
 
@@ -162,7 +174,7 @@ namespace larcv {
   
   void
   LArbysRecoHolder::Configure(const PSet& pset) {
-    LARCV_DEBUG() << "start" << std::endl;
+
 
     this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
 
@@ -173,20 +185,9 @@ namespace larcv {
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);
 
     _output_module_name   = pset.get<std::string>("OutputModuleName");
-    if (_output_module_name.empty()) {
-      LARCV_CRITICAL() << "Must specify output module name" << std::endl;
-      throw larbys();
-    }
+
     _output_module_offset = pset.get<size_t>("OutputModuleOffset",kINVALID_SIZE);
-
-    LARCV_DEBUG() << "RequireMultiplicityTwo: " << _require_two_multiplicity << std::endl;
-    LARCV_DEBUG() << "RequireFiducial: " << _require_fiducial << std::endl;
-    LARCV_DEBUG() << "MatchCoverage: " << _match_coverage << std::endl;
-    LARCV_DEBUG() << "MatchParticlesPerPlane: " << _match_particles_per_plane << std::endl;
-    LARCV_DEBUG() << "MatchMinimumNumber: " << _match_min_number << std::endl;
     
-    LARCV_DEBUG() << "end" << std::endl;
-
     return;
   }
 
@@ -198,7 +199,7 @@ namespace larcv {
     _out_tree->Branch("event" ,&_event ,"event/i");
     _out_tree->Branch("entry" ,&_entry ,"entry/i");
     _larocvserial = new LArOCVSerial();
-    _out_tree->Branch("kazu" ,&_larocvserial);
+    _out_tree->Branch("AlgoData" ,&_larocvserial);
   }
 
   void
@@ -206,10 +207,14 @@ namespace larcv {
 
     const larocv::data::AlgoDataManager& data_mgr   = mgr.DataManager();
     const larocv::data::AlgoDataAssManager& ass_man = data_mgr.AssManager();
-
+    
     auto output_module_id = data_mgr.ID(_output_module_name);
     if (output_module_id==kINVALID_SIZE)  {
-      LARCV_CRITICAL() << "Invalid algmodule name (" << _output_module_name <<") specified" << std::endl;
+      if(_output_module_name.empty()) {
+	LARCV_WARNING() << "Empty algo name specified, nothing to do" << std::endl;
+	return;
+      }
+      LARCV_WARNING() << "Invalid algmodule name (" << _output_module_name <<") specified" << std::endl;
       throw larbys();
     }
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(output_module_id, 0);

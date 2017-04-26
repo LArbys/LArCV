@@ -7,8 +7,10 @@ SS="cp %s %s"%("test.cfg",INDIR)
 print SS
 os.system(SS)
 os.chdir(INDIR)
-BASEDIR="/Users/vgenty/Desktop/intrinsic_nue/out_pyroi"
-#SS="run_processor test.cfg c_out*.root %s"%os.path.join(BASEDIR,"larcv_fcn_out*.root")
+
+# BASEDIR="/Users/vgenty/Desktop/intrinsic_nue/out_pyroi"
+# SS="run_processor test.cfg c_out*.root %s"%os.path.join(BASEDIR,"larcv_fcn_out*.root")
+
 SS="run_processor test.cfg c_comb*.root"
 print SS
 os.system(SS)

@@ -3,8 +3,9 @@
 
 #include "Base/larcv_base.h"
 #include <opencv2/opencv.hpp>
-#include "PixelChunk.h"
 #include "Base/PSet.h"
+#include "LArOpenCV/ImageCluster/AlgoClass/PixelChunk.h"
+
 
 namespace larcv {
   
@@ -43,34 +44,34 @@ namespace larcv {
     
   private:
     bool
-    OverallStraightCompatible(const PixelChunk& pchunk1,
-			      const PixelChunk& pchunk2);
+    OverallStraightCompatible(const larocv::PixelChunk& pchunk1,
+			      const larocv::PixelChunk& pchunk2);
     
     bool
-    IsStraight(const PixelChunk& track,
+    IsStraight(const larocv::PixelChunk& track,
 	       const cv::Mat& img);
     
     void
     FilterContours(larocv::GEO2D_ContourArray_t& ctor_v);
 		   
-    std::vector<PixelChunk>
+    std::vector<larocv::PixelChunk>
     MakePixelChunks(const cv::Mat& img,
-		    Type_t type,
+		    larocv::ChunkType_t type,
 		    bool calc_params=true,
-		    size_t min_ctor_size=2,
+		    size_t min_ctor_size=0,
 		    size_t min_track_size=0);
     bool
-    EdgeConnected(const PixelChunk& track1,
-		  const PixelChunk& track2);
+    EdgeConnected(const larocv::PixelChunk& track1,
+		  const larocv::PixelChunk& track2);
 
     cv::Mat
     PrepareImage(const cv::Mat& img);
 
     float
-    GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2,
+    GetClosestEdge(const larocv::PixelChunk& track1, const larocv::PixelChunk& track2,
 		   geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2);
     float
-    GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2);
+    GetClosestEdge(const larocv::PixelChunk& track1, const larocv::PixelChunk& track2);
 
     
   private:

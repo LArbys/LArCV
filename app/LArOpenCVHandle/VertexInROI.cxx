@@ -16,11 +16,11 @@ namespace larcv {
     
   void VertexInROI::configure(const PSet& cfg)
   {
-    _truth_roi_producer  = cfg.get<std::string>("TruthROIProducer");
-    _input_roi_producer  = cfg.get<std::string>("InputROIProducer");
-    _output_roi_producer = cfg.get<std::string>("OutputROIProducer");
+    _truth_roi_producer      = cfg.get<std::string>("TruthROIProducer");
+    _input_roi_producer      = cfg.get<std::string>("InputROIProducer");
+    _output_roi_producer     = cfg.get<std::string>("OutputROIProducer");
     _planes_inside_threshold = cfg.get<uint>("NPlanesInside",2);
-    _croi_idx = cfg.get<int>("CROI_IDX",-1);
+    _croi_idx                = cfg.get<int>("CROI_IDX",-1);
   }
 
   void VertexInROI::initialize()
@@ -32,6 +32,13 @@ namespace larcv {
     auto ev_croi_v      = (EventROI*)(mgr.get_data(kProductROI,_input_roi_producer));
     auto ev_croi_true_v = (EventROI*)(mgr.get_data(kProductROI,_output_roi_producer));
 
+    // Do you want a certain croi?
+    if (_croi_idx>=0) {
+      ev_croi_true_v->clear();
+      ev_croi_true_v->Append(ev_croi_v->ROIArray().at(_croi_idx));
+      return true;
+    }
+    
     float tx, ty, tz, tt, te;
     tx = ty = tz = tt = te = -1.;
     float scex, scey, scez;
@@ -44,6 +51,7 @@ namespace larcv {
 	tz = roi.Z();
 	tt = roi.T();
 	te = roi.EnergyInit();
+	std::cout << "(tx,ty,tz)=("<<tx<<","<<ty<<","<<tz<<")"<<std::endl;
 	auto const offset = _sce.GetPosOffsets(tx,ty,tz);
 	scex = tx - offset[0] + 0.7;
 	scey = ty + offset[1];
@@ -69,8 +77,8 @@ namespace larcv {
       uint good_croi0 = 0;
       uint good_croi1 = 0;
       uint good_croi2 = 0;
-
-      auto const& croi = ev_croi_v->ROIArray()[croi_idx];
+      
+      auto const& croi = ev_croi_v->ROIArray().at(croi_idx);
       auto const& bb_v = croi.BB();
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
@@ -85,27 +93,16 @@ namespace larcv {
       
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
       
-      //do you want a certain croi?
-      if (_croi_idx>=0) {
-	if( croi_idx == _croi_idx ) {
-	  ev_croi_true_v->Append(ev_croi_v->ROIArray()[croi_idx]);
-	}
-      }
-      //no, I want the one with NU vertex in it
-      else {
-	if (good_croi>=_planes_inside_threshold)
+      if (good_croi>=_planes_inside_threshold) 
 	  ev_croi_true_v->Append(croi);
-      }
+      
     }
-    
-    LARCV_DEBUG() << "Converted " << ev_croi_v->ROIArray().size()
-		  << " rois to " << ev_croi_true_v->ROIArray().size() << std::endl;
-    
+
+  
     return true;
   }
 
-  void VertexInROI::finalize()
-  {}
+  void VertexInROI::finalize() {}
 
 }
 #endif

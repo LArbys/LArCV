@@ -51,7 +51,7 @@ namespace larcv {
   PreProcessor::Configure(const PSet& pset) {
     LARCV_DEBUG() << "start" << std::endl;
 
-    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity",2));
+    this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
     
     _pi_threshold = pset.get<uint>("PiThreshold",1);
     _min_ctor_size = pset.get<uint>("MinContourSize",4);
@@ -75,7 +75,7 @@ namespace larcv {
   }
 
   bool
-  PreProcessor::IsStraight(const PixelChunk& track,const cv::Mat& img) {
+  PreProcessor::IsStraight(const larocv::PixelChunk& track,const cv::Mat& img) {
     
     auto e1e2_a = std::abs(geo2d::angle(track.edge1PCA,track.edge2PCA));
     auto e1oA_a = std::abs(geo2d::angle(track.edge1PCA,track.overallPCA));
@@ -101,7 +101,7 @@ namespace larcv {
   }
   
   float
-  PreProcessor::GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2,
+  PreProcessor::GetClosestEdge(const larocv::PixelChunk& track1, const larocv::PixelChunk& track2,
 			       geo2d::Vector<float>& edge1, geo2d::Vector<float>& edge2) {
     
     
@@ -126,7 +126,7 @@ namespace larcv {
   }
 
   float
-  PreProcessor::GetClosestEdge(const PixelChunk& track1, const PixelChunk& track2) {
+  PreProcessor::GetClosestEdge(const larocv::PixelChunk& track1, const larocv::PixelChunk& track2) {
     geo2d::Vector<float> temp1,temp2;
     return GetClosestEdge(track1,track2,temp1,temp2);
   }
@@ -145,9 +145,9 @@ namespace larcv {
     return;
   }
 
-  std::vector<PixelChunk>
+  std::vector<larocv::PixelChunk>
   PreProcessor::MakePixelChunks(const cv::Mat& img,
-				Type_t type,
+				larocv::ChunkType_t type,
 				bool calc_params,
 				size_t min_ctor_size,
 				size_t min_track_size) {
@@ -155,21 +155,22 @@ namespace larcv {
     
     auto ctor_v = larocv::FindContours(img);
 
-    std::vector<PixelChunk> track_v;
+    std::vector<larocv::PixelChunk> track_v;
     track_v.reserve(ctor_v.size());
 
-    LARCV_DEBUG() << "Found " << ctor_v.size() << " contours" << std::endl;
+    LARCV_DEBUG() << "Found " << ctor_v.size() << " contours of type " << (uint) type  << std::endl;
       
     for(auto& ctor_ : ctor_v) {
       LARCV_DEBUG() << "... size " << ctor_.size() << std::endl;
       if (ctor_.size() < min_ctor_size) continue;
-      PixelChunk pchunk;
+
+      larocv::PixelChunk pchunk;
       pchunk.npixel = cv::countNonZero(larocv::MaskImage(img,ctor_,0,false));
       pchunk.type = type;
       pchunk.ctor = std::move(ctor_);
       auto& ctor = pchunk.ctor;
       
-      if (pchunk.npixel<min_track_size) continue;
+      if (pchunk.npixel < min_track_size) continue;
       
       if (calc_params) {
 
@@ -194,8 +195,8 @@ namespace larcv {
 	pchunk.overallPCA = larocv::CalcPCA(ctor);
 	pchunk.edge1PCA = larocv::SquarePCA(img,edge1,_pca_box_size,_pca_box_size);
 	pchunk.edge2PCA = larocv::SquarePCA(img,edge2,_pca_box_size,_pca_box_size);
-	pchunk.track_frac = type==Type_t::kTrack  ? 1 : 0;
-	pchunk.shower_frac = type==Type_t::kShower ? 1 : 0;
+	pchunk.track_frac = type==larocv::ChunkType_t::kTrack  ? 1 : 0;
+	pchunk.shower_frac = type==larocv::ChunkType_t::kShower ? 1 : 0;
 	auto masked_pts=larocv::MaskImage(img,ctor,0,false);
 	pchunk.mean_pixel_dist = larocv::MeanDistanceToLine(masked_pts,pchunk.overallPCA);
 	pchunk.sigma_pixel_dist = larocv::SigmaDistanceToLine(masked_pts,pchunk.overallPCA);
@@ -210,8 +211,8 @@ namespace larcv {
   }
 
 
-  bool PreProcessor::EdgeConnected(const PixelChunk& track1,
-				   const PixelChunk& track2) {
+  bool PreProcessor::EdgeConnected(const larocv::PixelChunk& track1,
+				   const larocv::PixelChunk& track2) {
     const auto& t1edge1 = track1.edge1;
     const auto& t1edge2 = track1.edge2;
 
@@ -289,8 +290,8 @@ namespace larcv {
     auto track_img_t = PrepareImage(track_img);
     auto shower_img_t = PrepareImage(shower_img);
 
-    auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,false);
-    auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,false);
+    auto track_pchunk_v = MakePixelChunks(track_img_t,larocv::ChunkType_t::kTrack,false);
+    auto shower_pchunk_v = MakePixelChunks(shower_img_t,larocv::ChunkType_t::kShower,false);
     
     LARCV_DEBUG() << "Track chunks " << track_pchunk_v.size()
 		  << " & Shower chunks " << shower_pchunk_v.size() << std::endl;
@@ -322,8 +323,8 @@ namespace larcv {
     auto track_img_t = PrepareImage(track_img);
     auto shower_img_t = PrepareImage(shower_img);
     
-    auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,true);
-    auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,true);
+    auto track_pchunk_v = MakePixelChunks(track_img_t,larocv::ChunkType_t::kTrack,true);
+    auto shower_pchunk_v = MakePixelChunks(shower_img_t,larocv::ChunkType_t::kShower,true);
 
     for(auto& shower_pchunk : shower_pchunk_v) {
       auto& shower_ctor = shower_pchunk.ctor;
@@ -351,9 +352,9 @@ namespace larcv {
     auto track_img_t = PrepareImage(track_img);
     auto shower_img_t = PrepareImage(shower_img);
     
-    auto adc_pchunk_v = MakePixelChunks(adc_img_t,Type_t::kUnknown,true);
-    auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack,true);
-    auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower,true);
+    auto adc_pchunk_v = MakePixelChunks(adc_img_t,larocv::ChunkType_t::kUnknown,true);
+    auto track_pchunk_v = MakePixelChunks(track_img_t,larocv::ChunkType_t::kTrack,true);
+    auto shower_pchunk_v = MakePixelChunks(shower_img_t,larocv::ChunkType_t::kShower,true);
      
     /// determine track/shower fraction of ADC contours
     for(auto& adc_pchunk : adc_pchunk_v) {
@@ -364,8 +365,8 @@ namespace larcv {
       
       LARCV_DEBUG() << "ADC track @ " << &adc_pchunk << " contour size " << adc_ctor.size() << " w/ " << adc_pchunk.npixel << " pixels" << std::endl;
       LARCV_DEBUG() << "Edge 1 " << adc_pchunk.edge1 << " & Edge 2 " << adc_pchunk.edge2 << std::endl;
-      const PixelChunk* track = nullptr;
-      const PixelChunk* shower = nullptr;
+      const larocv::PixelChunk* track = nullptr;
+      const larocv::PixelChunk* shower = nullptr;
       float largest_track_frac = std::numeric_limits<float>::min();
       float largest_shower_frac = std::numeric_limits<float>::min();
 
@@ -432,8 +433,8 @@ namespace larcv {
   }
 
   bool
-  PreProcessor::OverallStraightCompatible(const PixelChunk& pchunk1,
-					  const PixelChunk& pchunk2) {
+  PreProcessor::OverallStraightCompatible(const larocv::PixelChunk& pchunk1,
+					  const larocv::PixelChunk& pchunk2) {
     auto angle = std::abs(geo2d::angle(pchunk1.overallPCA,pchunk2.overallPCA));
     if ((angle < _min_overall_angle) or (angle > 180 - _min_overall_angle))
       return true;
@@ -449,9 +450,9 @@ namespace larcv {
     auto track_img_t = PrepareImage(track_img);
     auto shower_img_t = PrepareImage(shower_img);
         
-    auto adc_pchunk_v = MakePixelChunks(adc_img_t,Type_t::kUnknown);
-    auto track_pchunk_v = MakePixelChunks(track_img_t,Type_t::kTrack);
-    auto shower_pchunk_v = MakePixelChunks(shower_img_t,Type_t::kShower);
+    auto adc_pchunk_v = MakePixelChunks(adc_img_t,larocv::ChunkType_t::kUnknown);
+    auto track_pchunk_v = MakePixelChunks(track_img_t,larocv::ChunkType_t::kTrack);
+    auto shower_pchunk_v = MakePixelChunks(shower_img_t,larocv::ChunkType_t::kShower);
 
     std::vector<size_t> cidx_v;
 

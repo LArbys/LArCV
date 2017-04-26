@@ -112,6 +112,14 @@ namespace larcv {
 
     return mu_image;
   }
+
+  Image2D
+  LArbysImageMaker::ConstructCosmicImage(const EventPixel2D& ev_pixel2d,
+					 const Image2D& adc_image,
+					 const size_t plane,
+					 float value) {
+    return ConstructCosmicImage(&ev_pixel2d,adc_image,plane,value);
+  }
   
 }
 #endif
