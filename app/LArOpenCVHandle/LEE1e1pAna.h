@@ -57,6 +57,8 @@ namespace larcv {
     int _run;
     int _subrun;
     int _event;
+    int _vtxid;
+
     double _tx;
     double _ty;
     double _tz;
@@ -70,6 +72,7 @@ namespace larcv {
     double _z;
     double _dr;
     double _scedr;
+    int _npar;
     int _shape0;
     int _shape1;
     std::vector<double> _score0;
