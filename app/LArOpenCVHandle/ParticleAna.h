@@ -107,19 +107,19 @@ namespace larcv {
     uint _bins;
     float _open_angle_cut;
     float _adc_threshold;
-
+    
     std::vector<double> _angle0_c;
     std::vector<double> _angle1_c;
     uint _straight_lines;
+    double _angle_diff;
     
-    double _mean0; //mean value of x in a ctor w.r.t the vertex
-    double _mean1; //to determine the direction of PCA w.r.t to the vertex
+    std::vector<double> _mean0; //mean value of x in a ctor w.r.t the vertex
+    std::vector<double> _mean1; //to determine the direction of PCA w.r.t to the vertex
 
     std::vector<double> _dir0_c;//particle direction from contour
     std::vector<double> _dir1_c;
     std::vector<double> _dir0_p;//particle direction from pixels close to vertex
     std::vector<double> _dir1_p;
-    
   };
 
   /**
