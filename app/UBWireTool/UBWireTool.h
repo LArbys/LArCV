@@ -2,6 +2,7 @@
 #define __UBWIRETOOL_H__
 
 #include <vector>
+#include <array>
 #include <map>
 
 #include "Base/larcv_base.h"

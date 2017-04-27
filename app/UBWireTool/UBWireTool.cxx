@@ -595,6 +595,8 @@ namespace larcv {
     
     for (int p=0; p<nplanes; p++) {
       float wire = larutil::Geometry::GetME()->WireCoordinate( xyz, p );
+      if ( wire+0.5>=(int)wire+1.0 )
+	wire = (int)wire+1.0;
       if ( wire<meta.min_x() || wire>=meta.max_x() )
 	img_coords[p+1] = -1;
       else
