@@ -76,12 +76,13 @@ namespace larcv {
     _signal_tree->Branch("run",&_run,"run/I");
     _signal_tree->Branch("subrun",&_subrun,"subrun/I");
     _signal_tree->Branch("event",&_event,"event/I");
-    _signal_tree->Branch("vtx_id",&_vtx_id,"vtx_id/I");
+    _signal_tree->Branch("vtxid",&_vtx_id,"vtxid/I");
     _signal_tree->Branch("vtx_x",&_vtx_x,"vtx_x/F");
     _signal_tree->Branch("vtx_y",&_vtx_y,"vtx_y/F");
     _signal_tree->Branch("vtx_z",&_vtx_z,"vtx_z/F");
 
     _signal_tree->Branch("pathexists",&_pathexists,"pathexists/I");
+    _signal_tree->Branch("pathexists2",&_pathexists2,"pathexists2/I");
     _signal_tree->Branch("pathexists_v",&_pathexists_v);
     _signal_tree->Branch("nparticles",&_nparticles,"nparticles/I");
     _signal_tree->Branch("track_frac_v",&_track_frac_v);
@@ -191,6 +192,7 @@ void ParticleAna::finalize()
   // Signal Related Functionality (Vic reponsible)
   //
   void ParticleAna::AnalyzeSignal() {
+    bool DEBUG = false;
     
     auto const& ctor_m = _ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = _ev_pcluster_v->Pixel2DClusterArray();
@@ -234,6 +236,9 @@ void ParticleAna::finalize()
     
 
     for(size_t pgraph_id = 0; pgraph_id < _ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
+
+      if (DEBUG) { if (pgraph_id!=1) { continue; } }
+      
       auto const& pgraph = _ev_pgraph_v->PGraphArray().at(pgraph_id);
 
       _vtx_id = (int) pgraph_id;
@@ -263,11 +268,13 @@ void ParticleAna::finalize()
 
       _pathexists = 0;
       _pathexists_v.clear();
-      _pathexists_v.resize(_nparticles,0.0);
+      _pathexists_v.resize(_nparticles,1.0);
 
       std::vector<std::vector<int> > path_exists_vv;
       path_exists_vv.resize(_nparticles);
       for(auto& v : path_exists_vv) v.resize(3,kINVALID_INT);
+
+      std::vector<int> plane_path_exists_v(3,kINVALID_INT);
       
       // Loop per plane, get the particle contours and images for this plane
       for(size_t plane=0; plane<3; ++plane) {
@@ -291,9 +298,69 @@ void ParticleAna::finalize()
 	auto& adc_cvimg = adc_cvimg_v.at(meta_id);
 	auto& trk_cvimg = trk_cvimg_v.at(meta_id);
 	auto& shr_cvimg = shr_cvimg_v.at(meta_id);
-      
+
+	double x_pixel,y_pixel;
+	x_pixel=y_pixel=kINVALID_DOUBLE;
+
+	// Check if gap exists
+	Project3D(meta,_vtx_x,_vtx_y,_vtx_z,0,plane,x_pixel,y_pixel);
+	y_pixel = meta.rows() - y_pixel;
+	geo2d::Circle<float> circle;
+	circle.center.x = x_pixel;
+	circle.center.y = y_pixel;
+	circle.radius = 6;
+	
+	auto thresh_img = larocv::Threshold(adc_cvimg,10,255);
+	auto xs_v = larocv::QPointOnCircle(thresh_img,circle,10,0);
+	if (xs_v.empty()) continue;
+
+	auto mask_img = larocv::MaskImage(thresh_img,circle,0,false);
+	auto mask_ctor_v = larocv::FindContours(mask_img);
+
+	std::vector<size_t> parent_ctor_id_v(xs_v.size(),kINVALID_SIZE);
+
+	for(size_t xs_id=0; xs_id < xs_v.size(); ++xs_id) {
+	  auto parent_id = larocv::FindContainingContour(mask_ctor_v,xs_v[xs_id]);
+	  parent_ctor_id_v[xs_id] = parent_id;
+	  if(DEBUG) {
+	    std::cout << "this id " << xs_id
+		      << " @ (" << xs_v[xs_id].x << "," << xs_v[xs_id].y << ")"
+		      << " parent is " << parent_id << std::endl;
+	  }
+	}
+
+
+	auto this_ctor_id = parent_ctor_id_v.front();
+
+	if(DEBUG) {
+	  std::cout << "this ctor id " << this_ctor_id << std::endl;
+	}
+	
+	bool different = false;
+	for(auto parent_ctor_id : parent_ctor_id_v) {
+	  if (parent_ctor_id == kINVALID_SIZE) continue;
+	  if(DEBUG) std::cout << "compare " << this_ctor_id << " w " << parent_ctor_id << std::endl;
+	  if (parent_ctor_id != this_ctor_id) {
+	    if(DEBUG) std::cout << "...different" << std::endl;
+	    different = true;
+	    break;
+	  }
+	}
+
+	if (xs_v.size()==1) {
+	  different=true;
+	}
+
+	if (different) {
+	  plane_path_exists_v[plane] = 0;
+	}
+	else {
+	  plane_path_exists_v[plane] = 1;
+	}
+	   
 	// For each particle, get the contour and image on this plane (from pcluster_v/ctor_v)
 	for(size_t par_id=0; par_id < cluster_idx_v.size(); ++par_id) {
+
 	  auto cluster_idx = cluster_idx_v[par_id];
 	  auto& trk_frac = _track_frac_v[par_id];
 	  auto& shr_frac = _shower_frac_v[par_id];
@@ -317,24 +384,6 @@ void ParticleAna::finalize()
 	  larocv::PixelChunk pchunk(ctor,adc_cvimg,trk_cvimg,shr_cvimg);
 	  trk_frac += pchunk.track_frac;
 	  shr_frac += pchunk.shower_frac;
-
-	  double x_pixel,y_pixel;
-	  x_pixel=y_pixel=kINVALID_DOUBLE;
-
-	  // Check if gap exists
-	  Project3D(meta,_vtx_x,_vtx_y,_vtx_z,0,plane,x_pixel,y_pixel);
-	  y_pixel = meta.rows() - y_pixel;
-	    
-	  geo2d::Circle<float> circle;
-	  circle.center.x = x_pixel;
-	  circle.center.y = y_pixel;
-	  circle.radius = 10;
-
-	  auto mask_img = larocv::MaskImage(adc_cvimg,circle,0,false);
-
-	  auto xs_v = larocv::QPointOnCircle(mask_img,circle,10,0);
-
-	  if (xs_v.empty()) continue;
 	  
 	  double min_dist = kINVALID_DOUBLE;
 	  geo2d::Vector<float> min_pt;
@@ -353,10 +402,13 @@ void ParticleAna::finalize()
 	    }
 	  }
 
-
-	  path_ex = (int)larocv::PathExists(mask_img,circle.center,min_pt,5,10,1);
-
-	  /*
+	  if (xs_v.size()==1) {
+	    path_ex = 0;
+	  } else {
+	    path_ex = (int)larocv::PathExists(mask_img,circle.center,min_pt,5,10,1);
+	  }	  
+	  
+	  if (DEBUG) {
 	    static int iii=0;
 	    std::stringstream ss;
 	    ss << "adc_img_" << iii << ".png";
@@ -375,13 +427,32 @@ void ParticleAna::finalize()
 	    std::cout << "2D vtx @ (" << x_pixel << "," << y_pixel << ")" << " & min pt (" << min_pt.x << "," << min_pt.y << ")" << std::endl;
 	    std::cout << std::endl;
 	    iii+=1;
-	  */
+	  }
 
 	} // end this particle
       } // end this plane
 
 
+      int plane_path_exists = 0;
+      int valid_plane_path_exists = 0;
+      for(size_t plane=0; plane<3; ++plane) {
+	if (DEBUG) std::cout << plane << ") -- " << plane_path_exists_v[plane] << std::endl;
+	if (plane_path_exists_v[plane] == kINVALID_INT) continue;
+	plane_path_exists += plane_path_exists_v[plane];
+	valid_plane_path_exists += 1;
+      }
 
+      if (DEBUG) std::cout << "valid plane path exists " << valid_plane_path_exists << " & plane path exists " << plane_path_exists << std::endl;
+      _pathexists2 = 1;
+      if ((valid_plane_path_exists == 2) and (plane_path_exists == 0)) {
+	_pathexists2 = 0;
+      }
+      if ((valid_plane_path_exists == 3) and (plane_path_exists <= 1)) {
+	_pathexists2 = 0;
+      }
+      if(DEBUG) std::cout << "pathexists2 " << _pathexists2 << std::endl;
+      
+      
       // per particle
       for(size_t par_id = 0; par_id < path_exists_vv.size(); ++par_id) {
 
@@ -395,9 +466,13 @@ void ParticleAna::finalize()
 	  valid_planes += 1;
 	  path_exists  += path_plane;
 	}
-	
-	if (path_exists == valid_planes ) {
-	  _pathexists_v[par_id] = 1.0;
+	if(DEBUG)std::cout << "valid planes: " << valid_planes << " path exists " << path_exists << " on par " << par_id << std::endl;
+	if (valid_planes == 2 && path_exists == 0 ) {
+	  _pathexists_v[par_id] = 0.0;
+	}
+
+	if (valid_planes == 3 && path_exists <= 1 ) {
+	  _pathexists_v[par_id] = 0.0;
 	}
 	
       }
@@ -410,8 +485,8 @@ void ParticleAna::finalize()
 	  break;
 	}
       }
-
-      //std::cout << _pathexists << std::endl;
+      if(DEBUG)std::cout << "so _pathexists " << _pathexists << std::endl;
+      
       _signal_tree->Fill();
     } // end this vertex
 

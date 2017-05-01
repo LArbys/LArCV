@@ -70,6 +70,7 @@ namespace larcv {
     float _vtx_z;
     
     int _pathexists;
+    int _pathexists2;
     std::vector<int> _pathexists_v;
     int _nparticles;
     std::vector<float> _track_frac_v;

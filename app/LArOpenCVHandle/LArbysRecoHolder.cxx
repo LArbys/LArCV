@@ -61,7 +61,8 @@ namespace larcv {
 					   _match_coverage,              // required coverage
 					   _match_particles_per_plane,   // requires # particles per plane
 					   _match_min_number,            // min number of matches
-					   true);                        // ensure particle type is same
+					   _match_check_type,            // ensure particle type is same
+					   _match_weight_by_size);       // weight match by particle n pixels
     
     if (sort) {
       // Sort the match so that the tracks come first
@@ -183,7 +184,9 @@ namespace larcv {
     _match_coverage            = pset.get<float>("MatchCoverage",0.5);
     _match_particles_per_plane = pset.get<float>("MatchParticlesPerPlane",2);
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);
-
+    _match_check_type          = pset.get<bool>("MatchCheckType",true);
+    _match_weight_by_size      = pset.get<bool>("MatchWeightBySize",false);
+    
     _output_module_name   = pset.get<std::string>("OutputModuleName");
 
     _output_module_offset = pset.get<size_t>("OutputModuleOffset",kINVALID_SIZE);

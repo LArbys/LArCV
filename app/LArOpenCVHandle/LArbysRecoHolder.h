@@ -126,7 +126,9 @@ namespace larcv {
     float _match_coverage;
     float _match_particles_per_plane;
     float _match_min_number;
-
+    bool _match_check_type;
+    bool _match_weight_by_size;
+    
     larocv::VertexAnalysis _vtx_ana;
     
     std::vector<const larocv::data::Vertex3D*> _vertex_ptr_v;
