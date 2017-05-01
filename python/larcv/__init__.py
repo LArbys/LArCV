@@ -5,6 +5,8 @@ if not 'LARCV_BASEDIR' in os.environ:
 #force loading larlite libs FIRST because auto-loading in ROOT6 does not properly work
 if 'LARLITE_BASEDIR' in os.environ:
     from larlite import larlite
+if 'LAROPENCV_BASEDIR' in os.environ:
+    from larocv import larocv
 larcv_dir = os.environ['LARCV_LIBDIR']
 for l in [x for x in os.listdir(larcv_dir) if x.endswith('.so')]:
     ROOT.gSystem.Load(l)

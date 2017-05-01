@@ -2,11 +2,16 @@
 #define __UBWIRETOOL_H__
 
 #include <vector>
+#include <array>
 #include <map>
 
 #include "Base/larcv_base.h"
 #include "Base/larbys.h"
 #include "WireData.h"
+
+#include "DataFormat/Pixel2DCluster.h"
+#include "DataFormat/ImageMeta.h"
+#include "DataFormat/Image2D.h"
 
 namespace larcv {
 
@@ -31,8 +36,13 @@ namespace larcv {
     static void wireIntersection( std::vector< int > wids, std::vector<float>& intersection, double& triangle_area, int& crosses );
     static void getMissingWireAndPlane( const int plane1, const int wireid1, const int plane2, const int wireid2, 
       int& otherplane, int& otherwire, std::vector<float>& intersection, int& crosses );
+    static std::vector<int> getProjectedImagePixel( const std::vector<float>& pos3d, const larcv::ImageMeta& meta, const int nplanes );
 
     static const larcv::WireData& getWireData(int plane);
+
+    static void pixelsAlongLineSegment( const std::vector<float>& start, const std::vector<float>& end, const std::vector<larcv::Image2D>& img_v,
+					const std::vector<float>& thresholds, const std::vector<int>& neighborhood, const float max_stepsize,
+					std::vector< Pixel2DCluster >& pixels );
 
   private:
     
