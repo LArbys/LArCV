@@ -48,7 +48,7 @@ namespace larcv {
     if (!in_ev_roi) throw larbys("input ROI not found!");
     
     auto out_ev_roi = (EventROI*)(mgr.get_data(kProductROI,_output_roi_producer));
-    if (!in_ev_roi) throw larbys("output ROI failed creation");
+    if (!out_ev_roi) throw larbys("output ROI failed creation");
 
 
     const auto& in_roi_v = in_ev_roi->ROIArray();
