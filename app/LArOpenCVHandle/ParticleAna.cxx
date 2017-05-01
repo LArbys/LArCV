@@ -649,9 +649,6 @@ void ParticleAna::finalize()
 	auto _y = roi0.Y();
 	auto _z = roi0.Z();
 	
-	bool done0=false;
-	bool done1=false;
-	
 	// Now go retrieve the particle contours, and particles pixels
 	// the indicies are stored in ClusterIndexArray
 	auto const& cluster_idx_v = pgraph.ClusterIndexArray();
@@ -786,7 +783,7 @@ void ParticleAna::finalize()
 	  auto tmp = pgraph.ParticleArray().back().BB(plane).rows()-y_vtx2d;
 	  y_vtx2d = tmp;
 
-	  if(!done0 && ctor0.size()>2) {
+	  if(ctor0.size()>2) {
 	    
 	    ::larocv::GEO2D_Contour_t ctor;
 	    ctor.resize(ctor0.size());
@@ -818,12 +815,11 @@ void ParticleAna::finalize()
 	      //geo2d::Vector<double> DIR(dir0_p);
 	      if(dir0_p.x!=0  ) _dir0_p[plane] = dir0_p.y/ dir0_p.x;
 	    }
-	    done0 = true;
 	    
 	    auto const& pcluster1 = pcluster_v.at(cluster_idx1);
 	    auto const& ctor1 = ctor_v.at(cluster_idx1);
 	    
-	    if(!done1 && ctor1.size()>2) {
+	    if(ctor1.size()>2) {
 	      
 	      ::larocv::GEO2D_Contour_t ctor;
 	      ctor.resize(ctor1.size());
@@ -854,10 +850,8 @@ void ParticleAna::finalize()
 		auto dir1_p = larocv::CalcPCA(pclus).dir;
 		if(dir1_p.x!=0 ) _dir1_p[plane] = dir1_p.y/dir1_p.x;
 	      }
-	      done1 = true;
 	    }
 	    _plane = plane;
-	    if(done0 && done1) break;
 	  }
 	}
 	_angle_tree->Fill();      
@@ -888,9 +882,6 @@ void ParticleAna::finalize()
       auto _x = roi0.X();
       auto _y = roi0.Y();
       auto _z = roi0.Z();
-
-      bool done0=false;
-      bool done1=false;
 
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
       auto const& cluster_idx0 = cluster_idx_v.at(0);
