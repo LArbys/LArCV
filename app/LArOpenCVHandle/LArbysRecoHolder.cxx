@@ -51,19 +51,21 @@ namespace larcv {
   LArbysRecoHolder::Match(size_t vtx_id,
 			  const std::vector<cv::Mat>& adc_cvimg_v,
 			  bool sort) {
+    this->set_verbosity((msg::Level_t)0);
     
-    LARCV_DEBUG() << "Requested coverage " << _match_coverage << " & "
+    LARCV_DEBUG() << "@ vertex id " << vtx_id << " requested coverage " << _match_coverage << " & "
 		  << _match_particles_per_plane << " particles per plane & "
 		  << _match_min_number << " min number of matches " << std::endl;
     
     auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id), // particles per plane
-					   adc_cvimg_v,                  // adc cv imaage
+					   adc_cvimg_v,                  // adc cv image
 					   _match_coverage,              // required coverage
 					   _match_particles_per_plane,   // requires # particles per plane
 					   _match_min_number,            // min number of matches
 					   _match_check_type,            // ensure particle type is same
 					   _match_weight_by_size);       // weight match by particle n pixels
-    
+
+    LARCV_DEBUG() << "returned " << match_vv.size() << " matches" << std::endl;
     if (sort) {
       // Sort the match so that the tracks come first
       std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
@@ -95,7 +97,7 @@ namespace larcv {
       
       std::swap(match_vv,match_temp_vv);
     }
-
+    
     auto& match_pvvv = _larocvserial->_match_pvvv;
     if (vtx_id >= match_pvvv.size())
       match_pvvv.resize(vtx_id+1);
@@ -113,7 +115,7 @@ namespace larcv {
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > track_comp_ptr_vvv;
 
     for(size_t vertexid=0; vertexid<this->Verticies().size(); ++vertexid) {
-
+      
       if (_require_two_multiplicity) { 
 	auto multiplicity=_vtx_ana.RequireParticleCount(this->PlaneParticles(vertexid),2,2);
 	if (!multiplicity) {
@@ -178,9 +180,10 @@ namespace larcv {
 
 
     this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
-
-    _require_two_multiplicity  = pset.get<bool>("RequireMultiplicityTwo",true);
-    _require_fiducial          = pset.get<bool>("RequireFiducial",true);
+    
+    _require_two_multiplicity = false;
+    _require_fiducial = false;
+      
     _match_coverage            = pset.get<float>("MatchCoverage",0.5);
     _match_particles_per_plane = pset.get<float>("MatchParticlesPerPlane",2);
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);

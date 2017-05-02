@@ -56,7 +56,6 @@ namespace larcv {
 	  const std::vector<cv::Mat>& adc_cvimg_v,
 	  bool stort=true);
 
-
     void ResetOutput();
     void StoreEvent(size_t run, size_t subrun, size_t event, size_t entry);
     bool WriteOut(TFile* fout);

@@ -21,6 +21,7 @@ namespace larcv {
 
   void ROIAna::initialize()
   {
+    clear();
     _roi_tree = new TTree("ROITree","ROITree");
 
     _roi_tree->Branch("nroi",&_nroi,"nroi/I");
@@ -148,7 +149,6 @@ namespace larcv {
       }
       const auto& mask_v = mask.as_vector();
       area_exclusive = std::accumulate(std::begin(mask_v),std::end(mask_v),0.0);
-
 
       //
       // calculate the image size

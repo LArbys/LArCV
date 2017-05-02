@@ -410,14 +410,12 @@ namespace larcv {
 				   size_t& pidx) {
     
     LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
-    const auto& adc_cvimg_v_ = mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
+    const auto& adc_cvimg_orig_v = mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
 
-    std::vector<cv::Mat> adc_cvimg_v;
+    static std::vector<cv::Mat> adc_cvimg_v;
+    adc_cvimg_v.clear();
     adc_cvimg_v.resize(3);
 
-    for(size_t plane=0;plane<3;++plane)
-      adc_cvimg_v[plane] = adc_cvimg_v_[plane].clone();
-    
     auto event_pgraph        = (EventPGraph*)  iom.get_data(kProductPGraph,_output_producer);
     auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
     auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
@@ -434,8 +432,12 @@ namespace larcv {
       const auto& tcluster_vv = _RecoHolder.PlaneTracks(vtxid);
 
       LARCV_DEBUG() << vtxid << ") @ (x,y,z) : ("<<vtx3d.x<<","<<vtx3d.y<<","<<vtx3d.z<<")"<<std::endl;
+
+      for(size_t plane=0; plane<3; ++plane)
+	adc_cvimg_v[plane] = adc_cvimg_orig_v[plane].clone();
+
       auto match_vv = _RecoHolder.Match(vtxid,adc_cvimg_v);
-      
+
       if (match_vv.empty()) {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
 	continue;
