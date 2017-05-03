@@ -37,7 +37,7 @@ namespace larcv {
     if (_analyze_signal) {}
     
     _analyze_particle = cfg.get<bool>("AnalyzeParticle",false);
-    if(_analyze_particle) {}
+    if(_analyze_particle) { }
 
     _analyze_dqdx     = cfg.get<bool>("AnalyzedQdX",false);
     if(_analyze_dqdx) {
@@ -91,7 +91,6 @@ namespace larcv {
     _signal_tree->Branch("charge_neighbor2",&_charge_neighbor2,"charge_neighbor2/I");
     _signal_tree->Branch("charge_neighbor3",&_charge_neighbor3,"charge_neighbor3/I");
     _signal_tree->Branch("charge_neighbor_v",&_charge_neighbor_v);
-    
     
     //
     // Particle Tree (per particle)
@@ -155,7 +154,10 @@ namespace larcv {
     _angle_tree->Branch("p1pyp",&_p1pyp);
     _angle_tree->Branch("x2d",&_x2d_v);
     _angle_tree->Branch("y2d",&_y2d_v);
-
+    _angle_tree->Branch("pct_0_c_v",&_pct_0_c_v);
+    _angle_tree->Branch("pct_1_c_v",&_pct_1_c_v);
+    _angle_tree->Branch("pct_0_p_v",&_pct_0_p_v);
+    _angle_tree->Branch("pct_1_p_v",&_pct_1_p_v);
     //
     // dQdX Tree
     //
@@ -296,17 +298,14 @@ void ParticleAna::finalize()
 
       _charge_neighbor_v.clear();
       _charge_neighbor_v.resize(3,0);
-
       
       // Particle wise check if path exists
       std::vector<std::vector<int> > particle_path_exists_vv;
       particle_path_exists_vv.resize(_nparticles);
       for(auto& v : particle_path_exists_vv) v.resize(3,kINVALID_INT);
-
       // Plane wise check if path exists
       std::vector<int> plane_path_exists_v(3,kINVALID_INT);
-
-
+      
       // Loop per plane, get the particle contours and images for this plane
       for(size_t plane=0; plane<3; ++plane) {
 	auto iter_pcluster = pcluster_m.find(plane);
@@ -340,12 +339,10 @@ void ParticleAna::finalize()
 	circle.center.x = x_pixel;
 	circle.center.y = y_pixel;
 	circle.radius = 6;
-
 	
 	auto thresh_img = larocv::Threshold(adc_cvimg,10,255);
 	if(larocv::CountNonZero(thresh_img,geo2d::Circle<float>(circle.center,3)))
 	  _charge_neighbor_v[plane] = 1;
-	
 	auto xs_v = larocv::QPointOnCircle(thresh_img,circle,10,0);
 	if (xs_v.empty()) continue;
 
@@ -383,7 +380,7 @@ void ParticleAna::finalize()
 	}
 
 	if (xs_v.size()==1) {
-	  different = true;
+	  different=true;
 	}
 
 	if (different) {
@@ -467,7 +464,6 @@ void ParticleAna::finalize()
 	} // end this particle
       } // end this plane
 
-
       //
       // Per plane check of charge proximity
       //
@@ -482,6 +478,9 @@ void ParticleAna::finalize()
       //
       // Per plane check of gap
       //
+
+      
+
       int plane_path_exists = 0;
       int valid_plane_path_exists = 0;
       for(size_t plane=0; plane<3; ++plane) {
@@ -505,11 +504,12 @@ void ParticleAna::finalize()
       // Per particle check of gap
       //
       for(size_t par_id = 0; par_id < particle_path_exists_vv.size(); ++par_id) {
-
+      
 	const auto path_exists_v = particle_path_exists_vv[par_id];
 	int path_exists = 0;
 	int valid_planes = 0;
 	
+	// per plane
 	for(auto path_plane : path_exists_v) {
 	  if (path_plane == kINVALID_INT) continue;
 	  valid_planes += 1;
@@ -540,6 +540,7 @@ void ParticleAna::finalize()
     } // end this vertex
 
     return;
+    
   }
   
   //
@@ -717,7 +718,16 @@ void ParticleAna::finalize()
 	_angle_diff_c_v.resize(3,-99999);
 	_angle_diff_p_v.clear();
 	_angle_diff_p_v.resize(3,-99999);
-    
+
+	_pct_0_c_v.clear();
+	_pct_0_c_v.resize(3,0);
+	_pct_1_c_v.clear();
+	_pct_1_c_v.resize(3,0);
+	_pct_0_p_v.clear();
+	_pct_0_p_v.resize(3,0);
+	_pct_1_p_v.clear();
+	_pct_1_p_v.resize(3,0);
+	
 	auto pgraph = _ev_pgraph_v->PGraphArray().at(vtx_idx);
 	//for(auto const& pgraph : _ev_pgraph_v->PGraphArray()) {
 	
@@ -770,6 +780,7 @@ void ParticleAna::finalize()
 	  _p1pyc[plane].clear();
 	  // Get the first particle contour
 	  auto const& ctor0 = ctor_v.at(cluster_idx0);
+	  
 	  if(ctor0.size()>2) {
 	    // Converting Pixel2D to geo2d::VectorArray<int>
 	    ::larocv::GEO2D_Contour_t ctor;
@@ -783,7 +794,7 @@ void ParticleAna::finalize()
 	    }
 	    
 	    // Get the mean position of the contour
-	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
+	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d, _pct_0_c_v[plane] );
 	    _mean0c[plane] = mean;
 	    if(DEBUG) std::cout<<"mean c is "<<mean<<std::endl;
 	    
@@ -815,7 +826,7 @@ void ParticleAna::finalize()
 	    }
 
 	    // Get the mean position of the contour
-	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
+	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d, _pct_1_c_v[plane] );
 	    _mean1c[plane] = mean;
 	  
 	    // Calculate the direction of particle 1
@@ -836,12 +847,15 @@ void ParticleAna::finalize()
 	if(DEBUG) std::cout<<"Angle CCC=========>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
 	int ctr_17x_c = 0;
 	int ctr_0x_c = 0;
-	
+
 	for (int plane =0 ; plane <=2 ; plane++){
 
 	  _angle_diff_c_v[plane] = std::abs(_angle0_c[plane]-_angle1_c[plane]);
 	  
 	  if (_angle_diff_c_v[plane]>180) _angle_diff_c_v[plane] = 360 - _angle_diff_c_v[plane];
+
+	  //if (_pct_0_c_v[plane] <0.1 ||_pct_1_c_v[plane] < 0.1) _angle_diff_c_v[plane] = 180 - _angle_diff_c_v[plane];
+	  
 	  if (_angle_diff_c_v[plane] > 170) ctr_17x_c++;
 	  if (_angle_diff_c_v[plane] < 10 ) ctr_0x_c++;
 	  
@@ -849,7 +863,7 @@ void ParticleAna::finalize()
 	  if (_angle_diff_c_v[plane]!=-77777)_angle_diff_c = _angle_diff_c_v[plane];
 	}
 	
-	if (ctr_17x_c >=1 ) _angle_diff_c = *std::max_element(std::begin(_angle_diff_c_v), std::end(_angle_diff_c_v)); // c++11
+	if (ctr_17x_c >=2 ) _angle_diff_c = *std::max_element(std::begin(_angle_diff_c_v), std::end(_angle_diff_c_v)); // c++11
 	/*int ctr_17x_c = 0;
 	//int ctr_0x_c = 0;
 	
@@ -917,7 +931,7 @@ void ParticleAna::finalize()
 	    }
 
 	    if (pclus.size()>=2) {
-	      auto mean = Getx2vtxmean(pclus, x_vtx2d, y_vtx2d);//Need to swap x and y
+	      auto mean = Getx2vtxmean(pclus, x_vtx2d, y_vtx2d, _pct_0_p_v[plane]);//Need to swap x and y
 	      _mean0p[plane] = mean;
 	      auto dir0_p = larocv::CalcPCA(pclus).dir;
 	      if (dir0_p.x == 0 && dir0_p.y >0) _angle0_p[plane] = 90;
@@ -954,7 +968,7 @@ void ParticleAna::finalize()
 	    }
 	    
 	    if (pclus.size()>=2) {
-	      auto mean = Getx2vtxmean(pclus, x_vtx2d, y_vtx2d);//Need to swap x and y
+	      auto mean = Getx2vtxmean(pclus, x_vtx2d, y_vtx2d, _pct_1_p_v[plane]);//Need to swap x and y
 	      _mean1p[plane] = mean;
 	      auto dir1_p = larocv::CalcPCA(pclus).dir;
 	      if (dir1_p.x == 0 && dir1_p.y >0) _angle1_p[plane] = 90;
@@ -980,6 +994,12 @@ void ParticleAna::finalize()
 	  _angle_diff_p_v[plane] = std::abs(_angle0_p[plane]-_angle1_p[plane]);
 	  
 	  if (_angle_diff_p_v[plane]>180) _angle_diff_p_v[plane] = 360 - _angle_diff_p_v[plane];
+	  
+	  //if (_pct_0_p_v[plane] < 0.1 || _pct_1_p_v[plane] < 0.1) _angle_diff_p_v[plane] = 180 - _angle_diff_p_v[plane];
+	  
+	  //std::cout<<"plane"<<plane<<std::endl;
+	  //std::cout<<_pct_0_p_v[plane]<<std::endl;
+	  //std::cout<<_pct_1_p_v[plane]<<std::endl;
 	  if (_angle_diff_p_v[plane] > 170) ctr_17x_p++;
 	  if (_angle_diff_p_v[plane] < 10 ) ctr_0x_p++;
 	  
@@ -987,7 +1007,7 @@ void ParticleAna::finalize()
 	  if (_angle_diff_p_v[plane]!=-77777)_angle_diff_p = _angle_diff_p_v[plane];
 	}
 	
-	if (ctr_17x_p >=1 ) _angle_diff_p = *std::max_element(std::begin(_angle_diff_p_v), std::end(_angle_diff_p_v)); // c++11
+	if (ctr_17x_p >=2 ) _angle_diff_p = *std::max_element(std::begin(_angle_diff_p_v), std::end(_angle_diff_p_v)); // c++11
 	_angle_tree->Fill(); 
       }
     }
@@ -1169,13 +1189,18 @@ void ParticleAna::finalize()
     } // end vertex
   }
  
-  double ParticleAna::Getx2vtxmean( ::larocv::GEO2D_Contour_t ctor, float x2d, float y2d)
+  double ParticleAna::Getx2vtxmean( ::larocv::GEO2D_Contour_t ctor, float x2d, float y2d, double& pct)
   {
+    double ctr_pos = 0.0;
+    double ctr_neg = 0.0;
     double sum = 0;
     double mean = -999;
     for(size_t idx= 0;idx < ctor.size(); ++idx){
       sum += ctor[idx].x - x2d;
+      if (ctor[idx].x - x2d > 0) ctr_pos++;
+      if (ctor[idx].x - x2d < 0) ctr_neg++;
     }
+    pct = std::abs(ctr_pos - ctr_neg)/ctor.size() ;
     if (ctor.size()>0) mean = sum / ctor.size();
     return mean;
   }
