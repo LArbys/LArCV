@@ -126,18 +126,35 @@ namespace larcv {
     _angle_tree->Branch("straight_lines",&_straight_lines,"straight_lines/I");
     _angle_tree->Branch("dir0_c",&_dir0_c);
     _angle_tree->Branch("dir1_c",&_dir1_c);
-    _angle_tree->Branch("angle0",&_angle0_c);
-    _angle_tree->Branch("angle1",&_angle1_c);
-    _angle_tree->Branch("angle_diff",&_angle_diff);
+    _angle_tree->Branch("angle0_c",&_angle0_c);
+    _angle_tree->Branch("angle1_c",&_angle1_c);
+    _angle_tree->Branch("angle0_p",&_angle0_p);
+    _angle_tree->Branch("angle1_p",&_angle1_p);
+    _angle_tree->Branch("angle_diff_c",&_angle_diff_c,"angle_diff_c/D");
+    _angle_tree->Branch("angle_diff_p",&_angle_diff_p,"angle_diff_p/D");
+    _angle_tree->Branch("angle_diff_c_v",&_angle_diff_c_v);
+    _angle_tree->Branch("angle_diff_p_v",&_angle_diff_p_v);
     _angle_tree->Branch("dir0_p",&_dir0_p);
     _angle_tree->Branch("dir1_p",&_dir1_p);
-    _angle_tree->Branch("mean0",&_mean0);//position of cluste0 to 2d vtx
-    _angle_tree->Branch("mean1",&_mean1);//position of cluste1 to 2d vtx
+    _angle_tree->Branch("mean0c",&_mean0c);//position of cluste0 to 2d vtx
+    _angle_tree->Branch("mean1c",&_mean1c);//position of cluste1 to 2d vtx
+    _angle_tree->Branch("mean0p",&_mean0p);//position of cluste0 to 2d vtx
+    _angle_tree->Branch("mean1p",&_mean1p);//position of cluste1 to 2d vtx
     _angle_tree->Branch("meanl",&_meanl,"meanl/F");//dqdx mean of particle left to the vtx
     _angle_tree->Branch("meanr",&_meanr,"meanr/F");//dqdx mean of particle right to the vtx
     _angle_tree->Branch("stdl",&_stdl,"stdl/F");
     _angle_tree->Branch("stdr",&_stdr,"stdr/F");
 
+    _angle_tree->Branch("p0pxc",&_p0pxc);
+    _angle_tree->Branch("p0pyc",&_p0pyc);
+    _angle_tree->Branch("p1pxc",&_p1pxc);
+    _angle_tree->Branch("p1pyc",&_p1pyc);
+    _angle_tree->Branch("p0pxp",&_p0pxp);
+    _angle_tree->Branch("p0pyp",&_p0pyp);
+    _angle_tree->Branch("p1pxp",&_p1pxp);
+    _angle_tree->Branch("p1pyp",&_p1pyp);
+    _angle_tree->Branch("x2d",&_x2d_v);
+    _angle_tree->Branch("y2d",&_y2d_v);
 
     //
     // dQdX Tree
@@ -176,6 +193,8 @@ namespace larcv {
     _subrun = _ev_pgraph_v->subrun();
     _event  = _ev_pgraph_v->event();
     _entry  = mgr.current_entry();
+
+    //std::cout<<"run "<<_run<<", subrun "<<_subrun<<", event"<<_event<<", entry"<<_entry<<std::endl;
 
     if(_analyze_signal)   AnalyzeSignal();
     if(_analyze_particle) AnalyzeParticle();
@@ -627,25 +646,10 @@ void ParticleAna::finalize()
   // Angle Related Functionality (Rui reponsible)
   //
   void ParticleAna::AnalyzeAngle() {
-
-    _dir0_c.clear();
-    _dir0_c.resize(3,-99999);
-    _dir1_c.clear();
-    _dir1_c.resize(3,-99999);
-    _dir0_p.clear();
-    _dir0_p.resize(3,-99999);
-    _dir1_p.clear();
-    _dir1_p.resize(3,-99999);
-    _angle0_c.clear();
-    _angle0_c.resize(3,-99999);
-    _angle1_c.clear();
-    _angle1_c.resize(3,-99999);
-    _mean0.clear();
-    _mean0.resize(3);
-    _mean1.clear();
-    _mean1.resize(3);
-    _straight_lines = 0;
+    bool DEBUG = false;
     
+    if(DEBUG) std::cout<<"==========================>>>>>>>AngleANA Start<<<<<<<<================================="<<std::endl;
+        
     auto const& ctor_m     = _ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = _ev_pcluster_v->Pixel2DClusterArray();
     
@@ -653,21 +657,73 @@ void ParticleAna::finalize()
     
     auto vtx_counts = _ev_pgraph_v->PGraphArray().size();
     
-    if (vtx_counts==0 ) std::cout<<"due to vtx_counts == 0 ?"<<std::endl;
-    
     if(vtx_counts!=0) {
       
       for (int vtx_idx = 0; vtx_idx < vtx_counts; ++ vtx_idx){
 	_vtxid = vtx_idx;
 	
-	std::cout<<"vertex id "<<_vtxid<<std::endl;
+	_dir0_c.clear();
+	_dir0_c.resize(3,-99999);
+	_dir1_c.clear();
+	_dir1_c.resize(3,-99999);
+	_dir0_p.clear();
+	_dir0_p.resize(3,-99999);
+	_dir1_p.clear();
+	_dir1_p.resize(3,-99999);
+	_angle0_c.clear();
+	_angle0_c.resize(3,-11111);
+	_angle1_c.clear();
+	_angle1_c.resize(3,-99999);
+	_angle0_p.clear();
+	_angle0_p.resize(3,-11111);
+	_angle1_p.clear();
+	_angle1_p.resize(3,-99999);
+	_mean0c.clear();
+	_mean0c.resize(3);
+	_mean1c.clear();
+	_mean1c.resize(3);
+	_mean0p.clear();
+	_mean0p.resize(3);
+	_mean1p.clear();
+	_mean1p.resize(3);
 	
+	_x2d_v.clear();
+	_x2d_v.resize(3);
+	_y2d_v.clear();
+	_y2d_v.resize(3);
+    
+	_straight_lines = 0;
+	
+	//For plot
+	_p0pxc.clear();
+	_p0pxc.resize(3);
+	_p0pyc.clear();
+	_p0pyc.resize(3);
+	_p1pxc.clear();
+	_p1pxc.resize(3);
+	_p1pyc.clear();
+	_p1pyc.resize(3);
+	
+	_p0pxp.clear();
+	_p0pxp.resize(3);
+	_p0pyp.clear();
+	_p0pyp.resize(3);
+	_p1pxp.clear();
+	_p1pxp.resize(3);
+	_p1pyp.clear();
+	_p1pyp.resize(3);
+	
+	_angle_diff_c_v.clear();
+	_angle_diff_c_v.resize(3,-99999);
+	_angle_diff_p_v.clear();
+	_angle_diff_p_v.resize(3,-99999);
+    
 	auto pgraph = _ev_pgraph_v->PGraphArray().at(vtx_idx);
 	//for(auto const& pgraph : _ev_pgraph_v->PGraphArray()) {
 	
 	// Get a list of particles (each unique particle == 1 ROI)
 	auto const& roi_v = pgraph.ParticleArray();
-	if(roi_v.size() != 2) continue;
+	if(roi_v.size() < 2) continue;
 	
 	// Peel off the first ROI to get the reconstructed vertex (the particle start point)
 	auto const& roi0 = roi_v.front();
@@ -701,9 +757,17 @@ void ParticleAna::finalize()
 	  // Some shit related to axis rotation, check this by looking @ image in notebook
 	  auto tmp = pgraph.ParticleArray().back().BB(plane).rows()-y_vtx2d;
 	  y_vtx2d = tmp;
+	
+	  _x2d_v[plane] = x_vtx2d;
+	  _y2d_v[plane] = y_vtx2d;
+  
+	  if(DEBUG) std::cout<<"vtx id is "<<vtx_idx<<"plane,"<<plane<<"  x is "<<x_vtx2d<<"y is "<<y_vtx2d<<std::endl;
 	  
-	  std::cout<<"vtx id is "<<vtx_idx<<"plane,"<<plane<<"  x is "<<x_vtx2d<<"y is "<<y_vtx2d<<std::endl;
-
+	  ///CCC
+	  _p0pxc[plane].clear();
+	  _p0pyc[plane].clear();
+	  _p1pxc[plane].clear();
+	  _p1pyc[plane].clear();
 	  // Get the first particle contour
 	  auto const& ctor0 = ctor_v.at(cluster_idx0);
 	  if(ctor0.size()>2) {
@@ -714,12 +778,15 @@ void ParticleAna::finalize()
 	    for(size_t i=0; i<ctor0.size(); ++i) {
 	      ctor[i].x = ctor0[i].X();
 	      ctor[i].y = ctor0[i].Y();
+	      _p0pxc[plane].emplace_back(ctor0[i].X());
+	      _p0pyc[plane].emplace_back(ctor0[i].Y());
 	    }
 	    
 	    // Get the mean position of the contour
 	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
-	    _mean0[plane] = mean;
-
+	    _mean0c[plane] = mean;
+	    if(DEBUG) std::cout<<"mean c is "<<mean<<std::endl;
+	    
 	    // Calculate the direction of particle 0
 	    auto dir0_c = larocv::CalcPCA(ctor).dir;
 	    if (dir0_c.x == 0 && dir0_c.y >0) _angle0_c[plane] = 90;
@@ -728,10 +795,8 @@ void ParticleAna::finalize()
 	    if (dir0_c.y == 0 && dir0_c.x <0) _angle0_c[plane] = 180;
 	    if(dir0_c.x!=0 ) {
 	      _dir0_c[plane] =  (dir0_c.y/dir0_c.x);
-	      std::cout<<"dir0"<<_dir0_c[plane]<<" @ plane "<<plane<<std::endl;
 	      _angle0_c[plane] = atan(_dir0_c[plane])*180/PI;
-	      std::cout<<"before adding angle0 "<<_angle0_c[plane]<<std::endl;
-	      if (_mean0[plane] < 0) _angle0_c[plane] = atan(_dir0_c[plane])*180/PI + 180; 
+	      if (_mean0c[plane] < 0) _angle0_c[plane] = atan(_dir0_c[plane])*180/PI + 180; 
 	      LARCV_DEBUG()<<"plane "<<plane<<"  angle0 "<<_angle0_c[plane]<<"  plane "<<plane<<std::endl;
 	    }
 	  }
@@ -745,52 +810,69 @@ void ParticleAna::finalize()
 	    for(size_t i=0; i<ctor1.size(); ++i) {
 	      ctor[i].x = ctor1[i].X();
 	      ctor[i].y = ctor1[i].Y();
+	      _p1pxc[plane].emplace_back(ctor1[i].X());
+	      _p1pyc[plane].emplace_back(ctor1[i].Y());
 	    }
 
 	    // Get the mean position of the contour
 	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
-	    _mean1[plane] = mean;
+	    _mean1c[plane] = mean;
 	  
 	    // Calculate the direction of particle 1
 	    auto dir1_c = larocv::CalcPCA(ctor).dir;
 	    if (dir1_c.x == 0 && dir1_c.y >0) _angle1_c[plane] = 90;
 	    if (dir1_c.x == 0 && dir1_c.y <0) _angle1_c[plane] = 270;
-	    if (dir1_c.y == 0 && dir1_c.x >0) _angle0_c[plane] = 0;
-	    if (dir1_c.y == 0 && dir1_c.x <0) _angle0_c[plane] = 180;
+	    if (dir1_c.y == 0 && dir1_c.x >0) _angle1_c[plane] = 0;
+	    if (dir1_c.y == 0 && dir1_c.x <0) _angle1_c[plane] = 180;
 	    if(dir1_c.x!=0 ) {
 	      _dir1_c[plane] =  (dir1_c.y/dir1_c.x);
-	      std::cout<<"dir1"<<_dir1_c[plane]<<" @ plane "<<plane<<std::endl;
 	      _angle1_c[plane] = atan(_dir1_c[plane])*180/PI;
-	      std::cout<<"before adding angle1  "<<_angle1_c[plane]<<std::endl;
-	      if (_mean1[plane] < 0) _angle1_c[plane] = atan(_dir1_c[plane])*180/PI + 180; 
+	      if (_mean1c[plane] < 0) _angle1_c[plane] = atan(_dir1_c[plane])*180/PI + 180; 
 	      LARCV_DEBUG()<<"plane "<<plane<<"  angle1 "<<_angle1_c[plane]<<"  plane "<<plane<<std::endl;
 	    }
 	  }
+	} // end plane loop
+		
+	if(DEBUG) std::cout<<"Angle CCC=========>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+	int ctr_17x_c = 0;
+	int ctr_0x_c = 0;
+	
+	for (int plane =0 ; plane <=2 ; plane++){
+
+	  _angle_diff_c_v[plane] = std::abs(_angle0_c[plane]-_angle1_c[plane]);
 	  
-	  // Analyze the angle
-	  if(_angle0_c[plane]!= -99999 && _angle1_c[plane] != -99999){
-	    auto angle = (fabs( _angle0_c[plane] - _angle1_c[plane]));
-	    if (angle > 180.0) angle = 360.0-angle;
-	    if (angle >= _open_angle_cut ) _straight_lines+=1 ;
-	  }
-      } // end plane loop
-	
-	for (int planeid =2 ; planeid >= 0 ; planeid--){
-	  std::cout<<"angle0 "<<_angle0_c[planeid]<<"angle1 "<<_angle1_c[planeid]<<" on planeid "<<planeid<<std::endl;
-	  if (_angle0_c[planeid]!=-99999 && _angle1_c[planeid]!=-99999){
-	    _angle_diff = std::abs(_angle0_c[planeid]-_angle1_c[planeid]);
-	    if (_angle_diff>180) _angle_diff = 360 - _angle_diff;
-	    std::cout<<">>>>>>Selected angle0 "<<_angle0_c[planeid]<<"angle1 "<<_angle1_c[planeid]<<" on  plane "<<planeid
-		     <<" diff is "<<_angle_diff<<std::endl;
-	    break;
-	  }
-	  //std::cout<<"angle diff is "<<_angle_diff<<" on plane"<<planeid<<std::endl;
+	  if (_angle_diff_c_v[plane]>180) _angle_diff_c_v[plane] = 360 - _angle_diff_c_v[plane];
+	  if (_angle_diff_c_v[plane] > 170) ctr_17x_c++;
+	  if (_angle_diff_c_v[plane] < 10 ) ctr_0x_c++;
+	  
+	  if (_angle0_c[plane]==-11111 || _angle1_c[plane]==-99999) _angle_diff_c_v[plane] = -77777;	  
+	  if (_angle_diff_c_v[plane]!=-77777)_angle_diff_c = _angle_diff_c_v[plane];
 	}
-	LARCV_DEBUG()<<"straight_lines  "<<_straight_lines<<std::endl;
 	
+	if (ctr_17x_c >=1 ) _angle_diff_c = *std::max_element(std::begin(_angle_diff_c_v), std::end(_angle_diff_c_v)); // c++11
+	/*int ctr_17x_c = 0;
+	//int ctr_0x_c = 0;
+	
+	for (int plane = 0 ; plane <= 2 ; plane++){
+	  if (_angle0_c[plane]!=-99999 && _angle1_c[plane]!=-99999){
+	    _angle_diff_c_v[plane] = std::abs(_angle0_c[plane]-_angle1_c[plane]);
+	    if (_angle_diff_c_v[plane] > 180) _angle_diff_c_v[plane] = 360 - _angle_diff_c_v[plane];
+	    if (_angle_diff_c_v[plane] > 170) ctr_17x_c++;
+	    if (_angle_diff_c_v[plane] < 10 ) ctr_0x_c++;
+	    if(DEBUG) std::cout<<">>>>>>Selected angle0 "<<_angle0_c[plane]<<"angle1 "
+			       <<_angle1_c[plane]<<" on  plane "<<plane
+			       <<" diff is "<<_angle_diff_c_v[plane]<<std::endl;
+	  }
+	}
+	
+	if (ctr_17x_c >=1 ){
+	  _angle_diff_c = *std::max_element(std::begin(_angle_diff_c_v), std::end(_angle_diff_c_v)); // c++11
+	  }*/
+ 
+	
+	///Pcluster(Angle calculated using part of cluster close to the vertex)
 	// Loop over planes again to calculate the direction using points close to vertex
 	for(size_t plane=0; plane<3; ++plane) {
-	  
 	  auto iter_pcluster = pcluster_m.find(plane);
 	  if(iter_pcluster == pcluster_m.end()) continue;
 	  
@@ -800,88 +882,113 @@ void ParticleAna::finalize()
 	  auto const& pcluster_v = (*iter_pcluster).second;
 	  auto const& ctor_v = (*iter_ctor).second;
 	  
-	  auto const& pcluster0 = pcluster_v.at(cluster_idx0);
-	  auto const& ctor0 = ctor_v.at(cluster_idx0);
-	  
 	  double x_vtx2d(0), y_vtx2d(0);
-	  
 	  Project3D(pgraph.ParticleArray().back().BB(plane), _x, _y, _z, 0, plane, x_vtx2d, y_vtx2d);
-	  
 	  auto tmp = pgraph.ParticleArray().back().BB(plane).rows()-y_vtx2d;
 	  y_vtx2d = tmp;
 
+	  if(DEBUG) std::cout<<"vtxpp id is "<<vtx_idx<<"plane,"<<plane<<"  x is "<<x_vtx2d<<"y is "<<y_vtx2d<<std::endl;
+	  
+	  //////////PPP
+	  _p0pxp[plane].clear();
+	  _p0pyp[plane].clear();
+	  _p1pxp[plane].clear();
+	  _p1pyp[plane].clear();
+	  
+	  auto const& pcluster0 = pcluster_v.at(cluster_idx0);
+	  auto const& ctor0 = ctor_v.at(cluster_idx0);
+	  	  
 	  if(ctor0.size()>2) {
-	    
-	    ::larocv::GEO2D_Contour_t ctor;
-	    ctor.resize(ctor0.size());
-	    for(size_t i=0; i<ctor0.size(); ++i) {
-	      ctor[i].x = ctor0[i].X();
-	      ctor[i].y = ctor0[i].Y();
-	    }
-	    
-	    auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
-	    _mean0[plane] = mean;
-	    auto dir0_c = larocv::CalcPCA(ctor).dir;
-	    if(dir0_c.x!=0 ) {
-	    _dir0_c[plane] =  (dir0_c.y/dir0_c.x);
-	    }
-	    
 	    ::larocv::GEO2D_Contour_t pclus;
 	    pclus.clear();
-	  
+	    //Get the pixels inside a radius
 	    for(auto const& pt : pcluster0) {
 	      geo2d::Vector<double> ppt(pt.X(),pt.Y());
-	      double x = pt.X();
-	      double y = pt.Y();
-	      auto d = pow((pow(y-x_vtx2d,2)+pow(x-y_vtx2d,2)),0.5);
-	      if (d < _pradius) pclus.emplace_back(ppt);
-	    }
+	      double y = pt.X();//Vic will fix this
+	      double x = pt.Y();
 	  
+	      
+	      auto d = pow((pow(x-x_vtx2d,2)+pow(y-y_vtx2d,2)),0.5);
+	      if (d < _pradius){
+		pclus.emplace_back(x,y);
+		_p0pxp[plane].emplace_back(x);
+		_p0pyp[plane].emplace_back(y);
+	      }
+	    }
+
 	    if (pclus.size()>=2) {
+	      auto mean = Getx2vtxmean(pclus, x_vtx2d, y_vtx2d);//Need to swap x and y
+	      _mean0p[plane] = mean;
 	      auto dir0_p = larocv::CalcPCA(pclus).dir;
-	      //geo2d::Vector<double> DIR(dir0_p);
-	      if(dir0_p.x!=0  ) _dir0_p[plane] = dir0_p.y/ dir0_p.x;
-	    }
-	    
-	    auto const& pcluster1 = pcluster_v.at(cluster_idx1);
-	    auto const& ctor1 = ctor_v.at(cluster_idx1);
-	    
-	    if(ctor1.size()>2) {
-	      
-	      ::larocv::GEO2D_Contour_t ctor;
-	      ctor.resize(ctor1.size());
-	      for(size_t i=0; i<ctor1.size(); ++i) {
-		ctor[i].x = ctor1[i].X();
-		ctor[i].y = ctor1[i].Y();
-	      }
-	      
-	      auto mean = Getx2vtxmean(ctor, x_vtx2d, y_vtx2d);
-	      _mean1[plane] = mean;
-	      auto dir1_c = larocv::CalcPCA(ctor).dir;
-	      if(dir1_c.x!=0 ) {
-		_dir1_c[plane] =  (dir1_c.y/dir1_c.x);
-	      }
-	      
-	      ::larocv::GEO2D_Contour_t pclus;
-	      pclus.clear();
-	      
-	      for(auto const& pt : pcluster1) {
-		auto x = pt.X();
-		auto y = pt.Y();
-		geo2d::Vector<double> ppt(pt.X(),pt.Y());
-		auto d = pow((pow(x-x_vtx2d,2)+pow(y-y_vtx2d,2)),0.5);
-		if (d < _pradius) pclus.emplace_back(ppt);
-	      }
-	      
-	      if (pclus.size()>=2) {
-		auto dir1_p = larocv::CalcPCA(pclus).dir;
-		if(dir1_p.x!=0 ) _dir1_p[plane] = dir1_p.y/dir1_p.x;
+	      if (dir0_p.x == 0 && dir0_p.y >0) _angle0_p[plane] = 90;
+	      if (dir0_p.x == 0 && dir0_p.y <0) _angle0_p[plane] = 270;
+	      if (dir0_p.y == 0 && dir0_p.x >0) _angle0_p[plane] = 0;
+	      if (dir0_p.y == 0 && dir0_p.x <0) _angle0_p[plane] = 180;
+	      if(dir0_p.x!=0 ) {
+		_dir0_p[plane] =  (dir0_p.y/dir0_p.x);
+		_angle0_p[plane] = atan(_dir0_p[plane])*180/PI;
+		if (_mean0p[plane] < 0) _angle0_p[plane] = atan(_dir0_p[plane])*180/PI + 180; 
 	      }
 	    }
-	    _plane = plane;
+	  }
+	  auto const& pcluster1 = pcluster_v.at(cluster_idx1);
+	  auto const& ctor1 = ctor_v.at(cluster_idx1);
+	  
+	  if(ctor1.size()>2){
+	    ::larocv::GEO2D_Contour_t pclus;
+	    pclus.clear();
+	    //Get the pixels inside a radius
+	    for(auto const& pt : pcluster1) {
+	      geo2d::Vector<double> ppt(pt.X(),pt.Y());
+	      double y = pt.X();//Vic, fix this!!!
+	      double x = pt.Y();//Vic, fix this!!!
+	      
+	      //_p1pxc[plane].emplace_back(x);
+	      //_p1pyc[plane].emplace_back(y);
+	      
+	      auto d = pow((pow(x-x_vtx2d,2)+pow(y-y_vtx2d,2)),0.5);
+	      if (d < _pradius){ 
+		_p1pxp[plane].emplace_back(x);
+		_p1pyp[plane].emplace_back(y);
+		pclus.emplace_back(x,y);}
+	    }
+	    
+	    if (pclus.size()>=2) {
+	      auto mean = Getx2vtxmean(pclus, x_vtx2d, y_vtx2d);//Need to swap x and y
+	      _mean1p[plane] = mean;
+	      auto dir1_p = larocv::CalcPCA(pclus).dir;
+	      if (dir1_p.x == 0 && dir1_p.y >0) _angle1_p[plane] = 90;
+	      if (dir1_p.x == 0 && dir1_p.y <0) _angle1_p[plane] = 270;
+	      if (dir1_p.y == 0 && dir1_p.x >0) _angle1_p[plane] = 0;
+	      if (dir1_p.y == 0 && dir1_p.x <0) _angle1_p[plane] = 180;
+	      if(dir1_p.x!=0 ) {
+		_dir1_p[plane] =  (dir1_p.y/dir1_p.x);
+		_angle1_p[plane] = atan(_dir1_p[plane])*180/PI;
+		if (_mean1p[plane] < 0) _angle1_p[plane] = atan(_dir1_p[plane])*180/PI + 180; 
+		LARCV_DEBUG()<<"plane "<<plane<<"  angle1 "<<_angle1_p[plane]<<"  plane "<<plane<<std::endl;
+	      }
+	    }
 	  }
 	}
-	_angle_tree->Fill();      
+
+	int ctr_v = 0;
+	int ctr_17x_p = 0;
+	int ctr_0x_p = 0;
+	
+	if(DEBUG) std::cout<<"Angle PPP=========>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+	for (int plane =0 ; plane <=2 ; plane++){
+	  _angle_diff_p_v[plane] = std::abs(_angle0_p[plane]-_angle1_p[plane]);
+	  
+	  if (_angle_diff_p_v[plane]>180) _angle_diff_p_v[plane] = 360 - _angle_diff_p_v[plane];
+	  if (_angle_diff_p_v[plane] > 170) ctr_17x_p++;
+	  if (_angle_diff_p_v[plane] < 10 ) ctr_0x_p++;
+	  
+	  if (_angle0_p[plane]==-11111 || _angle1_p[plane]==-99999) _angle_diff_p_v[plane] = -77777;	  
+	  if (_angle_diff_p_v[plane]!=-77777)_angle_diff_p = _angle_diff_p_v[plane];
+	}
+	
+	if (ctr_17x_p >=1 ) _angle_diff_p = *std::max_element(std::begin(_angle_diff_p_v), std::end(_angle_diff_p_v)); // c++11
+	_angle_tree->Fill(); 
       }
     }
     return;
@@ -911,8 +1018,8 @@ void ParticleAna::finalize()
       auto _z = roi0.Z();
 
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
-      auto const& cluster_idx0 = cluster_idx_v.at(0);
-      auto const& cluster_idx1 = cluster_idx_v.at(1);
+      //auto const& cluster_idx0 = cluster_idx_v.at(0);
+      //auto const& cluster_idx1 = cluster_idx_v.at(1);
       
       //dqdx
       bool save = false;
@@ -1065,10 +1172,9 @@ void ParticleAna::finalize()
   double ParticleAna::Getx2vtxmean( ::larocv::GEO2D_Contour_t ctor, float x2d, float y2d)
   {
     double sum = 0;
-    double mean = -999; 
+    double mean = -999;
     for(size_t idx= 0;idx < ctor.size(); ++idx){
       sum += ctor[idx].x - x2d;
-      //sum += ctor[idx].y - y2d;
     }
     if (ctor.size()>0) mean = sum / ctor.size();
     return mean;

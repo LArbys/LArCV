@@ -136,16 +136,38 @@ namespace larcv {
     
     std::vector<double> _angle0_c;
     std::vector<double> _angle1_c;
+    std::vector<double> _angle0_p;
+    std::vector<double> _angle1_p;
     uint _straight_lines;
-    double _angle_diff;
+    double _angle_diff_c;
+    double _angle_diff_p;
+    std::vector<double> _angle_diff_c_v;
+    std::vector<double> _angle_diff_p_v;
     
-    std::vector<double> _mean0; //mean value of x in a ctor w.r.t the vertex
-    std::vector<double> _mean1; //to determine the direction of PCA w.r.t to the vertex
-
+    std::vector<double> _mean0c; //mean value of x in a ctor w.r.t the vertex
+    std::vector<double> _mean1c; //to determine the direction of PCA w.r.t to the vertex
+    std::vector<double> _mean0p; //mean value of x in a ctor w.r.t the vertex
+    std::vector<double> _mean1p; //to determine the direction of PCA w.r.t to the vertex
+    
     std::vector<double> _dir0_c;//particle direction from contour
     std::vector<double> _dir1_c;
     std::vector<double> _dir0_p;//particle direction from pixels close to vertex
     std::vector<double> _dir1_p;
+
+    //For plot 
+    std::vector<std::vector<int>> _p0pxc; // per plane
+    std::vector<std::vector<int>> _p0pyc;
+    std::vector<std::vector<int>> _p1pxc;
+    std::vector<std::vector<int>> _p1pyc;
+
+    std::vector<std::vector<int>> _p0pxp; // per plane
+    std::vector<std::vector<int>> _p0pyp;
+    std::vector<std::vector<int>> _p1pxp;
+    std::vector<std::vector<int>> _p1pyp;
+    
+    std::vector<double> _x2d_v;
+    std::vector<double> _y2d_v;
+    
   };
 
   /**
