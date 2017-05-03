@@ -51,7 +51,6 @@ namespace larcv {
   LArbysRecoHolder::Match(size_t vtx_id,
 			  const std::vector<cv::Mat>& adc_cvimg_v,
 			  bool sort) {
-    this->set_verbosity((msg::Level_t)0);
     
     LARCV_DEBUG() << "@ vertex id " << vtx_id << " requested coverage " << _match_coverage << " & "
 		  << _match_particles_per_plane << " particles per plane & "

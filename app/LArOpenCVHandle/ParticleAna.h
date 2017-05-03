@@ -77,7 +77,10 @@ namespace larcv {
     std::vector<float> _track_frac_v;
     std::vector<float> _shower_frac_v;
     int _infiducial;
-
+    int _charge_neighbor2;
+    int _charge_neighbor3;
+    std::vector<int> _charge_neighbor_v;
+    
     
     //
     // Particle Related Functionality -- vic

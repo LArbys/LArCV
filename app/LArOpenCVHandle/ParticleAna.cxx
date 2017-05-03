@@ -37,7 +37,7 @@ namespace larcv {
     if (_analyze_signal) {}
     
     _analyze_particle = cfg.get<bool>("AnalyzeParticle",false);
-    if(_analyze_particle) { }
+    if(_analyze_particle) {}
 
     _analyze_dqdx     = cfg.get<bool>("AnalyzedQdX",false);
     if(_analyze_dqdx) {
@@ -88,7 +88,10 @@ namespace larcv {
     _signal_tree->Branch("track_frac_v",&_track_frac_v);
     _signal_tree->Branch("shower_frac_v",&_shower_frac_v);
     _signal_tree->Branch("infiducial",&_infiducial,"infiducial/I");
-      
+    _signal_tree->Branch("charge_neighbor2",&_charge_neighbor2,"charge_neighbor2/I");
+    _signal_tree->Branch("charge_neighbor3",&_charge_neighbor3,"charge_neighbor3/I");
+    _signal_tree->Branch("charge_neighbor_v",&_charge_neighbor_v);
+    
     
     //
     // Particle Tree (per particle)
@@ -272,12 +275,19 @@ void ParticleAna::finalize()
       _pathexists_v.clear();
       _pathexists_v.resize(_nparticles,1.0);
 
-      std::vector<std::vector<int> > path_exists_vv;
-      path_exists_vv.resize(_nparticles);
-      for(auto& v : path_exists_vv) v.resize(3,kINVALID_INT);
+      _charge_neighbor_v.clear();
+      _charge_neighbor_v.resize(3,0);
 
-      std::vector<int> plane_path_exists_v(3,kINVALID_INT);
       
+      // Particle wise check if path exists
+      std::vector<std::vector<int> > particle_path_exists_vv;
+      particle_path_exists_vv.resize(_nparticles);
+      for(auto& v : particle_path_exists_vv) v.resize(3,kINVALID_INT);
+
+      // Plane wise check if path exists
+      std::vector<int> plane_path_exists_v(3,kINVALID_INT);
+
+
       // Loop per plane, get the particle contours and images for this plane
       for(size_t plane=0; plane<3; ++plane) {
 	auto iter_pcluster = pcluster_m.find(plane);
@@ -311,8 +321,12 @@ void ParticleAna::finalize()
 	circle.center.x = x_pixel;
 	circle.center.y = y_pixel;
 	circle.radius = 6;
+
 	
 	auto thresh_img = larocv::Threshold(adc_cvimg,10,255);
+	if(larocv::CountNonZero(thresh_img,geo2d::Circle<float>(circle.center,3)))
+	  _charge_neighbor_v[plane] = 1;
+	
 	auto xs_v = larocv::QPointOnCircle(thresh_img,circle,10,0);
 	if (xs_v.empty()) continue;
 
@@ -350,7 +364,7 @@ void ParticleAna::finalize()
 	}
 
 	if (xs_v.size()==1) {
-	  different=true;
+	  different = true;
 	}
 
 	if (different) {
@@ -366,7 +380,7 @@ void ParticleAna::finalize()
 	  auto cluster_idx = cluster_idx_v[par_id];
 	  auto& trk_frac = _track_frac_v[par_id];
 	  auto& shr_frac = _shower_frac_v[par_id];
-	  auto& path_ex  = path_exists_vv[par_id][plane];
+	  auto& particle_path_ex  = particle_path_exists_vv[par_id][plane];
 	  
 	  const auto& pcluster = pcluster_v.at(cluster_idx);
 	  const auto& pctor    = ctor_v.at(cluster_idx);
@@ -405,9 +419,9 @@ void ParticleAna::finalize()
 	  }
 
 	  if (xs_v.size()==1) {
-	    path_ex = 0;
+	    particle_path_ex = 0;
 	  } else {
-	    path_ex = (int)larocv::PathExists(mask_img,circle.center,min_pt,5,10,1);
+	    particle_path_ex = (int)larocv::PathExists(mask_img,circle.center,min_pt,5,10,1);
 	  }	  
 	  
 	  if (DEBUG) {
@@ -425,7 +439,7 @@ void ParticleAna::finalize()
 	    ss << "mask_img_" << iii << ".png";
 	    cv::imwrite(ss.str(),larocv::Threshold(mask_img,10,255));
 	    std::cout << "number of xs: " << xs_v.size() << std::endl;
-	    std::cout << iii << ") @ plane " << plane << " particle id " << par_id << " is path: " << path_ex << std::endl;
+	    std::cout << iii << ") @ plane " << plane << " particle id " << par_id << " is path: " << particle_path_ex << std::endl;
 	    std::cout << "2D vtx @ (" << x_pixel << "," << y_pixel << ")" << " & min pt (" << min_pt.x << "," << min_pt.y << ")" << std::endl;
 	    std::cout << std::endl;
 	    iii+=1;
@@ -435,6 +449,20 @@ void ParticleAna::finalize()
       } // end this plane
 
 
+      //
+      // Per plane check of charge proximity
+      //
+      _charge_neighbor2 = 0;
+      _charge_neighbor3 = 0;
+      
+      int cn_sum = 0;
+      for(auto v : _charge_neighbor_v) cn_sum += v;
+      if (cn_sum == 2) _charge_neighbor2 = 1;
+      if (cn_sum == 3) _charge_neighbor3 = 1;
+      
+      //
+      // Per plane check of gap
+      //
       int plane_path_exists = 0;
       int valid_plane_path_exists = 0;
       for(size_t plane=0; plane<3; ++plane) {
@@ -454,15 +482,15 @@ void ParticleAna::finalize()
       }
       if(DEBUG) std::cout << "pathexists2 " << _pathexists2 << std::endl;
       
-      
-      // per particle
-      for(size_t par_id = 0; par_id < path_exists_vv.size(); ++par_id) {
+      //
+      // Per particle check of gap
+      //
+      for(size_t par_id = 0; par_id < particle_path_exists_vv.size(); ++par_id) {
 
-	const auto path_exists_v = path_exists_vv[par_id];
+	const auto path_exists_v = particle_path_exists_vv[par_id];
 	int path_exists = 0;
 	int valid_planes = 0;
 	
-	// per plane
 	for(auto path_plane : path_exists_v) {
 	  if (path_plane == kINVALID_INT) continue;
 	  valid_planes += 1;
@@ -493,7 +521,6 @@ void ParticleAna::finalize()
     } // end this vertex
 
     return;
-    
   }
   
   //
