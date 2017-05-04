@@ -5,7 +5,7 @@
 #include "Geo2D/Core/Line.h"
 #include "Geo2D/Core/Vector.h"
 #include "Geo2D/Core/Circle.h"
-#include "DataFormat/ImageMeta.h"
+#include "DataFormat/Image2D.h"
 
 namespace larcv {
 
@@ -28,6 +28,10 @@ namespace larcv {
   Intersection(const geo2d::HalfLine<float>& hline,
 	       const cv::Rect& rect);
 
+
+  void
+  mask_image(Image2D& target, const Image2D& ref);
+  
 }
 
 #endif

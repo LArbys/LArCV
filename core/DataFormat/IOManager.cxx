@@ -421,7 +421,9 @@ namespace larcv {
       for(auto& p : _product_ptr_v)  {
 	if(!p) break;
 	if(!p->valid()) {
-	  LARCV_CRITICAL() << "Invalid event id: (" << p->run() << "," << p->subrun() << "," << p->event() << ")" << std::endl;
+	  LARCV_CRITICAL() << "Product by a producer " << p->producer()
+			   << " has an invalid event id: (" 
+			   << p->run() << "," << p->subrun() << "," << p->event() << ")" << std::endl;
 	  throw larbys("Must set an event ID to store!");
 	}
       }
@@ -538,7 +540,7 @@ namespace larcv {
       // retrieve event_id if not yet done
       if(!_event_id.valid()) {
 	LARCV_INFO() << "Setting event id (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
-	_event_id = *ptr;
+	_event_id = (EventBase)(*ptr);
       }else if(ptr->valid() && _event_id != *ptr) {
 	LARCV_CRITICAL() << "Event alignment error (run,subrun,event) detected: "
 			 << "Current (" << _event_id.run() << "," << _event_id.subrun() << "," << _event_id.event() << ") vs. "

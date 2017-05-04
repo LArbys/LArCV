@@ -30,5 +30,7 @@
 #pragma link C++ class std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > >+;
 #pragma link C++ class std::vector<std::vector<larcv::ImageMeta> >+;
 
+#pragma link C++ class larcv::ROIAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+

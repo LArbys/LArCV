@@ -56,7 +56,6 @@ namespace larcv {
 	  const std::vector<cv::Mat>& adc_cvimg_v,
 	  bool stort=true);
 
-
     void ResetOutput();
     void StoreEvent(size_t run, size_t subrun, size_t event, size_t entry);
     bool WriteOut(TFile* fout);
@@ -126,7 +125,9 @@ namespace larcv {
     float _match_coverage;
     float _match_particles_per_plane;
     float _match_min_number;
-
+    bool _match_check_type;
+    bool _match_weight_by_size;
+    
     larocv::VertexAnalysis _vtx_ana;
     
     std::vector<const larocv::data::Vertex3D*> _vertex_ptr_v;
