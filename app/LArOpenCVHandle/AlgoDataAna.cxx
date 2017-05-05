@@ -1,24 +1,24 @@
-#ifndef __ALGODATAANALYZE_CXX__
-#define __ALGODATAANALYZE_CXX__
+#ifndef __ALGODATAANA_CXX__
+#define __ALGODATAANA_CXX__
 
-#include "AlgoDataAnalyze.h"
+#include "AlgoDataAna.h"
 
 namespace larcv {
 
-  static AlgoDataAnalyzeProcessFactory __global_AlgoDataAnalyzeProcessFactory__;
+  static AlgoDataAnaProcessFactory __global_AlgoDataAnaProcessFactory__;
 
-  AlgoDataAnalyze::AlgoDataAnalyze(const std::string name)
+  AlgoDataAna::AlgoDataAna(const std::string name)
     : ProcessBase(name), _larocvserial(nullptr), _reco_chain(nullptr), _vertex_tree(nullptr)
   {}
   
-  void AlgoDataAnalyze::configure(const PSet& cfg)
+  void AlgoDataAna::configure(const PSet& cfg)
   {
     _input_larbys_reco_root_file = cfg.get<std::string>("InputLArbysImageFile");
     _reco_tree_name = cfg.get<std::string>("RecoTreeName");
     _serial_name    = cfg.get<std::string>("LArOCVSerialName");
   }
 
-  void AlgoDataAnalyze::initialize()
+  void AlgoDataAna::initialize()
   {
     _reco_chain = new TChain(_reco_tree_name.c_str());
     _reco_chain->AddFile(_input_larbys_reco_root_file.c_str());
@@ -42,7 +42,7 @@ namespace larcv {
 
   }
 
-  void AlgoDataAnalyze::finalize()
+  void AlgoDataAna::finalize()
   {
     LARCV_INFO() << "See... " << _reco_entries << "... reco entries" << std::endl;
     for(size_t reco_entry=0; reco_entry<_reco_entries; ++reco_entry) {

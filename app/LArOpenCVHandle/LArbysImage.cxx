@@ -423,9 +423,12 @@ namespace larcv {
     _RecoHolder.ShapeData(mgr);
 
     const auto& vtx_ana = _RecoHolder.ana();
-      
-    LARCV_DEBUG() << "Matching... " << _RecoHolder.Verticies().size() << " vertices" << std::endl;
-    for(size_t vtxid=0;vtxid<_RecoHolder.Verticies().size();++vtxid) {
+
+    auto n_reco_vtx = _RecoHolder.Verticies().size();
+    std::vector<int> vtxid_match_v(n_reco_vtx,0);
+
+    LARCV_DEBUG() << "Matching... " << n_reco_vtx << " vertices" << std::endl;
+    for(size_t vtxid=0; vtxid< n_reco_vtx; ++vtxid) {
       
       const auto& vtx3d       = *(_RecoHolder.Vertex(vtxid));
       const auto& pcluster_vv = _RecoHolder.PlaneParticles(vtxid);
@@ -437,12 +440,14 @@ namespace larcv {
 	adc_cvimg_v[plane] = adc_cvimg_orig_v[plane].clone();
 
       auto match_vv = _RecoHolder.Match(vtxid,adc_cvimg_v);
-
+      
       if (match_vv.empty()) {
 	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
 	continue;
       }
-	
+
+      vtxid_match_v[vtxid] = 1;
+      
       PGraph pgraph;
       for( auto match_v : match_vv ) {
 
@@ -539,18 +544,17 @@ namespace larcv {
 	  event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
 
 	} // end this plane
-      }//end this match
+      } // end this match
       
       event_pgraph->Emplace(std::move(pgraph));
-    }//end vertex
+    } // end vertex
 
     LARCV_DEBUG() << "Event pgraph size " << event_pgraph->PGraphArray().size() << std::endl;
 
-    //_RecoHolder.FilterMatches();
-    
     if (_write_reco) {
       const auto& eid = iom.event_id();
       _RecoHolder.SetMeta(adc_image_v);
+      _RecoHolder.SetMatches(std::move(vtxid_match_v));
       _RecoHolder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
     }
 

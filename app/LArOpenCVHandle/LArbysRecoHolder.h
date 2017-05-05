@@ -19,6 +19,7 @@ namespace larcv {
     ~LArOCVSerial(){}
     void Clear();
     std::vector<larocv::data::Vertex3D> _vertex_v;
+    std::vector<int> _matched_v;
     std::vector<std::vector<std::vector<larocv::data::ParticleCluster> > > _particle_cluster_vvv;
     std::vector<std::vector<std::vector<larocv::data::TrackClusterCompound> > > _track_comp_vvv;
     std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > > _match_pvvv;
@@ -38,7 +39,6 @@ namespace larcv {
 
     ~LArbysRecoHolder(){}
 
-
     void Configure(const PSet& pset);    
 
     void Initialize();
@@ -51,6 +51,8 @@ namespace larcv {
     
     void Filter();
 
+    void SetMatches(std::vector<int>&& vtxid_match_v);
+    
     std::vector<std::vector<std::pair<size_t,size_t> > >
     Match(size_t vtx_id,
 	  const std::vector<cv::Mat>& adc_cvimg_v,
@@ -133,7 +135,8 @@ namespace larcv {
     std::vector<const larocv::data::Vertex3D*> _vertex_ptr_v;
     std::vector<std::vector<std::vector<const larocv::data::ParticleCluster*> > > _particle_cluster_ptr_vvv;
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > _track_comp_ptr_vvv;
-
+    std::vector<int> _matched_v;
+      
     TTree* _out_tree;
     uint _run;
     uint _subrun;

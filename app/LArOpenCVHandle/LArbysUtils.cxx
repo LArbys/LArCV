@@ -42,8 +42,8 @@ namespace larcv {
 
     auto vtx_2d = geohelp->Point_3Dto2D(parent_x, parent_y, parent_z, plane );
     
-    double x_compression  = meta.width()  / meta.cols();
-    double y_compression  = meta.height() / meta.rows();
+    double x_compression  = (double)meta.width()  / (double)meta.cols();
+    double y_compression  = (double)meta.height() / (double)meta.rows();
     xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
     ypixel = (((parent_x/larpro->DriftVelocity() + parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
   }

@@ -54,6 +54,11 @@ namespace larcv {
     std::string _roi_producer;
     std::string _img_producer;
 
+    int _run;
+    int _subrun;
+    int _event;
+    int _entry;
+    
     int _nroi;
     
     float _area_exclusive0;

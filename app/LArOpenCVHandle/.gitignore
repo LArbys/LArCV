@@ -1,3 +1,5 @@
 *.ipynb
 *.root
 *.png
+*.err
+*.out

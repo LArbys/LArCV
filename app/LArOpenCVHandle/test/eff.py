@@ -179,4 +179,8 @@ else:
     r=0
 f_.write(str(("     4)",den_," events:",num_,"=",r)))
 f_.write("\n")
+f_.write("\n")
+f_.write("\n")
+f_.write(str(list(pd.unique(good_df.query(cutstr).entry.values))))
+f_.write("\n")
 f_.close()
