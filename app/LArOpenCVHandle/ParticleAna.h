@@ -81,7 +81,6 @@ namespace larcv {
     int _charge_neighbor3;
     std::vector<int> _charge_neighbor_v;
     
-    
     //
     // Particle Related Functionality -- vic
     //
@@ -114,7 +113,7 @@ namespace larcv {
     void AnalyzeAngle();
     void AnalyzedQdX();
     
-    double Getx2vtxmean( ::larocv::GEO2D_Contour_t ctor, float x2d, float y2d);
+    double Getx2vtxmean( ::larocv::GEO2D_Contour_t ctor, float x2d, float y2d, double& pct);
     cv::Point PointShift(::cv::Point pt, geo2d::Line<float> pca);
 
     double Mean(const std::vector<float>& v);
@@ -167,7 +166,11 @@ namespace larcv {
     
     std::vector<double> _x2d_v;
     std::vector<double> _y2d_v;
-    
+
+    std::vector<double> _pct_0_c_v; 
+    std::vector<double> _pct_1_c_v;
+    std::vector<double> _pct_0_p_v; 
+    std::vector<double> _pct_1_p_v;    
   };
 
   /**

@@ -108,7 +108,34 @@ namespace ann {
     
     return ret;
   }
-  
+
+  std::vector<int> ANNAlgo::regionQuery( const std::vector<double>& queryPt_v, double eps2, double approx ) {
+    if ( (int)queryPt_v.size()!=fNdims )
+      throw std::runtime_error( "Query Point dim is not the same of the data points in the kD-tree" );
+    ANNpoint queryPt = new ANNcoord[fNdims]; // typedef  to ANNcoord* or double*
+    for (int i=0; i<(int)queryPt_v.size(); i++) {
+      *(queryPt+i) = queryPt_v[i];
+    }
+    int k = 0;
+    int ktotal = bdtree->annkFRSearch(queryPt, eps2, k);
+    
+    // get the list of points within radius
+    int* nn_idx     = new int[ktotal];
+    double* nn_dist = new double[ktotal];
+
+    bdtree->annkFRSearch( queryPt, (ANNdist)eps2, ktotal, (ANNidxArray)nn_idx, (ANNdistArray)nn_dist, approx );
+    std::vector<int> ret;
+    for (int k=0; k<ktotal; k++) {
+      ret.push_back( nn_idx[k] );
+    }
+    
+    delete [] nn_idx;
+    delete [] nn_dist;
+    delete [] queryPt;
+    
+    return ret;
+  }
+
   void ANNAlgo::dump( std::string outfile ) {
     std::ofstream out( outfile.c_str() );
     if ( _init ) {
