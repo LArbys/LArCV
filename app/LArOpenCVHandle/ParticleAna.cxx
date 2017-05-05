@@ -922,7 +922,7 @@ void ParticleAna::finalize()
 	      double x = pt.Y();
 	  
 	      
-	      auto d = pow((pow(x-x_vtx2d,2)+pow(y-y_vtx2d,2)),0.5);
+	      auto d = pow((pow(y-x_vtx2d,2)+pow(x-y_vtx2d,2)),0.5);
 	      if (d < _pradius){
 		pclus.emplace_back(x,y);
 		_p0pxp[plane].emplace_back(x);
@@ -960,7 +960,7 @@ void ParticleAna::finalize()
 	      //_p1pxc[plane].emplace_back(x);
 	      //_p1pyc[plane].emplace_back(y);
 	      
-	      auto d = pow((pow(x-x_vtx2d,2)+pow(y-y_vtx2d,2)),0.5);
+	      auto d = pow((pow(y-x_vtx2d,2)+pow(x-y_vtx2d,2)),0.5);
 	      if (d < _pradius){ 
 		_p1pxp[plane].emplace_back(x);
 		_p1pyp[plane].emplace_back(y);
