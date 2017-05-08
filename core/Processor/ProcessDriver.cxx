@@ -260,6 +260,7 @@ namespace larcv {
 
     // Execute
     bool good_status=true;
+    bool cleared=false;
     for(auto& p : _proc_v) {
       good_status = good_status && p->_process_(_io);
       if(!good_status && _enable_filter) break;
@@ -267,10 +268,16 @@ namespace larcv {
     // No event-write to be done if _has_event_creator is set. Otherwise go ahead
     if(!_has_event_creator) {
       // If not read mode save entry
-      if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) _io.save_entry();    
-      _io.clear_entry();
+      if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) {
+	cleared = true;
+	_io.save_entry();    
+      }
+      if(!cleared)
+	_io.clear_entry();
+      cleared=true;
     }
-    if(_io.io_mode() == IOManager::kREAD) _io.clear_entry();
+    if(!cleared && _io.io_mode() == IOManager::kREAD) 
+      _io.clear_entry();
 
     // Bump up entry record
     ++_current_entry;

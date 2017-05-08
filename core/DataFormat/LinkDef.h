@@ -45,6 +45,11 @@
 #pragma link C++ class larcv::PGraph+;
 #pragma link C++ class larcv::EventPGraph+;
 
+#pragma link C++ class larcv::Voxel3D+;
+#pragma link C++ class larcv::Voxel3DMeta+;
+#pragma link C++ class larcv::Voxel3DSet+;
+#pragma link C++ class larcv::EventVoxel3D+;
+
 #pragma link C++ class larcv::DataProductFactory+;
 #pragma link C++ class larcv::IOManager+;
 #ifndef __CINT__

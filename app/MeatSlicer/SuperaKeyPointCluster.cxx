@@ -29,7 +29,7 @@ namespace larcv {
   void SuperaKeyPointCluster::initialize()
   { SuperaBase::initialize(); }
 
-  larcv::Vertex SuperaKeyPointCluster::GetPoint(const larlite::mcstep& step)
+  larcv::Vertex SuperaKeyPointCluster::GetPoint(const supera::LArMCStep_t& step)
   {
     static double xyz[3];
     static const double drift_velocity = ::supera::DriftVelocity() * 1.0e-3; // make it cm/ns
@@ -197,8 +197,8 @@ namespace larcv {
 	
 	for(int row=((int)tick - (int)_row_pad); row<=((int)tick + (int)(_row_pad)); ++row) {
 	  for(int col=((int)wire - (int)_col_pad); col<=((int)wire + (int)_col_pad); ++col) {
-	    if(row<0 || row >= meta.rows()) continue;
-	    if(col<0 || col >= meta.cols()) continue;
+	    if(row<0 || row >= (int)(meta.rows())) continue;
+	    if(col<0 || col >= (int)(meta.cols())) continue;
 	    LARCV_DEBUG() << "    Registering (row,col) = (" << row << "," << col << ") w/ value " << val << std::endl;
 	    auto index = meta.index((size_t)row,(size_t)col);
 	    if(data[index] < val) data[index] = val;

@@ -22,6 +22,11 @@ namespace larcv {
   /// Invalid plane definition
   static const PlaneID_t kINVALID_PLANE = kINVALID_USHORT;
 
+  /// "ID" for Voxel3D
+  typedef unsigned long long Voxel3DID_t;
+  /// Invalid Voxel3DID_t definition
+  static const Voxel3DID_t kINVALID_VOXEL3DID = kINVALID_ULONGLONG;
+
   /// Channel status constants
   namespace chstatus {
     static const short kNOTPRESENT = -1;        ///< Channel does not exist
@@ -29,11 +34,11 @@ namespace larcv {
     /// Standard channel status enum stored in the database
     enum ChannelStatus_t { 
       kDISCONNECTED=0, ///< Channel is not connected
-			kDEAD=1,         ///< Dead channel
-			kLOWNOISE=2,     ///< Abnormally low noise channel
-			kNOISY=3,        ///< Abnormally high noise channel
-			kGOOD=4,         ///< Good channel
-			kUNKNOWN=5       ///< Channel w/ unverified status
+      kDEAD=1,         ///< Dead channel
+      kLOWNOISE=2,     ///< Abnormally low noise channel
+      kNOISY=3,        ///< Abnormally high noise channel
+      kGOOD=4,         ///< Good channel
+      kUNKNOWN=5       ///< Channel w/ unverified status
     };
   }
 
@@ -84,6 +89,7 @@ namespace larcv {
     kProductPixel2D,  ///< Pixel2D, Pixel2DCluster
     //kProductGeo2D,    ///< Vector2D, LineSegment2D
     kProductPGraph,   ///< PGraph, EventPGraph
+    kProductVoxel3D,  ///< Voxel3D, EventVoxel3D
     kProductUnknown   ///< LArbys
   };
 

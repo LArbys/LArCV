@@ -26,6 +26,7 @@ namespace supera {
   typedef ::larlite::mctrack  LArMCTrack_t;
   typedef ::larlite::mcshower LArMCShower_t;
   typedef ::larlite::simch    LArSimCh_t;
+  typedef ::larlite::mcstep   LArMCStep_t;
 }
 
 //

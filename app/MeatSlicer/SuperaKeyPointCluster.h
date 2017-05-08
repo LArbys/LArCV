@@ -46,7 +46,7 @@ namespace larcv {
 
   private:
 
-    larcv::Vertex GetPoint(const larlite::mcstep& step);
+    larcv::Vertex GetPoint(const supera::LArMCStep_t& step);
 	
     std::vector<larcv::Pixel2DCluster>
     CreateCluster(const std::vector<larcv::ImageMeta>& meta_v,

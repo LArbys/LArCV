@@ -27,20 +27,24 @@ namespace larcv {
     Point2D(double xv=0, double yv=0) : x(xv), y(yv) {}
   };
 
+  /// Used as an invalid value identifier for long long
+  const long long          kINVALID_LONGLONG  = std::numeric_limits< long long          >::max();
+  /// Used as an invalid value identifier for unsigned long long
+  const unsigned long long kINVALID_ULONGLONG = std::numeric_limits< unsigned long long >::max();
   /// Used as an invalid value identifier for size_t
-  static const size_t  kINVALID_SIZE   = std::numeric_limits< size_t         >::max();
+  const size_t             kINVALID_SIZE      = std::numeric_limits< size_t             >::max();
   /// Used as an invalid value identifier for int
-  static const int     kINVALID_INT    = std::numeric_limits< int            >::max();
+  const int                kINVALID_INT       = std::numeric_limits< int                >::max();
   /// Used as an invalid value identifier for unsigned int
-  const unsigned int   kINVALID_UINT   = std::numeric_limits< unsigned int   >::max();
+  const unsigned int       kINVALID_UINT      = std::numeric_limits< unsigned int       >::max();
   /// Used as an invalid value identifier for unsigned short
-  static const short   kINVALID_SHORT  = std::numeric_limits< short          >::max();
+  const short              kINVALID_SHORT     = std::numeric_limits< short              >::max();
   /// Used as an invalid value identifier for unsigned unsigned short
-  const unsigned short kINVALID_USHORT = std::numeric_limits< unsigned short >::max();
+  const unsigned short     kINVALID_USHORT    = std::numeric_limits< unsigned short     >::max();
   /// Used as an invalid value idnetifier for single-point precision  
-  const float          kINVALID_FLOAT  = std::numeric_limits< float          >::max();
+  const float              kINVALID_FLOAT     = std::numeric_limits< float              >::max();
   /// Used as an invalid value idnetifier for double-point precision
-  const double         kINVALID_DOUBLE = std::numeric_limits< double         >::max();
+  const double             kINVALID_DOUBLE    = std::numeric_limits< double             >::max();
 
   /// Namespace for larcv message related types
   namespace msg {
