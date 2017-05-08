@@ -11,7 +11,7 @@ namespace supera {
   {
     //int nticks = meta.rows();
     //int nwires = meta.cols();
-    size_t row_comp_factor = (size_t)(meta.pixel_height());
+    //size_t row_comp_factor = (size_t)(meta.pixel_height());
     const int ymax = meta.max_y() - 1; // Need in terms of row coordinate
     const int ymin = (meta.min_y() >= 0 ? meta.min_y() : 0);
     larcv::Image2D img(meta);

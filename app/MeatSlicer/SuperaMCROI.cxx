@@ -15,7 +15,7 @@ namespace larcv {
 
   const std::vector<std::pair<size_t,size_t> >& SuperaMCROI::ROI2MCNode(int roi_index) const
   {
-    if(roi_index >= _roi2mcnode_vv.size())
+    if(roi_index >= (int)(_roi2mcnode_vv.size()))
       throw larbys("Invalid ROI index requested");
 
     return _roi2mcnode_vv[roi_index];
