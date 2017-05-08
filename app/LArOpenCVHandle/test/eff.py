@@ -28,13 +28,13 @@ ana_df  = pd.DataFrame(rn.root2array(FILE_,treename='tree'))
 eana_df = pd.DataFrame(rn.root2array(FILE_,treename='event_tree'))
 eana_df = eana_df.drop_duplicates(index_)
 
-
-cutstr0 = ' q0/npx0 > 20 and q1/npx1 > 10'
-cutstr1 = ' and q0/area0>20 and q1/area1>10'
-cutstr2 = ' and npx0/area0 > 1.0 and 0.5 < npx1/area1 and npx1/area1 < 1.5'
-cutstr3 = ' and len1 > 50'
-cutstr4 = ' and len0 < 300'
-cutstr=cutstr0+cutstr1+cutstr2+cutstr3+cutstr4
+cutstr_1 = ' npar==2 '
+cutstr0  = ' and (q0/npx0 > 30) and (q1/npx1 > 30) '
+cutstr1 = ' and (q0/area0>60) and (q1/area1>60) '
+cutstr2 = ' and (1.0 < npx0/area0 and npx0/area0 < 2.2) and (1.0 < npx1/area1 and npx1/area1 < 2.2) '
+cutstr3 = ' and len1 < 500'
+cutstr4 = ' and len0 < 500'
+cutstr=cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3+cutstr4
 
 good_df=ana_df.query("scedr<5")
 bad_df =ana_df.query("scedr>=5")
@@ -47,8 +47,6 @@ f_.write("Good %d\n"%unique_good.size)
 f_.write("Bad %d\n"%unique_bad.size)
 f_.write("\n")
 
-#eana_good_df = eana_df.query("(good_croi0 + good_croi1 + good_croi2)>=2")
-#eana_bad_df  = eana_df.query("(good_croi0 + good_croi1 + good_croi2)<2")
 eana_good_df = eana_df.query("good_croi_ctr>0")
 eana_bad_df  = eana_df.query("good_croi_ctr==0")
 unique_signal_evts = pd.unique(eana_good_df.reset_index().set_index(index_).index)
@@ -67,36 +65,42 @@ f_.write("\n")
 f_.write("\n")
 rse_index = ['run','subrun','event']
 
-f_.write("Cut 0) %s"%cutstr0)
+f_.write("Cut -1) %s"%cutstr_1)
 f_.write("\n")
-f_.write("Cut 1) %s"%cutstr1)
+f_.write("Cut 0)  %s"%cutstr0)
 f_.write("\n")
-f_.write("Cut 2) %s"%cutstr2)
+f_.write("Cut 1)  %s"%cutstr1)
 f_.write("\n")
-f_.write("Cut 3) %s"%cutstr3)
+f_.write("Cut 2)  %s"%cutstr2)
 f_.write("\n")
-f_.write("Cut 4) %s"%cutstr4)
+f_.write("Cut 3)  %s"%cutstr3)
+f_.write("\n")
+f_.write("Cut 4)  %s"%cutstr4)
 f_.write("\n")
 
 f_.write("<==All===>\n")
 den_=ana_df.index.size
 num_=len(ana_df.groupby(rse_index))
 f_.write(str(("Vertex:",den_," events:",num_,"=",float(num_)/float(den_))))
+f_.write("\n")
+den_=ana_df.query(cutstr_1).index.size
+num_=len(ana_df.query(cutstr_1).groupby(rse_index))
+f_.write(str(("    -1)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")         
-den_=ana_df.query(cutstr0).index.size
-num_=len(ana_df.query(cutstr0).groupby(rse_index))
+den_=ana_df.query(cutstr_1+cutstr0).index.size
+num_=len(ana_df.query(cutstr_1+cutstr0).groupby(rse_index))
 f_.write(str(("     0)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")         
-den_=ana_df.query(cutstr0+cutstr1).index.size
-num_=len(ana_df.query(cutstr0+cutstr1).groupby(rse_index))
+den_=ana_df.query(cutstr_1+cutstr0+cutstr1).index.size
+num_=len(ana_df.query(cutstr_1+cutstr0+cutstr1).groupby(rse_index))
 f_.write(str(("     1)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")             
-den_=ana_df.query(cutstr0+cutstr1+cutstr2).index.size
-num_=len(ana_df.query(cutstr0+cutstr1+cutstr2).groupby(rse_index))
+den_=ana_df.query(cutstr_1+cutstr0+cutstr1+cutstr2).index.size
+num_=len(ana_df.query(cutstr_1+cutstr0+cutstr1+cutstr2).groupby(rse_index))
 f_.write(str(("     2)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=ana_df.query(cutstr0+cutstr1+cutstr2+cutstr3).index.size
-num_=len(ana_df.query(cutstr0+cutstr1+cutstr2+cutstr3).groupby(rse_index))
+den_=ana_df.query(cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3).index.size
+num_=len(ana_df.query(cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3).groupby(rse_index))
 f_.write(str(("     3)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
 den_=ana_df.query(cutstr).index.size
@@ -113,20 +117,24 @@ den_=good_df.index.size
 num_=len(good_df.groupby(rse_index))
 f_.write(str(("Vertex:",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=good_df.query(cutstr0).index.size
-num_=len(good_df.query(cutstr0).groupby(rse_index))
+den_=good_df.query(cutstr_1).index.size
+num_=len(good_df.query(cutstr_1).groupby(rse_index))
+f_.write(str(("    -1)",den_," events:",num_,"=",float(num_)/float(den_))))
+f_.write("\n")
+den_=good_df.query(cutstr_1+cutstr0).index.size
+num_=len(good_df.query(cutstr_1+cutstr0).groupby(rse_index))
 f_.write(str(("     0)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=good_df.query(cutstr0+cutstr1).index.size
-num_=len(good_df.query(cutstr0+cutstr1).groupby(rse_index))
+den_=good_df.query(cutstr_1+cutstr0+cutstr1).index.size
+num_=len(good_df.query(cutstr_1+cutstr0+cutstr1).groupby(rse_index))
 f_.write(str(("     1)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=good_df.query(cutstr0+cutstr1+cutstr2).index.size
-num_=len(good_df.query(cutstr0+cutstr1+cutstr2).groupby(rse_index))
+den_=good_df.query(cutstr_1+cutstr0+cutstr1+cutstr2).index.size
+num_=len(good_df.query(cutstr_1+cutstr0+cutstr1+cutstr2).groupby(rse_index))
 f_.write(str(("     2)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=good_df.query(cutstr0+cutstr1+cutstr2+cutstr3).index.size
-num_=len(good_df.query(cutstr0+cutstr1+cutstr2+cutstr3).groupby(rse_index))
+den_=good_df.query(cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3).index.size
+num_=len(good_df.query(cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3).groupby(rse_index))
 f_.write(str(("     3)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
 den_=good_df.query(cutstr).index.size
@@ -143,20 +151,24 @@ den_=bad_df.index.size
 num_=len(bad_df.groupby(rse_index))
 f_.write(str(("Vertex:",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")         
-den_=bad_df.query(cutstr0).index.size
-num_=len(bad_df.query(cutstr0).groupby(rse_index))
+den_=bad_df.query(cutstr_1).index.size
+num_=len(bad_df.query(cutstr_1).groupby(rse_index))
+f_.write(str(("     -1)",den_," events:",num_,"=",float(num_)/float(den_))))
+f_.write("\n")
+den_=bad_df.query(cutstr_1+cutstr0).index.size
+num_=len(bad_df.query(cutstr_1+cutstr0).groupby(rse_index))
 f_.write(str(("     0)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=bad_df.query(cutstr0+cutstr1).index.size
-num_=len(bad_df.query(cutstr0+cutstr1).groupby(rse_index))
+den_=bad_df.query(cutstr_1+cutstr0+cutstr1).index.size
+num_=len(bad_df.query(cutstr_1+cutstr0+cutstr1).groupby(rse_index))
 f_.write(str(("     1)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=bad_df.query(cutstr0+cutstr1+cutstr2).index.size
-num_=len(bad_df.query(cutstr0+cutstr1+cutstr2).groupby(rse_index))
+den_=bad_df.query(cutstr_1+cutstr0+cutstr1+cutstr2).index.size
+num_=len(bad_df.query(cutstr_1+cutstr0+cutstr1+cutstr2).groupby(rse_index))
 f_.write(str(("     2)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
-den_=bad_df.query(cutstr0+cutstr1+cutstr2+cutstr3).index.size
-num_=len(bad_df.query(cutstr0+cutstr1+cutstr2+cutstr3).groupby(rse_index))
+den_=bad_df.query(cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3).index.size
+num_=len(bad_df.query(cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3).groupby(rse_index))
 f_.write(str(("     3)",den_," events:",num_,"=",float(num_)/float(den_))))
 f_.write("\n")
 den_=bad_df.query(cutstr).index.size
@@ -166,5 +178,9 @@ if den_>0:
 else:
     r=0
 f_.write(str(("     4)",den_," events:",num_,"=",r)))
+f_.write("\n")
+f_.write("\n")
+f_.write("\n")
+f_.write(str(list(pd.unique(good_df.query(cutstr).entry.values))))
 f_.write("\n")
 f_.close()

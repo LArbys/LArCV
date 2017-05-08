@@ -1,5 +1,5 @@
-#ifndef __ALGODATAANALYZE_H__
-#define __ALGODATAANALYZE_H__
+#ifndef __ALGODATAANA_H__
+#define __ALGODATAANA_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
@@ -8,10 +8,10 @@
 #include "LArbysRecoHolder.h"
 
 namespace larcv {
-  class AlgoDataAnalyze : public ProcessBase {
+  class AlgoDataAna : public ProcessBase {
   public:
-    AlgoDataAnalyze(const std::string name="AlgoDataAnalyze");
-    ~AlgoDataAnalyze(){}
+    AlgoDataAna(const std::string name="AlgoDataAna");
+    ~AlgoDataAna(){}
 
     void configure(const PSet&);
     void initialize();
@@ -40,11 +40,11 @@ namespace larcv {
     double _reco_vertex_z;
   };
 
-  class AlgoDataAnalyzeProcessFactory : public ProcessFactoryBase {
+  class AlgoDataAnaProcessFactory : public ProcessFactoryBase {
   public:
-    AlgoDataAnalyzeProcessFactory() { ProcessFactory::get().add_factory("AlgoDataAnalyze",this); }
-    ~AlgoDataAnalyzeProcessFactory() {}
-    ProcessBase* create(const std::string instance_name) { return new AlgoDataAnalyze(instance_name); }
+    AlgoDataAnaProcessFactory() { ProcessFactory::get().add_factory("AlgoDataAna",this); }
+    ~AlgoDataAnaProcessFactory() {}
+    ProcessBase* create(const std::string instance_name) { return new AlgoDataAna(instance_name); }
   };
 }
 #endif

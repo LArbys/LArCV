@@ -12,6 +12,7 @@ namespace larcv {
     _track_comp_vvv.clear();
     _match_pvvv.clear();
     _meta_vv.clear();
+    _matched_v.clear();
   }
   
   void
@@ -45,25 +46,31 @@ namespace larcv {
     std::swap(particle_cluster_ptr_vvv,_particle_cluster_ptr_vvv);
     std::swap(track_comp_ptr_vvv,      _track_comp_ptr_vvv);
   }
-  
+
+  void
+  LArbysRecoHolder::SetMatches(std::vector<int>&& vtxid_match_v) {
+    _matched_v = std::move(vtxid_match_v);
+    return;
+  }
   
   std::vector<std::vector<std::pair<size_t,size_t> > >
   LArbysRecoHolder::Match(size_t vtx_id,
 			  const std::vector<cv::Mat>& adc_cvimg_v,
 			  bool sort) {
     
-    LARCV_DEBUG() << "Requested coverage " << _match_coverage << " & "
+    LARCV_DEBUG() << "@ vertex id " << vtx_id << " requested coverage " << _match_coverage << " & "
 		  << _match_particles_per_plane << " particles per plane & "
 		  << _match_min_number << " min number of matches " << std::endl;
     
     auto match_vv = _vtx_ana.MatchClusters(this->PlaneParticles(vtx_id), // particles per plane
-					   adc_cvimg_v,                  // adc cv imaage
+					   adc_cvimg_v,                  // adc cv image
 					   _match_coverage,              // required coverage
 					   _match_particles_per_plane,   // requires # particles per plane
 					   _match_min_number,            // min number of matches
 					   _match_check_type,            // ensure particle type is same
 					   _match_weight_by_size);       // weight match by particle n pixels
-    
+
+    LARCV_DEBUG() << "returned " << match_vv.size() << " matches" << std::endl;
     if (sort) {
       // Sort the match so that the tracks come first
       std::vector<std::vector<std::pair<size_t,size_t> > > match_temp_vv;
@@ -95,7 +102,7 @@ namespace larcv {
       
       std::swap(match_vv,match_temp_vv);
     }
-
+    
     auto& match_pvvv = _larocvserial->_match_pvvv;
     if (vtx_id >= match_pvvv.size())
       match_pvvv.resize(vtx_id+1);
@@ -113,7 +120,7 @@ namespace larcv {
     std::vector<std::vector<std::vector<const larocv::data::TrackClusterCompound*> > > track_comp_ptr_vvv;
 
     for(size_t vertexid=0; vertexid<this->Verticies().size(); ++vertexid) {
-
+      
       if (_require_two_multiplicity) { 
 	auto multiplicity=_vtx_ana.RequireParticleCount(this->PlaneParticles(vertexid),2,2);
 	if (!multiplicity) {
@@ -146,6 +153,7 @@ namespace larcv {
     _vertex_ptr_v.clear();
     _particle_cluster_ptr_vvv.clear();
     _track_comp_ptr_vvv.clear();
+    _matched_v.clear();
     LARCV_DEBUG() << "done." << std::endl;
   }
 
@@ -178,9 +186,10 @@ namespace larcv {
 
 
     this->set_verbosity((msg::Level_t)pset.get<int>("Verbosity"));
-
-    _require_two_multiplicity  = pset.get<bool>("RequireMultiplicityTwo",true);
-    _require_fiducial          = pset.get<bool>("RequireFiducial",true);
+    
+    _require_two_multiplicity = false;
+    _require_fiducial = false;
+      
     _match_coverage            = pset.get<float>("MatchCoverage",0.5);
     _match_particles_per_plane = pset.get<float>("MatchParticlesPerPlane",2);
     _match_min_number          = pset.get<float>("MatchMinimumNumber",2);
@@ -304,6 +313,7 @@ namespace larcv {
     auto& vertex_v             = _larocvserial->_vertex_v;
     auto& particle_cluster_vvv = _larocvserial->_particle_cluster_vvv;
     auto& track_comp_vvv       = _larocvserial->_track_comp_vvv;
+    auto& matched_v            = _larocvserial->_matched_v;
       
     size_t n_old   = vertex_v.size();
     size_t n_new   = _vertex_ptr_v.size();
@@ -315,16 +325,22 @@ namespace larcv {
     vertex_v.resize(n_total);
     particle_cluster_vvv.resize(n_total);
     track_comp_vvv.resize(n_total);
+    matched_v.resize(n_total);
     
-    for(size_t vertexid=0;vertexid<this->Verticies().size();++vertexid) {
-      
-      auto& vertex              = vertex_v.at(n_old+vertexid);
-      auto& particle_cluster_vv = particle_cluster_vvv.at(n_old+vertexid);
-      auto& track_comp_vv       = track_comp_vvv.at(n_old+vertexid);
-    
+    for(size_t vertexid=0; vertexid<this->Verticies().size(); ++vertexid) {
+
+      auto offset = n_old + vertexid;
+
+      auto& vertex              = vertex_v.at(offset);
+      auto& particle_cluster_vv = particle_cluster_vvv.at(offset);
+      auto& track_comp_vv       = track_comp_vvv.at(offset);
+
+      //
+      // Copy the vertex, particles, and track cluster compounds
+      //
       vertex = *(this->Vertex(vertexid));
 
-      size_t nplanes=3;
+      size_t nplanes = 3;
       particle_cluster_vv.resize(nplanes);
       track_comp_vv.resize(nplanes);
       for(size_t plane=0;plane<nplanes;++plane) {
@@ -344,8 +360,16 @@ namespace larcv {
 	  track_comp = *(this->Track(vertexid,plane,particleid));
 	} //particle id
       } //plane id
+
+      //
+      // Set the vertex as good match or not
+      //
+      auto& matched = matched_v.at(offset);
+      matched = _matched_v.at(vertexid);
+      
     } //vertex id
   }
 }
 
 #endif
+

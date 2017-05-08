@@ -21,8 +21,14 @@ namespace larcv {
 
   void ROIAna::initialize()
   {
+    clear();
     _roi_tree = new TTree("ROITree","ROITree");
 
+    _roi_tree->Branch("run",&_run,"run/I");
+    _roi_tree->Branch("subrun",&_subrun,"subrun/I");
+    _roi_tree->Branch("event",&_event,"event/I");
+    _roi_tree->Branch("entry",&_entry,"entry/I");
+      
     _roi_tree->Branch("nroi",&_nroi,"nroi/I");
 
     _roi_tree->Branch("area_exclusive0",&_area_exclusive0,"area_exclusive0/F");
@@ -40,7 +46,6 @@ namespace larcv {
     _roi_tree->Branch("area_image0",&_area_image0,"area_image0/F");
     _roi_tree->Branch("area_image1",&_area_image1,"area_image1/F");
     _roi_tree->Branch("area_image2",&_area_image2,"area_image2/F");
-      
   }
 
   bool ROIAna::process(IOManager& mgr)
@@ -56,6 +61,11 @@ namespace larcv {
       }
     }
 
+    _run    = (int) ev_roi->run();
+    _subrun = (int) ev_roi->subrun();
+    _event  = (int) ev_roi->event();
+    _entry  = (int) mgr.current_entry();
+    
     EventImage2D *ev_img = nullptr;
     if (!_img_producer.empty()) {
       ev_img = (EventImage2D*)mgr.get_data(kProductImage2D,_img_producer);
@@ -149,7 +159,6 @@ namespace larcv {
       const auto& mask_v = mask.as_vector();
       area_exclusive = std::accumulate(std::begin(mask_v),std::end(mask_v),0.0);
 
-
       //
       // calculate the image size
       //
@@ -197,7 +206,6 @@ namespace larcv {
   }
 
   void ROIAna::clear() {
-
     _nroi = 0;
     
     _area_exclusive0 = 0.0;
