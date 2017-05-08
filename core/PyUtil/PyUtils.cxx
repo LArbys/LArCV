@@ -4,7 +4,8 @@
 #include "Base/larcv_logger.h"
 #include "PyUtils.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/ndarrayobject.h>
+//#include <numpy/ndarrayobject.h>
+#include "numpy/arrayobject.h"
 
 namespace larcv {
 
@@ -25,9 +26,7 @@ namespace larcv {
     int nd = 1;
     npy_intp dims[1];
     dims[0] = (int)vec.size();
-    
     PyArrayObject *array = (PyArrayObject *) PyArray_SimpleNewFromData(nd, dims, NPY_FLOAT, (char*)&(vec[0]) );
-    
     return PyArray_Return(array);
   }
   
@@ -39,6 +38,25 @@ namespace larcv {
     dim_data[1] = img.meta().rows();
     auto const& vec = img.as_vector();
     return PyArray_FromDimsAndData( 2, dim_data, NPY_FLOAT, (char*) &(vec[0]));
+  }
+
+  void copy_array(PyObject *arrayin, const std::vector<float>& cvec)
+  {
+    SetPyUtil();
+    PyArrayObject* ptr = (PyArrayObject*)(arrayin);
+    /*
+    std::cout<< PyArray_NDIM(ptr) << std::endl
+	     << PyArray_DIM(ptr,0)<<std::endl
+	     << PyArray_SIZE(ptr) << std::endl;
+    */
+    if(cvec.size()!=PyArray_SIZE(ptr)) throw std::exception();
+    npy_intp loc[1];
+    loc[0] = 0;
+    auto fptr = (float*)(PyArray_GetPtr(ptr,loc));
+    for(size_t i=0; i< size_t(PyArray_SIZE(ptr)); ++i) {
+      //std::cout << fptr[i] << std::endl;
+      fptr[i] = cvec[i];
+    };
   }
 
   PyObject* as_caffe_ndarray(const Image2D& img)

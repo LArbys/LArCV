@@ -22,6 +22,9 @@ namespace larcv {
 	PyObject* as_ndarray(const Image2D& img);
 	/// larcv::Image2D to numpy array converter
 	PyObject* as_caffe_ndarray(const Image2D& img);
+        /// copy array
+  void copy_array(PyObject *arrayin, const std::vector<float>& cvec);
+  //void copy_array(PyObject *arrayin);//, const std::vector<float>& vec);
 
         Image2D as_image2d_meta(PyObject*,ImageMeta meta);
 
