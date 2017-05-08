@@ -42,8 +42,8 @@ namespace larcv {
 
     auto vtx_2d = geohelp->Point_3Dto2D(parent_x, parent_y, parent_z, plane );
     
-    double x_compression  = meta.width()  / meta.cols();
-    double y_compression  = meta.height() / meta.rows();
+    double x_compression  = (double)meta.width()  / (double)meta.cols();
+    double y_compression  = (double)meta.height() / (double)meta.rows();
     xpixel = (vtx_2d.w/geohelp->WireToCm() - meta.tl().x) / x_compression;
     ypixel = (((parent_x/larpro->DriftVelocity() + parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
   }
@@ -106,6 +106,74 @@ namespace larcv {
     return pt;
   }
   
+  void
+  mask_image(Image2D& target, const Image2D& ref)
+  {
+    if(target.meta() != ref.meta()) 
+      throw larbys("Cannot mask images w/ different meta");
+
+    auto meta = target.meta();
+    std::vector<float> data = target.move();
+    auto const& ref_vec = ref.as_vector();
+
+    for(size_t i=0; i<data.size(); ++i) { if(ref_vec[i]>0) data[i]=0; }	
+
+    target.move(std::move(data));
+  }
+
+  /*
+  Image2D
+  embed_image(const Image2D& ref, const Image2D& target) {
+
+    // get the image size
+    int orig_rows = target.meta().rows();
+    int orig_cols = target.meta().cols();
+
+    int ref_rows = ref.meta().rows();
+    int ref_cols = ref.meta().cols();
+    
+    if ( orig_rows > ref_rows ) {
+      LARCV_ERROR() << "Image is taller than Embedding image (" << orig_rows << ">" << fOutputRows << ")" << std::endl;
+      throw larbys();
+    }
+    if ( orig_cols > ref_cols ) {
+      LARCV_ERROR() << "Image is wider than Embedding image (" << orig_cols << ">" << fOutputCols <<")" << std::endl;
+      throw larbys();
+    }
+    
+    // get the origin
+    float topleft_x = target.meta().min_x();
+    float topleft_y = target.meta().max_y();
+    
+    // get width
+    float width_per_pixel  = target.meta().pixel_width();
+    float height_per_pixel = target.meta().pixel_height();
+    
+    // get new width, keeping same pixel scales
+    float new_width  = float(fOutputCols)*width_per_pixel;
+    float new_height = float(fOutputRows)*height_per_pixel;
+    
+    // new origin
+    int offset_row = 0.5*(ref_rows - orig_rows);
+    int offset_col = 0.5*(ref_cols - orig_cols);
+    float new_topleft_x = topleft_x - offset_row*width_per_pixel;
+    float new_topleft_y = topleft_y + offset_col*height_per_pixel;
+    
+    // define the new meta
+    larcv::ImageMeta new_meta( new_width, new_height,
+			       ref_rows, ref_cols,
+			       new_topleft_x, new_topleft_y, 
+			       target.meta().plane() );
+    
+      // define the new image
+      larcv::Image2D new_image( new_meta );
+      new_image.paint( 0.0 );
+      new_image.overlay( target );
+
+    
+
+  }
+  */
 }
 
 #endif

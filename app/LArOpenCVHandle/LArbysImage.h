@@ -41,8 +41,6 @@ namespace larcv {
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
     
-    void mask_image(Image2D& target, const Image2D& ref);
-
     void construct_cosmic_image(IOManager& mgr, std::string producer,
 				const std::vector<larcv::Image2D>& adc_image_v,
 				std::vector<larcv::Image2D>& mu_image_v);
@@ -91,7 +89,8 @@ namespace larcv {
     double _process_time_image_extraction;
     double _process_time_analyze;
     double _process_time_cluster_storage;
-    bool   _filter_reco;
+
+    bool _union_roi;
     
     void Report() const;
     

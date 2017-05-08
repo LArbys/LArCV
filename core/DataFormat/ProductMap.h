@@ -20,6 +20,8 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::Pixel2D  > ();
   class PGraph;
   template<> ProductType_t ProductType< larcv::PGraph   > ();
+  class Voxel3D;
+  template<> ProductType_t ProductType< larcv::Voxel3D  > ();
 }
 
 #endif

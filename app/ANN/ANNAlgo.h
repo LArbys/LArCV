@@ -39,6 +39,7 @@ namespace ann {
     #endif
     #endif
     std::vector<int> regionQuery( int idx, double eps2, double approx );
+    std::vector<int> regionQuery( const std::vector<double>& queryPt_v, double eps2, double approx );
     static void cleanup();
     void dump( std::string outfile );
     void printdata();
