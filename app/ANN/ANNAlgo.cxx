@@ -1,6 +1,7 @@
 #include "ANNAlgo.h"
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 namespace ann {
 
