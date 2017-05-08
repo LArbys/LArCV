@@ -475,8 +475,20 @@ namespace larcv {
       if(!p) break;
       p->clear();
     }
-    if(_set_event_id.valid()) _last_event_id = _set_event_id;
-    else _last_event_id = _event_id;
+    if(_set_event_id.valid()) {
+      LARCV_DEBUG() << "Set _last_event_id to externally set values:"
+		    << " run = " << _set_event_id.run() 
+		    << " subrun = " << _set_event_id.subrun() 
+		    << " event = " << _set_event_id.event() << std::endl;
+      _last_event_id = _set_event_id;
+    } 
+    else {
+      LARCV_DEBUG() << "Set _last_event_id to inherited values:"
+		    << " run = " << _event_id.run() 
+		    << " subrun = " << _event_id.subrun() 
+		    << " event = " << _event_id.event() << std::endl;
+      _last_event_id = _event_id;
+    }
     _event_id.clear();
     _set_event_id.clear();
   }
