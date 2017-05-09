@@ -8,7 +8,6 @@
 #include "DataFormat/Image2D.h"
 #include "PreProcessor.h"
 #include "LArbysImageMaker.h"
-#include "LArbysRecoHolder.h"
 #include "ImageMod/ImageModUtils.h"
 
 namespace larcv {
@@ -35,7 +34,6 @@ namespace larcv {
 
     const PreProcessor&     PProcessor()     const { return _PreProcessor; }
     const LArbysImageMaker& LArbysImgMaker() const { return _LArbysImageMaker; }
-    const LArbysRecoHolder& LArbysHolder()   const { return _RecoHolder; }
     
   protected:
 
@@ -52,7 +50,6 @@ namespace larcv {
 		     const std::vector<larcv::Image2D>& stopmu_image_v);
 
     bool StoreParticles(IOManager& iom,
-			larocv::ImageClusterManager& mgr,
 			const std::vector<larcv::Image2D>& adcimg_v,
 			size_t& pidx);
     
@@ -83,8 +80,16 @@ namespace larcv {
     std::string _thrumu_producer;
     std::string _stopmu_producer;
     std::string _output_producer;
-    ::larocv::AlgorithmID_t _output_cluster_alg_id;
 
+    std::string _vertex_algo_name;
+    std::string _par_algo_name;
+    
+    larocv::AlgorithmID_t _vertex_algo_id;
+    larocv::AlgorithmID_t _par_algo_id;
+
+    size_t _vertex_algo_vertex_offset;
+    size_t _par_algo_par_offset;
+    
     double _process_count;
     double _process_time_image_extraction;
     double _process_time_analyze;
@@ -96,7 +101,6 @@ namespace larcv {
     
     PreProcessor     _PreProcessor;
     LArbysImageMaker _LArbysImageMaker;
-    LArbysRecoHolder _RecoHolder;
     
     std::vector<larcv::Image2D> _empty_image_v;
     std::vector<larcv::Image2D> _thrumu_image_v;
@@ -105,8 +109,7 @@ namespace larcv {
   };
 
   /**
-     \class larcv::LAr
-bysImageFactory
+     \class larcv::LArbysImageFactory
      \brief A concrete factory class for larcv::LArbysImage
   */
   class LArbysImageProcessFactory : public ProcessFactoryBase {

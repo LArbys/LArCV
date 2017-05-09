@@ -10,6 +10,8 @@
 #include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/ImagePatchAnalysis.h"
 #include "LArbysUtils.h"
+#include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
+#include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
 #include <array>
 
 namespace larcv {
@@ -19,8 +21,7 @@ namespace larcv {
   LArbysImage::LArbysImage(const std::string name)
     : ProcessBase(name),
       _PreProcessor(),
-      _LArbysImageMaker(),
-      _RecoHolder()
+      _LArbysImageMaker()
   {}
       
   void LArbysImage::configure(const PSet& cfg)
@@ -38,9 +39,6 @@ namespace larcv {
 
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
 
-    _write_reco = cfg.get<bool>("WriteAnaReco");
-    _RecoHolder.Configure(cfg.get<larcv::PSet>("LArbysRecoHolder"));
-
     _preprocess = cfg.get<bool>("PreProcess");
     if (_preprocess) {
       LARCV_INFO() << "Preprocessing image" << std::endl;
@@ -56,13 +54,34 @@ namespace larcv {
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
 
     _union_roi = cfg.get<bool>("UnionROI",false);
+
+    _vertex_algo_name = cfg.get<std::string>("VertexAlgoName","");
+    _par_algo_name    = cfg.get<std::string>("ParticleAlgoName","");
+
+    const auto& data_man = _alg_mgr.DataManager();
+      
+    _vertex_algo_id = larocv::kINVALID_ALGO_ID;
+    if (!_vertex_algo_name.empty()) {
+      _vertex_algo_id = data_man.ID(_vertex_algo_name);
+      if (_vertex_algo_id == larocv::kINVALID_ALGO_ID)
+	throw larbys("Specified invalid vertex algorithm");
+    }
+
+    _par_algo_id = larocv::kINVALID_ALGO_ID;
+    if (!_par_algo_name.empty()) {
+      _par_algo_id = data_man.ID(_par_algo_name);
+      if (_par_algo_id == larocv::kINVALID_ALGO_ID)
+	throw larbys("Specified invalid particle algorithm");
+    }
+
+    _vertex_algo_vertex_offset = cfg.get<size_t>("VertexAlgoVertexOffset",0);
+    _par_algo_par_offset       = cfg.get<size_t>("ParticleAlgoParticleOffset",0);
   }
   
   void LArbysImage::initialize()
   {
     _thrumu_image_v.clear();
     _stopmu_image_v.clear();
-    _RecoHolder.Initialize();
   }
   
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {
@@ -154,7 +173,7 @@ namespace larcv {
 	status = Reconstruct(adc_image_v,
 			     track_image_v,shower_image_v,
 			     thrumu_image_v,stopmu_image_v);
-	status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
+	status = status && StoreParticles(mgr,adc_image_v,pidx);
 	
       } //Don't mask stop mu or thru mu
       else { 
@@ -184,7 +203,7 @@ namespace larcv {
 	status = Reconstruct(copy_adc_image_v,
 			     copy_track_image_v,copy_shower_image_v,
 			     thrumu_image_v, stopmu_image_v);
-	status = status && StoreParticles(mgr,_alg_mgr,copy_adc_image_v,pidx);
+	status = status && StoreParticles(mgr,copy_adc_image_v,pidx);
       }
     } //ROI exists
     else{
@@ -325,7 +344,7 @@ namespace larcv {
 				       union_track_image_v, union_shower_image_v,
 				       union_thrumu_image_v, union_stopmu_image_v);
 	
-	status = status && StoreParticles(mgr,_alg_mgr,union_adc_image_v,pidx);
+	status = status && StoreParticles(mgr,union_adc_image_v,pidx);
 	
       } //end union
       else { //give ROI 1 by 1
@@ -390,29 +409,26 @@ namespace larcv {
 					 crop_track_image_v, crop_shower_image_v,
 					 crop_thrumu_image_v, crop_stopmu_image_v);
 	
-	  status = status && StoreParticles(mgr,_alg_mgr,crop_adc_image_v,pidx);
+	  status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
 	} // end loop over ROI
       } // end ROI exists
     } // end image fed to reco
-
-    if (_write_reco) {
-      LARCV_DEBUG() << "Writing RecoHolder tree & reset" << std::endl;
-      _RecoHolder.Write();
-      _RecoHolder.ResetOutput();
-    }
 
     LARCV_DEBUG() << "return " << status << std::endl;
     return status;
   }
 
   bool LArbysImage::StoreParticles(IOManager& iom,
-				   larocv::ImageClusterManager& mgr,
 				   const std::vector<Image2D>& adc_image_v,
 				   size_t& pidx) {
-    
-    LARCV_DEBUG() << iom.event_id().run()<<","<<iom.event_id().subrun()<<","<<iom.event_id().event()<<","<<std::endl;
-    const auto& adc_cvimg_orig_v = mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
 
+    // nothing to be done
+    if (_vertex_algo_id == larocv::kINVALID_ALGO_ID) {
+      LARCV_INFO() << "Nothing to be done..." << std::endl;
+      return true;
+    }
+    
+    const auto& adc_cvimg_orig_v = _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
     static std::vector<cv::Mat> adc_cvimg_v;
     adc_cvimg_v.clear();
     adc_cvimg_v.resize(3);
@@ -420,78 +436,48 @@ namespace larcv {
     auto event_pgraph        = (EventPGraph*)  iom.get_data(kProductPGraph,_output_producer);
     auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
     auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
+    
+    const auto& data_mgr = _alg_mgr.DataManager();
+    const auto& ass_man  = data_mgr.AssManager();
+    
+    const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(_vertex_algo_id, _vertex_algo_vertex_offset);
+    const auto& vtx3d_v    = vtx3d_array->as_vector();
+    
+    const auto par_array = (larocv::data::ParticleArray*) data_mgr.Data(_par_algo_id,_par_algo_par_offset);
+    const auto& par_v     = par_array->as_vector();
 
-    _RecoHolder.ShapeData(mgr);
-
-    const auto& vtx_ana = _RecoHolder.ana();
-
-    auto n_reco_vtx = _RecoHolder.Verticies().size();
-    std::vector<int> vtxid_match_v(n_reco_vtx,0);
-
+    auto n_reco_vtx = vtx3d_v.size();
     LARCV_DEBUG() << "Matching... " << n_reco_vtx << " vertices" << std::endl;
     for(size_t vtxid=0; vtxid< n_reco_vtx; ++vtxid) {
       
-      const auto& vtx3d       = *(_RecoHolder.Vertex(vtxid));
-      const auto& pcluster_vv = _RecoHolder.PlaneParticles(vtxid);
-      const auto& tcluster_vv = _RecoHolder.PlaneTracks(vtxid);
+      const auto& vtx3d = vtx3d_v[vtxid];
 
       LARCV_DEBUG() << vtxid << ") @ (x,y,z) : ("<<vtx3d.x<<","<<vtx3d.y<<","<<vtx3d.z<<")"<<std::endl;
 
       for(size_t plane=0; plane<3; ++plane)
 	adc_cvimg_v[plane] = adc_cvimg_orig_v[plane].clone();
 
-      auto match_vv = _RecoHolder.Match(vtxid,adc_cvimg_v);
-      
-      if (match_vv.empty()) {
-	LARCV_DEBUG() << "NO match for vertex id " << vtxid << std::endl;
+      auto par_id_v = ass_man.GetManyAss(vtx3d,par_array->ID());
+      if (par_id_v.empty()) {
+	LARCV_DEBUG() << "No associated particles to vertex " << vtxid << std::endl;
 	continue;
       }
 
-      vtxid_match_v[vtxid] = 1;
-      
       PGraph pgraph;
-      for( auto match_v : match_vv ) {
-
-	std::array<size_t,3> plane_arr, id_arr;
-	plane_arr = id_arr = {{kINVALID_SIZE,kINVALID_SIZE,kINVALID_SIZE}};
-
-	std::array<const larocv::data::ParticleCluster*,3>      pcluster_arr {{nullptr,nullptr,nullptr}};
-	std::array<const larocv::data::TrackClusterCompound*,3> tcluster_arr {{nullptr,nullptr,nullptr}};
-
-	larocv::data::ParticleType_t partype;
-
-	// Fill the match
-	for (auto match : match_v) {
-	  
-	  auto plane = match.first;
-	  auto id    = match.second;
-	  plane_arr[plane] = plane;
-	  id_arr[plane]    = id;
-	  
-	  pcluster_arr[plane] = pcluster_vv[plane][id];
-	  tcluster_arr[plane] = tcluster_vv[plane][id];
-	  
-	  partype = pcluster_arr[plane]->type;
-	}
-
-	// New ROI for this matched particle
+      for(const auto& par_id : par_id_v) {
+	
+	const auto& par = par_v.at(par_id);
+	
+	// New ROI for this particle
 	ROI proi;
 	
 	// Store the vertex
 	proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
 
-	// Possible store the end position
-	bool endok=false;
-	larocv::data::Vertex3D endpt3d;
-	if (partype==larocv::data::ParticleType_t::kTrack) 
-	  endok = vtx_ana.MatchEdge(tcluster_arr,endpt3d);
-	if (endok) proi.EndPosition(endpt3d.x,endpt3d.y,endpt3d.z,kINVALID_DOUBLE);
-	
 	// Store the type
-	if      (partype==larocv::data::ParticleType_t::kTrack)  proi.Shape(kShapeTrack);
-	else if (partype==larocv::data::ParticleType_t::kShower) proi.Shape(kShapeShower);
-	else throw larbys("Unknown particle type matched");
-
+	if      (par.type==larocv::data::ParticleType_t::kTrack)   proi.Shape(kShapeTrack);
+	else if (par.type==larocv::data::ParticleType_t::kShower)  proi.Shape(kShapeShower);
+	  
 	// Push the ROI into the PGraph
 	LARCV_DEBUG() << " @ pg array index " << pidx << std::endl;
 
@@ -507,16 +493,18 @@ namespace larcv {
 	    
 	  std::vector<Pixel2D> pixel_v, ctor_v;
 	    
-	  const auto& par = pcluster_arr[plane];
+	  const auto& pcluster = par._par_v[plane];
+	  const auto& pctor = pcluster._ctor;
+	  
 	  const auto& img2d = adc_image_v[plane];
 	  auto& cvimg = adc_cvimg_v[plane];
-
-	  if(par) {
-	    auto masked = larocv::MaskImage(cvimg,(*par)._ctor,0,false);
+	  
+	  if(!pctor.empty()) {
+	    auto masked = larocv::MaskImage(cvimg,pctor,0,false);
 	    auto par_pixel_v = larocv::FindNonZero(masked);
 	    pixel_v.reserve(par_pixel_v.size());
-	    cvimg = larocv::MaskImage(cvimg,(*par)._ctor,0,true);
-
+	    cvimg = larocv::MaskImage(cvimg,pctor,0,true);
+	    
 	    // Store Image2D pixel values
 	    pixel_v.reserve(par_pixel_v.size());
 	    for (const auto& px : par_pixel_v) {
@@ -528,8 +516,8 @@ namespace larcv {
 	    }
 
 	    // Store contour
-	    ctor_v.reserve(par->_ctor.size());
-	    for(const auto& pt : par->_ctor)  {
+	    ctor_v.reserve(pctor.size());
+	    for(const auto& pt : pctor)  {
 	      auto col  = cvimg.cols - pt.x;
 	      auto row  = pt.y;
 	      auto gray = 1.0;
@@ -537,7 +525,7 @@ namespace larcv {
 	      ctor_v.back().Intensity(gray);
 	    }
 	  }
-	    
+	  
 	  Pixel2DCluster pixcluster(std::move(pixel_v));
 	  event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
 
@@ -545,21 +533,13 @@ namespace larcv {
 	  event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
 
 	} // end this plane
-      } // end this match
+      } // end this particle
       
       event_pgraph->Emplace(std::move(pgraph));
     } // end vertex
 
     LARCV_DEBUG() << "Event pgraph size " << event_pgraph->PGraphArray().size() << std::endl;
 
-    if (_write_reco) {
-      const auto& eid = iom.event_id();
-      _RecoHolder.SetMeta(adc_image_v);
-      _RecoHolder.SetMatches(std::move(vtxid_match_v));
-      _RecoHolder.StoreEvent(eid.run(),eid.subrun(),eid.event(),iom.current_entry());
-    }
-
-    _RecoHolder.Reset();
     return true;
   }
   
@@ -698,9 +678,6 @@ namespace larcv {
   {
     if ( has_ana_file() ) 
       _alg_mgr.Finalize(&(ana_file()));
-    
-    if (_write_reco)
-      _RecoHolder.WriteOut(&(ana_file()));
 
   }
   
