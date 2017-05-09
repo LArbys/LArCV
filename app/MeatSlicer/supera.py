@@ -11,9 +11,11 @@ if len(sys.argv) < 3:
 #from ROOT import larlite as fmwk
 ##from larlite import larlite as fmwk
 import ROOT
+#ROOT.gSystem.Load("liblarcv")
 from larlite import larlite as fmwk
-fmwk.storage_manager
 from larcv import larcv
+larcv.logger.get_shared().send(0,'aho')
+print
 
 LL_OUTFILE='larlite_supera_out.root'
 LC_OUTFILE='larcv_supera_out.root'
@@ -44,8 +46,10 @@ my_proc.set_ana_output_file("")
 # Attach an analysis unit ... here we use a base class which does nothing.
 # Replace with your analysis unit if you wish.
 unit = fmwk.LArLiteSuperaDriver()
-unit.CoreDriver().configure(sys.argv[1])
-unit.CoreDriver().override_output_file(LC_OUTFILE)
+unit.larcv_configure(sys.argv[1])
+unit.larcv_output_file(LC_OUTFILE)
+#unit.CoreDriver().configure(sys.argv[1])
+#unit.CoreDriver().override_output_file(LC_OUTFILE)
 #unit.CoreDriver().initialize()
 #unit.CoreDriver().finalize()
 my_proc.add_process(unit)

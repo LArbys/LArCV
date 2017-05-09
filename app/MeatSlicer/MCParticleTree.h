@@ -13,6 +13,8 @@
     @{*/
 #ifndef MCPARTICLETREE_H
 #define MCPARTICLETREE_H
+//#ifndef __CINT__
+//#ifndef __CLING__
 
 #include <iostream>
 #include "DataFormat/Vertex.h"
@@ -145,5 +147,7 @@ namespace supera {
   };
 }
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

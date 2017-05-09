@@ -23,6 +23,15 @@ namespace supera {
     //return ::larutil::DetectorProperties::GetME()->NumberTimeSamples();
     //return 9600;
   }
+
+  double DetHalfWidth()
+  { return ::larutil::Geometry::GetME()->DetHalfWidth(); }
+
+  double DetHalfHeight()
+  { return ::larutil::Geometry::GetME()->DetHalfHeight(); }
+  
+  double DetLength()
+  { return ::larutil::Geometry::GetME()->DetLength(); }
   
   unsigned int Nchannels()
   { return ::larutil::Geometry::GetME()->Nchannels(); }
@@ -58,12 +67,21 @@ namespace supera {
     static double tick_period = ::larutil::TimeService::GetME()->TPCClock().TickPeriod();
     return (plane1 - plane0) * pitch / DriftVelocity() / tick_period;
   }
-  
+
+  double WirePitch(size_t plane)
+  { return ::larutil::Geometry::GetME()->WirePitch(plane); }
+
   int TPCG4Time2Tick(double ns)
   { return ::larutil::TimeService::GetME()->TPCG4Time2Tick(ns); }
   
   double TPCTDC2Tick(double tdc)
   { return ::larutil::TimeService::GetME()->TPCTDC2Tick(tdc); }
+
+  double TriggerOffsetTPC()
+  { return ::larutil::TimeService::GetME()->TriggerOffsetTPC(); }
+
+  double TPCTickPeriod()
+  { return ::larutil::TimeService::GetME()->TPCClock().TickPeriod(); }
   
   void ApplySCE(double x, double y, double z)
   {

@@ -1,16 +1,17 @@
 #ifndef __SUPERA_LAR2IMAGE_H__
 #define __SUPERA_LAR2IMAGE_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "FMWKInterface.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/Pixel2DCluster.h"
+#include "DataFormat/Voxel3D.h"
 
 namespace supera {
 
   //
   // Hit => Image2D
   //
-  
   larcv::Image2D Hit2Image2D(const larcv::ImageMeta& meta,
 			     const std::vector<supera::LArHit_t>& hits,
 			     const int time_offset=0);
@@ -22,7 +23,6 @@ namespace supera {
   //
   // Wire => Image2D
   //
-
   larcv::Image2D Wire2Image2D(const larcv::ImageMeta& meta,
 			      const std::vector<supera::LArWire_t>& wires,
 			      const int time_offset=0);
@@ -46,6 +46,15 @@ namespace supera {
 					    const std::vector<supera::LArSimCh_t>& sch_v,
 					    const int time_offset);
 
+  //
+  // SimChannel => Voxel3D
+  //
+  larcv::Voxel3DSet
+  SimCh2Voxel3D(const larcv::Voxel3DMeta& meta,
+		const std::vector<int>& track_v,
+		const std::vector<supera::LArSimCh_t>& sch_v,
+		const int time_offset,
+		const size_t plane);
 
   //
   // SimChannel => Pixel2DCluster
@@ -59,3 +68,5 @@ namespace supera {
 		       const int time_offset);
 }
 #endif
+//#endif
+//#endif

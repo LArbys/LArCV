@@ -47,10 +47,10 @@ namespace larcv {
     virtual bool is(const std::string question) const;
 
     void Request(supera::LArDataType_t, std::string);
-
     template <class T>
     void LArData(const T&);
-
+    template <class T>
+    const std::vector<T>& LArData() const;
     //
     // Getter
     //
@@ -64,12 +64,9 @@ namespace larcv {
     const std::string& OutROILabel()      const { return _out_roi_producer;      }
     const std::string& OutPixel2DLabel()  const { return _out_pixel2d_producer;  }
     const std::string& OutChStatusLabel() const { return _out_chstatus_producer; }
-    
+    const std::string& OutVoxel3DLabel()  const { return _out_voxel3d_producer;  }
     const std::vector<larcv::ImageMeta>& Meta() const
     { return _meta_v; }
-
-    template <class T>
-    const std::vector<T>& LArData() const;
 
     void ClearEventData();
 
@@ -77,12 +74,12 @@ namespace larcv {
 
     std::string _empty_string;
     std::vector<larcv::ImageMeta> _meta_v;
-    std::map<supera::LArDataType_t,std::string> _data_request_m;
     std::string _out_image_producer;
     std::string _out_roi_producer;
     std::string _out_pixel2d_producer;
     std::string _out_chstatus_producer;
-
+    std::string _out_voxel3d_producer;
+    
     int _time_offset;
     std::vector<size_t> _image_cols;
     std::vector<size_t> _image_rows;
@@ -91,6 +88,7 @@ namespace larcv {
     double _min_time;
     double _min_wire;
 
+    std::map<supera::LArDataType_t,std::string> _data_request_m;
     std::vector<supera::LArWire_t>*     _ptr_wire_v;
     std::vector<supera::LArHit_t>*      _ptr_hit_v;
     std::vector<supera::LArOpDigit_t>*  _ptr_opdigit_v;

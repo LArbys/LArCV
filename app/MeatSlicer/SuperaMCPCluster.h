@@ -13,7 +13,8 @@
     @{*/
 #ifndef __SUPERAMCPCLUSTER_H__
 #define __SUPERAMCPCLUSTER_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "SuperaMCROI.h"
 
 namespace larcv {
@@ -58,7 +59,8 @@ namespace larcv {
   };
 
 }
-
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

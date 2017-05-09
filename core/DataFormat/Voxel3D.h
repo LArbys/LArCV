@@ -145,7 +145,9 @@ namespace larcv {
     inline double MinY() const { return _ymin; }
     /// Returns voxel definition minimum z value
     inline double MinZ() const { return _zmin; }
-
+    /// text dumper
+    std::string  Dump() const;
+    
   private:
 
     bool   _valid; ///< Boolean set to true only if voxel parameters are properly set
@@ -179,19 +181,29 @@ namespace larcv {
     /// Default dtor
     ~Voxel3DSet(){}
 
-    /// adder
-    void Add(const Voxel3D& vox);
-    /// adder
-    void Emplace(Voxel3D&& vox);
     /// getter
-    inline const std::vector<larcv::Voxel3D>& Get() const
+    inline const std::vector<larcv::Voxel3D>& GetVoxelSet() const
     { return _voxel_v; }
+    
+    /// getter
+    inline const Voxel3DMeta& GetVoxelMeta() const
+    { return _meta; }
     /// clear
     inline void Clear() { _voxel_v.clear(); _meta.Clear();}
     /// reset
     inline void Reset(const Voxel3DMeta& meta)
     { Clear(); _meta = meta; }
-    
+    /// adder
+    void Add(const Voxel3D& vox);
+    #ifndef __CINT__
+    #ifndef __CLING__
+    /// adder
+    void Emplace(Voxel3D&& vox);
+    /// mover
+    inline void Move(Voxel3DSet&& vox_set)
+    { _meta = std::move(vox_set._meta); _voxel_v = std::move(vox_set._voxel_v); }
+    #endif
+    #endif
   private:
     /// Meta data information
     Voxel3DMeta _meta;

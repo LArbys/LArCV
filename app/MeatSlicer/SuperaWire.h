@@ -13,7 +13,8 @@
     @{*/
 #ifndef __SUPERAWIRE_H__
 #define __SUPERAWIRE_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
 #include "DataFormat/Image2D.h"
@@ -60,7 +61,8 @@ namespace larcv {
   };
 
 }
-
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

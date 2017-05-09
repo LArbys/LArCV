@@ -13,7 +13,8 @@
     @{*/
 #ifndef __SUPERAKEYPOINTCLUSTER_H__
 #define __SUPERAKEYPOINTCLUSTER_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
 #include "DataFormat/EventPixel2D.h"
@@ -78,7 +79,8 @@ namespace larcv {
   };
 
 }
-
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

@@ -12,6 +12,8 @@ namespace larcv {
 
   void LArCVSuperaDriver::configure(const std::string cfg_file)
   {
+    //LARCV_INFO() <<"boke boke" <<std::endl;
+    //throw std::exception();
     _driver.configure(cfg_file);
   }
   

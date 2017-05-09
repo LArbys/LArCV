@@ -13,7 +13,8 @@
     @{*/
 #ifndef __SUPERACHSTATUS_H__
 #define __SUPERACHSTATUS_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "DataFormat/ChStatus.h"
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
@@ -74,7 +75,8 @@ namespace larcv {
   };
 
 }
-
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

@@ -71,6 +71,7 @@ namespace larcv {
     _out_roi_producer      = cfg.get<std::string>("OutROILabel",      "");
     _out_pixel2d_producer  = cfg.get<std::string>("OutPixel2DLabel",  "");
     _out_chstatus_producer = cfg.get<std::string>("OutChStatusLabel", "");
+    _out_voxel3d_producer  = cfg.get<std::string>("OutVoxel3DLabel",  "");
 
     _time_offset  = cfg.get<int>("TimeOffset",2400);
     _min_time = cfg.get<double>("MinTime",2400);

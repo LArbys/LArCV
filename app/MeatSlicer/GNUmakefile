@@ -6,7 +6,8 @@ PACKAGE_NAME = MeatSlicer
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
 FMWK_HEADERS = LinkDef.h
-HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
+#HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
+HEADERS = LArCVSuperaDriver.h LArLiteSuperaDriver.h
 IMPS = $(wildcard *.inl)
 
 # include options for this package

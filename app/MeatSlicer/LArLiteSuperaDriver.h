@@ -47,10 +47,13 @@ namespace larlite {
     */
     virtual bool finalize();
 
-    larcv::LArCVSuperaDriver& CoreDriver() { return _supera; }
+    //larcv::LArCVSuperaDriver& CoreDriver() { return _supera; }
+
+    void larcv_configure(std::string fname);
+
+    void larcv_output_file(std::string fout);
 
   protected:
-
     ::larcv::LArCVSuperaDriver _supera;
 
   };
