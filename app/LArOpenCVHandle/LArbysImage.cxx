@@ -67,8 +67,8 @@ namespace larcv {
   
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {
     
-    LARCV_DEBUG() << "Extracting " << producer << " Image\n" << std::endl;
     if(!producer.empty()) {
+      LARCV_DEBUG() << "Extracting " << producer << " Image\n" << std::endl;
       auto ev_image = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
       if(!ev_image) {
 	LARCV_CRITICAL() << "Image by producer " << producer << " not found..." << std::endl;
@@ -76,6 +76,7 @@ namespace larcv {
       }
       return ev_image->Image2DArray();
     }
+    LARCV_DEBUG() << "... this producer empty" << std::endl;
     return _empty_image_v;
   }
 
@@ -152,7 +153,7 @@ namespace larcv {
 	LARCV_DEBUG() << "Reconstruct no mask thrumu and no mask stopmu" << std::endl;
 	status = Reconstruct(adc_image_v,
 			     track_image_v,shower_image_v,
-			     thrumu_image_v, stopmu_image_v);
+			     thrumu_image_v,stopmu_image_v);
 	status = status && StoreParticles(mgr,_alg_mgr,adc_image_v,pidx);
 	
       } //Don't mask stop mu or thru mu
@@ -580,23 +581,35 @@ namespace larcv {
     watch_one.Start();
     
     for(auto& img_data : _LArbysImageMaker.ExtractImage(adc_image_v)) {
-      _adc_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+      _adc_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				std::move(std::get<1>(img_data)));
     }
 
-    for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v))  {
-      _track_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+    if(!_track_producer.empty()) {
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v))  { 
+	_track_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				    std::move(std::get<1>(img_data)));
+      }
+    }
+    
+    if(!_shower_producer.empty()) {
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v)) {
+	_shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				     std::move(std::get<1>(img_data)));
+      }
     }
 
-    for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v)) {
-      _shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+    if(!_stopmu_producer.empty()) { 
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
+	_thrumu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				     std::move(std::get<1>(img_data)));
+      }
     }
-
-    for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
-      _thrumu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
-    }
-
-    for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
-      _stopmu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),std::move(std::get<1>(img_data)));
+    if(!_thrumu_producer.empty()) {
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
+	_stopmu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				     std::move(std::get<1>(img_data)));
+      }
     }
     
     _process_time_image_extraction += watch_one.WallTime();
@@ -636,7 +649,7 @@ namespace larcv {
       auto       & img  = _thrumu_img_mgr.img_at(plane);
       const auto & meta = _thrumu_img_mgr.meta_at(plane);
       const auto & roi  = _thrumu_img_mgr.roi_at(plane);
-
+      
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetThruMu);
     }
@@ -675,7 +688,7 @@ namespace larcv {
     _process_time_analyze += watch_all.WallTime();
 
     ++_process_count;
-
+    
     //_tree->Fill();
     
     return true;
