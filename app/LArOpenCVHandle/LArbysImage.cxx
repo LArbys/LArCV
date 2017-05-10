@@ -83,6 +83,15 @@ namespace larcv {
     _thrumu_image_v.clear();
     _stopmu_image_v.clear();
   }
+
+  void LArbysImage::get_rsee(IOManager& mgr,std::string producer,uint& run, uint& subrun, uint& event, uint& entry) {
+    auto ev_image = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
+    run    = (uint) ev_image->run();
+    subrun = (uint) ev_image->subrun();
+    event  = (uint) ev_image->event();
+    entry  = (uint) mgr.current_entry();
+  }
+  
   
   const std::vector<larcv::Image2D>& LArbysImage::get_image2d(IOManager& mgr, std::string producer) {
     
@@ -146,7 +155,11 @@ namespace larcv {
   bool LArbysImage::process(IOManager& mgr)
   {
     LARCV_DEBUG() << "Process index " << mgr.current_entry() << std::endl;
-
+    uint run,subrun,event,entry;
+    get_rsee(mgr,_adc_producer,run,subrun,event,entry);
+    
+    _alg_mgr.SetRSEE(run,subrun,event,entry);
+    
     bool status = true;
 
     if(_roi_producer.empty()) {

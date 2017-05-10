@@ -38,7 +38,9 @@ namespace larcv {
   protected:
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
-    
+    void get_rsee(IOManager& mgr,std::string producer,
+		  uint& run, uint& subrun, uint& event, uint& entry);
+            
     void construct_cosmic_image(IOManager& mgr, std::string producer,
 				const std::vector<larcv::Image2D>& adc_image_v,
 				std::vector<larcv::Image2D>& mu_image_v);
