@@ -133,7 +133,6 @@ namespace larcv {
 
     for(auto const& roi : ev_roi_v->ROIArray()){
       if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14) {
-	
 	_tx = roi.X();
 	_ty = roi.Y();
 	_tz = roi.Z();
@@ -212,17 +211,14 @@ namespace larcv {
     
     _min_vtx_dist = 1.e9;
     
-
-    
     auto vtx_counts = ev_pgraph->PGraphArray().size();
     if(vtx_counts!=0) {
     
-    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++ vtx_idx){
+      for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx){
       
       _vtxid = vtx_idx;
       
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
-    //    for(auto const& pgraph : ev_pgraph->PGraphArray()) {
       auto const& roi_v = pgraph.ParticleArray();
       _npar = pgraph.ClusterIndexArray().size();
       //if(roi_v.size()!=2) continue;

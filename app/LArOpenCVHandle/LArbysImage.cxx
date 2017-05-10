@@ -212,7 +212,7 @@ namespace larcv {
 	  }
 
 	}
-	LARCV_DEBUG() << "Reconstruct" << std::endl;
+
 	status = Reconstruct(copy_adc_image_v,
 			     copy_track_image_v,copy_shower_image_v,
 			     thrumu_image_v, stopmu_image_v);
@@ -416,8 +416,6 @@ namespace larcv {
 
 	  }
 	
-	  LARCV_DEBUG() << "Reconstruct" << std::endl;
-
 	  status = status && Reconstruct(crop_adc_image_v,
 					 crop_track_image_v, crop_shower_image_v,
 					 crop_thrumu_image_v, crop_stopmu_image_v);
@@ -679,10 +677,8 @@ namespace larcv {
     _process_time_cluster_storage += watch_one.WallTime();
 
     _process_time_analyze += watch_all.WallTime();
-
-    ++_process_count;
     
-    //_tree->Fill();
+    ++_process_count;
     
     return true;
   }
