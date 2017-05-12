@@ -36,10 +36,10 @@ namespace larcv {
     _score1.resize(5,0.0);
     
     _event_tree = new TTree("event_tree","");
-    _event_tree->Branch("entry",&_entry,"entry/I");
     _event_tree->Branch("run",&_run,"run/I");
     _event_tree->Branch("subrun",&_subrun,"subrun/I");
     _event_tree->Branch("event",&_event,"event/I");
+    _event_tree->Branch("entry",&_entry,"entry/I");
     _event_tree->Branch("tx",&_tx,"tx/D");
     _event_tree->Branch("ty",&_ty,"ty/D");
     _event_tree->Branch("tz",&_tz,"tz/D");
@@ -59,10 +59,10 @@ namespace larcv {
     _event_tree->Branch("min_vtx_dist",&_min_vtx_dist,"min_vtx_dist/D");
     
     _tree = new TTree("tree","");
-    _tree->Branch("entry",&_entry,"entry/I");
     _tree->Branch("run",&_run,"run/I");
     _tree->Branch("subrun",&_subrun,"subrun/I");
     _tree->Branch("event",&_event,"event/I");
+    _tree->Branch("entry",&_entry,"entry/I");
     _tree->Branch("roid",&_roid,"roid/I");
     _tree->Branch("vtxid",&_vtxid,"vtxid/I");
     _tree->Branch("tx",&_tx,"tx/D");
