@@ -519,7 +519,7 @@ namespace larcv {
 	    // Store Image2D pixel values
 	    pixel_v.reserve(par_pixel_v.size());
 	    for (const auto& px : par_pixel_v) {
-	      auto col  = cvimg.cols - px.x;
+	      auto col  = cvimg.cols - px.x - 1;
 	      auto row  = px.y;
 	      auto gray = img2d.pixel(col,row);
 	      pixel_v.emplace_back(col,row);
@@ -529,7 +529,7 @@ namespace larcv {
 	    // Store contour
 	    ctor_v.reserve(pctor.size());
 	    for(const auto& pt : pctor)  {
-	      auto col  = cvimg.cols - pt.x;
+	      auto col  = cvimg.cols - pt.x - 1;
 	      auto row  = pt.y;
 	      auto gray = 1.0;
 	      ctor_v.emplace_back(row,col);

@@ -31,7 +31,7 @@ eana_df = eana_df.drop_duplicates(index_)
 cutstr_1 = ' npar==2 '
 cutstr0  = ' and (q0/npx0 > 30) and (q1/npx1 > 30) '
 cutstr1 = ' and (q0/area0>60) and (q1/area1>60) '
-cutstr2 = ' and (1.0 < npx0/area0 and npx0/area0 < 2.2) and (1.0 < npx1/area1 and npx1/area1 < 2.2) '
+cutstr2 = ' and (1.0 < npx0/area0 and npx0/area0 < 2.5) and (1.0 < npx1/area1 and npx1/area1 < 2.5) '
 cutstr3 = ' and len1 < 500'
 cutstr4 = ' and len0 < 500'
 cutstr=cutstr_1+cutstr0+cutstr1+cutstr2+cutstr3+cutstr4
