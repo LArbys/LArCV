@@ -27,6 +27,7 @@ namespace larcv {
     , _product_ctr      (0)
     , _product_ptr_v    ()
     , _product_type_v   ()
+    , _write_after_every_event( true )
   { reset(); }
 
   IOManager::IOManager(const PSet& cfg)
@@ -48,7 +49,7 @@ namespace larcv {
     , _product_ctr      (0)
     , _product_ptr_v    ()
     , _product_type_v   ()
-
+    , _write_after_every_event( true )
   { 
     reset();
     configure(cfg);
@@ -466,6 +467,28 @@ namespace larcv {
     _out_tree_entries += 1;
     _out_tree_index += 1;
 
+    // Force write after every event
+    if ( _write_after_every_event ) {
+      
+      if(_io_mode != kREAD) {
+	_out_file->cd();
+	if(_store_only_bool.empty()) {
+	  for(auto& t : _out_tree_v) {
+	    if(!t) break;
+	    LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	    t->Write(); 
+	  }
+	}else{
+	  for(size_t i=0; i<_store_only_bool.size(); ++i) {
+	    if(!_store_only_bool[i]) continue;
+	    auto& t = _out_tree_v[i];
+	    LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	    t->Write();
+	  }
+	}
+      }
+    }
+
     return true;
   }
 
@@ -625,25 +648,27 @@ namespace larcv {
       for(auto& t : _in_tree_v) {if(!t) break; delete t;};
     }
 
-    if(_io_mode != kREAD) {
-      _out_file->cd();
-      if(_store_only_bool.empty()) {
-	for(auto& t : _out_tree_v) {
-	  if(!t) break;
-	  LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
-	  t->Write(); 
+    if ( !_write_after_every_event ) {
+      if(_io_mode != kREAD) {
+	_out_file->cd();
+	if(_store_only_bool.empty()) {
+	  for(auto& t : _out_tree_v) {
+	    if(!t) break;
+	    LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	    t->Write(); 
+	  }
+	}else{
+	  for(size_t i=0; i<_store_only_bool.size(); ++i) {
+	    if(!_store_only_bool[i]) continue;
+	    auto& t = _out_tree_v[i];
+	    LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
+	    t->Write();
+	  }
 	}
-      }else{
-	for(size_t i=0; i<_store_only_bool.size(); ++i) {
-	  if(!_store_only_bool[i]) continue;
-	  auto& t = _out_tree_v[i];
-	  LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
-	  t->Write();
-	}
+	LARCV_NORMAL() << "Closing output file" << std::endl;
+	_out_file->Close();
+	_out_file = nullptr;
       }
-      LARCV_NORMAL() << "Closing output file" << std::endl;
-      _out_file->Close();
-      _out_file = nullptr;
     }
 
     LARCV_INFO() << "Deleting data pointers" << std::endl;
@@ -675,6 +700,7 @@ namespace larcv {
     _in_file_v.clear();
     _in_dir_v.clear();
     for(auto& m : _key_list) m.clear();
+    _write_after_every_event = true;
   }
 
 }

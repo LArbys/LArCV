@@ -60,6 +60,7 @@ namespace larcv {
     void clear_entry();
     void set_id(const size_t run, const size_t subrun, const size_t event);
     size_t current_entry() const { return _in_tree_index; }
+    void writeAfterEveryEvent( bool write ) { _write_after_every_event=write; };
     
     size_t get_n_entries() const
     { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
@@ -130,6 +131,7 @@ namespace larcv {
     std::vector<larcv::ProductType_t> _read_only_type;
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
+    bool _write_after_every_event;
   };
 
 }
