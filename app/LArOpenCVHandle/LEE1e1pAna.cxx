@@ -11,6 +11,7 @@
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
 #include "LArbysUtils.h"
+
 namespace larcv {
 
   static LEE1e1pAnaProcessFactory __global_LEE1e1pAnaProcessFactory__;
@@ -21,13 +22,13 @@ namespace larcv {
     
   void LEE1e1pAna::configure(const PSet& cfg)
   {
+    _img2d_prod         = cfg.get<std::string>("Image2DProducer","tpc");
     _pgraph_prod        = cfg.get<std::string>("PGraphProducer","test");
     _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer","test_ctor");
     _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer","test_img");
     _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer","tpc");
     _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer","croimerge");
   }
-    
   
   void LEE1e1pAna::initialize()
   {
@@ -35,10 +36,10 @@ namespace larcv {
     _score1.resize(5,0.0);
     
     _event_tree = new TTree("event_tree","");
-    _event_tree->Branch("entry",&_entry,"entry/I");
     _event_tree->Branch("run",&_run,"run/I");
     _event_tree->Branch("subrun",&_subrun,"subrun/I");
     _event_tree->Branch("event",&_event,"event/I");
+    _event_tree->Branch("entry",&_entry,"entry/I");
     _event_tree->Branch("tx",&_tx,"tx/D");
     _event_tree->Branch("ty",&_ty,"ty/D");
     _event_tree->Branch("tz",&_tz,"tz/D");
@@ -58,10 +59,11 @@ namespace larcv {
     _event_tree->Branch("min_vtx_dist",&_min_vtx_dist,"min_vtx_dist/D");
     
     _tree = new TTree("tree","");
-    _tree->Branch("entry",&_entry,"entry/I");
     _tree->Branch("run",&_run,"run/I");
     _tree->Branch("subrun",&_subrun,"subrun/I");
     _tree->Branch("event",&_event,"event/I");
+    _tree->Branch("entry",&_entry,"entry/I");
+    _tree->Branch("roid",&_roid,"roid/I");
     _tree->Branch("vtxid",&_vtxid,"vtxid/I");
     _tree->Branch("tx",&_tx,"tx/D");
     _tree->Branch("ty",&_ty,"ty/D");
@@ -88,7 +90,6 @@ namespace larcv {
     _tree->Branch("score_shower1",&_score_shower1,"score_shower1/D");
     _tree->Branch("score_track0",&_score_track0,"score_track0/D");
     _tree->Branch("score_track1",&_score_track1,"score_track1/D");
-
 
     _tree->Branch("q0",&_q0,"q0/D");
     _tree->Branch("q1",&_q1,"q1/D");
@@ -117,6 +118,7 @@ namespace larcv {
   bool LEE1e1pAna::process(IOManager& mgr)
   {
 
+    auto const ev_img2d      = (EventImage2D*)(mgr.get_data(kProductImage2D,_img2d_prod));
     auto const ev_pgraph     = (EventPGraph*)(mgr.get_data(kProductPGraph,_pgraph_prod));
     auto const ev_ctor_v     = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_ctor_prod));
     auto const ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_img_prod));
@@ -128,12 +130,13 @@ namespace larcv {
     _event  = ev_pgraph->event();
     _entry  = mgr.current_entry();
 
+    const auto& adc_img_v = ev_img2d->Image2DArray();
+    
     _tx = _ty = _tz = _tt = _te = -1.;
     _scex = _scey = _scez = -1.;
 
     for(auto const& roi : ev_roi_v->ROIArray()){
       if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14) {
-	
 	_tx = roi.X();
 	_ty = roi.Y();
 	_tz = roi.Z();
@@ -172,10 +175,15 @@ namespace larcv {
     _good_croi1 = 0;
     _good_croi2 = 0;
     _good_croi_ctr = 0;
+
+
+    std::vector<std::vector<ImageMeta> > roid_v;
+    roid_v.reserve(ev_croi_v->ROIArray().size());
     
     for(auto const& croi : ev_croi_v->ROIArray()) {
-      
       auto const& bb_v = croi.BB();
+      roid_v.push_back(crop_metas(adc_img_v,bb_v));
+      
       size_t good_croi_ctr = 0;
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	auto const& croi_meta = bb_v[plane];
@@ -212,20 +220,30 @@ namespace larcv {
     
     _min_vtx_dist = 1.e9;
     
-
-    
     auto vtx_counts = ev_pgraph->PGraphArray().size();
-    if(vtx_counts!=0) {
-    
-    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++ vtx_idx){
-      
-      _vtxid = vtx_idx;
-      
+
+    _vtxid=-1;
+	
+    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
+      _vtxid += 1;
+	
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
-    //    for(auto const& pgraph : ev_pgraph->PGraphArray()) {
       auto const& roi_v = pgraph.ParticleArray();
+      
+      auto const& bb_v = roi_v.front().BB();
+
+      auto iter = std::find(roid_v.begin(),roid_v.end(),bb_v);
+      if (iter == roid_v.end()) throw larbys("Unknown image meta");
+	
+      auto roid = iter - roid_v.begin();
+
+      if (roid!=_roid) _vtxid = 0;
+      
+      _roid  = roid;
+    
+	
       _npar = pgraph.ClusterIndexArray().size();
-      //if(roi_v.size()!=2) continue;
+	
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
       auto const& roi0 = roi_v[0];
       auto const& roi1 = roi_v[1];
@@ -324,7 +342,6 @@ namespace larcv {
 	  _len1 += sqrt(pow((float)(ctor1.front().X()) - (float)(ctor1.back().X()),2)
 			+
 			pow((float)(ctor1.front().Y()) - (float)(ctor1.back().Y()),2));
-	  //_len1 += sqrt(pow(ctor1.front().X()-ctor1.back().X(),2)+pow(ctor1.front().Y()-ctor1.back().Y(),2));
 	  ::larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
@@ -339,7 +356,7 @@ namespace larcv {
       }
 
       _tree->Fill();
-    }}
+    }
     _event_tree->Fill();
     
     return true;

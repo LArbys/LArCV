@@ -5,6 +5,7 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/LArProperties.h"
 #include <numeric>
+#include <assert.h>
 
 namespace larcv {
   
@@ -121,59 +122,40 @@ namespace larcv {
     target.move(std::move(data));
   }
 
-  /*
-  Image2D
-  embed_image(const Image2D& ref, const Image2D& target) {
+  std::vector<ImageMeta>
+  crop_metas(const std::vector<Image2D>& img_v, const std::vector<ImageMeta>& meta_v) {
+    assert(img_v.size() == meta_v.size());
+    std::vector<ImageMeta> res_v;
+    res_v.resize(img_v.size());
 
-    // get the image size
-    int orig_rows = target.meta().rows();
-    int orig_cols = target.meta().cols();
-
-    int ref_rows = ref.meta().rows();
-    int ref_cols = ref.meta().cols();
+    for(size_t img_id=0; img_id < img_v.size(); ++img_id)
+      res_v[img_id] = crop_meta(img_v[img_id], meta_v[img_id]);
     
-    if ( orig_rows > ref_rows ) {
-      LARCV_ERROR() << "Image is taller than Embedding image (" << orig_rows << ">" << fOutputRows << ")" << std::endl;
-      throw larbys();
-    }
-    if ( orig_cols > ref_cols ) {
-      LARCV_ERROR() << "Image is wider than Embedding image (" << orig_cols << ">" << fOutputCols <<")" << std::endl;
-      throw larbys();
-    }
+    return res_v;
+  }
+  
+  ImageMeta
+  crop_meta(const Image2D& img, const ImageMeta& meta)
+  {
+    // Croppin region must be within the image
+    if( meta.min_x() < img.meta().min_x() || meta.min_y() < img.meta().min_y() ||
+	meta.max_x() > img.meta().max_x() || meta.max_y() > img.meta().max_y() )
+      throw larbys("Cropping region contains region outside the image!");
     
-    // get the origin
-    float topleft_x = target.meta().min_x();
-    float topleft_y = target.meta().max_y();
+    size_t min_col = img.meta().col(meta.min_x() + img.meta().pixel_width()  / 2. );
+    size_t max_col = img.meta().col(meta.max_x() - img.meta().pixel_width()  / 2. );
+    size_t min_row = img.meta().row(meta.max_y() - img.meta().pixel_height() / 2. );
+    size_t max_row = img.meta().row(meta.min_y() + img.meta().pixel_height() / 2. );
     
-    // get width
-    float width_per_pixel  = target.meta().pixel_width();
-    float height_per_pixel = target.meta().pixel_height();
-    
-    // get new width, keeping same pixel scales
-    float new_width  = float(fOutputCols)*width_per_pixel;
-    float new_height = float(fOutputRows)*height_per_pixel;
-    
-    // new origin
-    int offset_row = 0.5*(ref_rows - orig_rows);
-    int offset_col = 0.5*(ref_cols - orig_cols);
-    float new_topleft_x = topleft_x - offset_row*width_per_pixel;
-    float new_topleft_y = topleft_y + offset_col*height_per_pixel;
-    
-    // define the new meta
-    larcv::ImageMeta new_meta( new_width, new_height,
-			       ref_rows, ref_cols,
-			       new_topleft_x, new_topleft_y, 
-			       target.meta().plane() );
-    
-      // define the new image
-      larcv::Image2D new_image( new_meta );
-      new_image.paint( 0.0 );
-      new_image.overlay( target );
-
-    
+    return ImageMeta( (max_col - min_col + 1) * img.meta().pixel_width(),
+		      (max_row - min_row + 1) * img.meta().pixel_height(),
+		      (max_row - min_row + 1),
+		      (max_col - min_col + 1),
+		      img.meta().min_x() + min_col * img.meta().pixel_width(),
+		      img.meta().max_y() - min_row * img.meta().pixel_height(),
+		      img.meta().plane());
 
   }
-  */
 }
 
 #endif
