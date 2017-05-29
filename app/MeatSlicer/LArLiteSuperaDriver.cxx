@@ -12,6 +12,12 @@
 #include "DataFormat/chstatus.h"
 namespace larlite {
 
+  void LArLiteSuperaDriver::larcv_configure(std::string fname)
+  { _supera.configure(fname); }
+  
+  void LArLiteSuperaDriver::larcv_output_file(std::string fout)
+  { _supera.override_output_file(fout); }
+
   bool LArLiteSuperaDriver::initialize() {
 
     _supera.initialize();

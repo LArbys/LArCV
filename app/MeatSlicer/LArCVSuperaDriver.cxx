@@ -49,8 +49,13 @@ namespace larcv {
     for(size_t idx=0; idx<_driver.process_names().size(); ++idx) {
 
       auto proc_ptr = _driver.process_ptr(idx);
+
+      if(proc_ptr->is("SuperaMetaMaker") && idx) {
+	LARCV_CRITICAL() << "SuperaMetaMaker must be the first module!" << std::endl;
+	throw larbys();
+      }
       
-      if(proc_ptr->is("Supera")) {
+      if(proc_ptr->is("Supera") || proc_ptr->is("SuperaMetaMaker")) {
 	_supera_idx_v.push_back(idx);
 	for(size_t data_type=0; data_type<(size_t)(supera::LArDataType_t::kLArDataTypeMax); ++data_type) {
 	  auto const& label = ((SuperaBase*)proc_ptr)->LArDataLabel((supera::LArDataType_t)data_type);
@@ -66,8 +71,8 @@ namespace larcv {
 	  if(label.empty()) continue;
 	  _data_request_m[(supera::LArDataType_t)(data_type)].insert(label);
 	}
-	
       }
+      
     }
   }
 

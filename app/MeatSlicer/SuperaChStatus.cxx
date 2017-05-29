@@ -15,6 +15,7 @@ namespace larcv {
   void SuperaChStatus::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
+    supera::ParamsChStatus::configure(cfg);
     _in_chstatus_producer = cfg.get<std::string>("LArChStatusProducer");
   }
 

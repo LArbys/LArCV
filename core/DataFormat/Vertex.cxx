@@ -1,5 +1,5 @@
-#ifndef __VERTEX_CXX__
-#define __VERTEX_CXX__
+#ifndef __LARCV_VERTEX_CXX__
+#define __LARCV_VERTEX_CXX__
 
 #include "Vertex.h"
 

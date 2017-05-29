@@ -13,7 +13,8 @@
     @{*/
 #ifndef LARCVSUPERADRIVER_H
 #define LARCVSUPERADRIVER_H
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include <iostream>
 #include "Base/larcv_base.h"
 #include "Processor/ProcessDriver.h"
@@ -21,6 +22,7 @@
 #include "SuperaTypes.h"
 #include "SuperaBase.h"
 #include "SuperaChStatus.h"
+
 namespace larcv {
   /**
      \class LArCVSuperaDriver
@@ -46,7 +48,7 @@ namespace larcv {
     void override_output_file(const std::string fname);
 
     const std::set<std::string>& DataLabels(supera::LArDataType_t type) const;
-
+    
     template <class T>
     void SetDataPointer(const std::vector<T>& data, const std::string label)
     {
@@ -69,11 +71,14 @@ namespace larcv {
 
     ProcessDriver _driver;
     std::vector<size_t> _supera_idx_v;
+
     std::map<supera::LArDataType_t,std::set<std::string> > _data_request_m;
     SuperaChStatus* _supera_chstatus_ptr;
   };
 
 }
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

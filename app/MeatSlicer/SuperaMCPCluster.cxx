@@ -15,7 +15,10 @@ namespace larcv {
   {}
     
   void SuperaMCPCluster::configure(const PSet& cfg)
-  { SuperaMCROI::configure(cfg); }
+  {
+    SuperaMCROI::configure(cfg);
+    supera::ParamsPixel2D::configure(cfg);
+  }
 
   void SuperaMCPCluster::initialize()
   { SuperaMCROI::initialize(); }

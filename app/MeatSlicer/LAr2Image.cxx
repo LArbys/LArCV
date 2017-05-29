@@ -130,7 +130,8 @@ namespace supera {
 			      << meta.dump()
 			      << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl
 			      << "Called a reverse_copy..." << std::endl
-			      << "      source wf : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
+			      << "      source wf : plane = " << wire_id.Plane << " wire = " << wire_id.Wire << std::endl
+			      << "      timing    : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
 			      << "      (row,col) : (" << (ymax - end_index) << "," << col << ")" << std::endl
 			      << "      nskip     : "  << nskip << std::endl
 			      << "Re-throwing an error:" << std::endl;
@@ -205,7 +206,6 @@ namespace supera {
     }
 
     for (auto const& sch : sch_v) {
-
       auto ch = sch.Channel();
       auto const& wid = ::supera::ChannelToWireID(ch);
       auto const& plane = wid.Plane;
@@ -246,6 +246,57 @@ namespace supera {
       img.copy(0, col, column, img.meta().rows());
     }
     return img_v;
+  }
+
+  larcv::Voxel3DSet
+  SimCh2Voxel3D(const larcv::Voxel3DMeta& meta,
+		const std::vector<int>& track_v,
+		const std::vector<supera::LArSimCh_t>& sch_v,
+		const int time_offset,
+		const size_t plane)
+  {
+    LARCV_SINFO() << "Filling Voxel3D ground truth volume..." << std::endl;
+    larcv::Voxel3DSet res(meta);
+    //double x, y, z, x_tick;
+    double y, z, x_tick;
+    //std::cout << "x_offset " << x_offset << std::endl;
+    for (auto const& sch : sch_v) {
+      auto ch = sch.Channel();
+      
+      auto const& wid = ::supera::ChannelToWireID(ch);
+      if( plane != (size_t)(wid.Plane) ) continue;
+
+      for (auto const tick_ides : sch.TDCIDEMap()) {
+
+	x_tick = (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod()  * supera::DriftVelocity();
+	/*
+	std::cout << tick_ides.first << " : " << supera::TPCTDC2Tick(tick_ides.first) << " : " << time_offset << " : " << x_tick << std::flush;
+	std::cout << (supera::TPCTDC2Tick(tick_ides.first) + time_offset) << std::endl
+		  << (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod() << std::endl
+		  << (supera::TPCTDC2Tick(tick_ides.first) + time_offset) * supera::TPCTickPeriod() * supera::DriftVelocity() << std::endl
+		  << std::endl;
+	*/
+	for (auto const& edep : tick_ides.second) {
+
+	  if (std::abs(edep.trackID) >= (int)(track_v.size())) continue;
+
+	  if (track_v[std::abs(edep.trackID)]<=0) continue;
+
+	  //x = edep.x;
+	  y = edep.y;
+	  z = edep.z;
+	  //supera::ApplySCE(x,y,z);
+	  //std::cout << " ... " << x << std::endl;
+	  // Now use tick-based position for x
+	  auto vid = meta.ID(x_tick,y,z);
+	  if(vid == larcv::kINVALID_VOXEL3DID) continue;
+
+	  larcv::Voxel3D vx(vid,edep.energy);
+	  res.Emplace(std::move(vx));
+	}
+      }
+    }
+    return res;
   }
 
   std::vector<std::vector<larcv::Pixel2DCluster> >
