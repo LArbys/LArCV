@@ -159,7 +159,9 @@ namespace supera {
     if(_origin && mctruth.Origin() != _origin)
       return;
     
-    for(auto const& mcp : mctruth.GetParticles()) {
+    for(int i=0; i<mctruth.NParticles(); ++i) {
+
+      auto const& mcp = mctruth.GetParticle(i);
       
       if(mcp.StatusCode() != 1) continue;
       
@@ -306,14 +308,14 @@ namespace supera {
 		   << std::endl;
       // If pixel count does not match exactly, extend
       if(pixel_count_offset > 0) {
-	bool extend_to_lower = ( wire_range.first > (supera::Nwires(plane) - wire_range.second) );
+	bool extend_to_lower = ( wire_range.first > ((int)(supera::Nwires(plane)) - wire_range.second) );
 	if(extend_to_lower)
 	  wire_range.first -= pixel_count_offset;
 	else
 	  wire_range.second += pixel_count_offset;
       }
       if(pixel_count_offset < 0) {
-	bool shrink_from_lower = ( wire_range.first > (supera::Nwires(plane) - wire_range.second) );
+	bool shrink_from_lower = ( wire_range.first > ((int)(supera::Nwires(plane)) - wire_range.second) );
 	if(shrink_from_lower)
 	  wire_range.first -= pixel_count_offset;
 	else

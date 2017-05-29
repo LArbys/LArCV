@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <limits>
 
 namespace supera {
 

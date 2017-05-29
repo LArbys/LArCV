@@ -257,7 +257,8 @@ namespace supera {
   {
     LARCV_SINFO() << "Filling Voxel3D ground truth volume..." << std::endl;
     larcv::Voxel3DSet res(meta);
-    double x, y, z, x_tick;
+    //double x, y, z, x_tick;
+    double y, z, x_tick;
     //std::cout << "x_offset " << x_offset << std::endl;
     for (auto const& sch : sch_v) {
       auto ch = sch.Channel();
@@ -281,7 +282,7 @@ namespace supera {
 
 	  if (track_v[std::abs(edep.trackID)]<=0) continue;
 
-	  x = edep.x;
+	  //x = edep.x;
 	  y = edep.y;
 	  z = edep.z;
 	  //supera::ApplySCE(x,y,z);
