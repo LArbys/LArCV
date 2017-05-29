@@ -13,10 +13,10 @@
     @{*/
 #ifndef __SUPERASIMCH_H__
 #define __SUPERASIMCH_H__
-//#ifndef __CINT__
-//#ifndef __CLING__
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
+#include "ImageMetaMaker.h"
+#include "ParamsImage2D.h"
 #include "DataFormat/Image2D.h"
 
 namespace larcv {
@@ -26,7 +26,9 @@ namespace larcv {
      User defined class SuperaSimCh ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaSimCh : public SuperaBase {
+  class SuperaSimCh : public SuperaBase,
+		      public supera::ParamsImage2D,
+		      public supera::ImageMetaMaker {
 
   public:
     
@@ -66,7 +68,5 @@ namespace larcv {
 
 }
 #endif
-//#endif
-//#endif
 /** @} */ // end of doxygen group 
 

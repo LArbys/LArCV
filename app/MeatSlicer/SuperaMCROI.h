@@ -19,6 +19,8 @@
 #include "FMWKInterface.h"
 #include "MCParticleTree.h"
 #include "MCROIMaker.h"
+#include "ImageMetaMaker.h"
+#include "ParamsROI.h"
 
 namespace larcv {
 
@@ -27,7 +29,9 @@ namespace larcv {
      User defined class SuperaMCROI ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaMCROI : public SuperaBase {
+  class SuperaMCROI : public SuperaBase,
+		      public supera::ParamsROI,
+		      public supera::ImageMetaMaker {
 
   public:
     

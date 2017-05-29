@@ -2,6 +2,8 @@
 #define __SUPERAMCBASE_CXX__
 
 #include "SuperaMCROI.h"
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
 #include "DataFormat/EventROI.h"
 #include "LAr2Image.h"
 
@@ -24,7 +26,9 @@ namespace larcv {
   void SuperaMCROI::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
-
+    supera::ParamsROI::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
+    
     _store_roi = cfg.get<bool>("StoreROI",true);
     _store_g4_secondary_roi = cfg.get<bool>("StoreG4SecondaryROI",true);
     _store_g4_primary_roi = cfg.get<bool>("StoreG4PrimaryROI",true);
@@ -67,6 +71,13 @@ namespace larcv {
   bool SuperaMCROI::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
+
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }
     
     auto const& meta_v = Meta();
 

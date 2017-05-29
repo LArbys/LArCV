@@ -13,8 +13,6 @@
     @{*/
 #ifndef MCPARTICLETREE_H
 #define MCPARTICLETREE_H
-//#ifndef __CINT__
-//#ifndef __CLING__
 
 #include <iostream>
 #include "DataFormat/Vertex.h"
@@ -46,8 +44,8 @@ namespace supera {
     unsigned short origin;
     int    pdg;
     size_t track_id;
-    ::larcv::Vertex start;
-    ::larcv::Vertex end;
+    larcv::Vertex start;
+    larcv::Vertex end;
     size_t source_index;
     SourceType_t source_type;
   };
@@ -147,7 +145,5 @@ namespace supera {
   };
 }
 #endif
-//#endif
-//#endif
 /** @} */ // end of doxygen group 
 

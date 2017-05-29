@@ -24,6 +24,8 @@ namespace larcv {
   
   void SuperaBase::configure(const PSet& cfg)
   {
+    _time_offset  = cfg.get<int>("TimeOffset",2400);
+    
     auto producer_wire     = cfg.get<std::string>("LArWireProducer",    "");
     auto producer_hit      = cfg.get<std::string>("LArHitProducer",     "");
     auto producer_opdigit  = cfg.get<std::string>("LArOpDigitProducer", "");
@@ -67,49 +69,6 @@ namespace larcv {
       Request(supera::LArDataType_t::kLArSimCh_t, producer_simch);
     }
 
-    _out_image_producer    = cfg.get<std::string>("OutImageLabel",    "");
-    _out_roi_producer      = cfg.get<std::string>("OutROILabel",      "");
-    _out_pixel2d_producer  = cfg.get<std::string>("OutPixel2DLabel",  "");
-    _out_chstatus_producer = cfg.get<std::string>("OutChStatusLabel", "");
-    _out_voxel3d_producer  = cfg.get<std::string>("OutVoxel3DLabel",  "");
-
-    _time_offset  = cfg.get<int>("TimeOffset",2400);
-    _min_time = cfg.get<double>("MinTime",2400);
-    _min_wire = cfg.get<double>("MinWire",8448);
-    _image_rows = std::vector<size_t>(3,1008);
-    _image_cols = std::vector<size_t>(3,3456);
-    _comp_rows  = std::vector<size_t>(3,6);
-    _comp_cols  = std::vector<size_t>(3,1);
-    _image_rows = cfg.get<std::vector<size_t> >("EventImageRows",_image_rows);
-    _image_cols = cfg.get<std::vector<size_t> >("EventImageCols",_image_cols);
-    _comp_rows  = cfg.get<std::vector<size_t> >("EventCompRows",_comp_rows);
-    _comp_cols  = cfg.get<std::vector<size_t> >("EventCompCols",_comp_cols);
-
-    if(!_image_rows.empty()) {
-
-      if(_image_rows.size() != _image_cols.size())
-	throw larbys("EventImageRows length != EventImageCols!");
-
-      if(_image_rows.size() != _comp_rows.size())
-	throw larbys("EventImageRows length != EventCompRows!");
-
-      if(_image_rows.size() != _comp_cols.size())
-	throw larbys("EventImageRows length != EventCompCols!");
-
-      // construct meta
-      for(size_t plane=0; plane<_image_rows.size(); ++plane) {
-	
-	larcv::ImageMeta meta(_image_cols[plane] * _comp_cols[plane], _image_rows[plane] * _comp_rows[plane],
-			      _image_rows[plane] * _comp_rows[plane], _image_cols[plane] * _comp_cols[plane],
-			      _min_wire, _min_time + _image_rows[plane] * _comp_rows[plane],
-			      plane);
-
-	LARCV_INFO() << "Created meta " <<  meta.dump();
-	
-	_meta_v.emplace_back(std::move(meta));
-      }
-    }
-    
   }
 
   void SuperaBase::initialize()

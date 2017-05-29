@@ -63,6 +63,12 @@ namespace supera {
   /// Nearest wire
   unsigned int NearestWire(const TVector3& xyz, unsigned int plane);
 
+  /// Nearest wire
+  unsigned int NearestWire(const double* xyz, unsigned int plane);
+
+  /// Angle from z-axis
+  double WireAngleToVertical(unsigned int plane);
+
   /// Wire pitch
   double WirePitch(size_t plane);
 
@@ -85,6 +91,9 @@ namespace supera {
   /// G4 time to TPC tick (plane 0)
   int TPCG4Time2Tick(double ns);
 
+  /// G4 time to TPC tick (plane 0)
+  int TPCG4Time2TDC(double ns);
+
   /// Tick offset for drift electrons across planes
   double PlaneTickOffset(size_t plane0, size_t plane1);
 
@@ -102,7 +111,7 @@ namespace supera {
   //
 
   /// Truth position to shifted
-  void ApplySCE(double x, double y, double z);
+  void ApplySCE(double& x, double& y, double& z);
   /// Truth position to shifted
   void ApplySCE(double* xyz);
   /// Truth position to shifted

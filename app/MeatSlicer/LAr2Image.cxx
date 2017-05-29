@@ -130,7 +130,8 @@ namespace supera {
 			      << meta.dump()
 			      << "(ymin,ymax) = (" << ymin << "," << ymax << ")" << std::endl
 			      << "Called a reverse_copy..." << std::endl
-			      << "      source wf : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
+			      << "      source wf : plane = " << wire_id.Plane << " wire = " << wire_id.Wire << std::endl
+			      << "      timing    : start index = " << range.begin_index() << " length = " << adcs.size() << std::endl
 			      << "      (row,col) : (" << (ymax - end_index) << "," << col << ")" << std::endl
 			      << "      nskip     : "  << nskip << std::endl
 			      << "Re-throwing an error:" << std::endl;

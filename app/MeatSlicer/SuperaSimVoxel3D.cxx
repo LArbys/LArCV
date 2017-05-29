@@ -3,6 +3,8 @@
 
 #include "SuperaSimVoxel3D.h"
 #include "LAr2Image.h"
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
 #include "DataFormat/EventVoxel3D.h"
 #include "DataFormat/DataFormatUtil.h"
 namespace larcv {
@@ -16,6 +18,8 @@ namespace larcv {
   void SuperaSimVoxel3D::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
+    supera::ParamsVoxel3D::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
     _origin = cfg.get<unsigned short>("Origin",0);
     _voxel_size = cfg.get<double>("VoxelSize",0.9);
     _target_plane = cfg.get<size_t>("TargetPlane",2);
@@ -28,6 +32,13 @@ namespace larcv {
   bool SuperaSimVoxel3D::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
+
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }
     
     auto const& meta_v = Meta();
     

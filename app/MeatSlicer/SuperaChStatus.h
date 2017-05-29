@@ -13,12 +13,10 @@
     @{*/
 #ifndef __SUPERACHSTATUS_H__
 #define __SUPERACHSTATUS_H__
-//#ifndef __CINT__
-//#ifndef __CLING__
 #include "DataFormat/ChStatus.h"
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
-#include "DataFormat/ChStatus.h"
+#include "ParamsChStatus.h"
 
 namespace larcv {
 
@@ -27,7 +25,8 @@ namespace larcv {
      User defined class SuperaChStatus ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaChStatus : public SuperaBase {
+  class SuperaChStatus : public SuperaBase,
+			 public supera::ParamsChStatus {
 
   public:
     
@@ -53,11 +52,7 @@ namespace larcv {
 
   private:
     std::string  _in_chstatus_producer;
-    #ifndef __CINT__
-    #ifndef __CLING__
     std::map<larcv::PlaneID_t,larcv::ChStatus> _status_m;
-    #endif
-    #endif
   };
 
   /**
@@ -76,7 +71,5 @@ namespace larcv {
 
 }
 #endif
-//#endif
-//#endif
 /** @} */ // end of doxygen group 
 

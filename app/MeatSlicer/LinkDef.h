@@ -25,8 +25,15 @@
 #pragma link C++ class larlite::LArLiteSuperaDriver+;
 //#pragma link C++ class larcv::SuperaMCPCluster+;
 //#pragma link C++ class larcv::SuperaKeyPointCluster+;
+#pragma link C++ class supera::GridPoint3D+;
+#pragma link C++ class supera::WireRange3D+;
+#pragma link C++ class std::vector<supera::GridPoint3D>+;
+//#pragma link C++ class supera::ImageMetaMakerBase+;
+//#pragma link C++ class supera::PulledPork3DSlicer+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 

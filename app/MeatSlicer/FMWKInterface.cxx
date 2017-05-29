@@ -61,6 +61,25 @@ namespace supera {
     return (unsigned int)wire;
   }
 
+  unsigned int NearestWire(const double* xyz, unsigned int plane)
+  {
+    /*
+      unsigned int res;
+      try{
+      res = ::larutil::Geometry::GetME()->NearestWire(xyz,plane);
+      }catch( ::larutil::InvalidWireError& err){
+      res = err.better_wire_number;
+      }
+    */
+    double min_wire=0;
+    double max_wire=Nwires(plane)-1;
+    double wire = ::larutil::Geometry::GetME()->WireCoordinate(xyz,plane) + 0.5;
+    if(wire<min_wire) wire = min_wire;
+    if(wire>max_wire) wire = max_wire;
+    
+    return (unsigned int)wire;
+  }
+
   double PlaneTickOffset(size_t plane0, size_t plane1)
   {
     static double pitch = ::larutil::Geometry::GetME()->PlanePitch();
@@ -69,11 +88,17 @@ namespace supera {
   }
 
   double WirePitch(size_t plane)
-  { return ::larutil::Geometry::GetME()->WirePitch(plane); }
+  { return ::larutil::Geometry::GetME()->WirePitch(::larlite::geo::View_t(plane)); }
+
+  double WireAngleToVertical(unsigned int plane)
+  { return ::larutil::Geometry::GetME()->WireAngleToVertical(larlite::geo::View_t(plane)); }
 
   int TPCG4Time2Tick(double ns)
   { return ::larutil::TimeService::GetME()->TPCG4Time2Tick(ns); }
-  
+
+  int TPCG4Time2TDC(double ns)
+  { return ::larutil::TimeService::GetME()->TPCG4Time2TDC(ns); }
+    
   double TPCTDC2Tick(double tdc)
   { return ::larutil::TimeService::GetME()->TPCTDC2Tick(tdc); }
 
@@ -83,7 +108,7 @@ namespace supera {
   double TPCTickPeriod()
   { return ::larutil::TimeService::GetME()->TPCClock().TickPeriod(); }
   
-  void ApplySCE(double x, double y, double z)
+  void ApplySCE(double& x, double& y, double& z)
   {
     static larutil::SpaceChargeMicroBooNE sce;
     auto pos = sce.GetPosOffsets(x,y,z);

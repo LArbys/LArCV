@@ -13,10 +13,10 @@
     @{*/
 #ifndef __SUPERASIMVOXEL3D_H__
 #define __SUPERASIMVOXEL3D_H__
-//#ifndef __CINT__
-//#ifndef __CLING__
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
+#include "ParamsVoxel3D.h"
+#include "ImageMetaMaker.h"
 #include "DataFormat/Image2D.h"
 
 namespace larcv {
@@ -26,7 +26,9 @@ namespace larcv {
      User defined class SuperaSimVoxel3D ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaSimVoxel3D : public SuperaBase {
+  class SuperaSimVoxel3D : public SuperaBase,
+			   public supera::ParamsVoxel3D,
+			   public supera::ImageMetaMaker {
 
   public:
     
@@ -68,7 +70,5 @@ namespace larcv {
 
 }
 #endif
-//#endif
-//#endif
 /** @} */ // end of doxygen group 
 

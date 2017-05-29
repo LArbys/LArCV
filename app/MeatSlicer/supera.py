@@ -7,15 +7,9 @@ if len(sys.argv) < 3:
     msg += '\n'
     sys.stderr.write(msg)
     sys.exit(1)
-#import ROOT
-#from ROOT import larlite as fmwk
-##from larlite import larlite as fmwk
 import ROOT
-#ROOT.gSystem.Load("liblarcv")
 from larlite import larlite as fmwk
 from larcv import larcv
-larcv.logger.get_shared().send(0,'aho')
-print
 
 LL_OUTFILE='larlite_supera_out.root'
 LC_OUTFILE='larcv_supera_out.root'
