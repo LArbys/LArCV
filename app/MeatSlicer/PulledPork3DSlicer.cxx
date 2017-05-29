@@ -156,19 +156,34 @@ namespace supera {
 
   void PulledPork3DSlicer::AddConstraint(const supera::LArMCTruth_t& mctruth) {
 
-    if(_origin && mctruth.Origin() != _origin)
+    if(_origin > 0 && mctruth.Origin() != _origin) {
+      LARCV_INFO() << "Skipping to add a constraint for origin " << mctruth.Origin() 
+		   << " (target " << _origin << ")" << std::endl;
       return;
-    
+    }
+
+    LARCV_INFO() << "Searching for a constraint from " << mctruth.NParticles() 
+		 << " particles in one MCTruth..." << std::endl;
     for(int i=0; i<mctruth.NParticles(); ++i) {
 
       auto const& mcp = mctruth.GetParticle(i);
       
-      if(mcp.StatusCode() != 1) continue;
-      
+      if(mcp.StatusCode() != 1) {
+	LARCV_INFO() << "Skipping PDG " << mcp.PdgCode() 
+		     << " @ index " << i 
+		     << " as the status code is " << mcp.StatusCode() << std::endl;
+	continue;
+      }
+
       auto const& pos = mcp.Position(0);
       double x = pos.X();
       double y = pos.Y();
       double z = pos.Z();
+
+      LARCV_INFO() << "Adding a constraint by PDG " << mcp.PdgCode() 
+		   << " @ index " << i 
+		   << " @ (x,y,z) = (" << x << "," << y << "," << z << ")" << std::endl;
+
       // apply SCE if configured so
       if(_apply_sce) supera::ApplySCE(x,y,z);
 
@@ -346,6 +361,11 @@ namespace supera {
     std::vector<larcv::ImageMeta> meta_v;
     for(size_t plane=0; plane<supera::Nplanes(); ++plane) {
       auto const& wire_range = wire_range_v[plane];
+      LARCV_INFO() << "Creating ImageMeta Width=" << (double)(wire_range.second - wire_range.first + 1)
+		   << " Height=" << (double)(tick_end - tick_start + 1)
+		   << " NRows=" << (size_t)(tick_end - tick_start + 1)
+		   << " NCols=" << (size_t)(wire_range.second - wire_range.first + 1)
+		   << " Origin @ (" << (double)(wire_range.first) << "," << (double)(tick_end) << ")" << std::endl;
       meta_v.emplace_back((double)(wire_range.second - wire_range.first + 1),
 			  (double)(tick_end - tick_start + 1),
 			  (size_t)(tick_end - tick_start + 1),
@@ -353,6 +373,7 @@ namespace supera {
 			  (double)(wire_range.first),
 			  (double)(tick_end),
 			  (larcv::PlaneID_t)(plane));
+      LARCV_INFO() << "...done on plane " << plane << std::endl;
     }
     return meta_v;
   }

@@ -449,7 +449,11 @@ namespace larcv {
 	}
       }
     }
-
+    LARCV_INFO() << "Creating ImageMeta Width=" << width
+		 << " Height=" << height
+		 << " NRows=" << rows / modular_row
+		 << " NCols=" << cols / modular_col
+		 << " Origin @ (" << min_x << "," << max_y << ")" << std::endl;
     larcv::ImageMeta res(width, height,
 			 rows / modular_row, cols / modular_col,
 			 min_x, max_y,
