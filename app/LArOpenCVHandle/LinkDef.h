@@ -32,6 +32,8 @@
 #pragma link C++ class std::vector<std::vector<larcv::ImageMeta> >+;
 
 #pragma link C++ class larcv::ROIAna+;
+#pragma link C++ class larcv::OperateImage+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
