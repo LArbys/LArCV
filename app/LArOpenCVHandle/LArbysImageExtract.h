@@ -5,7 +5,7 @@
 #include "Processor/ProcessFactory.h"
 #include "LArbysImageMaker.h"
 #include "PreProcessor.h"
-#include "DataFormat/ROI.h"
+#include "DataFormat/EventROI.h"
 
 namespace larcv {
 

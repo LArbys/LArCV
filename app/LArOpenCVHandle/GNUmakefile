@@ -10,9 +10,9 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
+INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += $(shell larlite-config --includes)
 INCFLAGS += $(shell basictool-config --includes)
-INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += $(shell recotool-config --includes)
 INCFLAGS += -I$(LARLITE_COREDIR)
 INCFLAGS += -I$(LAROPENCV_BASEDIR)
