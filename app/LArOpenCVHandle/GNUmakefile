@@ -26,7 +26,6 @@ LDFLAGS += -lLArOpenCV_Core
 LDFLAGS += -lLArOpenCV_ImageClusterBase
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoData
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoModule
-LDFLAGS += -lRecoTool_ClusterRecoUtil
 LDFLAGS += -lBasicTool_FhiclLite
 
 # platform-specific options

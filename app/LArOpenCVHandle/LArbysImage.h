@@ -9,6 +9,8 @@
 #include "PreProcessor.h"
 #include "LArbysImageMaker.h"
 #include "ImageMod/ImageModUtils.h"
+#include "DataFormat/EventROI.h"
+
 
 namespace larcv {
 
@@ -54,6 +56,8 @@ namespace larcv {
     bool StoreParticles(IOManager& iom,
 			const std::vector<larcv::Image2D>& adcimg_v,
 			size_t& pidx);
+
+    std::vector<ImageMeta> UnionROI(const std::vector<ROI>& roi_v);
     
     TTree* _tree;
     

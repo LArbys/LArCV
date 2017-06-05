@@ -4,7 +4,6 @@
 #include "LArbysImage.h"
 #include "Base/ConfigManager.h"
 #include "DataFormat/EventImage2D.h"
-#include "DataFormat/EventROI.h"
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
@@ -188,7 +187,7 @@ namespace larcv {
 			     thrumu_image_v,stopmu_image_v);
 	status = status && StoreParticles(mgr,adc_image_v,pidx);
 	
-      } //Don't mask stop mu or thru mu
+      } // don't mask stop mu or thru mu
       else { 
 	
 	auto copy_adc_image_v    = adc_image_v;
@@ -217,8 +216,9 @@ namespace larcv {
 			     copy_track_image_v,copy_shower_image_v,
 			     thrumu_image_v, stopmu_image_v);
 	status = status && StoreParticles(mgr,copy_adc_image_v,pidx);
-      }
-    } //ROI exists
+      } // mask stop mu or thru mu
+      
+    } //ROI exists, process per crop
     else{
 
       size_t pidx = 0;
@@ -232,7 +232,14 @@ namespace larcv {
 
       auto pixel_height = adc_image_v.front().meta().pixel_height();
       auto pixel_width  = adc_image_v.front().meta().pixel_width();
-      
+
+      LARCV_DEBUG() << "Recieved ADC image (w,h)=("<<pixel_width<<","<<pixel_height<<")"<<std::endl;
+
+      for(size_t plane=0; plane<3; ++plane)
+	LARCV_DEBUG() << adc_image_v[plane].meta().dump();
+
+      LARCV_DEBUG() << std::endl;
+
       assert(adc_image_v.size());
       assert(track_image_v.empty()  || adc_image_v.size() == track_image_v.size());
       assert(shower_image_v.empty() || adc_image_v.size() == shower_image_v.size());
@@ -247,62 +254,15 @@ namespace larcv {
       auto const& roi_v = ((EventROI*)(mgr.get_data(kProductROI,_roi_producer)))->ROIArray();
 
       if(_union_roi) {
-
+	LARCV_DEBUG() << "Requesting Union ROI" << std::endl;
 	std::vector<larcv::Image2D> union_adc_image_v(3);
 	std::vector<larcv::Image2D> union_track_image_v(3);
 	std::vector<larcv::Image2D> union_shower_image_v(3);
 	std::vector<larcv::Image2D> union_thrumu_image_v(3);
 	std::vector<larcv::Image2D> union_stopmu_image_v(3);
 
-	std::vector<larcv::ImageMeta> union_bb_v(3);
-
-	for(size_t plane=0; plane<3; ++plane) 
-	  union_bb_v[plane] = roi_v.front().BB(plane);
-       
-	bool first = false;
-	for(auto const& roi : roi_v) {
-	  
-	  if (!first) { first = true; continue; }
-
-	  auto const& bb_v = roi.BB();
-	  assert(bb_v.size() == adc_image_v.size());
-
-	  for(size_t plane=0; plane<bb_v.size(); ++plane) {
-	    auto const& bb = bb_v[plane];
-	    auto& union_bb = union_bb_v[plane];
-	    union_bb = union_bb.inclusive(bb);
-	    double width  = pixel_width  * union_bb.cols();
-	    double height = pixel_height * union_bb.rows();
-	    union_bb = ImageMeta(width,height,
-				 union_bb.rows(),union_bb.cols(),
-				 union_bb.tl().x,union_bb.tl().y,
-				 plane);
-	  }
-	}
-
-	std::vector<Image2D> mask_v(3);
-	for(size_t plane=0; plane<3; ++plane) {
-	  const auto& union_bb = union_bb_v[plane];
-	  mask_v[plane] = Image2D(union_bb);
-	  mask_v[plane].paint(0.0);
-	}
+	auto union_roi_v = UnionROI(roi_v);
 	
-	for(auto const& roi : roi_v) {
-	  auto const& bb_v = roi.BB();
-	  for(size_t plane=0; plane<bb_v.size(); ++plane) {
-	    auto bb = bb_v[plane];
-	    auto& mask = mask_v[plane];
-	    bb = ImageMeta(pixel_width*bb.cols(),pixel_height*bb.rows(),
-			   bb.rows(),bb.cols(),
-			   bb.tl().x,bb.tl().y,
-			   plane);
-	    
-	    auto img_bb = Image2D(bb);
-	    img_bb.paint(1.0);
-	    mask.overlay(img_bb,Image2D::kOverWrite);
-	  }
-	}
-
 	for(size_t plane=0; plane<3; ++plane) {
 
 	  auto& union_adc_image  = union_adc_image_v[plane];   
@@ -310,31 +270,22 @@ namespace larcv {
 	  auto& union_shower_image = union_shower_image_v[plane];
 	  auto& union_thrumu_image = union_thrumu_image_v[plane];
 	  auto& union_stopmu_image = union_stopmu_image_v[plane];	
-
-	  const auto& mask_meta = mask_v[plane].meta();
 	  
-	  union_adc_image = mask_v[plane];
-	  union_adc_image.eltwise(adc_image_v[plane].crop(mask_meta));
-
-	  if(!track_image_v.empty()) {
-	    union_track_image = mask_v[plane];
-	    union_track_image.eltwise(track_image_v[plane].crop(mask_meta));
-	  }
-
-	  if(!shower_image_v.empty()) {
-	    union_shower_image = mask_v[plane];
-	    union_shower_image.eltwise(shower_image_v[plane].crop(mask_meta));
-	  }
-
-	  if(!thrumu_image_v.empty()) {
-	    union_thrumu_image = mask_v[plane];
-	    union_thrumu_image.eltwise(thrumu_image_v[plane].crop(mask_meta));
-	  }
+	  const auto& union_roi = union_roi_v[plane];
 	  
-	  if(!stopmu_image_v.empty()) { 
-	    union_stopmu_image = mask_v[plane];
-	    union_stopmu_image.eltwise(stopmu_image_v[plane].crop(mask_meta));
-	  }
+	  union_adc_image = adc_image_v[plane].crop(union_roi);
+	  
+	  if(!track_image_v.empty()) 
+	    union_track_image = track_image_v[plane].crop(union_roi);
+
+	  if(!shower_image_v.empty()) 
+	    union_shower_image = shower_image_v[plane].crop(union_roi);
+
+	  if(!thrumu_image_v.empty()) 
+	    union_thrumu_image = thrumu_image_v[plane].crop(union_roi);
+
+	  if(!stopmu_image_v.empty()) 
+	    union_stopmu_image = stopmu_image_v[plane].crop(union_roi);
 	  
 	  if(!union_thrumu_image_v.empty() && _mask_thrumu_pixels) {
 	    LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
@@ -377,8 +328,12 @@ namespace larcv {
 
 	    auto const& bb           = bb_v[plane];
 	    auto const& adc_image    = adc_image_v[plane];
-	  
-	    crop_adc_image_v.emplace_back(adc_image.crop(bb));
+
+	    LARCV_DEBUG() << "bb:   " << bb.dump();
+	    LARCV_DEBUG() << "adc:  " << adc_image.meta().dump();
+	      crop_adc_image_v.emplace_back(adc_image.crop(bb));
+	    LARCV_DEBUG() << "crop: " << crop_adc_image_v.back().meta().dump();
+	    
 
 	    if(!track_image_v.empty()) {
 	      auto const& track_image  = track_image_v[plane];
@@ -690,5 +645,29 @@ namespace larcv {
 
   }
   
+  std::vector<ImageMeta> LArbysImage::UnionROI(const std::vector<ROI>& roi_v) {
+    
+    std::vector<larcv::ImageMeta> union_bb_v(3);
+    
+    for(size_t plane=0; plane<3; ++plane) 
+      union_bb_v[plane] = roi_v.front().BB(plane);
+      
+    bool first = false;
+    for(auto const& roi : roi_v) {
+	  
+      if (!first) { first = true; continue; }
+
+      auto const& bb_v = roi.BB();
+
+      for(size_t plane=0; plane<bb_v.size(); ++plane) {
+	auto const& bb = bb_v[plane];
+	auto& union_bb = union_bb_v[plane];
+	union_bb = union_bb.inclusive(bb);
+      }
+    }
+    
+    return union_bb_v;
+  }
+
 }
 #endif

@@ -76,8 +76,7 @@ namespace larcv {
     return true;
   }
 
-  void LArbysImageExtract::FillcvMat(ROI* roi) {
-    
+  void LArbysImageExtract::FillcvMat(larcv::ROI* roi) {
     
     auto ev_adc    = _ev_adc.Image2DArray();
     auto ev_trk    = _ev_trk.Image2DArray();
