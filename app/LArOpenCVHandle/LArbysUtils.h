@@ -31,7 +31,14 @@ namespace larcv {
 
   void
   mask_image(Image2D& target, const Image2D& ref);
+
+  std::vector<ImageMeta>
+  crop_metas(const std::vector<Image2D>& img_v, const std::vector<ImageMeta>& meta_v);
   
+  ImageMeta
+  crop_meta(const Image2D& img, const ImageMeta& meta);
+   
+		
 }
 
 #endif

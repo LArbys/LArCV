@@ -57,6 +57,7 @@ namespace larcv {
     int _run;
     int _subrun;
     int _event;
+    int _roid;
     int _vtxid;
 
     double _tx;
@@ -110,7 +111,7 @@ namespace larcv {
     double _min_vtx_dist;
     ::larutil::SpaceChargeMicroBooNE _sce;
 
-
+    std::string _img2d_prod;
     std::string _pgraph_prod;        
     std::string _pcluster_ctor_prod;
     std::string _pcluster_img_prod;

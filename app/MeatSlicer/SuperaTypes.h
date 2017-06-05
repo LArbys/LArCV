@@ -1,6 +1,7 @@
 #ifndef __SUPERA_TYPES_H__
 #define __SUPERA_TYPES_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "FMWKInterface.h"
 namespace supera {
 
@@ -28,4 +29,6 @@ namespace supera {
   template<> LArDataType_t LArDataType<supera::LArSimCh_t>();
   
 }
+//#endif
+//#endif
 #endif

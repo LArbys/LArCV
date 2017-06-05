@@ -392,7 +392,7 @@ void ParticleAna::finalize()
 	   
 	// For each particle, get the contour and image on this plane (from pcluster_v/ctor_v)
 	for(size_t par_id=0; par_id < cluster_idx_v.size(); ++par_id) {
-
+	  
 	  auto cluster_idx = cluster_idx_v[par_id];
 	  auto& trk_frac = _track_frac_v[par_id];
 	  auto& shr_frac = _shower_frac_v[par_id];
@@ -478,9 +478,6 @@ void ParticleAna::finalize()
       //
       // Per plane check of gap
       //
-
-      
-
       int plane_path_exists = 0;
       int valid_plane_path_exists = 0;
       for(size_t plane=0; plane<3; ++plane) {

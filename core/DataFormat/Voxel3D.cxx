@@ -4,7 +4,7 @@
 #include "Voxel3D.h"
 #include "Base/larbys.h"
 #include <algorithm>
-
+#include <sstream>
 namespace larcv {
 
   Voxel3D::Voxel3D(Voxel3DID_t id, float value)
@@ -30,28 +30,28 @@ namespace larcv {
 			size_t znum)
   {
     if(xmin == kINVALID_DOUBLE || xmax == kINVALID_DOUBLE)
-      throw larbys("Voxel3DMeta::Voxel3DMeta x boundary not set!");
+      throw larbys("Voxel3DMeta::Set x boundary not set!");
     if(xmin >= xmax)
-      throw larbys("Voxel3DMeta::Voxel3DMeta xmin >= xmax!");
+      throw larbys("Voxel3DMeta::Set xmin >= xmax!");
 
     if(ymin == kINVALID_DOUBLE || ymax == kINVALID_DOUBLE)
-      throw larbys("Voxel3DMeta::Voxel3DMeta y boundary not set!");
+      throw larbys("Voxel3DMeta::Set y boundary not set!");
     if(ymin >= ymax)
-      throw larbys("Voxel3DMeta::Voxel3DMeta ymin >= ymax!");
+      throw larbys("Voxel3DMeta::Set ymin >= ymax!");
 
     if(zmin == kINVALID_DOUBLE || zmax == kINVALID_DOUBLE)
-      throw larbys("Voxel3DMeta::Voxel3DMeta z boundary not set!");
+      throw larbys("Voxel3DMeta::Set z boundary not set!");
     if(zmin >= zmax)
-      throw larbys("Voxel3DMeta::Voxel3DMeta zmin >= zmax!");
+      throw larbys("Voxel3DMeta::Set zmin >= zmax!");
 
     if(xnum == kINVALID_SIZE || xnum == 0)
-      throw larbys("Voxel3DMeta::Voxel3DMeta x voxel count not set!");
+      throw larbys("Voxel3DMeta::Set x voxel count not set!");
     
     if(ynum == kINVALID_SIZE || ynum == 0)
-      throw larbys("Voxel3DMeta::Voxel3DMeta y voxel count not set!");
+      throw larbys("Voxel3DMeta::Set y voxel count not set!");
     
     if(znum == kINVALID_SIZE || znum == 0)
-      throw larbys("Voxel3DMeta::Voxel3DMeta z voxel count not set!");
+      throw larbys("Voxel3DMeta::Set z voxel count not set!");
 
     _xmin = xmin;
     _xmax = xmax;
@@ -69,13 +69,13 @@ namespace larcv {
     _znum = znum;
     
     if( (_xmin + _xlen * _xnum) != _xmax )
-      throw larbys("Voxel3DMeta::Voxel3DMeta (xmax - xmin) not divisible by xnum!");
+      throw larbys("Voxel3DMeta::Set (xmax - xmin) not divisible by xnum!");
     
     if( (_ymin + _ylen * _ynum) != _ymax )
-      throw larbys("Voxel3DMeta::Voxel3DMeta (ymax - ymin) not divisible by ynum!");
+      throw larbys("Voxel3DMeta::Set (ymax - ymin) not divisible by ynum!");
 
     if( (_zmin + _zlen * _znum) != _zmax )
-      throw larbys("Voxel3DMeta::Voxel3DMeta (zmax - zmin) not divisible by znum!");
+      throw larbys("Voxel3DMeta::Set (zmax - zmin) not divisible by znum!");
 
     _num_element = _xnum * _ynum * _znum;
     _valid = true;
@@ -84,9 +84,9 @@ namespace larcv {
   Voxel3DID_t Voxel3DMeta::ID(double x, double y, double z) const
   {
     if(!_valid) throw larbys("Voxel3DMeta::ID cannot be called on invalid meta!");
-    if(x > _xmax || x < _xmin) throw larbys("Voxel3DMeta::ID x is out-of-bound!");
-    if(y > _ymax || y < _ymin) throw larbys("Voxel3DMeta::ID y is out-of-bound!");
-    if(z > _zmax || z < _zmin) throw larbys("Voxel3DMeta::ID z is out-of-bound!");
+    if(x > _xmax || x < _xmin) return kINVALID_VOXEL3DID;
+    if(y > _ymax || y < _ymin) return kINVALID_VOXEL3DID;
+    if(z > _zmax || z < _zmin) return kINVALID_VOXEL3DID;
 
     Voxel3DID_t xindex = (x - _xmin) / _xlen;
     Voxel3DID_t yindex = (y - _ymin) / _ylen;
@@ -149,6 +149,15 @@ namespace larcv {
     return _zmin + ((double)zid + 0.5) * _zlen;
   }
 
+  std::string  Voxel3DMeta::Dump() const
+  {
+    std::stringstream ss;
+    ss << "X range: " << _xmin << " => " << _xmax << " ... " << _xnum << " bins" << std::endl
+       << "Y range: " << _ymin << " => " << _ymax << " ... " << _ynum << " bins" << std::endl
+       << "Z range: " << _zmin << " => " << _zmax << " ... " << _znum << " bins" << std::endl;
+    return std::string(ss.str());
+  }
+
   Voxel3DSet::Voxel3DSet(const Voxel3DMeta& meta)
     : _meta(meta)
   {}
@@ -204,7 +213,6 @@ namespace larcv {
     }
     return;
   }
-  
   
 };
 

@@ -5,7 +5,7 @@
 #include "Processor/ProcessFactory.h"
 #include "LArbysImageMaker.h"
 #include "PreProcessor.h"
-#include "DataFormat/ROI.h"
+#include "DataFormat/EventROI.h"
 
 namespace larcv {
 
@@ -38,7 +38,7 @@ namespace larcv {
     const LArbysImageMaker& maker() const { return _LArbysImageMaker; }
     const PreProcessor& pproc() const { return _PreProcessor; }
 
-    void FillcvMat(ROI* roi=nullptr);
+    void FillcvMat(larcv::ROI* roi=nullptr);
     
   private:
     std::string _adc_producer;

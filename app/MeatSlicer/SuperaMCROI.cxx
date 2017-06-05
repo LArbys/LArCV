@@ -2,6 +2,8 @@
 #define __SUPERAMCBASE_CXX__
 
 #include "SuperaMCROI.h"
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
 #include "DataFormat/EventROI.h"
 #include "LAr2Image.h"
 
@@ -24,7 +26,9 @@ namespace larcv {
   void SuperaMCROI::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
-
+    supera::ParamsROI::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
+    
     _store_roi = cfg.get<bool>("StoreROI",true);
     _store_g4_secondary_roi = cfg.get<bool>("StoreG4SecondaryROI",true);
     _store_g4_primary_roi = cfg.get<bool>("StoreG4PrimaryROI",true);
@@ -67,6 +71,13 @@ namespace larcv {
   bool SuperaMCROI::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
+
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }
     
     auto const& meta_v = Meta();
 
@@ -146,10 +157,16 @@ namespace larcv {
 	  continue;
 	}
 	larcv::ROI roi;
-	if(LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
-	  roi = MakeROI(daughter,empty_sch_v);	  
-	else
-	  roi = MakeROI(daughter,LArData<supera::LArSimCh_t>());
+	try {
+	  if(LArDataLabel(supera::LArDataType_t::kLArSimCh_t).empty())
+	    roi = MakeROI(daughter,empty_sch_v);	  
+	  else
+	    roi = MakeROI(daughter,LArData<supera::LArSimCh_t>());
+	}catch(const larcv::larbys& err) {
+	  LARCV_NORMAL() << "Skipping a secondary (PDG,TrackID) = (" 
+			 << daughter.pdg << "," << daughter.track_id << ") as it could not be turned into ROI" << std::endl;
+	  continue;
+	}
 	if( (_filter_min_rows>0 || _filter_min_cols>0) && roi.BB().empty() ) {
 	  LARCV_INFO() << "Skipping a daughter " << daughter_idx
 		       << " (TrackID " << daughter.track_id
@@ -218,7 +235,7 @@ namespace larcv {
 	    )
 	  roi2mcnode_v.emplace_back(primary_idx,secondary_idx);
       }
-      for(size_t daughter_idx=0; daughter_idx<roi2mcnode_v.size(); ++daughter_idx) {
+      for(size_t daughter_idx=0; daughter_idx<sec_roi_v.size(); ++daughter_idx) {
 	auto const& daughter_roi = sec_roi_v[daughter_idx];
 	LARCV_INFO() << "    Associated secondary (PDG " << daughter_roi.PdgCode()
 		     << " Shape " << daughter_roi.Shape()
@@ -382,7 +399,7 @@ namespace larcv {
   }
 
   larcv::ImageMeta SuperaMCROI::FormatMeta(const larcv::ImageMeta& part_image,
-					    const larcv::ImageMeta& event_image) const
+					   const larcv::ImageMeta& event_image) const
   {
 
     LARCV_DEBUG() << "Before format  " << part_image.dump();
@@ -438,7 +455,11 @@ namespace larcv {
 	}
       }
     }
-
+    LARCV_INFO() << "Creating ImageMeta Width=" << width
+		 << " Height=" << height
+		 << " NRows=" << rows / modular_row
+		 << " NCols=" << cols / modular_col
+		 << " Origin @ (" << min_x << "," << max_y << ")" << std::endl;
     larcv::ImageMeta res(width, height,
 			 rows / modular_row, cols / modular_col,
 			 min_x, max_y,
@@ -447,10 +468,11 @@ namespace larcv {
     LARCV_DEBUG() << "Event image   " << event_image.dump();
 
     LARCV_DEBUG() << "After format  " << res.dump();
-
+    /*
     res = event_image.overlap(res);
 
     LARCV_DEBUG() << "After overlap " << res.dump();
+    */
     return res;
   }
     

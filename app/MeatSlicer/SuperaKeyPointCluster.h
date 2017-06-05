@@ -13,9 +13,10 @@
     @{*/
 #ifndef __SUPERAKEYPOINTCLUSTER_H__
 #define __SUPERAKEYPOINTCLUSTER_H__
-
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
+#include "ImageMetaMaker.h"
+#include "ParamsPixel2D.h"
 #include "DataFormat/EventPixel2D.h"
 #include "DataFormat/Vertex.h"
 
@@ -26,7 +27,9 @@ namespace larcv {
      User defined class SuperaKeyPointCluster ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaKeyPointCluster : public SuperaBase {
+  class SuperaKeyPointCluster : public SuperaBase,
+				public supera::ParamsPixel2D,
+				public supera::ImageMetaMaker {
 
   public:
     
@@ -61,6 +64,7 @@ namespace larcv {
     bool _cluster_primary_start;
     bool _cluster_secondary_start;
     bool _cluster_scattering;
+
   };
 
   /**
@@ -78,7 +82,7 @@ namespace larcv {
   };
 
 }
-
 #endif
+
 /** @} */ // end of doxygen group 
 

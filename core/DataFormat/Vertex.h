@@ -1,5 +1,5 @@
-#ifndef __VERTEX_H__
-#define __VERTEX_H__
+#ifndef __LARCV_VERTEX_H__
+#define __LARCV_VERTEX_H__
 
 namespace larcv {
 
@@ -15,10 +15,10 @@ namespace larcv {
     /// Reset function for x, y, z, t
     void Reset(double x, double y, double z, double t);
     
-    double X() const { return _x; }
-    double Y() const { return _y; }
-    double Z() const { return _z; }
-    double T() const { return _t; }
+    inline double X() const { return _x; }
+    inline double Y() const { return _y; }
+    inline double Z() const { return _z; }
+    inline double T() const { return _t; }
     
     /// Default destructor
     virtual ~Vertex(){};

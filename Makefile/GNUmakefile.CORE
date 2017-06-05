@@ -10,6 +10,9 @@ PACKAGE_BUILDDIR = $(LARCV_BUILDDIR)/$(PACKAGE_NAME)
 PACKAGE_INCDIR   = $(LARCV_INCDIR)/$(PACKAGE_NAME)
 $(shell mkdir -p $(LARCV_BUILDDIR))
 $(shell mkdir -p $(LARCV_LIBDIR))
+ifdef LARCV_PREFIX_INCDIR
+$(shell mkdir -p $(LARCV_INCDIR)/larcv/$(PACKAGE_NAME))
+endif
 $(shell mkdir -p $(LARCV_BINDIR))
 $(shell mkdir -p $(PACKAGE_BUILDDIR))
 $(shell mkdir -p $(PACKAGE_INCDIR))
@@ -46,6 +49,10 @@ $(DICT).cxx: $(HEADERS) LinkDef.h
 install_header: $(OBJECTS) $(DICT).o
 	@echo '<< installing headers >>'
 	@$(foreach f, $(HEADERS),$(shell cp $(f) $(PACKAGE_INCDIR)/))
+ifdef LARCV_PREFIX_INCDIR
+	@echo '<< install prefix headers >>'
+	@$(foreach f, $(HEADERS),$(shell cp $(f) $(LARCV_INCDIR)/larcv/$(PACKAGE_NAME)/$(f)) )
+endif
 
 $(LARCV_LIBDIR)/$(ROOTMAP):
 	

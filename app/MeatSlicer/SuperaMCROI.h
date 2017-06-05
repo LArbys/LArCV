@@ -13,11 +13,14 @@
     @{*/
 #ifndef __SUPERAMCBASE_H__
 #define __SUPERAMCBASE_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include "SuperaBase.h"
 #include "FMWKInterface.h"
 #include "MCParticleTree.h"
 #include "MCROIMaker.h"
+#include "ImageMetaMaker.h"
+#include "ParamsROI.h"
 
 namespace larcv {
 
@@ -26,7 +29,9 @@ namespace larcv {
      User defined class SuperaMCROI ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaMCROI : public SuperaBase {
+  class SuperaMCROI : public SuperaBase,
+		      public supera::ParamsROI,
+		      public supera::ImageMetaMaker {
 
   public:
     
@@ -102,7 +107,8 @@ namespace larcv {
   };
 
 }
-
+//#endif
+//#endif
 #endif
 /** @} */ // end of doxygen group 
 
