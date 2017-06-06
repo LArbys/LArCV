@@ -2,7 +2,6 @@
 #define __LARBYSIMAGEMC_CXX__
 
 #include "LArbysImageMC.h"
-#include "DataFormat/ROI.h"
 #include "DataFormat/EventROI.h"
 #include "DataFormat/EventImage2D.h"
 

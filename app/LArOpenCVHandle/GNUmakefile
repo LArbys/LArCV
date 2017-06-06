@@ -10,7 +10,6 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
-INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += $(shell larlite-config --includes)
 INCFLAGS += $(shell basictool-config --includes)
 INCFLAGS += $(shell recotool-config --includes)
@@ -18,6 +17,7 @@ INCFLAGS += -I$(LARLITE_COREDIR)
 INCFLAGS += -I$(LAROPENCV_BASEDIR)
 INCFLAGS += -I$(GEO2D_BASEDIR)
 INCFLAGS += -I$(LARLITE_USERDEVDIR)
+INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += -I$(LARCV_APPDIR)/NuFilter
 
 LDFLAGS += -L$(LARLITE_LIBDIR)
