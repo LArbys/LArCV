@@ -54,6 +54,8 @@ fi
 if [ $LARCV_ANN -eq 1 ]; then
     export ANN_INCDIR=$LARCV_BASEDIR/app/ann_1.1.2/include
     export ANN_LIBDIR=$LARCV_BASEDIR/app/ann_1.1.2/lib
+    printf "\033[93mANN: approximate nearest neighboor\033[00m\n"
+    echo "    Found ANN package"
 fi
 
 # warning for missing support
@@ -102,11 +104,6 @@ if [[ $LARLITE_BASEDIR ]]; then
     do
 	ln -sf $f $LARCV_APPDIR/Supera/APILArLite/
     done
-fi
-
-if [[ $ANN_LIBDIR ]]; then
-    printf "\033[93mANN: approximate nearest neighboor\033[00m\n"
-    echo "    Found ANN package"
 fi
 
 if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
