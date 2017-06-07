@@ -102,10 +102,6 @@ class viewport3D(QtGui.QWidget):
             return
         self._meta = voxels.GetVoxelMeta()
 
-        print "Num voxels X: " + str(self._meta.NumVoxelX())
-        print "Num voxels Y: " + str(self._meta.NumVoxelY())
-        print "Num voxels Z: " + str(self._meta.NumVoxelZ())
-
         _len_x = self._meta.MaxX() - self._meta.MinX()
         _len_y = self._meta.MaxY() - self._meta.MinY()
         _len_z = self._meta.MaxZ() - self._meta.MinZ()

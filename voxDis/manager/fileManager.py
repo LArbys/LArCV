@@ -82,6 +82,7 @@ class fileManager(QtCore.QObject):
     def goToEntry(self, entry):
 
         self._mgr.read_entry(entry)
+        self.redrawRequested.emit()
 
 
     def get_image_2D(self, plane):
