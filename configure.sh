@@ -47,9 +47,14 @@ fi
 export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
 
 # Set ANN directories
-export LARCV_ANN=1
-export ANN_INCDIR=$LARCV_BASEDIR/app/ann_1.1.2/include
-export ANN_LIBDIR=$LARCV_BASEDIR/app/ann_1.1.2/lib
+if [[ -z $LARCV_ANN ]]; then
+    export LARCV_ANN=1
+fi
+
+if [ $LARCV_ANN -eq 1 ]; then
+    export ANN_INCDIR=$LARCV_BASEDIR/app/ann_1.1.2/include
+    export ANN_LIBDIR=$LARCV_BASEDIR/app/ann_1.1.2/lib
+fi
 
 # warning for missing support
 missing=""
