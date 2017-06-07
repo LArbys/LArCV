@@ -17,7 +17,7 @@ namespace larcv {
 
   size_t ImageMeta::col(double x) const
   {
-    if(x < _origin.x || x > (_origin.x + _width)) {
+    if(x < _origin.x || x >= (_origin.x + _width)) {
       std::stringstream ss;
       ss << "Requested col for x=" << x << " ... but the x (rows) span only " << _origin.x << " => " << _origin.x + _width << "!" << std::endl;
       throw larbys(ss.str());
@@ -27,7 +27,7 @@ namespace larcv {
 
   size_t ImageMeta::row(double y) const
   {
-    if(y < (_origin.y - _height) || y > _origin.y) {
+    if(y <= (_origin.y - _height) || y > _origin.y) {
       std::stringstream ss;
       ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y - _height << " => " << _origin.y << "!" << std::endl;
       throw larbys(ss.str());

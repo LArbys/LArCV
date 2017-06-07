@@ -13,8 +13,8 @@
     @{*/
 #ifndef __SUPERAMCPCLUSTER_H__
 #define __SUPERAMCPCLUSTER_H__
-
 #include "SuperaMCROI.h"
+#include "ParamsPixel2D.h"
 
 namespace larcv {
 
@@ -23,7 +23,8 @@ namespace larcv {
      User defined class SuperaMCPCluster ... these comments are used to generate
      doxygen documentation!
   */
-  class SuperaMCPCluster : public SuperaMCROI {
+  class SuperaMCPCluster : public SuperaMCROI,
+			   public supera::ParamsPixel2D {
 
   public:
     
@@ -58,7 +59,8 @@ namespace larcv {
   };
 
 }
-
 #endif
+//#endif
+//#endif
 /** @} */ // end of doxygen group 
 

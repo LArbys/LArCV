@@ -2,7 +2,7 @@
 # thanks taritree(!)
 
 import os,sys
-from PyQt4 import QtGui, QtCore
+from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 from pyrgb.display import rgbdisplay as rgbd
 

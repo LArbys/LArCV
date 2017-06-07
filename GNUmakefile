@@ -19,7 +19,7 @@ endif
 
 APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe #NuFilter
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS += Supera/APILArLite VertexImg UBWireTool PMTWeights HiResDivider
+APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider MeatSlicer
   ifdef LAROPENCV_BASEDIR
   APP_SUBDIRS += LArOpenCVHandle NuFilter
   endif

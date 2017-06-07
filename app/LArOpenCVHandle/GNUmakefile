@@ -12,12 +12,12 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larlite-config --includes)
 INCFLAGS += $(shell basictool-config --includes)
-INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += $(shell recotool-config --includes)
 INCFLAGS += -I$(LARLITE_COREDIR)
 INCFLAGS += -I$(LAROPENCV_BASEDIR)
 INCFLAGS += -I$(GEO2D_BASEDIR)
 INCFLAGS += -I$(LARLITE_USERDEVDIR)
+INCFLAGS += $(shell larcv-config --includes)
 INCFLAGS += -I$(LARCV_APPDIR)/NuFilter
 
 LDFLAGS += -L$(LARLITE_LIBDIR)
@@ -26,7 +26,6 @@ LDFLAGS += -lLArOpenCV_Core
 LDFLAGS += -lLArOpenCV_ImageClusterBase
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoData
 LDFLAGS += -lLArOpenCV_ImageClusterAlgoModule
-LDFLAGS += -lRecoTool_ClusterRecoUtil
 LDFLAGS += -lBasicTool_FhiclLite
 
 # platform-specific options

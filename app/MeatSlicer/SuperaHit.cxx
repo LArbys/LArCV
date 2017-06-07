@@ -2,9 +2,10 @@
 #define __SUPERAHIT_CXX__
 
 #include "SuperaHit.h"
-#include "DataFormat/EventImage2D.h"
 #include "LAr2Image.h"
-
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
+#include "DataFormat/EventImage2D.h"
 namespace larcv {
 
   static SuperaHitProcessFactory __global_SuperaHitProcessFactory__;
@@ -14,7 +15,11 @@ namespace larcv {
   {}
     
   void SuperaHit::configure(const PSet& cfg)
-  { SuperaBase::configure(cfg); }
+  {
+    SuperaBase::configure(cfg);
+    supera::ParamsImage2D::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
+  }
 
   void SuperaHit::initialize()
   { SuperaBase::initialize(); }
@@ -22,7 +27,14 @@ namespace larcv {
   bool SuperaHit::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
-    
+
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }
+
     auto const& meta_v = Meta();
 
     if(meta_v.empty()) {
@@ -54,7 +66,7 @@ namespace larcv {
   }
 
   void SuperaHit::finalize()
-  {}
+  {SuperaBase::finalize();}
 
 }
 #endif

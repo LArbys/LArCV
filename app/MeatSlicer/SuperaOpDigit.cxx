@@ -3,6 +3,8 @@
 
 #include "SuperaOpDigit.h"
 #include "LAr2Image.h"
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
 #include "DataFormat/EventImage2D.h"
 
 namespace larcv {
@@ -14,7 +16,15 @@ namespace larcv {
   {}
     
   void SuperaOpDigit::configure(const PSet& cfg)
-  { SuperaBase::configure(cfg); }
+  {
+    SuperaBase::configure(cfg);
+    supera::ParamsImage2D::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      LARCV_CRITICAL() << "PulledPork3DSlicer should not be used for Optical image maker!" << std::endl;
+      throw larbys();
+    }
+  }
 
   void SuperaOpDigit::initialize()
   { SuperaBase::initialize(); }
@@ -22,7 +32,7 @@ namespace larcv {
   bool SuperaOpDigit::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
-    
+
     auto const& meta_v = Meta();
     
     if(meta_v.empty()) {

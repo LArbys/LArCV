@@ -3,6 +3,8 @@
 
 #include "SuperaSimCh.h"
 #include "LAr2Image.h"
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/DataFormatUtil.h"
 namespace larcv {
@@ -16,6 +18,8 @@ namespace larcv {
   void SuperaSimCh::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
+    supera::ParamsImage2D::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
     _origin = cfg.get<unsigned short>("Origin",0);
   }
 
@@ -25,6 +29,13 @@ namespace larcv {
   bool SuperaSimCh::process(IOManager& mgr)
   {
     SuperaBase::process(mgr);
+
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }
     
     auto const& meta_v = Meta();
     

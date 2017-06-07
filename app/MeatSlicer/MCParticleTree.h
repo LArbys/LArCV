@@ -44,8 +44,8 @@ namespace supera {
     unsigned short origin;
     int    pdg;
     size_t track_id;
-    ::larcv::Vertex start;
-    ::larcv::Vertex end;
+    larcv::Vertex start;
+    larcv::Vertex end;
     size_t source_index;
     SourceType_t source_type;
   };

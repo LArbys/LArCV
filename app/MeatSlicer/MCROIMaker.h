@@ -1,6 +1,7 @@
 #ifndef __SUPERA_MCROIMAKER_H__
 #define __SUPERA_MCROIMAKER_H__
-
+//#ifndef __CINT__
+//#ifndef __CLING__
 #include <vector>
 
 // LArSoft
@@ -78,3 +79,5 @@ namespace supera {
 }
 
 #endif
+//#endif
+//#endif

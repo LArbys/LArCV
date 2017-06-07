@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from pyqtgraph.Qt import QtGui, QtCore
 
 import ROOT
 from larcv import larcv

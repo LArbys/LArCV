@@ -2,6 +2,8 @@
 #define __SUPERAKEYPOINTCLUSTER_CXX__
 
 #include "SuperaKeyPointCluster.h"
+#include "ImageMetaMakerFactory.h"
+#include "PulledPork3DSlicer.h"
 #include "DataFormat/EventPixel2D.h"
 #include "DataFormat/EventROI.h"
 
@@ -16,6 +18,9 @@ namespace larcv {
   void SuperaKeyPointCluster::configure(const PSet& cfg)
   {
     SuperaBase::configure(cfg);
+    supera::ParamsPixel2D::configure(cfg);
+    supera::ImageMetaMaker::configure(cfg);
+
     _in_roi_label = cfg.get<std::string>("InputROILabel");
     _apply_sce    = cfg.get<bool>("ApplySCE");
     _row_pad      = cfg.get<size_t>("RowPad");
@@ -46,6 +51,15 @@ namespace larcv {
 
   bool SuperaKeyPointCluster::process(IOManager& mgr)
   {
+    SuperaBase::process(mgr);
+
+    if(supera::PulledPork3DSlicer::Is(supera::ImageMetaMaker::MetaMakerPtr())) {
+      auto ptr = (supera::PulledPork3DSlicer*)(supera::ImageMetaMaker::MetaMakerPtr());
+      ptr->ClearEventData();
+      ptr->AddConstraint(LArData<supera::LArMCTruth_t>());
+      ptr->GenerateMeta(LArData<supera::LArSimCh_t>(),TimeOffset());
+    }
+
     auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,OutPixel2DLabel()));
     if(!ev_pixel2d) {
       LARCV_CRITICAL() << "Failed to create Pixel2D output data container w/ label " << OutPixel2DLabel() << std::endl;
