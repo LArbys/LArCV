@@ -14,7 +14,7 @@ INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
 
 ifdef GEO2D_BASEDIR
-INCFLAGS += -I$(GEO2D_BASEDIR)
+INCFLAGS += $(shell geo2d-config --includes)
 LDFLAGS  += -L$(GEO2D_LIBDIR) -lGeo2D_Core
 else
 SOURCES = $(filter-out ROIMerger.cxx, $(wildcard *.cxx))
