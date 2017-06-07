@@ -20,9 +20,7 @@ namespace larcv {
   {
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
-
   }
-
 
   void LArbysImageMC::Clear() {
     

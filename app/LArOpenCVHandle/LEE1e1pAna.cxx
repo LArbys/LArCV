@@ -125,9 +125,9 @@ namespace larcv {
     auto const ev_roi_v      = (EventROI*)(mgr.get_data(kProductROI,_truth_roi_prod));
     auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
 
-    _run    = ev_pgraph->run();
-    _subrun = ev_pgraph->subrun();
-    _event  = ev_pgraph->event();
+    _run    = ev_img2d->run();
+    _subrun = ev_img2d->subrun();
+    _event  = ev_img2d->event();
     _entry  = mgr.current_entry();
 
     const auto& adc_img_v = ev_img2d->Image2DArray();
