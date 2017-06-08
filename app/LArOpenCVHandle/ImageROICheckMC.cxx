@@ -54,16 +54,18 @@ namespace larcv {
     if (_check_num_bb)
       {
 	if (CheckNumNuROIs(mgr) == false) {
-	    return false;
-	  }
+	  LARCV_DEBUG() << "ROI filtered @ entry: " << mgr.current_entry() << std::endl;
+	  return false;
+	}
 
       }
 
     if (_check_vtxfid)
       {
 	if (VertexInFid(mgr) == false) {
-	    return false;
-	  }
+	  LARCV_DEBUG() << "Vertex filtered @ entry: " << mgr.current_entry() << std::endl;
+	  return false;
+	}
       }
 
     return true;
@@ -73,3 +75,4 @@ namespace larcv {
 
 }
 #endif
+

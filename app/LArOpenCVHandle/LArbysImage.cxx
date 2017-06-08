@@ -261,7 +261,10 @@ namespace larcv {
 	std::vector<larcv::Image2D> union_thrumu_image_v(3);
 	std::vector<larcv::Image2D> union_stopmu_image_v(3);
 
+	for(auto const& roi : roi_v) assert(roi.BB().size() == adc_image_v.size());
+
 	auto union_roi_v = UnionROI(roi_v);
+
 	
 	for(size_t plane=0; plane<3; ++plane) {
 
@@ -646,12 +649,18 @@ namespace larcv {
   }
   
   std::vector<ImageMeta> LArbysImage::UnionROI(const std::vector<ROI>& roi_v) {
-    
+
+    LARCV_DEBUG() << "start: got " << roi_v.size() << " rois" << std::endl;
     std::vector<larcv::ImageMeta> union_bb_v(3);
+
+    if(roi_v.front().BB().size()<3) {
+      LARCV_CRITICAL() << "First ROI only has " << roi_v.front().BB().size() << " planes" << std::endl;
+      throw larbys();
+    }
     
     for(size_t plane=0; plane<3; ++plane) 
       union_bb_v[plane] = roi_v.front().BB(plane);
-      
+    
     bool first = false;
     for(auto const& roi : roi_v) {
 	  
@@ -665,7 +674,8 @@ namespace larcv {
 	union_bb = union_bb.inclusive(bb);
       }
     }
-    
+
+    LARCV_DEBUG() << "end" << std::endl;
     return union_bb_v;
   }
 
