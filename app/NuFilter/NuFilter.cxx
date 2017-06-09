@@ -31,7 +31,7 @@ namespace larcv {
   {
     this->set_verbosity((msg::Level_t)cfg.get<uint>("Verbosity",2));
     _nu_pdg = cfg.get<unsigned int>("NuPDG");
-    _interaction_mode = cfg.get<unsigned int>("InteractionMode",1001);
+    _interaction_mode = cfg.get<int>("InteractionMode");
     _dep_sum_lepton = 0.0;
     _dep_sum_proton = 0.0;
     
@@ -47,7 +47,19 @@ namespace larcv {
 
     _mc_available = cfg.get<bool>("MCAvailable",true);
     _write_tree   = cfg.get<bool>("WriteTree",true);
-    
+
+    LARCV_DEBUG() << std::endl;
+    LARCV_DEBUG() << "\t<~~~~~ NuFilter configuration ~~~~~>" << std::endl;
+    LARCV_DEBUG() << "NuPDG: " << _nu_pdg << std::endl;
+    LARCV_DEBUG() << "InteractionMode: " << _interaction_mode << std::endl;
+    LARCV_DEBUG() << "MinNuEnergy: " << _min_nu_init_e << std::endl;
+    LARCV_DEBUG() << "MaxNuEnergy: " << _max_nu_init_e << std::endl;
+    LARCV_DEBUG() << "MinEDepSumLepton: " << _dep_sum_lepton<< std::endl;
+    LARCV_DEBUG() << "MinEDepSumProton: " << _dep_sum_proton<< std::endl;
+    LARCV_DEBUG() << "SelectSignal: " << _select_signal << std::endl;
+    LARCV_DEBUG() << "SelectBackground: " << _select_background << std::endl;
+    LARCV_DEBUG() << "ROIProducer: " << _roi_producer_name << std::endl;
+    LARCV_DEBUG() << std::endl;
   }
 
   //from rui an.
@@ -56,7 +68,7 @@ namespace larcv {
     
     bool pdg_b = false;
     bool interaction_mode_b = false;
-    bool engini_b = false;
+    bool energy_init_b = false;
     bool vis_lepton_b = false;
     bool vis_one_proton_b = false;
     bool vis_no_unknowns_b = false;
@@ -69,7 +81,7 @@ namespace larcv {
     // Get neutrino ROI
     auto roi = ev_roi->at(0);
     
-    uint pdgcode = roi.PdgCode();
+    uint pdgcode          = roi.PdgCode();
     uint interaction_mode = roi.NuInteractionType();
     double energy_init    = roi.EnergyInit();
 
@@ -77,16 +89,15 @@ namespace larcv {
     std::vector<aparticle> leptons_v;
     std::vector<aparticle> unknown_v;
 
-    bool first=false;
+    bool first = false;
     
     for(const auto& roi : ev_roi->ROIArray()) {
 
-      if(!first){ first=true; continue; }
+      if(!first) { first=true; continue; }
       
       int pdgcode = std::abs(roi.PdgCode());
       
       if (pdgcode==2212) {
-
 	aparticle thispro;
 	thispro.pdg           = pdgcode;
 	thispro.trackid       = roi.TrackID();
@@ -97,7 +108,6 @@ namespace larcv {
       }
       
       else if (pdgcode==11 or pdgcode==13) {
-	
 	aparticle thislep;
 	thislep.pdg           = pdgcode;
 	thislep.trackid       = roi.TrackID();
@@ -108,7 +118,6 @@ namespace larcv {
       }
 
       else {
-	
 	aparticle thisunknown;
 	thisunknown.pdg           = pdgcode;
 	thisunknown.trackid       = roi.TrackID();
@@ -160,30 +169,48 @@ namespace larcv {
 
     
     // requested nu PDG code
-    if (pdgcode == _nu_pdg)  pdg_b=true;
+    if (pdgcode == _nu_pdg) {
+      pdg_b = true;
+    }
 
     // requested nu interaction mode
-    if (interaction_mode == _interaction_mode)  interaction_mode_b=true;
+    if ((interaction_mode == _interaction_mode) or (_interaction_mode < 0)) {
+      interaction_mode_b = true;
+    } 
 
     // neutrino energy range
-    if (energy_init >= _min_nu_init_e && energy_init <= _max_nu_init_e) engini_b=true;
+    if (energy_init >= _min_nu_init_e && energy_init <= _max_nu_init_e) {
+      energy_init_b = true;
+    }
 
     // interaction must have visible leptons
-    if (lepton_engs_ctr == 1) vis_lepton_b =true;
+    if (lepton_engs_ctr == 1) {
+      vis_lepton_b = true;
+    }
 
     // There must be 1 visible proton
-    if (proton_engs_ctr == 1) vis_one_proton_b =true;
+    if (proton_engs_ctr == 1) {
+      vis_one_proton_b = true;
+    }
 
     // There must be no primary unknowns
-    if (unknown_ctr==0) vis_no_unknowns_b = true;
+    if (unknown_ctr==0) {
+      vis_no_unknowns_b = true;
+    }
     
-    bool selected = pdg_b && interaction_mode_b && engini_b  && vis_lepton_b && vis_one_proton_b && vis_no_unknowns_b;
+    bool selected =
+      pdg_b               &&
+      interaction_mode_b  &&
+      energy_init_b       &&
+      vis_lepton_b        &&
+      vis_one_proton_b    &&
+      vis_no_unknowns_b;
     
     _selected = selected;
 
     if (! pdg_b)              _n_fail_nupdg      += 1;
     if (! interaction_mode_b) _n_fail_inter      += 1;
-    if (! engini_b)           _n_fail_nuE        += 1;
+    if (! energy_init_b)      _n_fail_nuE        += 1;
     if (! vis_lepton_b)       _n_fail_lepton_dep += 1;
     if (! vis_one_proton_b)   _n_fail_proton_dep += 1;
     if (! vis_no_unknowns_b)  _n_fail_unknowns   += 1;
@@ -228,17 +255,6 @@ namespace larcv {
   
   void NuFilter::finalize()
   {
-    LARCV_DEBUG() << std::endl;
-    LARCV_DEBUG() << "\t<~~~~~ NuFilter configuration ~~~~~>" << std::endl;
-    LARCV_DEBUG() << "NuPDG: " << _nu_pdg << std::endl;
-    LARCV_DEBUG() << "MinNuEnergy: " << _min_nu_init_e << std::endl;
-    LARCV_DEBUG() << "MaxNuEnergy: " << _max_nu_init_e << std::endl;
-    LARCV_DEBUG() << "MinEDepSumLepton: " << _dep_sum_lepton<< std::endl;
-    LARCV_DEBUG() << "MinEDepSumProton: " << _dep_sum_proton<< std::endl;
-    LARCV_DEBUG() << "SelectSignal: " << _select_signal << std::endl;
-    LARCV_DEBUG() << "SelectBackground: " << _select_background << std::endl;
-    LARCV_DEBUG() << "ROIProducer: " << _roi_producer_name << std::endl;
-    LARCV_DEBUG() << std::endl;
     LARCV_DEBUG() << "\t<~~~~~ NuFilter statistics ~~~~~>" << std::endl;
     LARCV_DEBUG() << "Called: " << _n_calls << std::endl;
     LARCV_DEBUG() << "N fail Nu PDG: " << _n_fail_nupdg << std::endl;

@@ -40,8 +40,10 @@
 #pragma link C++ class larcv::ImageFromPixel2D+;
 #pragma link C++ class larcv::ROIPad+;
 
+#pragma link C++ class larcv::UnionROI+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 
