@@ -31,6 +31,8 @@ namespace larcv {
     LARCV_DEBUG() << "Read in " << roi_v.size() << " ROIs from producer " << _in_roi_producer;
     auto union_roi = Union(roi_v);
 
+    if (union_roi.BB().size()<3) return false;
+
     auto out_evroi = (EventROI*)mgr.get_data(kProductROI,_out_roi_producer);
     out_evroi->Emplace(std::move(union_roi));
     LARCV_DEBUG() << "Stored " << out_evroi->ROIArray().size() << " ROIs from producer " << _out_roi_producer;
@@ -45,7 +47,7 @@ namespace larcv {
 
     if(roi_v.front().BB().size()<3) {
       LARCV_CRITICAL() << "First ROI only has " << roi_v.front().BB().size() << " planes" << std::endl;
-      throw larbys();
+      return ROI();
     }
     
     for(size_t plane=0; plane<3; ++plane) 

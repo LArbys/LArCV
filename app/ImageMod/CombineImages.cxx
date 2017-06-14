@@ -34,7 +34,9 @@ namespace larcv {
       auto event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
 
       if(event_image->Image2DArray().size()!=_nplanes) {
-	LARCV_CRITICAL() << "Producer " << producer << " has # images != # planes!" << std::endl;
+	LARCV_CRITICAL() << "Producer " << producer 
+			 << " has # images " << event_image->Image2DArray().size() 
+			 << " != # planes " << _nplanes << std::endl;
 	throw larbys();
       }
 

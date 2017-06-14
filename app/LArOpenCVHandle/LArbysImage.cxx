@@ -11,7 +11,6 @@
 #include "LArbysUtils.h"
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
-#include <array>
 
 namespace larcv {
 
@@ -222,6 +221,7 @@ namespace larcv {
     else{
 
       size_t pidx = 0;
+      
       auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
       auto const& track_image_v  = get_image2d(mgr,_track_producer);
       auto const& shower_image_v = get_image2d(mgr,_shower_producer);
@@ -315,8 +315,10 @@ namespace larcv {
 	
       } //end union
       else { //give ROI 1 by 1
-      
+	
+	LARCV_DEBUG() << "Got " << roi_v.size() << " ROIs" << std::endl;
 	for(auto const& roi : roi_v) {
+	  LARCV_DEBUG() << "ROI @ " << &roi << " pidx " << pidx << std::endl;
 
 	  auto const& bb_v = roi.BB();
 	  assert(bb_v.size() == adc_image_v.size());
@@ -416,7 +418,9 @@ namespace larcv {
     const auto& par_v     = par_array->as_vector();
 
     auto n_reco_vtx = vtx3d_v.size();
-    LARCV_DEBUG() << "Matching... " << n_reco_vtx << " vertices" << std::endl;
+
+    LARCV_DEBUG() << "Got " << n_reco_vtx << " reconstructed vertex" << std::endl;
+
     for(size_t vtxid=0; vtxid< n_reco_vtx; ++vtxid) {
       
       const auto& vtx3d = vtx3d_v[vtxid];
@@ -567,50 +571,46 @@ namespace larcv {
 
       auto       & img  = _adc_img_mgr.img_at(plane);
       const auto & meta = _adc_img_mgr.meta_at(plane);
-      const auto & roi  = _adc_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetWire);
+      _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetWire);
     }
 
     for (size_t plane = 0; plane < _track_img_mgr.size(); ++plane) {
       
       auto       & img  = _track_img_mgr.img_at(plane);
       const auto & meta = _track_img_mgr.meta_at(plane);
-      const auto & roi  = _track_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetTrack);
+      _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetTrack);
     }
     
     for (size_t plane = 0; plane < _shower_img_mgr.size(); ++plane) {
 
       auto       & img  = _shower_img_mgr.img_at(plane);
       const auto & meta = _shower_img_mgr.meta_at(plane);
-      const auto & roi  = _shower_img_mgr.roi_at(plane);
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetShower);
+      _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetShower);
     }
 
     for (size_t plane = 0; plane < _thrumu_img_mgr.size(); ++plane) {
 
       auto       & img  = _thrumu_img_mgr.img_at(plane);
       const auto & meta = _thrumu_img_mgr.meta_at(plane);
-      const auto & roi  = _thrumu_img_mgr.roi_at(plane);
       
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetThruMu);
+      _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetThruMu);
     }
 
     for (size_t plane = 0; plane < _stopmu_img_mgr.size(); ++plane) {
 
       auto       & img  = _stopmu_img_mgr.img_at(plane);
       const auto & meta = _stopmu_img_mgr.meta_at(plane);
-      const auto & roi  = _stopmu_img_mgr.roi_at(plane);
+
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
-      _alg_mgr.Add(img, meta, roi, larocv::ImageSetID_t::kImageSetStopMu);
+      _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetStopMu);
     }
 
     if (_preprocess) {
