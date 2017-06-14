@@ -259,8 +259,6 @@ namespace larcv {
       }
       _tree->Fill();
     }
-    _event_tree->Fill();
-    
     return true;
   }
 
@@ -268,7 +266,6 @@ namespace larcv {
   {
     if(has_ana_file()) {
       _tree->Write();
-      _event_tree->Write();
     }
   }
 

@@ -32,7 +32,6 @@ namespace larcv {
   private:
 
     TTree* _tree;
-    TTree* _event_tree;
     int _entry;
     int _run;
     int _subrun;
