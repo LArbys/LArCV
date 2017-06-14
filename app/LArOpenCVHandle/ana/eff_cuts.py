@@ -15,7 +15,7 @@ INPUT_FILE  = sys.argv[1]
 
 # Vertex wise Trees
 vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
-lee_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
+lee_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='LEE1e1pTree'))
 angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
 shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
 gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
