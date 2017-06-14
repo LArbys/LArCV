@@ -8,29 +8,34 @@ import root_numpy as rn
 # Load DataFrames
 #
 rse    = ['run','subrun','event']
-rsee   = ['run','subrun','event','entry']
-rseev  = ['run','subrun','event','entry','vtxid']
-rseerv = ['run','subrun','event','entry','roid','vtxid']
+rsev   = ['run','subrun','event','vtxid']
+rserv  = ['run','subrun','event','roid','vtxid']
 
 INPUT_FILE  = sys.argv[1]
 
-ana_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='tree'))
+# Vertex wise Trees
+vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
+lee_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
 angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
 shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
 gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
 
-eana_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename='event_tree'))
-mc_df     = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+# Event wise Trees
+event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
+mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+
 #
 # Combine DataFrames
 #
-comb_df = pd.concat([ana_df.set_index(rseerv),
-                     angle_df.set_index(rseerv),
-                     shape_df.set_index(rseerv),
-                     gap_df.set_index(rseerv)],axis=1)
+comb_df = pd.concat([vertex_df.set_index(rserv),
+                     lee_df.set_index(rserv),
+                     angle_df.set_index(rserv),
+                     shape_df.set_index(rserv),
+                     gap_df.set_index(rserv)],axis=1)
 
 comb_df = comb_df.reset_index()
 
+assert comb_df.index.size == vertex_df.index.size
 
 #
 # Cut strings
@@ -62,6 +67,9 @@ OUTPUT_FILE = os.path.basename(INPUT_FILE)
 
 f_ = open("eff_%s.txt"%OUTPUT_FILE,'w+')
 
+f_.write("Total Events: %s\n"%str(event_vertex_df.index.size))
+f_.write("Total vertex: %s\n"%str(comb_df.index.size))
+f_.write("\n")
 f_.write("Cut -1) %s\n"%cutstr_1)
 f_.write("Cut  0) %s\n"%cutstr0)
 f_.write("Cut  1) %s\n"%cutstr1)
