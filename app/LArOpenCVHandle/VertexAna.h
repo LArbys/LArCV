@@ -83,6 +83,7 @@ namespace larcv {
     std::string _pcluster_img_prod;
     std::string _truth_roi_prod;  
     std::string _reco_roi_prod;    
+    bool _first_roi;
     
   };
 

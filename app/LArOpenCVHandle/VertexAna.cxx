@@ -28,6 +28,8 @@ namespace larcv {
     _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer"  , "test_img");
     _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer"  , "tpc");
     _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer"  , "croimerge");
+    _first_roi          = cfg.get<bool>("FirstROI",false);
+    
 
     LARCV_DEBUG() << "Image2DProducer:  " << _img2d_prod << std::endl;
     LARCV_DEBUG() << "PGraphProducer:   " << _pgraph_prod << std::endl;
@@ -139,7 +141,7 @@ namespace larcv {
     
     if(has_mc) {
       for(auto const& roi : ev_roi_v->ROIArray()){
-	if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14) {
+	if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14 || _first_roi) {
 	  _tx = roi.X();
 	  _ty = roi.Y();
 	  _tz = roi.Z();
@@ -149,6 +151,7 @@ namespace larcv {
 	  _scex = _tx - offset[0] + 0.7;
 	  _scey = _ty + offset[1];
 	  _scez = _tz + offset[2];
+	  if (_first_roi) break;
 	}
       }
 
@@ -162,7 +165,7 @@ namespace larcv {
 	wire_v[2] = geo->NearestWire(xyz,2);
 	_nearest_wire_err = 0;
       } catch(const std::exception& e) {
-	LARCV_CRITICAL()<<"Cannot find nearest wire for ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
+	LARCV_WARNING()<<"Cannot find nearest wire for ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
 	wire_v[0] = wire_v[1] = wire_v[2] = kINVALID_DOUBLE;
 	_nearest_wire_err = 1;
       }
@@ -230,7 +233,7 @@ namespace larcv {
 	
       auto roid = iter - roid_v.begin();
 
-      if (roid!=_roid) _vtxid = 0;
+      if (roid != _roid) _vtxid = 0;
       
       _roid  = roid;
     	
