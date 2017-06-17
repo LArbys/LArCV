@@ -399,7 +399,6 @@ namespace larcv {
   }
 
 
-  //void UBWireTool::wireIntersection( std::vector< int > wids, std::vector<float>& intersection, std::vector<float>& triangle_area, int& crosses ) {
   void UBWireTool::wireIntersection( std::vector< int > wids, std::vector<float>& intersection, double& triangle_area, int& crosses ) {
     // inputs
     // ------
@@ -580,28 +579,84 @@ namespace larcv {
     return;
   }
   
-  std::vector<int> UBWireTool::getProjectedImagePixel( const std::vector<float>& pos3d, const larcv::ImageMeta& meta, const int nplanes ) {
-    std::vector<int> img_coords( nplanes+1, 0 );
+  std::vector<int> UBWireTool::getProjectedImagePixel( const std::vector<float>& pos3d, const larcv::ImageMeta& meta, const int nplanes, const float fracpixborder ) {
+    /* -----------------------------------------------------------
+     * returns (row,colp1,colp2,..,colppN) corresponding to
+     *  projection of pos3d onto images
+     * 
+     * inputs
+     * ------
+     * pos3d: expect length 3, position in 3D space
+     * meta: ImageMeta, defining image size and  coordinates
+     * nplanes: number of planes
+     * fracpixborder: 3D positions that fall outside of image but within
+     *  fracpixboarder*pixel width or height return col or row of nearest
+     *  valid pixel. otherwise return -1 value for outside the image
+     * 
+     * output: 1+numplanes vector providing row and col of images for the planes
+     *  if outside the image, values of -1 are returned
+     * 
+     * weaknesses: uses hard-coded values for position to tick conversion, should use service
+     *  
+     * ----------------------------------------------------------*/
+    
+    std::vector<int> img_coords( nplanes+1, -1 );
+    float row_border = fabs(fracpixborder)*meta.pixel_height();
+    float col_border = fabs(fracpixborder)*meta.pixel_width();
 
     // tick/row
     float tick = pos3d[0]/(0.5*larutil::LArProperties::GetME()->DriftVelocity()) + 3200.0;
-    if ( tick<meta.min_y() || tick>=meta.max_y() )
-      img_coords[0] = -1;
+    if ( tick<meta.min_y() ) {
+      if ( tick>meta.min_y()-row_border )
+	// below min_y-border, out of image
+	img_coords[0] = meta.rows()-1; // note that tick axis and row indicies are in inverse order
+      else
+	// outside of image and border
+	img_coords[0] = -1;
+    }
+    else if ( tick>meta.max_y() ) {
+      if ( tick<meta.max_y()+row_border )
+	// within upper border
+	img_coords[0] = 0;
+      else
+	// outside of image and border
+	img_coords[0] = -1;
+    }
     else {
+      // within the image
       img_coords[0] = meta.row( tick );
     }
 
+    // Columns
     Double_t xyz[3] = { pos3d[0], pos3d[1], pos3d[2] };
     
     for (int p=0; p<nplanes; p++) {
       float wire = larutil::Geometry::GetME()->WireCoordinate( xyz, p );
+      // round wire
       if ( wire+0.5>=(int)wire+1.0 )
 	wire = (int)wire+1.0;
-      if ( wire<meta.min_x() || wire>=meta.max_x() )
-	img_coords[p+1] = -1;
+
+      // get image coordinates
+      if ( wire<meta.min_x() ) {
+	if ( wire>meta.min_x()-col_border )
+	  // within lower border
+	  img_coords[p+1] = 0;
+	else
+	  img_coords[p+1] = -1;
+      }
+      else if ( wire> meta.max_x() ) {
+	if ( wire<meta.max_x()+col_border )
+	  // within border
+	  img_coords[p+1] = meta.cols()-1;
+	else
+	  // outside border
+	  img_coords[p+1] = -1;
+      }
       else
+	// inside image
 	img_coords[p+1] = meta.col( wire );
-    }
+    }//end of plane loop
+    
     return img_coords;
   }
   
