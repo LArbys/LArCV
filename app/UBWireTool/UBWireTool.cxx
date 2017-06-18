@@ -644,7 +644,7 @@ namespace larcv {
 	else
 	  img_coords[p+1] = -1;
       }
-      else if ( wire> meta.max_x() ) {
+      else if ( wire>=meta.max_x() ) {
 	if ( wire<meta.max_x()+col_border )
 	  // within border
 	  img_coords[p+1] = meta.cols()-1;
