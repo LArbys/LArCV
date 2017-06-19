@@ -66,7 +66,7 @@ namespace larcv {
     
     _event_tree->Branch("num_croi",&_num_croi,"num_croi/I");
     _event_tree->Branch("num_vertex",&_num_vertex,"num_vertex/I");
-    _event_tree->Branch("num_croi_with_vertex",_num_croi_with_vertex,"num_croi_with_vertex/I");
+    _event_tree->Branch("num_croi_with_vertex",&_num_croi_with_vertex,"num_croi_with_vertex/I");
     _event_tree->Branch("min_vtx_dist",&_min_vtx_dist,"min_vtx_dist/D");
     _event_tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
 
