@@ -8,29 +8,34 @@ import root_numpy as rn
 # Load DataFrames
 #
 rse    = ['run','subrun','event']
-rsee   = ['run','subrun','event','entry']
-rseev  = ['run','subrun','event','entry','vtxid']
-rseerv = ['run','subrun','event','entry','roid','vtxid']
+rsev   = ['run','subrun','event','vtxid']
+rserv  = ['run','subrun','event','roid','vtxid']
 
 INPUT_FILE  = sys.argv[1]
 
-ana_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='tree'))
+# Vertex wise Trees
+vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
+lee_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='LEE1e1pTree'))
 angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
 shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
 gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
 
-eana_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename='event_tree'))
-mc_df     = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+# Event wise Trees
+event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
+mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+
 #
 # Combine DataFrames
 #
-comb_df = pd.concat([ana_df.set_index(rseerv),
-                     angle_df.set_index(rseerv),
-                     shape_df.set_index(rseerv),
-                     gap_df.set_index(rseerv)],axis=1)
+comb_df = pd.concat([vertex_df.set_index(rserv),
+                     lee_df.set_index(rserv),
+                     angle_df.set_index(rserv),
+                     shape_df.set_index(rserv),
+                     gap_df.set_index(rserv)],axis=1)
 
 comb_df = comb_df.reset_index()
 
+assert comb_df.index.size == vertex_df.index.size
 
 #
 # Cut strings
@@ -62,6 +67,9 @@ OUTPUT_FILE = os.path.basename(INPUT_FILE)
 
 f_ = open("eff_%s.txt"%OUTPUT_FILE,'w+')
 
+f_.write("Total Events: %s\n"%str(event_vertex_df.index.size))
+f_.write("Total vertex: %s\n"%str(comb_df.index.size))
+f_.write("\n")
 f_.write("Cut -1) %s\n"%cutstr_1)
 f_.write("Cut  0) %s\n"%cutstr0)
 f_.write("Cut  1) %s\n"%cutstr1)
@@ -104,14 +112,19 @@ f_.write("\n")
 
 
 #
-# Energy plot
+# Set index
 #
-from plot_util import energy_plotter
+mc_df_rse = mc_df.set_index(rse)
 
 signal_index = eana_df.query("good_croi_ctr>0").set_index(rse).index
 reco_index   = good_df.set_index(rse).index
 
-mc_df_rse = mc_df.set_index(rse)
+##################             #################
+################## Energy plot #################
+##################             #################
+from plot_util import energy_plotter
+
+
 energy_plotter(mc_df_rse.ix[signal_index],
                mc_df_rse.ix[reco_index],
                0,             # Emin
@@ -119,3 +132,78 @@ energy_plotter(mc_df_rse.ix[signal_index],
                25,            # deltaE
                "energyInit",  # column
                "Init") # X labeling
+##################              #################
+################## Proton angle #################
+##################              #################
+
+def proton_angle(row):
+    cos_v=row['daughter2DCosAngle_vv'][2]
+    pdg_v=row['daughterPdg_v']
+    pdg_v=pdg_v[np.where(row["daughterTrackid_v"] == row["daughterParentTrackid_v"])[0]]
+    proton_id_v=np.where(pdg_v==2212)[0]
+    proton_id=proton_id_v[0]
+    return cos_v[proton_id]
+
+
+sig_mctree_s = mc_df_rse.ix[signal_index]
+sig_mctree_r = mc_df_rse.ix[reco_index]
+
+true_cos_plane_2 = sig_mctree_s.apply(proton_angle,axis=1)
+reco_cos_plane_2 = sig_mctree_r.apply(proton_angle,axis=1)
+
+from plot_util import angle_plotter
+Tmin=-1
+Tmax=1
+deltaT=0.02
+angle_plotter(true_cos_plane_2,
+              reco_cos_plane_2,
+              Tmin,
+              Tmax,
+              deltaT,
+              "(Plane 2) Proton")
+
+#################                      #################
+################# Vertex Resolution 3D #################
+#################                      #################
+from plot_util import vertex_plotter
+
+# r
+dx=0.0125
+x0=0
+x1=10+dx
+vertex_plotter(x0,x1,dx,
+               comb_df.scedr.values,
+               "|MC-Reco| 3D Vertex Distance [cm]",
+               "Vertex Within 10 cm")
+
+# x
+dx=0.25
+x0=-10
+x1=10+dx
+vertex_plotter(x0,x1,dx,
+               comb_df.scex.values - ana_df.x.values,
+               "|MC-Reco| 3D Vertex X [cm]",
+               "Vertex Within 10 cm")
+
+# y
+dx=0.25
+x0=-10
+x1=10+dx
+vertex_plotter(x0,x1,dx,
+               comb_df.scey.values - ana_df.y.values,
+               "|MC-Reco| 3D Vertex Y [cm]",
+               "Vertex Within 10 cm")
+
+# z
+dx=0.25
+x0=-10
+x1=10+dx
+vertex_plotter(x0,x1,dx,
+               comb_df.scez.values - ana_df.z.values,
+               "|MC-Reco| 3D Vertex Z [cm]",
+               "Vertex Within 10 cm")
+               
+
+#################
+################# 
+#################
