@@ -34,11 +34,13 @@ namespace larcv {
 
     // Do you want a certain croi?
     if (_croi_idx>=0) {
+      LARCV_DEBUG() << "Requested CROI @ index " << _croi_idx << std::endl;
       ev_croi_true_v->clear();
       ev_croi_true_v->Append(ev_croi_v->ROIArray().at(_croi_idx));
       return true;
     }
-    
+
+    LARCV_DEBUG() << "Checking true vertex against " << ev_roi_v->ROIArray().size() << " cROI in file" << std::endl;
     float tx, ty, tz, tt, te;
     tx = ty = tz = tt = te = -1.;
     float scex, scey, scez;
@@ -71,8 +73,9 @@ namespace larcv {
     wire_v[1] = geo->NearestWire(xyz,1);
     wire_v[2] = geo->NearestWire(xyz,2);
     const double tick = (scex / larp->DriftVelocity() + 4) * 2. + 3200.;
+
+    bool one_good = false;
     
-    //for(auto const& croi : ev_croi_v->ROIArray()) {
     for(size_t croi_idx = 0; croi_idx < ev_croi_v->ROIArray().size(); ++croi_idx) { 
       uint good_croi0 = 0;
       uint good_croi1 = 0;
@@ -92,13 +95,22 @@ namespace larcv {
       }
       
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
+
+      LARCV_DEBUG() << "good croi counter is " << good_croi << " as index " << croi_idx << std::endl;
       
-      if (good_croi>=_planes_inside_threshold) 
-	  ev_croi_true_v->Append(croi);
+      if (good_croi>=_planes_inside_threshold)  {
+	one_good = true;
+	ev_croi_true_v->Append(croi);
+      }
       
     }
 
-  
+    if (!one_good) {
+      LARCV_DEBUG() << "No good cROI found" << std::endl;
+      return false;
+    }
+
+    LARCV_DEBUG() << "Returned " << ev_croi_true_v->ROIArray().size() << " good cROI" << std::endl;
     return true;
   }
 

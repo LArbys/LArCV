@@ -101,18 +101,34 @@ namespace larcv {
   {
     
     bool has_mc = false;
-
+    bool has_reco_vtx = false;
+      
     auto const ev_img2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_img2d_prod));
     if (!ev_img2d) throw larbys("Invalid image producer provided");
+
+    auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
+    if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
     
-    auto const ev_pgraph = (EventPGraph*)(mgr.get_data(kProductPGraph,_pgraph_prod));
-    if (!ev_pgraph) throw larbys("Invalid pgraph producer provided!");
+    EventPGraph* ev_pgraph = nullptr;
+    if (!_pgraph_prod.empty()) {
+      ev_pgraph = (EventPGraph*)(mgr.get_data(kProductPGraph,_pgraph_prod));
+      if (!ev_pgraph) throw larbys("Invalid pgraph producer provided!");
+      has_reco_vtx = true;
+    }
 
-    auto const ev_ctor_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_ctor_prod));
-    if (!ev_ctor_v) throw larbys("Invalid Contour Pixel2D producer provided!");
+    EventPixel2D* ev_ctor_v = nullptr;
+    if (!_pcluster_ctor_prod.empty()) {
+      ev_ctor_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_ctor_prod));
+      if (!ev_ctor_v) throw larbys("Invalid Contour Pixel2D producer provided!");
+      if (!has_reco_vtx) throw larbys("Gave PGraph producer but no particle cluster?");
+    }
 
-    auto const ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_img_prod));
-    if (!ev_pcluster_v) throw larbys("Invalid Particle Pixel2D producer provided!");
+    EventPixel2D* ev_pcluster_v = nullptr;
+    if (!_pcluster_img_prod.empty()) {
+      ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_img_prod));
+      if (!ev_pcluster_v) throw larbys("Invalid Particle Pixel2D producer provided!");
+      if (!has_reco_vtx) throw larbys("Gave PGraph producer but no image cluster?");
+    }
 
     EventROI* ev_roi_v = nullptr;
     if (!_truth_roi_prod.empty()) {
@@ -120,9 +136,7 @@ namespace larcv {
       has_mc = true;
       if (!ev_roi_v) throw larbys("Invalid truth roi producer provided");
     }
-    
-    auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
-    if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
+
 
     _run    = ev_img2d->run();
     _subrun = ev_img2d->subrun();
@@ -174,7 +188,6 @@ namespace larcv {
     
     const double tick = (_scex / larp->DriftVelocity() + 4) * 2. + 3200.;
     _num_croi    = ev_croi_v->ROIArray().size();
-    _num_vertex  = ev_pgraph->PGraphArray().size();
     _num_croi_with_vertex = 0;
     _good_croi0 = 0;
     _good_croi1 = 0;
@@ -211,14 +224,21 @@ namespace larcv {
 	  }
 	}
       }
-    }
+    } // end check of true vertex in cROI
 
+    if (!has_reco_vtx) {
+      _event_tree->Fill();
+      return true;
+    }
+    
+    _num_vertex  = ev_pgraph->PGraphArray().size();
+    
     std::vector<size_t> plane_order_v = {2,0,1};
     _min_vtx_dist = 1.e9;
     _vtxid=-1;
     
     auto vtx_counts = ev_pgraph->PGraphArray().size();
-	
+    
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
     for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
       _vtxid += 1;
