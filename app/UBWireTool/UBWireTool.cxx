@@ -420,9 +420,13 @@ namespace larcv {
       auto it_start = _g->m_WireData[p].wireStart.find(wid);
       auto it_end   = _g->m_WireData[p].wireEnd.find(wid);
       if ( it_start==_g->m_WireData[p].wireStart.end() || it_end==_g->m_WireData[p].wireEnd.end() ) {
-	std::stringstream ss;
-	ss << __FILE__ << "::" << __LINE__ << " Wire ID=" << wid << " Plane=" << p << " could not find wireStart or wireEnd" << std::endl;
-	throw std::runtime_error(ss.str());
+	// std::stringstream ss;
+	// ss << __FILE__ << "::" << __LINE__ << " Wire ID=" << wid << " Plane=" << p << " could not find wireStart or wireEnd" << std::endl;
+	// throw std::runtime_error(ss.str());
+
+	// Set 'crosses' equal to 0.
+	crosses = 0;
+	return;
       }
       const std::vector<float>& start = _g->m_WireData[p].wireStart.find(wid)->second;
       const std::vector<float>& end   = _g->m_WireData[p].wireEnd.find(wid)->second;
