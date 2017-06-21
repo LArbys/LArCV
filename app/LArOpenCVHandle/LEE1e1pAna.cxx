@@ -21,12 +21,12 @@ namespace larcv {
     
   void LEE1e1pAna::configure(const PSet& cfg)
   {
-    _img2d_prod         = cfg.get<std::string>("Image2DProducer","tpc");
-    _pgraph_prod        = cfg.get<std::string>("PGraphProducer","test");
-    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer","test_ctor");
-    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer"  ,"test_img");
-    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer"  ,"tpc");
-    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer"  ,"croimerge");
+    _img2d_prod         = cfg.get<std::string>("Image2DProducer");
+    _pgraph_prod        = cfg.get<std::string>("PGraphProducer");
+    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer");
+    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer");  
+    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer");
+    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer");
 
     LARCV_DEBUG() << "Image2DProducer:  " << _img2d_prod << std::endl;
     LARCV_DEBUG() << "PGraphProducer:   " << _pgraph_prod << std::endl;
@@ -105,6 +105,7 @@ namespace larcv {
     if (!_truth_roi_prod.empty()) {
       ev_roi_v = (EventROI*)(mgr.get_data(kProductROI,_truth_roi_prod));
       if (!ev_roi_v) throw larbys("Invalid truth roi producer provided");
+      if (ev_roi_v->ROIArray().empty()) throw larbys("Empty truth roi producer provided");
     }
     
     auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));

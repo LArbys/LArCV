@@ -38,7 +38,8 @@ namespace larcv {
     int _subrun;
     int _event;
 
-    std::string _img2d_prod;
+    std::string _ev_img2d_prod;
+    std::string _seg_img2d_prod;
     std::string _thrumu_img_prod;
     std::string _stopmu_img_prod;
     std::string _roi_prod;
@@ -54,7 +55,6 @@ namespace larcv {
     float _ratiopixel0;
     float _ratiopixel1;
     float _ratiopixel2;
-
 
     float _nupixelsum;
     float _nupixelavg;

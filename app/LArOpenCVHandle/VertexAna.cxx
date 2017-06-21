@@ -22,12 +22,12 @@ namespace larcv {
     
   void VertexAna::configure(const PSet& cfg)
   {
-    _img2d_prod         = cfg.get<std::string>("Image2DProducer"  , "tpc");
-    _pgraph_prod        = cfg.get<std::string>("PGraphProducer"   , "test");
-    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer", "test_ctor");
-    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer"  , "test_img");
-    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer"  , "tpc");
-    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer"  , "croimerge");
+    _img2d_prod         = cfg.get<std::string>("Image2DProducer");
+    _pgraph_prod        = cfg.get<std::string>("PGraphProducer"); 
+    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer");
+    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer");  
+    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer");  
+    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer");
     _first_roi          = cfg.get<bool>("FirstROI",false);
     
 
@@ -135,8 +135,8 @@ namespace larcv {
       ev_roi_v = (EventROI*)(mgr.get_data(kProductROI,_truth_roi_prod));
       has_mc = true;
       if (!ev_roi_v) throw larbys("Invalid truth roi producer provided");
+      if (ev_roi_v->ROIArray().empty()) throw larbys("Invalid truth roi producer provided");
     }
-
 
     _run    = ev_img2d->run();
     _subrun = ev_img2d->subrun();
@@ -172,7 +172,7 @@ namespace larcv {
       xyz[0] = _scex;
       xyz[1] = _scey;
       xyz[2] = _scez;
-      
+
       try {
 	wire_v[0] = geo->NearestWire(xyz,0);
 	wire_v[1] = geo->NearestWire(xyz,1);

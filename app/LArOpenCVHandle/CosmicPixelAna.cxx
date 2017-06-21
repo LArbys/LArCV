@@ -20,7 +20,8 @@ namespace larcv {
     
   void CosmicPixelAna::configure(const PSet& cfg)
   {
-    _img2d_prod      = cfg.get<std::string>("Image2DProducer");
+    _ev_img2d_prod   = cfg.get<std::string>("EventImage2DProducer"); 
+    _seg_img2d_prod  = cfg.get<std::string>("SegmentImage2DProducer");
     _thrumu_img_prod = cfg.get<std::string>("ThruMuProducer");
     _stopmu_img_prod = cfg.get<std::string>("StopMuProducer");
     _roi_prod        = cfg.get<std::string>("ROIProducer");
@@ -62,10 +63,42 @@ namespace larcv {
 
   bool CosmicPixelAna::process(IOManager& mgr)
   {
+    if (_ev_img2d_prod.empty()) {
+      LARCV_INFO() << "No event image provided nothing to do" << std::endl;
+      return false;
+    }
+    
+    auto const ev_img2d  = (EventImage2D*)(mgr.get_data(kProductImage2D,_ev_img2d_prod));
+    if (!ev_img2d) throw larbys("Invalid event image producer provided");
 
-    auto const ev_img2d  = (EventImage2D*)(mgr.get_data(kProductImage2D,_img2d_prod));
-    if (!ev_img2d) throw larbys("Invalid image producer provided");
+    if (_seg_img2d_prod.empty()) {
+      LARCV_INFO() << "No segment image provided nothing to do" << std::endl;
+      return false;
+    }
+    
+    auto const seg_img2d  = (EventImage2D*)(mgr.get_data(kProductImage2D,_seg_img2d_prod));
+    if (!seg_img2d) throw larbys("Invalid segment image producer provided");
 
+    assert(ev_img2d->Image2DArray().size() == seg_img2d->Image2DArray().size());
+    for(size_t img_id=0; img_id<ev_img2d->Image2DArray().size(); ++img_id) {
+      const auto& ev_img  = ev_img2d->Image2DArray().at(img_id);
+      const auto& seg_img = seg_img2d->Image2DArray().at(img_id);
+
+      if (ev_img.meta().rows() != seg_img.meta().rows()) {
+	LARCV_WARNING() << "Event image and segmentation image differ in row size @ plane=" << img_id
+			<< " ("<<ev_img.meta().rows()<<"!="<<seg_img.meta().rows()<<")"<<std::endl;
+	
+	return false;
+      }
+
+      if (ev_img.meta().cols() != seg_img.meta().cols()) {
+	LARCV_WARNING() << "Event image and segmentation image differ in col size @ plane=" << img_id
+			<< " ("<<ev_img.meta().cols()<<"!="<<seg_img.meta().cols()<<")"<<std::endl;
+	
+	return false;
+      }
+    }
+    
     auto const ev_thrumu = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_thrumu_img_prod));
     if (!ev_thrumu) throw larbys("Invalid ThruMu producer provided!");
     
@@ -83,13 +116,13 @@ namespace larcv {
     _subrun = (int) ev_roi->subrun();
     _event  = (int) ev_roi->event();
     _entry  = (int) mgr.current_entry();
-
+    
     std::array<size_t,3> neutrino_pixel_v;
     std::array<size_t,3> cosmic_pixel_v;
     
     for (size_t plane=0; plane<3; ++plane) {
       
-      const auto& img2d = ev_img2d->Image2DArray().at(plane);
+      const auto& img2d = seg_img2d->Image2DArray().at(plane);
       
       auto thrumu_img2d = _LArbysImageMaker.ConstructCosmicImage(ev_thrumu,img2d,plane,1);
       auto stopmu_img2d = _LArbysImageMaker.ConstructCosmicImage(ev_stopmu,img2d,plane,1);
@@ -107,11 +140,11 @@ namespace larcv {
       
       size_t cosmic_pixels = 0;
       size_t neutrino_pixels = 0;
-
+      
       assert( crop_cosmic_img.as_vector().size() == crop_img2d.as_vector().size());
       
       for(size_t px_id = 0; px_id < crop_cosmic_img.as_vector().size(); ++px_id) {
-
+	
 	auto cosmic_px   = crop_cosmic_img.as_vector()[px_id];
 	auto neutrino_px = crop_img2d.as_vector()[px_id];
 	
