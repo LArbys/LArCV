@@ -7,7 +7,6 @@
 #include "DataFormat/EventPixel2D.h"
 #include "DataFormat/EventImage2D.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterTypes.h"
-//#include "opencv2/imgproc.hpp"
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
 #include "LArbysUtils.h"
@@ -92,8 +91,10 @@ namespace larcv {
     _tree->Branch("dr",&_dr,"dr/D");
     _tree->Branch("scedr",&_scedr,"scedr/D");
     _tree->Branch("npar",&_npar,"npar/I");
-    
     _tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
+
+    _tree->Branch("in_fiducial",&_in_fiducial,"in_fiducial/I");
+	
 
   }
 
@@ -270,8 +271,11 @@ namespace larcv {
 
       if(_scedr < _min_vtx_dist) _min_vtx_dist = _scedr;
 
+      _in_fiducial = InFiducialRegion3D(_x,_y,_z);
+      
       _tree->Fill();
-    }
+    } // end loop over vertex
+    
     _event_tree->Fill();
     
     return true;

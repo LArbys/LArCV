@@ -156,6 +156,28 @@ namespace larcv {
 		      img.meta().plane());
 
   }
+
+  // from jarrett
+  bool InFiducialRegion3D(float X, float Y, float Z,
+			  float edge_x, float edge_y, float edge_z) {
+
+    static float xmin =  0.0;
+    static float ymin = -116.5;
+    static float zmin =  0.0;
+
+    static float xmax =  256.25; //cm
+    static float ymax =  116.5;  //cm
+    static float zmax = 1036.8;  //cm
+
+    bool XInFid = (X < (xmax - edge_x) && (X > xmin + edge_x) );
+    bool YInFid = (Y < (ymax - edge_y) && (Y > ymin + edge_y) );
+    bool ZInFid = (Z < (zmax - edge_z) && (Z > zmin + edge_z) );
+
+    if (XInFid && YInFid && ZInFid) return true;
+
+    return false;
+  }
+  
 }
 
 #endif
