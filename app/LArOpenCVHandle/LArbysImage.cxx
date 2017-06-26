@@ -608,13 +608,12 @@ namespace larcv {
       auto       & img  = _stopmu_img_mgr.img_at(plane);
       const auto & meta = _stopmu_img_mgr.meta_at(plane);
 
-
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetStopMu);
     }
 
     if (_preprocess) {
-      //give a single plane @ a time to pre processor
+      // give a single plane @ a time to pre processor
       auto& adc_img_v= _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
       auto& trk_img_v= _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetTrack);
       auto& shr_img_v= _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetShower);
