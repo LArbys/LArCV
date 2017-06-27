@@ -11,6 +11,7 @@
 #include "LArbysUtils.h"
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
+#include "PostTagger.h"
 
 namespace larcv {
 
@@ -333,12 +334,8 @@ namespace larcv {
 
 	    auto const& bb           = bb_v[plane];
 	    auto const& adc_image    = adc_image_v[plane];
-
-	    LARCV_DEBUG() << "bb:   " << bb.dump();
-	    LARCV_DEBUG() << "adc:  " << adc_image.meta().dump();
-	      crop_adc_image_v.emplace_back(adc_image.crop(bb));
-	    LARCV_DEBUG() << "crop: " << crop_adc_image_v.back().meta().dump();
 	    
+	    crop_adc_image_v.emplace_back(adc_image.crop(bb));
 
 	    if(!track_image_v.empty()) {
 	      auto const& track_image  = track_image_v[plane];
@@ -626,6 +623,24 @@ namespace larcv {
 	}
       }
     }
+
+    PostTagger _PostTagger;
+    auto& adc_img_v = _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetWire);
+    auto& trk_img_v = _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetTrack);
+    auto& shr_img_v = _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetShower);
+    auto& thrumu_img_v = _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetThruMu);
+    auto& stopmu_img_v = _alg_mgr.InputImages(larocv::ImageSetID_t::kImageSetStopMu);
+    auto nplanes = adc_img_v.size();
+    for(size_t plane_id=0;plane_id<nplanes;++plane_id) 
+      _PostTagger.MergeTaggedPixels(adc_img_v[plane_id],
+				    trk_img_v[plane_id],
+				    shr_img_v[plane_id],
+				    thrumu_img_v[plane_id],
+				    stopmu_img_v[plane_id]);
+
+
+
+
 
     _alg_mgr.Process();
 

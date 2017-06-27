@@ -24,17 +24,20 @@ namespace larcv {
 				     cv::Mat& stopmu_img) {
     
     auto ctor_v = larocv::FindContours(adc_img);
+    std::cout << "ctor_v sz " << ctor_v.size() << std::endl;
 
     for(const auto& ctor : ctor_v) {
       if (ctor.size() <= _ctor_sz_threshold) continue;
 
       if (_check_thrumu && larocv::CountNonZero(larocv::MaskImage(thrumu_img,ctor,0,false))) {
+	std::cout << "Mask thrumu" << std::endl;
 	adc_img = larocv::MaskImage(adc_img,ctor,0,true);
 	shr_img = larocv::MaskImage(shr_img,ctor,0,true);
 	trk_img = larocv::MaskImage(trk_img,ctor,0,true);
       }
 
       if (_check_stopmu && larocv::CountNonZero(larocv::MaskImage(stopmu_img,ctor,0,false))) {
+	std::cout << "Mask stopmu" << std::endl;
 	adc_img = larocv::MaskImage(adc_img,ctor,0,true);
 	shr_img = larocv::MaskImage(shr_img,ctor,0,true);
 	trk_img = larocv::MaskImage(trk_img,ctor,0,true);
