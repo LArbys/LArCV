@@ -28,7 +28,9 @@
 #pragma link C++ class std::vector<std::vector<larcv::ImageMeta> >+;
 
 #pragma link C++ class larcv::ROIAna+;
+#pragma link C++ class larcv::CosmicPixelAna+;
 #pragma link C++ class larcv::OperateImage+;
+#pragma link C++ class larcv::PostTagger+;
 
 //ADD_NEW_CLASS ... do not change this line
 #endif

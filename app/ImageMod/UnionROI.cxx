@@ -28,14 +28,14 @@ namespace larcv {
 
     const auto& roi_v = in_evroi->ROIArray();
 
-    LARCV_DEBUG() << "Read in " << roi_v.size() << " ROIs from producer " << _in_roi_producer;
+    LARCV_DEBUG() << "Read in " << roi_v.size() << " ROIs from producer " << _in_roi_producer << std::endl;
     auto union_roi = Union(roi_v);
 
     if (union_roi.BB().size()<3) return false;
 
     auto out_evroi = (EventROI*)mgr.get_data(kProductROI,_out_roi_producer);
     out_evroi->Emplace(std::move(union_roi));
-    LARCV_DEBUG() << "Stored " << out_evroi->ROIArray().size() << " ROIs from producer " << _out_roi_producer;
+    LARCV_DEBUG() << "Stored " << out_evroi->ROIArray().size() << " ROIs from producer " << _out_roi_producer << std::endl;
 
     return true;
   }

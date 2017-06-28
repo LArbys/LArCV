@@ -75,6 +75,9 @@ namespace larcv {
     double _min_vtx_dist;
     int _nearest_wire_err;
 
+
+    int _in_fiducial;
+    
     ::larutil::SpaceChargeMicroBooNE _sce;
     
     std::string _img2d_prod;
@@ -84,7 +87,7 @@ namespace larcv {
     std::string _truth_roi_prod;  
     std::string _reco_roi_prod;    
     bool _first_roi;
-    
+
   };
 
   /**

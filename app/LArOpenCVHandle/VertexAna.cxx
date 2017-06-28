@@ -7,7 +7,6 @@
 #include "DataFormat/EventPixel2D.h"
 #include "DataFormat/EventImage2D.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterTypes.h"
-//#include "opencv2/imgproc.hpp"
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
 #include "LArbysUtils.h"
@@ -22,12 +21,12 @@ namespace larcv {
     
   void VertexAna::configure(const PSet& cfg)
   {
-    _img2d_prod         = cfg.get<std::string>("Image2DProducer"  , "tpc");
-    _pgraph_prod        = cfg.get<std::string>("PGraphProducer"   , "test");
-    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer", "test_ctor");
-    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer"  , "test_img");
-    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer"  , "tpc");
-    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer"  , "croimerge");
+    _img2d_prod         = cfg.get<std::string>("Image2DProducer");
+    _pgraph_prod        = cfg.get<std::string>("PGraphProducer"); 
+    _pcluster_ctor_prod = cfg.get<std::string>("PxContourProducer");
+    _pcluster_img_prod  = cfg.get<std::string>("PxImageProducer");  
+    _truth_roi_prod     = cfg.get<std::string>("TrueROIProducer");  
+    _reco_roi_prod      = cfg.get<std::string>("RecoROIProducer");
     _first_roi          = cfg.get<bool>("FirstROI",false);
     
 
@@ -66,7 +65,7 @@ namespace larcv {
     
     _event_tree->Branch("num_croi",&_num_croi,"num_croi/I");
     _event_tree->Branch("num_vertex",&_num_vertex,"num_vertex/I");
-    _event_tree->Branch("num_croi_with_vertex",_num_croi_with_vertex,"num_croi_with_vertex/I");
+    _event_tree->Branch("num_croi_with_vertex",&_num_croi_with_vertex,"num_croi_with_vertex/I");
     _event_tree->Branch("min_vtx_dist",&_min_vtx_dist,"min_vtx_dist/D");
     _event_tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
 
@@ -92,8 +91,10 @@ namespace larcv {
     _tree->Branch("dr",&_dr,"dr/D");
     _tree->Branch("scedr",&_scedr,"scedr/D");
     _tree->Branch("npar",&_npar,"npar/I");
-    
     _tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
+
+    _tree->Branch("in_fiducial",&_in_fiducial,"in_fiducial/I");
+	
 
   }
 
@@ -101,28 +102,42 @@ namespace larcv {
   {
     
     bool has_mc = false;
-
+    bool has_reco_vtx = false;
+      
     auto const ev_img2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_img2d_prod));
     if (!ev_img2d) throw larbys("Invalid image producer provided");
+
+    auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
+    if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
     
-    auto const ev_pgraph = (EventPGraph*)(mgr.get_data(kProductPGraph,_pgraph_prod));
-    if (!ev_pgraph) throw larbys("Invalid pgraph producer provided!");
+    EventPGraph* ev_pgraph = nullptr;
+    if (!_pgraph_prod.empty()) {
+      ev_pgraph = (EventPGraph*)(mgr.get_data(kProductPGraph,_pgraph_prod));
+      if (!ev_pgraph) throw larbys("Invalid pgraph producer provided!");
+      has_reco_vtx = true;
+    }
 
-    auto const ev_ctor_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_ctor_prod));
-    if (!ev_ctor_v) throw larbys("Invalid Contour Pixel2D producer provided!");
+    EventPixel2D* ev_ctor_v = nullptr;
+    if (!_pcluster_ctor_prod.empty()) {
+      ev_ctor_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_ctor_prod));
+      if (!ev_ctor_v) throw larbys("Invalid Contour Pixel2D producer provided!");
+      if (!has_reco_vtx) throw larbys("Gave PGraph producer but no particle cluster?");
+    }
 
-    auto const ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_img_prod));
-    if (!ev_pcluster_v) throw larbys("Invalid Particle Pixel2D producer provided!");
+    EventPixel2D* ev_pcluster_v = nullptr;
+    if (!_pcluster_img_prod.empty()) {
+      ev_pcluster_v = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_pcluster_img_prod));
+      if (!ev_pcluster_v) throw larbys("Invalid Particle Pixel2D producer provided!");
+      if (!has_reco_vtx) throw larbys("Gave PGraph producer but no image cluster?");
+    }
 
     EventROI* ev_roi_v = nullptr;
     if (!_truth_roi_prod.empty()) {
       ev_roi_v = (EventROI*)(mgr.get_data(kProductROI,_truth_roi_prod));
       has_mc = true;
       if (!ev_roi_v) throw larbys("Invalid truth roi producer provided");
+      if (ev_roi_v->ROIArray().empty()) throw larbys("Invalid truth roi producer provided");
     }
-    
-    auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
-    if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
 
     _run    = ev_img2d->run();
     _subrun = ev_img2d->subrun();
@@ -158,7 +173,7 @@ namespace larcv {
       xyz[0] = _scex;
       xyz[1] = _scey;
       xyz[2] = _scez;
-      
+
       try {
 	wire_v[0] = geo->NearestWire(xyz,0);
 	wire_v[1] = geo->NearestWire(xyz,1);
@@ -174,7 +189,6 @@ namespace larcv {
     
     const double tick = (_scex / larp->DriftVelocity() + 4) * 2. + 3200.;
     _num_croi    = ev_croi_v->ROIArray().size();
-    _num_vertex  = ev_pgraph->PGraphArray().size();
     _num_croi_with_vertex = 0;
     _good_croi0 = 0;
     _good_croi1 = 0;
@@ -211,14 +225,21 @@ namespace larcv {
 	  }
 	}
       }
-    }
+    } // end check of true vertex in cROI
 
+    if (!has_reco_vtx) {
+      _event_tree->Fill();
+      return true;
+    }
+    
+    _num_vertex  = ev_pgraph->PGraphArray().size();
+    
     std::vector<size_t> plane_order_v = {2,0,1};
     _min_vtx_dist = 1.e9;
     _vtxid=-1;
     
     auto vtx_counts = ev_pgraph->PGraphArray().size();
-	
+    
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
     for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
       _vtxid += 1;
@@ -250,8 +271,11 @@ namespace larcv {
 
       if(_scedr < _min_vtx_dist) _min_vtx_dist = _scedr;
 
+      _in_fiducial = InFiducialRegion3D(_x,_y,_z);
+      
       _tree->Fill();
-    }
+    } // end loop over vertex
+    
     _event_tree->Fill();
     
     return true;

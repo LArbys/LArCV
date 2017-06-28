@@ -15,8 +15,8 @@ namespace larcv {
     
   void ROIAna::configure(const PSet& cfg)
   {
-    _roi_producer = cfg.get<std::string>("ROIProducer");
-    _img_producer = cfg.get<std::string>("ImageProducer");
+    _roi_producer      = cfg.get<std::string>("ROIProducer");
+    _img_producer      = cfg.get<std::string>("ImageProducer");
   }
 
   void ROIAna::initialize()
@@ -46,6 +46,7 @@ namespace larcv {
     _roi_tree->Branch("area_image0",&_area_image0,"area_image0/F");
     _roi_tree->Branch("area_image1",&_area_image1,"area_image1/F");
     _roi_tree->Branch("area_image2",&_area_image2,"area_image2/F");
+      
   }
 
   bool ROIAna::process(IOManager& mgr)

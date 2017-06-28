@@ -67,6 +67,8 @@ OUTPUT_FILE = os.path.basename(INPUT_FILE)
 
 f_ = open("eff_%s.txt"%OUTPUT_FILE,'w+')
 
+f_.write("Good croi counter: %d" % event_vertex_df.query("good_croi_ctr>0").index.size);
+f_.write("\n")
 f_.write("Total Events: %s\n"%str(event_vertex_df.index.size))
 f_.write("Total vertex: %s\n"%str(comb_df.index.size))
 f_.write("\n")
@@ -111,99 +113,99 @@ f_.write("\n")
 f_.write("\n")
 
 
-#
+
 # Set index
-#
-mc_df_rse = mc_df.set_index(rse)
 
-signal_index = eana_df.query("good_croi_ctr>0").set_index(rse).index
-reco_index   = good_df.set_index(rse).index
+# mc_df_rse = mc_df.set_index(rse)
 
-##################             #################
-################## Energy plot #################
-##################             #################
-from plot_util import energy_plotter
+# signal_index = event_vertex_df.query("good_croi_ctr>0").set_index(rse).index
+# reco_index   = good_df.set_index(rse).index
 
-
-energy_plotter(mc_df_rse.ix[signal_index],
-               mc_df_rse.ix[reco_index],
-               0,             # Emin
-               1000,          # Emax
-               25,            # deltaE
-               "energyInit",  # column
-               "Init") # X labeling
-##################              #################
-################## Proton angle #################
-##################              #################
-
-def proton_angle(row):
-    cos_v=row['daughter2DCosAngle_vv'][2]
-    pdg_v=row['daughterPdg_v']
-    pdg_v=pdg_v[np.where(row["daughterTrackid_v"] == row["daughterParentTrackid_v"])[0]]
-    proton_id_v=np.where(pdg_v==2212)[0]
-    proton_id=proton_id_v[0]
-    return cos_v[proton_id]
+# ##################             #################
+# ################## Energy plot #################
+# ##################             #################
+# from plot_util import energy_plotter
 
 
-sig_mctree_s = mc_df_rse.ix[signal_index]
-sig_mctree_r = mc_df_rse.ix[reco_index]
+# energy_plotter(mc_df_rse.ix[signal_index],
+#                mc_df_rse.ix[reco_index],
+#                0,             # Emin
+#                1000,          # Emax
+#                25,            # deltaE
+#                "energyInit",  # column
+#                "Init") # X labeling
+# ##################              #################
+# ################## Proton angle #################
+# ##################              #################
 
-true_cos_plane_2 = sig_mctree_s.apply(proton_angle,axis=1)
-reco_cos_plane_2 = sig_mctree_r.apply(proton_angle,axis=1)
+# def proton_angle(row):
+#     cos_v=row['daughter2DCosAngle_vv'][2]
+#     pdg_v=row['daughterPdg_v']
+#     pdg_v=pdg_v[np.where(row["daughterTrackid_v"] == row["daughterParentTrackid_v"])[0]]
+#     proton_id_v=np.where(pdg_v==2212)[0]
+#     proton_id=proton_id_v[0]
+#     return cos_v[proton_id]
 
-from plot_util import angle_plotter
-Tmin=-1
-Tmax=1
-deltaT=0.02
-angle_plotter(true_cos_plane_2,
-              reco_cos_plane_2,
-              Tmin,
-              Tmax,
-              deltaT,
-              "(Plane 2) Proton")
 
-#################                      #################
-################# Vertex Resolution 3D #################
-#################                      #################
-from plot_util import vertex_plotter
+# sig_mctree_s = mc_df_rse.ix[signal_index]
+# sig_mctree_r = mc_df_rse.ix[reco_index]
 
-# r
-dx=0.0125
-x0=0
-x1=10+dx
-vertex_plotter(x0,x1,dx,
-               comb_df.scedr.values,
-               "|MC-Reco| 3D Vertex Distance [cm]",
-               "Vertex Within 10 cm")
+# true_cos_plane_2 = sig_mctree_s.apply(proton_angle,axis=1)
+# reco_cos_plane_2 = sig_mctree_r.apply(proton_angle,axis=1)
 
-# x
-dx=0.25
-x0=-10
-x1=10+dx
-vertex_plotter(x0,x1,dx,
-               comb_df.scex.values - ana_df.x.values,
-               "|MC-Reco| 3D Vertex X [cm]",
-               "Vertex Within 10 cm")
+# from plot_util import angle_plotter
+# Tmin=-1
+# Tmax=1
+# deltaT=0.02
+# angle_plotter(true_cos_plane_2,
+#               reco_cos_plane_2,
+#               Tmin,
+#               Tmax,
+#               deltaT,
+#               "(Plane 2) Proton")
 
-# y
-dx=0.25
-x0=-10
-x1=10+dx
-vertex_plotter(x0,x1,dx,
-               comb_df.scey.values - ana_df.y.values,
-               "|MC-Reco| 3D Vertex Y [cm]",
-               "Vertex Within 10 cm")
+# #################                      #################
+# ################# Vertex Resolution 3D #################
+# #################                      #################
+# from plot_util import vertex_plotter
 
-# z
-dx=0.25
-x0=-10
-x1=10+dx
-vertex_plotter(x0,x1,dx,
-               comb_df.scez.values - ana_df.z.values,
-               "|MC-Reco| 3D Vertex Z [cm]",
-               "Vertex Within 10 cm")
+# # r
+# dx=0.0125
+# x0=0
+# x1=10+dx
+# vertex_plotter(x0,x1,dx,
+#                comb_df.scedr.values,
+#                "|MC-Reco| 3D Vertex Distance [cm]",
+#                "Vertex Within 10 cm")
+
+# # x
+# dx=0.25
+# x0=-10
+# x1=10+dx
+# vertex_plotter(x0,x1,dx,
+#                comb_df.scex.values - ana_df.x.values,
+#                "|MC-Reco| 3D Vertex X [cm]",
+#                "Vertex Within 10 cm")
+
+# # y
+# dx=0.25
+# x0=-10
+# x1=10+dx
+# vertex_plotter(x0,x1,dx,
+#                comb_df.scey.values - ana_df.y.values,
+#                "|MC-Reco| 3D Vertex Y [cm]",
+#                "Vertex Within 10 cm")
+
+# # z
+# dx=0.25
+# x0=-10
+# x1=10+dx
+# vertex_plotter(x0,x1,dx,
+#                comb_df.scez.values - ana_df.z.values,
+#                "|MC-Reco| 3D Vertex Z [cm]",
+#                "Vertex Within 10 cm")
                
 
-#################
-################# 
-#################
+# #################
+# ################# 
+# #################
