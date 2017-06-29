@@ -29,6 +29,7 @@ namespace larcv {
     _shower_producer      = cfg.get<std::string>("ShowerImageProducer","");
     _thrumu_producer      = cfg.get<std::string>("ThruMuImageProducer","");
     _stopmu_producer      = cfg.get<std::string>("StopMuImageProducer","");
+    _channel_producer     = cfg.get<std::string>("ChStatusImageProducer","");
     _roi_producer         = cfg.get<std::string>("ROIProducer","");
     _output_producer      = cfg.get<std::string>("OutputImageProducer","");
 
@@ -117,9 +118,9 @@ namespace larcv {
 	throw larbys();
       }
       LARCV_DEBUG() << "Using Pixel2D producer " << producer << std::endl;
-      auto const& pixel2d_m = ev_pixel2d->Pixel2DClusterArray();
+      const auto& pixel2d_m = ev_pixel2d->Pixel2DClusterArray();
       for(size_t img_idx=0; img_idx<adc_image_v.size(); ++img_idx) {
-	auto const& meta = adc_image_v[img_idx].meta();
+	const auto& meta = adc_image_v[img_idx].meta();
 	if(mu_image_v.size() <= img_idx)
 	  mu_image_v.emplace_back(larcv::Image2D(meta));
 	if(mu_image_v[img_idx].meta() != meta)
@@ -134,8 +135,8 @@ namespace larcv {
 	else{
 	  size_t npx_x = meta.cols();
 	  size_t npx_y = meta.rows();
-	  for(auto const& pixel_cluster : (*itr).second) {
-	    for(auto const& pixel : pixel_cluster) {
+	  for(const auto& pixel_cluster : (*itr).second) {
+	    for(const auto& pixel : pixel_cluster) {
 	      if(pixel.X() >= npx_x || pixel.Y() >= npx_y) {
 		LARCV_WARNING() << "Ignoring cosmic pixel (row,col) = ("
 				<< pixel.Y() << "," << pixel.X() << ")"
@@ -162,17 +163,19 @@ namespace larcv {
 
     if(_roi_producer.empty()) {
       size_t pidx = 0;          
-      auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
-      auto const& track_image_v  = get_image2d(mgr,_track_producer);
-      auto const& shower_image_v = get_image2d(mgr,_shower_producer);
+      const auto& adc_image_v    = get_image2d(mgr,_adc_producer);
+      const auto& track_image_v  = get_image2d(mgr,_track_producer);
+      const auto& shower_image_v = get_image2d(mgr,_shower_producer);
+      const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
       construct_cosmic_image(mgr, _thrumu_producer, adc_image_v, _thrumu_image_v);
       construct_cosmic_image(mgr, _stopmu_producer, adc_image_v, _stopmu_image_v);
-      auto const& thrumu_image_v = _thrumu_image_v;
-      auto const& stopmu_image_v = _stopmu_image_v;
+      const auto& thrumu_image_v = _thrumu_image_v;
+      const auto& stopmu_image_v = _stopmu_image_v;
       
       assert(adc_image_v.size());
       assert(track_image_v.empty()  || adc_image_v.size() == track_image_v.size());
       assert(shower_image_v.empty() || adc_image_v.size() == shower_image_v.size());
+      assert(chstat_image_v.empty() || adc_image_v.size() == chstat_image_v.size());
       assert(thrumu_image_v.empty() || adc_image_v.size() == thrumu_image_v.size());
       assert(stopmu_image_v.empty() || adc_image_v.size() == stopmu_image_v.size());
 
@@ -183,7 +186,8 @@ namespace larcv {
 	LARCV_DEBUG() << "Reconstruct no mask thrumu and no mask stopmu" << std::endl;
 	status = Reconstruct(adc_image_v,
 			     track_image_v,shower_image_v,
-			     thrumu_image_v,stopmu_image_v);
+			     thrumu_image_v,stopmu_image_v,
+			     chstat_image_v);
 	status = status && StoreParticles(mgr,adc_image_v,pidx);
 	
       } // don't mask stop mu or thru mu
@@ -213,7 +217,8 @@ namespace larcv {
 
 	status = Reconstruct(copy_adc_image_v,
 			     copy_track_image_v,copy_shower_image_v,
-			     thrumu_image_v, stopmu_image_v);
+			     thrumu_image_v, stopmu_image_v,
+			     chstat_image_v);
 	status = status && StoreParticles(mgr,copy_adc_image_v,pidx);
       } // mask stop mu or thru mu
       
@@ -222,13 +227,14 @@ namespace larcv {
 
       size_t pidx = 0;
       
-      auto const& adc_image_v    = get_image2d(mgr,_adc_producer);
-      auto const& track_image_v  = get_image2d(mgr,_track_producer);
-      auto const& shower_image_v = get_image2d(mgr,_shower_producer);
+      const auto& adc_image_v    = get_image2d(mgr,_adc_producer);
+      const auto& track_image_v  = get_image2d(mgr,_track_producer);
+      const auto& shower_image_v = get_image2d(mgr,_shower_producer);
+      const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
       construct_cosmic_image(mgr, _thrumu_producer, adc_image_v, _thrumu_image_v);
       construct_cosmic_image(mgr, _stopmu_producer, adc_image_v, _stopmu_image_v);
-      auto const& thrumu_image_v = _thrumu_image_v;
-      auto const& stopmu_image_v = _stopmu_image_v;
+      const auto& thrumu_image_v = _thrumu_image_v;
+      const auto& stopmu_image_v = _stopmu_image_v;
 
       auto pixel_height = adc_image_v.front().meta().pixel_height();
       auto pixel_width  = adc_image_v.front().meta().pixel_width();
@@ -243,6 +249,7 @@ namespace larcv {
       assert(adc_image_v.size());
       assert(track_image_v.empty()  || adc_image_v.size() == track_image_v.size());
       assert(shower_image_v.empty() || adc_image_v.size() == shower_image_v.size());
+      assert(chstat_image_v.empty() || adc_image_v.size() == chstat_image_v.size());
       assert(thrumu_image_v.empty() || adc_image_v.size() == thrumu_image_v.size());
       assert(stopmu_image_v.empty() || adc_image_v.size() == stopmu_image_v.size());
 
@@ -251,26 +258,27 @@ namespace larcv {
 	LARCV_CRITICAL() << "ROI by producer " << _roi_producer << " not found..." << std::endl;
 	throw larbys();
       }
-      auto const& roi_v = ((EventROI*)(mgr.get_data(kProductROI,_roi_producer)))->ROIArray();
+      const auto& roi_v = ((EventROI*)(mgr.get_data(kProductROI,_roi_producer)))->ROIArray();
 
       if(_union_roi) {
 	LARCV_DEBUG() << "Requesting Union ROI" << std::endl;
 	std::vector<larcv::Image2D> union_adc_image_v(3);
 	std::vector<larcv::Image2D> union_track_image_v(3);
 	std::vector<larcv::Image2D> union_shower_image_v(3);
+	std::vector<larcv::Image2D> union_chstat_image_v(3);
 	std::vector<larcv::Image2D> union_thrumu_image_v(3);
 	std::vector<larcv::Image2D> union_stopmu_image_v(3);
 
-	for(auto const& roi : roi_v) assert(roi.BB().size() == adc_image_v.size());
+	for(const auto& roi : roi_v) assert(roi.BB().size() == adc_image_v.size());
 
 	auto union_roi_v = UnionROI(roi_v);
 
-	
 	for(size_t plane=0; plane<3; ++plane) {
 
 	  auto& union_adc_image  = union_adc_image_v[plane];   
 	  auto& union_track_image = union_track_image_v[plane]; 
 	  auto& union_shower_image = union_shower_image_v[plane];
+	  auto& union_chstat_image = union_chstat_image_v[plane];
 	  auto& union_thrumu_image = union_thrumu_image_v[plane];
 	  auto& union_stopmu_image = union_stopmu_image_v[plane];	
 	  
@@ -289,6 +297,9 @@ namespace larcv {
 
 	  if(!stopmu_image_v.empty()) 
 	    union_stopmu_image = stopmu_image_v[plane].crop(union_roi);
+
+	  if(!chstat_image_v.empty())
+	    union_chstat_image = chstat_image_v[plane].crop(union_roi);
 	  
 	  if(!union_thrumu_image_v.empty() && _mask_thrumu_pixels) {
 	    LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
@@ -309,7 +320,8 @@ namespace larcv {
 	
 	status = status && Reconstruct(union_adc_image_v,
 				       union_track_image_v, union_shower_image_v,
-				       union_thrumu_image_v, union_stopmu_image_v);
+				       union_thrumu_image_v, union_stopmu_image_v,
+				       union_chstat_image_v);
 	
 	status = status && StoreParticles(mgr,union_adc_image_v,pidx);
 	
@@ -317,10 +329,10 @@ namespace larcv {
       else { //give ROI 1 by 1
 	
 	LARCV_DEBUG() << "Got " << roi_v.size() << " ROIs" << std::endl;
-	for(auto const& roi : roi_v) {
+	for(const auto& roi : roi_v) {
 	  LARCV_DEBUG() << "ROI @ " << &roi << " pidx " << pidx << std::endl;
 
-	  auto const& bb_v = roi.BB();
+	  const auto& bb_v = roi.BB();
 	  assert(bb_v.size() == adc_image_v.size());
 
 	  std::vector<larcv::Image2D> crop_adc_image_v;
@@ -328,38 +340,46 @@ namespace larcv {
 	  std::vector<larcv::Image2D> crop_shower_image_v;
 	  std::vector<larcv::Image2D> crop_thrumu_image_v;
 	  std::vector<larcv::Image2D> crop_stopmu_image_v;
+	  std::vector<larcv::Image2D> crop_chstat_image_v;
 
 	  for(size_t plane=0; plane<bb_v.size(); ++plane) {
 
-	    auto const& bb           = bb_v[plane];
-	    auto const& adc_image    = adc_image_v[plane];
+	    const auto& bb           = bb_v[plane];
+	    const auto& adc_image    = adc_image_v[plane];
 
 	    LARCV_DEBUG() << "bb:   " << bb.dump();
 	    LARCV_DEBUG() << "adc:  " << adc_image.meta().dump();
-	      crop_adc_image_v.emplace_back(adc_image.crop(bb));
+
+	    crop_adc_image_v.emplace_back(adc_image.crop(bb));
+
 	    LARCV_DEBUG() << "crop: " << crop_adc_image_v.back().meta().dump();
 	    
 
 	    if(!track_image_v.empty()) {
-	      auto const& track_image  = track_image_v[plane];
+	      const auto& track_image  = track_image_v[plane];
 	      crop_track_image_v.emplace_back(track_image.crop(bb));
 	    }
 
 	    if(!shower_image_v.empty()) {
-	      auto const& shower_image = shower_image_v[plane];
+	      const auto& shower_image = shower_image_v[plane];
 	      crop_shower_image_v.emplace_back(shower_image.crop(bb));
 	    }
 
 	    if(!thrumu_image_v.empty()) {
-	      auto const& thrumu_image = thrumu_image_v[plane];
+	      const auto& thrumu_image = thrumu_image_v[plane];
 	      crop_thrumu_image_v.emplace_back(thrumu_image.crop(bb));
 	    }
 
 	    if(!stopmu_image_v.empty()) {
-	      auto const& stopmu_image = stopmu_image_v[plane];
+	      const auto& stopmu_image = stopmu_image_v[plane];
 	      crop_stopmu_image_v.emplace_back(stopmu_image.crop(bb));
 	    }
 
+	    if(!chstat_image_v.empty()) {
+	      const auto& chstat_image = chstat_image_v[plane];
+	      crop_chstat_image_v.emplace_back(chstat_image.crop(bb));
+	    }
+	    
 	    if(!crop_thrumu_image_v.empty() && _mask_thrumu_pixels) {
 	      LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
 	      mask_image(crop_adc_image_v[plane], crop_thrumu_image_v[plane]);
@@ -378,7 +398,8 @@ namespace larcv {
 	
 	  status = status && Reconstruct(crop_adc_image_v,
 					 crop_track_image_v, crop_shower_image_v,
-					 crop_thrumu_image_v, crop_stopmu_image_v);
+					 crop_thrumu_image_v, crop_stopmu_image_v,
+					 crop_chstat_image_v);
 	
 	  status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
 	} // end loop over ROI
@@ -520,13 +541,16 @@ namespace larcv {
 				const std::vector<larcv::Image2D>& track_image_v,
 				const std::vector<larcv::Image2D>& shower_image_v,
 				const std::vector<larcv::Image2D>& thrumu_image_v,
-				const std::vector<larcv::Image2D>& stopmu_image_v)
+				const std::vector<larcv::Image2D>& stopmu_image_v,
+				const std::vector<larcv::Image2D>& chstat_image_v)
   {
     _adc_img_mgr.clear();
     _track_img_mgr.clear();
     _shower_img_mgr.clear();
     _thrumu_img_mgr.clear();
     _stopmu_img_mgr.clear();
+    _chstat_img_mgr.clear();
+
     _alg_mgr.ClearData();
     
     larocv::Watch watch_all, watch_one;
@@ -564,6 +588,14 @@ namespace larcv {
 				     std::move(std::get<1>(img_data)));
       }
     }
+    if(!_channel_producer.empty()) {
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(chstat_image_v)) {
+
+	  _chstat_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				       std::move(std::get<1>(img_data)));
+      }
+    }
+    
     
     _process_time_image_extraction += watch_one.WallTime();
 
@@ -610,6 +642,15 @@ namespace larcv {
 
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetStopMu);
+    }
+
+    for (size_t plane = 0; plane < _chstat_img_mgr.size(); ++plane) {
+
+      auto       & img  = _chstat_img_mgr.img_at(plane);
+      const auto & meta = _chstat_img_mgr.meta_at(plane);
+
+      if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetChStatus);
     }
 
     if (_preprocess) {
@@ -661,14 +702,14 @@ namespace larcv {
       union_bb_v[plane] = roi_v.front().BB(plane);
     
     bool first = false;
-    for(auto const& roi : roi_v) {
+    for(const auto& roi : roi_v) {
 	  
       if (!first) { first = true; continue; }
 
-      auto const& bb_v = roi.BB();
+      const auto& bb_v = roi.BB();
 
       for(size_t plane=0; plane<bb_v.size(); ++plane) {
-	auto const& bb = bb_v[plane];
+	const auto& bb = bb_v[plane];
 	auto& union_bb = union_bb_v[plane];
 	union_bb = union_bb.inclusive(bb);
       }

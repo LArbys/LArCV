@@ -51,7 +51,8 @@ namespace larcv {
 		     const std::vector<larcv::Image2D>& track_image_v,
 		     const std::vector<larcv::Image2D>& shower_image_v,
 		     const std::vector<larcv::Image2D>& thrumu_image_v,
-		     const std::vector<larcv::Image2D>& stopmu_image_v);
+		     const std::vector<larcv::Image2D>& stopmu_image_v,
+    		     const std::vector<larcv::Image2D>& chstat_image_v);
 
     bool StoreParticles(IOManager& iom,
 			const std::vector<larcv::Image2D>& adcimg_v,
@@ -67,6 +68,7 @@ namespace larcv {
     larocv::ImageManager _shower_img_mgr;
     larocv::ImageManager _thrumu_img_mgr;
     larocv::ImageManager _stopmu_img_mgr;
+    larocv::ImageManager _chstat_img_mgr;
 
     bool _debug;
     bool _preprocess;
@@ -85,6 +87,7 @@ namespace larcv {
     std::string _shower_producer;
     std::string _thrumu_producer;
     std::string _stopmu_producer;
+    std::string _channel_producer;
     std::string _output_producer;
 
     std::string _vertex_algo_name;
@@ -111,7 +114,7 @@ namespace larcv {
     std::vector<larcv::Image2D> _empty_image_v;
     std::vector<larcv::Image2D> _thrumu_image_v;
     std::vector<larcv::Image2D> _stopmu_image_v;
-    
+
   };
 
   /**
