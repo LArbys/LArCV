@@ -88,6 +88,9 @@ namespace larcv {
     std::string _reco_roi_prod;    
     bool _first_roi;
 
+  private:
+    void Clear();
+    
   };
 
   /**

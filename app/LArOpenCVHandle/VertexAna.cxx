@@ -100,6 +100,8 @@ namespace larcv {
 
   bool VertexAna::process(IOManager& mgr)
   {
+
+    Clear();
     
     bool has_mc = false;
     bool has_reco_vtx = false;
@@ -287,6 +289,55 @@ namespace larcv {
       _tree->Write();
       _event_tree->Write();
     }
+  }
+
+  void VertexAna::Clear() {
+
+    // Indices
+    _entry = kINVALID_INT;
+    _run = kINVALID_INT;
+    _subrun = kINVALID_INT;
+    _event = kINVALID_INT;
+    _roid = kINVALID_INT;
+    _vtxid = kINVALID_INT;
+
+    // MC vertex
+    _tx = kINVALID_DOUBLE;
+    _ty = kINVALID_DOUBLE;
+    _tz = kINVALID_DOUBLE;
+    _te = kINVALID_DOUBLE;
+    _tt = kINVALID_DOUBLE;
+    
+    // SCE corrected MC vertex
+    _scex = kINVALID_DOUBLE;
+    _scey = kINVALID_DOUBLE;
+    _scez = kINVALID_DOUBLE;
+
+    // Reconstructed
+    _x = kINVALID_DOUBLE;
+    _y = kINVALID_DOUBLE;
+    _z = kINVALID_DOUBLE;
+
+    _dr = kINVALID_DOUBLE;
+    _scedr = kINVALID_DOUBLE;
+
+    _npar = kINVALID_INT;
+
+    _good_croi0 = kINVALID_INT;
+    _good_croi1 = kINVALID_INT;
+    _good_croi2 = kINVALID_INT;
+    _good_croi_ctr = kINVALID_INT;
+
+    _num_croi = kINVALID_INT;
+    _num_vertex = kINVALID_INT;
+    _num_croi_with_vertex = kINVALID_INT;
+
+    _min_vtx_dist = kINVALID_DOUBLE;
+    _nearest_wire_err = kINVALID_INT;
+
+    _in_fiducial = false;
+
+
   }
 
 }
