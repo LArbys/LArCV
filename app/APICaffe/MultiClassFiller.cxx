@@ -269,13 +269,14 @@ namespace larcv {
     }
 
     // labels
-    _entry_label_data.resize(entry_label_size());
+    _entry_label_data.resize(entry_label_size(),0);
+    for(auto& v : _entry_label_data) v = 0;
     auto const& roi_v = ((EventROI*)label_data)->ROIArray();
     for(auto const& roi : roi_v) {
-      if(roi.MCSTIndex() != kINVALID_USHORT) continue;
+      //if(roi.MCSTIndex() != kINVALID_USHORT) continue;
+      if(roi.TrackID() != roi.ParentTrackID()) continue;
       ROIType_t roi_type = roi.Type();
       if(roi_type == kROIUnknown) roi_type = PDG2ROIType(roi.PdgCode());
-      LARCV_INFO() << roi.dump() << std::endl;
       auto const& caffe_class = _roitype_to_class.at(roi_type);
       if(caffe_class == kINVALID_SIZE) {
 	LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;
@@ -284,8 +285,11 @@ namespace larcv {
 	throw larbys();
       }
       _entry_label_data[caffe_class] = 1;
+      LARCV_INFO() << "Setting ROI type " << roi_type 
+		   << " with PDG code " << roi.PdgCode()
+		   << " (caffe class " << caffe_class << ")" << std::endl;
     }
   }
-   
+  
 }
 #endif
