@@ -58,6 +58,9 @@ namespace larcv {
     _event_tree->Branch("scey",&_scey,"scey/D");
     _event_tree->Branch("scez",&_scez,"scez/D");
 
+    _event_tree->Branch("nprotons",&_nprotons, "nprotons/I");
+    _event_tree->Branch("nothers", &_nothers,  "nothers/I");
+    
     _event_tree->Branch("good_croi0",&_good_croi0,"good_croi0/I");
     _event_tree->Branch("good_croi1",&_good_croi1,"good_croi1/I");
     _event_tree->Branch("good_croi2",&_good_croi2,"good_croi2/I");
@@ -155,7 +158,9 @@ namespace larcv {
     auto larp = larutil::LArProperties::GetME();
     double xyz[3];
     double wire_v[3];
-    
+
+    _nprotons = 0;
+    _nothers  = 0;    
     if(has_mc) {
       for(auto const& roi : ev_roi_v->ROIArray()){
 	if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14 || _first_roi) {
@@ -169,6 +174,13 @@ namespace larcv {
 	  _scey = _ty + offset[1];
 	  _scez = _tz + offset[2];
 	  if (_first_roi) break;
+	}
+
+	if ( roi.PdgCode()==2212 && (roi.EnergyInit()-938.0)>60.0 ) {
+	  _nprotons++;
+	}
+	else if ( roi.PdgCode()==111 || roi.PdgCode()==211 || roi.PdgCode()==-211 || roi.PdgCode()==22 || abs(roi.PdgCode())>100 ) {
+	  _nothers++;
 	}
       }
 

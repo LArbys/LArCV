@@ -53,6 +53,9 @@ namespace larcv {
     double _scey;
     double _scez;
 
+    int _nprotons; //< number of truth protons
+    int _nothers;  //< number of other particles    
+
     // Reconstructed
     double _x;
     double _y;
