@@ -136,7 +136,7 @@ namespace larcv {
       if ( truth_roi.PdgCode()==2212 && (truth_roi.EnergyInit()-938.0)>60.0 ) {
 	_nprotons++;
       }
-      else if ( truth_roi.PdgCode()==111 || truth_roi.PdgCode()==211 || truth_roi.PdgCode()==-211 || truth_roi.PdgCode()==22 && abs(truth_roi.PdgCode())>100 ) {
+      else if ( truth_roi.PdgCode()==111 || truth_roi.PdgCode()==211 || truth_roi.PdgCode()==-211 || truth_roi.PdgCode()==22 || abs(truth_roi.PdgCode())>100 ) {
 	_nothers++;
       }
     }
