@@ -176,8 +176,9 @@ namespace larcv {
 	  if (_first_roi) break;
 	}
 
-	if ( roi.PdgCode()==2212 && (roi.EnergyInit()-938.0)>60.0 ) {
-	  _nprotons++;
+	if ( roi.PdgCode()==2212 ) {
+	  if ( (roi.EnergyInit()-938.0)>60.0 )
+	    _nprotons++;
 	}
 	else if ( roi.PdgCode()==111 || roi.PdgCode()==211 || roi.PdgCode()==-211 || roi.PdgCode()==22 || abs(roi.PdgCode())>100 ) {
 	  _nothers++;
