@@ -23,10 +23,10 @@ namespace larcv {
   class LArbysImageMC : public ProcessBase {
 
   public:
-    
+
     /// Default constructor
     LArbysImageMC(const std::string name="LArbysImageMC");
-    
+
     /// Default destructor
     ~LArbysImageMC(){}
 
@@ -41,7 +41,7 @@ namespace larcv {
     void Clear();
 
     void SetFilter(const NuFilter* filter_ptr) { _filter_ptr = filter_ptr; }
-    
+
   protected:
 
     const NuFilter* _filter_ptr;
@@ -49,9 +49,10 @@ namespace larcv {
     uint _enum;
     std::string _producer_roi;
     std::string _producer_image2d;
-    
+    bool _neutrino_present;
+
     TTree* _mc_tree;
-    
+
     /// Event ID
     uint _run;
     uint _subrun;
@@ -65,20 +66,20 @@ namespace larcv {
     double _energy_init;
     int eee;
     double _parent_x;
-    double _parent_y;  
-    double _parent_z;  
-    double _parent_t;  
+    double _parent_y;
+    double _parent_z;
+    double _parent_t;
     double _parent_px;
-    double _parent_py;  
+    double _parent_py;
     double _parent_pz;
-    
+
     short _current_type;
     short _interaction_type;
     float _length_2d;
 
     uint _nprimary;
     uint _ntotal;
-    
+
     uint _nproton;
     uint _nlepton;
     uint _nshower;
@@ -87,7 +88,7 @@ namespace larcv {
 
     int _hi_lep_pdg;
     double _hi_lep_e;
-    
+
     double _dep_sum_lepton;
     double _ke_sum_lepton;
 
@@ -102,14 +103,14 @@ namespace larcv {
 
     double _dep_sum_neutron;
     double _ke_sum_neutron;
-    
+
     geo2d::Vector<float> _start; //2d start point
     geo2d::Vector<float> _dir;   //2d dir
 
     std::vector<int>   _daughter_pdg_v;
     std::vector<uint>   _daughter_trackid_v;
-    std::vector<uint>   _daughter_parenttrackid_v;    
-    
+    std::vector<uint>   _daughter_parenttrackid_v;
+
     std::vector<double> _daughter_energyinit_v;
     std::vector<double> _daughter_energydep_v;
 
@@ -119,13 +120,14 @@ namespace larcv {
     std::vector<std::vector<double> > _daughter_2dendx_vv;
     std::vector<std::vector<double> > _daughter_2dendy_vv;
     std::vector<std::vector<double> > _daughter_2dcosangle_vv;
-    
+
     std::vector<double> _daughterPx_v;
     std::vector<double> _daughterPy_v;
     std::vector<double> _daughterPz_v;
     std::vector<double> _daughterX_v;
     std::vector<double> _daughterY_v;
     std::vector<double> _daughterZ_v;
+    std::vector<double> _daughter_length3d_v;
 
 
   public:
@@ -133,7 +135,7 @@ namespace larcv {
     std::vector<double> _vtx_2d_w_v;
     std::vector<double> _vtx_2d_t_v;
 
-    
+
   protected:
     /// LARCV Image2D data
     std::vector<larcv::Image2D> _image_v;
@@ -144,18 +146,18 @@ namespace larcv {
     float _max_nu_dep_e;
     float _min_nu_init_e;
     float _max_nu_init_e;
-    
+
     int _min_n_proton;
     int _min_n_neutron;
     int _min_n_lepton;
-    int _min_n_meson; 
+    int _min_n_meson;
     int _min_n_shower;
 
     float _min_proton_init_e;
     float _min_proton_dep;
     float _max_proton_dep;
     float _min_lepton_init_e;
-    
+
     bool _check_vis;
 
     bool _do_not_reco;
@@ -164,18 +166,18 @@ namespace larcv {
 
     bool _select_signal;
     bool _select_background;
-    
+
     struct aparticle{
       int trackid;
       int parenttrackid;
       float depeng;
       bool primary;
-      
+
       bool daughterof (const aparticle& particle) const
       { return (this->parenttrackid == particle.trackid); }
     };
 
-    
+
     struct entry_info{
       int run;
       int subrun;
@@ -184,8 +186,8 @@ namespace larcv {
 
     entry_info _entry_info;
     bool _is_signal;
-    
-    
+
+
   };
 
   /**
@@ -206,5 +208,4 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group
