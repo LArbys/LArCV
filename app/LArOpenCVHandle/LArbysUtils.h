@@ -37,7 +37,10 @@ namespace larcv {
   
   ImageMeta
   crop_meta(const Image2D& img, const ImageMeta& meta);
-   
+
+  bool InFiducialRegion3D(float X, float Y, float Z,
+			  float edge_x=10.0, float edge_y=10.0, float edge_z=10.0);
+    
 		
 }
 

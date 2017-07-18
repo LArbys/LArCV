@@ -7,7 +7,6 @@
 #include "DataFormat/EventPixel2D.h"
 #include "DataFormat/EventImage2D.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterTypes.h"
-//#include "opencv2/imgproc.hpp"
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
 #include "LArbysUtils.h"
@@ -60,6 +59,9 @@ namespace larcv {
     _event_tree->Branch("scey",&_scey,"scey/D");
     _event_tree->Branch("scez",&_scez,"scez/D");
 
+    _event_tree->Branch("nprotons",&_nprotons, "nprotons/I");
+    _event_tree->Branch("nothers", &_nothers,  "nothers/I");
+    
     _event_tree->Branch("good_croi0",&_good_croi0,"good_croi0/I");
     _event_tree->Branch("good_croi1",&_good_croi1,"good_croi1/I");
     _event_tree->Branch("good_croi2",&_good_croi2,"good_croi2/I");
@@ -95,11 +97,16 @@ namespace larcv {
     _tree->Branch("npar",&_npar,"npar/I");
 
     _tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
+    _tree->Branch("in_fiducial",&_in_fiducial,"in_fiducial/I");
+	
 
   }
 
   bool VertexAna::process(IOManager& mgr)
   {
+
+
+    Clear();
 
     bool has_mc = false;
     bool has_reco_vtx = false;
@@ -154,6 +161,9 @@ namespace larcv {
     double xyz[3];
     double wire_v[3];
 
+    _nprotons = 0;
+    _nothers  = 0;    
+
     if(has_mc) {
       for(auto const& roi : ev_roi_v->ROIArray()){
 	if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14 || _first_roi) {
@@ -167,6 +177,14 @@ namespace larcv {
 	  _scey = _ty + offset[1];
 	  _scez = _tz + offset[2];
 	  if (_first_roi) break;
+	}
+
+	if ( roi.PdgCode()==2212 ) {
+	  if ( (roi.EnergyInit()-938.0)>60.0 )
+	    _nprotons++;
+	}
+	else if ( roi.PdgCode()==111 || roi.PdgCode()==211 || roi.PdgCode()==-211 || roi.PdgCode()==22 || abs(roi.PdgCode())>100 ) {
+	  _nothers++;
 	}
       }
 
@@ -276,8 +294,11 @@ namespace larcv {
         if(_dr < _min_vtx_dist) _min_vtx_dist = _dr;
       }
 
+      _in_fiducial = InFiducialRegion3D(_x,_y,_z);
+      
       _tree->Fill();
-    }
+    } // end loop over vertex
+    
     _event_tree->Fill();
 
     return true;
@@ -289,6 +310,55 @@ namespace larcv {
       _tree->Write();
       _event_tree->Write();
     }
+  }
+
+  void VertexAna::Clear() {
+
+    // Indices
+    _entry = kINVALID_INT;
+    _run = kINVALID_INT;
+    _subrun = kINVALID_INT;
+    _event = kINVALID_INT;
+    _roid = kINVALID_INT;
+    _vtxid = kINVALID_INT;
+
+    // MC vertex
+    _tx = kINVALID_DOUBLE;
+    _ty = kINVALID_DOUBLE;
+    _tz = kINVALID_DOUBLE;
+    _te = kINVALID_DOUBLE;
+    _tt = kINVALID_DOUBLE;
+    
+    // SCE corrected MC vertex
+    _scex = kINVALID_DOUBLE;
+    _scey = kINVALID_DOUBLE;
+    _scez = kINVALID_DOUBLE;
+
+    // Reconstructed
+    _x = kINVALID_DOUBLE;
+    _y = kINVALID_DOUBLE;
+    _z = kINVALID_DOUBLE;
+
+    _dr = kINVALID_DOUBLE;
+    _scedr = kINVALID_DOUBLE;
+
+    _npar = kINVALID_INT;
+
+    _good_croi0 = kINVALID_INT;
+    _good_croi1 = kINVALID_INT;
+    _good_croi2 = kINVALID_INT;
+    _good_croi_ctr = kINVALID_INT;
+
+    _num_croi = kINVALID_INT;
+    _num_vertex = kINVALID_INT;
+    _num_croi_with_vertex = kINVALID_INT;
+
+    _min_vtx_dist = kINVALID_DOUBLE;
+    _nearest_wire_err = kINVALID_INT;
+
+    _in_fiducial = false;
+
+
   }
 
 }

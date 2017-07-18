@@ -53,6 +53,9 @@ namespace larcv {
     double _scey;
     double _scez;
 
+    int _nprotons; //< number of truth protons
+    int _nothers;  //< number of other particles    
+
     // Reconstructed
     double _x;
     double _y;
@@ -75,6 +78,8 @@ namespace larcv {
     double _min_vtx_dist;
     int _nearest_wire_err;
 
+    int _in_fiducial;
+    
     ::larutil::SpaceChargeMicroBooNE _sce;
 
     std::string _img2d_prod;
@@ -85,6 +90,9 @@ namespace larcv {
     std::string _reco_roi_prod;
     bool _first_roi;
     bool _use_scedr;
+
+  private:
+    void Clear();
 
   };
 
