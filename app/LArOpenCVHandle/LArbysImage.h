@@ -58,8 +58,6 @@ namespace larcv {
 			const std::vector<larcv::Image2D>& adcimg_v,
 			size_t& pidx);
 
-    std::vector<ImageMeta> UnionROI(const std::vector<ROI>& roi_v);
-    
     TTree* _tree;
     
     larocv::ImageClusterManager _alg_mgr;
