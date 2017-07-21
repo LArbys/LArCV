@@ -99,6 +99,12 @@ namespace larcv {
     _tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
     _tree->Branch("in_fiducial",&_in_fiducial,"in_fiducial/I");
 	
+    _tree->Branch("dx",       &_dx);
+    _tree->Branch("dy",       &_dy);    
+    _tree->Branch("dz",       &_dz);
+    _tree->Branch("scedx",    &_scedx);
+    _tree->Branch("scedy",    &_scedy);    
+    _tree->Branch("scedz",    &_scedz);
 
   }
 
@@ -286,6 +292,14 @@ namespace larcv {
 
       _dr    = sqrt(pow(_x - _tx  ,2) + pow(_y - _ty  ,2) + pow(_z - _tz  ,2));
       _scedr = sqrt(pow(_x - _scex,2) + pow(_y - _scey,2) + pow(_z - _scez,2));
+
+      _dx = _x - _tx;
+      _dy = _y - _ty;
+      _dz = _z - _tz;
+
+      _scedx = _x - _scex;
+      _scedy = _y - _scey;
+      _scedz = _z - _scez;
 
       if(_use_scedr){
         if(_scedr < _min_vtx_dist) _min_vtx_dist = _scedr;

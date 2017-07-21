@@ -61,6 +61,14 @@ namespace larcv {
     double _y;
     double _z;
 
+    double _dx;
+    double _dy;
+    double _dz;
+   
+    double _scedx;
+    double _scedy;
+    double _scedz;
+
     double _dr;
     double _scedr;
 
