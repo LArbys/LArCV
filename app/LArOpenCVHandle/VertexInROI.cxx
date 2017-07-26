@@ -33,27 +33,33 @@ namespace larcv {
     auto ev_croi_true_v = (EventROI*)(mgr.get_data(kProductROI,_output_roi_producer));
 
     // Do you want a certain croi?
-    if (_croi_idx>=0) {
+    if (_croi_idx >= 0) {
       LARCV_DEBUG() << "Requested CROI @ index " << _croi_idx << std::endl;
+
+      if (_croi_idx >= ev_croi_v->ROIArray().size() ) {
+	LARCV_WARNING() << "Requested ROI is out of range @ entry " << mgr.current_entry() << std::endl;
+	LARCV_WARNING() << "SKIP!" << std::endl;
+	return false;
+      }
+	
       ev_croi_true_v->clear();
       ev_croi_true_v->Append(ev_croi_v->ROIArray().at(_croi_idx));
       return true;
     }
 
+    
     LARCV_DEBUG() << "Checking true vertex against " << ev_roi_v->ROIArray().size() << " cROI in file" << std::endl;
-    float tx, ty, tz, tt, te;
-    tx = ty = tz = tt = te = -1.;
+    float tx, ty, tz;
+    tx = ty = tz = -1.0*kINVALID_FLOAT;
     float scex, scey, scez;
-    scex = scey = scez = -1.;
+    scex = scey = scez = -1.0*kINVALID_FLOAT;
 
     for(auto const& roi : ev_roi_v->ROIArray()){
       if(roi.PdgCode() == 12 || roi.PdgCode() == 14) {
 	tx = roi.X();
 	ty = roi.Y();
 	tz = roi.Z();
-	tt = roi.T();
-	te = roi.EnergyInit();
-	std::cout << "(tx,ty,tz)=("<<tx<<","<<ty<<","<<tz<<")"<<std::endl;
+	LARCV_DEBUG() << "(tx,ty,tz)=("<<tx<<","<<ty<<","<<tz<<")"<<std::endl;
 	auto const offset = _sce.GetPosOffsets(tx,ty,tz);
 	scex = tx - offset[0] + 0.7;
 	scey = ty + offset[1];
@@ -96,7 +102,7 @@ namespace larcv {
       
       uint good_croi = good_croi0 + good_croi1 + good_croi2;
 
-      LARCV_DEBUG() << "good croi counter is " << good_croi << " as index " << croi_idx << std::endl;
+      LARCV_DEBUG() << "Good cROI counter is " << good_croi << " as index " << croi_idx << std::endl;
       
       if (good_croi>=_planes_inside_threshold)  {
 	one_good = true;

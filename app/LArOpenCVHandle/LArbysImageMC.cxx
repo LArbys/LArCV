@@ -419,8 +419,6 @@ namespace larcv {
         _dep_sum_proton = max_proton_e;
       }
 
-      if (_filter_ptr) _is_signal = _filter_ptr->selected();
-
       _mc_tree->Fill();
 
       return true;
