@@ -59,10 +59,10 @@ for name,file_ in [(sample_name,sample_file)]:
     # Event wise Trees
     #
     event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-    mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+    #mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
 
     edfs[name] = event_vertex_df.copy()
-    mdfs[name] = mc_df.copy()
+    #mdfs[name] = mc_df.copy()
     
     print "@ sample:",name,"good croi:",event_vertex_df.query("good_croi_ctr>0").index.size
     print "total events: ", event_vertex_df.index.size
