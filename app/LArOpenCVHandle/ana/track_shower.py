@@ -258,7 +258,7 @@ vtx_evts(ts_df)
 #
 # dQds
 #
-query="dqds_ratio_01 < 0.8"
+query="dqds_ratio_01 < 0.55"
 ts_df = ts_df.query(query)
 print "<< {} >>".format(query)
 vtx_evts(ts_df)
@@ -266,7 +266,7 @@ vtx_evts(ts_df)
 #
 # Beta
 #
-query="dqds_diff_01 > 40"
+query="dqds_diff_01 > 30"
 ts_df = ts_df.query(query)
 print "<< {} >>".format(query)
 vtx_evts(ts_df)
