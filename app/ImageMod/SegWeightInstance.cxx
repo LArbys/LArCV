@@ -186,8 +186,7 @@ namespace larcv {
 
       //
       // Compute keypoint weghts
-      //
-      
+      //      
       if(!_keypt_pixel2d_producer.empty()) {
 	auto ev_pixel = ((EventPixel2D*)(mgr.get_data(kProductPixel2D,_keypt_pixel2d_producer)));
 	auto const& pcluster_m = ev_pixel->Pixel2DClusterArray();

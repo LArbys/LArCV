@@ -54,6 +54,8 @@ namespace larcv {
 
     std::string _weight_producer;
 
+    std::string _keypt_pixel2d_producer;
+
     PoolType_t _pool_type;
 
     bool _weight_surrounding;

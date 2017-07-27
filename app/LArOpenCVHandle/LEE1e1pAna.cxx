@@ -66,6 +66,9 @@ namespace larcv {
     _tree->Branch("npx0",&_npx0,"npx0/I");
     _tree->Branch("npx1",&_npx1,"npx1/I");
 
+    _tree->Branch("nprotons",&_nprotons,"nprotons/I");
+    _tree->Branch("nothers", &_nothers,   "nothers/I");    
+
     _tree->Branch("area0",&_area0,"area0/D");
     _tree->Branch("area1",&_area1,"area1/D");
 
@@ -125,6 +128,17 @@ namespace larcv {
     for(auto const& croi : ev_croi_v->ROIArray()) {
       auto const& bb_v = croi.BB();
       roid_v.push_back(crop_metas(adc_img_v,bb_v));
+    }
+
+    _nprotons = 0;
+    _nothers  = 0;
+    for (auto const& truth_roi : ev_roi_v->ROIArray() ) {
+      if ( truth_roi.PdgCode()==2212 && (truth_roi.EnergyInit()-938.0)>60.0 ) {
+	_nprotons++;
+      }
+      else if ( truth_roi.PdgCode()==111 || truth_roi.PdgCode()==211 || truth_roi.PdgCode()==-211 || truth_roi.PdgCode()==22 || abs(truth_roi.PdgCode())>100 ) {
+	_nothers++;
+      }
     }
 
     auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();

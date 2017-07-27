@@ -32,7 +32,9 @@
 #pragma link C++ class larcv::OperateImage+;
 #pragma link C++ class larcv::PostTagger+;
 
+#pragma link C++ class larcv::BlankImage+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 

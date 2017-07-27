@@ -75,6 +75,9 @@ namespace larcv {
     double _len0;
     double _len1;
 
+    int _nprotons; //< number of truth protons
+    int _nothers;  //< number of other particles
+
     std::string _img2d_prod;
     std::string _pgraph_prod;        
     std::string _pcluster_ctor_prod;
