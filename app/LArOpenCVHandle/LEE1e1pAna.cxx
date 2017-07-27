@@ -133,8 +133,9 @@ namespace larcv {
     _nprotons = 0;
     _nothers  = 0;
     for (auto const& truth_roi : ev_roi_v->ROIArray() ) {
-      if ( truth_roi.PdgCode()==2212 && (truth_roi.EnergyInit()-938.0)>60.0 ) {
-	_nprotons++;
+      if ( truth_roi.PdgCode()==2212 ) {
+	if ( (truth_roi.EnergyInit()-938.0)>60.0 )
+	  _nprotons++;
       }
       else if ( truth_roi.PdgCode()==111 || truth_roi.PdgCode()==211 || truth_roi.PdgCode()==-211 || truth_roi.PdgCode()==22 || abs(truth_roi.PdgCode())>100 ) {
 	_nothers++;
