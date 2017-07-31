@@ -13,10 +13,10 @@ namespace larcv {
   class VertexAna : public ProcessBase {
 
   public:
-    
+
     /// Default constructor
     VertexAna(const std::string name="VertexAna");
-    
+
     /// Default destructor
     ~VertexAna(){}
 
@@ -27,12 +27,12 @@ namespace larcv {
     bool process(IOManager& mgr);
 
     void finalize();
-    
+
   private:
 
     TTree* _tree;
     TTree* _event_tree;
-    
+
     // Indices
     int _entry;
     int _run;
@@ -47,16 +47,27 @@ namespace larcv {
     double _tz;
     double _te;
     double _tt;
-    
+
     // SCE corrected MC vertex
     double _scex;
     double _scey;
     double _scez;
 
+    int _nprotons; //< number of truth protons
+    int _nothers;  //< number of other particles    
+
     // Reconstructed
     double _x;
     double _y;
     double _z;
+
+    double _dx;
+    double _dy;
+    double _dz;
+   
+    double _scedx;
+    double _scedy;
+    double _scedz;
 
     double _dr;
     double _scedr;
@@ -75,22 +86,22 @@ namespace larcv {
     double _min_vtx_dist;
     int _nearest_wire_err;
 
-
     int _in_fiducial;
     
     ::larutil::SpaceChargeMicroBooNE _sce;
-    
+
     std::string _img2d_prod;
-    std::string _pgraph_prod;        
+    std::string _pgraph_prod;
     std::string _pcluster_ctor_prod;
     std::string _pcluster_img_prod;
-    std::string _truth_roi_prod;  
-    std::string _reco_roi_prod;    
+    std::string _truth_roi_prod;
+    std::string _reco_roi_prod;
     bool _first_roi;
+    bool _use_scedr;
 
   private:
     void Clear();
-    
+
   };
 
   /**
@@ -110,5 +121,4 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group

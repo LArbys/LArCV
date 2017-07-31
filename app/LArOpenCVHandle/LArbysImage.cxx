@@ -52,8 +52,6 @@ namespace larcv {
     ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
 
-    _union_roi = cfg.get<bool>("UnionROI",false);
-
     _vertex_algo_name = cfg.get<std::string>("VertexAlgoName","");
     _par_algo_name    = cfg.get<std::string>("ParticleAlgoName","");
 
@@ -260,150 +258,82 @@ namespace larcv {
       }
       const auto& roi_v = ((EventROI*)(mgr.get_data(kProductROI,_roi_producer)))->ROIArray();
 
-      if(_union_roi) {
-	LARCV_DEBUG() << "Requesting Union ROI" << std::endl;
-	std::vector<larcv::Image2D> union_adc_image_v(3);
-	std::vector<larcv::Image2D> union_track_image_v(3);
-	std::vector<larcv::Image2D> union_shower_image_v(3);
-	std::vector<larcv::Image2D> union_chstat_image_v(3);
-	std::vector<larcv::Image2D> union_thrumu_image_v(3);
-	std::vector<larcv::Image2D> union_stopmu_image_v(3);
+	
+      LARCV_DEBUG() << "Got " << roi_v.size() << " ROIs" << std::endl;
+      for(const auto& roi : roi_v) {
+	LARCV_DEBUG() << "ROI @ " << &roi << " pidx " << pidx << std::endl;
 
-	for(const auto& roi : roi_v) assert(roi.BB().size() == adc_image_v.size());
+	const auto& bb_v = roi.BB();
+	assert(bb_v.size() == adc_image_v.size());
 
-	auto union_roi_v = UnionROI(roi_v);
+	std::vector<larcv::Image2D> crop_adc_image_v;
+	std::vector<larcv::Image2D> crop_track_image_v;
+	std::vector<larcv::Image2D> crop_shower_image_v;
+	std::vector<larcv::Image2D> crop_thrumu_image_v;
+	std::vector<larcv::Image2D> crop_stopmu_image_v;
+	std::vector<larcv::Image2D> crop_chstat_image_v;
 
-	for(size_t plane=0; plane<3; ++plane) {
+	for(size_t plane=0; plane<bb_v.size(); ++plane) {
 
-	  auto& union_adc_image  = union_adc_image_v[plane];   
-	  auto& union_track_image = union_track_image_v[plane]; 
-	  auto& union_shower_image = union_shower_image_v[plane];
-	  auto& union_chstat_image = union_chstat_image_v[plane];
-	  auto& union_thrumu_image = union_thrumu_image_v[plane];
-	  auto& union_stopmu_image = union_stopmu_image_v[plane];	
-	  
-	  const auto& union_roi = union_roi_v[plane];
-	  
-	  union_adc_image = adc_image_v[plane].crop(union_roi);
-	  
-	  if(!track_image_v.empty()) 
-	    union_track_image = track_image_v[plane].crop(union_roi);
+	  const auto& bb           = bb_v[plane];
+	  const auto& adc_image    = adc_image_v[plane];
 
-	  if(!shower_image_v.empty()) 
-	    union_shower_image = shower_image_v[plane].crop(union_roi);
+	  LARCV_DEBUG() << "bb:   " << bb.dump();
+	  LARCV_DEBUG() << "adc:  " << adc_image.meta().dump();
 
-	  if(!thrumu_image_v.empty()) 
-	    union_thrumu_image = thrumu_image_v[plane].crop(union_roi);
+	  crop_adc_image_v.emplace_back(adc_image.crop(bb));
 
-	  if(!stopmu_image_v.empty()) 
-	    union_stopmu_image = stopmu_image_v[plane].crop(union_roi);
+	  LARCV_DEBUG() << "crop: " << crop_adc_image_v.back().meta().dump();
+	    
 
-	  if(!chstat_image_v.empty())
-	    union_chstat_image = chstat_image_v[plane].crop(union_roi);
-	  
-	  if(!union_thrumu_image_v.empty() && _mask_thrumu_pixels) {
+	  if(!track_image_v.empty()) {
+	    const auto& track_image  = track_image_v[plane];
+	    crop_track_image_v.emplace_back(track_image.crop(bb));
+	  }
+
+	  if(!shower_image_v.empty()) {
+	    const auto& shower_image = shower_image_v[plane];
+	    crop_shower_image_v.emplace_back(shower_image.crop(bb));
+	  }
+
+	  if(!thrumu_image_v.empty()) {
+	    const auto& thrumu_image = thrumu_image_v[plane];
+	    crop_thrumu_image_v.emplace_back(thrumu_image.crop(bb));
+	  }
+
+	  if(!stopmu_image_v.empty()) {
+	    const auto& stopmu_image = stopmu_image_v[plane];
+	    crop_stopmu_image_v.emplace_back(stopmu_image.crop(bb));
+	  }
+
+	  if(!chstat_image_v.empty()) {
+	    const auto& chstat_image = chstat_image_v[plane];
+	    crop_chstat_image_v.emplace_back(chstat_image.crop(bb));
+	  }
+	    
+	  if(!crop_thrumu_image_v.empty() && _mask_thrumu_pixels) {
 	    LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
-	    mask_image(union_adc_image, union_thrumu_image);
-	    if(!union_track_image_v.empty() ) mask_image(union_track_image,  union_thrumu_image);
-	    if(!union_shower_image_v.empty()) mask_image(union_shower_image, union_thrumu_image);
+	    mask_image(crop_adc_image_v[plane], crop_thrumu_image_v[plane]);
+	    if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_thrumu_image_v[plane]);
+	    if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_thrumu_image_v[plane]);
 	  }
-	  
-	  if(!union_stopmu_image_v.empty() && _mask_stopmu_pixels) {
+
+	  if(!crop_stopmu_image_v.empty() && _mask_stopmu_pixels) {
 	    LARCV_DEBUG() << "Masking stopmu plane " << plane << std::endl;
-	    mask_image(union_adc_image, union_stopmu_image);
-	    if(!union_track_image_v.empty() ) mask_image(union_track_image,  union_stopmu_image);
-	    if(!union_shower_image_v.empty()) mask_image(union_shower_image, union_stopmu_image);
+	    mask_image(crop_adc_image_v[plane], crop_stopmu_image_v[plane]);
+	    if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_stopmu_image_v[plane]);
+	    if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_stopmu_image_v[plane]);
 	  }
-	  
+
 	}
 	
+	status = status && Reconstruct(crop_adc_image_v,
+				       crop_track_image_v, crop_shower_image_v,
+				       crop_thrumu_image_v, crop_stopmu_image_v,
+				       crop_chstat_image_v);
 	
-	status = status && Reconstruct(union_adc_image_v,
-				       union_track_image_v, union_shower_image_v,
-				       union_thrumu_image_v, union_stopmu_image_v,
-				       union_chstat_image_v);
-	
-	status = status && StoreParticles(mgr,union_adc_image_v,pidx);
-	
-      } //end union
-      else { //give ROI 1 by 1
-	
-	LARCV_DEBUG() << "Got " << roi_v.size() << " ROIs" << std::endl;
-	for(const auto& roi : roi_v) {
-	  LARCV_DEBUG() << "ROI @ " << &roi << " pidx " << pidx << std::endl;
-
-	  const auto& bb_v = roi.BB();
-	  assert(bb_v.size() == adc_image_v.size());
-
-	  std::vector<larcv::Image2D> crop_adc_image_v;
-	  std::vector<larcv::Image2D> crop_track_image_v;
-	  std::vector<larcv::Image2D> crop_shower_image_v;
-	  std::vector<larcv::Image2D> crop_thrumu_image_v;
-	  std::vector<larcv::Image2D> crop_stopmu_image_v;
-	  std::vector<larcv::Image2D> crop_chstat_image_v;
-
-	  for(size_t plane=0; plane<bb_v.size(); ++plane) {
-
-	    const auto& bb           = bb_v[plane];
-	    const auto& adc_image    = adc_image_v[plane];
-
-	    LARCV_DEBUG() << "bb:   " << bb.dump();
-	    LARCV_DEBUG() << "adc:  " << adc_image.meta().dump();
-
-	    crop_adc_image_v.emplace_back(adc_image.crop(bb));
-
-	    LARCV_DEBUG() << "crop: " << crop_adc_image_v.back().meta().dump();
-	    
-
-	    if(!track_image_v.empty()) {
-	      const auto& track_image  = track_image_v[plane];
-	      crop_track_image_v.emplace_back(track_image.crop(bb));
-	    }
-
-	    if(!shower_image_v.empty()) {
-	      const auto& shower_image = shower_image_v[plane];
-	      crop_shower_image_v.emplace_back(shower_image.crop(bb));
-	    }
-
-	    if(!thrumu_image_v.empty()) {
-	      const auto& thrumu_image = thrumu_image_v[plane];
-	      crop_thrumu_image_v.emplace_back(thrumu_image.crop(bb));
-	    }
-
-	    if(!stopmu_image_v.empty()) {
-	      const auto& stopmu_image = stopmu_image_v[plane];
-	      crop_stopmu_image_v.emplace_back(stopmu_image.crop(bb));
-	    }
-
-	    if(!chstat_image_v.empty()) {
-	      const auto& chstat_image = chstat_image_v[plane];
-	      crop_chstat_image_v.emplace_back(chstat_image.crop(bb));
-	    }
-	    
-	    if(!crop_thrumu_image_v.empty() && _mask_thrumu_pixels) {
-	      LARCV_DEBUG() << "Masking thrumu plane " << plane << std::endl;
-	      mask_image(crop_adc_image_v[plane], crop_thrumu_image_v[plane]);
-	      if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_thrumu_image_v[plane]);
-	      if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_thrumu_image_v[plane]);
-	    }
-
-	    if(!crop_stopmu_image_v.empty() && _mask_stopmu_pixels) {
-	      LARCV_DEBUG() << "Masking stopmu plane " << plane << std::endl;
-	      mask_image(crop_adc_image_v[plane], crop_stopmu_image_v[plane]);
-	      if(!crop_track_image_v.empty() ) mask_image(crop_track_image_v[plane],  crop_stopmu_image_v[plane]);
-	      if(!crop_shower_image_v.empty()) mask_image(crop_shower_image_v[plane], crop_stopmu_image_v[plane]);
-	    }
-
-	  }
-	
-	  status = status && Reconstruct(crop_adc_image_v,
-					 crop_track_image_v, crop_shower_image_v,
-					 crop_thrumu_image_v, crop_stopmu_image_v,
-					 crop_chstat_image_v);
-	
-	  status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
-	} // end loop over ROI
-      } // end ROI exists
+	status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
+      } // end loop over ROI
     } // end image fed to reco
 
     LARCV_DEBUG() << "return " << status << std::endl;
@@ -591,8 +521,8 @@ namespace larcv {
     if(!_channel_producer.empty()) {
       for(auto& img_data : _LArbysImageMaker.ExtractImage(chstat_image_v)) {
 
-	  _chstat_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
-				       std::move(std::get<1>(img_data)));
+	_chstat_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
+				     std::move(std::get<1>(img_data)));
       }
     }
     
@@ -688,36 +618,5 @@ namespace larcv {
 
   }
   
-  std::vector<ImageMeta> LArbysImage::UnionROI(const std::vector<ROI>& roi_v) {
-
-    LARCV_DEBUG() << "start: got " << roi_v.size() << " rois" << std::endl;
-    std::vector<larcv::ImageMeta> union_bb_v(3);
-
-    if(roi_v.front().BB().size()<3) {
-      LARCV_CRITICAL() << "First ROI only has " << roi_v.front().BB().size() << " planes" << std::endl;
-      throw larbys();
-    }
-    
-    for(size_t plane=0; plane<3; ++plane) 
-      union_bb_v[plane] = roi_v.front().BB(plane);
-    
-    bool first = false;
-    for(const auto& roi : roi_v) {
-	  
-      if (!first) { first = true; continue; }
-
-      const auto& bb_v = roi.BB();
-
-      for(size_t plane=0; plane<bb_v.size(); ++plane) {
-	const auto& bb = bb_v[plane];
-	auto& union_bb = union_bb_v[plane];
-	union_bb = union_bb.inclusive(bb);
-      }
-    }
-
-    LARCV_DEBUG() << "end" << std::endl;
-    return union_bb_v;
-  }
-
 }
 #endif
