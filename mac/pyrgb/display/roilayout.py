@@ -99,13 +99,19 @@ class ROIToolLayout(QtGui.QGridLayout):
         # Pointer to current list of images for computing ROI
         self.images = images
 
+        print
+        print self.images
+        print
+
         # Pointer to the current list of events
         self.event = event # what is this variable?
         
         # Erez, July-21, 2016
-        self.run = run
-        self.subrun = subrun
-        self.event_num = event_num
+        self.run = int(run.text())
+        self.subrun = int(subrun.text())
+        self.event_num = int(event_num.text())
+        self.captured_rse_map = {}
+        #print self.run, self.subrun, self.event_num
         # --------------------
         
 
@@ -157,11 +163,18 @@ class ROIToolLayout(QtGui.QGridLayout):
         self.plt = plotitem
         self.labeltools.setWidgets( self.plt, self.imi )
 
-    def setImages( self, event, images ):
+    def setImages( self, event_key, images ):
         """ parent widget of the ROI tool sends in new event and images through this function. """
-        self.eventindex = event
+        print "event index",event_key[0]
+        self.run = event_key[1]
+        self.subrun = event_key[2]
+        self.event_num = event_key[3]
+        print self.run,self.subrun,self.event_num
         self.images = images
-        self.labeltools.setImage( event, self.images )
+        #print self.images.img_v
+        #for img in self.images.img_v:
+        #    print img.shape
+        self.labeltools.setImage( event_key[0], self.images )
         
     def storeROI(self):
         """ responsible for outputing data used by the ROI tool.
@@ -181,15 +194,17 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         for event, rois in self.user_rois.iteritems():
             if int(event) > max_: max_ = event
+            print event, max_
             
         max_+=1
 
         for event in xrange(max_):
 
-            roiarray = self.ou_iom.get_data(larcv.kProductROI,self.output_prod)
-            vertex_array = self.ou_iom.get_data(larcv.kProductPixel2D,self.output_prod)
+            if not event in self.captured_rse_map.keys():
+                continue
+
             if len(self.labeltools.stored_labels)>0:
-                label_array  = self.ou_iom.get_data(larcv.kProductPixel2D,"labels")
+                label_array  = self.ou_iom.get_data(larcv.kProductPixel2D,self.output_prod)
 
             # event == TTree entry in the image file so I place that in the event number here.
 
@@ -223,11 +238,13 @@ class ROIToolLayout(QtGui.QGridLayout):
 
             # There is ROI so lets append the larcv converted ROIs and put them into the ROOT file
             if event in self.user_rois_larcv and len(self.user_rois_larcv[event])>0:
+                roiarray = self.ou_iom.get_data(larcv.kProductROI,self.output_prod)
                 for larcv_roi in self.user_rois_larcv[event]:
                     roiarray.Append(larcv_roi)
 
             # There are vertices, too
             if event in self.user_vertices_larcv and len(self.user_vertices_larcv[event])>0:
+                vertex_array = self.ou_iom.get_data(larcv.kProductPixel2D,'vertex_%s' % self.output_prod)
                 for larcv_vertex2d in self.user_vertices_larcv[event]:
                     if larcv_vertex2d != (None,None,None):
                         print "storing ",larcv_vertex2d
@@ -239,7 +256,7 @@ class ROIToolLayout(QtGui.QGridLayout):
                 print "storing labels for event=",event,
                 pixelclusters = self.labelimg2pixelcluster( self.labeltools.stored_labels[event] )
                 for p,pixelcluster in enumerate( pixelclusters ):
-                    print " plane=",0,":",pixelcluster.size()," ",
+                    print " plane=",p,":",pixelcluster.size()," ",
                     label_array.Append( p, pixelcluster )
             elif event not in self.labeltools.stored_labels and len(self.labeltools.stored_labels)>0:
                 print "inserting empty pixelclusters"
@@ -249,6 +266,9 @@ class ROIToolLayout(QtGui.QGridLayout):
                     label_array.Append( p, pc )
                 
             # Save them to the tree
+            out_rse = self.captured_rse_map[event]
+            print 'Saving RSE =',out_rse
+            self.ou_iom.set_id(out_rse[0],out_rse[1],out_rse[2])
             self.ou_iom.save_entry()
 
         # Put it on the disk
@@ -305,6 +325,7 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         # Get the rois on screen
         self.user_rois[int(self.event.text())] = self.rois # not allowed to ``copy" qwidgets (w/ copy.deepcopy)
+        self.captured_rse_map[int(self.event.text())] = (self.run,self.subrun,self.event_num)
         
         larcv_rois = [self.roi2larcv(roisg) for roisg in self.rois]
         larcv_vertices = [self.roi2vertex2d(roisg) for roisg in self.rois]
@@ -434,6 +455,10 @@ class ROIToolLayout(QtGui.QGridLayout):
 
         event = int(self.event.text())
         rse = ( self.dm.run, self.dm.subrun, self.dm.event  )
+
+        self.run = rse[0]
+        self.subrun = rse[1]
+        self.event_num = rse[2]
 
         # If no user ROIs, look through imported ROIs
         if event not in self.user_rois.keys():
@@ -580,8 +605,9 @@ class ROIToolLayout(QtGui.QGridLayout):
             labelmat = labelimg[iplane]
             idx_bg = self.labeltools.labels.index("background")
             idxlabels = (labelmat != idx_bg).nonzero()
+            ivertmax = self.images.img_v[iplane].shape[1]-1
             for ivert in xrange(0,len(idxlabels[0])):
-                vert = larcv.Pixel2D( idxlabels[0][ivert], idxlabels[1][ivert] )
+                vert = larcv.Pixel2D( idxlabels[0][ivert], ivertmax - idxlabels[1][ivert] )
                 label = labelmat[ idxlabels[0][ivert], idxlabels[1][ivert] ]
                 print "storing (",vert.X(),",",vert.Y(),") label=", self.labeltools.labels[label]
                 vert.Intensity( float(self.translator[ label ] ) )

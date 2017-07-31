@@ -1,9 +1,9 @@
 /**
- * \file ImageFromPixel2D.h
+ * \file ImageFromPixel2DCluster.h
  *
  * \ingroup Package_Name
  * 
- * \brief Class def header for a class ImageFromPixel2D
+ * \brief Class def header for a class ImageFromPixel2DCluster
  *
  * @author kazuhiro
  */
@@ -20,18 +20,18 @@ namespace larcv {
 
   /**
      \class ProcessBase
-     User defined class ImageFromPixel2D ... these comments are used to generate
+     User defined class ImageFromPixel2DCluster ... these comments are used to generate
      doxygen documentation!
   */
-  class ImageFromPixel2D : public ProcessBase {
+  class ImageFromPixel2DCluster : public ProcessBase {
 
   public:
     
     /// Default constructor
-    ImageFromPixel2D(const std::string name="ImageFromPixel2D");
+    ImageFromPixel2DCluster(const std::string name="ImageFromPixel2DCluster");
     
     /// Default destructor
-    ~ImageFromPixel2D(){}
+    ~ImageFromPixel2DCluster(){}
 
     void configure(const PSet&);
 
@@ -46,8 +46,7 @@ namespace larcv {
     enum class PIType_t {
       kPITypeFixedPI,
       kPITypeInputImage,
-      kPITypeClusterIndex,
-      kPITypeUndefined
+      kPITypeClusterIndex
     };
     float _fixed_pi;
     PIType_t _type_pi;
@@ -58,17 +57,17 @@ namespace larcv {
   };
 
   /**
-     \class larcv::ImageFromPixel2DFactory
-     \brief A concrete factory class for larcv::ImageFromPixel2D
+     \class larcv::ImageFromPixel2DClusterFactory
+     \brief A concrete factory class for larcv::ImageFromPixel2DCluster
   */
-  class ImageFromPixel2DProcessFactory : public ProcessFactoryBase {
+  class ImageFromPixel2DClusterProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    ImageFromPixel2DProcessFactory() { ProcessFactory::get().add_factory("ImageFromPixel2D",this); }
+    ImageFromPixel2DClusterProcessFactory() { ProcessFactory::get().add_factory("ImageFromPixel2DCluster",this); }
     /// dtor
-    ~ImageFromPixel2DProcessFactory() {}
+    ~ImageFromPixel2DClusterProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new ImageFromPixel2D(instance_name); }
+    ProcessBase* create(const std::string instance_name) { return new ImageFromPixel2DCluster(instance_name); }
   };
 
 }

@@ -595,7 +595,7 @@ class RGBDisplay(QtGui.QWidget):
         #the event is changed. For now lets directly tell ROILayout
 
         #start vichack
-        self.roitool_layout.setImages( int(self.event.text()), self.image )
+        self.roitool_layout.setImages( (int(self.event.text()),int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())), self.image )
         self.roitool_layout.reloadROI()
         #end vichack
         
