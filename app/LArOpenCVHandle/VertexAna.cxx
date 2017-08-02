@@ -371,8 +371,6 @@ namespace larcv {
     _nearest_wire_err = kINVALID_INT;
 
     _in_fiducial = false;
-
-
   }
 
 }

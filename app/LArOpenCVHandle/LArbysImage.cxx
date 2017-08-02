@@ -56,7 +56,7 @@ namespace larcv {
     _par_algo_name    = cfg.get<std::string>("ParticleAlgoName","");
 
     const auto& data_man = _alg_mgr.DataManager();
-      
+    
     _vertex_algo_id = larocv::kINVALID_ALGO_ID;
     if (!_vertex_algo_name.empty()) {
       _vertex_algo_id = data_man.ID(_vertex_algo_name);
