@@ -18,8 +18,10 @@
 #pragma link C++ class larcv::VtxInRegion+;
 #pragma link C++ class larcv::EmptyImageFilter+;
 #pragma link C++ class larcv::ROICountFilter+;
+#pragma link C++ class larcv::RSEFilter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

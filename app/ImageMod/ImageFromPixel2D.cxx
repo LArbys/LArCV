@@ -47,62 +47,54 @@ namespace larcv {
       throw larbys();
     }
 
-    auto const& pcluster_m = ev_pixel->Pixel2DClusterArray();
-    auto const& meta_m     = ev_pixel->ClusterMetaArray();
+    auto const& pcluster_m = ev_pixel->Pixel2DArray();
+    auto const& meta_m     = ev_pixel->MetaArray();
     auto const& image_v    = ev_in_image->Image2DArray();
 
     for(size_t plane=0; plane<image_v.size(); plane++) {
-      auto meta_iter = meta_m.find(plane);
-      if(meta_iter == meta_m.end()) {
-	LARCV_CRITICAL() << "Plane " << plane << " not found in ClusterMetaArray()!" << std::endl;
-	throw larbys();
-      }
-      auto clus_iter = pcluster_m.find(plane);
-      if(clus_iter==pcluster_m.end()) {
-	LARCV_CRITICAL() << "Plane " << plane << " not found in Pixel2DClusterArray()!" << std::endl;
-	throw larbys();
-      }
 
       auto const& ref_meta = image_v.at(plane).meta();
       auto const& ref_data = image_v.at(plane).as_vector();
-      auto const& pcluster_v = (*clus_iter).second;
-      auto const& meta_v = (*meta_iter).second;
+      Image2D out_image(ref_meta);
+      out_image.paint(0.);
 
-      // sanity check
-      if(meta_v.size() != pcluster_v.size() ) {
-	LARCV_CRITICAL() << "# cluster meta and # cluster does not match!" << std::endl;
-	throw larbys();
+      auto const& pcluster_iter = pcluster_m.find(plane);
+      if(pcluster_iter == pcluster_m.end()) {
+	ev_out_image->Emplace(std::move(out_image));
+	continue;
       }
-      for(auto const& meta : meta_v) {
-	if(meta == ref_meta) continue;
+
+      auto meta_iter = meta_m.find(plane);
+      if(meta_iter != meta_m.end() && ref_meta != (*meta_iter).second) {
 	LARCV_CRITICAL() << "Found non-compatible image meta!" << std::endl
-			 << "      Cluster: " << meta.dump()
+			 << "      Cluster: " << (*meta_iter).second.dump()
 			 << "      Ref    : " << ref_meta.dump();
 	throw larbys();
       }
-      
-      Image2D out_image(ref_meta);
-      out_image.paint(0.);
-      for(size_t cluster_idx=0; cluster_idx<pcluster_v.size(); ++cluster_idx){
-	auto const& pcluster = pcluster_v[cluster_idx];
-	auto const& meta     = meta_v[cluster_idx];
-	for(auto const& pixel2d : pcluster) {
-	  //std::cout<<pixel2d.X() << " " << pixel2d.Y() << " ... " << pixel2d.Intensity() << std::endl;
-	  //out_image.set_pixel(pixel2d.Y(), pixel2d.X(),100);
-	  float val=_fixed_pi;
-	  size_t index = (pixel2d.X() * ref_meta.rows() + pixel2d.Y());
-	  switch(_type_pi) {
-	  case PIType_t::kPITypeFixedPI:
-	    break;
-	  case PIType_t::kPITypeInputImage:
-	    val = ref_data[index];
-	    break;
-	  case PIType_t::kPITypeClusterIndex:
-	    val = cluster_idx+1;
-	    break;
-	  }
-	  out_image.set_pixel( (pixel2d.X() * ref_meta.rows() + pixel2d.Y()),val);
+
+      auto const& pcluster = (*pcluster_iter).second;
+      //std::cout<<ref_meta.dump()<<std::endl;
+      for(auto const& pixel2d : pcluster) {
+	//std::cout<<pixel2d.X() << " " << pixel2d.Y() << " ... " << pixel2d.Intensity() << std::endl;
+	//out_image.set_pixel(pixel2d.Y(), pixel2d.X(),100);
+	float val=_fixed_pi;
+	size_t index = (pixel2d.X() * ref_meta.rows() + pixel2d.Y());
+	switch(_type_pi) {
+	case PIType_t::kPITypeFixedPI:
+	  break;
+	case PIType_t::kPITypeInputImage:
+	  val = ref_data[index];
+	  break;
+	case PIType_t::kPITypeClusterIndex:
+	  LARCV_CRITICAL() << "kPITypeClusterIndex not unsupported!" <<std::endl;
+	  throw larbys();
+	  break;
+	case PIType_t::kPITypeUndefined:
+	  val = pixel2d.Intensity();
+	  break;
 	}
+	//std::cout<<"Filling " << pixel2d.X() << "  " << pixel2d.Y() << std::endl;
+	out_image.set_pixel( (pixel2d.X() * ref_meta.rows() + pixel2d.Y()),val);
       }
       ev_out_image->Emplace(std::move(out_image));
     }

@@ -61,6 +61,8 @@ namespace larcv {
       }
     }
 
+    if (scex == -1 or scey == -1 or scez == -1) return false;
+    
     double xyz[3];
     xyz[0] = scex;
     xyz[1] = scey;

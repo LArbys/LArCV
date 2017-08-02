@@ -29,6 +29,7 @@
 
 #pragma link C++ class larcv::ROIAna+;
 #pragma link C++ class larcv::CosmicPixelAna+;
+#pragma link C++ class larcv::SSNetPixelAna+;
 #pragma link C++ class larcv::OperateImage+;
 #pragma link C++ class larcv::PostTagger+;
 
