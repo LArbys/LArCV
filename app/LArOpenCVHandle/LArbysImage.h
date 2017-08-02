@@ -78,7 +78,7 @@ namespace larcv {
     std::string _output_module_name;
     size_t _output_module_offset;
     
-    std::vector<float> _plane_weights;
+    std::string _rse_producer;
     std::string _adc_producer;
     std::string _roi_producer;
     std::string _track_producer;
