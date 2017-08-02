@@ -94,6 +94,11 @@ namespace larcv {
     _pixel_m[plane].push_back(pixel);
   }
 
+  void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster)
+  {
+    for(auto const& px2d : cluster) Append(plane,px2d);    
+  }
+
   void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster, const ImageMeta& meta)
   {
     auto& col = _cluster_m[plane];

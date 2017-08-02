@@ -177,10 +177,10 @@ class LabelingTool:
         print np.count_nonzero( marked )
         self.labelmat[self.plane][ marked ] = self.current_idx_label
         # debug: print indices of marked pixels
-        #nz = np.nonzero( marked )
-        #print nz
-        #for x in range(0,len(nz[0])):
-        #    print nz[0][x], nz[1][x]
+        nz = np.nonzero( marked )
+        print nz
+        for x in range(0,len(nz[0])):
+            print nz[0][x], nz[1][x]
         return
     
     def undo(self):

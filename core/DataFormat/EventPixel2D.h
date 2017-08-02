@@ -70,6 +70,8 @@ namespace larcv {
     /// Insert larcv::Pixel2D into a collection
     void Append(const larcv::PlaneID_t plane, const Pixel2D& pixel);
     /// Insert larcv::Pixel2DCluster into a collection
+    void Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster);
+    /// Insert larcv::Pixel2DCluster into a collection
     void Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster, const ImageMeta&);
     
 #ifndef __CINT__
