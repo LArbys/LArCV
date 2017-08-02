@@ -22,7 +22,7 @@ namespace larcv {
     LArbysImage(const std::string name="LArbysImage");
     
     /// Default destructor
-    ~LArbysImage(){}
+    virtual ~LArbysImage(){}
 
     void configure(const PSet&);
 
@@ -40,19 +40,20 @@ namespace larcv {
   protected:
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
-    void get_rsee(IOManager& mgr,std::string producer,
+
+    void get_rsee(IOManager& mgr, std::string producer,
 		  uint& run, uint& subrun, uint& event, uint& entry);
             
     void construct_cosmic_image(IOManager& mgr, std::string producer,
 				const std::vector<larcv::Image2D>& adc_image_v,
 				std::vector<larcv::Image2D>& mu_image_v);
-
-    bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
-		     const std::vector<larcv::Image2D>& track_image_v,
-		     const std::vector<larcv::Image2D>& shower_image_v,
-		     const std::vector<larcv::Image2D>& thrumu_image_v,
-		     const std::vector<larcv::Image2D>& stopmu_image_v,
-    		     const std::vector<larcv::Image2D>& chstat_image_v);
+    
+    virtual bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
+			     const std::vector<larcv::Image2D>& track_image_v,
+			     const std::vector<larcv::Image2D>& shower_image_v,
+			     const std::vector<larcv::Image2D>& thrumu_image_v,
+			     const std::vector<larcv::Image2D>& stopmu_image_v,
+			     const std::vector<larcv::Image2D>& chstat_image_v);
 
     bool StoreParticles(IOManager& iom,
 			const std::vector<larcv::Image2D>& adcimg_v,
