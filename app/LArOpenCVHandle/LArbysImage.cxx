@@ -24,6 +24,7 @@ namespace larcv {
       
   void LArbysImage::configure(const PSet& cfg)
   {
+    _rse_producer         = cfg.get<std::string>("RSEImageProducer","wire");
     _adc_producer         = cfg.get<std::string>("ADCImageProducer");
     _track_producer       = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer      = cfg.get<std::string>("ShowerImageProducer","");
@@ -87,6 +88,27 @@ namespace larcv {
     subrun = (uint) ev_image->subrun();
     event  = (uint) ev_image->event();
     entry  = (uint) mgr.current_entry();
+
+    if (run == kINVALID_UINT)  {
+      LARCV_CRITICAL() << "Invalid run number @ entry " << entry << " from " << producer << " producer" << std::endl;
+      throw larbys();
+    }
+
+    if (subrun == kINVALID_UINT)  {
+      LARCV_CRITICAL() << "Invalid subrun number @ entry " << entry << " from " << producer << " producer" << std::endl;
+      throw larbys();
+    }
+
+    if (event == kINVALID_UINT)  {
+      LARCV_CRITICAL() << "Invalid event number @ entry " << entry << " from " << producer << " producer" << std::endl;
+      throw larbys();
+    }
+
+    if (entry == kINVALID_UINT)  {
+      LARCV_CRITICAL() << "Invalid entry number @ entry "  << entry << " from " << producer << " producer" << std::endl;
+      throw larbys();
+    }
+    
   }
   
   
@@ -153,7 +175,7 @@ namespace larcv {
   {
     LARCV_DEBUG() << "Process index " << mgr.current_entry() << std::endl;
     uint run,subrun,event,entry;
-    get_rsee(mgr,_adc_producer,run,subrun,event,entry);
+    get_rsee(mgr,_rse_producer,run,subrun,event,entry);
     
     _alg_mgr.SetRSEE(run,subrun,event,entry);
     

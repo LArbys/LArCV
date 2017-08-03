@@ -17,9 +17,8 @@ namespace larcv {
     void initialize();
     bool process(IOManager& mgr);
     void finalize();
-    
     void SetROIIndex(int index) { _croi_idx = index; }
-		 
+    
   private:
     ::larutil::SpaceChargeMicroBooNE _sce;
 
