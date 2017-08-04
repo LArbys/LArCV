@@ -124,20 +124,32 @@ namespace larcv {
 
     for(size_t pgraph_id = 0; pgraph_id < _ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
+      LARCV_DEBUG() << "@pgraph=" << pgraph_id << std::endl;
+      
       auto const& pgraph = _ev_pgraph_v->PGraphArray().at(pgraph_id);
       auto const& roi_v = pgraph.ParticleArray();
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
-
 
       // Get the 3D vertex position
       auto vtx_x = pgraph.ParticleArray().front().X();
       auto vtx_y = pgraph.ParticleArray().front().Y();
       auto vtx_z = pgraph.ParticleArray().front().Z();
-      
+
+      // Get the 3D end point
+      auto end_x = pgraph.ParticleArray().front().EndPosition().X();
+      auto end_y = pgraph.ParticleArray().front().EndPosition().Y();
+      auto end_z = pgraph.ParticleArray().front().EndPosition().Z();
+
+      LARCV_DEBUG() << "vertex=(" << vtx_x << "," << vtx_y << "," << vtx_z << ")" << std::endl;
+      LARCV_DEBUG() << "end   =(" << end_x << "," << end_y << "," << end_z << ")" << std::endl;
+	    
       auto nparticles = cluster_idx_v.size();
       
       // Loop per plane, get the particle contours and images for this plane
       for(size_t plane=0; plane<3; ++plane) {
+
+	LARCV_DEBUG() << "@plane=" <<plane << std::endl;
+	
 	auto iter_pcluster = pcluster_m.find(plane);
 	if(iter_pcluster == pcluster_m.end()) continue;
 	
@@ -160,9 +172,8 @@ namespace larcv {
 	auto& shr_cvimg = shr_cvimg_v.at(meta_id);
 
 	double x_pixel,y_pixel;
-	x_pixel =y_pixel = kINVALID_DOUBLE;
-
-	// Check if gap exists
+	x_pixel = y_pixel = kINVALID_DOUBLE;
+	
 	Project3D(meta,
 		  vtx_x,vtx_y,vtx_z,0, // (x,y,z,t)
 		  plane,
@@ -188,6 +199,10 @@ namespace larcv {
 	    ctor[i].x = pctor[i].X();
 	    ctor[i].y = pctor[i].Y();
 	  }
+
+	  
+
+
 	  
 	} // end this particle
       } // end this plane
