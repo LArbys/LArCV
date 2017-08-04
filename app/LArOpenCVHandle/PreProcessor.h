@@ -101,7 +101,10 @@ namespace larcv {
     uint _min_merge_track_shower_dist;
     double _allowed_merge_neighbor_dist;
     double _allowed_edge_overlap;
-    
+    bool _merge_end_nubs;
+    uint _end_nub_max_pixels;
+    uint _min_track_pixels;
+  
   };
 }
 #endif
