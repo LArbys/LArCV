@@ -11,6 +11,7 @@
 #include "LArbysUtils.h"
 #include "LArOpenCV/ImageCluster/AlgoData/Vertex.h"
 #include "LArOpenCV/ImageCluster/AlgoData/ParticleCluster.h"
+#include "LArOpenCV/ImageCluster/AlgoData/InfoCollection.h"
 
 namespace larcv {
 
@@ -53,9 +54,10 @@ namespace larcv {
     ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
 
-    _vertex_algo_name = cfg.get<std::string>("VertexAlgoName","");
-    _par_algo_name    = cfg.get<std::string>("ParticleAlgoName","");
-
+    _vertex_algo_name    = cfg.get<std::string>("VertexAlgoName");
+    _par_algo_name       = cfg.get<std::string>("ParticleAlgoName");
+    _3D_algo_name        = cfg.get<std::string>("3DAlgoName");
+    
     const auto& data_man = _alg_mgr.DataManager();
     
     _vertex_algo_id = larocv::kINVALID_ALGO_ID;
@@ -70,6 +72,13 @@ namespace larcv {
       _par_algo_id = data_man.ID(_par_algo_name);
       if (_par_algo_id == larocv::kINVALID_ALGO_ID)
 	throw larbys("Specified invalid particle algorithm");
+    }
+
+    _3D_algo_id = larocv::kINVALID_ALGO_ID;
+    if (!_3D_algo_name.empty()) {
+      _3D_algo_id = data_man.ID(_3D_algo_name);
+      if (_3D_algo_id == larocv::kINVALID_ALGO_ID)
+	throw larbys("Specified invalid 3D info algorithm");
     }
 
     _vertex_algo_vertex_offset = cfg.get<size_t>("VertexAlgoVertexOffset",0);
@@ -365,7 +374,7 @@ namespace larcv {
   bool LArbysImage::StoreParticles(IOManager& iom,
 				   const std::vector<Image2D>& adc_image_v,
 				   size_t& pidx) {
-
+    
     // nothing to be done
     if (_vertex_algo_id == larocv::kINVALID_ALGO_ID) {
       LARCV_INFO() << "Nothing to be done..." << std::endl;
@@ -385,13 +394,16 @@ namespace larcv {
     const auto& ass_man  = data_mgr.AssManager();
     
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(_vertex_algo_id, _vertex_algo_vertex_offset);
-    const auto& vtx3d_v    = vtx3d_array->as_vector();
+    const auto& vtx3d_v = vtx3d_array->as_vector();
     
     const auto par_array = (larocv::data::ParticleArray*) data_mgr.Data(_par_algo_id,_par_algo_par_offset);
-    const auto& par_v     = par_array->as_vector();
+    const auto& par_v = par_array->as_vector();
+
+    const auto info_3D_array = (larocv::data::Info3DArray*) data_mgr.Data(_3D_algo_id,0);
+    const auto& info_3D_v = info_3D_array->as_vector();
 
     auto n_reco_vtx = vtx3d_v.size();
-
+    
     LARCV_DEBUG() << "Got " << n_reco_vtx << " reconstructed vertex" << std::endl;
 
     for(size_t vtxid=0; vtxid< n_reco_vtx; ++vtxid) {
@@ -413,6 +425,10 @@ namespace larcv {
       for(const auto& par_id : par_id_v) {
 	
 	const auto& par = par_v.at(par_id);
+
+	const auto info3d_id   = ass_man.GetOneAss(par,info_3D_array->ID());
+	if (info3d_id == kINVALID_SIZE) throw larbys("Particle unassociated to 3D info collection");
+	const auto& par_info3d = info_3D_v.at(info3d_id);
 	
 	// New ROI for this particle
 	ROI proi;
@@ -420,6 +436,12 @@ namespace larcv {
 	// Store the vertex
 	proi.Position(vtx3d.x,vtx3d.y,vtx3d.z,kINVALID_DOUBLE);
 
+	// Store the end point
+	proi.EndPosition(par_info3d.overall_pca_end_pt.at(0),
+			 par_info3d.overall_pca_end_pt.at(1),
+			 par_info3d.overall_pca_end_pt.at(2),
+			 kINVALID_DOUBLE);
+	
 	// Store the type
 	if      (par.type==larocv::data::ParticleType_t::kTrack)   proi.Shape(kShapeTrack);
 	else if (par.type==larocv::data::ParticleType_t::kShower)  proi.Shape(kShapeShower);

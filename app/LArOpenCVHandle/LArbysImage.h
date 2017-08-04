@@ -91,10 +91,12 @@ namespace larcv {
 
     std::string _vertex_algo_name;
     std::string _par_algo_name;
+    std::string _3D_algo_name;
     
     larocv::AlgorithmID_t _vertex_algo_id;
     larocv::AlgorithmID_t _par_algo_id;
-
+    larocv::AlgorithmID_t _3D_algo_id;
+    
     size_t _vertex_algo_vertex_offset;
     size_t _par_algo_par_offset;
     
