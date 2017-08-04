@@ -41,7 +41,12 @@ namespace larcv {
     MergeStraightShowers(cv::Mat& adc_img,
 			 cv::Mat& track_img,
 			 cv::Mat& shower_img);
-    
+   
+    void
+    MergeEndNubs(cv::Mat& adc_img,
+                 cv::Mat& track_img,
+                 cv::Mat& shower_img);
+  
   private:
     bool
     OverallStraightCompatible(const larocv::PixelChunk& pchunk1,
