@@ -7,10 +7,13 @@
 #include "DataFormat/IOManager.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventPixel2D.h"
-
-#include <opencv2/opencv.hpp>
 #include <tuple>
 
+#ifndef __CLING__
+#ifndef __CINT__
+#include <opencv2/opencv.hpp>
+#endif
+#endif
 
 namespace larcv {
   class LArbysImageMaker : public larcv_base {

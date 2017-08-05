@@ -147,7 +147,7 @@ namespace larcv {
     if (!cheater_alg) throw larbys("Could not find RW cheater algo");
     if (!_mgr) throw larbys("No IOManager pointer specified");
     
-    std::string true_roi_producer = "tpc";
+    auto true_roi_producer = _true_prod;
     LARCV_DEBUG() << "Set true ROI producer name: " << true_roi_producer << std::endl;
     
     auto ev_roi = (EventROI*)_mgr->get_data(kProductROI,true_roi_producer);
@@ -189,6 +189,10 @@ namespace larcv {
     ++_process_count;
 
     return true;
+  }
+
+  void LArbysImageCheater::SetTrueROIProducer(const std::string& true_prod) {
+    _true_prod = true_prod;
   }
   
 }

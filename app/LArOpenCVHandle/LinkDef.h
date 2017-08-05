@@ -14,10 +14,6 @@
 #pragma link C++ class larcv::LArbysImageExtract+;
 
 #pragma link C++ class larcv::LArbysImageMC+;
-
-#pragma link C++ class larcv::LArbysImage+;
-#pragma link C++ class larcv::LArbysImageCheater+;
-
 #pragma link C++ class larcv::VertexInROI+;
 #pragma link C++ class larcv::LEE1e1pAna+;
 #pragma link C++ class larcv::VertexAna+;
@@ -36,6 +32,10 @@
 #pragma link C++ class larcv::PostTagger+;
 
 #pragma link C++ class larcv::BlankImage+;
+
+#pragma link C++ class larcv::LArbysImage+;
+#pragma link C++ class larcv::LArbysImageCheater+;
+
 //ADD_NEW_CLASS ... do not change this line
 #endif
 

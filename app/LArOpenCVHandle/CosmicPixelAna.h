@@ -98,6 +98,12 @@ namespace larcv {
     float _vertex_ratiopixelsum;
     float _vertex_ratiopixelavg;
 
+
+    //
+    //
+    //
+    int _nearest_wire_error;
+    int _not_inside;
   };
 
   /**

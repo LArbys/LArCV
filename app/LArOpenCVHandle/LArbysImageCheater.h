@@ -13,7 +13,8 @@ namespace larcv {
     ~LArbysImageCheater() {}
 
     void SetIOManager(IOManager* mgr);
-    
+    void SetTrueROIProducer(const std::string& true_prod);
+
   protected:
     
     bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
@@ -27,7 +28,7 @@ namespace larcv {
     
     ::larutil::SpaceChargeMicroBooNE _sce;
     IOManager* _mgr;
-    
+    std::string _true_prod;
   };
 
   /**

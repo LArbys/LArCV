@@ -84,7 +84,9 @@ namespace larcv {
 
     _tree->Branch("vertex_ratiopixelsum",&_vertex_ratiopixelsum,"vertex_ratiopixelsum/F");
     _tree->Branch("vertex_ratiopixelavg",&_vertex_ratiopixelavg,"vertex_ratiopixelavg/F");
-    
+ 
+    _tree->Branch("nearest_wire_error",&_nearest_wire_error,"nearest_wire_error/I");
+    _tree->Branch("not_inside",&_not_inside,"not_inside/I");
   }
 
   bool CosmicPixelAna::process(IOManager& mgr)
@@ -180,16 +182,19 @@ namespace larcv {
     xyz[0] = scex;
     xyz[1] = scey;
     xyz[2] = scez;
-
+    _nearest_wire_error = 0;
     try {
       wire_v[0] = geo->NearestWire(xyz,0);
       wire_v[1] = geo->NearestWire(xyz,1);
       wire_v[2] = geo->NearestWire(xyz,2);
     } catch(const std::exception& e) {
-      throw larbys("Could not find nearest wire");
+      _tree->Fill();
+      _nearest_wire_error=1;
+      return true;
     }
 
     
+    _not_inside = 0;
     for (size_t plane=0; plane<3; ++plane) {
       
       const auto& img2d = seg_img2d->Image2DArray().at(plane);
@@ -213,7 +218,9 @@ namespace larcv {
 	
 	LARCV_DEBUG() << "Set (xpixel,ypixel)=("<<xpixel<<","<<ypixel<<")"<<std::endl;
       } else {
-       throw larbys("It's not inside");
+	_tree->Fill();
+	_not_inside = 1;
+	return true;
       }
     
       auto crop_img2d  = img2d.crop(bb);

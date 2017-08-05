@@ -6,8 +6,13 @@
 #include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
 #include "Geo2D/Core/Circle.h"
 #include "Geo2D/Core/Line.h"
+#ifndef __CLING__
+#ifndef __CINT__
 #include "opencv2/imgproc.hpp"
 #include <opencv2/opencv.hpp>
+#endif
+#endif
+
 namespace handshake {
   
   larocv::GEO2D_Contour_t HandShaker::as_contour(const larcv::Pixel2DCluster& contour)

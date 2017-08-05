@@ -186,39 +186,39 @@ namespace larcv {
 
       ypixel = crop_img2d.meta().rows() - ypixel;
 
-      auto mat0 = as_gray_mat(crop_img2d,0,255,1);
-      auto mat1 = as_gray_mat(crop_trk2d,0,255,1);
-      auto mat2 = as_gray_mat(crop_shr2d,0,255,1);
+      // auto mat0 = as_gray_mat(crop_img2d,0,255,1);
+      // auto mat1 = as_gray_mat(crop_trk2d,0,255,1);
+      // auto mat2 = as_gray_mat(crop_shr2d,0,255,1);
 
-      cv::threshold(mat0,mat0,1,255,1);
-      cv::threshold(mat1,mat1,1,255,1);
-      cv::threshold(mat2,mat2,1,255,1);
+      // cv::threshold(mat0,mat0,1,255,1);
+      // cv::threshold(mat1,mat1,1,255,1);
+      // cv::threshold(mat2,mat2,1,255,1);
       
-      auto mat3 = mat2.clone();
-      mat3.setTo(cv::Scalar(255.0));
+      // auto mat3 = mat2.clone();
+      // mat3.setTo(cv::Scalar(255.0));
       
-      mat3.at<uchar>((int)ypixel,(int)xpixel) = (uchar)0.0;
+      // mat3.at<uchar>((int)ypixel,(int)xpixel) = (uchar)0.0;
 
-      if (plane==0) {
-	cv::imwrite("img0.png"   ,mat0);
-	cv::imwrite("trk0.png"   ,mat1);
-	cv::imwrite("shr0.png"   ,mat2);
-	cv::imwrite("vtx0.png"   ,mat3);
-      }
+      // if (plane==0) {
+      // 	cv::imwrite("img0.png"   ,mat0);
+      // 	cv::imwrite("trk0.png"   ,mat1);
+      // 	cv::imwrite("shr0.png"   ,mat2);
+      // 	cv::imwrite("vtx0.png"   ,mat3);
+      // }
 
-      if (plane==1) {
-	cv::imwrite("img1.png"   ,mat0);
-	cv::imwrite("trk1.png"   ,mat1);
-	cv::imwrite("shr1.png"   ,mat2);
-	cv::imwrite("vtx1.png"   ,mat3);
-      }
+      // if (plane==1) {
+      // 	cv::imwrite("img1.png"   ,mat0);
+      // 	cv::imwrite("trk1.png"   ,mat1);
+      // 	cv::imwrite("shr1.png"   ,mat2);
+      // 	cv::imwrite("vtx1.png"   ,mat3);
+      // }
 
-      if (plane==2) {
-	cv::imwrite("img2.png"   ,mat0);
-	cv::imwrite("trk2.png"   ,mat1);
-	cv::imwrite("shr2.png"   ,mat2);
-	cv::imwrite("vtx2.png"   ,mat3);
-      }
+      // if (plane==2) {
+      // 	cv::imwrite("img2.png"   ,mat0);
+      // 	cv::imwrite("trk2.png"   ,mat1);
+      // 	cv::imwrite("shr2.png"   ,mat2);
+      // 	cv::imwrite("vtx2.png"   ,mat3);
+      // }
 	
       for(size_t row=0; row < crop_img2d.meta().rows(); ++row) {
 	for(size_t col=0; col < crop_img2d.meta().cols(); ++col) {
