@@ -270,11 +270,6 @@ namespace larcv {
 
       LARCV_DEBUG() << "Recieved ADC image (w,h)=("<<pixel_width<<","<<pixel_height<<")"<<std::endl;
 
-      for(size_t plane=0; plane<3; ++plane)
-	LARCV_DEBUG() << adc_image_v[plane].meta().dump();
-
-      LARCV_DEBUG() << std::endl;
-
       assert(adc_image_v.size());
       assert(track_image_v.empty()  || adc_image_v.size() == track_image_v.size());
       assert(shower_image_v.empty() || adc_image_v.size() == shower_image_v.size());
@@ -282,6 +277,13 @@ namespace larcv {
       assert(thrumu_image_v.empty() || adc_image_v.size() == thrumu_image_v.size());
       assert(stopmu_image_v.empty() || adc_image_v.size() == stopmu_image_v.size());
 
+      LARCV_DEBUG() << "ADC image sz " << adc_image_v.size() << std::endl;
+      LARCV_DEBUG() << "TRK image sz " << track_image_v.size() << std::endl;
+      LARCV_DEBUG() << "SHR image sz " << shower_image_v.size() << std::endl;
+      LARCV_DEBUG() << "CHS image sz " << chstat_image_v.size() << std::endl;
+      LARCV_DEBUG() << "TMU image sz " << thrumu_image_v.size() << std::endl;
+      LARCV_DEBUG() << "SMU image sz " << stopmu_image_v.size() << std::endl;
+      
       LARCV_DEBUG() << "Extracting " << _roi_producer << " ROI\n" << std::endl;
       if( !(mgr.get_data(kProductROI,_roi_producer)) ) {
 	LARCV_CRITICAL() << "ROI by producer " << _roi_producer << " not found..." << std::endl;
@@ -359,8 +361,10 @@ namespace larcv {
 	}
 	
 	status = status && Reconstruct(crop_adc_image_v,
-				       crop_track_image_v, crop_shower_image_v,
-				       crop_thrumu_image_v, crop_stopmu_image_v,
+				       crop_track_image_v,
+				       crop_shower_image_v,
+				       crop_thrumu_image_v,
+				       crop_stopmu_image_v,
 				       crop_chstat_image_v);
 	
 	status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
@@ -551,20 +555,19 @@ namespace larcv {
     }
 
     if(!_stopmu_producer.empty()) { 
-      for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
 	_thrumu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
       }
     }
     if(!_thrumu_producer.empty()) {
-      for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
 	_stopmu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
       }
     }
     if(!_channel_producer.empty()) {
       for(auto& img_data : _LArbysImageMaker.ExtractImage(chstat_image_v)) {
-
 	_chstat_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
       }

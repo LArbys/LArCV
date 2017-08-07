@@ -177,6 +177,53 @@ namespace larcv {
 
     return false;
   }
+
+  float Cross2D (const geo2d::Vector<float>& u,
+		 const geo2d::Vector<float>& v)
+  {
+    return (u.y * v.x) - (u.x * v.y);
+  }
+  
+  bool TriangleIsCCW (const geo2d::Vector<float>& a,
+		      const geo2d::Vector<float>& b,
+		      const geo2d::Vector<float>& c)
+  {
+    return Cross2D(b - a, c - b) < 0;
+  }
+  
+  // page 201
+  bool InsideRegion(const geo2d::Vector<float>& p,
+		    const std::array<geo2d::Vector<float>, 4>& v) {
+
+    int n = 4;
+    int low = kINVALID_INT;
+    int high = kINVALID_INT;
+    do {
+      int mid = (low + high) / 2;
+      if (TriangleIsCCW(v.at(0), v.at(mid), p))
+	low = mid;
+      else
+	high = mid;
+    } while (low + 1 < high);
+
+    if (low == 0 || high == n) return false;
+
+    return TriangleIsCCW(v.at(low), v.at(high), p);
+  }
+
+  bool InsideRegions(const geo2d::Vector<float>& p,
+		     const std::vector<std::array<geo2d::Vector<float>, 4> >& v_v) {
+
+
+    for(const auto& region : v_v) {
+      if (!InsideRegion(p,region)) return false;
+    }
+
+    return true;
+  }
+
+  
+  
   
 }
 

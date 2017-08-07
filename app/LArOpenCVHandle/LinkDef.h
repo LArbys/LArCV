@@ -36,8 +36,10 @@
 #pragma link C++ class larcv::LArbysImage+;
 #pragma link C++ class larcv::LArbysImageCheater+;
 
+#pragma link C++ class larcv::BadRegionAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

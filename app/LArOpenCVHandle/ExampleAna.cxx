@@ -124,6 +124,12 @@ namespace larcv {
 
     for(size_t pgraph_id = 0; pgraph_id < _ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
+      std::stringstream base_ss;
+
+      base_ss << _entry << "_pgraph_id";
+
+      std::string base_str = base_ss.str();
+      
       LARCV_DEBUG() << "@pgraph=" << pgraph_id << std::endl;
       
       auto const& pgraph = _ev_pgraph_v->PGraphArray().at(pgraph_id);
@@ -148,6 +154,8 @@ namespace larcv {
       // Loop per plane, get the particle contours and images for this plane
       for(size_t plane=0; plane<3; ++plane) {
 
+	std::stringstream plane_ss;
+	
 	LARCV_DEBUG() << "@plane=" <<plane << std::endl;
 	
 	auto iter_pcluster = pcluster_m.find(plane);
@@ -180,6 +188,11 @@ namespace larcv {
 		  x_pixel,y_pixel);    // result
 	
 	y_pixel = meta.rows() - y_pixel;
+
+	auto adc_cvimg_bw = larocv::Threshold(adc_cvimg,10,255);
+	
+	plane_ss << base_str << "_plane_"<<plane<<"_adc.png";
+	cv::imwrite(plane_ss.str().c_str(),adc_cvimg_bw);
 	
 	// For each particle, get the contour and image on this plane (from pcluster_v/ctor_v)
 	for(size_t par_id=0; par_id < cluster_idx_v.size(); ++par_id) {

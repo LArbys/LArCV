@@ -6,6 +6,7 @@
 #include "Geo2D/Core/Vector.h"
 #include "Geo2D/Core/Circle.h"
 #include "DataFormat/Image2D.h"
+#include <array>
 
 namespace larcv {
 
@@ -41,7 +42,24 @@ namespace larcv {
   bool InFiducialRegion3D(float X, float Y, float Z,
 			  float edge_x=10.0, float edge_y=10.0, float edge_z=10.0);
     
-		
+
+
+
+  // page 201
+  float Cross2D (const geo2d::Vector<float>& u,
+		 const geo2d::Vector<float>& v);
+  
+  bool TriangleIsCCW (const geo2d::Vector<float>& a,
+		      const geo2d::Vector<float>& b,
+		      const geo2d::Vector<float>& c);
+  
+  bool InsideRegion(const geo2d::Vector<float>& p,
+		    const std::array<geo2d::Vector<float>, 4>& v);
+
+
+  bool InsideRegions(const geo2d::Vector<float>& p,
+		     const std::vector<std::array<geo2d::Vector<float>, 4> >& v_v);
+  
 }
 
 #endif

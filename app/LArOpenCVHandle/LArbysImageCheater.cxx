@@ -39,39 +39,51 @@ namespace larcv {
     larocv::Watch watch_all, watch_one;
     watch_all.Start();
     watch_one.Start();
-    
+
+    LARCV_DEBUG() << "Extract adc prod: " << _adc_producer << std::endl;
+    LARCV_DEBUG() << "... sz " << adc_image_v.size() << std::endl;
     for(auto& img_data : _LArbysImageMaker.ExtractImage(adc_image_v)) {
       _adc_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				std::move(std::get<1>(img_data)));
     }
-
+    
     if(!_track_producer.empty()) {
+      LARCV_DEBUG() << "Extract track prod: " << _track_producer << std::endl;
+      LARCV_DEBUG() << "... sz " << track_image_v.size() << std::endl;
       for(auto& img_data : _LArbysImageMaker.ExtractImage(track_image_v))  { 
 	_track_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				    std::move(std::get<1>(img_data)));
       }
     }
-    
+
     if(!_shower_producer.empty()) {
+      LARCV_DEBUG() << "Extract shower prod: " << _shower_producer << std::endl;
+      LARCV_DEBUG() << "... sz " << shower_image_v.size() << std::endl;
       for(auto& img_data : _LArbysImageMaker.ExtractImage(shower_image_v)) {
 	_shower_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
       }
     }
 
-    if(!_stopmu_producer.empty()) { 
-      for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
+    if(!_stopmu_producer.empty()) {
+      LARCV_DEBUG() << "Extract stopmu prod: " << _stopmu_producer << std::endl;
+      LARCV_DEBUG() << "... sz " << stopmu_image_v.size() << std::endl;
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
 	_thrumu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
       }
     }
     if(!_thrumu_producer.empty()) {
-      for(auto& img_data : _LArbysImageMaker.ExtractImage(stopmu_image_v)) {
+      LARCV_DEBUG() << "Extract thrupmu prod: " << _thrumu_producer << std::endl;
+      LARCV_DEBUG() << "... sz " << thrumu_image_v.size() << std::endl;      
+      for(auto& img_data : _LArbysImageMaker.ExtractImage(thrumu_image_v)) {
 	_stopmu_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
       }
     }
     if(!_channel_producer.empty()) {
+      LARCV_DEBUG() << "Extract channel prod: " << _channel_producer << std::endl;
+      LARCV_DEBUG() << "... sz " << chstat_image_v.size() << std::endl;
       for(auto& img_data : _LArbysImageMaker.ExtractImage(chstat_image_v)) {
 	_chstat_img_mgr.emplace_back(std::move(std::get<0>(img_data)),
 				     std::move(std::get<1>(img_data)));
@@ -84,6 +96,7 @@ namespace larcv {
       auto       & img  = _adc_img_mgr.img_at(plane);
       const auto & meta = _adc_img_mgr.meta_at(plane);
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      LARCV_DEBUG() << "... add adc @plane="<<plane<<std::endl;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetWire);
     }
 
@@ -91,6 +104,7 @@ namespace larcv {
       auto       & img  = _track_img_mgr.img_at(plane);
       const auto & meta = _track_img_mgr.meta_at(plane);
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      LARCV_DEBUG() << "... add track @plane="<<plane<<std::endl;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetTrack);
     }
     
@@ -98,6 +112,7 @@ namespace larcv {
       auto       & img  = _shower_img_mgr.img_at(plane);
       const auto & meta = _shower_img_mgr.meta_at(plane);
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      LARCV_DEBUG() << "... add shower @plane="<<plane<<std::endl;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetShower);
     }
 
@@ -105,6 +120,7 @@ namespace larcv {
       auto       & img  = _thrumu_img_mgr.img_at(plane);
       const auto & meta = _thrumu_img_mgr.meta_at(plane);
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      LARCV_DEBUG() << "... add thrumu @plane="<<plane<<std::endl;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetThruMu);
     }
 
@@ -112,6 +128,7 @@ namespace larcv {
       auto       & img  = _stopmu_img_mgr.img_at(plane);
       const auto & meta = _stopmu_img_mgr.meta_at(plane);
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      LARCV_DEBUG() << "... add stopmu @plane="<<plane<<std::endl;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetStopMu);
     }
 
@@ -119,6 +136,7 @@ namespace larcv {
       auto       & img  = _chstat_img_mgr.img_at(plane);
       const auto & meta = _chstat_img_mgr.meta_at(plane);
       if (!meta.num_pixel_row() || !meta.num_pixel_column()) continue;
+      LARCV_DEBUG() << "... add chstat @plane="<<plane<<std::endl;
       _alg_mgr.Add(img, meta, larocv::ImageSetID_t::kImageSetChStatus);
     }
 
