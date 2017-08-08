@@ -59,10 +59,15 @@ namespace larcv {
     int _in_region_1;
     int _in_region_2;
     int _in_region_3;
+    int _in_region_4;
+    int _in_region_5;
+    int _in_region_yz;
+    int _in_region_xz;
     int _in_region;
     
     
-    std::vector<std::array<geo2d::Vector<float>, 4> > _bound_v;
+    std::vector<std::array<geo2d::Vector<float>, 4> > _yz_bound_v;
+    std::vector<std::array<geo2d::Vector<float>, 4> > _xz_bound_v;
     
   };
 

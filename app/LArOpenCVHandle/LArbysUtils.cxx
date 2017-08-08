@@ -181,7 +181,7 @@ namespace larcv {
   float Cross2D (const geo2d::Vector<float>& u,
 		 const geo2d::Vector<float>& v)
   {
-    return (u.y * v.x) - (u.x * v.y);
+    return (u.x * v.y) - (u.y * v.x);
   }
   
   bool TriangleIsCCW (const geo2d::Vector<float>& a,
@@ -196,8 +196,9 @@ namespace larcv {
 		    const std::array<geo2d::Vector<float>, 4>& v) {
 
     int n = 4;
-    int low = kINVALID_INT;
-    int high = kINVALID_INT;
+    int low = 0;
+    int high = n;
+    
     do {
       int mid = (low + high) / 2;
       if (TriangleIsCCW(v.at(0), v.at(mid), p))

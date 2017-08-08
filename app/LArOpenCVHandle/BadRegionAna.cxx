@@ -30,6 +30,12 @@ namespace larcv {
     t0=t1=t2=t3=geo2d::Vector<float>(kINVALID_FLOAT,kINVALID_FLOAT);
 
     std::array<geo2d::Vector<float>, 4 > pts_v;
+
+
+    //
+    // YZ plane
+    //
+
     
     // region 1 (left)
     t0 = geo2d::Vector<float>(  0,-98);
@@ -42,7 +48,7 @@ namespace larcv {
     pts_v[2] = t2;
     pts_v[3] = t3;
 
-    _bound_v.push_back(pts_v);
+    _yz_bound_v.push_back(pts_v);
     
     // region 2 (middle left)
     t0 = geo2d::Vector<float>(134,-111);
@@ -55,7 +61,7 @@ namespace larcv {
     pts_v[2] = t2;
     pts_v[3] = t3;
 
-    _bound_v.push_back(pts_v);
+    _yz_bound_v.push_back(pts_v);
     
     // region 3 (up and down)
     t0 = geo2d::Vector<float>(740,-111);
@@ -68,7 +74,7 @@ namespace larcv {
     pts_v[2] = t2;
     pts_v[3] = t3;
 
-    _bound_v.push_back(pts_v);
+    _yz_bound_v.push_back(pts_v);
 
     // region 4 (right down to left)
     t0 = geo2d::Vector<float>(941,-111);
@@ -81,8 +87,38 @@ namespace larcv {
     pts_v[2] = t2;
     pts_v[3] = t3;
 
-    _bound_v.push_back(pts_v);
+    _yz_bound_v.push_back(pts_v);
 
+    //
+    // XZ plane
+    //
+
+    // region 0 (bottom)
+    t0 = geo2d::Vector<float>(0   ,50);
+    t1 = geo2d::Vector<float>(1037,50);
+    t2 = geo2d::Vector<float>(1037,50);
+    t3 = geo2d::Vector<float>(0   ,0);
+
+    pts_v[0] = t0;
+    pts_v[1] = t1;
+    pts_v[2] = t2;
+    pts_v[3] = t3;
+
+    _xz_bound_v.push_back(pts_v);
+    
+    // region 0 (bottom)
+    t0 = geo2d::Vector<float>(700,  0);
+    t1 = geo2d::Vector<float>(700,256);
+    t2 = geo2d::Vector<float>(740,256);
+    t3 = geo2d::Vector<float>(740,  0);
+
+    pts_v[0] = t0;
+    pts_v[1] = t1;
+    pts_v[2] = t2;
+    pts_v[3] = t3;
+
+    _xz_bound_v.push_back(pts_v);
+    
   }
 
   void BadRegionAna::initialize()
@@ -99,7 +135,12 @@ namespace larcv {
     _tree->Branch("in_region_1"   , &_in_region_1    , "in_region_1/I");
     _tree->Branch("in_region_2"   , &_in_region_2    , "in_region_2/I");
     _tree->Branch("in_region_3"   , &_in_region_3    , "in_region_3/I");
+    _tree->Branch("in_region_4"   , &_in_region_4    , "in_region_4/I");
+    _tree->Branch("in_region_5"   , &_in_region_5    , "in_region_5/I");
 
+    _tree->Branch("in_region_yz" , &_in_region_yz  , "in_region_yz/I");
+    _tree->Branch("in_region_xz" , &_in_region_xz  , "in_region_xz/I");		    
+    
     _tree->Branch("in_region" , &_in_region  , "in_region/I");		    
 
   }
@@ -115,11 +156,15 @@ namespace larcv {
     _vtxid  = kINVALID_INT;
 
 
-    _in_region_0 = kINVALID_INT;
-    _in_region_1 = kINVALID_INT;
-    _in_region_2 = kINVALID_INT;
-    _in_region_3 = kINVALID_INT;
-    _in_region = kINVALID_INT;    
+    _in_region_0  = kINVALID_INT;
+    _in_region_1  = kINVALID_INT;
+    _in_region_2  = kINVALID_INT;
+    _in_region_3  = kINVALID_INT;
+    _in_region_4  = kINVALID_INT;
+    _in_region_5  = kINVALID_INT;
+    _in_region_yz = kINVALID_INT;
+    _in_region_xz = kINVALID_INT;
+    _in_region    = kINVALID_INT;    
 
     
     EventImage2D* ev_img = nullptr;
@@ -187,18 +232,27 @@ namespace larcv {
 
       geo2d::Vector<float> pt(z,y);
 
-
-      _in_region_0 = InsideRegion(pt,_bound_v[0]);
-      _in_region_1 = InsideRegion(pt,_bound_v[1]);
-      _in_region_2 = InsideRegion(pt,_bound_v[2]);
-      _in_region_3 = InsideRegion(pt,_bound_v[3]);
+      _in_region_0 = InsideRegion(pt,_yz_bound_v[0]);
+      _in_region_1 = InsideRegion(pt,_yz_bound_v[1]);
+      _in_region_2 = InsideRegion(pt,_yz_bound_v[2]);
+      _in_region_3 = InsideRegion(pt,_yz_bound_v[3]);
       
-      _in_region = (_in_region_0 &&
-		    _in_region_1 &&
-		    _in_region_2 &&
-		    _in_region_3);
+      _in_region_yz = (_in_region_0 or
+		       _in_region_1 or
+		       _in_region_2 or
+		       _in_region_3);
 
-     
+      pt = geo2d::Vector<float>(z,x);
+      
+      _in_region_4 = InsideRegion(pt,_xz_bound_v[0]);
+      _in_region_5 = InsideRegion(pt,_xz_bound_v[1]);
+      
+      _in_region_xz = (_in_region_4 or
+		       _in_region_5);
+
+
+      _in_region = _in_region_yz or _in_region_xz;
+      
       _tree->Fill();
     }
 
@@ -206,7 +260,11 @@ namespace larcv {
   }
 
   void BadRegionAna::finalize()
-  {}
+  {
+    if(has_ana_file()) {
+      _tree->Write();
+    }
+  }
 
 }
 #endif
