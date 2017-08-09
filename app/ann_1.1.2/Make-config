@@ -79,11 +79,11 @@ linux-g++:
 #					Mac OS X using g++
 macosx-g++:
 	$(MAKE) targets \
-	"ANNLIB = libANN.a" \
+	"ANNLIB = libANN.so" \
 	"C++ = g++" \
 	"CFLAGS = -O3 -fPIC" \
-	"MAKELIB = libtool -static -o " \
-	"RANLIB = true"
+	"MAKELIB = g++ -shared -lstdc++ -o  " \
+	"RANLIB = "
 
 #					SunOS5
 sunos5:

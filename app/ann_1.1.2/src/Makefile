@@ -55,7 +55,7 @@ targets: $(LIBDIR)/$(ANNLIB)
 
 $(LIBDIR)/$(ANNLIB): $(OBJECTS)
 	$(MAKELIB) $(ANNLIB) $(OBJECTS)
-	$(RANLIB) $(ANNLIB)
+#	$(RANLIB) $(ANNLIB)
 	mv $(ANNLIB) $(LIBDIR)
 
 #-----------------------------------------------------------------------------

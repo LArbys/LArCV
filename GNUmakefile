@@ -30,8 +30,8 @@ ifeq ($(OSNAME),Linux)
   ANN_OS=linux-g++
 endif
 ifeq ($(OSNAME),Darwin)
-  #ANN_OS=macosx-g++
-  ANN_OS=linux-g++
+  ANN_OS=macosx-g++
+  #ANN_OS=linux-g++
 endif
 endif
 
