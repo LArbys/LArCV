@@ -70,10 +70,10 @@
 #					Linux using g++
 linux-g++:
 	$(MAKE) targets \
-	"ANNLIB = libANN.a" \
+	"ANNLIB = libANN.so" \
 	"C++ = g++" \
 	"CFLAGS = -O3 -fPIC" \
-	"MAKELIB = ar ruv" \
+	"MAKELIB = g++ -shared -lstdc++ -o " \
 	"RANLIB = true"
 
 #					Mac OS X using g++
@@ -82,7 +82,7 @@ macosx-g++:
 	"ANNLIB = libANN.so" \
 	"C++ = g++" \
 	"CFLAGS = -O3 -fPIC" \
-	"MAKELIB = g++ -shared -lstdc++ -o  " \
+	"MAKELIB = g++ -shared -lstdc++ -o " \
 	"RANLIB = "
 
 #					SunOS5

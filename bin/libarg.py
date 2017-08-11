@@ -17,13 +17,12 @@ if 'LARLITE_BASEDIR' in os.environ:
         libs += [' -lLArOpenCV_ImageClusterAlgoClass']
         libs += [' -lLArOpenCV_ImageClusterAlgoModule']
         libs += [' -lBasicTool_FhiclLite']
-    if 'GEO2D_BASEDIR' in os.environ:
-        libs += commands.getoutput('geo2d-config --libs').split()
-    if 'LARCV_ANN' and 'ANN_LIBDIR' in os.environ:
-        #libs+= ["%s/libANN.a" % ( os.environ["ANN_LIBDIR"].strip() )]
-        libs+= [" -L%s -lANN" % ( os.environ["ANN_LIBDIR"].strip() )]
-    if 'PYTHON_LIB' in os.environ:
-        libs+= [" -L%s -lpython2.7"%(os.environ["PYTHON_LIB"].strip())]
+if 'GEO2D_BASEDIR' in os.environ:
+    libs += commands.getoutput('geo2d-config --libs').split()
+if 'LARCV_ANN' and 'ANN_LIBDIR' in os.environ:
+    libs+= [" -lANN" ]
+if 'PYTHON_LIB' in os.environ:
+    libs+= [" -L%s -lpython2.7"%(os.environ["PYTHON_LIB"].strip())]
 
 objs_list=[]
 dict_list=[]
