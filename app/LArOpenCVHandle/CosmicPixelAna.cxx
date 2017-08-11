@@ -208,7 +208,6 @@ namespace larcv {
 
       float xpixel = -1.0;
       float ypixel = -1.0;
-
       
       if( bb.min_x() <= wire && wire <= bb.max_x() &&
 	  bb.min_y() <= tick && tick <= bb.max_y() ) {
