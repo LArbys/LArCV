@@ -156,6 +156,6 @@ namespace larcv {
   }
 }
 
-#include "CircularBufferBase.imp.h"
+template class larcv::CircularBufferBase<std::vector<double> >;
 
 #endif
