@@ -55,7 +55,8 @@ targets: $(LIBDIR)/$(ANNLIB)
 
 $(LIBDIR)/$(ANNLIB): $(OBJECTS)
 	$(MAKELIB) $(ANNLIB) $(OBJECTS)
-	$(RANLIB) $(ANNLIB)
+#	$(RANLIB) $(ANNLIB)
+	cp $(ANNLIB) $(LARCV_LIBDIR)/
 	mv $(ANNLIB) $(LIBDIR)
 
 #-----------------------------------------------------------------------------
@@ -115,7 +116,7 @@ include ../Make-config
 #-----------------------------------------------------------------------------
 
 clean:
-	-rm -f *.o core
+	-rm -f *.o core $(LARCV_LIBDIR)/libANN.so
 
 realclean: clean
 
