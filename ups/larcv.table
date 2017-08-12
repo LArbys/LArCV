@@ -25,19 +25,19 @@ Flavor     = ANY
 Qualifiers = "e10:prof"
 
   Action = GetProducts
-    setupRequired( root v6_08_06d -q +e10:+nu:+prof )
+    setupRequired( root v6_06_08 -q +e10:+nu:+prof )
 
 Flavor     = ANY
 Qualifiers = "e10:debug"
 
   Action = GetProducts
-    setupRequired( root v6_08_06d -q +e10:+nu:+debug )
+    setupRequired( root v6_06_08 -q +e10:+nu:+debug )
 
 Flavor     = ANY
 Qualifiers = "e10:opt"
 
   Action = GetProducts
-    setupRequired( root v6_08_06d -q +e10:+nu:+opt )
+    setupRequired( root v6_06_08 -q +e10:+nu:+opt )
 
 Common:
   Action = setup
