@@ -2,7 +2,11 @@
 #define PREPROCESSOR_H
 
 #include "Base/larcv_base.h"
+#ifndef __CLING__
+#ifndef __CINT__
 #include <opencv2/opencv.hpp>
+#endif
+#endif
 #include "Base/PSet.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/PixelChunk.h"
 

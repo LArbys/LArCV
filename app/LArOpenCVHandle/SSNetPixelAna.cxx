@@ -222,6 +222,7 @@ namespace larcv {
 	
       for(size_t row=0; row < crop_img2d.meta().rows(); ++row) {
 	for(size_t col=0; col < crop_img2d.meta().cols(); ++col) {
+
 	  auto trk_px   = crop_trk2d.pixel(row,col);
 	  auto shr_px   = crop_shr2d.pixel(row,col);
 	  
@@ -235,6 +236,7 @@ namespace larcv {
 	    if (trk_px) trk_pixels++;
 	    if (shr_px) shr_pixels++;
 	  }
+
 	}
       }
 

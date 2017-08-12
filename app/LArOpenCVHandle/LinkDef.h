@@ -37,8 +37,14 @@
 #pragma link C++ class larcv::LArbysImageCheater+;
 
 #pragma link C++ class larcv::BadRegionAna+;
+#pragma link C++ class larcv::SegmentFilter+;
+#pragma link C++ class larcv::GenDeadChannelMap+;
+#pragma link C++ class larcv::DeadWireAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
+
 
 
 
