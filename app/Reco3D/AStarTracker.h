@@ -31,8 +31,8 @@
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 //#include "larcv/app/LArOpenCVHandle/LArbysUtils.h"
-#include "ThruMu/AStar3DAlgo.h"
-#include "ThruMu/AStar3DAlgoProton.h"
+#include "AStar3DAlgo.h"
+#include "AStar3DAlgoProton.h"
 
 namespace larcv {
     /**

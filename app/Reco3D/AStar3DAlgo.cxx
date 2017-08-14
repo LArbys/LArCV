@@ -3,7 +3,7 @@
 #include <cmath>
 
 // larcv
-#include "UBWireTool/UBWireTool.h"
+#include "UBWireTool.h"
 
 // larlite
 #include "LArUtil/LArProperties.h"

@@ -19,13 +19,12 @@
 #include "TVector3.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
-#include "LArOpenCVHandle/LArbysUtils.h"
+#include "AStarUtils.h"
 
-#include "ThruMu/AStar3DAlgo.h"
-#include "ThruMu/AStar3DAlgoProton.h"
-#include "SCE/SpaceChargeMicroBooNE.h"
+#include "AStar3DAlgo.h"
+#include "AStar3DAlgoProton.h"
 
-namespace larlitecv {
+namespace larcv {
     
     double AStarTracker::X2Tick(double x, size_t plane) const {
 
@@ -408,7 +407,7 @@ namespace larlitecv {
                 double _parent_z = points[iPoint].Z();
                 double _parent_t = 0;
                 double x_pixel, y_pixel;
-                Project3D(meta[iPlane],_parent_x,_parent_y,_parent_z,_parent_t,iPlane,x_pixel,y_pixel); // y_pixel is time
+                ProjectTo3D(meta[iPlane],_parent_x,_parent_y,_parent_z,_parent_t,iPlane,x_pixel,y_pixel); // y_pixel is time
 
                 if( y_pixel < time_bounds[iPlane].first ) time_bounds[iPlane].first  = y_pixel;
                 if( y_pixel > time_bounds[iPlane].second) time_bounds[iPlane].second = y_pixel;
@@ -527,12 +526,12 @@ namespace larlitecv {
             if(hit_image_v[iPlane].meta().width()==0)continue;
 
             double x_pixel, y_pixel;
-            Project3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel,y_pixel);
+            ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel,y_pixel);
             double wireProjStartPt = x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x;
             start_cols[iPlane] = hit_image_v[iPlane].meta().col(wireProjStartPt);
             start_row = y_pixel;
 
-            Project3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel);
+            ProjectTo3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel);
             double wireProjEndPt   = x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x;
             end_cols[iPlane]   = hit_image_v[iPlane].meta().col(wireProjEndPt);
             end_row = y_pixel;
@@ -541,7 +540,7 @@ namespace larlitecv {
         //_______________________________________________
         // Configure A* algo
         //-----------------------------------------------
-        larlitecv::AStar3DAlgoConfig config;
+        larcv::AStar3DAlgoConfig config;
         config.accept_badch_nodes = true;
         config.astar_threshold.resize(3,1);    // min value for a pixel to be considered non 0
         config.astar_neighborhood.resize(3,3); //can jump over n empty pixels in all planes
@@ -555,7 +554,7 @@ namespace larlitecv {
         //_______________________________________________
         // Define A* algo
         //-----------------------------------------------
-        larlitecv::AStar3DAlgoProton algo( config );
+        larcv::AStar3DAlgoProton algo( config );
         algo.setVerbose(0);
         algo.setPixelValueEsitmation(true);
 
@@ -808,8 +807,8 @@ namespace larlitecv {
                 double localdQdx = 0;
                 int NpxLocdQdX = 0;
                 double X1,Y1,X2,Y2;
-                Project3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(), _3DTrack[iNode].Y(), _3DTrack[iNode].Z(),0, iPlane, X1,Y1);
-                Project3D(hit_image_v[iPlane].meta(),_3DTrack[iNode+1].X(), _3DTrack[iNode+1].Y(), _3DTrack[iNode+1].Z(),0, iPlane, X2,Y2);
+                ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(), _3DTrack[iNode].Y(), _3DTrack[iNode].Z(),0, iPlane, X1,Y1);
+                ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode+1].X(), _3DTrack[iNode+1].Y(), _3DTrack[iNode+1].Z(),0, iPlane, X2,Y2);
                 if(X1 == X2){X1 -= 0.0001;}
                 if(Y1 == Y2){Y1 -= 0.0001;}
                 TVector3 A(X1,Y1,0); // projection of node iNode on plane iPlane
@@ -836,8 +835,8 @@ namespace larlitecv {
                         for(size_t jNode=0;jNode<_3DTrack.size()-1;jNode++){
                             if(jNode==iNode)continue;
                             double x1,y1,x2,y2, alpha2, xp2,yp2, dist2;
-                            Project3D(hit_image_v[iPlane].meta(),_3DTrack[jNode].X(), _3DTrack[jNode].Y(), _3DTrack[jNode].Z(),0, iPlane, x1,y1);
-                            Project3D(hit_image_v[iPlane].meta(),_3DTrack[jNode+1].X(), _3DTrack[jNode+1].Y(), _3DTrack[jNode+1].Z(),0, iPlane, x2,y2);
+                            ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[jNode].X(), _3DTrack[jNode].Y(), _3DTrack[jNode].Z(),0, iPlane, x1,y1);
+                            ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[jNode+1].X(), _3DTrack[jNode+1].Y(), _3DTrack[jNode+1].Z(),0, iPlane, x2,y2);
 
                             if(x1 == x2){x1 -= 0.0001;}
                             if(y1 == y2){y1 -= 0.0001;}
@@ -974,7 +973,7 @@ namespace larlitecv {
 
             gStartNend[iPlane] = new TGraph();
             double x_pixel, y_pixel;
-            Project3D(hit_image_v[iPlane].meta(),
+            ProjectTo3D(hit_image_v[iPlane].meta(),
                       start_pt.X(),
                       start_pt.Y(),
                       start_pt.Z(),
@@ -982,14 +981,14 @@ namespace larlitecv {
                       iPlane,
                       x_pixel,y_pixel); // y_pixel is time
             gStartNend[iPlane]->SetPoint(0,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-            Project3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
+            ProjectTo3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
             gStartNend[iPlane]->SetPoint(1,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
 
 
 
 
             /*for(size_t iNode=0;iNode<recoTrack.NumberTrajectoryPoints();iNode++){
-                Project3D(hit_image_v[iPlane].meta(),
+                ProjectTo3D(hit_image_v[iPlane].meta(),
                           recoTrack.LocationAtPoint(iNode).X(),
                           recoTrack.LocationAtPoint(iNode).Y(),
                           recoTrack.LocationAtPoint(iNode).Z(),
@@ -1009,7 +1008,7 @@ namespace larlitecv {
                                       hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());*/
 
             for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
-                Project3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(),_3DTrack[iNode].Y(),_3DTrack[iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
+                ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(),_3DTrack[iNode].Y(),_3DTrack[iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
 
                 //gTrack[iPlane]->SetPoint(iNode,hit_image_v[iPlane].meta().tl().x+(RecoedPath[iNode].cols[iPlane]+0.5)*hit_image_v[iPlane].meta().pixel_width(),hit_image_v[iPlane].meta().br().y+(RecoedPath[iNode].row+0.5)*hit_image_v[iPlane].meta().pixel_height());
                 gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
@@ -1143,7 +1142,7 @@ namespace larlitecv {
             double x_pixel_st, y_pixel_st,x_pixel_end, y_pixel_end;
             double Xstart,Ystart,Xend,Yend;
 
-            Project3D(hit_image_v[iPlane].meta(),
+            ProjectTo3D(hit_image_v[iPlane].meta(),
                       start_pt.X(),start_pt.Y(),start_pt.Z(),
                       0,iPlane,x_pixel_st,y_pixel_st);
 
@@ -1151,7 +1150,7 @@ namespace larlitecv {
             Ystart = y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y;
             gStartNend[iPlane]->SetPoint(0,Xstart,Ystart);
 
-            Project3D(hit_image_v[iPlane].meta(),
+            ProjectTo3D(hit_image_v[iPlane].meta(),
                       end_pt.X(),end_pt.Y(),end_pt.Z(),
                       0,iPlane,x_pixel_end,y_pixel_end);
 
@@ -1193,7 +1192,7 @@ namespace larlitecv {
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
-        TFile *fSplines = TFile::Open("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/larlitecv/app/Reco3DTracks/Proton_Muon_Range_dEdx_LAr_TSplines.root","READ");
+        TFile *fSplines = TFile::Open("Proton_Muon_Range_dEdx_LAr_TSplines.root","READ");
         sMuonRange2T   = (TSpline3*)fSplines->Get("sMuonRange2T");
         sMuonT2dEdx    = (TSpline3*)fSplines->Get("sMuonT2dEdx");
         sProtonRange2T = (TSpline3*)fSplines->Get("sProtonRange2T");
@@ -1284,7 +1283,7 @@ namespace larlitecv {
     void AStarTracker::ReadProtonTrackFile(){
         _SelectableTracks.clear();
         std::vector<int> trackinfo(16);
-        std::ifstream file("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/DeepLearning/DLwork/DataFiles/passedGBDT_extBNB_AnalysisTrees_cosmic_trained_only_on_mc_score_0.99.csv");
+        std::ifstream file("passedGBDT_extBNB_AnalysisTrees_cosmic_trained_only_on_mc_score_0.99.csv");
         if(!file){std::cout << "ERROR, could not open file of tracks to sort through" << std::endl;return;}
         std::string firstline;
         getline(file, firstline);
