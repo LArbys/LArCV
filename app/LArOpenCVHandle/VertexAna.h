@@ -101,7 +101,9 @@ namespace larcv {
     bool _use_scedr;
 
   private:
-    void Clear();
+    
+    void ClearEvent();
+    void ClearVertex();
 
   };
 

@@ -115,8 +115,8 @@ namespace larcv {
   {
 
 
-    Clear();
-
+    ClearEvent();
+    
     bool has_mc = false;
     bool has_reco_vtx = false;
 
@@ -269,6 +269,7 @@ namespace larcv {
 
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
     for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
+      ClearVertex();
       _vtxid += 1;
 
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
@@ -329,7 +330,7 @@ namespace larcv {
     }
   }
 
-  void VertexAna::Clear() {
+  void VertexAna::ClearEvent() {
 
     // Indices
     _entry = kINVALID_INT;
@@ -374,7 +375,38 @@ namespace larcv {
     _nearest_wire_err = kINVALID_INT;
 
     _in_fiducial = false;
+
+    _vtxid = kINVALID_INT;
+
+    _nprotons = kINVALID_INT;
+    _nothers = kINVALID_INT;
+    
+    ClearVertex();
   }
 
+  void VertexAna::ClearVertex() {
+    _x = kINVALID_DOUBLE;
+    _y = kINVALID_DOUBLE;
+    _z = kINVALID_DOUBLE;
+
+    _dx = kINVALID_DOUBLE;
+    _dy = kINVALID_DOUBLE;
+    _dz = kINVALID_DOUBLE;
+
+    _dr = kINVALID_DOUBLE;
+
+    _scedx = kINVALID_DOUBLE;
+    _scedy = kINVALID_DOUBLE;
+    _scedz = kINVALID_DOUBLE;
+
+    _scedr = kINVALID_DOUBLE;
+
+    _npar = kINVALID_INT;
+
+    _in_fiducial = kINVALID_INT;
+    
+    
+  }
+  
 }
 #endif
