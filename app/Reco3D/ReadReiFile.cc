@@ -256,7 +256,8 @@ int main(){
         tracker.SetTrackInfo(run, subrun, event, 2*i);
         tracker.SetImages(data_images);
         tracker.SetEndPoints(EndPoints[0],EndPoints[1]);
-        lists.push_back(tracker.Reconstruct());
+        tracker.Reconstruct();
+        lists.push_back(tracker.GetTrack());
         tracker.ComputedQdX();
         dQdx.push_back(tracker.GetdQdx());
         Lengths.push_back(tracker.GetLength());
@@ -264,7 +265,8 @@ int main(){
         // particle 2
         tracker.SetTrackInfo(run, subrun, event, 2*i+1);
         tracker.SetEndPoints(EndPoints[0],EndPoints[2]);
-        lists.push_back(tracker.Reconstruct());
+        tracker.Reconstruct();
+        lists.push_back(tracker.GetTrack());
         tracker.ComputedQdX();
         dQdx.push_back(tracker.GetdQdx());
         Lengths.push_back(tracker.GetLength());
