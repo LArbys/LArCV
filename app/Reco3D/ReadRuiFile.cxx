@@ -1,7 +1,7 @@
-#ifndef __READREIFILE_CXX__
-#define __READREIFILE_CXX__
+#ifndef __READRUIFILE_CXX__
+#define __READRUIFILE_CXX__
 
-#include "ReadReiFile.h"
+#include "ReadRuiFile.h"
 
 #include "DataFormat/track.h"
 #include "DataFormat/hit.h"
@@ -40,19 +40,19 @@
 
 namespace larcv {
 
-  static ReadReiFileProcessFactory __global_ReadReiFileProcessFactory__;
+  static ReadRuiFileProcessFactory __global_ReadRuiFileProcessFactory__;
 
-  ReadReiFile::ReadReiFile(const std::string name)
+  ReadRuiFile::ReadRuiFile(const std::string name)
     : ProcessBase(name)
   {}
     
-  void ReadReiFile::configure(const PSet& cfg)
+  void ReadRuiFile::configure(const PSet& cfg)
   {}
 
-  void ReadReiFile::initialize()
+  void ReadRuiFile::initialize()
   {}
 
-  bool ReadReiFile::process(IOManager& mgr)
+  bool ReadRuiFile::process(IOManager& mgr)
   {
 
     gStyle->SetOptStat(0);
@@ -495,7 +495,7 @@ namespace larcv {
     return true;
   }
 
-  void ReadReiFile::finalize()
+  void ReadRuiFile::finalize()
   {}
 
 }

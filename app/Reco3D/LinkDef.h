@@ -9,8 +9,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class larcv::ReadReiFile+;
-#pragma link C++ class larcv::ReadReiFile+;
+#pragma link C++ class larcv::ReadRuiFile+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
