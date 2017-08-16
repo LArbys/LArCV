@@ -13,6 +13,7 @@ ev_trk = iom.get_data(larcv.kProductImage2D,"trump_trk")
 ev_shr = iom.get_data(larcv.kProductImage2D,"trump_shr")
 
 import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
