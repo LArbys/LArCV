@@ -18,6 +18,7 @@ from ROOT import larocv
 from ROOT import std
 from ROOT import cv
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 matplotlib.rcParams['font.size']=20

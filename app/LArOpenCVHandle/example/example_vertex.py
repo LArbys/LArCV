@@ -16,6 +16,7 @@ from ROOT import larocv
 from ROOT import std
 from ROOT import cv
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 matplotlib.rcParams['font.size']=20
@@ -100,7 +101,7 @@ for plane in xrange(3):
     img = pygeo.image(adc_mat_v.at(plane))
     plt.imshow(img)
 
-    plt.plot(pt.x,pt.y,'*',color='yellow',markersize=10)
+    plt.plot(pt.x,pt.y,'*',color='cyan',markersize=10)
     plt.savefig("adc_plane_%d.png" % plane)
     plt.close()
     plt.cla()
