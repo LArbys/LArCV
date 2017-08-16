@@ -14,13 +14,13 @@ print "Loaded",sys.argv[1]
 
 if len(sys.argv) > 1:
    flist=ROOT.std.vector('std::string')()
-   for x in xrange(len(sys.argv)-4):
-      print "Pushing back...",sys.argv[x+4]                             
-      flist.push_back(sys.argv[x+4])
+   for x in xrange(len(sys.argv)-2):
+      print "Pushing back...",sys.argv[x+2]                             
+      flist.push_back(sys.argv[x+2])
 
 proc.override_input_file(flist)
-proc.override_ana_file(sys.argv[2] + ".root")
-proc.override_output_file(sys.argv[3] + ".root")
+proc.override_ana_file("/tmp/trash0.root")
+proc.override_output_file("/tmp/trash1.root")
 
 proc.initialize()
 
