@@ -19,8 +19,8 @@ if len(sys.argv) > 1:
       flist.push_back(sys.argv[x+2])
 
 proc.override_input_file(flist)
-proc.override_ana_file("/tmp/trash0.root")
-proc.override_output_file("/tmp/trash1.root")
+proc.override_ana_file("trash0.root")
+proc.override_output_file("trash1.root")
 
 proc.initialize()
 

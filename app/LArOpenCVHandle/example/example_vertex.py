@@ -38,8 +38,8 @@ flist=ROOT.std.vector('std::string')()
 
 flist.push_back("img/test_img.root")
 proc.override_input_file(flist)
-proc.override_output_file("/tmp/c0.root")
-proc.override_ana_file("/tmp/c1.root")
+proc.override_output_file("c0.root")
+proc.override_ana_file("c1.root")
 
 reco_id    = proc.process_id("LArbysImage")
 larbysimg  = proc.process_ptr(reco_id)
