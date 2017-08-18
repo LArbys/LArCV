@@ -6,11 +6,27 @@ Group:
 Flavor     = ANY
 Qualifiers = "e14:prof"
 
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e14.prof )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e14.prof )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
+
   Action = GetProducts
     setupRequired( root v6_08_06g -q +e14:+nu:+prof )
 
 Flavor     = ANY
 Qualifiers = "e14:debug"
+
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e14.debug )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e14.debug )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
 
   Action = GetProducts
     setupRequired( root v6_08_06g -q +e14:+nu:+debug )
@@ -18,11 +34,27 @@ Qualifiers = "e14:debug"
 Flavor     = ANY
 Qualifiers = "e14:opt"
 
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e14.opt )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e14.opt )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
+
   Action = GetProducts
     setupRequired( root v6_08_06g -q +e14:+nu:+opt )
 
 Flavor     = ANY
 Qualifiers = "e10:prof"
+
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e10.prof )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e10.prof )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
 
   Action = GetProducts
     setupRequired( root v6_06_08 -q +e10:+nu:+prof )
@@ -30,11 +62,27 @@ Qualifiers = "e10:prof"
 Flavor     = ANY
 Qualifiers = "e10:debug"
 
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e10.debug )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e10.debug )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
+
   Action = GetProducts
     setupRequired( root v6_06_08 -q +e10:+nu:+debug )
 
 Flavor     = ANY
 Qualifiers = "e10:opt"
+
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e10.opt )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e10.opt )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
 
   Action = GetProducts
     setupRequired( root v6_06_08 -q +e10:+nu:+opt )
@@ -45,28 +93,33 @@ Common:
     setupEnv()
     envSet(${UPS_PROD_NAME_UC}_VERSION, ${UPS_PROD_VERSION})
 
+    # cetpkgsupport has get-directory-name and find-path
+    # cetpkgsupport also defines the CET_SUBDIR variable
+    setupRequired(cetpkgsupport)
+    exeActionRequired(GetFQDir)
+
     # Set up required products, which is root
     exeActionRequired(GetProducts)
 
-    envSet(LARCV_BASEDIR,${UPS_PROD_DIR}/${UPS_PROD_FLAVOR})
-    envSet(LARCV_COREDIR,${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}/core)
-    envSet(LARCV_APPDIR,${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}/app)
-    envSet(LARCV_ROOT6,0)
-    envSet(LARCV_INCDIR,${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}/build/include)
-    envSet(LARCV_LIBDIR,${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}/build/lib)
+    envSet(${UPS_PROD_NAME_UC}_BASEDIR,${${UPS_PROD_NAME_UC}_FQ_DIR})
+    envSet(${UPS_PROD_NAME_UC}_COREDIR,${${UPS_PROD_NAME_UC}_FQ_DIR}/core)
+    envSet(${UPS_PROD_NAME_UC}_APPDIR,${${UPS_PROD_NAME_UC}_FQ_DIR}/app)
+    envSet(${UPS_PROD_NAME_UC}_ROOT6,1)
+    envSet(${UPS_PROD_NAME_UC}_INCDIR,${${UPS_PROD_NAME_UC}_FQ_DIR}/build/include)
+    envSet(${UPS_PROD_NAME_UC}_LIBDIR,${${UPS_PROD_NAME_UC}_FQ_DIR}/build/lib)
 
     if ( test `uname` = "Darwin" )
-      envSet(LARCV_CXX,clang++)
-      pathPrepend(DYLD_LIBRARY_PATH, ${LARCV_LIBDIR})
+      envSet(${UPS_PROD_NAME_UC}_CXX,g++)
+      pathPrepend(DYLD_LIBRARY_PATH, ${${UPS_PROD_NAME_UC}_LIBDIR})
     else()
-      envSet(LARCV_CXX,g++)
-      pathPrepend(LD_LIBRARY_PATH, ${LARCV_LIBDIR})
+      envSet(${UPS_PROD_NAME_UC}_CXX,g++)
+      pathPrepend(LD_LIBRARY_PATH, ${${UPS_PROD_NAME_UC}_LIBDIR})
     endif ( test `uname` = "Darwin" )
 
     # add the bin directory to the path
-    pathPrepend(PATH, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}/bin )
+    pathPrepend(PATH, ${${UPS_PROD_NAME_UC}_FQ_DIR}/bin )
     # add the python area to the pythonpath
-    pathPrepend(PYTHONPATH, ${UPS_PROD_DIR}/${UPS_PROD_FLAVOR}/python )
+    pathPrepend(PYTHONPATH, ${${UPS_PROD_NAME_UC}_FQ_DIR}/python )
 
 End:
 # End Group definition
