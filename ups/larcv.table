@@ -120,6 +120,10 @@ Common:
     pathPrepend(PATH, ${${UPS_PROD_NAME_UC}_FQ_DIR}/bin )
     # add the python area to the pythonpath
     pathPrepend(PYTHONPATH, ${${UPS_PROD_NAME_UC}_FQ_DIR}/python )
+    # Update ROOT_INCLUDE_PATH.
+    pathPrepend(ROOT_INCLUDE_PATH, ${${UPS_PROD_NAME_UC}_BASEDIR}/core )
+    pathPrepend(ROOT_INCLUDE_PATH, ${${UPS_PROD_NAME_UC}_BASEDIR}/core/DataFormat )
+
 
 End:
 # End Group definition
