@@ -44,7 +44,7 @@ namespace larcv {
     void get_rsee(IOManager& mgr, std::string producer,
 		  uint& run, uint& subrun, uint& event, uint& entry);
             
-    void construct_cosmic_image(IOManager& mgr, std::string producer,
+    void construct_cosmic_image(IOManager& mgr, std::string producer, std::string datatype,
 				const std::vector<larcv::Image2D>& adc_image_v,
 				std::vector<larcv::Image2D>& mu_image_v);
     
@@ -84,6 +84,7 @@ namespace larcv {
     std::string _roi_producer;
     std::string _track_producer;
     std::string _shower_producer;
+    std::string _tags_datatype;
     std::string _thrumu_producer;
     std::string _stopmu_producer;
     std::string _channel_producer;
