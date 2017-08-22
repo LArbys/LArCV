@@ -105,9 +105,9 @@ namespace larcv {
         void SetTimeAndWireBounds(TVector3 pointStart, TVector3 pointEnd);
         void SetTimeAndWireBounds(std::vector<TVector3> points);
         void SetTimeAndWireBounds(std::vector<TVector3> points, std::vector<larcv::ImageMeta> meta);
-        void SetEndPoints(TVector3 vertex, TVector3 endpoint){start_pt = vertex; end_pt = endpoint;}
+        void SetEndPoints(TVector3 vertex, TVector3 endpoint){start_pt = vertex; end_pt = CheckEndPoints(endpoint);}
         void DrawTrack();
-        void  RegularizeTrack();
+        void RegularizeTrack();
         void DrawROI();
         void TellMeRecoedPath();
         void Make3DpointList();
@@ -133,9 +133,21 @@ namespace larcv {
         TVector3        CheckEndPoints(TVector3 point);
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
 
-        //std::vector<TVector3>   Reconstruct();
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
+        std::vector<TVector3>   Reconstruct(int run,
+                                            int subrun,
+                                            int event,
+                                            int track,
+                                            std::vector<larcv::Image2D> images,
+                                            TVector3 vertex, TVector3 endPoint){
+            SetTrackInfo(run, subrun, event, track);
+            SetImages(images);
+            SetEndPoints(vertex, endPoint);
+            Reconstruct();
+            RegularizeTrack();
+            return GetTrack();
+        }
         
         std::vector<std::vector<int> > _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
@@ -144,6 +156,8 @@ namespace larcv {
         std::vector<std::pair<double,double> > GetTimeBounds(){return time_bounds;}
         std::vector<std::pair<double,double> > GetWireBounds(){return wire_bounds;}
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
+
+        std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints,std::vector<larcv::Image2D> Full_image_v);
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}

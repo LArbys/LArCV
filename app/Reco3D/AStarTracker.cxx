@@ -113,7 +113,7 @@ namespace larcv {
 
         // Update the range with margin
         double ImageMargin = 50.;
-        double fractionImageMargin = 0.25;
+        double fractionImageMargin = 1;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -431,7 +431,7 @@ namespace larcv {
 
         // Update the range with margin
         double ImageMargin = 50.;
-        double fractionImageMargin = 0.25;
+        double fractionImageMargin = 0.5;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -467,10 +467,10 @@ namespace larcv {
     bool AStarTracker::CheckEndPointsInVolume(TVector3 point){
         bool endpointInRange = true;
         if(point.X() <  0    ){endpointInRange = false;}
-        if(point.X() >  260  ){endpointInRange = false;}
+        if(point.X() >  270  ){endpointInRange = false;}
 
-        if(point.Y() < -115  ){endpointInRange = false;}
-        if(point.Y() >  115  ){endpointInRange = false;}
+        if(point.Y() < -120  ){endpointInRange = false;}
+        if(point.Y() >  120  ){endpointInRange = false;}
 
         if(point.Z() <  1    ){endpointInRange = false;}
         if(point.Z() >  1036 ){endpointInRange = false;}
@@ -480,7 +480,7 @@ namespace larcv {
     //______________________________________________________
     bool AStarTracker::initialize() {
         ReadSplineFile();
-        ReadProtonTrackFile();
+        //ReadProtonTrackFile();
         _eventTreated = 0;
         _eventSuccess = 0;
         time_bounds.reserve(3);
@@ -514,7 +514,7 @@ namespace larcv {
         //_______________________________________________
         // Get Start and end points
         //-----------------------------------------------
-        tellMe("getting start and end points",1);
+        tellMe("getting start and end points",0);
         std::vector<int> start_cols(3);
         std::vector<int> end_cols(3);
         int start_row, end_row;
@@ -527,15 +527,19 @@ namespace larcv {
 
             double x_pixel, y_pixel;
             ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel,y_pixel);
-            double wireProjStartPt = x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x;
-            start_cols[iPlane] = hit_image_v[iPlane].meta().col(wireProjStartPt);
+            start_cols[iPlane] = (int)(x_pixel);
+            tellMe(Form("start_colz[%zu] = %.1f",iPlane,x_pixel),1);
+            if(x_pixel<=0){tellMe("ERROR, startPt outside of image range",0);return;}
             start_row = y_pixel;
 
             ProjectTo3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel);
-            double wireProjEndPt   = x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x;
-            end_cols[iPlane]   = hit_image_v[iPlane].meta().col(wireProjEndPt);
+            //double wireProjEndPt   = x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x;
+            end_cols[iPlane]   = x_pixel;// hit_image_v[iPlane].meta().col(wireProjEndPt);
             end_row = y_pixel;
         }
+
+        tellMe("........configuring A*", 0);
+
 
         //_______________________________________________
         // Configure A* algo
@@ -544,11 +548,11 @@ namespace larcv {
         config.accept_badch_nodes = true;
         config.astar_threshold.resize(3,1);    // min value for a pixel to be considered non 0
         config.astar_neighborhood.resize(3,3); //can jump over n empty pixels in all planes
-        config.astar_start_padding = 3;       // allowed region around the start point
-        config.astar_end_padding = 3;         // allowed region around the end point
+        config.astar_start_padding = 3;        // allowed region around the start point
+        config.astar_end_padding = 3;          // allowed region around the end point
         config.lattice_padding = 5;            // margin around the edges
         config.min_nplanes_w_hitpixel = 1;     // minimum allowed coincidences between non 0 pixels across planes
-        config.restrict_path = false; // do I want to restrict to a cylinder around the strainght line of radius defined bellow ?
+        config.restrict_path = false;          // do I want to restrict to a cylinder around the strainght line of radius defined bellow ?
         config.path_restriction_radius = 30.0;
 
         //_______________________________________________
@@ -558,7 +562,7 @@ namespace larcv {
         algo.setVerbose(0);
         algo.setPixelValueEsitmation(true);
 
-        tellMe("starting A*",0);
+        tellMe("...........starting A*", 0);
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             tellMe(Form("plane %zu %zu rows and %zu cols before findpath", iPlane,hit_image_v[iPlane].meta().rows(),hit_image_v[iPlane].meta().cols()),1);
         }
@@ -621,9 +625,9 @@ namespace larcv {
 
         double minDist = EvalMinDist(point);
         double PreviousMinDist = 2*minDist;
-        tellMe(Form("dist = %f.1", minDist),0);
-        if(minDist <= closeEnough){tellMe("Point OK",0);return point;}
-        tellMe("Updating point",0);
+        tellMe(Form("dist = %f.1", minDist),1);
+        if(minDist <= closeEnough){tellMe("Point OK",1);return point;}
+        tellMe("Updating point",1);
         TVector3 newPoint = point;
         int iter = 0;
         int iterMax = 10000;
@@ -639,7 +643,7 @@ namespace larcv {
             if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
             PreviousMinDist = minDist;
         }
-        tellMe("Point updated",0);
+        tellMe("Point updated",1);
         return newPoint;
     }
     //______________________________________________________
@@ -720,7 +724,7 @@ namespace larcv {
             for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                 for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-                    if(std::abs(icol-pointCol) > 10 || std::abs(irow-pointRow) > 10) continue;
+                    if(std::abs(icol-pointCol) > 20 || std::abs(irow-pointRow) > 20) continue;
                     dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
                     notEmpty = true;
                     //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
@@ -1148,6 +1152,7 @@ namespace larcv {
 
             Xstart = x_pixel_st*hit_image_v[iPlane].meta().pixel_width() +hit_image_v[iPlane].meta().tl().x;
             Ystart = y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y;
+            tellMe(Form("[DrawROI] StartPt plane %zu : (%.1f, %.1f)",iPlane, Xstart, Ystart),1);
             gStartNend[iPlane]->SetPoint(0,Xstart,Ystart);
 
             ProjectTo3D(hit_image_v[iPlane].meta(),
@@ -1166,8 +1171,8 @@ namespace larcv {
         for(int iPlane=0;iPlane<3;iPlane++){
             c->cd(iPlane+1);
             hImage[iPlane]->Draw("colz");
-            //gStartNend[iPlane]->SetMarkerStyle(4);
-            //gStartNend[iPlane]->SetMarkerSize(0.25);
+            gStartNend[iPlane]->SetMarkerStyle(4);
+            gStartNend[iPlane]->SetMarkerSize(0.25);
             gStartNend[iPlane]->Draw("same P");
         }
         c->SaveAs(Form("%s.pdf",c->GetName()));
@@ -1176,7 +1181,7 @@ namespace larcv {
             hImage[iPlane]->Delete();
             gStartNend[iPlane]->Delete();
         }
-        tellMe("histogram and gStartNend deleted",0);
+        tellMe("histogram and gStartNend deleted",1);
 
     }
     //______________________________________________________
@@ -1235,6 +1240,12 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::RegularizeTrack(){
+        /*for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+            _3DTrack[iNode] = CheckEndPoints(_3DTrack[iNode]);
+        }*/
+
+        if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
+        if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
         std::vector<TVector3> newPoints;
         int oldNumPoints = _3DTrack.size();
         bool removedPoint = true;
@@ -1244,7 +1255,6 @@ namespace larcv {
         while(removedPoint == true && iteration<100){
             removedPoint =false;
             iteration++;
-            std::cout << "iteration #" << iteration << std::endl;
             newPoints.clear();
             newPoints.push_back(_3DTrack[0]);
             for(int iNode = 1;iNode<_3DTrack.size()-1;iNode++){
@@ -1260,7 +1270,7 @@ namespace larcv {
             newPoints.push_back(_3DTrack[_3DTrack.size()-1]);
             _3DTrack = newPoints;
         }
-        std::cout << "old number of points : " << oldNumPoints << " and new one : " << _3DTrack.size() << std::endl;
+        tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
     }
     //______________________________________________________
     double AStarTracker::GetDist2line(TVector3 A, TVector3 B, TVector3 C){
@@ -1275,7 +1285,39 @@ namespace larcv {
             _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
         }
     }
-    
+    //______________________________________________________
+    std::vector<larcv::Image2D> AStarTracker::CropFullImage2bounds(std::vector<TVector3> EndPoints,std::vector<larcv::Image2D> Full_image_v){
+        std::vector<larcv::ImageMeta> Full_meta_v(3);
+        for(int iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = Full_image_v[iPlane].meta();}
+
+        SetTimeAndWireBounds(EndPoints, Full_meta_v);
+        std::vector<std::pair<double,double> > time_bounds = GetTimeBounds();
+        std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
+        std::vector<larcv::Image2D> data_images;
+
+        // make smaller image by inverting and cropping the full one
+        for(int iPlane = 0;iPlane<3;iPlane++){
+            double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*Full_image_v[iPlane].meta().pixel_width());
+            double image_height = 1.*(size_t)((time_bounds[iPlane].second - time_bounds[iPlane].first)*Full_image_v[iPlane].meta().pixel_height());
+            size_t col_count    = (size_t)(image_width / Full_image_v[iPlane].meta().pixel_width());
+            size_t row_count    = (size_t)(image_height/ Full_image_v[iPlane].meta().pixel_height());
+            double origin_x     = Full_image_v[iPlane].meta().tl().x+wire_bounds[iPlane].first *Full_image_v[iPlane].meta().pixel_width();
+            double origin_y     = Full_image_v[iPlane].meta().br().y+time_bounds[iPlane].second*Full_image_v[iPlane].meta().pixel_height();
+            larcv::ImageMeta newMeta(image_width, 6.*row_count,row_count, col_count,origin_x,origin_y,iPlane);
+            newMeta = Full_image_v[iPlane].meta().overlap(newMeta);
+            larcv::Image2D newImage = Full_image_v[iPlane].crop(newMeta);
+            larcv::Image2D invertedImage = newImage;
+            for(int icol = 0;icol<newImage.meta().cols();icol++){
+                for(int irow = 0;irow<newImage.meta().rows();irow++){
+                    if(newImage.pixel(irow, icol) > 10){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
+                    else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);}
+                }
+            }
+            data_images.push_back(invertedImage);
+        }
+        return data_images;
+    }
+
     //
     //
     // When reading proton file
