@@ -40,8 +40,11 @@
 #pragma link C++ class larcv::SegmentFilter+;
 #pragma link C++ class larcv::GenDeadChannelMap+;
 #pragma link C++ class larcv::DeadWireAna+;
+#pragma link C++ class larcv::GoodcROIFilter+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
 
 
 

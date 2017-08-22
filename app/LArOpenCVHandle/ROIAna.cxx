@@ -265,13 +265,16 @@ namespace larcv {
       for(auto const& croi : ev_roi->ROIArray()) {
 	auto const& bb_v = croi.BB();
 	size_t good_croi_ctr = 0;
+
 	for(size_t plane=0; plane<bb_v.size(); ++plane) {
 	  auto const& croi_meta = bb_v[plane];
 	  auto const& wire = wire_v[plane];
 	  if( croi_meta.min_x() <= wire && wire <= croi_meta.max_x() &&
-	      croi_meta.min_y() <= tick && tick <= croi_meta.max_y() )
+	      croi_meta.min_y() <= tick && tick <= croi_meta.max_y() ) {
 	    ++good_croi_ctr;
+	  }
 	}
+
 	if(good_croi_ctr <= _good_croi_ctr) continue;
 	if(good_croi_ctr > 1) _good_croi_ctr+=1;
 

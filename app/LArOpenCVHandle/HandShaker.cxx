@@ -142,6 +142,9 @@ namespace handshake {
 	pxcluster_to_cluster[plane][contour_idx] = _ev_cluster->size();
 	larlite::cluster c;
 	c.set_id(_ev_cluster->size());
+	larlite::geo::PlaneID c_plane_id(larcv::kINVALID_UINT,larcv::kINVALID_UINT,plane);
+	c.set_planeID(c_plane_id);
+
 	_ev_cluster->push_back(c);
 
 	if(time_min > ctime_min) time_min = ctime_min;
@@ -149,8 +152,8 @@ namespace handshake {
 	if(wire_min > cwire_min) wire_min = cwire_min;
 	if(wire_max < cwire_max) wire_max = cwire_max;
 
-	std::cout<<"    cluster " << plane << "-" << contour_idx << " time bounds: " << ctime_min << " => " << ctime_max
-		 <<" ... wire bounds: " << cwire_min << " => " << cwire_max << std::endl;
+	// std::cout<<"    cluster " << plane << "-" << contour_idx << " time bounds: " << ctime_min << " => " << ctime_max
+	// 	 <<" ... wire bounds: " << cwire_min << " => " << cwire_max << std::endl;
 	
       }
       wire_min -=2;
@@ -163,8 +166,8 @@ namespace handshake {
       wire_bounds[plane].first  = wire_min;
       wire_bounds[plane].second = wire_max;
 
-      std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
-	       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
+      // std::cout<<"plane " << plane << " time bounds: " << time_min << " => " << time_max
+      // 	       <<" ... wire bounds: " << wire_min << " => " << wire_max << std::endl;
 
       contours_v[plane] = std::move(this->as_contour_array(key_value.second));
 
@@ -272,7 +275,12 @@ namespace handshake {
 	}
 	// Define a child particle
 	size_t child_id = parent_id + 1 + child_pfpart_v.size();
-	larlite::pfpart child_pfpart(roi.PdgCode(),
+
+	//
+	// record particle type from analysis
+	//
+
+	larlite::pfpart child_pfpart(_ptype_v.at(child_id),
 				     child_id,
 				     parent_id,
 				     empty_daughters);
@@ -356,6 +364,14 @@ namespace handshake {
     _ev_ass->set_association( _ev_track->id(),   _ev_hit->id(),     _ass_track_to_hit      );
     _ev_ass->set_association( _ev_cluster->id(), _ev_hit->id(),     _ass_cluster_to_hit    );
   }
+
+  void HandShaker::copy_here_to_there(larlite::event_hit* ev_in,     larlite::event_hit* ev_out)      { (*ev_in) = (*ev_out); }
+  void HandShaker::copy_here_to_there(larlite::event_mctruth* ev_in, larlite::event_mctruth* ev_out)  { (*ev_in) = (*ev_out); }
+  void HandShaker::copy_here_to_there(larlite::event_mcshower* ev_in,larlite::event_mcshower* ev_out) { (*ev_in) = (*ev_out); }
+  void HandShaker::copy_here_to_there(larlite::event_gtruth* ev_in,larlite::event_gtruth* ev_out) { (*ev_in) = (*ev_out); }
+  void HandShaker::copy_here_to_there(larlite::event_simch* ev_in,larlite::event_simch* ev_out) { (*ev_in) = (*ev_out); }
+
+
 }
 
 #endif

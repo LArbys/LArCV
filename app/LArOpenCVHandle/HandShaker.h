@@ -15,6 +15,9 @@
 #define HANDSHAKER_H
 
 #include <iostream>
+
+#include "Base/GeoTypes.h"
+
 #include "DataFormat/pfpart.h"
 #include "DataFormat/vertex.h"
 #include "DataFormat/hit.h"
@@ -22,6 +25,10 @@
 #include "DataFormat/shower.h"
 #include "DataFormat/track.h"
 #include "DataFormat/event_ass.h"
+#include "DataFormat/mctruth.h"
+#include "DataFormat/mcshower.h"
+#include "DataFormat/gtruth.h"
+#include "DataFormat/simch.h"
 
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventROI.h"
@@ -58,7 +65,8 @@ namespace handshake {
     void construct(const larcv::EventPGraph&  ev_pgraph,
 		   const larcv::EventPixel2D& ev_pixel2d,
 		   const larlite::event_hit*  ev_hit);
-
+    
+    
     void reset();
 
     void pixel_distance_threshold(double dist)
@@ -66,14 +74,18 @@ namespace handshake {
 
     bool ready() const;
 
+    void set_pfparticle_types(const std::vector<int>& ptype_v) { _ptype_v = ptype_v; }
+
   protected:
 
     double _dist_thresh;
+    
+    std::vector<int> _ptype_v;
 
     larocv::GEO2D_Contour_t as_contour(const larcv::Pixel2DCluster& ctor);
-
+    
     larocv::GEO2D_ContourArray_t as_contour_array(const std::vector<larcv::Pixel2DCluster>& ctor_v);
-
+    
     larlite::AssSet_t _ass_pfpart_to_vertex;  // many to 1
     larlite::AssSet_t _ass_vertex_to_track;   // 1 to many
     larlite::AssSet_t _ass_vertex_to_shower;   // 1 to many
@@ -92,6 +104,15 @@ namespace handshake {
     larlite::event_cluster* _ev_cluster;
     larlite::event_hit*     _ev_hit;
     larlite::event_ass*     _ev_ass;
+
+  public:
+    void copy_here_to_there(larlite::event_hit* ev_in,larlite::event_hit* ev_out);
+    void copy_here_to_there(larlite::event_mctruth* ev_in,larlite::event_mctruth* ev_out);
+    void copy_here_to_there(larlite::event_mcshower* ev_in,larlite::event_mcshower* ev_out);
+    void copy_here_to_there(larlite::event_gtruth* ev_in,larlite::event_gtruth* ev_out);
+    void copy_here_to_there(larlite::event_simch* ev_in,larlite::event_simch* ev_out);
+    
+    
   };
 }
 
