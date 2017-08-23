@@ -23,7 +23,7 @@ dfs  = {}
 edfs = {}
 mdfs = {}
 
-name = sys.argv[1]
+name        = sys.argv[1]
 INPUT_FILE  = sys.argv[2]
 
 #
@@ -149,13 +149,30 @@ for name, comb_df in dfs.iteritems():
     ts_mdf_m[name] = ts_mdf.copy()
 
 
+print "Initial stats..."
 for name, comb_df in dfs.iteritems():
     print "@ sample",name
 
     print
-    print comb_df.index.size
-    print ts_mdf_m[name].index.size
-    print len(ts_mdf_m[name].groupby(rse))
+    print "N input vertices....",comb_df.index.size
+    print "N input events......",len(comb_df.groupby(rse))
+    print "N pre-cut vertices..",ts_mdf_m[name].index.size
+    print "N pre-cut events....",len(ts_mdf_m[name].groupby(rse))
+    print
+
+    scedr = 5
+    print "Good vertex scedr < 5"
+    print "N input vertices....",comb_df.query("scedr<@scedr").index.size
+    print "N input events......",len(comb_df.query("scedr<@scedr").groupby(rse))
+    print "N pre-cut vertices..",ts_mdf_m[name].query("scedr<@scedr").index.size
+    print "N pre-cut events....",len(ts_mdf_m[name].query("scedr<@scedr").groupby(rse))
+    print
+
+    print "Bad vertex scedr > 5"
+    print "N input vertices....",comb_df.query("scedr>@scedr").index.size
+    print "N input events......",len(comb_df.query("scedr>@scedr").groupby(rse))
+    print "N pre-cut vertices..",ts_mdf_m[name].query("scedr>@scedr").index.size
+    print "N pre-cut events....",len(ts_mdf_m[name].query("scedr>@scedr").groupby(rse))
     print
 
 
@@ -173,7 +190,7 @@ sig_spectrum_m = {}
 bkg_spectrum_m = {}
 
 for key in keys_v:
-    print "@key=",key
+    # print "@key=",key
     hist = tf.Get(key)
     arr = rn.hist2array(hist,return_edges=True)
 
@@ -191,11 +208,9 @@ for key in keys_v:
     if type_ == "sig":
         param = "_".join(key.split("_")[1:])
         sig_spectrum_m[param] = (centers,data)
-        print "...sig"
     elif  type_ == "bkg":
         param = "_".join(key.split("_")[1:])
         bkg_spectrum_m[param] = (centers,data)
-        print "...bkg"
     else:
         raise Exception
 
@@ -236,34 +251,26 @@ k0 = ts_mdf_m[name].apply(LL,axis=1)
 ts_mdf_m[name]['LL']=k0
 
 
-# DRAW=True
+passed = ts_mdf_m[name].query("LL>-16.25")
 
-# for key in sig_spectrum_m.items():
-
-#     ts_mdf0 = ts_mdf_m[name].copy()
-
-#     sig_centers, sig_norm = sig_spectrum_m[key]
-#     bkg_centers, bkg_norm = bkg_spectrum_m[key]
+print "Final stats..."
+for name, comb_df in dfs.iteritems():
+    print "@ sample",name
     
-#     if DRAW:
-#         fig,ax=plt.subplots(figsize=(10,6))
-        
-#         ax.hist(bkg_data,bins=bkg_bins,weights=bkg_norm,histtype='stepfilled',color='red',lw=1,alpha=0.1)
-#         ax.hist(bkg_data,bins=bkg_bins,weights=bkg_norm,histtype='step',color='red',lw=2,label='Background')
+    print
+    print "N post LL vertices..",passed.index.size
+    print "N post LL events....",len(passed.groupby(rse))
+    print
+    
+    scedr = 5
+    print
+    print "Good vertex scedr < 5"
+    print "N post LL vertices..",passed.query("scedr<@scedr").index.size
+    print "N post LL events....",len(passed.query("scedr<@scedr").groupby(rse))
+    print
 
-#         ax.hist(sig_data,bins=sig_bins,weights=sig_norm,histtype='stepfilled',color='blue',lw=1,alpha=0.1)
-#         ax.hist(sig_data,bins=sig_bins,weights=sig_norm,histtype='step',color='blue',lw=2,label='Signal')
-
-#         # ax.errorbar(sig_centers,bkg_norm,yerr=bkg_err_norm,fmt='o',color='red',markersize=0,lw=2)
-#         # ax.errorbar(bkg_centers,sig_norm,yerr=sig_err_norm,fmt='o',color='blue',markersize=0,lw=2)
-        
-#         ax.set_ylabel("Fraction of Vertices",fontweight='bold',fontsize=20)
-#         ax.set_xlabel(name,fontweight='bold',fontsize=20)
-#         ax.set_xlim(xlo,xhi)
-#         ax.legend(loc='best')
-#         ax.grid()
-#         SS = os.path.join(BASE_PATH,"ll_dump/%s.pdf" % key)
-#         print "Dump --> ll_dump/%s" os.path.basename(SS)
-#         plt.savefig(SS)
-#         plt.show()
-
+    print
+    print "Bad vertex scedr > 5"
+    print "N post LL vertices..",passed.query("scedr>@scedr").index.size
+    print "N post LL events....",len(passed.query("scedr>@scedr").groupby(rse))
+    print
