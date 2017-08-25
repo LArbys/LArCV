@@ -17,6 +17,7 @@
 #include "TLine.h"
 #include "TF1.h"
 #include "TVector3.h"
+#include "TRandom3.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 #include "AStarUtils.h"
@@ -112,8 +113,8 @@ namespace larcv {
         }
 
         // Update the range with margin
-        double ImageMargin = 50.;
-        double fractionImageMargin = 1;
+        double ImageMargin = 100.;
+        double fractionImageMargin = 2;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -175,8 +176,8 @@ namespace larcv {
             }
         }
         // Update the range with margin
-        double ImageMargin = 50.;
-        double fractionImageMargin = 0.25;
+        double ImageMargin = 100.;
+        double fractionImageMargin = 2;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -260,8 +261,8 @@ namespace larcv {
         tellMe(Form("time_bounds.size() = %zu",time_bounds.size()),2);
 
         // Update the range with margin
-        double ImageMargin = 50.;
-        double fractionImageMargin = 0.25;
+        double ImageMargin = 100.;
+        double fractionImageMargin = 2;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -343,8 +344,8 @@ namespace larcv {
         tellMe(Form("time_bounds.size() = %zu",time_bounds.size()),2);
 
         // Update the range with margin
-        double ImageMargin = 50.;
-        double fractionImageMargin = 0.25;
+        double ImageMargin = 100.;
+        double fractionImageMargin = 2;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -430,8 +431,8 @@ namespace larcv {
         tellMe(Form("time_bounds.size() = %zu",time_bounds.size()),2);
 
         // Update the range with margin
-        double ImageMargin = 50.;
-        double fractionImageMargin = 0.5;
+        double ImageMargin = 100.;
+        double fractionImageMargin = 3;
         for(size_t iPlane=0;iPlane<3;iPlane++){
             time_bounds[iPlane].first  -= std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
             time_bounds[iPlane].second += std::max(ImageMargin,fractionImageMargin*(time_bounds[iPlane].second-time_bounds[iPlane].first));
@@ -486,6 +487,7 @@ namespace larcv {
         time_bounds.reserve(3);
         wire_bounds.reserve(3);
         hit_image_v.reserve(3);
+        hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
         hDistance2Hit = new TH1D("hDistance2Hit","hDistance2Hit",100,0,50);
         if(_DrawOutputs){
             hdQdx = new TH1D("hdQdx","hdQdx",100,0,100);
@@ -615,6 +617,11 @@ namespace larcv {
                 cdQdX2D->SaveAs("cdQdX2D.root");
             }
         }
+
+        TCanvas *cDist = new TCanvas("cDist","cDist",800,600);
+        hDist2point->Draw();
+        cDist->SetLogy();
+        cDist->SaveAs("cDist.pdf");
         return true;
     }
     //______________________________________________________
@@ -645,6 +652,82 @@ namespace larcv {
         }
         tellMe("Point updated",1);
         return newPoint;
+    }
+    //______________________________________________________
+    void AStarTracker::ImproveCluster(){
+        bool foundNewPoint = true;
+        bool terminate = false;
+        std::vector<TVector3> list3D;
+        TRandom3 ran;
+        ran.SetSeed(0);
+        double x,y,z;
+        double rmax = 20;
+        int iterMax = 100;
+        TVector3 lastNode = start_pt;
+        int iter = 0;
+        while(foundNewPoint && iter < iterMax && terminate == false){
+            foundNewPoint = false;
+            iter++;
+            for(int i = 0;i<10000;i++){
+                double coord2D[3][3];// for each plane : x,y and ADC value;
+                double r = ran.Uniform(0,rmax);
+                ran.Sphere(x,y,z,r);
+                TVector3 newCandidate(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
+                if(!CheckEndPointsInVolume(newCandidate)) continue;
+                bool TooClose = false;
+                for(int iEndPt = 1;iEndPt<_vertexEndPoints.size();iEndPt++){
+                    if(_vertexEndPoints[iEndPt] == end_pt)continue;
+                    if((_vertexEndPoints[0]-end_pt).Dot(_vertexEndPoints[0]-newCandidate)/( (_vertexEndPoints[0]-end_pt).Mag() *(_vertexEndPoints[0]-newCandidate).Mag() ) >  (_vertexEndPoints[0]-_vertexEndPoints[iEndPt]).Dot(_vertexEndPoints[0]-newCandidate)/( (_vertexEndPoints[0]-_vertexEndPoints[iEndPt]).Mag() *(_vertexEndPoints[0]-newCandidate).Mag() ) ) TooClose =true; // let's say it's too close to the axis of the other end point
+                }
+                //for(int i = 0;i<_3DTrack.size();i++){
+                //    if((newCandidate-_3DTrack[i]).Mag() < 2) TooClose=true;
+                //}
+                if(list3D.size() >= 1){
+                    for(int i = 0;i<list3D.size()-1;i++){
+                        if((newCandidate-list3D[i]).Mag() < 1) TooClose=true;
+                    }
+                }
+                if(TooClose)continue;
+                int NplanesOK=0;
+                for(int iPlane = 0;iPlane<3;iPlane++){
+                    double x_proj, y_proj;
+                    ProjectTo3D(hit_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
+                    coord2D[iPlane][0] = x_proj;
+                    coord2D[iPlane][1] = y_proj;
+                    coord2D[iPlane][2] = 0;
+                    if(x_proj > hit_image_v[iPlane].meta().cols()-10
+                       || y_proj > hit_image_v[iPlane].meta().rows()-10
+                       || x_proj < 10
+                       || y_proj < 10) {terminate = true;break;}
+                    coord2D[iPlane][2] = hit_image_v[iPlane].pixel(y_proj,x_proj);
+                    if(coord2D[iPlane][2] != 0){NplanesOK++;}
+                }
+                if(NplanesOK == 3){
+                    if(!(coord2D[0][2] == coord2D[1][2] || coord2D[0][2] == coord2D[2][2] || coord2D[1][2] == coord2D[2][2])){
+                        list3D.push_back(newCandidate);
+                        foundNewPoint = true;
+                    }
+                }
+            }
+            double dist = 0;
+            if(_3DTrack.size() > 0){
+                for(int i = 0;i<list3D.size();i++){
+                    if((_3DTrack[0]-list3D[i]).Mag() > dist){lastNode = list3D[i];dist = (_3DTrack[0]-list3D[i]).Mag();}
+                }
+            }
+        }
+
+        /*TGraph *gNewTrack[3];
+        for(int iPlane=0;iPlane<3;iPlane++){gNewTrack[iPlane] = new TGraph();}
+        for(int i=0;i<list3D.size();i++){
+            double x_proj, y_proj;
+            for(int iPlane=0;iPlane<3;iPlane++){
+                ProjectTo3D(hit_image_v[iPlane].meta(),list3D[i].X(), list3D[i].Y(), list3D[i].Z(),0, iPlane, x_proj,y_proj);
+                gNewTrack[iPlane]->SetPoint(i,x_proj*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x,y_proj*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            }
+        }*/
+
+        _3DTrack = list3D;
     }
     //______________________________________________________
     bool AStarTracker::CheckEndPoints(std::vector< std::pair<int,int> > endPix){
@@ -785,19 +868,42 @@ namespace larcv {
         return openSet;
     }
     //______________________________________________________
+    std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, int BoxSize, double dR){
+        std::vector<TVector3> openSet;
+
+        for(int ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
+            for(int iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
+                for(int iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
+                    //if(ix == 0 && iy == 0 && iz == 0)continue;
+                    TVector3 neighbour = newPoint;
+                    neighbour.SetX(newPoint.X()+dR*ix);
+                    neighbour.SetY(newPoint.Y()+dR*iy);
+                    neighbour.SetZ(newPoint.Z()+dR*iz);
+                    openSet.push_back(neighbour);
+                }
+            }
+        }
+        return openSet;
+    }
+    //______________________________________________________
     void AStarTracker::Make3DpointList(){
         double nodeX,nodeY,nodeZ;
         std::vector<TVector3> list3D;
+        TVector3 lastNode;
         //for(size_t iNode=RecoedPath.size()-1;iNode < RecoedPath.size();iNode--){
+        int Nnodes = RecoedPath.size()-1;
         for(size_t iNode=0;iNode < RecoedPath.size();iNode++){
-            double time = hit_image_v[0].meta().br().y+(RecoedPath[iNode].row)*hit_image_v[0].meta().pixel_height();
+            double time = hit_image_v[0].meta().br().y+(RecoedPath[Nnodes-iNode].row)*hit_image_v[0].meta().pixel_height();
             nodeX = Tick2X(time,0);
-            nodeY = RecoedPath.at(iNode).tyz[1];
-            nodeZ = RecoedPath.at(iNode).tyz[2];
+            nodeY = RecoedPath.at(Nnodes-iNode).tyz[1];
+            nodeZ = RecoedPath.at(Nnodes-iNode).tyz[2];
             TVector3 node(nodeX,nodeY,nodeZ);
             list3D.push_back(node);
+            lastNode = node;
         }
+
         _3DTrack = list3D;
+
     }
     //______________________________________________________
     void AStarTracker::ComputedQdX(){
@@ -950,13 +1056,34 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::DrawTrack(){
         TH2D *hImage[3];
-        //TH2D *hTrack[3];
-        //TH2D *hIntegral[3];
         TGraph *gTrack[3];
         TGraph *gStartNend[3];
-
+        TGraph *gStart[3];
+        double x_pixel_st, y_pixel_st,x_pixel_nd, y_pixel_nd,x_pixel, y_pixel;
+        std::vector<TVector3> addedPoints;
+        std::vector<std::vector<std::pair<int,int> > > PossiblePoint(3);
         for(size_t iPlane=0;iPlane<3;iPlane++){
             gTrack[iPlane] = new TGraph();
+            gStartNend[iPlane] = new TGraph();
+            gStart[iPlane] = new TGraph();
+            ProjectTo3D(hit_image_v[iPlane].meta(),
+                        start_pt.X(),
+                        start_pt.Y(),
+                        start_pt.Z(),
+                        0,
+                        iPlane,
+                        x_pixel_st,y_pixel_st); // y_pixel is time
+            gStartNend[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            gStart[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            ProjectTo3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel_nd,y_pixel_nd); // y_pixel is time
+            gStartNend[iPlane]->SetPoint(1,x_pixel_nd*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_nd*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+
+            for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
+                ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(),_3DTrack[iNode].Y(),_3DTrack[iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
+
+                gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            }
+
             hImage[iPlane] = new TH2D(Form("hImage_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),
                                       Form("hImage_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
@@ -966,158 +1093,42 @@ namespace larcv {
                                       hit_image_v[iPlane].meta().br().y,
                                       hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
 
-            //hImage[iPlane] = new TH2D(Form("hImage_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),Form("hImage_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),hit_image_v[iPlane].meta().cols(),0,hit_image_v[iPlane].meta().cols(),hit_image_v[iPlane].meta().rows(),0,hit_image_v[iPlane].meta().rows());
-            //hIntegral[iPlane] = new TH2D(Form("hIntegral_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),Form("hIntegral_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),hit_image_v[iPlane].meta().cols(),0,hit_image_v[iPlane].meta().cols(),hit_image_v[iPlane].meta().rows(),0,hit_image_v[iPlane].meta().rows());
 
             for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                 for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
                 }
             }
-
-            gStartNend[iPlane] = new TGraph();
-            double x_pixel, y_pixel;
-            ProjectTo3D(hit_image_v[iPlane].meta(),
-                      start_pt.X(),
-                      start_pt.Y(),
-                      start_pt.Z(),
-                      0,
-                      iPlane,
-                      x_pixel,y_pixel); // y_pixel is time
-            gStartNend[iPlane]->SetPoint(0,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-            ProjectTo3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
-            gStartNend[iPlane]->SetPoint(1,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-
-
-
-
-            /*for(size_t iNode=0;iNode<recoTrack.NumberTrajectoryPoints();iNode++){
-                ProjectTo3D(hit_image_v[iPlane].meta(),
-                          recoTrack.LocationAtPoint(iNode).X(),
-                          recoTrack.LocationAtPoint(iNode).Y(),
-                          recoTrack.LocationAtPoint(iNode).Z(),
-                          0,
-                          iPlane,
-                          x_pixel,y_pixel); // y_pixel is time
-                gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-            }*/
-
-            /*hTrack[iPlane] = new TH2D(Form("hTrack_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),
-                                      Form("hTrack_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
-                                      hit_image_v[iPlane].meta().cols(),
-                                      hit_image_v[iPlane].meta().tl().x,
-                                      hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
-                                      hit_image_v[iPlane].meta().rows(),
-                                      hit_image_v[iPlane].meta().br().y,
-                                      hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());*/
-
-            for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
-                ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(),_3DTrack[iNode].Y(),_3DTrack[iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
-
-                //gTrack[iPlane]->SetPoint(iNode,hit_image_v[iPlane].meta().tl().x+(RecoedPath[iNode].cols[iPlane]+0.5)*hit_image_v[iPlane].meta().pixel_width(),hit_image_v[iPlane].meta().br().y+(RecoedPath[iNode].row+0.5)*hit_image_v[iPlane].meta().pixel_height());
-                gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-                //hTrack[iPlane]->SetBinContent(RecoedPath[iNode].cols[iPlane]+1,RecoedPath[iNode].row+1,1);
-            }
         }
 
-        tellMe("computing dqdx",1);
-        /*
-        for(size_t iPlane = 0;iPlane<3;iPlane++){
-            //std::cout << "\t" << iPlane << std::endl;
 
-            for(size_t iNode=0;iNode<recoTrack.NumberTrajectoryPoints()-1;iNode++){
-                X1 = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(recoTrack.LocationAtPoint(iNode  ),iPlane).w/0.3);
-                Y1 = hit_image_v[iPlane].meta().row(X2Tick(recoTrack.LocationAtPoint(iNode  ).X(),iPlane));
-
-                X2 = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(recoTrack.LocationAtPoint(iNode+1),iPlane).w/0.3);
-                Y2 = hit_image_v[iPlane].meta().row(X2Tick(recoTrack.LocationAtPoint(iNode+1).X(),iPlane));
-
-                if(X1 == X2){X1 -= 0.0001;}
-                if(Y1 == Y2){Y1 -= 0.0001;}
-
-                for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                    for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
-                        //if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-                        //----------------------------
-                        // first, check if the point can belong to this segment
-                        // measure the distance to the line
-                        // check the angles
-                        //----------------------------
-                        double theta0; // angle with which the segment [iNode, iNode+1] is ssen by the current point
-                        double theta1; // angle with which the segment [jNode, jNode+1] is seen by the current point
-                        X0 = icol;//+0.5;
-                        Y0 = irow;//+0.5;
-                        if(X0 == X1 || X0 == X2){X0 += 0.0001;}
-                        if(Y0 == Y1 || Y0 == Y2){Y0 += 0.0001;}
-                        alpha = ( (X2-X1)*(X0-X1)+(Y2-Y1)*(Y0-Y1) )/( pow(X2-X1,2)+pow(Y2-Y1,2) ); // normalized scalar product of the 2 vectors
-                        //if(alpha <= -0.25 || alpha >= 1.25) continue;
-                        xp = X1+alpha*(X2-X1);
-                        yp = Y1+alpha*(Y2-Y1);
-                        dist = sqrt(pow(xp-X0,2)+pow(yp-Y0,2));
-                        double dist2point = std::min( sqrt(pow(X0-X1,2)+pow(Y0-Y1,2)), sqrt(pow(X0-X2,2)+pow(Y0-Y2,2)) );
-
-                        if( alpha >= 0 && alpha <= 1 && dist > Npx ) continue;
-                        if( (alpha < 0 || alpha > 1) && dist2point > Npx ) continue;
-
-                        theta0 = std::abs(std::acos(((X1-X0)*(X2-X0)+(Y1-Y0)*(Y2-Y0))/(sqrt(pow(X1-X0,2)+pow(Y1-Y0,2))*sqrt(pow(X2-X0,2)+pow(Y2-Y0,2)))));
-                        // check all other nodes, if I find an angle bigger with a distance lower than Npx, reject the point for the current segment
-
-                        bool bestCandidate = true;
-                        for(size_t jNode=0;jNode<recoTrack.NumberTrajectoryPoints()-1;jNode++){
-                            if(jNode==iNode)continue;
-                            double x1,y1,x2,y2, alpha2, xp2,yp2, dist2;
-                            x1 = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(recoTrack.LocationAtPoint(jNode  ),iPlane).w/0.3);
-                            x2 = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(recoTrack.LocationAtPoint(jNode+1),iPlane).w/0.3);
-
-                            y1 = hit_image_v[iPlane].meta().row(X2Tick(recoTrack.LocationAtPoint(jNode  ).X(),iPlane));
-                            y2 = hit_image_v[iPlane].meta().row(X2Tick(recoTrack.LocationAtPoint(jNode+1).X(),iPlane));
-
-                            if(x1 == x2){x1 -= 0.0001;}
-                            if(y1 == y2){y1 -= 0.0001;}
-
-                            alpha2 = ( (x2-x1)*(X0-x1)+(y2-y1)*(Y0-y1) )/( pow(x2-x1,2)+pow(y2-y1,2) );
-                            xp2 = x1+alpha2*(x2-x1);
-                            yp2 = y1+alpha2*(y2-y1);
-                            dist2 = sqrt(pow(xp2-X0,2)+pow(yp2-Y0,2));
-
-                            double dist2point2 = std::min( sqrt(pow(X0-x1,2)+pow(Y0-y1,2)), sqrt(pow(X0-x2,2)+pow(Y0-y2,2)) );
-
-                            if( alpha2 >= 0 && alpha2 <= 1 && dist2 > Npx ) continue;
-                            if( (alpha2 < 0 || alpha2 > 1) && dist2point2 > Npx ) continue;
-
-                            theta1 = std::abs(std::acos(((x1-X0)*(x2-X0)+(y1-Y0)*(y2-Y0))/(sqrt(pow(x1-X0,2)+pow(y1-Y0,2))*sqrt(pow(x2-X0,2)+pow(y2-Y0,2)))));
-                            if(theta1 >= theta0){bestCandidate=false;}
-                        }
-                        if(!bestCandidate)continue;
-
-
-                        hIntegral[iPlane]->Fill(X0,Y0);
-                    }
-                }
-            }
-        }
-         */
-
-        TCanvas *c = new TCanvas(Form("c_%d_%d_%d_%d",_run,_subrun,_event,_track),Form("c_%d_%d_%d_%d",_run,_subrun,_event,_track),450,150);
+        TCanvas *c = new TCanvas(Form("c_%d_%d_%d_%d",_run,_subrun,_event,_track),Form("c_%d_%d_%d_%d",_run,_subrun,_event,_track),1800,600);
         c->Divide(3,1);
         for(int iPlane=0;iPlane<3;iPlane++){
             c->cd(iPlane+1);
-            //hIntegral[iPlane]->Draw();
             hImage[iPlane]->Draw("colz");
-            //hTrack[iPlane]->Draw("same colz");
             gTrack[iPlane]->SetLineColor(2);
-            gTrack[iPlane]->Draw("same LP");
+            gTrack[iPlane]->Draw("same P");
             gStartNend[iPlane]->SetMarkerStyle(20);
             gStartNend[iPlane]->SetMarkerSize(0.25);
             gStartNend[iPlane]->Draw("same P");
+            gStart[iPlane]->SetMarkerStyle(7);
+            gStart[iPlane]->SetMarkerColor(2);
+            gStart[iPlane]->Draw("same P");
+            //gNewTrack[iPlane]->SetMarkerColor(2);
+            //if(iter == iterMax)gNewTrack[iPlane]->SetMarkerColor(6);
+            //gNewTrack[iPlane]->SetMarkerStyle(7);
+            //if(list3D.size()>=1)gNewTrack[iPlane]->Draw("same P");
         }
-        c->SaveAs(Form("%s.pdf",c->GetName()));
+        //c->SaveAs(Form("%s.pdf",c->GetName()));
+        c->SaveAs(Form("%s.png",c->GetName()));
+        //c->SaveAs(Form("%s.jpg",c->GetName()));
         for(int iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
-            //hTrack[iPlane]->Delete();
-            //hIntegral[iPlane]->Delete();
             gTrack[iPlane]->Delete();
             gStartNend[iPlane]->Delete();
+            gStart[iPlane]->Delete();
+            //gNewTrack[iPlane]->Delete();
         }
         tellMe("histogram and gStartNend deleted",2);
     }
@@ -1125,6 +1136,7 @@ namespace larcv {
     void AStarTracker::DrawROI(){
         TH2D *hImage[3];
         TGraph *gStartNend[3];
+        TGraph *gStart[3];
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             hImage[iPlane] = new TH2D(Form("hImage_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),
@@ -1143,6 +1155,7 @@ namespace larcv {
             }
 
             gStartNend[iPlane] = new TGraph();
+            gStart[iPlane] = new TGraph();
             double x_pixel_st, y_pixel_st,x_pixel_end, y_pixel_end;
             double Xstart,Ystart,Xend,Yend;
 
@@ -1154,6 +1167,7 @@ namespace larcv {
             Ystart = y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y;
             tellMe(Form("[DrawROI] StartPt plane %zu : (%.1f, %.1f)",iPlane, Xstart, Ystart),1);
             gStartNend[iPlane]->SetPoint(0,Xstart,Ystart);
+            gStart[iPlane]->SetPoint(0,Xstart,Ystart);
 
             ProjectTo3D(hit_image_v[iPlane].meta(),
                       end_pt.X(),end_pt.Y(),end_pt.Z(),
@@ -1171,15 +1185,18 @@ namespace larcv {
         for(int iPlane=0;iPlane<3;iPlane++){
             c->cd(iPlane+1);
             hImage[iPlane]->Draw("colz");
+            gStart[iPlane]->SetMarkerStyle(7);
             gStartNend[iPlane]->SetMarkerStyle(4);
             gStartNend[iPlane]->SetMarkerSize(0.25);
             gStartNend[iPlane]->Draw("same P");
+            gStart[iPlane]->Draw("same P");
         }
         c->SaveAs(Form("%s.pdf",c->GetName()));
 
         for(int iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             gStartNend[iPlane]->Delete();
+            gStart[iPlane]->Delete();
         }
         tellMe("histogram and gStartNend deleted",1);
 
@@ -1240,9 +1257,32 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::RegularizeTrack(){
-        /*for(int iNode = 0;iNode<_3DTrack.size();iNode++){
-            _3DTrack[iNode] = CheckEndPoints(_3DTrack[iNode]);
-        }*/
+
+        std::vector<TVector3> newTrack;
+        TVector3 newPoint;
+        double dist;
+        double distMin;
+        bool pointAlreadyChosen = false;
+        newTrack.push_back(_3DTrack[0]);
+        int oldSize = 0;
+        while(_3DTrack.size() != newTrack.size()){
+            distMin=1e9;
+            for(int iNode=0;iNode<_3DTrack.size();iNode++){
+                pointAlreadyChosen = false;
+                for(int jNode = 0;jNode<newTrack.size();jNode++){
+                    if(_3DTrack[iNode] == newTrack[jNode])pointAlreadyChosen = true;
+                }
+                if(pointAlreadyChosen)continue;
+                dist = (_3DTrack[iNode]-newTrack.back()).Mag();
+                if(dist < distMin){distMin = dist;newPoint = _3DTrack[iNode];}
+            }
+            //std::cout << distMin << std::endl;
+            if(distMin > 10) break;
+            hDist2point->Fill(distMin);
+            newTrack.push_back(newPoint);
+        }
+        _3DTrack=newTrack;
+
 
         if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
         if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
@@ -1295,6 +1335,18 @@ namespace larcv {
         std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
         std::vector<larcv::Image2D> data_images;
 
+        // find dead/bad wires and paint them with 2
+        for(int iPlane=0;iPlane<3;iPlane++){
+            for(int icol = 0;icol<Full_image_v[iPlane].meta().cols();icol++){
+                int summedVal = 0;
+                for(int irow = 0;irow<Full_image_v[iPlane].meta().rows();irow++){
+                    if(Full_image_v[iPlane].pixel(irow,icol) > 10)summedVal+=Full_image_v[iPlane].pixel(irow,icol);
+                }
+                if(summedVal == 0){
+                    Full_image_v[iPlane].paint_col(icol,20);
+                }
+            }
+        }
         // make smaller image by inverting and cropping the full one
         for(int iPlane = 0;iPlane<3;iPlane++){
             double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*Full_image_v[iPlane].meta().pixel_width());

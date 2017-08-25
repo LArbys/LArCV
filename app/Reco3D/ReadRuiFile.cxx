@@ -98,32 +98,57 @@ namespace larcv {
         std::vector<TVector3> MuonVertices;
         std::vector<TVector3> ProtonVertices;
         std::vector<TVector3> ElectronVertices;
+        std::vector<TVector3> MuonEndPoint;
+        std::vector<TVector3> ProtonEndPoint;
+        std::vector<TVector3> ElectronEndPoint;
         for(int iMC = 0;iMC<mc_roi_v.size();iMC++){
             if(mc_roi_v[iMC].PdgCode() == 13){
                 std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << std::endl;
                 MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
+                MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
             if(mc_roi_v[iMC].PdgCode() == 2212){
                 std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << std::endl;
                 ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
+                ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
             if(mc_roi_v[iMC].PdgCode() == 11){
                 std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << std::endl;
                 ElectronVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
+                ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
         }
         std::vector<TVector3> MCVertices;
+        std::vector<TVector3> MCEndPoint;
         bool isVertex = false;
+        bool isNumu = false;
+        bool isNue = false;
+        std::vector<int> goodMuon, goodElectron;
         for(int iProton = 0;iProton<ProtonVertices.size();iProton++){
             isVertex = false;
+            isNumu = false;
+            isNue = false;
             for(int iMuon = 0;iMuon<MuonVertices.size();iMuon++){
-                if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;}
+                if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;isNumu = true;goodMuon.push_back(iMuon);}
             }
             for(int iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
-                    if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;}
+                if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;isNue = true;goodElectron.push_back(iElectron);}
             }
             if(isVertex && MCVertices.size()!=0 && ProtonVertices[iProton] == MCVertices[MCVertices.size()-1])continue;
-            if(isVertex)MCVertices.push_back(ProtonVertices[iProton]);
+            if(isVertex){
+                MCVertices.push_back(ProtonVertices[iProton]);
+                MCEndPoint.push_back(ProtonEndPoint[iProton]);
+                if(isNumu){
+                    for(int imu = 0;imu<goodMuon.size();imu++){
+                        MCEndPoint.push_back(MuonEndPoint[goodMuon[imu]]);
+                    }
+                }
+                if(isNue){
+                    for(int ie = 0;ie<goodElectron.size();ie++){
+                        MCEndPoint.push_back(ElectronEndPoint[goodElectron[ie]]);
+                    }
+                }
+            }
         }
         if(MCVertices.size() > 1)std::cout << "found " << MCVertices.size() << " MC vertices" << std::endl;
         else{std::cout << "found " << MCVertices.size() << " MC vertex" << std::endl;}
@@ -234,10 +259,16 @@ namespace larcv {
                 // configure and run tracker
                 tracker.SetTrackInfo(run, subrun, event, 2*i+iPart);
                 tracker.SetImages(data_images);
+                std::vector<TVector3> points;
+                points.push_back(EndPoints[0]);
+                points.push_back(EndPoints[iPart+1]);
+                tracker.SetVertexEndPoints(points);
                 tracker.SetEndPoints(EndPoints[0],EndPoints[iPart+1]);
-                tracker.DrawROI();
-                tracker.Reconstruct();
-                tracker.RegularizeTrack();
+                tracker.ImproveCluster();
+                //std::cout << "ImproveCluster done" << std::endl;
+                //tracker.DrawROI();
+                //tracker.Reconstruct();
+                //tracker.RegularizeTrack();
                 tracker.DrawTrack();
 
             }// end loop over particles in vertex

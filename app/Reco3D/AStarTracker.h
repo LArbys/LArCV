@@ -105,7 +105,9 @@ namespace larcv {
         void SetTimeAndWireBounds(TVector3 pointStart, TVector3 pointEnd);
         void SetTimeAndWireBounds(std::vector<TVector3> points);
         void SetTimeAndWireBounds(std::vector<TVector3> points, std::vector<larcv::ImageMeta> meta);
-        void SetEndPoints(TVector3 vertex, TVector3 endpoint){start_pt = vertex; end_pt = CheckEndPoints(endpoint);}
+        void SetEndPoints(TVector3 vertex, TVector3 endpoint){start_pt = vertex; end_pt = endpoint;}
+        void SetEndPoint(TVector3 endpoint){end_pt = CheckEndPoints(endpoint);}
+        void SetVertexEndPoints(std::vector<TVector3> vertexEndPoints){_vertexEndPoints = vertexEndPoints;}
         void DrawTrack();
         void RegularizeTrack();
         void DrawROI();
@@ -132,8 +134,10 @@ namespace larcv {
 
         TVector3        CheckEndPoints(TVector3 point);
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
+        void        ImproveCluster();
 
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
+        std::vector<TVector3>   GetOpenSet(TVector3 newPoint, int BoxSize, double dR);
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
         std::vector<TVector3>   Reconstruct(int run,
                                             int subrun,
@@ -200,10 +204,12 @@ namespace larcv {
         TH1D *hDistanceMC2Hit;
         TH2D *hdQdX2D;
         //TH2D *hdQdX2DNorm;
+        TH1D *hDist2point;
 
         std::vector< std::vector<double> > _dQdx;
         std::vector<TVector3> CorrectedPath;
         std::vector<TVector3> _3DTrack;
+        std::vector<TVector3> _vertexEndPoints;
 
         std::vector<larcv::AStar3DNode> RecoedPath;
 
