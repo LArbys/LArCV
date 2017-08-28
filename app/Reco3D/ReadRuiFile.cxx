@@ -193,85 +193,49 @@ namespace larcv {
             }
             if(!vertexOK) continue;// try another vertex, this one is too far away
 
-            // Prepare the data image
-            std::vector<std::vector<larcv::Image2D> > general_image2d_v(nparticles);
-            std::vector<Image2D> img2d_v;
-            img2d_v.resize(3);
 
-            // Loop per plane, get the particle pixels for this plane
-            for(size_t iPlane=0; iPlane<3; ++iPlane) {
-                auto iter_pcluster = pcluster_m.find(iPlane);
-                if(iter_pcluster == pcluster_m.end()) continue;
-
-                auto iter_ctor = ctor_m.find(iPlane);
-                if(iter_ctor == ctor_m.end()) continue;
-
-                // Retrieve the particle images and particle contours on this plane
-                const auto& pcluster_v = (*iter_pcluster).second;
-                const auto& ctor_v = (*iter_ctor).second;
-                if(ctor_v.size() == 0){std::cout << "no contours?" << std::endl;}
-
-                // Get this planes meta
-                auto meta = roi_v.front().BB(iPlane);
-
-                // Construct this image
-                auto& img2d = img2d_v[iPlane];
-                img2d = Image2D(meta);
-
-                // For each particle, get the particle pixels and put them in the image
-                for(size_t par_id=0; par_id < cluster_idx_v.size(); ++par_id) {
-
-                    auto cluster_idx = cluster_idx_v[par_id];
-                    const auto& pcluster = pcluster_v.at(cluster_idx);
-                    larcv::Image2D img2d_indiv_1plane(meta);
-                    img2d_indiv_1plane.set_pixel(1,1,0.5);
-
-                    for(size_t i=0;i<pcluster.size();++i) {
-                        img2d.set_pixel(pcluster[i].X(),pcluster[i].Y(),pcluster[i].Intensity());
-                        img2d_indiv_1plane.set_pixel(pcluster[i].X(),pcluster[i].Y(),pcluster[i].Intensity());
-                    }// at this point the image of particle par_id for plane "plane" is filled
-                    general_image2d_v[par_id].push_back(img2d_indiv_1plane);
-
-                } // end this particle
-            } // end this plane
-
-
-            std::vector< std::vector<larcv::Image2D> > general_Full_image_v(nparticles);
             std::vector<larcv::ImageMeta> Full_meta_v(3);
             std::vector<larcv::Image2D> Full_image_v(3);
             double wireRange = 5000;
             double tickRange = 8502;
 
-            for(int iPart = 0;iPart < nparticles; iPart++){// start loop over particles in vertex
+            // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
+            for(int iPlane=0;iPlane<3;iPlane++){
+                Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
+                Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
+                if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
+            }
 
-                // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
-                for(int iPlane=0;iPlane<3;iPlane++){
-                    Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
-                    Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
-                    Full_image_v[iPlane].overlay(general_image2d_v[iPart][iPlane]);
-                    Full_image_v[iPlane]*=20;
-                    if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
-                }
+            std::vector<larcv::Image2D> data_images = tracker.CropFullImage2bounds(EndPoints,Full_image_v);
+            tracker.SetOriginalImage(Full_image_v);
+            tracker.SetTrackInfo(run, subrun, event, 20*i);
+            tracker.SetImages(data_images);
+            tracker.SetVertexEndPoints(EndPoints);
+            tracker.SetEndPoints(EndPoints[0],EndPoints[1]);
+            std::cout << "Reconstruct Vertex" << std::endl;
+            tracker.ReconstructVertex();
+
+            /*for(int iPart = 0;iPart < nparticles; iPart++){// start loop over particles in vertex
 
                 // make smaller image by inverting and cropping the full one
                 std::vector<larcv::Image2D> data_images = tracker.CropFullImage2bounds(EndPoints,Full_image_v);
-
+                tracker.SetOriginalImage(Full_image_v);
                 // configure and run tracker
                 tracker.SetTrackInfo(run, subrun, event, 2*i+iPart);
                 tracker.SetImages(data_images);
+
                 std::vector<TVector3> points;
                 points.push_back(EndPoints[0]);
                 points.push_back(EndPoints[iPart+1]);
                 tracker.SetVertexEndPoints(points);
+
                 tracker.SetEndPoints(EndPoints[0],EndPoints[iPart+1]);
-                tracker.ImproveCluster();
-                //std::cout << "ImproveCluster done" << std::endl;
-                //tracker.DrawROI();
-                //tracker.Reconstruct();
-                //tracker.RegularizeTrack();
+                tracker.ImprovedCluster();
+                std::cout << "ImproveCluster done" << std::endl;
+                std::cout << "track size = " << tracker.GetTrack().size() << std::endl;
                 tracker.DrawTrack();
 
-            }// end loop over particles in vertex
+            }*/// end loop over particles in vertex
 
             std::cout << std::endl << std::endl;
         }
