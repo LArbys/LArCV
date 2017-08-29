@@ -140,11 +140,13 @@ namespace larcv {
 
         TVector3        CheckEndPoints(TVector3 point);
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
+        TVector3        GetFurtherFromVertex();
 
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, int BoxSize, double dR);
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
         std::vector<TVector3>   OrderList(std::vector<TVector3> list);
+        std::vector<TVector3>   FitBrokenLine();
         std::vector<TVector3>   Reconstruct(int run,
                                             int subrun,
                                             int event,

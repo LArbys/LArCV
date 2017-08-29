@@ -683,6 +683,7 @@ namespace larcv {
     void AStarTracker::ReconstructVertex(){
         if(_vertexTracks.size()!=0)_vertexTracks.clear();
         size_t oldSize = 5;
+        double trackMinLength = 5;
         while(_vertexTracks.size()!=oldSize && _vertexTracks.size()<9){
             oldSize = _vertexTracks.size();
             // first start from Vertex
@@ -690,7 +691,7 @@ namespace larcv {
             SortAndOrderPoints();
 
             ComputeLength();
-            if(_3DTrack.size()<3 || _Length3D < 6){MaskTrack();continue;}
+            if(_3DTrack.size()<3 || _Length3D < trackMinLength){MaskTrack();continue;}
             std::vector<TVector3> firstTrackBit = _3DTrack;
             //_vertexTracks.push_back(_3DTrack);
             //_track++;
@@ -707,7 +708,7 @@ namespace larcv {
             //}
             //_3DTrack = firstTrackBit;
             //ComputeLength();
-            //if(_3DTrack.size()<3 || _Length3D < 6){MaskTrack();continue;}
+            //if(_3DTrack.size()<3 || _Length3D < trackMinLength){MaskTrack();continue;}
             //start_pt = vertexPoint; // reset start point to the original vertex point
 
             _vertexTracks.push_back(_3DTrack);
@@ -725,6 +726,7 @@ namespace larcv {
         TRandom3 ran;
         ran.SetSeed(0);
         double x,y,z;
+        int Ncrop=0;
         double rmax = 10;
         //int iterMax = 100000;
         TVector3 lastNode = start_pt;
@@ -785,8 +787,10 @@ namespace larcv {
                             || x_proj < 10
                             || y_proj < 10)){ReallyTerminate = true;}
                     }
-                    if(!ReallyTerminate){
+                    if(!ReallyTerminate && Ncrop < 100){
+                        std::cout << "cropping " << Ncrop << "th time" << std::endl;
                         hit_image_v = CropFullImage2bounds(list3D,original_full_image_v);
+                        Ncrop++;
                         MaskTrack();
                         terminate=false;
                     }
@@ -868,6 +872,29 @@ namespace larcv {
             if(goOn)list3D.push_back(bestCandidate);
         }
         _3DTrack = list3D;
+    }
+    //______________________________________________________
+    TVector3 AStarTracker::GetFurtherFromVertex(){
+        TVector3 FurtherFromVertex;
+        double dist2vertex = 0;
+        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+            if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
+        }
+        return FurtherFromVertex;
+    }
+    //______________________________________________________
+    std::vector<TVector3> AStarTracker::FitBrokenLine(){
+        std::vector<TVector3> Skeleton;
+
+        Skeleton.push_back(start_pt);
+        Skeleton.push(GetFurtherFromVertex());
+
+        std::cout << "not implemented yet" << std::endl;
+        // (1) compute summed distance of all 3D points to the current line
+        // (2) add 3D points if needed
+        // (3) vary 3D point position to get best fit
+        // (4) as long as not best possible fit, add ans fit 3D points
+        retrun _3DTrack;
     }
     //______________________________________________________
     bool AStarTracker::ArePointsEqual(TVector3 A, TVector3 B){
@@ -1414,7 +1441,8 @@ namespace larcv {
                 }
                 c->cd(iPlane+1);
                 gTrack[iPlane]->SetMarkerStyle(7);
-                gTrack[iPlane]->SetLineColor(2);
+                gTrack[iPlane]->SetLineColor(i+1);
+                gTrack[iPlane]->SetMarkerColor(i+1);
                 gTrack[iPlane]->Draw("same LP");
             }
         }
@@ -1650,12 +1678,12 @@ namespace larcv {
         std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
         std::vector<larcv::Image2D> data_images;
 
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        /*for(int iPlane = 0;iPlane<3;iPlane++){
             std::cout << "time bounds["<<iPlane<<"].first  : " << time_bounds[iPlane].first << std::endl;
             std::cout << "time bounds["<<iPlane<<"].second : " << time_bounds[iPlane].second << std::endl;
             std::cout << "wire bounds["<<iPlane<<"].first  : " << wire_bounds[iPlane].first << std::endl;
             std::cout << "wire bounds["<<iPlane<<"].second : " << wire_bounds[iPlane].second << std::endl;
-        }
+        }*/
 
         // find dead/bad wires and paint them with 20
         for(int iPlane=0;iPlane<3;iPlane++){
@@ -1678,9 +1706,9 @@ namespace larcv {
             double origin_x     = Full_image_v[iPlane].meta().tl().x+wire_bounds[iPlane].first *Full_image_v[iPlane].meta().pixel_width();
             double origin_y     = Full_image_v[iPlane].meta().br().y+time_bounds[iPlane].second*Full_image_v[iPlane].meta().pixel_height();
             larcv::ImageMeta newMeta(image_width, 6.*row_count,row_count, col_count,origin_x,origin_y,iPlane);
-            std::cout << "about to look for overlap : "<< std::endl;
-            std::cout << "...new Meta X : " << newMeta.tl().x << " => " << newMeta.br().x << "  Y : " << newMeta.br().y << " => " << newMeta.tl().y << std::endl;
-            std::cout << "...FullMeta X : " << Full_image_v[iPlane].meta().tl().x << " => " << Full_image_v[iPlane].meta().br().x << "  Y : " << Full_image_v[iPlane].meta().br().y << " => " << Full_image_v[iPlane].meta().tl().y << std::endl;
+            //std::cout << "about to look for overlap : "<< std::endl;
+            //std::cout << "...new Meta X : " << newMeta.tl().x << " => " << newMeta.br().x << "  Y : " << newMeta.br().y << " => " << newMeta.tl().y << std::endl;
+            //std::cout << "...FullMeta X : " << Full_image_v[iPlane].meta().tl().x << " => " << Full_image_v[iPlane].meta().br().x << "  Y : " << Full_image_v[iPlane].meta().br().y << " => " << Full_image_v[iPlane].meta().tl().y << std::endl;
             newMeta = Full_image_v[iPlane].meta().overlap(newMeta);
             larcv::Image2D newImage = Full_image_v[iPlane].crop(newMeta);
             larcv::Image2D invertedImage = newImage;
