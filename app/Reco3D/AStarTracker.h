@@ -111,6 +111,7 @@ namespace larcv {
         void SetVertexEndPoints(std::vector<TVector3> vertexEndPoints){_vertexEndPoints = vertexEndPoints;}
         void SetOriginalImage(std::vector<larcv::Image2D> originalimage){original_full_image_v = originalimage;}
         void DrawTrack();
+        void DrawVertex();
         void RegularizeTrack();
         void DrawROI();
         void TellMeRecoedPath();
