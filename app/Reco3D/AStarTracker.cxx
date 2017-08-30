@@ -887,14 +887,14 @@ namespace larcv {
         std::vector<TVector3> Skeleton;
 
         Skeleton.push_back(start_pt);
-        Skeleton.push(GetFurtherFromVertex());
+        Skeleton.push_back(GetFurtherFromVertex());
 
         std::cout << "not implemented yet" << std::endl;
         // (1) compute summed distance of all 3D points to the current line
         // (2) add 3D points if needed
         // (3) vary 3D point position to get best fit
         // (4) as long as not best possible fit, add ans fit 3D points
-        retrun _3DTrack;
+        return _3DTrack;
     }
     //______________________________________________________
     bool AStarTracker::ArePointsEqual(TVector3 A, TVector3 B){
