@@ -30,7 +30,9 @@ namespace larcv {
     _roi_prod        = cfg.get<std::string>("ROIProducer");
     _true_roi_prod   = cfg.get<std::string>("TrueROIProducer");
     _crop_radius     = cfg.get<size_t>("CropRadius");
-    
+    auto tags_datatype        = cfg.get<size_t>("CosmicTagDataType");
+    _tags_datatype = (ProductType_t) tags_datatype; 
+   
     _LArbysImageMaker.Configure(cfg.get<PSet>("LArbysImageMaker"));
   }
   
@@ -127,17 +129,15 @@ namespace larcv {
       }
     }
     
-    auto const ev_thrumu = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_thrumu_img_prod));
-    if (!ev_thrumu) throw larbys("Invalid ThruMu producer provided!");
+    // auto const ev_thrumu = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_thrumu_img_prod));
+    // if (!ev_thrumu) throw larbys("Invalid ThruMu producer provided!");
     
-    auto const ev_stopmu = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_stopmu_img_prod));
-    if (!ev_stopmu) throw larbys("Invalid StopMu producer provided!");
+    // auto const ev_stopmu = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_stopmu_img_prod));
+    // if (!ev_stopmu) throw larbys("Invalid StopMu producer provided!");
 
     auto const ev_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_prod));
     if (!ev_roi) throw larbys("Invalid ROI producer provided!");
     
-    if (ev_roi->ROIArray().size() != 1) throw larbys("Too many ROI!");
-
     auto const ev_true_roi = (EventROI*)(mgr.get_data(kProductROI,_true_roi_prod));
     if (!ev_true_roi) throw larbys("Invalid True ROI producer provided!");
     
@@ -193,15 +193,21 @@ namespace larcv {
       return true;
     }
 
+
+    std::vector<larcv::Image2D> thrumu_img2d_v;
+    std::vector<larcv::Image2D> stopmu_img2d_v;
+    
+    _LArbysImageMaker.ConstructCosmicImage(mgr,_thrumu_img_prod,_tags_datatype,seg_img2d->Image2DArray(),thrumu_img2d_v);
+    _LArbysImageMaker.ConstructCosmicImage(mgr,_stopmu_img_prod,_tags_datatype,seg_img2d->Image2DArray(),stopmu_img2d_v);
     
     _not_inside = 0;
     for (size_t plane=0; plane<3; ++plane) {
       
       const auto& img2d = seg_img2d->Image2DArray().at(plane);
-      
-      auto thrumu_img2d = _LArbysImageMaker.ConstructCosmicImage(ev_thrumu,img2d,plane,1);
-      auto stopmu_img2d = _LArbysImageMaker.ConstructCosmicImage(ev_stopmu,img2d,plane,1);
 
+      const auto& thrumu_img2d = thrumu_img2d_v[plane];
+      const auto& stopmu_img2d = stopmu_img2d_v[plane];
+	
       const auto& bb = roi.BB(plane);
 
       auto const& wire = wire_v[plane];

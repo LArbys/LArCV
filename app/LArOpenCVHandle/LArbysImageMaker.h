@@ -40,18 +40,21 @@ namespace larcv {
     ExtractImage(const std::vector<Image2D>& image_v);
     
 
-    Image2D
-    ConstructCosmicImage(const EventPixel2D* ev_pixel2d,
-			 const Image2D& adc_image,
-			 const size_t plane,
-			 float value=100);
+    Image2D ConstructCosmicImage(const EventPixel2D& ev_pixel2d,
+				 const Image2D& adc_image,
+				 const size_t plane,
+				 float value=100);
 
-    Image2D
-    ConstructCosmicImage(const EventPixel2D& ev_pixel2d,
-			 const Image2D& adc_image,
-			 const size_t plane,
-			 float value=100);
-
+  Image2D ConstructCosmicImage(const EventPixel2D* ev_pixel2d,
+			       const Image2D& adc_image,
+			       const size_t plane,
+			       float value);
+    
+    void ConstructCosmicImage(IOManager& mgr,
+			      std::string producer,
+			      ProductType_t datatype, 
+			      const std::vector<larcv::Image2D>& adc_image_v,
+			      std::vector<larcv::Image2D>& mu_image_v);
     
   private:
 

@@ -207,6 +207,12 @@ namespace larcv {
   bool NuFilter::process(IOManager& mgr)
   {
 
+    _run      = kINVALID_UINT;
+    _subrun   = kINVALID_UINT;
+    _event    = kINVALID_UINT;
+    _entry    = kINVALID_UINT;
+    _selected = kINVALID_UINT;
+    
     if(_roi_producer_name.empty()) {
       _event_tree->Fill();
       return true;
@@ -224,12 +230,17 @@ namespace larcv {
     
     // if atleast 1 of config selection is false, then test against signal selected
     if ( !_select_signal or !_select_background) {
-      if ( _select_signal     and !signal_selected ) return false;
-      if ( _select_background and  signal_selected ) return false;
+      if ( _select_signal     and !signal_selected ) {
+	_event_tree->Fill();
+	return false;
+      }
+      if ( _select_background and  signal_selected ) {
+	_event_tree->Fill();
+	return false;
+      }
     }
 
     _event_tree->Fill();
-    
     return true;
   }
   

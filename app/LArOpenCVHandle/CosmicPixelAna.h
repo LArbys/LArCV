@@ -46,6 +46,7 @@ namespace larcv {
     std::string _true_roi_prod;
     std::string _roi_prod;
     size_t _crop_radius;
+    ProductType_t _tags_datatype;
     
     //
     // Neutrino
