@@ -20,11 +20,6 @@ namespace larcv {
     _n_pass = 0;
     _n_fail_unknowns=0;
     _n_fail_inter=0;
-    _event_tree = new TTree("NuFilterTree","");
-    _event_tree->Branch("run"   ,&_run,    "run/i");
-    _event_tree->Branch("subrun",&_subrun, "subrun/i");
-    _event_tree->Branch("event" ,&_event,  "event/i");
-    _event_tree->Branch("entry" ,&_entry,  "entry/i");
   }
     
   void NuFilter::configure(const PSet& cfg)
@@ -45,27 +40,19 @@ namespace larcv {
 
     _roi_producer_name = cfg.get<std::string>("ROIProducer");
 
-    _mc_available = cfg.get<bool>("MCAvailable",true);
     _write_tree   = cfg.get<bool>("WriteTree",true);
 
-    LARCV_DEBUG() << std::endl;
-    LARCV_DEBUG() << "\t<~~~~~ NuFilter configuration ~~~~~>" << std::endl;
-    LARCV_DEBUG() << "NuPDG: " << _nu_pdg << std::endl;
-    LARCV_DEBUG() << "InteractionMode: " << _interaction_mode << std::endl;
-    LARCV_DEBUG() << "MinNuEnergy: " << _min_nu_init_e << std::endl;
-    LARCV_DEBUG() << "MaxNuEnergy: " << _max_nu_init_e << std::endl;
-    LARCV_DEBUG() << "MinEDepSumLepton: " << _dep_sum_lepton<< std::endl;
-    LARCV_DEBUG() << "MinEDepSumProton: " << _dep_sum_proton<< std::endl;
-    LARCV_DEBUG() << "SelectSignal: " << _select_signal << std::endl;
-    LARCV_DEBUG() << "SelectBackground: " << _select_background << std::endl;
-    LARCV_DEBUG() << "ROIProducer: " << _roi_producer_name << std::endl;
-    LARCV_DEBUG() << std::endl;
+    _event_tree = new TTree("NuFilterTree","");
+    _event_tree->Branch("run"      , &_run      , "run/i");
+    _event_tree->Branch("subrun"   , &_subrun   , "subrun/i");
+    _event_tree->Branch("event"    , &_event    , "event/i");
+    _event_tree->Branch("entry"    , &_entry    , "entry/i");
+    _event_tree->Branch("selected" , &_selected , "selected/i");
   }
 
   //from rui an.
   bool NuFilter::MCSelect(const EventROI* ev_roi) {
-    _n_calls+=1;
-    
+
     bool pdg_b = false;
     bool interaction_mode_b = false;
     bool energy_init_b = false;
@@ -206,8 +193,6 @@ namespace larcv {
       vis_one_proton_b    &&
       vis_no_unknowns_b;
     
-    _selected = selected;
-
     if (! pdg_b)              _n_fail_nupdg      += 1;
     if (! interaction_mode_b) _n_fail_inter      += 1;
     if (! energy_init_b)      _n_fail_nuE        += 1;
@@ -224,12 +209,10 @@ namespace larcv {
   bool NuFilter::process(IOManager& mgr)
   {
 
-    if(!_mc_available)
+    if(_roi_producer_name.empty()) {
+      _event_tree->Fill();
       return true;
-    
-    uint entry=mgr.current_entry();
-    if (!(entry%100) and entry)
-      LARCV_DEBUG() << "Event " << entry << std::endl;
+    }
 
     auto ev_roi = (EventROI*) mgr.get_data(kProductROI, _roi_producer_name);
 
@@ -239,14 +222,13 @@ namespace larcv {
     _entry  = mgr.current_entry();
     
     bool signal_selected = MCSelect(ev_roi);
+    _signal_selected = (uint) signal_seleted;
     
     // if atleast 1 of config selection is false, then test against signal selected
     if ( !_select_signal or !_select_background) {
       if ( _select_signal     and !signal_selected ) return false;
       if ( _select_background and  signal_selected ) return false;
     }
-
-    _n_pass+=1;
 
     _event_tree->Fill();
     
@@ -255,17 +237,7 @@ namespace larcv {
   
   void NuFilter::finalize()
   {
-    LARCV_DEBUG() << "\t<~~~~~ NuFilter statistics ~~~~~>" << std::endl;
-    LARCV_DEBUG() << "Called: " << _n_calls << std::endl;
-    LARCV_DEBUG() << "N fail Nu PDG: " << _n_fail_nupdg << std::endl;
-    LARCV_DEBUG() << "N fail Nu INTER: " << _n_fail_inter << std::endl;
-    LARCV_DEBUG() << "N fail Nu E: " << _n_fail_nuE << std::endl;
-    LARCV_DEBUG() << "N fail lepton dep: " << _n_fail_lepton_dep << std::endl;
-    LARCV_DEBUG() << "N fail proton dep: " << _n_fail_proton_dep << std::endl;
-    LARCV_DEBUG() << "N fail unknowns:   " << _n_fail_unknowns << std::endl;
-    LARCV_DEBUG() << "N pass : " << _n_pass << std::endl;
-    LARCV_DEBUG() << std::endl;
-    if (_write_tree) _event_tree->Write();
+    _event_tree->Write();
   }
 
 }

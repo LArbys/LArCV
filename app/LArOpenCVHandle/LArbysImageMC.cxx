@@ -22,43 +22,6 @@ namespace larcv {
     _neutrino_present   = cfg.get<bool>("NeutrinoPresent",true);
   }
 
-  void LArbysImageMC::Clear() {
-
-    _vtx_2d_w_v.clear();
-    _vtx_2d_t_v.clear();
-    _vtx_2d_w_v.resize(3);
-    _vtx_2d_t_v.resize(3);
-
-    _image_v.clear();
-    _image_v.resize(3);
-
-    _daughter_pdg_v.clear();
-    _daughter_trackid_v.clear();
-    _daughter_parenttrackid_v.clear();
-
-    _daughter_energyinit_v.clear();
-    _daughter_energydep_v.clear();
-
-    _daughter_length_vv.clear();
-    _daughter_length3d_v.clear();
-
-    _daughter_2dstartx_vv.clear();
-    _daughter_2dstarty_vv.clear();
-
-    _daughter_2dendx_vv.clear();
-    _daughter_2dendy_vv.clear();
-
-    _daughterPx_v.clear();
-    _daughterPy_v.clear();
-    _daughterPz_v.clear();
-
-    _daughterX_v.clear();
-    _daughterY_v.clear();
-    _daughterZ_v.clear();
-
-    _daughter_2dcosangle_vv.clear();
-  }
-
   void LArbysImageMC::initialize()
   {
     _mc_tree = new TTree("MCTree","MC infomation");
@@ -141,7 +104,15 @@ namespace larcv {
   {
 
     Clear();
+
+    if (_producer_roi.empty()) {
+      _mc_tree->Fill();
+      return true;
+    }
+
     const auto ev_roi     = (larcv::EventROI*)     mgr.get_data(kProductROI,_producer_roi);
+
+    if (_producer_image2d.empty()) throw larbys("Empty image2d producer specified");
     const auto ev_image2d = (larcv::EventImage2D*) mgr.get_data(kProductImage2D,_producer_image2d);
 
     _run    = (uint) ev_roi->run();
@@ -262,55 +233,55 @@ namespace larcv {
 
       for(size_t plane=0; plane<3; ++plane) {
 
-	       auto& daughter_length_v      = _daughter_length_vv[plane];
-	       auto& daughter_2dstartx_v    = _daughter_2dstartx_vv[plane];
-	       auto& daughter_2dstarty_v    = _daughter_2dstarty_vv[plane];
-	       auto& daughter_2dendx_v      = _daughter_2dendx_vv[plane];
-	       auto& daughter_2dendy_v      = _daughter_2dendy_vv[plane];
-	       auto& daughter_2dcosangle_v  = _daughter_2dcosangle_vv[plane];
+	auto& daughter_length_v      = _daughter_length_vv[plane];
+	auto& daughter_2dstartx_v    = _daughter_2dstartx_vv[plane];
+	auto& daughter_2dstarty_v    = _daughter_2dstarty_vv[plane];
+	auto& daughter_2dendx_v      = _daughter_2dendx_vv[plane];
+	auto& daughter_2dendy_v      = _daughter_2dendy_vv[plane];
+	auto& daughter_2dcosangle_v  = _daughter_2dcosangle_vv[plane];
 
-	       const auto& img  = ev_image2d->Image2DArray()[plane];
-	       const auto& meta = img.meta();
+	const auto& img  = ev_image2d->Image2DArray()[plane];
+	const auto& meta = img.meta();
 
-	       double x_pixel0, y_pixel0, x_pixel1, y_pixel1;
-	       x_pixel0 = y_pixel0 = 0;
-	       x_pixel1 = y_pixel1 = 0;
+	double x_pixel0, y_pixel0, x_pixel1, y_pixel1;
+	x_pixel0 = y_pixel0 = 0;
+	x_pixel1 = y_pixel1 = 0;
 
-	       Project3D(meta,x0,y0,z0,t0,plane,x_pixel0,y_pixel0);
-	       Project3D(meta,x1,y1,z1,t1,plane,x_pixel1,y_pixel1);
+	Project3D(meta,x0,y0,z0,t0,plane,x_pixel0,y_pixel0);
+	Project3D(meta,x1,y1,z1,t1,plane,x_pixel1,y_pixel1);
 
-	       // Start and end in 2D
-	       geo2d::Vector<float> start(x_pixel0,y_pixel0);
-	       geo2d::Vector<float> end  (x_pixel1,y_pixel1);
+	// Start and end in 2D
+	geo2d::Vector<float> start(x_pixel0,y_pixel0);
+	geo2d::Vector<float> end  (x_pixel1,y_pixel1);
 
-	       // Get the line of particle
-	       geo2d::HalfLine<float> hline(start,end-start);
+	// Get the line of particle
+	geo2d::HalfLine<float> hline(start,end-start);
 
-	       // Here is the bbox on this plane --> we need to get the single intersection point
-	       // for the half line and this bbox
-	       ImageMeta bb;
-	       try { bb = roi.BB(plane); }
-	       catch(...) // No intersection occurs?
-	        { continue; }
+	// Here is the bbox on this plane --> we need to get the single intersection point
+	// for the half line and this bbox
+	ImageMeta bb;
+	try { bb = roi.BB(plane); }
+	catch(...) // No intersection occurs?
+	  { continue; }
 
-	       auto roi_on_plane = Get2DRoi(meta,roi.BB(plane));
+	auto roi_on_plane = Get2DRoi(meta,roi.BB(plane));
 
-	       // The start point will be inside the 2D ROI
-	       // we need to intersection point between the edge and this half line, find it
+	// The start point will be inside the 2D ROI
+	// we need to intersection point between the edge and this half line, find it
 
-	       auto pt_edge = Intersection(hline,roi_on_plane);
+	auto pt_edge = Intersection(hline,roi_on_plane);
 
-         daughter_length_v.push_back(geo2d::length(pt_edge - start));
+	daughter_length_v.push_back(geo2d::length(pt_edge - start));
 
-         daughter_2dstartx_v.push_back(start.x);
-         daughter_2dstarty_v.push_back(start.y);
-         daughter_2dendx_v.push_back(pt_edge.x);
-         daughter_2dendy_v.push_back(pt_edge.y);
+	daughter_2dstartx_v.push_back(start.x);
+	daughter_2dstarty_v.push_back(start.y);
+	daughter_2dendx_v.push_back(pt_edge.x);
+	daughter_2dendy_v.push_back(pt_edge.y);
 
-         auto dir = pt_edge - start;
-         double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
+	auto dir = pt_edge - start;
+	double cosangle = dir.x / sqrt(dir.x*dir.x + dir.y*dir.y);
 
-         daughter_2dcosangle_v.push_back(cosangle);
+	daughter_2dcosangle_v.push_back(cosangle);
       }
 
       _daughterPx_v.push_back(roi.Px());
@@ -340,7 +311,7 @@ namespace larcv {
         //primary protons
         if (roi.TrackID() == roi.ParentTrackID()) {
           _nproton++;
-	        _ke_sum_proton  += (roi.EnergyInit() - 938.0);
+	  _ke_sum_proton  += (roi.EnergyInit() - 938.0);
         }
         //capture proton
         aparticle thispro;
@@ -416,12 +387,12 @@ namespace larcv {
 
       auto max_proton_e = *(std::max_element(std::begin(proton_engs),
 					     std::end(proton_engs)));
-        _dep_sum_proton = max_proton_e;
-      }
+      _dep_sum_proton = max_proton_e;
+    }
 
-      _mc_tree->Fill();
+    _mc_tree->Fill();
 
-      return true;
+    return true;
   }
 
 
@@ -430,5 +401,42 @@ namespace larcv {
     _mc_tree->Write();
   }
 
+  void LArbysImageMC::Clear() {
+
+    _vtx_2d_w_v.clear();
+    _vtx_2d_t_v.clear();
+    _vtx_2d_w_v.resize(3);
+    _vtx_2d_t_v.resize(3);
+
+    _image_v.clear();
+    _image_v.resize(3);
+
+    _daughter_pdg_v.clear();
+    _daughter_trackid_v.clear();
+    _daughter_parenttrackid_v.clear();
+
+    _daughter_energyinit_v.clear();
+    _daughter_energydep_v.clear();
+
+    _daughter_length_vv.clear();
+    _daughter_length3d_v.clear();
+
+    _daughter_2dstartx_vv.clear();
+    _daughter_2dstarty_vv.clear();
+
+    _daughter_2dendx_vv.clear();
+    _daughter_2dendy_vv.clear();
+
+    _daughterPx_v.clear();
+    _daughterPy_v.clear();
+    _daughterPz_v.clear();
+
+    _daughterX_v.clear();
+    _daughterY_v.clear();
+    _daughterZ_v.clear();
+
+    _daughter_2dcosangle_vv.clear();
+  }
+  
 }
 #endif

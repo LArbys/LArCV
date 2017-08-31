@@ -140,7 +140,9 @@ namespace larcv {
     return _empty_image_v;
   }
 
-  void LArbysImage::construct_cosmic_image(IOManager& mgr, std::string producer, ProductType_t datatype, 
+  void LArbysImage::construct_cosmic_image(IOManager& mgr,
+					   std::string producer,
+					   ProductType_t datatype, 
 					   const std::vector<larcv::Image2D>& adc_image_v,
 					   std::vector<larcv::Image2D>& mu_image_v) {
     if ( datatype==kProductPixel2D ) {
@@ -185,35 +187,46 @@ namespace larcv {
       }//end of if producer not empty
     }//end of if datatype is pixel2d
     else if ( datatype==kProductImage2D ) {
+      LARCV_DEBUG() << "Constructing " << producer << " Image2D => Image2D" << std::endl;
       auto ev_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
-      if(!ev_image2d) {
-	std::stringstream ss;
-	ss << __FILE__ << ":" << __LINE__ << " Image2D by producer " << producer << " not found..." << std::endl;
-	LARCV_CRITICAL() << ss.str() << std::endl;
-	throw larbys();
-      }
-      for ( auto const& img : ev_image2d->Image2DArray() )  {
-	larcv::Image2D mu_img( img.meta() );
-	mu_img.paint(0);
-	for ( size_t r=0; r<img.meta().rows(); r++) {
-	  for ( size_t c=0; c<img.meta().cols(); c++ ) {
-	    if ( img.pixel(r,c)>0 )
-	      mu_img.set_pixel(r,c,100);
-	  }
+      if(!producer.empty()) {
+	if(!ev_image2d) {
+	  std::stringstream ss;
+	  ss << __FILE__ << ":" << __LINE__ << " Image2D by producer " << producer << " not found..." << std::endl;
+	  LARCV_CRITICAL() << ss.str() << std::endl;
+	  throw larbys();
 	}
-	mu_image_v.emplace_back( std::move(mu_img ) );
-      }
-    }
+	for(size_t img_idx=0; img_idx<adc_image_v.size(); ++img_idx) {
+	  auto const& img = ev_image2d->Image2DArray().at(img_idx);
+
+	  if(mu_image_v.size() <= img_idx)
+	    mu_image_v.emplace_back(larcv::Image2D(img.meta()));
+
+	  if(mu_image_v[img_idx].meta() != img.meta())
+	    mu_image_v[img_idx] = larcv::Image2D(img.meta());
+	  
+	  auto& mu_img = mu_image_v[img_idx];
+	  mu_img.paint(0);
+
+	  for ( size_t r=0; r<img.meta().rows(); r++) {
+	    for ( size_t c=0; c<img.meta().cols(); c++ ) {
+	      if ( img.pixel(r,c)>0 ) {
+		mu_img.set_pixel(r,c,100);
+	      }
+	    }
+	  }
+	  
+	} // each cosmic image
+      } // no empty producer
+    } // is image2d
     else {
       std::stringstream ss;
-
       ss << __FILE__
 	 << ":"
 	 << __LINE__
 	 << " Invalid data type for constructing cosmic tag image: "
 	 << (size_t)datatype
 	 << ", should be Pixel2D (3) or Image2D (0)" << std::endl;
-      
       throw larbys(ss.str());
     }
     
@@ -290,7 +303,8 @@ namespace larcv {
 	status = status && StoreParticles(mgr,copy_adc_image_v,pidx);
       } // mask stop mu or thru mu
       
-    } //ROI exists, process per crop
+    }
+    //ROI exists, process per crop
     else{
 
       size_t pidx = 0;
@@ -299,8 +313,10 @@ namespace larcv {
       const auto& track_image_v  = get_image2d(mgr,_track_producer);
       const auto& shower_image_v = get_image2d(mgr,_shower_producer);
       const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
+      
       construct_cosmic_image(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
       construct_cosmic_image(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+
       const auto& thrumu_image_v = _thrumu_image_v;
       const auto& stopmu_image_v = _stopmu_image_v;
 

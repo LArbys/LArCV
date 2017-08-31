@@ -85,8 +85,7 @@ namespace larcv {
     uint _subrun;
     uint _event; 
     uint _entry;
-
-    bool _write_tree;
+    uint _selected;
   };
 
   /**

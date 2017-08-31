@@ -131,8 +131,10 @@ namespace larcv {
       roid_v.push_back(crop_metas(adc_img_v,bb_v));
     }
 
+    
     _nprotons = 0;
     _nothers  = 0;
+    /*
     for (auto const& truth_roi : ev_roi_v->ROIArray() ) {
       if ( truth_roi.PdgCode()==2212 ) {
 	if ( (truth_roi.EnergyInit()-938.0)>60.0 )
@@ -142,7 +144,8 @@ namespace larcv {
 	_nothers++;
       }
     }
-
+    */
+    
     auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
     
