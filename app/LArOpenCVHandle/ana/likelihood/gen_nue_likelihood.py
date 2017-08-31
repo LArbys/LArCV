@@ -35,7 +35,6 @@ sample_file1 = "/Users/vgenty/Desktop/cosmics/updated_sz/comb_ana.root"
 
 for name,file_ in [(sample_name0,sample_file0),
                    (sample_name1,sample_file1)]:
-                   # (sample_name2,sample_file2)]:
     
     INPUT_FILE  = file_
     
@@ -64,26 +63,12 @@ for name,file_ in [(sample_name0,sample_file0),
     # Store vertex wise data frame
     #
     comb_df = comb_df.reset_index()
+    comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+
     dfs[name] = comb_df.copy()
-
-    #
-    # Event wise Trees
-    #
-    event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-    # mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
-
-    edfs[name] = event_vertex_df.copy()
-    # mdfs[name] = mc_df.copy()
-
-    print
-    print "@ Sample:",name,"& # good croi is:",event_vertex_df.query("good_croi_ctr>0").index.size
-    print "total events: ", event_vertex_df.index.size
-    print 
-    
 
 
 # dfs['nue_reco']  = dfs['nue_reco'].query("scedr<5").copy()
-
 dfs['nue'] = dfs['nue'].drop_duplicates(subset=rse)
 
 #
@@ -102,11 +87,6 @@ for name, comb_df in dfs.iteritems():
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
     df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
-
-
-# In[20]:
-
-ts_mdf_m = {}
 
 for name, comb_df in dfs.iteritems():
 
@@ -167,16 +147,6 @@ for name, comb_df in dfs.iteritems():
     ts_mdf['anglediff0'] = ts_mdf['anglediff'].values[:,0]
     
     ts_mdf_m[name] = ts_mdf.copy()
-
-
-for name, comb_df in dfs.iteritems():
-    print "@ sample",name
-
-    print
-    print comb_df.index.size
-    print ts_mdf_m['nue'].index.size
-    print len(ts_mdf_m['nue'].groupby(rse))
-    print
 
 
 #

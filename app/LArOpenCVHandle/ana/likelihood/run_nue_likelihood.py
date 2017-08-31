@@ -51,16 +51,27 @@ comb_df = pd.concat([vertex_df.set_index(rserv),
 # Store vertex wise data frame
 #
 comb_df = comb_df.reset_index()
-dfs[name] = comb_df.copy()
 
 #
 # Event wise Trees
 #
 event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-# mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
 
-edfs[name] = event_vertex_df.copy()
-# mdfs[name] = mc_df.copy()
+edfs = event_vertex_df.copy()
+mdfs = mc_df.copy()
+
+def drop_y(df):
+    to_drop = [x for x in df if x.endswith('_y')]
+    df.drop(to_drop, axis=1, inplace=True)
+
+comb_df = comb_df.set_index(rse).join(event_vertex_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+drop_y(comb_df)
+
+comb_df = comb_df.set_index(rse).join(mc_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+drop_y(comb_df)
+
+comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
 
 print
 print "@ Sample:",name,"& # good croi is:",event_vertex_df.query("good_croi_ctr>0").index.size
@@ -84,114 +95,81 @@ def track_shower_assumption(df):
     df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
 
 
-# In[20]:
+print
+print "@ sample",name
+print
 
-ts_mdf_m = {}
+comb_cut_df = comb_df.copy()
 
-for name, comb_df in dfs.iteritems():
+print "Asking npar==2"
+print "Asking in_fiducial==1"
+print "Asking pathexists2==1"
 
-    print
-    print "@ sample",name
-    print
+comb_cut_df = comb_cut_df.query("npar==2")
+comb_cut_df = comb_cut_df.query("in_fiducial==1")
+comb_cut_df = comb_cut_df.query("pathexists2==1")
+
+print "Asking nue assumption"
+track_shower_assumption(comb_cut_df)
+comb_cut_df = comb_cut_df.query("par1_type != par2_type")
+
+comb_cut_df['shr_trunk_pca_theta_estimate'] = comb_cut_df.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
+comb_cut_df['trk_trunk_pca_theta_estimate'] = comb_cut_df.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
+
+comb_cut_df['shr_avg_length'] = comb_cut_df.apply(lambda x : x['length_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_avg_length'] = comb_cut_df.apply(lambda x : x['length_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_avg_width'] = comb_cut_df.apply(lambda x : x['width_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_avg_width'] = comb_cut_df.apply(lambda x : x['width_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_avg_perimeter'] = comb_cut_df.apply(lambda x : x['perimeter_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_avg_perimeter'] = comb_cut_df.apply(lambda x : x['perimeter_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_avg_area'] = comb_cut_df.apply(lambda x : x['area_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_avg_area'] = comb_cut_df.apply(lambda x : x['area_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_avg_npixel'] = comb_cut_df.apply(lambda x : x['npixel_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_avg_npixel'] = comb_cut_df.apply(lambda x : x['npixel_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_3d_length'] = comb_cut_df.apply(lambda x : x['par_pca_end_len_v'][x['shrid']],axis=1)
+comb_cut_df['trk_3d_length'] = comb_cut_df.apply(lambda x : x['par_pca_end_len_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_3d_QavgL'] = comb_cut_df.apply(lambda x : x['qsum_v'][x['shrid']] / x['par_pca_end_len_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_3d_QavgL'] = comb_cut_df.apply(lambda x : x['qsum_v'][x['trkid']] / x['par_pca_end_len_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_triangle_d_max'] = comb_cut_df.apply(lambda x : x['triangle_d_max_v'][x['shrid']],axis=1)
+comb_cut_df['trk_triangle_d_max'] = comb_cut_df.apply(lambda x : x['triangle_d_max_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_mean_pixel_dist'] = comb_cut_df.apply(lambda x : x['mean_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_mean_pixel_dist'] = comb_cut_df.apply(lambda x : x['mean_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_sigma_pixel_dist'] = comb_cut_df.apply(lambda x : x['sigma_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
+comb_cut_df['trk_sigma_pixel_dist'] = comb_cut_df.apply(lambda x : x['sigma_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_par_pixel_ratio'] = comb_cut_df.apply(lambda x : x['par_pixel_ratio_v'][x['shrid']],axis=1)
+comb_cut_df['trk_par_pixel_ratio'] = comb_cut_df.apply(lambda x : x['par_pixel_ratio_v'][x['trkid']],axis=1) 
+
+comb_cut_df['anglediff0'] = comb_cut_df['anglediff'].values
+
+comb_cut_df = comb_cut_df.copy()
+
     
-    ts_mdf = comb_df.copy()
-
-    print "Asking nue assumption"
-    ts_mdf = ts_mdf.query("par1_type != par2_type")
-    track_shower_assumption(ts_mdf)
-
-    print "Asking npar==2"
-    print "Asking in_fiducial==1"
-    print "Asking pathexists2==1"
-
-    ts_mdf = ts_mdf.query("npar==2")
-    ts_mdf = ts_mdf.query("in_fiducial==1")
-    ts_mdf = ts_mdf.query("pathexists2==1")
-    
-    ts_mdf['shr_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
-    ts_mdf['trk_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
-
-    ts_mdf['shr_avg_length'] = ts_mdf.apply(lambda x : x['length_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_avg_length'] = ts_mdf.apply(lambda x : x['length_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_avg_width'] = ts_mdf.apply(lambda x : x['width_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_avg_width'] = ts_mdf.apply(lambda x : x['width_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_avg_perimeter'] = ts_mdf.apply(lambda x : x['perimeter_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_avg_perimeter'] = ts_mdf.apply(lambda x : x['perimeter_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_avg_area'] = ts_mdf.apply(lambda x : x['area_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_avg_area'] = ts_mdf.apply(lambda x : x['area_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_avg_npixel'] = ts_mdf.apply(lambda x : x['npixel_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_avg_npixel'] = ts_mdf.apply(lambda x : x['npixel_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_3d_length'] = ts_mdf.apply(lambda x : x['par_pca_end_len_v'][x['shrid']],axis=1)
-    ts_mdf['trk_3d_length'] = ts_mdf.apply(lambda x : x['par_pca_end_len_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_3d_QavgL'] = ts_mdf.apply(lambda x : x['qsum_v'][x['shrid']] / x['par_pca_end_len_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_3d_QavgL'] = ts_mdf.apply(lambda x : x['qsum_v'][x['trkid']] / x['par_pca_end_len_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_triangle_d_max'] = ts_mdf.apply(lambda x : x['triangle_d_max_v'][x['shrid']],axis=1)
-    ts_mdf['trk_triangle_d_max'] = ts_mdf.apply(lambda x : x['triangle_d_max_v'][x['trkid']],axis=1)
-    
-    ts_mdf['shr_mean_pixel_dist'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_mean_pixel_dist'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
-    
-    ts_mdf['shr_sigma_pixel_dist'] = ts_mdf.apply(lambda x : x['sigma_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_sigma_pixel_dist'] = ts_mdf.apply(lambda x : x['sigma_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_par_pixel_ratio'] = ts_mdf.apply(lambda x : x['par_pixel_ratio_v'][x['shrid']],axis=1)
-    ts_mdf['trk_par_pixel_ratio'] = ts_mdf.apply(lambda x : x['par_pixel_ratio_v'][x['trkid']],axis=1) 
-    
-    ts_mdf['anglediff0'] = ts_mdf['anglediff'].values[:,0]
-    
-    ts_mdf_m[name] = ts_mdf.copy()
-
-
-print "Initial stats..."
-for name, comb_df in dfs.iteritems():
-    print "@ sample",name
-
-    print
-    print "N input vertices....",comb_df.index.size
-    print "N input events......",len(comb_df.groupby(rse))
-    print "N pre-cut vertices..",ts_mdf_m[name].index.size
-    print "N pre-cut events....",len(ts_mdf_m[name].groupby(rse))
-    print
-
-    scedr = 5
-    print "Good vertex scedr < 5"
-    print "N input vertices....",comb_df.query("scedr<@scedr").index.size
-    print "N input events......",len(comb_df.query("scedr<@scedr").groupby(rse))
-    print "N pre-cut vertices..",ts_mdf_m[name].query("scedr<@scedr").index.size
-    print "N pre-cut events....",len(ts_mdf_m[name].query("scedr<@scedr").groupby(rse))
-    print
-
-    print "Bad vertex scedr > 5"
-    print "N input vertices....",comb_df.query("scedr>@scedr").index.size
-    print "N input events......",len(comb_df.query("scedr>@scedr").groupby(rse))
-    print "N pre-cut vertices..",ts_mdf_m[name].query("scedr>@scedr").index.size
-    print "N pre-cut events....",len(ts_mdf_m[name].query("scedr>@scedr").groupby(rse))
-    print
-
-
 #
-# distributions & binning for likelihood
+# Pull distributions & binning for PDFs from ROOT file @ ll_bin/"
 #
 
 fin = os.path.join(BASE_PATH,"ll_bin","nue_pdfs.root")
-tf = ROOT.TFile(fin,"READ")
-tf.cd()
+tf_in = ROOT.TFile(fin,"READ")
+tf_in.cd()
 
-keys_v = [key.GetName() for key in tf.GetListOfKeys()]
+keys_v = [key.GetName() for key in tf_in.GetListOfKeys()]
 
 sig_spectrum_m = {}
 bkg_spectrum_m = {}
 
 for key in keys_v:
     # print "@key=",key
-    hist = tf.Get(key)
+    hist = tf_in.Get(key)
     arr = rn.hist2array(hist,return_edges=True)
 
     data = arr[0]
@@ -214,14 +192,11 @@ for key in keys_v:
     else:
         raise Exception
 
-tf.Close()
-        
-def nearest_id(spectrum,value):
-    return np.argmin(np.abs(spectrum - value))
+tf_in.Close()
 
-def nearest_id_v(spectrum_v,value_v):
-    return np.array([np.argmin(np.abs(spectrum[0] - value)) for spectrum, value in zip(spectrum_v,value_v)])
-
+#
+# Assert sig. and bkg. read from file correctly
+#
 for key in sig_spectrum_m.keys():
     assert key in sig_spectrum_m.keys(), "key=%s missing from sig"%key
     assert key in bkg_spectrum_m.keys(), "key=%s missing from bkg"%key
@@ -233,8 +208,19 @@ for key in bkg_spectrum_m.keys():
     assert key in bkg_spectrum_m.keys(), "key=%s missing from bkg"%key
     assert sig_spectrum_m[key][0].size == bkg_spectrum_m[key][0].size
     assert sig_spectrum_m[key][1].size == bkg_spectrum_m[key][1].size
+
+#
+# Define, given value, how to get prob. from PDF
+#
+def nearest_id(spectrum,value):
+    return np.argmin(np.abs(spectrum - value))
+
+def nearest_id_v(spectrum_v,value_v):
+    return np.array([np.argmin(np.abs(spectrum[0] - value)) for spectrum, value in zip(spectrum_v,value_v)])
     
-    
+#
+# Define the LL
+#
 def LL(row):
     cols = row[sig_spectrum_m.keys()]
     sig_res = nearest_id_v(sig_spectrum_m.values(),cols.values)
@@ -246,31 +232,31 @@ def LL(row):
     LL = np.log( sig_res / (sig_res + bkg_res) )
 
     return LL.sum()
-    
-k0 = ts_mdf_m[name].apply(LL,axis=1)
-ts_mdf_m[name]['LL']=k0
 
+#
+# Apply the LL
+#
+print "Applying LL"
+k0 = comb_cut_df.apply(LL,axis=1)
+comb_cut_df['LL']=k0
 
-passed = ts_mdf_m[name].query("LL>-16.25")
+#
+# Choose the vertex @ event with the highest LL
+#
+print "Choosing vertex with max LL"
+passed_df = comb_cut_df.copy()
+passed_df = passed_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
 
-print "Final stats..."
-for name, comb_df in dfs.iteritems():
-    print "@ sample",name
-    
-    print
-    print "N post LL vertices..",passed.index.size
-    print "N post LL events....",len(passed.groupby(rse))
-    print
-    
-    scedr = 5
-    print
-    print "Good vertex scedr < 5"
-    print "N post LL vertices..",passed.query("scedr<@scedr").index.size
-    print "N post LL events....",len(passed.query("scedr<@scedr").groupby(rse))
-    print
-
-    print
-    print "Bad vertex scedr > 5"
-    print "N post LL vertices..",passed.query("scedr>@scedr").index.size
-    print "N post LL events....",len(passed.query("scedr>@scedr").groupby(rse))
-    print
+OUT=os.path.join("ll_dump","%s_all.pkl" % name)
+comb_df.to_pickle(OUT)
+print "Store",OUT
+print
+OUT=os.path.join("ll_dump","%s_post_nue.pkl" % name)
+comb_cut_df.to_pickle(OUT)
+print "Store",OUT
+print
+OUT=os.path.join("ll_dump","%s_post_LL.pkl" % name)
+passed_df.to_pickle(OUT)
+print "Store",OUT
+print
+print "Done"
