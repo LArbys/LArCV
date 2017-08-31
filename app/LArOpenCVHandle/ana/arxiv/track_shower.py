@@ -31,7 +31,6 @@ for name,file_ in [(sample_name,sample_file)]:
     # Vertex wise Trees
     #
     vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
-    lee_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename='LEE1e1pTree'))
     angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
     shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
     gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
@@ -42,13 +41,25 @@ for name,file_ in [(sample_name,sample_file)]:
     # Combine DataFrames
     #
     comb_df = pd.concat([vertex_df.set_index(rserv),
-                         lee_df.set_index(rserv),
                          angle_df.set_index(rserv),
                          shape_df.set_index(rserv),
                          gap_df.set_index(rserv),
                          angle_df.set_index(rserv),
                          match_df.set_index(rserv),
                          dqds_df.set_index(rserv)],axis=1)
+
+    
+    # print "v",vertex_df.set_index(rserv).index.size
+    # print "a",angle_df.set_index(rserv).index.size
+    # print "s",shape_df.set_index(rserv).index.size
+    # print "g",gap_df.set_index(rserv).index.size
+    # print "a",angle_df.set_index(rserv).index.size
+    # print "m",match_df.set_index(rserv).index.size
+    # print "d",dqds_df.set_index(rserv).index.size
+    # print 
+    # print "c",comb_df.index.size
+    # print
+    
     #
     # Store vertex wise data frame
     #
@@ -59,10 +70,10 @@ for name,file_ in [(sample_name,sample_file)]:
     # Event wise Trees
     #
     event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-    #mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+    # mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
 
     edfs[name] = event_vertex_df.copy()
-    #mdfs[name] = mc_df.copy()
+    # mdfs[name] = mc_df.copy()
     
     print "@ sample:",name,"good croi:",event_vertex_df.query("good_croi_ctr>0").index.size
     print "total events: ", event_vertex_df.index.size
@@ -74,7 +85,10 @@ for name,file_ in [(sample_name,sample_file)]:
 # Calculate the 3D opening angle, and 2D XZ projected opening angle
 #
 
+
 for name, comb_df in dfs.iteritems():
+    # print comb_df.par_trunk_pca_theta_estimate_v
+    
     comb_df['cosangle3d']=comb_df.apply(lambda x : larocv.CosOpeningAngle(x['par_trunk_pca_theta_estimate_v'][0],
                                                                           x['par_trunk_pca_phi_estimate_v'][0],
                                                                           x['par_trunk_pca_theta_estimate_v'][1],
@@ -145,8 +159,8 @@ start_n_vertex_g = float(ts_mdf.query("scedr<@d_good_vtx").index.size)
 start_n_events_g = float(edfs[sample].query("good_croi_ctr>0").index.size)
 # start_n_events_g = float(len(ts_mdf.query("scedr<5").groupby(rse)))
 
-start_n_vertex_b = float(ts_mdf.query("scedr>@d_good_vtx").index.size)
-start_n_events_b = float(len(ts_mdf.query("scedr>@d_good_vtx").groupby(rse)))
+start_n_vertex_b = 1.0#float(ts_mdf.query("scedr>@d_good_vtx").index.size)
+start_n_events_b = 1.0#float(len(ts_mdf.query("scedr>@d_good_vtx").groupby(rse)))
 
 ts_mdf = ts_mdf.query("par1_type != par2_type")
 track_shower_assumption(ts_mdf)

@@ -36,12 +36,8 @@ namespace larcv {
     _channel_producer     = cfg.get<std::string>("ChStatusImageProducer","");
     _roi_producer         = cfg.get<std::string>("ROIProducer","");
     _output_producer      = cfg.get<std::string>("OutputImageProducer","");
-    _tags_datatype        = cfg.get<std::string>("CosmicTagDataType","Pixel2D");
-    if ( _tags_datatype!="Pixel2D" && _tags_datatype!="Image2D" ) {
-      std::stringstream ss;
-      ss << __FILE__ << ":" << __LINE__ << " CosmicTagDataType must be either \"Pixel2D\" or \"Image2D\"";
-      throw larbys( ss.str() );
-    }
+    auto tags_datatype        = cfg.get<size_t>("CosmicTagDataType");
+    _tags_datatype = (ProductType_t) tags_datatype;
     
     _mask_thrumu_pixels = cfg.get<bool>("MaskThruMu",false);
     _mask_stopmu_pixels = cfg.get<bool>("MaskStopMu",false);
@@ -144,10 +140,10 @@ namespace larcv {
     return _empty_image_v;
   }
 
-  void LArbysImage::construct_cosmic_image(IOManager& mgr, std::string producer, std::string datatype, 
+  void LArbysImage::construct_cosmic_image(IOManager& mgr, std::string producer, ProductType_t datatype, 
 					   const std::vector<larcv::Image2D>& adc_image_v,
 					   std::vector<larcv::Image2D>& mu_image_v) {
-    if ( datatype=="Pixel2D" ) {
+    if ( datatype==kProductPixel2D ) {
       LARCV_DEBUG() << "Constructing " << producer << " Pixel2D => Image2D" << std::endl;
       if(!producer.empty()) {
 	auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,producer));
@@ -188,7 +184,7 @@ namespace larcv {
 	}//end of image loop
       }//end of if producer not empty
     }//end of if datatype is pixel2d
-    else if ( datatype=="Image2D" ) {
+    else if ( datatype==kProductImage2D ) {
       auto ev_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
       if(!ev_image2d) {
 	std::stringstream ss;
@@ -210,7 +206,14 @@ namespace larcv {
     }
     else {
       std::stringstream ss;
-      ss << __FILE__ << ":" << __LINE__ << " Invalid data type for constructing cosmic tag image, " << datatype << ", should be Pixel2D or Image2D" << std::endl;
+
+      ss << __FILE__
+	 << ":"
+	 << __LINE__
+	 << " Invalid data type for constructing cosmic tag image: "
+	 << (size_t)datatype
+	 << ", should be Pixel2D (3) or Image2D (0)" << std::endl;
+      
       throw larbys(ss.str());
     }
     
