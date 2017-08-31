@@ -87,9 +87,9 @@ print
 
 from util.plot import eff_plot
 
-eff_plot(event_df,
-         ll_df.query("LL>-16.25 & scedr<@scedr"),
-         200,1500,20,
+eff_plot(event_df.query("good_croi_ctr>0"),
+         ll_df.query("good_croi_ctr>0 & LL>-16.25 & scedr<@scedr"),
+         200,800,20,
          "energyInit >= @Xmin & energyInit <= @Xmax","energyInit",
          "energyInit [MeV]","Count / 20 [MeV]",
          "energyInit")

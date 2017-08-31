@@ -40,14 +40,12 @@ namespace larcv {
 
     _roi_producer_name = cfg.get<std::string>("ROIProducer");
 
-    _write_tree   = cfg.get<bool>("WriteTree",true);
-
     _event_tree = new TTree("NuFilterTree","");
     _event_tree->Branch("run"      , &_run      , "run/i");
     _event_tree->Branch("subrun"   , &_subrun   , "subrun/i");
     _event_tree->Branch("event"    , &_event    , "event/i");
     _event_tree->Branch("entry"    , &_entry    , "entry/i");
-    _event_tree->Branch("selected" , &_selected , "selected/i");
+    _event_tree->Branch("selected1L1P" , &_selected , "selected1L1P/i");
   }
 
   //from rui an.
@@ -118,12 +116,12 @@ namespace larcv {
     
     //calculate the visible lepton energy
     int lepton_engs_ctr = 0 ;
-    for (int p1=0;p1 < leptons_v.size() ; p1++ ){
+    for (size_t p1=0;p1 < leptons_v.size() ; p1++ ){
       const auto& lepton1 = leptons_v[p1];
       if (! lepton1.primary ) continue;
       nlepton+=1;
       float this_lepton_eng = lepton1.depeng;
-      for (int p2=0;p2 < leptons_v.size() ; p2++ ){
+      for (size_t p2=0;p2 < leptons_v.size() ; p2++ ){
       	if (p1==p2) continue;
       	const auto& lepton2 = leptons_v[p2];
       	if (lepton2.ptrackid != lepton1.trackid) continue;
@@ -134,12 +132,12 @@ namespace larcv {
 
     //calculate the visible proton energy
     int proton_engs_ctr = 0 ;
-    for (int p1=0;p1 < protons_v.size() ; p1++ ){
+    for (size_t p1=0;p1 < protons_v.size() ; p1++ ){
       const auto& proton1 = protons_v[p1];
       if (! proton1.primary ) continue;
       nproton+=1;
       float this_proton_eng = proton1.depeng;
-      for (int p2=0;p2 < protons_v.size() ; p2++ ){
+      for (size_t p2=0;p2 < protons_v.size() ; p2++ ){
 	if (p1==p2) continue;
 	const auto& proton2 = protons_v[p2];
 	if (proton2.ptrackid != proton1.trackid) continue;
@@ -221,8 +219,8 @@ namespace larcv {
     _event  = ev_roi->event();
     _entry  = mgr.current_entry();
     
-    bool signal_selected = MCSelect(ev_roi);
-    _signal_selected = (uint) signal_seleted;
+    auto signal_selected = MCSelect(ev_roi);
+    _selected = (uint) signal_selected;
     
     // if atleast 1 of config selection is false, then test against signal selected
     if ( !_select_signal or !_select_background) {

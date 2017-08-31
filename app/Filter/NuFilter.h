@@ -39,8 +39,7 @@ namespace larcv {
     void initialize();
     bool process(IOManager& mgr);
     void finalize();
-    const bool selected() const { return _selected; }
-    
+
   private:
 
     bool _mc_available;
@@ -57,7 +56,6 @@ namespace larcv {
     double _dep_sum_lepton;
     double _dep_sum_proton;
     
-    bool _selected;
     bool _select_signal;
     bool _select_background;
     

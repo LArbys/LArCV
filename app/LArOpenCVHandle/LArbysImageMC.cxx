@@ -12,7 +12,7 @@ namespace larcv {
   static LArbysImageMCProcessFactory __global_LArbysImageMCProcessFactory__;
 
   LArbysImageMC::LArbysImageMC(const std::string name)
-    : ProcessBase(name), _mc_tree(nullptr), _filter_ptr(nullptr)
+    : ProcessBase(name), _mc_tree(nullptr)
   {}
 
   void LArbysImageMC::configure(const PSet& cfg)

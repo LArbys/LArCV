@@ -11,7 +11,6 @@
 #include "Geo2D/Core/HalfLine.h"
 #include "Geo2D/Core/Line.h"
 #include "DataFormat/EventROI.h"
-#include "NuFilter.h"
 
 namespace larcv {
 
@@ -40,11 +39,7 @@ namespace larcv {
 
     void Clear();
 
-    void SetFilter(const NuFilter* filter_ptr) { _filter_ptr = filter_ptr; }
-
   protected:
-
-    const NuFilter* _filter_ptr;
 
     uint _enum;
     std::string _producer_roi;
