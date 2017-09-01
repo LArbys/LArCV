@@ -25,14 +25,10 @@ edfs = {}
 mdfs = {}
 
 sample_name0 = "nue"
-sample_file0 = "/Users/vgenty/Desktop/intrinsic_nue/testing_aug02/cheater_sz/comb_ana.root"
+sample_file0 = "/home/vgenty/vgenty/vertex_study/1e1p/test_08312017/vertex/nominal/comb_ana.root"
 
 sample_name1 = "cosmic"
-sample_file1 = "/Users/vgenty/Desktop/cosmics/updated_sz/comb_ana.root"
-
-# sample_name2 = "nue_reco"
-# sample_file2 = "/Users/vgenty/Desktop/intrinsic_nue/testing_aug02/nominal_sz/comb_ana.root"
-
+sample_file1 = "/home/vgenty/vgenty/vertex_study/extbnb/test_08312017/vertex/comb_ana.root"
 
 for name,file_ in [(sample_name0,sample_file0),
                    (sample_name1,sample_file1)]:
@@ -69,28 +65,15 @@ for name,file_ in [(sample_name0,sample_file0),
     dfs[name] = comb_df.copy()
 
 
-# dfs['nue_reco']  = dfs['nue_reco'].query("scedr<5").copy()
-dfs['nue'] = dfs['nue'].drop_duplicates(subset=rse)
-
-#
-# Compute cosing Angle3D
-#
-print "Computing opening angle..."
-for name, comb_df in dfs.iteritems():
-    comb_df['cosangle3d']=comb_df.apply(lambda x : larocv.CosOpeningAngle(x['par_trunk_pca_theta_estimate_v'][0],
-                                                                          x['par_trunk_pca_phi_estimate_v'][0],
-                                                                          x['par_trunk_pca_theta_estimate_v'][1],
-                                                                          x['par_trunk_pca_phi_estimate_v'][1]),axis=1)
-
-    comb_df['angle3d']=comb_df.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
-
+dfs['nue'] = dfs['nue'].query("scedr<5").drop_duplicates(subset=rse)
 
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
     df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
 
-for name, comb_df in dfs.iteritems():
+ts_mdf_m = {}
 
+for name, comb_df in dfs.iteritems():
     print
     print "@ sample",name
     print
@@ -98,16 +81,22 @@ for name, comb_df in dfs.iteritems():
     ts_mdf = comb_df.copy()
 
     print "Asking nue assumption"
-    ts_mdf = ts_mdf.query("par1_type != par2_type")
-    track_shower_assumption(ts_mdf)
-
     print "Asking npar==2"
     print "Asking in_fiducial==1"
     print "Asking pathexists2==1"
 
     ts_mdf = ts_mdf.query("npar==2")
+    track_shower_assumption(ts_mdf)
+    ts_mdf = ts_mdf.query("par1_type != par2_type")
     ts_mdf = ts_mdf.query("in_fiducial==1")
     ts_mdf = ts_mdf.query("pathexists2==1")
+
+    ts_mdf['cosangle3d']=ts_mdf.apply(lambda x : larocv.CosOpeningAngle(x['par_trunk_pca_theta_estimate_v'][0],
+                                                                        x['par_trunk_pca_phi_estimate_v'][0],
+                                                                        x['par_trunk_pca_theta_estimate_v'][1],
+                                                                        x['par_trunk_pca_phi_estimate_v'][1]),axis=1)
+    
+    ts_mdf['angle3d']=ts_mdf.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
     
     ts_mdf['shr_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
     ts_mdf['trk_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
@@ -145,7 +134,7 @@ for name, comb_df in dfs.iteritems():
     ts_mdf['shr_par_pixel_ratio'] = ts_mdf.apply(lambda x : x['par_pixel_ratio_v'][x['shrid']],axis=1)
     ts_mdf['trk_par_pixel_ratio'] = ts_mdf.apply(lambda x : x['par_pixel_ratio_v'][x['trkid']],axis=1) 
     
-    ts_mdf['anglediff0'] = ts_mdf['anglediff'].values[:,0]
+    ts_mdf['anglediff0'] = ts_mdf['anglediff'].values
     
     ts_mdf_m[name] = ts_mdf.copy()
 
@@ -295,8 +284,7 @@ pdf_m['dqds_diff_01'] = ((xlo,xhi,dx), "dQ/dX Difference [pix/cm]" )
 sig_spectrum_m = {}
 bkg_spectrum_m = {}
 
-
-DRAW=False
+DRAW=True
 
 for key,item in pdf_m.items():
     xlo,xhi,dx = item[0]
@@ -357,7 +345,7 @@ for key,item in pdf_m.items():
         ax.set_xlim(xlo,xhi)
         ax.legend(loc='best')
         ax.grid()
-        SS = os.path.join(BASE_PATH,"ll_dump","%s.pdf" % key)
+        SS = os.path.join(BASE_PATH,"ll_dump","pdf_%s.pdf" % key)
         print "Dump --> ll_dump/%s" % os.path.basename(SS)
         plt.savefig(SS)
         plt.show()

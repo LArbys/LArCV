@@ -16,9 +16,12 @@ def eff_plot(df1,df2,
     fig,ax = plt.subplots(figsize=(10,6))
     
     bins = np.arange(Xmin,Xmax+dX,dX)
-    
-    sig  = plt.hist(df1.query(query)[key].values,bins=bins,color='blue',label='Signal')
-    reco = plt.hist(df2.query(query)[key].values,bins=bins,color='red' ,label='Reconstructed')
+
+    data = df1.query(query)[key].values
+    sig  = ax.hist(data,bins=bins,color='blue',label='Signal')
+
+    data = df2.query(query)[key].values
+    reco = ax.hist(data,bins=bins,color='red' ,label='Reconstructed')
     
     ax.set_xlabel(Xlabel,fontweight='bold')
     ax.set_ylabel(Ylabel,fontweight='bold')
@@ -34,7 +37,8 @@ def eff_plot(df1,df2,
 
     fig,ax = plt.subplots(figsize=(10,6))
     
-    reco_sig = np.nan_to_num(reco[0] / sig[0])
+    reco_sig = reco[0] / sig[0]
+    reco_sig = np.nan_to_num(reco_sig)
     bidx     = np.nonzero(reco_sig)
     signal_v = sig[0]
     param_v  = sig[1][:-1]+float(dX)/2.0
@@ -77,6 +81,116 @@ def eff_plot(df1,df2,
     plt.grid()
     plt.tight_layout()
     SS="{}_eff.pdf".format(name)
+    print "Write {}".format(SS)
+    plt.savefig("ll_dump/%s" % SS,format='pdf')
+    plt.cla() 
+    plt.clf()
+    plt.close()
+
+def histo1(df1,
+           Xmin,Xmax,dX,
+           query,key,
+           Xlabel,Ylabel,
+           name):
+
+    fig,ax = plt.subplots(figsize=(10,6))
+
+    data = df1[key].values
+    if query == None or query == "": pass
+    else: data = df1.query(query)[key].values
+    
+    bins = np.arange(Xmin,Xmax+dX,dX)
+    weights = [1/float(data.size)] * data.size
+
+    ax.hist(data,bins=bins,weights=weights,color='blue')
+    ax.set_xlabel(Xlabel,fontweight='bold')
+    ax.set_ylabel(Ylabel,fontweight='bold')
+    plt.grid()
+    plt.tight_layout()    
+    SS="{}_histo.pdf".format(name)
+    print "Write {}".format(SS)
+    plt.savefig("ll_dump/%s" % SS,format='pdf')
+    plt.cla() 
+    plt.clf()
+    plt.close()
+    
+def histo2(df1,
+           Xmin,Xmax,dX,
+           query1,query2,key,
+           Xlabel,Ylabel,
+           name):
+
+    fig,ax = plt.subplots(figsize=(10,6))
+
+    data1 = df1.query(query1)[key].values
+    bins1 = np.arange(Xmin,Xmax+dX,dX)
+    weights1 = [1/float(df1.index.size)] * data1.size
+    data2 = df1.query(query2)[key].values
+    bins2 = np.arange(Xmin,Xmax+dX,dX)
+    weights2 = [1/float(df1.index.size)] * data2.size
+    
+    ax.hist([data1,data2],
+            bins=bins1,
+            weights=[weights1,weights2],
+            color=['blue','red'],
+            histtype='stepfilled',
+            alpha=1.0,
+            lw=2,
+            stacked=True)
+    
+    ax.set_xlabel(Xlabel,fontweight='bold')
+    ax.set_ylabel(Ylabel,fontweight='bold')
+    plt.grid()
+    plt.tight_layout()    
+    SS="{}_histo.pdf".format(name)
+    print "Write {}".format(SS)
+    plt.savefig("ll_dump/%s" % SS,format='pdf')
+    plt.cla() 
+    plt.clf()
+    plt.close()
+
+
+def eff_scan(df1,df2,
+             Xmin,Xmax,dX,
+             key,
+             Xlabel,Ylabel,
+             name):
+
+    fig,ax = plt.subplots(figsize=(10,6))
+    
+
+    data1    = df1[key].values
+    bins1    = np.arange(Xmin,Xmax+dX,dX)
+    weights1 = [1/float(data1.size)]*data1.size
+    kres1    = np.histogram(data1,bins=bins1,weights=weights1)
+    
+    data2    = df2[key].values
+    bins2    = np.arange(Xmin,Xmax+dX,dX)
+    weights2 = [1/float(data2.size)]*data2.size
+    kres2    = np.histogram(data2,bins=bins2,weights=weights2)
+    
+    ktotal1  = float(kres1[0].sum())
+    centers1 = bins1 + (bins1[1]-bins1[0])/2.0
+    centers1 = centers1[:-1]
+
+    ktotal2  = float(kres2[0].sum())
+    centers2 = bins2 + (bins2[1]-bins2[0])/2.0
+    centers2 = centers2[:-1]
+
+    ksum1  = [float(kres1[0][ix:].sum()) for ix in xrange(centers1.size)]
+    keff1  = np.array([ksum1[ix] / ktotal1 for ix in xrange(centers1.size)])
+    
+    ksum2  = [float(kres2[0][ix:].sum()) for ix in xrange(centers2.size)]
+    keff2  = np.array([ksum2[ix] / ktotal2 for ix in xrange(centers2.size)])
+    
+    ax.plot(centers1,keff1    ,'-',color='blue',lw=3,label='Signal')
+    ax.plot(centers2,1.0-keff2,'-',color='red',lw=3,label='Background')
+
+    ax.set_xlabel(Xlabel,fontweight='bold')
+    ax.set_ylabel(Ylabel,fontweight='bold')
+    plt.grid()
+    plt.tight_layout()    
+    SS="{}_eff_scan.pdf".format(name)
     print "Write {}".format(SS)
     plt.savefig("ll_dump/%s" % SS,format='pdf')
     plt.cla() 

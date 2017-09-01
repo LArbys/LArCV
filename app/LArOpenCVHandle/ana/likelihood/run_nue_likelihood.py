@@ -248,15 +248,15 @@ print "Choosing vertex with max LL"
 passed_df = comb_cut_df.copy()
 passed_df = passed_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
 
-OUT=os.path.join("ll_dump","%s_all.pkl" % name)
+OUT=os.path.join("ll_bin","%s_all.pkl" % name)
 comb_df.to_pickle(OUT)
 print "Store",OUT
 print
-OUT=os.path.join("ll_dump","%s_post_nue.pkl" % name)
+OUT=os.path.join("ll_bin","%s_post_nue.pkl" % name)
 comb_cut_df.to_pickle(OUT)
 print "Store",OUT
 print
-OUT=os.path.join("ll_dump","%s_post_LL.pkl" % name)
+OUT=os.path.join("ll_bin","%s_post_LL.pkl" % name)
 passed_df.to_pickle(OUT)
 print "Store",OUT
 print
