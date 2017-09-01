@@ -44,9 +44,6 @@ namespace larcv {
     void get_rsee(IOManager& mgr, std::string producer,
 		  uint& run, uint& subrun, uint& event, uint& entry);
             
-    void construct_cosmic_image(IOManager& mgr, std::string producer, ProductType_t datatype,
-				const std::vector<larcv::Image2D>& adc_image_v,
-				std::vector<larcv::Image2D>& mu_image_v);
     
     virtual bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
 			     const std::vector<larcv::Image2D>& track_image_v,
@@ -59,8 +56,6 @@ namespace larcv {
 			const std::vector<larcv::Image2D>& adcimg_v,
 			size_t& pidx);
 
-    TTree* _tree;
-    
     larocv::ImageClusterManager _alg_mgr;
     larocv::ImageManager _adc_img_mgr;
     larocv::ImageManager _track_img_mgr;
@@ -68,6 +63,8 @@ namespace larcv {
     larocv::ImageManager _thrumu_img_mgr;
     larocv::ImageManager _stopmu_img_mgr;
     larocv::ImageManager _chstat_img_mgr;
+
+    ::fcllite::PSet _image_cluster_cfg;
 
     bool _debug;
     bool _preprocess;

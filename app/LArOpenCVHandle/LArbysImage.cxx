@@ -21,6 +21,7 @@ namespace larcv {
 
   LArbysImage::LArbysImage(const std::string name)
     : ProcessBase(name),
+      _image_cluster_cfg("aho"),
       _PreProcessor(),
       _LArbysImageMaker()
   {}
@@ -54,13 +55,24 @@ namespace larcv {
     _process_time_image_extraction = 0;
     _process_time_analyze = 0;
     _process_time_cluster_storage = 0;
-    
-    ::fcllite::PSet copy_cfg(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
-    _alg_mgr.Configure(copy_cfg.get_pset(_alg_mgr.Name()));
 
+
+    _image_cluster_cfg = ::fcllite::PSet(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
+    
     _vertex_algo_name    = cfg.get<std::string>("VertexAlgoName");
     _par_algo_name       = cfg.get<std::string>("ParticleAlgoName");
     _3D_algo_name        = cfg.get<std::string>("3DAlgoName");
+
+    _vertex_algo_vertex_offset = cfg.get<size_t>("VertexAlgoVertexOffset",0);
+    _par_algo_par_offset       = cfg.get<size_t>("ParticleAlgoParticleOffset",0);
+  }
+  
+  void LArbysImage::initialize()
+  {
+    _thrumu_image_v.clear();
+    _stopmu_image_v.clear();
+    
+    _alg_mgr.Configure(_image_cluster_cfg.get_pset(_alg_mgr.Name()));
     
     const auto& data_man = _alg_mgr.DataManager();
     
@@ -74,25 +86,19 @@ namespace larcv {
     _par_algo_id = larocv::kINVALID_ALGO_ID;
     if (!_par_algo_name.empty()) {
       _par_algo_id = data_man.ID(_par_algo_name);
-      if (_par_algo_id == larocv::kINVALID_ALGO_ID)
+      if (_par_algo_id == larocv::kINVALID_ALGO_ID) {
 	throw larbys("Specified invalid particle algorithm");
+      }
     }
 
     _3D_algo_id = larocv::kINVALID_ALGO_ID;
     if (!_3D_algo_name.empty()) {
       _3D_algo_id = data_man.ID(_3D_algo_name);
-      if (_3D_algo_id == larocv::kINVALID_ALGO_ID)
+      if (_3D_algo_id == larocv::kINVALID_ALGO_ID) {
 	throw larbys("Specified invalid 3D info algorithm");
+      }
     }
 
-    _vertex_algo_vertex_offset = cfg.get<size_t>("VertexAlgoVertexOffset",0);
-    _par_algo_par_offset       = cfg.get<size_t>("ParticleAlgoParticleOffset",0);
-  }
-  
-  void LArbysImage::initialize()
-  {
-    _thrumu_image_v.clear();
-    _stopmu_image_v.clear();
   }
 
   void LArbysImage::get_rsee(IOManager& mgr,std::string producer,uint& run, uint& subrun, uint& event, uint& entry) {
@@ -140,97 +146,6 @@ namespace larcv {
     return _empty_image_v;
   }
 
-  void LArbysImage::construct_cosmic_image(IOManager& mgr,
-					   std::string producer,
-					   ProductType_t datatype, 
-					   const std::vector<larcv::Image2D>& adc_image_v,
-					   std::vector<larcv::Image2D>& mu_image_v) {
-    if ( datatype==kProductPixel2D ) {
-      LARCV_DEBUG() << "Constructing " << producer << " Pixel2D => Image2D" << std::endl;
-      if(!producer.empty()) {
-	auto ev_pixel2d = (EventPixel2D*)(mgr.get_data(kProductPixel2D,producer));
-	if(!ev_pixel2d) {
-	  LARCV_CRITICAL() << "Pixel2D by producer " << producer << " not found..." << std::endl;
-	  throw larbys();
-	}
-	LARCV_DEBUG() << "Using Pixel2D producer " << producer << std::endl;
-	const auto& pixel2d_m = ev_pixel2d->Pixel2DClusterArray();
-	for(size_t img_idx=0; img_idx<adc_image_v.size(); ++img_idx) {
-	  const auto& meta = adc_image_v[img_idx].meta();
-	  if(mu_image_v.size() <= img_idx)
-	    mu_image_v.emplace_back(larcv::Image2D(meta));
-	  if(mu_image_v[img_idx].meta() != meta)
-	    mu_image_v[img_idx] = larcv::Image2D(meta);
-	  auto& mu_image = mu_image_v[img_idx];
-	  mu_image.paint(0);
-	  auto itr = pixel2d_m.find(img_idx);
-	  if(itr == pixel2d_m.end()) {
-	    LARCV_DEBUG() << "No Pixel2D found for plane " << img_idx << std::endl;
-	    continue;
-	  }
-	  else{
-	    size_t npx_x = meta.cols();
-	    size_t npx_y = meta.rows();
-	    for(const auto& pixel_cluster : (*itr).second) {
-	      for(const auto& pixel : pixel_cluster) {
-		if(pixel.X() >= npx_x || pixel.Y() >= npx_y) {
-		  LARCV_WARNING() << "Ignoring cosmic pixel (row,col) = ("
-				  << pixel.Y() << "," << pixel.X() << ")"
-				  << " as it is out of bounds (ncol=" << npx_x << ", nrow=" << npx_y << ")" << std::endl;
-		  continue;
-		}
-		mu_image.set_pixel( (pixel.X() * meta.rows() + pixel.Y()), 100 );
-	      }
-	    }
-	  }
-	}//end of image loop
-      }//end of if producer not empty
-    }//end of if datatype is pixel2d
-    else if ( datatype==kProductImage2D ) {
-      LARCV_DEBUG() << "Constructing " << producer << " Image2D => Image2D" << std::endl;
-      auto ev_image2d = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
-      if(!producer.empty()) {
-	if(!ev_image2d) {
-	  std::stringstream ss;
-	  ss << __FILE__ << ":" << __LINE__ << " Image2D by producer " << producer << " not found..." << std::endl;
-	  LARCV_CRITICAL() << ss.str() << std::endl;
-	  throw larbys();
-	}
-	for(size_t img_idx=0; img_idx<adc_image_v.size(); ++img_idx) {
-	  auto const& img = ev_image2d->Image2DArray().at(img_idx);
-
-	  if(mu_image_v.size() <= img_idx)
-	    mu_image_v.emplace_back(larcv::Image2D(img.meta()));
-
-	  if(mu_image_v[img_idx].meta() != img.meta())
-	    mu_image_v[img_idx] = larcv::Image2D(img.meta());
-	  
-	  auto& mu_img = mu_image_v[img_idx];
-	  mu_img.paint(0);
-
-	  for ( size_t r=0; r<img.meta().rows(); r++) {
-	    for ( size_t c=0; c<img.meta().cols(); c++ ) {
-	      if ( img.pixel(r,c)>0 ) {
-		mu_img.set_pixel(r,c,100);
-	      }
-	    }
-	  }
-	  
-	} // each cosmic image
-      } // no empty producer
-    } // is image2d
-    else {
-      std::stringstream ss;
-      ss << __FILE__
-	 << ":"
-	 << __LINE__
-	 << " Invalid data type for constructing cosmic tag image: "
-	 << (size_t)datatype
-	 << ", should be Pixel2D (3) or Image2D (0)" << std::endl;
-      throw larbys(ss.str());
-    }
-    
-  }
   
   bool LArbysImage::process(IOManager& mgr)
   {
@@ -248,8 +163,8 @@ namespace larcv {
       const auto& track_image_v  = get_image2d(mgr,_track_producer);
       const auto& shower_image_v = get_image2d(mgr,_shower_producer);
       const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
-      construct_cosmic_image(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
-      construct_cosmic_image(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+      _LArbysImageMaker.ConstructCosmicImage(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
+      _LArbysImageMaker.ConstructCosmicImage(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
       const auto& thrumu_image_v = _thrumu_image_v;
       const auto& stopmu_image_v = _stopmu_image_v;
       
@@ -314,8 +229,8 @@ namespace larcv {
       const auto& shower_image_v = get_image2d(mgr,_shower_producer);
       const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
       
-      construct_cosmic_image(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
-      construct_cosmic_image(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+      _LArbysImageMaker.ConstructCosmicImage(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
+      _LArbysImageMaker.ConstructCosmicImage(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
 
       const auto& thrumu_image_v = _thrumu_image_v;
       const auto& stopmu_image_v = _stopmu_image_v;
@@ -345,7 +260,6 @@ namespace larcv {
 	throw larbys();
       }
       const auto& roi_v = ((EventROI*)(mgr.get_data(kProductROI,_roi_producer)))->ROIArray();
-
 	
       LARCV_DEBUG() << "Got " << roi_v.size() << " ROIs" << std::endl;
       for(const auto& roi : roi_v) {
@@ -373,7 +287,6 @@ namespace larcv {
 
 	  LARCV_DEBUG() << "crop: " << crop_adc_image_v.back().meta().dump();
 	    
-
 	  if(!track_image_v.empty()) {
 	    const auto& track_image  = track_image_v[plane];
 	    crop_track_image_v.emplace_back(track_image.crop(bb));
@@ -434,6 +347,8 @@ namespace larcv {
 				   const std::vector<Image2D>& adc_image_v,
 				   size_t& pidx) {
     
+    LARCV_DEBUG() << "start" << std::endl;
+
     // nothing to be done
     if (_vertex_algo_id == larocv::kINVALID_ALGO_ID) {
       LARCV_INFO() << "Nothing to be done..." << std::endl;
@@ -566,7 +481,6 @@ namespace larcv {
     } // end vertex
 
     LARCV_DEBUG() << "Event pgraph size " << event_pgraph->PGraphArray().size() << std::endl;
-
     return true;
   }
   
@@ -577,6 +491,7 @@ namespace larcv {
 				const std::vector<larcv::Image2D>& stopmu_image_v,
 				const std::vector<larcv::Image2D>& chstat_image_v)
   {
+    LARCV_DEBUG() << "start" << std::endl;
     _adc_img_mgr.clear();
     _track_img_mgr.clear();
     _shower_img_mgr.clear();
@@ -710,6 +625,7 @@ namespace larcv {
     
     ++_process_count;
     
+    LARCV_DEBUG() << "end" << std::endl;
     return true;
   }
 
