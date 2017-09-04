@@ -28,6 +28,7 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TSpline.h"
+#include "TGraph2D.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 //#include "larcv/app/LArOpenCVHandle/LArbysUtils.h"
@@ -217,6 +218,7 @@ namespace larcv {
         TH1D *hDist2point;
 
         std::vector< std::vector<double> > _dQdx;
+
         std::vector<TVector3> CorrectedPath;
         std::vector<TVector3> _3DTrack;
         std::vector<std::vector<TVector3> > _vertexTracks;
@@ -238,6 +240,9 @@ namespace larcv {
         TSpline3 *sMuonT2dEdx;
         TSpline3 *sProtonRange2T;
         TSpline3 *sProtonT2dEdx;
+
+        TGraph2D *gDetector;
+        TGraph2D *gWorld;
 
         TCanvas *c2;
     };

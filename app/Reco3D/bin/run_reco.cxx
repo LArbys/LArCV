@@ -24,7 +24,7 @@ int main(int nargs, char** argv){
     proc.configure(cfg);
     proc.override_input_file(data_inputs);
     proc.initialize();
-    proc.batch_process(0,1000);
+    proc.batch_process(0,100);
     proc.finalize();
 
     std::cout << "**********************" << std::endl;

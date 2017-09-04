@@ -103,17 +103,17 @@ namespace larcv {
         std::vector<TVector3> ElectronEndPoint;
         for(int iMC = 0;iMC<mc_roi_v.size();iMC++){
             if(mc_roi_v[iMC].PdgCode() == 13){
-                std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << std::endl;
+                std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
                 MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
                 MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
             if(mc_roi_v[iMC].PdgCode() == 2212){
-                std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << std::endl;
+                std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
                 ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
                 ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
             if(mc_roi_v[iMC].PdgCode() == 11){
-                std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << std::endl;
+                std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
                 ElectronVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
                 ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
@@ -150,15 +150,15 @@ namespace larcv {
                 }
             }
         }
-        if(MCVertices.size() > 1)std::cout << "found " << MCVertices.size() << " MC vertices" << std::endl;
-        else{std::cout << "found " << MCVertices.size() << " MC vertex" << std::endl;}
+        //if(MCVertices.size() > 1)std::cout << "found " << MCVertices.size() << " MC vertices" << std::endl;
+        //else{std::cout << "found " << MCVertices.size() << " MC vertex" << std::endl;}
 
 
         // loop over found vertices
         auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
-        std::cout  << ev_pgraph_v->PGraphArray().size() << " vertices in entry" << std::endl;
+        //std::cout  << ev_pgraph_v->PGraphArray().size() << " vertices in entry" << std::endl;
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
-            std::cout << "vertex " << pgraph_id << " / " << ev_pgraph_v->PGraphArray().size() << std::endl;
+            //std::cout << "vertex " << pgraph_id << " / " << ev_pgraph_v->PGraphArray().size() << std::endl;
 
             iTrack++;
             int i = iTrack;
@@ -168,30 +168,33 @@ namespace larcv {
             auto const& cluster_idx_v = pgraph.ClusterIndexArray();
 
             size_t nparticles = cluster_idx_v.size();
-            std::cout << nparticles << " particles in vertex" << std::endl;
+            //std::cout << nparticles << " particles in vertex" << std::endl;
 
             //
             // Get Estimated 3D Start and End Points
             std::vector<TVector3> EndPoints;
-            TVector3 newPoint(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
-            EndPoints.push_back(newPoint);
+            TVector3 vertex(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
+            EndPoints.push_back(vertex);
+
+            /*TVector3 newPoint;
             for(int ipart = 0;ipart<pgraph.ParticleArray().size();ipart++){
                 newPoint.SetXYZ(pgraph.ParticleArray()[ipart].EndPosition().X(),pgraph.ParticleArray()[ipart].EndPosition().Y(),pgraph.ParticleArray()[ipart].EndPosition().Z());
                 EndPoints.push_back(newPoint);
             }
-            if(!(EndPoints.size() == nparticles+1)){std::cout << "ERROR : not the right number of end points : shoudl be Nparticles + 1 for the vertex" << std::endl; std::cin.get();}
+            if(!(EndPoints.size() == nparticles+1)){std::cout << "ERROR : not the right number of end points : shoudl be Nparticles + 1 for the vertex" << std::endl; std::cin.get();}*/
+
             bool WrongEndPoint = false;
             for(int iPoint = 0;iPoint<EndPoints.size();iPoint++){
                 if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ){std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; WrongEndPoint = false;}
             }
             if(WrongEndPoint)continue;
 
-            // Check Vertex is OK
-            bool vertexOK = false;
-            for(int iMC = 0;iMC<MCVertices.size();iMC++){
-                if(( EndPoints[0] - MCVertices[iMC] ).Mag() < 10)vertexOK = true;
-            }
-            if(!vertexOK) continue;// try another vertex, this one is too far away
+            // Check Vertex is close to a MC one
+            //bool vertexOK = false;
+            //for(int iMC = 0;iMC<MCVertices.size();iMC++){
+            //    if(( EndPoints.front() - MCVertices[iMC] ).Mag() < 5)vertexOK = true;
+            //}
+            //if(!vertexOK) continue;// try another vertex, this one is too far away
 
 
             std::vector<larcv::ImageMeta> Full_meta_v(3);

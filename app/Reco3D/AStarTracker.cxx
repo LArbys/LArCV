@@ -14,10 +14,12 @@
 #include "TCanvas.h"
 #include "TH2D.h"
 #include "TGraph.h"
+#include "TGraph2D.h"
 #include "TLine.h"
 #include "TF1.h"
 #include "TVector3.h"
 #include "TRandom3.h"
+#include "TFile.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 #include "AStarUtils.h"
@@ -495,6 +497,77 @@ namespace larcv {
             hdQdxEntries = new TH1D("hdQdxEntries","hdQdxEntries",hdQdx->GetNbinsX(),hdQdx->GetXaxis()->GetXmin(),hdQdx->GetXaxis()->GetXmax());
             hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
         }
+
+        gWorld = new TGraph2D();
+        gWorld->SetNameTitle("gWorld","gWorld");
+
+        gDetector = new TGraph2D();
+        gDetector->SetNameTitle("gDetector","gDetector");
+
+        double detectorLength = 1040;//cm
+        double detectorheight = 230;//cm
+        double detectorwidth  = 250;//cm
+        double Ymindet = -0.5*detectorheight;
+        double Ymaxdet = 0.5*detectorheight;
+        double Xmindet = 0;
+        double Xmaxdet = detectorwidth;
+        double Zmindet = 0;
+        double Zmaxdet = detectorLength;
+        int imax;
+        for(int i = 0;i<1000;i++){
+            /*gDetector->SetPoint(4*i+0,Xmindet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
+            gDetector->SetPoint(4*i+1,Xmindet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));
+            gDetector->SetPoint(4*i+2,Xmaxdet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
+            gDetector->SetPoint(4*i+3,Xmaxdet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));*/
+
+            gDetector->SetPoint(4*i+0,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymindet);
+            gDetector->SetPoint(4*i+1,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymaxdet);
+            gDetector->SetPoint(4*i+2,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymindet);
+            gDetector->SetPoint(4*i+3,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymaxdet);
+
+            imax = 4*i+3;
+        }
+        int newimax;
+        for(int i = 0;i<100;i++){
+            int ipoint = imax+1+i;
+            /*gDetector->SetPoint(4*ipoint+0,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmindet);
+            gDetector->SetPoint(4*ipoint+1,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmindet);
+            gDetector->SetPoint(4*ipoint+2,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmaxdet);
+            gDetector->SetPoint(4*ipoint+3,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmaxdet);*/
+
+            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
+            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
+            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
+            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
+
+            newimax=ipoint;
+        }
+        imax = newimax;
+        for(int i = 0;i<100;i++){
+            int ipoint = imax+1+i;
+            /*gDetector->SetPoint(4*ipoint+0,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
+            gDetector->SetPoint(4*ipoint+1,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
+            gDetector->SetPoint(4*ipoint+2,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);
+            gDetector->SetPoint(4*ipoint+3,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);*/
+
+            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
+        }
+
+        gWorld->SetPoint(0,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(1,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(2,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(3,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(4, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(5, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(6, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(7, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
         return true;
     }
     //______________________________________________________
@@ -554,7 +627,7 @@ namespace larcv {
         config.astar_start_padding = 3;        // allowed region around the start point
         config.astar_end_padding = 3;          // allowed region around the end point
         config.lattice_padding = 5;            // margin around the edges
-        config.min_nplanes_w_hitpixel = 1;     // minimum allowed coincidences between non 0 pixels across planes
+        config.min_nplanes_w_hitpixel = 3;     // minimum allowed coincidences between non 0 pixels across planes
         config.restrict_path = false;          // do I want to restrict to a cylinder around the strainght line of radius defined bellow ?
         config.path_restriction_radius = 30.0;
 
@@ -570,7 +643,7 @@ namespace larcv {
             tellMe(Form("plane %zu %zu rows and %zu cols before findpath", iPlane,hit_image_v[iPlane].meta().rows(),hit_image_v[iPlane].meta().cols()),1);
         }
         RecoedPath = algo.findpath( hit_image_v, chstatus_image_v, tag_image_v, start_row, end_row, start_cols, end_cols, goal_reached );
-        tellMe("A* done",1);
+        tellMe("..........done with A*", 0);
         if(goal_reached == 1){
             _eventSuccess++;
         }
@@ -667,7 +740,7 @@ namespace larcv {
                 for(int iPlane=0;iPlane<3;iPlane++){
                     //ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode-1].X(),thisTrack[iNode-1].Y(),thisTrack[iNode-1].Z(),0,iPlane,x_proj0,y_proj0);
                     ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode].X(),thisTrack[iNode].Y(),thisTrack[iNode].Z(),0,iPlane,x_proj,y_proj);
-                    int shellMask = 3;
+                    int shellMask = 2;
                     if(x_proj > hit_image_v[iPlane].meta().cols()-(shellMask+1) || x_proj < (shellMask+1)) continue;
                     if(y_proj > hit_image_v[iPlane].meta().rows()-(shellMask+1) || y_proj < (shellMask+1)) continue;
                     for(int i = -shellMask;i<shellMask+1;i++){
@@ -684,37 +757,57 @@ namespace larcv {
         if(_vertexTracks.size()!=0)_vertexTracks.clear();
         size_t oldSize = 5;
         double trackMinLength = 5;
+        if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
+        _vertexEndPoints.push_back(start_pt);
         while(_vertexTracks.size()!=oldSize && _vertexTracks.size()<9){
             oldSize = _vertexTracks.size();
             // first start from Vertex
             ImprovedCluster();
-            SortAndOrderPoints();
-
+            end_pt = GetFurtherFromVertex();
+            _vertexEndPoints.push_back(end_pt);
+            std::vector<TVector3> limitPoints;
+            limitPoints.push_back(start_pt);
+            limitPoints.push_back(end_pt);
+            hit_image_v = CropFullImage2bounds(limitPoints,original_full_image_v);
+            if(_3DTrack.size()!=0)_3DTrack.clear();
+            Reconstruct();
+            Make3DpointList();
+            RegularizeTrack();
             ComputeLength();
-            if(_3DTrack.size()<3 || _Length3D < trackMinLength){MaskTrack();continue;}
+            //if(_Length3D < trackMinLength){MaskTrack();continue;}
+
             std::vector<TVector3> firstTrackBit = _3DTrack;
             //_vertexTracks.push_back(_3DTrack);
             //_track++;
             //DrawTrack();
-            //MaskTrack();
+            MaskTrack();
             // check and see if the further point is actually the end of the track?
-            //TVector3 vertexPoint = start_pt;
-            //start_pt = _3DTrack.back();
-            //ImprovedCluster();
+            TVector3 vertexPoint = start_pt;
+            start_pt = _3DTrack.back();
+            ImprovedCluster();
+            end_pt = GetFurtherFromVertex();
+            _vertexEndPoints.push_back(end_pt);
+            limitPoints.push_back(start_pt);
+            limitPoints.push_back(end_pt);
+            hit_image_v = CropFullImage2bounds(limitPoints,original_full_image_v);
+            if(_3DTrack.size()!=0)_3DTrack.clear();
+            Reconstruct();
+            Make3DpointList();
             RegularizeTrack();
-            //SortAndOrderPoints();
-            //for(int iNode = 0;iNode<_3DTrack.size();iNode++){
-            //    firstTrackBit.push_back(_3DTrack[iNode]);
-            //}
-            //_3DTrack = firstTrackBit;
             //ComputeLength();
-            //if(_3DTrack.size()<3 || _Length3D < trackMinLength){MaskTrack();continue;}
-            //start_pt = vertexPoint; // reset start point to the original vertex point
+
+            //SortAndOrderPoints();
+            for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+                firstTrackBit.push_back(_3DTrack[iNode]);
+            }
+            _3DTrack = firstTrackBit;
+            ComputeLength();
+            if(_Length3D < trackMinLength){MaskTrack();continue;}
+            start_pt = vertexPoint; // reset start point to the original vertex point
 
             _vertexTracks.push_back(_3DTrack);
-            _track++;
-            //DrawTrack();
             MaskTrack();
+            _track++;
         }
         DrawVertex();
     }
@@ -1388,9 +1481,8 @@ namespace larcv {
     void AStarTracker::DrawVertex(){
         std::cout << "DrawVertex" << std::endl;
         TH2D *hImage[3];
-        TGraph *gTrack[3];
         TGraph *gStart[3];
-        double x_pixel_st, y_pixel_st,x_pixel_nd, y_pixel_nd,x_pixel, y_pixel;
+        double x_pixel_st, y_pixel_st;
 
         _3DTrack.clear();
         for(int i=0;i<_vertexTracks.size();i++){
@@ -1399,6 +1491,7 @@ namespace larcv {
             }
         }
         std::cout << "full vertex : _3DTrack.size() = " << _3DTrack.size() <<std::endl;
+        if(_3DTrack.size()==0) _3DTrack.push_back(start_pt);
         hit_image_v = CropFullImage2bounds(_3DTrack,original_full_image_v);
 
 
@@ -1456,8 +1549,41 @@ namespace larcv {
         }
 
 
+        TFile *fout = TFile::Open(Form("root/cVertex_%05d_%05d_%05d_%04d.root",_run,_subrun,_event,_track),"RECREATE");
+        TGraph2D *gFullVertex = new TGraph2D();
+        gFullVertex->SetNameTitle(Form("gFullVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("gFullVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track));
 
-        c->SaveAs(Form("%s.png",c->GetName()));
+        TGraph2D *gEndPoints = new TGraph2D();
+        gEndPoints->SetNameTitle("gEndPoint","gEndPoints");
+        for(int i=0;i<_vertexEndPoints.size();i++){
+            gEndPoints->SetPoint(i,_vertexEndPoints[i].Z(),_vertexEndPoints[i].X(),_vertexEndPoints[i].Y());
+        }
+
+        int Npoint = 0;
+        for(int i=0;i<_vertexTracks.size();i++){
+            TGraph2D *gSingleTrack = new TGraph2D();
+            gSingleTrack->SetNameTitle(Form("gSingleTrack_%05d_%05d_%05d_%04d_%02d",_run,_subrun,_event,_track,i),Form("gSingleTrack_%05d_%05d_%05d_%04d_%02d",_run,_subrun,_event,_track,i));
+            gSingleTrack->SetLineColor(i+1);
+            gSingleTrack->SetMarkerColor(i+1);
+            gSingleTrack->SetMarkerStyle(7);
+            for(int iNode=0;iNode<_vertexTracks[i].size();iNode++){
+                gFullVertex->SetPoint(Npoint,_vertexTracks[i][iNode].Z(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y());
+                gSingleTrack->SetPoint(iNode,_vertexTracks[i][iNode].Z(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y());
+                Npoint++;
+            }
+            gSingleTrack->Write();
+        }
+
+        gEndPoints->Write();
+        gFullVertex->Write();
+        gDetector->Write();
+        gWorld->Write();
+        c->Write();
+        fout->Close();
+
+        gEndPoints->Delete();
+
+        c->SaveAs(Form("png/%s.png",c->GetName()));
         for(int iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
