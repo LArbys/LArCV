@@ -75,9 +75,16 @@ namespace larcv {
 
   private:
 
+    TTree* _tree;
+
     std::map<larcv::RSEID,bool> _rse_m;
     std::string _ref_producer;
     size_t _ref_type;
+
+    std::string _fname;
+    int _run;
+    int _subrun;
+    int _event;
 
   };
 

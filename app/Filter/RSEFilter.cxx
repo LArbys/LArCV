@@ -9,7 +9,7 @@ namespace larcv {
   static RSEFilterProcessFactory __global_RSEFilterProcessFactory__;
 
   RSEFilter::RSEFilter(const std::string name)
-    : ProcessBase(name)
+    : ProcessBase(name), _tree(nullptr)
   {}
     
   void RSEFilter::configure(const PSet& cfg)
@@ -35,7 +35,14 @@ namespace larcv {
   }
 
   void RSEFilter::initialize()
-  {}
+  {
+    
+    _tree = new TTree("RSEFilter","");
+    _tree->Branch("fname"  , &_fname);
+    _tree->Branch("run"    , &_run   , "run/I");
+    _tree->Branch("subrun" , &_subrun, "subrun/I");
+    _tree->Branch("event"  , &_event , "event/I");
+  }
 
   bool RSEFilter::process(IOManager& mgr)
   {
@@ -51,7 +58,13 @@ namespace larcv {
       if((*itr).second) LARCV_WARNING() << "Run " << rse.run << " Event " << rse.event << " is duplicated!!!" << std::endl;
       (*itr).second = true;
     }
-    
+
+    _fname  = (std::string) mgr.file_list().front();
+    _run    = (int) ptr->run();
+    _subrun = (int) ptr->subrun();
+    _event  = (int) ptr->event();
+    _tree->Fill();
+
     return keepit;
   }
 
@@ -62,6 +75,7 @@ namespace larcv {
       LARCV_WARNING() << "Event ID not found in data file (unused): Run " << rse_used.first.run
 		      << " Event " << rse_used.first.event << std::endl;
     }
+    _tree->Write();
   }
 
 }
