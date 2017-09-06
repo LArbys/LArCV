@@ -27,9 +27,6 @@ mdfs = {}
 name        = sys.argv[1]
 INPUT_FILE  = sys.argv[2]
 
-#
-# Vertex wise Trees
-#
 vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
 angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
 shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
@@ -48,53 +45,44 @@ comb_df = pd.concat([vertex_df.set_index(rserv),
                      match_df.set_index(rserv),
                      dqds_df.set_index(rserv)],axis=1)
 
-#
-# Store vertex wise data frame
-#
 comb_df = comb_df.reset_index()
-
-#
-# Event wise Trees
-#
 event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
-
-edfs = event_vertex_df.copy()
-mdfs = mc_df.copy()
 
 def drop_y(df):
     to_drop = [x for x in df if x.endswith('_y')]
     df.drop(to_drop, axis=1, inplace=True)
-
+    
 comb_df = comb_df.set_index(rse).join(event_vertex_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
 drop_y(comb_df)
+    
+if name == "nue":
+    nufilter_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
+    mc_df       = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+        
+    comb_df = comb_df.set_index(rse).join(nufilter_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+    drop_y(comb_df)    
+        
+    comb_df = comb_df.set_index(rse).join(mc_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+    drop_y(comb_df)
 
-comb_df = comb_df.set_index(rse).join(mc_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-drop_y(comb_df)
-
+comb_df = comb_df.reset_index()
 comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
 
-print
-print "@ Sample:",name,"& # good croi is:",event_vertex_df.query("good_croi_ctr>0").index.size
-print "total events: ", event_vertex_df.index.size
-print 
-    
-# Compute cosing Angle3D
-#
-print "Computing opening angle..."
-for name, comb_df in dfs.iteritems():
-    comb_df['cosangle3d']=comb_df.apply(lambda x : larocv.CosOpeningAngle(x['par_trunk_pca_theta_estimate_v'][0],
-                                                                          x['par_trunk_pca_phi_estimate_v'][0],
-                                                                          x['par_trunk_pca_theta_estimate_v'][1],
-                                                                          x['par_trunk_pca_phi_estimate_v'][1]),axis=1)
+comb_df['cvtxid'] = 0.0
 
-    comb_df['angle3d']=comb_df.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
+def func(group):
+    group['cvtxid'] = np.arange(0,group['cvtxid'].size)
+    return group
 
+comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
+comb_cut_df = comb_df.copy()
 
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
     df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
-
+    
+    df['trk_frac_avg'] = df.apply(lambda x : x['par1_frac'] if(x['par1_type']==1) else x['par2_frac'],axis=1)
+    df['shr_frac_avg'] = df.apply(lambda x : x['par2_frac'] if(x['par2_type']==2) else x['par1_frac'],axis=1)
 
 print
 print "@ sample",name
@@ -102,20 +90,33 @@ print
 
 comb_cut_df = comb_df.copy()
 
+print "Asking nue assumption"
 print "Asking npar==2"
 print "Asking in_fiducial==1"
 print "Asking pathexists2==1"
 
 comb_cut_df = comb_cut_df.query("npar==2")
+track_shower_assumption(comb_cut_df)
+comb_cut_df = comb_cut_df.query("par1_type != par2_type")
 comb_cut_df = comb_cut_df.query("in_fiducial==1")
 comb_cut_df = comb_cut_df.query("pathexists2==1")
 
-print "Asking nue assumption"
-track_shower_assumption(comb_cut_df)
-comb_cut_df = comb_cut_df.query("par1_type != par2_type")
+comb_cut_df['cosangle3d']=comb_cut_df.apply(lambda x : larocv.CosOpeningAngle(x['par_trunk_pca_theta_estimate_v'][0],
+                                                                              x['par_trunk_pca_phi_estimate_v'][0],
+                                                                              x['par_trunk_pca_theta_estimate_v'][1],
+                                                                              x['par_trunk_pca_phi_estimate_v'][1]),axis=1)
 
-comb_cut_df['shr_trunk_pca_theta_estimate'] = comb_cut_df.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
-comb_cut_df['trk_trunk_pca_theta_estimate'] = comb_cut_df.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
+comb_cut_df['angle3d'] = comb_cut_df.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
+
+
+comb_cut_df['trk_frac'] = comb_cut_df.apply(lambda x : x['trk_frac_avg'] / x['nplanes_v'][x['trkid']],axis=1) 
+comb_cut_df['shr_frac'] = comb_cut_df.apply(lambda x : x['shr_frac_avg'] / x['nplanes_v'][x['shrid']],axis=1) 
+
+comb_cut_df['shr_trunk_pca_theta_estimate'] = comb_cut_df.apply(lambda x : x['par_trunk_pca_theta_estimate_v'][x['shrid']],axis=1) 
+comb_cut_df['trk_trunk_pca_theta_estimate'] = comb_cut_df.apply(lambda x : x['par_trunk_pca_theta_estimate_v'][x['trkid']],axis=1) 
+
+comb_cut_df['shr_trunk_pca_cos_theta_estimate'] = comb_cut_df.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
+comb_cut_df['trk_trunk_pca_cos_theta_estimate'] = comb_cut_df.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
 
 comb_cut_df['shr_avg_length'] = comb_cut_df.apply(lambda x : x['length_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
 comb_cut_df['trk_avg_length'] = comb_cut_df.apply(lambda x : x['length_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
@@ -152,7 +153,33 @@ comb_cut_df['trk_par_pixel_ratio'] = comb_cut_df.apply(lambda x : x['par_pixel_r
 
 comb_cut_df['anglediff0'] = comb_cut_df['anglediff'].values
 
-comb_cut_df = comb_cut_df.copy()
+comb_cut_df['shr_length_min']    = comb_cut_df.apply(lambda x : x['length_min_v'][x['shrid']],axis=1)
+comb_cut_df['shr_width_min']     = comb_cut_df.apply(lambda x : x['width_min_v'][x['shrid']],axis=1)
+comb_cut_df['shr_perimeter_min'] = comb_cut_df.apply(lambda x : x['perimeter_min_v'][x['shrid']],axis=1)
+comb_cut_df['shr_area_min']      = comb_cut_df.apply(lambda x : x['area_min_v'][x['shrid']],axis=1)
+comb_cut_df['shr_npixel_min']    = comb_cut_df.apply(lambda x : x['npixel_min_v'][x['shrid']],axis=1)
+comb_cut_df['shr_qsum_min']      = comb_cut_df.apply(lambda x : x['qsum_min_v'][x['shrid']],axis=1)
+
+comb_cut_df['trk_length_min']    = comb_cut_df.apply(lambda x : x['length_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_width_min']     = comb_cut_df.apply(lambda x : x['width_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_perimeter_min'] = comb_cut_df.apply(lambda x : x['perimeter_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_area_min']      = comb_cut_df.apply(lambda x : x['area_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_npixel_min']    = comb_cut_df.apply(lambda x : x['npixel_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_qsum_min']      = comb_cut_df.apply(lambda x : x['qsum_max_v'][x['trkid']],axis=1)
+
+comb_cut_df['shr_length_max']    = comb_cut_df.apply(lambda x : x['length_max_v'][x['shrid']],axis=1)
+comb_cut_df['shr_width_max']     = comb_cut_df.apply(lambda x : x['width_max_v'][x['shrid']],axis=1)
+comb_cut_df['shr_perimeter_max'] = comb_cut_df.apply(lambda x : x['perimeter_max_v'][x['shrid']],axis=1)
+comb_cut_df['shr_area_max']      = comb_cut_df.apply(lambda x : x['area_max_v'][x['shrid']],axis=1)
+comb_cut_df['shr_npixel_max']    = comb_cut_df.apply(lambda x : x['npixel_max_v'][x['shrid']],axis=1)
+comb_cut_df['shr_qsum_max']      = comb_cut_df.apply(lambda x : x['qsum_max_v'][x['shrid']],axis=1)
+
+comb_cut_df['trk_length_max']    = comb_cut_df.apply(lambda x : x['length_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_width_max']     = comb_cut_df.apply(lambda x : x['width_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_perimeter_max'] = comb_cut_df.apply(lambda x : x['perimeter_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_area_max']      = comb_cut_df.apply(lambda x : x['area_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_npixel_max']    = comb_cut_df.apply(lambda x : x['npixel_max_v'][x['trkid']],axis=1)
+comb_cut_df['trk_qsum_max']      = comb_cut_df.apply(lambda x : x['qsum_max_v'][x['trkid']],axis=1)
 
     
 #

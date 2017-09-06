@@ -25,10 +25,10 @@ edfs = {}
 mdfs = {}
 
 sample_name0 = "nue"
-sample_file0 = "/home/vgenty/vgenty/vertex_study/1e1p/test_08312017/vertex/nominal/comb_ana.root"
+sample_file0 = "/home/vgenty/vgenty/vertex_study/1e1p/test_08312017/vertex/nominal_no_stopmu/comb_ana.root"
 
 sample_name1 = "cosmic"
-sample_file1 = "/home/vgenty/vgenty/vertex_study/extbnb/test_08312017/vertex/comb_ana.root"
+sample_file1 = "/home/vgenty/vgenty/vertex_study/extbnb/test_08312017/vertex/nominal_stopmuoff/comb_ana.root"
 
 for name,file_ in [(sample_name0,sample_file0),
                    (sample_name1,sample_file1)]:
@@ -56,24 +56,53 @@ for name,file_ in [(sample_name0,sample_file0),
                          match_df.set_index(rserv),
                          dqds_df.set_index(rserv)],axis=1)
 
+    comb_df = comb_df.reset_index()
+    event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
+
+    def drop_y(df):
+        to_drop = [x for x in df if x.endswith('_y')]
+        df.drop(to_drop, axis=1, inplace=True)
+        
+    comb_df = comb_df.set_index(rse).join(event_vertex_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+    drop_y(comb_df)
+    
+    if name == "nue":
+        nufilter_df       = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
+        mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+        
+        comb_df = comb_df.set_index(rse).join(nufilter_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+        drop_y(comb_df)    
+        
+        comb_df = comb_df.set_index(rse).join(mc_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
+        drop_y(comb_df)
+
     #
     # Store vertex wise data frame
     #
     comb_df = comb_df.reset_index()
     comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+    
+    comb_df['cvtxid'] = 0.0
+    
+    def func(group):
+        group['cvtxid'] = np.arange(0,group['cvtxid'].size)
+        return group
 
+    comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
+    
     dfs[name] = comb_df.copy()
 
-
-dfs['nue'] = dfs['nue'].query("scedr<5").drop_duplicates(subset=rse)
+dfs['nue'] = dfs['nue'].query("scedr<5")
 
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
     df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
+    
+    df['trk_frac_avg'] = df.apply(lambda x : x['par1_frac'] if(x['par1_type']==1) else x['par2_frac'],axis=1)
+    df['shr_frac_avg'] = df.apply(lambda x : x['par2_frac'] if(x['par2_type']==2) else x['par1_frac'],axis=1)
 
 ts_mdf_m = {}
-
-for name, comb_df in dfs.iteritems():
+for name, comb_df in dfs.copy().iteritems():
     print
     print "@ sample",name
     print
@@ -96,10 +125,16 @@ for name, comb_df in dfs.iteritems():
                                                                         x['par_trunk_pca_theta_estimate_v'][1],
                                                                         x['par_trunk_pca_phi_estimate_v'][1]),axis=1)
     
-    ts_mdf['angle3d']=ts_mdf.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
+    ts_mdf['angle3d'] = ts_mdf.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
     
-    ts_mdf['shr_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
-    ts_mdf['trk_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
+    ts_mdf['trk_frac'] = ts_mdf.apply(lambda x : x['trk_frac_avg'] / x['nplanes_v'][x['trkid']],axis=1) 
+    ts_mdf['shr_frac'] = ts_mdf.apply(lambda x : x['shr_frac_avg'] / x['nplanes_v'][x['shrid']],axis=1) 
+    
+    ts_mdf['shr_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : x['par_trunk_pca_theta_estimate_v'][x['shrid']],axis=1) 
+    ts_mdf['trk_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : x['par_trunk_pca_theta_estimate_v'][x['trkid']],axis=1) 
+    
+    ts_mdf['shr_trunk_pca_cos_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
+    ts_mdf['trk_trunk_pca_cos_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
 
     ts_mdf['shr_avg_length'] = ts_mdf.apply(lambda x : x['length_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
     ts_mdf['trk_avg_length'] = ts_mdf.apply(lambda x : x['length_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
@@ -124,7 +159,7 @@ for name, comb_df in dfs.iteritems():
 
     ts_mdf['shr_triangle_d_max'] = ts_mdf.apply(lambda x : x['triangle_d_max_v'][x['shrid']],axis=1)
     ts_mdf['trk_triangle_d_max'] = ts_mdf.apply(lambda x : x['triangle_d_max_v'][x['trkid']],axis=1)
-    
+  
     ts_mdf['shr_mean_pixel_dist'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
     ts_mdf['trk_mean_pixel_dist'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
     
@@ -136,7 +171,36 @@ for name, comb_df in dfs.iteritems():
     
     ts_mdf['anglediff0'] = ts_mdf['anglediff'].values
     
+    ts_mdf['shr_length_min']    = ts_mdf.apply(lambda x : x['length_min_v'][x['shrid']],axis=1)
+    ts_mdf['shr_width_min']     = ts_mdf.apply(lambda x : x['width_min_v'][x['shrid']],axis=1)
+    ts_mdf['shr_perimeter_min'] = ts_mdf.apply(lambda x : x['perimeter_min_v'][x['shrid']],axis=1)
+    ts_mdf['shr_area_min']      = ts_mdf.apply(lambda x : x['area_min_v'][x['shrid']],axis=1)
+    ts_mdf['shr_npixel_min']    = ts_mdf.apply(lambda x : x['npixel_min_v'][x['shrid']],axis=1)
+    ts_mdf['shr_qsum_min']      = ts_mdf.apply(lambda x : x['qsum_min_v'][x['shrid']],axis=1)
+
+    ts_mdf['trk_length_min']    = ts_mdf.apply(lambda x : x['length_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_width_min']     = ts_mdf.apply(lambda x : x['width_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_perimeter_min'] = ts_mdf.apply(lambda x : x['perimeter_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_area_min']      = ts_mdf.apply(lambda x : x['area_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_npixel_min']    = ts_mdf.apply(lambda x : x['npixel_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_qsum_min']      = ts_mdf.apply(lambda x : x['qsum_max_v'][x['trkid']],axis=1)
+   
+    ts_mdf['shr_length_max']    = ts_mdf.apply(lambda x : x['length_max_v'][x['shrid']],axis=1)
+    ts_mdf['shr_width_max']     = ts_mdf.apply(lambda x : x['width_max_v'][x['shrid']],axis=1)
+    ts_mdf['shr_perimeter_max'] = ts_mdf.apply(lambda x : x['perimeter_max_v'][x['shrid']],axis=1)
+    ts_mdf['shr_area_max']      = ts_mdf.apply(lambda x : x['area_max_v'][x['shrid']],axis=1)
+    ts_mdf['shr_npixel_max']    = ts_mdf.apply(lambda x : x['npixel_max_v'][x['shrid']],axis=1)
+    ts_mdf['shr_qsum_max']      = ts_mdf.apply(lambda x : x['qsum_max_v'][x['shrid']],axis=1)
+
+    ts_mdf['trk_length_max']    = ts_mdf.apply(lambda x : x['length_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_width_max']     = ts_mdf.apply(lambda x : x['width_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_perimeter_max'] = ts_mdf.apply(lambda x : x['perimeter_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_area_max']      = ts_mdf.apply(lambda x : x['area_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_npixel_max']    = ts_mdf.apply(lambda x : x['npixel_max_v'][x['trkid']],axis=1)
+    ts_mdf['trk_qsum_max']      = ts_mdf.apply(lambda x : x['qsum_max_v'][x['trkid']],axis=1)
+
     ts_mdf_m[name] = ts_mdf.copy()
+
 
 
 #
@@ -144,6 +208,7 @@ for name, comb_df in dfs.iteritems():
 #
 import collections
 pdf_m = collections.OrderedDict()
+
 
 xlo= 0.0
 xhi= 40.0
@@ -156,25 +221,24 @@ dx = 2
 pdf_m['trk_triangle_d_max'] = ((xlo,xhi,dx),"Track - Max 2D Deflection [pix]")
 
 xlo= 0.0
-xhi= 5.0
+xhi= 10.0
 dx = 0.2
 pdf_m['shr_mean_pixel_dist'] = ((xlo,xhi,dx),"Shower - Mean Distance from 2D PCA [pix]")
 
 xlo= 0.0
-xhi= 5.0
+xhi= 10.0
 dx = 0.2
 pdf_m['trk_mean_pixel_dist'] = ((xlo,xhi,dx),"Track - Mean Distance from 2D PCA [pix]")
 
 xlo= 0.0
-xhi= 5.0
+xhi= 10.0
 dx = 0.2
 pdf_m['shr_sigma_pixel_dist'] = ((xlo,xhi,dx),"Shower - Sigma Distance from 2D PCA [pix]")
 
 xlo= 0.0
-xhi= 5.0
+xhi= 10.0
 dx = 0.2
 pdf_m['trk_sigma_pixel_dist'] = ((xlo,xhi,dx),"Track - Sigma Distance from 2D PCA [pix]")
-
 
 xlo= 0.0
 xhi= 1.0
@@ -191,7 +255,12 @@ xhi= 1.0
 dx = 0.05
 pdf_m['cosangle3d'] = ((xlo,xhi,dx),"Cos 3D Opening Angle")
 
-xlo= 0 
+#xlo= 0
+#xhi= 3.14159
+#dx = 3.14159/40.0
+#pdf_m['angle3d'] = ((xlo,xhi,dx),"3D Opening Angle")
+
+xlo= 0
 xhi= 180
 dx = 5
 pdf_m['anglediff0'] = ((xlo,xhi,dx),"2D Angle Difference [deg]")
@@ -199,43 +268,107 @@ pdf_m['anglediff0'] = ((xlo,xhi,dx),"2D Angle Difference [deg]")
 xlo=-1.0
 xhi= 1.0
 dx = 0.05
-pdf_m['shr_trunk_pca_theta_estimate'] = ((xlo,xhi,dx),"Shower - Cos 3D Beam Angle")
+pdf_m['shr_trunk_pca_cos_theta_estimate'] = ((xlo,xhi,dx),"Shower - Cos 3D Beam Angle")
 
 xlo=-1.0
 xhi= 1.0
 dx = 0.05
-pdf_m['trk_trunk_pca_theta_estimate'] = ((xlo,xhi,dx),"Track - Cos 3D Beam Angle")
+pdf_m['trk_trunk_pca_cos_theta_estimate'] = ((xlo,xhi,dx),"Track - Cos 3D Beam Angle")
 
+#xlo= 0
+#xhi= 3.14159
+#dx = 3.14159/40.0
+#pdf_m['trk_trunk_pca_theta_estimate'] = ((xlo,xhi,dx),"Track - 3D Beam Angle")
+
+#xlo= 0
+#xhi= 3.14159
+#dx = 3.14159/40.0
+#pdf_m['shr_trunk_pca_theta_estimate'] = ((xlo,xhi,dx),"Shower - 3D Beam Angle")
+
+
+#
+# Length
+#
 xlo= 0
-xhi= 150
-dx = 5
+xhi= 500
+dx = 10
 pdf_m['shr_avg_length'] = ((xlo,xhi,dx),"Shower - Average 2D Length [pix]")
 
 xlo= 0
-xhi= 150
-dx = 5
+xhi= 500
+dx = 10
 pdf_m['trk_avg_length'] = ((xlo,xhi,dx),"Track - Average 2D Length [pix]")
 
 # xlo= 0
 # xhi= 300
-# dx = 10
-# pdf_m['shr_avg_area'] = ((xlo,xhi,dx),"Shower - Average 2D Area [pix^2]")
+# dx = 5
+# pdf_m['shr_length_min'] = ((xlo,xhi,dx),"Shower - Min 2D Length [pix]")
 
 # xlo= 0
 # xhi= 300
-# dx = 10
-# pdf_m['trk_avg_area'] = ((xlo,xhi,dx),"Track - Average 2D Area [pix^2]")
+# dx = 5
+# pdf_m['trk_length_min'] = ((xlo,xhi,dx),"Track - Min 2D Length [pix]")
 
+# xlo= 0
+# xhi= 300
+# dx = 5
+# pdf_m['shr_length_max'] = ((xlo,xhi,dx),"Shower - Max 2D Length [pix]")
+
+# xlo= 0
+# xhi= 300
+# dx = 5
+# pdf_m['trk_length_max'] = ((xlo,xhi,dx),"Track - Max 2D Length [pix]")
+
+
+#
+# Area
+#
+xlo= 0
+xhi= 1000
+dx = 20
+pdf_m['shr_avg_area'] = ((xlo,xhi,dx),"Shower - Average 2D Area [pix^2]")
 
 xlo= 0
-xhi= 60
+xhi= 1000
+dx = 20
+pdf_m['trk_avg_area'] = ((xlo,xhi,dx),"Track - Average 2D Area [pix^2]")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['shr_area_min'] = ((xlo,xhi,dx),"Shower - Min 2D Area [pix^2]")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['trk_area_min'] = ((xlo,xhi,dx),"Track - Min 2D Area [pix^2]")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['shr_area_max'] = ((xlo,xhi,dx),"Shower - Max 2D Area [pix^2]")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['trk_area_max'] = ((xlo,xhi,dx),"Track - Max 2D Area [pix^2]")
+
+#
+# 3D length
+#
+xlo= 0
+xhi= 100
 dx = 2
 pdf_m['shr_3d_length'] = ((xlo,xhi,dx),"Shower - 3D Length [cm]")
 
 xlo= 0
-xhi= 60
+xhi= 100
 dx = 2
 pdf_m['trk_3d_length'] = ((xlo,xhi,dx),"Track - 3D Length [cm]")
+
+#
+# Width
+#
 
 xlo= 0
 xhi= 50
@@ -247,24 +380,106 @@ xhi= 50
 dx = 2
 pdf_m['trk_avg_width'] = ((xlo,xhi,dx),"Track - Average 2D Width [px]")
 
+# xlo= 0
+# xhi= 50
+# dx = 2
+# pdf_m['shr_width_min'] = ((xlo,xhi,dx),"Shower - Min 2D Width [px]")
+
+# xlo= 0
+# xhi= 50
+# dx = 2
+# pdf_m['trk_width_min'] = ((xlo,xhi,dx),"Track - Min 2D Width [px]")
+
+# xlo= 0
+# xhi= 50
+# dx = 2
+# pdf_m['shr_width_max'] = ((xlo,xhi,dx),"Shower - Max 2D Width [px]")
+
+# xlo= 0
+# xhi= 50
+# dx = 2
+# pdf_m['trk_width_max'] = ((xlo,xhi,dx),"Track - Max 2D Width [px]")
+
+
+#
+# npixel
+#
+
 xlo= 0
-xhi= 600
-dx = 10
+xhi= 1000
+dx = 20
 pdf_m['shr_avg_npixel'] = ((xlo,xhi,dx),"Shower - Average Num. Pixel")
 
 xlo= 0
-xhi= 600
-dx = 10
-pdf_m['trk_avg_npixel'] = ((xlo,xhi,dx),"Track - Average Num. Pixel")
-
-xlo= 0
 xhi= 1000
 dx = 20
+pdf_m['trk_avg_npixel'] = ((xlo,xhi,dx),"Track - Average Num. Pixel")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['shr_npixel_min'] = ((xlo,xhi,dx),"Shower - Min Num. Pixel")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['trk_npixel_min'] = ((xlo,xhi,dx),"Track - Min Num. Pixel")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['shr_npixel_max'] = ((xlo,xhi,dx),"Shower - Max Num. Pixel")
+
+# xlo= 0
+# xhi= 600
+# dx = 10
+# pdf_m['trk_npixel_max'] = ((xlo,xhi,dx),"Track - Max Num. Pixel")
+
+#
+# Perimeter
+#
+#xlo= 0
+#xhi= 300
+#dx = 5
+#pdf_m['shr_avg_perimeter'] = ((xlo,xhi,dx),"Shower - Average 2D Perimeter [pix]")
+
+#xlo= 0
+#xhi= 300
+#dx = 5
+#pdf_m['trk_avg_perimeter'] = ((xlo,xhi,dx),"Track - Average 2D Perimeter [pix]")
+
+# xlo= 0
+# xhi= 300
+# dx = 5
+# pdf_m['shr_perimeter_min'] = ((xlo,xhi,dx),"Shower - Min 2D Perimeter [pix]")
+
+# xlo= 0
+# xhi= 300
+# dx = 5
+# pdf_m['trk_perimeter_min'] = ((xlo,xhi,dx),"Track - Min 2D Perimeter [pix]")
+
+# xlo= 0
+# xhi= 300
+# dx = 5
+# pdf_m['shr_perimeter_min'] = ((xlo,xhi,dx),"Shower - Max 2D Perimeter [pix]")
+
+# xlo= 0
+# xhi= 300
+# dx = 5
+# pdf_m['trk_perimeter_min'] = ((xlo,xhi,dx),"Track - Max 2D Perimeter [pix]")
+
+#
+# Qaverage/L
+#
+
+xlo= 0
+xhi= 3000
+dx = 50
 pdf_m['shr_3d_QavgL'] = ((xlo,xhi,dx),"Shower - Average Charge / 3D Length [pix/cm]")
 
 xlo= 0
-xhi= 1000
-dx = 20
+xhi= 3000
+dx = 50
 pdf_m['trk_3d_QavgL'] = ((xlo,xhi,dx),"Track - Average Charge / 3D Length [pix/cm]")
 
 xlo= 0
@@ -273,14 +488,23 @@ dx = 0.025
 pdf_m['dqds_ratio_01'] = ((xlo,xhi,dx),"dQ/dX Ratio")
 
 xlo= 0
-xhi= 200
-dx = 5
+xhi= 500
+dx = 10
 pdf_m['dqds_diff_01'] = ((xlo,xhi,dx), "dQ/dX Difference [pix/cm]" )
 
+xlo= 0.5
+xhi= 1
+dx = 0.02
+pdf_m['trk_frac'] = ((xlo,xhi,dx),"Track Frac")
 
+xlo= 0.5
+xhi= 1
+dx = 0.02
+pdf_m['shr_frac'] = ((xlo,xhi,dx), "Shower Frac" )
 
-# In[32]:
-
+#
+#
+#
 sig_spectrum_m = {}
 bkg_spectrum_m = {}
 
