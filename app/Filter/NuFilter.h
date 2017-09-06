@@ -55,7 +55,7 @@ namespace larcv {
     double _max_nu_init_e;
     double _dep_sum_lepton;
     double _dep_sum_proton;
-    
+
     bool _select_signal;
     bool _select_background;
     
