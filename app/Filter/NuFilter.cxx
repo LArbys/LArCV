@@ -202,11 +202,15 @@ namespace larcv {
   }
 
   void NuFilter::initialize()
-  {}
+  {
+    LARCV_DEBUG() << "start" << std::endl;
+    LARCV_DEBUG() << "end" << std::endl;
+  }
 
   bool NuFilter::process(IOManager& mgr)
   {
 
+    LARCV_DEBUG() << "start" << std::endl;
     _run      = kINVALID_UINT;
     _subrun   = kINVALID_UINT;
     _event    = kINVALID_UINT;
@@ -225,22 +229,27 @@ namespace larcv {
     _event  = ev_roi->event();
     _entry  = mgr.current_entry();
     
-    auto signal_selected = MCSelect(ev_roi);
+    bool signal_selected = MCSelect(ev_roi);
+    LARCV_DEBUG() << "selected: " << signal_selected << std::endl;
     _selected = (uint) signal_selected;
     
     // if atleast 1 of config selection is false, then test against signal selected
     if ( !_select_signal or !_select_background) {
       if ( _select_signal     and !signal_selected ) {
 	_event_tree->Fill();
+	LARCV_DEBUG() << "false" << std::endl;
 	return false;
       }
       if ( _select_background and  signal_selected ) {
 	_event_tree->Fill();
+	LARCV_DEBUG() << "false" << std::endl;
 	return false;
       }
     }
 
     _event_tree->Fill();
+    LARCV_DEBUG() << "true" << std::endl;
+    LARCV_DEBUG() << "end" << std::endl;
     return true;
   }
   

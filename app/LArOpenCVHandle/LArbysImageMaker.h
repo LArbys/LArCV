@@ -56,7 +56,7 @@ namespace larcv {
 			      const std::vector<larcv::Image2D>& adc_image_v,
 			      std::vector<larcv::Image2D>& mu_image_v);
     
-  private:
+  public:
 
     float _charge_max;
     float _charge_min;
