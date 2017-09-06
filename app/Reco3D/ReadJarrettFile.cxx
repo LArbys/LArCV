@@ -77,6 +77,10 @@ namespace larcv {
         //
 
         auto ev_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
+        //auto tag_img_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
+        auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
+        auto tag_img_cont_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
+        //auto tag_img_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"containedtags");
         auto ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
@@ -89,6 +93,8 @@ namespace larcv {
         // get the event clusters and full images
         //auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
         auto full_adc_img_v = &(ev_img_v->Image2DArray());
+        auto full_tag_img_thru_v = &(tag_img_thru_v->Image2DArray());
+        auto full_tag_img_cont_v = &(tag_img_cont_v->Image2DArray());
         auto mc_roi_v = ev_partroi_v->ROIArray();
 
         // get MC vertex
@@ -153,6 +159,7 @@ namespace larcv {
         //auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
         std::vector<TVector3> vertex_v;
         std::vector<larcv::ImageMeta> Full_meta_v(3);
+        std::vector<larcv::Image2D> Tagged_Image(3);
         std::vector<larcv::Image2D> Full_image_v(3);
         double wireRange = 5000;
         double tickRange = 8502;
@@ -161,15 +168,20 @@ namespace larcv {
         for(int iPlane=0;iPlane<3;iPlane++){
             Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
+            Tagged_Image[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
+            if(full_tag_img_thru_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_thru_v)[iPlane] );
+            if(full_tag_img_cont_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_cont_v)[iPlane] );
         }
         tracker.SetOriginalImage(Full_image_v);
+        tracker.SetTaggedImage(Tagged_Image);
         tracker.SetTrackInfo(run, subrun, event, 0);
 
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
             iTrack++;
             //int i = iTrack;
+            if(!IsGoodVertex(run,subrun,event,pgraph_id))continue;
 
             auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
             //auto const& roi_v         = pgraph.ParticleArray();
@@ -198,14 +210,14 @@ namespace larcv {
         return true;
     }
 
-    bool ReadJarrettFile::IsGoodVertex(int run, int subrun, int event, int ROIid, int vtxID)
+    bool ReadJarrettFile::IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID)
     {
         bool okVertex = false;
         for(int ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
             if(   run    == _vertexInfo[ivertex][0]
                && subrun == _vertexInfo[ivertex][1]
                && event  == _vertexInfo[ivertex][2]
-               && ROIid  == _vertexInfo[ivertex][4]
+               //&& ROIid  == _vertexInfo[ivertex][4]
                && vtxID  == _vertexInfo[ivertex][5])okVertex = true;
         }
         return okVertex;

@@ -58,6 +58,8 @@ namespace larcv {
         tracker.SetCompressionFactors(1,6);
         tracker.SetVerbose(0);
         iTrack = 0;
+
+        ReadVertexFile("data/numuSelected.txt");
     }
 
     bool ReadRuiFile::process(IOManager& mgr)
@@ -67,11 +69,6 @@ namespace larcv {
         std::cout << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
         std::cout << "============================================" << std::endl;
         gStyle->SetOptStat(0);
-        //TCanvas *cImage = new TCanvas("cImage","cImage",900,300);
-        //cImage->Divide(3,1);
-        //TH2D *hImage[3];
-        //TGraph *gEndPoint[3];
-        //TGraph *gROI[3];
 
         TVector3 vertex, endPoint[2];
 
@@ -81,8 +78,8 @@ namespace larcv {
 
         auto ev_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
         auto ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
-        auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
-        auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
+        //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
+        //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
         auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
 
         int run    = ev_pgraph_v->run();
@@ -90,7 +87,7 @@ namespace larcv {
         int event  = ev_pgraph_v->event();
 
         // get the event clusters and full images
-        auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
+        //auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
         auto full_adc_img_v = &(ev_img_v->Image2DArray());
         auto mc_roi_v = ev_partroi_v->ROIArray();
 
@@ -150,25 +147,35 @@ namespace larcv {
                 }
             }
         }
-        //if(MCVertices.size() > 1)std::cout << "found " << MCVertices.size() << " MC vertices" << std::endl;
-        //else{std::cout << "found " << MCVertices.size() << " MC vertex" << std::endl;}
 
 
         // loop over found vertices
-        auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
-        //std::cout  << ev_pgraph_v->PGraphArray().size() << " vertices in entry" << std::endl;
+        //auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
+        std::vector<TVector3> vertex_v;
+        std::vector<larcv::ImageMeta> Full_meta_v(3);
+        std::vector<larcv::Image2D> Full_image_v(3);
+        double wireRange = 5000;
+        double tickRange = 8502;
+
+        // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
+        for(int iPlane=0;iPlane<3;iPlane++){
+            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
+            Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
+            if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
+        }
+        tracker.SetOriginalImage(Full_image_v);
+        tracker.SetTrackInfo(run, subrun, event, 0);
+
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
-            //std::cout << "vertex " << pgraph_id << " / " << ev_pgraph_v->PGraphArray().size() << std::endl;
 
             iTrack++;
-            int i = iTrack;
+            //int i = iTrack;
 
             auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
-            auto const& roi_v         = pgraph.ParticleArray();
-            auto const& cluster_idx_v = pgraph.ClusterIndexArray();
+            //auto const& roi_v         = pgraph.ParticleArray();
+            //auto const& cluster_idx_v = pgraph.ClusterIndexArray();
 
-            size_t nparticles = cluster_idx_v.size();
-            //std::cout << nparticles << " particles in vertex" << std::endl;
+            //size_t nparticles = cluster_idx_v.size();
 
             //
             // Get Estimated 3D Start and End Points
@@ -176,74 +183,60 @@ namespace larcv {
             TVector3 vertex(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
             EndPoints.push_back(vertex);
 
-            /*TVector3 newPoint;
-            for(int ipart = 0;ipart<pgraph.ParticleArray().size();ipart++){
-                newPoint.SetXYZ(pgraph.ParticleArray()[ipart].EndPosition().X(),pgraph.ParticleArray()[ipart].EndPosition().Y(),pgraph.ParticleArray()[ipart].EndPosition().Z());
-                EndPoints.push_back(newPoint);
-            }
-            if(!(EndPoints.size() == nparticles+1)){std::cout << "ERROR : not the right number of end points : shoudl be Nparticles + 1 for the vertex" << std::endl; std::cin.get();}*/
-
             bool WrongEndPoint = false;
             for(int iPoint = 0;iPoint<EndPoints.size();iPoint++){
                 if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ){std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; WrongEndPoint = false;}
             }
             if(WrongEndPoint)continue;
+            vertex_v.push_back(vertex);
 
-            // Check Vertex is close to a MC one
-            //bool vertexOK = false;
-            //for(int iMC = 0;iMC<MCVertices.size();iMC++){
-            //    if(( EndPoints.front() - MCVertices[iMC] ).Mag() < 5)vertexOK = true;
-            //}
-            //if(!vertexOK) continue;// try another vertex, this one is too far away
-
-
-            std::vector<larcv::ImageMeta> Full_meta_v(3);
-            std::vector<larcv::Image2D> Full_image_v(3);
-            double wireRange = 5000;
-            double tickRange = 8502;
-
-            // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
-            for(int iPlane=0;iPlane<3;iPlane++){
-                Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
-                Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
-                if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
-            }
-
-            std::vector<larcv::Image2D> data_images = tracker.CropFullImage2bounds(EndPoints,Full_image_v);
-            tracker.SetOriginalImage(Full_image_v);
-            tracker.SetTrackInfo(run, subrun, event, 20*i);
-            tracker.SetImages(data_images);
-            tracker.SetVertexEndPoints(EndPoints);
-            tracker.SetEndPoints(EndPoints[0],EndPoints[1]);
-            std::cout << "Reconstruct Vertex" << std::endl;
-            tracker.ReconstructVertex();
-
-            /*for(int iPart = 0;iPart < nparticles; iPart++){// start loop over particles in vertex
-
-                // make smaller image by inverting and cropping the full one
-                std::vector<larcv::Image2D> data_images = tracker.CropFullImage2bounds(EndPoints,Full_image_v);
-                tracker.SetOriginalImage(Full_image_v);
-                // configure and run tracker
-                tracker.SetTrackInfo(run, subrun, event, 2*i+iPart);
-                tracker.SetImages(data_images);
-
-                std::vector<TVector3> points;
-                points.push_back(EndPoints[0]);
-                points.push_back(EndPoints[iPart+1]);
-                tracker.SetVertexEndPoints(points);
-
-                tracker.SetEndPoints(EndPoints[0],EndPoints[iPart+1]);
-                tracker.ImprovedCluster();
-                std::cout << "ImproveCluster done" << std::endl;
-                std::cout << "track size = " << tracker.GetTrack().size() << std::endl;
-                tracker.DrawTrack();
-
-            }*/// end loop over particles in vertex
-
-            std::cout << std::endl << std::endl;
         }
+        tracker.SetEventVertices(vertex_v);
+        tracker.ReconstructEvent();
+        std::cout << std::endl << std::endl;
         
         return true;
+    }
+
+    bool ReadRuiFile::IsGoodVertex(int run, int subrun, int event, int ROIid, int vtxID)
+    {
+        bool okVertex = false;
+        for(int ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
+            if(   run    == _vertexInfo[ivertex][0]
+               && subrun == _vertexInfo[ivertex][1]
+               && event  == _vertexInfo[ivertex][2]
+               && ROIid  == _vertexInfo[ivertex][4]
+               && vtxID  == _vertexInfo[ivertex][5])okVertex = true;
+        }
+        return okVertex;
+    }
+
+    void ReadRuiFile::ReadVertexFile(std::string filename)
+    {
+        if(_vertexInfo.size()!=0)_vertexInfo.clear();
+        std::vector<int> thisVertexInfo;
+        std::ifstream file(Form("%s",filename.c_str()));
+        if(!file){std::cout << "ERROR, could not open file of selected vertices to sort through" << std::endl;return;}
+        std::string firstline;
+        getline(file, firstline);
+        bool goOn = true;
+        int Run,SubRun,Event,Entry,ROI_ID,vtxid;
+        double x,y,z;
+        char coma;
+        while(goOn){
+            file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z;
+            if(thisVertexInfo.size()!=0)thisVertexInfo.clear();
+            thisVertexInfo.push_back(Run);      //0
+            thisVertexInfo.push_back(SubRun);   //1
+            thisVertexInfo.push_back(Event);    //2
+            thisVertexInfo.push_back(Entry);    //3
+            thisVertexInfo.push_back(ROI_ID);   //4
+            thisVertexInfo.push_back(vtxid);    //5
+            _vertexInfo.push_back(thisVertexInfo);
+            if(file.eof()){goOn=false;break;}
+        }
+        std::cout << _vertexInfo.size() << " vertices to loop through" << std::endl;
+
     }
     
     void ReadRuiFile::finalize()

@@ -29,6 +29,7 @@
 #include "TH2D.h"
 #include "TSpline.h"
 #include "TGraph2D.h"
+#include "TFile.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 //#include "larcv/app/LArOpenCVHandle/LArbysUtils.h"
@@ -68,38 +69,23 @@ namespace larcv {
         /** IMPLEMENT in AStarTracker.cc!
          Initialization method to be called before the analysis event loop.
          */
-        bool initialize();
-
-        /** IMPLEMENT in AStarTracker.cc!
-         Analyze a data event-by-event
-         */
-        //virtual bool analyze(storage_manager* storage);
-
-        /** IMPLEMENT in AStarTracker.cc!
-         Finalize method to be called after all events processed.
-         */
-        bool finalize();
-        bool ArePointsEqual(TVector3 A, TVector3 B);
 
         void set_producer(std::string track_producer,std::string chstatus_producer){
             _track_producer = track_producer;
             _chstatus_producer = chstatus_producer;
         }
-
         void set_trackProducer(  std::string track_producer   ){_track_producer    = track_producer;   }
         void set_chstatProducer( std::string chstatus_producer){_chstatus_producer = chstatus_producer;}
         void set_mctrackProducer(std::string mctrack_producer ){_mctrack_producer  = mctrack_producer; }
         void set_wireProducer(   std::string wire_producer    ){_wire_producer     = wire_producer;    }
         void set_hitProducer(    std::string hit_producer     ){_hit_producer      = hit_producer;     }
-
         void SetVerbose(int v){_verbose = v;}
         void SetDrawOutputs(bool d){_DrawOutputs = d;}
         void SetCompressionFactors(int compress_w, int compress_t){_compressionFactor_w = compress_w; _compressionFactor_t = compress_t;}
-        void SetImages(std::vector<larcv::Image2D> images){hit_image_v = images;}
+
         void ReadProtonTrackFile();
         void ReadSplineFile();
         void SetTrackInfo(int run, int subrun, int event, int track){_run = run; _subrun = subrun; _event = event; _track = track;}
-
         void tellMe(std::string s, int verboseMin);
         void CreateDataImage(std::vector<larlite::wire> wire_v);
         void SetTimeAndWireBounds();
@@ -109,8 +95,12 @@ namespace larcv {
         void SetTimeAndWireBounds(std::vector<TVector3> points, std::vector<larcv::ImageMeta> meta);
         void SetEndPoints(TVector3 vertex, TVector3 endpoint){start_pt = vertex; end_pt = endpoint;}
         void SetEndPoint(TVector3 endpoint){end_pt = CheckEndPoints(endpoint);}
-        void SetVertexEndPoints(std::vector<TVector3> vertexEndPoints){_vertexEndPoints = vertexEndPoints;}
-        void SetOriginalImage(std::vector<larcv::Image2D> originalimage){original_full_image_v = originalimage;}
+        void SetImages(          std::vector<larcv::Image2D> images        ){hit_image_v           = images;}
+        void SetOriginalImage(   std::vector<larcv::Image2D> originalimage ){original_full_image_v = originalimage;}
+        void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
+        void SetVertexEndPoints( std::vector<TVector3> vertexEndPoints     ){_vertexEndPoints = vertexEndPoints;}
+        void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
+
         void DrawTrack();
         void DrawVertex();
         void RegularizeTrack();
@@ -120,10 +110,15 @@ namespace larcv {
         void ComputeLength();
         void ComputedQdX();
         void Reconstruct();
+        void ReconstructVertex();
+        void ReconstructEvent();
         void ImprovedCluster();
         void SortAndOrderPoints();
-        void ReconstructVertex();
+        void MaskTrack();
 
+        bool initialize();
+        bool finalize();
+        bool ArePointsEqual(TVector3 A, TVector3 B);
         bool CheckEndPointsInVolume(TVector3 point);
         bool IsGoodTrack();
         bool CheckEndPoints(std::vector< std::pair<int,int> > endPix);
@@ -138,6 +133,7 @@ namespace larcv {
         double GetTotalDepositedCharge();
         double X2Tick(double x, size_t plane) const;   // X[cm] to TPC tick (waveform index) conversion
         double Tick2X(double tick, size_t plane)const; // TPC tick (waveform index) to X[cm] conversion
+        double GetDist2track(TVector3 thisPoint);
 
         TVector3        CheckEndPoints(TVector3 point);
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
@@ -148,12 +144,7 @@ namespace larcv {
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
         std::vector<TVector3>   OrderList(std::vector<TVector3> list);
         std::vector<TVector3>   FitBrokenLine();
-        std::vector<TVector3>   Reconstruct(int run,
-                                            int subrun,
-                                            int event,
-                                            int track,
-                                            std::vector<larcv::Image2D> images,
-                                            TVector3 vertex, TVector3 endPoint){
+        std::vector<TVector3>   Reconstruct(int run, int subrun,int event,int track,std::vector<larcv::Image2D> images,TVector3 vertex, TVector3 endPoint){
             SetTrackInfo(run, subrun, event, track);
             SetImages(images);
             SetEndPoints(vertex, endPoint);
@@ -162,7 +153,7 @@ namespace larcv {
             return GetTrack();
         }
         
-        std::vector<std::vector<int> > _SelectableTracks;
+        std::vector< std::vector<int> >    _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
 
 
@@ -170,8 +161,7 @@ namespace larcv {
         std::vector<std::pair<double,double> > GetWireBounds(){return wire_bounds;}
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
 
-        std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints,std::vector<larcv::Image2D> Full_image_v);
-        void MaskTrack();
+        std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
@@ -221,14 +211,17 @@ namespace larcv {
 
         std::vector<TVector3> CorrectedPath;
         std::vector<TVector3> _3DTrack;
-        std::vector<std::vector<TVector3> > _vertexTracks;
         std::vector<TVector3> _vertexEndPoints;
+        std::vector<TVector3> _eventVertices;
+        std::vector<std::vector<TVector3> > _vertexTracks;
 
         std::vector<larcv::AStar3DNode> RecoedPath;
 
         std::vector<larcv::Image2D> hit_image_v;
         std::vector<larcv::Image2D> original_full_image_v;
         std::vector<larcv::Image2D> chstatus_image_v;
+        std::vector<larcv::Image2D> taggedPix_v;
+        std::vector<larcv::Image2D> CroppedTaggedPix_v;
 
         TVector3 start_pt;
         TVector3 end_pt;
@@ -243,6 +236,8 @@ namespace larcv {
 
         TGraph2D *gDetector;
         TGraph2D *gWorld;
+
+        TFile *fEventOutput;
 
         TCanvas *c2;
     };

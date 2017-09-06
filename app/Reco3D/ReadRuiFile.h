@@ -41,11 +41,15 @@ namespace larcv {
 
         bool process(IOManager& mgr);
 
+        bool IsGoodVertex(int run, int subrun, int event, int ROIid, int vtxID);
+        void ReadVertexFile(std::string filename);
+
         void finalize();
 
     private :
         int iTrack;
         larcv::AStarTracker tracker;
+        std::vector< std::vector<int> > _vertexInfo;
 
     };
 

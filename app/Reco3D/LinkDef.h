@@ -10,6 +10,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::ReadRuiFile+;
+#pragma link C++ class larcv::ReadJarrettFile+;
 //ADD_NEW_CLASS ... do not change this line
 
 #endif

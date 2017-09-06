@@ -28,42 +28,7 @@
 #include "AStar3DAlgoProton.h"
 
 namespace larcv {
-    
-    double AStarTracker::X2Tick(double x, size_t plane) const {
 
-        //auto ts = larutil::TimeService::GetME();
-        auto larp = larutil::LArProperties::GetME();
-        //std::cout << "ts->TriggerOffsetTPC() = " << ts->TriggerOffsetTPC() << std::endl;
-        // (X [cm] / Drift Velocity [cm/us] - TPC waveform tick 0 offset) ... [us]
-        //double tick = (x / larp->DriftVelocity() - ts->TriggerOffsetTPC() - _speedOffset);
-        double tick = (x/ larp->DriftVelocity())*2+3200;
-        // 1st plane's tick
-        /*if(plane==0) return tick * 2;// 2 ticks/us
-         // 2nd plane needs more drift time for plane0=>plane1 gap (0.3cm) difference
-         tick -= 0.3 / larp->DriftVelocity(larp->Efield(1));
-         // 2nd plane's tick
-         if(plane==1) return tick * 2;
-         // 3rd plane needs more drift time for plane1=>plane2 gap (0.3cm) difference
-         tick -= 0.3 / larp->DriftVelocity(larp->Efield(2));*/
-        return tick;// * 2;
-    }
-    //______________________________________________________
-    double AStarTracker::Tick2X(double tick, size_t plane) const{
-        //std::cout << "tick : " << tick;
-        //auto ts = larutil::TimeService::GetME();
-        auto larp = larutil::LArProperties::GetME();
-        // remove tick offset due to plane
-        /*if(plane >= 1) {tick += 0.3/larp->DriftVelocity(larp->Efield(1));}
-         if(plane >= 2) {
-         tick += 0.3/larp->DriftVelocity(larp->Efield(2));
-         }*/
-        //tick/=2.;
-        //double x = (tick+ts->TriggerOffsetTPC()+_speedOffset)*larp->DriftVelocity();
-        //std::cout << "  =>  x : " << x << "  => new tick : " << X2Tick(x,plane) << std::endl;
-
-        return ((tick-3200)*larp->DriftVelocity())*0.5;
-    }
-    //______________________________________________________
     void AStarTracker::tellMe(std::string s, int verboseMin = 0){
         if(_verbose >= verboseMin) std::cout << s << std::endl;
     }
@@ -467,110 +432,6 @@ namespace larcv {
         tellMe(Form("time_bounds.size() = %zu",time_bounds.size()),2);
     }
     //______________________________________________________
-    bool AStarTracker::CheckEndPointsInVolume(TVector3 point){
-        bool endpointInRange = true;
-        if(point.X() <  0    ){endpointInRange = false;}
-        if(point.X() >  270  ){endpointInRange = false;}
-
-        if(point.Y() < -120  ){endpointInRange = false;}
-        if(point.Y() >  120  ){endpointInRange = false;}
-
-        if(point.Z() <  1    ){endpointInRange = false;}
-        if(point.Z() >  1036 ){endpointInRange = false;}
-
-        return endpointInRange;
-    }
-    //______________________________________________________
-    bool AStarTracker::initialize() {
-        ReadSplineFile();
-        //ReadProtonTrackFile();
-        _eventTreated = 0;
-        _eventSuccess = 0;
-        time_bounds.reserve(3);
-        wire_bounds.reserve(3);
-        hit_image_v.reserve(3);
-        hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
-        hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
-        hDistance2Hit = new TH1D("hDistance2Hit","hDistance2Hit",100,0,50);
-        if(_DrawOutputs){
-            hdQdx = new TH1D("hdQdx","hdQdx",100,0,100);
-            hdQdxEntries = new TH1D("hdQdxEntries","hdQdxEntries",hdQdx->GetNbinsX(),hdQdx->GetXaxis()->GetXmin(),hdQdx->GetXaxis()->GetXmax());
-            hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
-        }
-
-        gWorld = new TGraph2D();
-        gWorld->SetNameTitle("gWorld","gWorld");
-
-        gDetector = new TGraph2D();
-        gDetector->SetNameTitle("gDetector","gDetector");
-
-        double detectorLength = 1040;//cm
-        double detectorheight = 230;//cm
-        double detectorwidth  = 250;//cm
-        double Ymindet = -0.5*detectorheight;
-        double Ymaxdet = 0.5*detectorheight;
-        double Xmindet = 0;
-        double Xmaxdet = detectorwidth;
-        double Zmindet = 0;
-        double Zmaxdet = detectorLength;
-        int imax;
-        for(int i = 0;i<1000;i++){
-            /*gDetector->SetPoint(4*i+0,Xmindet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
-            gDetector->SetPoint(4*i+1,Xmindet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));
-            gDetector->SetPoint(4*i+2,Xmaxdet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
-            gDetector->SetPoint(4*i+3,Xmaxdet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));*/
-
-            gDetector->SetPoint(4*i+0,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymindet);
-            gDetector->SetPoint(4*i+1,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymaxdet);
-            gDetector->SetPoint(4*i+2,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymindet);
-            gDetector->SetPoint(4*i+3,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymaxdet);
-
-            imax = 4*i+3;
-        }
-        int newimax;
-        for(int i = 0;i<100;i++){
-            int ipoint = imax+1+i;
-            /*gDetector->SetPoint(4*ipoint+0,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmindet);
-            gDetector->SetPoint(4*ipoint+1,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmindet);
-            gDetector->SetPoint(4*ipoint+2,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmaxdet);
-            gDetector->SetPoint(4*ipoint+3,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmaxdet);*/
-
-            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
-            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
-            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
-            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
-
-            newimax=ipoint;
-        }
-        imax = newimax;
-        for(int i = 0;i<100;i++){
-            int ipoint = imax+1+i;
-            /*gDetector->SetPoint(4*ipoint+0,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
-            gDetector->SetPoint(4*ipoint+1,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
-            gDetector->SetPoint(4*ipoint+2,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);
-            gDetector->SetPoint(4*ipoint+3,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);*/
-
-            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
-            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
-            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
-            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
-        }
-
-        gWorld->SetPoint(0,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(1,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        gWorld->SetPoint(2,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(3,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        gWorld->SetPoint(4, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(5, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        gWorld->SetPoint(6, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(7, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        return true;
-    }
-    //______________________________________________________
     void AStarTracker::Reconstruct(){
         _eventTreated++;
         tellMe("creating ch status and tag image",1);
@@ -655,79 +516,6 @@ namespace larcv {
         Make3DpointList();
     }
     //______________________________________________________
-    bool AStarTracker::finalize() {
-        tellMe("Finalizing",0);
-        tellMe(Form("efficiency : %d / %d = %.2f",_eventSuccess,_eventTreated,_eventSuccess*100./_eventTreated),0);
-
-        if(hDistance2Hit->GetEntries() != 0){
-            TCanvas *cDist = new TCanvas();
-            hDistance2Hit->Draw();
-            cDist->SetLogy();
-            //hDistance2Hit->Write();
-            tellMe(Form("hDistance2Hit mean: %.2f , RMS : %.2f",hDistance2Hit->GetMean(),hDistance2Hit->GetRMS()),0);
-            tellMe(Form("entries : %.1f",hDistance2Hit->GetEntries()),0);
-            cDist->SaveAs("DistanceReco2Hit.pdf");
-        }
-
-        if(_DrawOutputs){
-
-            if(hdQdx->GetEntries() > 1){
-                TCanvas *cdQdX = new TCanvas("cdQdX","cdQdX",800,600);
-                for(int i = 0;i<hdQdx->GetNbinsX(); i++){
-                    if(hdQdxEntries->GetBinContent(i+1) == 0) continue;
-                    if(hdQdx->GetBinContent(i+1) == 0) continue;
-                    double a = hdQdx->GetBinContent(i+1);
-                    hdQdx->SetBinContent(i+1,a*1./hdQdxEntries->GetBinContent(i+1));
-                    hdQdx->SetBinError(i+1,0.001*hdQdx->GetBinContent(i+1));
-
-                }
-                hdQdx->Draw();
-                cdQdX->SaveAs("cdQdX.pdf");
-            }
-            if(hdQdX2D->GetEntries() > 1){
-                TCanvas *cdQdX2D = new TCanvas("cdQdX2D","cdQdX2D",800,600);
-                hdQdX2D->Draw("colz");
-                cdQdX2D->SaveAs("cdQdX2D.pdf");
-                cdQdX2D->SaveAs("cdQdX2D.root");
-            }
-        }
-
-        /*TCanvas *cDist = new TCanvas("cDist","cDist",800,600);
-        hDist2point->Draw();
-        cDist->SetLogy();
-        cDist->SaveAs("cDist.pdf");*/
-        return true;
-    }
-    //______________________________________________________
-    TVector3 AStarTracker::CheckEndPoints(TVector3 point){
-        tellMe(Form("start point : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
-        double dR = 0.1;
-        double closeEnough = 4;
-
-        double minDist = EvalMinDist(point);
-        double PreviousMinDist = 2*minDist;
-        tellMe(Form("dist = %f.1", minDist),1);
-        if(minDist <= closeEnough){tellMe("Point OK",1);return point;}
-        tellMe("Updating point",1);
-        TVector3 newPoint = point;
-        int iter = 0;
-        int iterMax = 10000;
-        while (minDist > closeEnough && iter < iterMax) {
-            iter++;
-            std::vector<TVector3> openSet = GetOpenSet(newPoint,dR);
-            double minDist = 1e9;
-            for(auto neighbour : openSet){
-                double dist = EvalMinDist(neighbour);
-                if(dist < minDist){minDist=dist;newPoint = neighbour;}
-            }
-            tellMe(Form("iteration #%d",iter),1);
-            if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
-            PreviousMinDist = minDist;
-        }
-        tellMe("Point updated",1);
-        return newPoint;
-    }
-    //______________________________________________________
     void AStarTracker::MaskTrack(){
         if(_vertexTracks.size()==0)return;
         for(auto thisTrack : _vertexTracks){
@@ -740,7 +528,7 @@ namespace larcv {
                 for(int iPlane=0;iPlane<3;iPlane++){
                     //ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode-1].X(),thisTrack[iNode-1].Y(),thisTrack[iNode-1].Z(),0,iPlane,x_proj0,y_proj0);
                     ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode].X(),thisTrack[iNode].Y(),thisTrack[iNode].Z(),0,iPlane,x_proj,y_proj);
-                    int shellMask = 2;
+                    int shellMask = 3;
                     if(x_proj > hit_image_v[iPlane].meta().cols()-(shellMask+1) || x_proj < (shellMask+1)) continue;
                     if(y_proj > hit_image_v[iPlane].meta().rows()-(shellMask+1) || y_proj < (shellMask+1)) continue;
                     for(int i = -shellMask;i<shellMask+1;i++){
@@ -754,62 +542,91 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ReconstructVertex(){
-        if(_vertexTracks.size()!=0)_vertexTracks.clear();
+        std::cout << "ReconstructVertex()" << std::endl;
         size_t oldSize = 5;
         double trackMinLength = 5;
+        if(_vertexTracks.size()!=0)_vertexTracks.clear();
+        std::cout << "_vertexTracks.size() = " << _vertexTracks.size() << std::endl;
         if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
+        std::cout << "_vertexEndPoints.size() = " << _vertexEndPoints.size() << std::endl;
+        std::cout << "start_pt : (" << start_pt.X() << "," << start_pt.Y() << "," << start_pt.Y() <<")"<< std::endl;
         _vertexEndPoints.push_back(start_pt);
         while(_vertexTracks.size()!=oldSize && _vertexTracks.size()<9){
             oldSize = _vertexTracks.size();
             // first start from Vertex
             ImprovedCluster();
             end_pt = GetFurtherFromVertex();
+            std::cout << "end_pt : (" << end_pt.X() << "," << end_pt.Y() << "," << end_pt.Z() << ")" << std::endl;
             _vertexEndPoints.push_back(end_pt);
             std::vector<TVector3> limitPoints;
             limitPoints.push_back(start_pt);
             limitPoints.push_back(end_pt);
-            hit_image_v = CropFullImage2bounds(limitPoints,original_full_image_v);
-            if(_3DTrack.size()!=0)_3DTrack.clear();
-            Reconstruct();
-            Make3DpointList();
+            hit_image_v = CropFullImage2bounds(limitPoints);
+            //if(_3DTrack.size()!=0)_3DTrack.clear();
+            //Reconstruct();
+            //Make3DpointList();
+            SortAndOrderPoints();
             RegularizeTrack();
             ComputeLength();
-            //if(_Length3D < trackMinLength){MaskTrack();continue;}
+            if(_Length3D < trackMinLength){MaskTrack();continue;}
 
-            std::vector<TVector3> firstTrackBit = _3DTrack;
+            //std::vector<TVector3> firstTrackBit = _3DTrack;
             //_vertexTracks.push_back(_3DTrack);
             //_track++;
             //DrawTrack();
-            MaskTrack();
+            //MaskTrack();
             // check and see if the further point is actually the end of the track?
-            TVector3 vertexPoint = start_pt;
-            start_pt = _3DTrack.back();
-            ImprovedCluster();
-            end_pt = GetFurtherFromVertex();
-            _vertexEndPoints.push_back(end_pt);
-            limitPoints.push_back(start_pt);
-            limitPoints.push_back(end_pt);
-            hit_image_v = CropFullImage2bounds(limitPoints,original_full_image_v);
-            if(_3DTrack.size()!=0)_3DTrack.clear();
-            Reconstruct();
-            Make3DpointList();
-            RegularizeTrack();
+            //TVector3 vertexPoint = start_pt;
+            //start_pt = _3DTrack.back();
+            //ImprovedCluster();
+            //end_pt = GetFurtherFromVertex();
+            //std::cout << "end_pt : (" << end_pt.X() << "," << end_pt.Y() << "," << end_pt.Z() << ")" << std::endl;
+            //_vertexEndPoints.push_back(end_pt);
+            //limitPoints.push_back(start_pt);
+            //limitPoints.push_back(end_pt);
+            //hit_image_v = CropFullImage2bounds(limitPoints);
+            //if(_3DTrack.size()!=0)_3DTrack.clear();
+            //Reconstruct();
+            //Make3DpointList();
+            //RegularizeTrack();
             //ComputeLength();
 
             //SortAndOrderPoints();
-            for(int iNode = 0;iNode<_3DTrack.size();iNode++){
-                firstTrackBit.push_back(_3DTrack[iNode]);
-            }
-            _3DTrack = firstTrackBit;
-            ComputeLength();
-            if(_Length3D < trackMinLength){MaskTrack();continue;}
-            start_pt = vertexPoint; // reset start point to the original vertex point
+            //for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+            //    firstTrackBit.push_back(_3DTrack[iNode]);
+            //}
+            //_3DTrack = firstTrackBit;
+            //ComputeLength();
+            //if(_Length3D < trackMinLength){MaskTrack();continue;}
+            //start_pt = vertexPoint; // reset start point to the original vertex point
 
             _vertexTracks.push_back(_3DTrack);
             MaskTrack();
             _track++;
         }
         DrawVertex();
+    }
+    //______________________________________________________
+    void AStarTracker::ReconstructEvent(){
+        if(_eventVertices.size() == 0){
+            std::cout << "ERROR, no vertex found" << std::endl;
+            return;
+        }
+        fEventOutput = TFile::Open(Form("root/cVertex_%05d_%05d_%05d.root",_run,_subrun,_event),"RECREATE");
+
+        for(int iVertex = 0;iVertex<_eventVertices.size();iVertex++){
+            start_pt = _eventVertices[iVertex];
+            std::vector<TVector3> thisvertex;
+            thisvertex.push_back(start_pt);
+            hit_image_v = CropFullImage2bounds(thisvertex);
+            SetTrackInfo(_run, _subrun, _event, _track);
+            ReconstructVertex();
+            std::cout << std::endl << std::endl;
+        }
+
+        gDetector->Write();
+        gWorld->Write();
+        fEventOutput->Close();
     }
     //______________________________________________________
     void AStarTracker::ImprovedCluster(){
@@ -882,7 +699,7 @@ namespace larcv {
                     }
                     if(!ReallyTerminate && Ncrop < 100){
                         std::cout << "cropping " << Ncrop << "th time" << std::endl;
-                        hit_image_v = CropFullImage2bounds(list3D,original_full_image_v);
+                        hit_image_v = CropFullImage2bounds(list3D);
                         Ncrop++;
                         MaskTrack();
                         terminate=false;
@@ -965,224 +782,6 @@ namespace larcv {
             if(goOn)list3D.push_back(bestCandidate);
         }
         _3DTrack = list3D;
-    }
-    //______________________________________________________
-    TVector3 AStarTracker::GetFurtherFromVertex(){
-        TVector3 FurtherFromVertex;
-        double dist2vertex = 0;
-        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
-            if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
-        }
-        return FurtherFromVertex;
-    }
-    //______________________________________________________
-    std::vector<TVector3> AStarTracker::FitBrokenLine(){
-        std::vector<TVector3> Skeleton;
-
-        Skeleton.push_back(start_pt);
-        Skeleton.push_back(GetFurtherFromVertex());
-
-        std::cout << "not implemented yet" << std::endl;
-        // (1) compute summed distance of all 3D points to the current line
-        // (2) add 3D points if needed
-        // (3) vary 3D point position to get best fit
-        // (4) as long as not best possible fit, add ans fit 3D points
-        return _3DTrack;
-    }
-    //______________________________________________________
-    bool AStarTracker::ArePointsEqual(TVector3 A, TVector3 B){
-        if((A-B).Mag() < 2)return true;
-        else return false;
-    }
-    //______________________________________________________
-    std::vector<TVector3> AStarTracker::OrderList(std::vector<TVector3> list){
-        std::vector<TVector3> newList;
-        newList.push_back(list[0]);
-        double dist = 1e9;
-        double distMin = 1e9;
-        int newCandidate;
-        bool goOn = true;
-        int iter = 0;
-        while(goOn == true && list.size()>0){
-            iter++;
-            std::cout << "iter : " << iter << ", list.size() = " << list.size() << ", newList.size() = " << newList.size()<< std::endl;
-            for(int iNode=0;iNode<list.size();iNode++){
-                if(list[iNode] == newList.back())continue;
-                dist = (list[iNode]-newList.back()).Mag();
-                if(dist<distMin){distMin=dist;newCandidate = iNode;}
-            }
-
-            std::cout << "distMin = " << distMin << std::endl;
-            std::cout << "list.size() = " << list.size() << std::endl;
-
-            if(distMin > 10 || list.size() <= 1){
-                goOn = false;
-                break;
-            }
-            if(distMin <= 10){
-                newList.push_back(list[newCandidate]);
-                list.erase(list.begin()+newCandidate);
-                distMin = 100000;
-            }
-        }
-        std::cout << "list ordered OK" << std::endl;
-        return newList;
-    }
-    //______________________________________________________
-    bool AStarTracker::CheckEndPoints(std::vector< std::pair<int,int> > endPix){
-        tellMe(Form("start point : (%f,%f,%f)",start_pt.X(),start_pt.Y(),start_pt.Z()),2);
-        tellMe(Form("end   point : (%f,%f,%f)",end_pt.X(),end_pt.Y(),end_pt.Z()),2);
-        TVector3 EndPoint[2] = {start_pt,end_pt};
-        double dR = 0.1;
-        double closeEnough = 4;
-
-        for(size_t point = 0;point<2;point++){
-            double minDist = EvalMinDist(EndPoint[point],endPix);
-            double PreviousMinDist = 2*minDist;
-            tellMe(Form("dist = %f.1", minDist),0);
-            if(minDist <= closeEnough){tellMe("Point OK",0);continue;}
-            tellMe("Updating point",0);
-            TVector3 newPoint = EndPoint[point];
-            int iter = 0;
-            int iterMax = 10000;
-            while (minDist > closeEnough && iter < iterMax) {
-                iter++;
-                std::vector<TVector3> openSet = GetOpenSet(newPoint,dR);
-                double minDist = 1e9;
-                for(auto neighbour : openSet){
-                    double dist = EvalMinDist(neighbour,endPix);
-                    if(dist < minDist){minDist=dist;newPoint = neighbour;}
-                }
-                tellMe(Form("iteration #%d",iter),1);
-                if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
-                PreviousMinDist = minDist;
-            }
-            EndPoint[point] = newPoint;
-            tellMe("Point updated",0);
-        }
-        return true;
-    }
-    //______________________________________________________
-    TVector3 AStarTracker::CheckEndPoints(TVector3 point, std::vector< std::pair<int,int> > endPix){
-        tellMe(Form("start point : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
-        double dR = 0.1;
-        double closeEnough = 4;
-
-            double minDist = EvalMinDist(point,endPix);
-            double PreviousMinDist = 2*minDist;
-            tellMe(Form("dist = %f.1", minDist),0);
-            if(minDist <= closeEnough){tellMe("Point OK",0);return point;}
-            tellMe("Updating point",0);
-            TVector3 newPoint = point;
-            int iter = 0;
-            int iterMax = 10000;
-            while (minDist > closeEnough && iter < iterMax) {
-                iter++;
-                std::vector<TVector3> openSet = GetOpenSet(newPoint,dR);
-                double minDist = 1e9;
-                for(auto neighbour : openSet){
-                    double dist = EvalMinDist(neighbour,endPix);
-                    if(dist < minDist){minDist=dist;newPoint = neighbour;}
-                }
-                tellMe(Form("iteration #%d",iter),1);
-                if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
-                PreviousMinDist = minDist;
-            }
-            tellMe("Point updated",0);
-        return newPoint;
-    }
-    //______________________________________________________
-    double AStarTracker::EvalMinDist(TVector3 point){
-        tellMe(Form("EvalMinDist : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
-        double minDist = 1e9;
-        //double minDistplane[3] = {1e9,1e9,1e9};
-        for(size_t iPlane = 0;iPlane<3;iPlane++){
-            tellMe(Form("plane %zu :",iPlane),2);
-            int pointCol = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w/0.3);
-            int pointRow = hit_image_v[iPlane].meta().row(X2Tick(point.X(),iPlane));
-            tellMe(Form("\t (%d,%d)",pointRow,pointCol),2);
-            double dist = 1e9;
-            bool notEmpty = false;
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
-                    if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-                    if(std::abs(icol-pointCol) > 20 || std::abs(irow-pointRow) > 20) continue;
-                    dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
-                    notEmpty = true;
-                    //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
-                    if(dist < minDist)minDist=dist;
-                }
-            }
-            //if(!notEmpty) minDistplane[iPlane] = 1;
-        }
-        //if(minDistplane[0] == 0 || minDistplane[1] == 0 || minDistplane[2] == 0) minDist = 0;
-        //else minDist = minDistplane[0]+minDistplane[1]+minDistplane[2];
-        return minDist;
-    }
-    //______________________________________________________
-    double AStarTracker::EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix){
-        tellMe(Form("EvalMinDist : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
-        double minDist = 1e9;
-        //double minDistplane[3] = {1e9,1e9,1e9};
-        for(size_t iPlane = 0;iPlane<3;iPlane++){
-            tellMe(Form("plane %zu :",iPlane),2);
-            int pointCol = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w/0.3);
-            int pointRow = hit_image_v[iPlane].meta().row(X2Tick(point.X(),iPlane));
-            tellMe(Form("\t (%d,%d)",pointRow,pointCol),2);
-            double dist = 1e9;
-            bool notEmpty = false;
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
-                    if(icol != endPix[iPlane].first && irow != endPix[iPlane].second)continue;
-                    if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-                    if(std::abs(icol-pointCol) > 10 || std::abs(irow-pointRow) > 10) continue;
-                    dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
-                    notEmpty = true;
-                    //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
-                    if(dist < minDist)minDist=dist;
-                }
-            }
-            //if(!notEmpty) minDistplane[iPlane] = 1;
-        }
-        //if(minDistplane[0] == 0 || minDistplane[1] == 0 || minDistplane[2] == 0) minDist = 0;
-        //else minDist = minDistplane[0]+minDistplane[1]+minDistplane[2];
-        return minDist;
-    }
-    //______________________________________________________
-    std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, double dR){
-        std::vector<TVector3> openSet;
-
-        for(int ix = -1;ix<2;ix++){
-            for(int iy = -1;iy<2;iy++){
-                for(int iz = -1;iz<2;iz++){
-                    //if(ix == 0 && iy == 0 && iz == 0)continue;
-                    TVector3 neighbour = newPoint;
-                    neighbour.SetX(newPoint.X()+dR*ix);
-                    neighbour.SetY(newPoint.Y()+dR*iy);
-                    neighbour.SetZ(newPoint.Z()+dR*iz);
-                    openSet.push_back(neighbour);
-                }
-            }
-        }
-        return openSet;
-    }
-    //______________________________________________________
-    std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, int BoxSize, double dR){
-        std::vector<TVector3> openSet;
-
-        for(int ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
-            for(int iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
-                for(int iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
-                    //if(ix == 0 && iy == 0 && iz == 0)continue;
-                    TVector3 neighbour = newPoint;
-                    neighbour.SetX(newPoint.X()+dR*ix);
-                    neighbour.SetY(newPoint.Y()+dR*iy);
-                    neighbour.SetZ(newPoint.Z()+dR*iz);
-                    openSet.push_back(neighbour);
-                }
-            }
-        }
-        return openSet;
     }
     //______________________________________________________
     void AStarTracker::Make3DpointList(){
@@ -1363,7 +962,7 @@ namespace larcv {
         TGraph *gFurther[3];
         double x_pixel_st, y_pixel_st,x_pixel_nd, y_pixel_nd,x_pixel, y_pixel;
         std::cout << "about to crop" << std::endl;
-        //hit_image_v = CropFullImage2bounds(_3DTrack,original_full_image_v);
+        //hit_image_v = CropFullImage2bounds(_3DTrack);
         std::cout << "image cropped" << std::endl;
 
         TVector3 SumPoints;
@@ -1481,6 +1080,8 @@ namespace larcv {
     void AStarTracker::DrawVertex(){
         std::cout << "DrawVertex" << std::endl;
         TH2D *hImage[3];
+        TH2D *hTagImage[3];
+        TGraph *gStartNend[3];
         TGraph *gStart[3];
         double x_pixel_st, y_pixel_st;
 
@@ -1492,7 +1093,7 @@ namespace larcv {
         }
         std::cout << "full vertex : _3DTrack.size() = " << _3DTrack.size() <<std::endl;
         if(_3DTrack.size()==0) _3DTrack.push_back(start_pt);
-        hit_image_v = CropFullImage2bounds(_3DTrack,original_full_image_v);
+        hit_image_v = CropFullImage2bounds(_3DTrack);
 
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,600);
@@ -1500,11 +1101,24 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             gStart[iPlane] = new TGraph();
+            gStartNend[iPlane] = new TGraph();
             ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel_st,y_pixel_st);
             gStart[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            for(int iend = 0;iend<_vertexEndPoints.size();iend++){
+                ProjectTo3D(hit_image_v[iPlane].meta(),_vertexEndPoints[iend].X(),_vertexEndPoints[iend].Y(),_vertexEndPoints[iend].Z(),0,iPlane,x_pixel_st,y_pixel_st);
+                gStartNend[iPlane]->SetPoint(iend,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            }
 
             hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
                                       Form("hImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+                                      hit_image_v[iPlane].meta().cols(),
+                                      hit_image_v[iPlane].meta().tl().x,
+                                      hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
+                                      hit_image_v[iPlane].meta().rows(),
+                                      hit_image_v[iPlane].meta().br().y,
+                                      hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
+            hTagImage[iPlane] = new TH2D(Form("hTagImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
+                                      Form("hTagImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1518,10 +1132,21 @@ namespace larcv {
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
                 }
             }
+            //std::cout << "filling hTagImage[" << iPlane << "]" << std::endl;
+            for(int icol=0;icol<CroppedTaggedPix_v[iPlane].meta().cols();icol++){
+                for(int irow=0;irow<CroppedTaggedPix_v[iPlane].meta().rows();irow++){
+                    //if(CroppedTaggedPix_v[iPlane].pixel(irow,icol) > 20){
+                        hTagImage[iPlane]->SetBinContent(icol+1,irow+1,CroppedTaggedPix_v[iPlane].pixel(irow,icol));
+                    //}
+
+                }
+            }
+            //std::cout << "hTagImage[" << iPlane << "] filled" << std::endl;
             c->cd(iPlane+1);
             hImage[iPlane]->Draw("colz");
+            hTagImage[iPlane]->Draw("same colz");
         }
-        std::cout << "hImage and gStart ok" << std::endl;
+        //std::cout << "hImage and gStart ok" << std::endl;
 
         for(int i=0;i<_vertexTracks.size();i++){
             TGraph *gTrack[3];
@@ -1543,22 +1168,26 @@ namespace larcv {
 
         for(int iPlane=0;iPlane<3;iPlane++){
             c->cd(iPlane+1);
+            gStartNend[iPlane]->SetMarkerColor(1);
+            gStartNend[iPlane]->SetMarkerStyle(20);
+            gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
             gStart[iPlane]->SetMarkerColor(2);
             gStart[iPlane]->Draw("same P");
         }
 
 
-        TFile *fout = TFile::Open(Form("root/cVertex_%05d_%05d_%05d_%04d.root",_run,_subrun,_event,_track),"RECREATE");
+        //TFile *fout = TFile::Open(Form("root/cVertex_%05d_%05d_%05d_%04d.root",_run,_subrun,_event,_track),"RECREATE");
         TGraph2D *gFullVertex = new TGraph2D();
         gFullVertex->SetNameTitle(Form("gFullVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("gFullVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track));
 
         TGraph2D *gEndPoints = new TGraph2D();
-        gEndPoints->SetNameTitle("gEndPoint","gEndPoints");
+        gEndPoints->SetNameTitle(Form("gEndPoints_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("gEndPoints_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track));
         for(int i=0;i<_vertexEndPoints.size();i++){
             gEndPoints->SetPoint(i,_vertexEndPoints[i].Z(),_vertexEndPoints[i].X(),_vertexEndPoints[i].Y());
         }
 
+        fEventOutput->cd();
         int Npoint = 0;
         for(int i=0;i<_vertexTracks.size();i++){
             TGraph2D *gSingleTrack = new TGraph2D();
@@ -1576,10 +1205,7 @@ namespace larcv {
 
         gEndPoints->Write();
         gFullVertex->Write();
-        gDetector->Write();
-        gWorld->Write();
         c->Write();
-        fout->Close();
 
         gEndPoints->Delete();
 
@@ -1589,6 +1215,15 @@ namespace larcv {
             gStart[iPlane]->Delete();
         }
         std::cout << "vertex drawn OK" << std::endl;
+    }
+    //______________________________________________________
+    void AStarTracker::ReadSplineFile(){
+        TFile *fSplines = TFile::Open("Proton_Muon_Range_dEdx_LAr_TSplines.root","READ");
+        sMuonRange2T   = (TSpline3*)fSplines->Get("sMuonRange2T");
+        sMuonT2dEdx    = (TSpline3*)fSplines->Get("sMuonT2dEdx");
+        sProtonRange2T = (TSpline3*)fSplines->Get("sProtonRange2T");
+        sProtonT2dEdx  = (TSpline3*)fSplines->Get("sProtonT2dEdx");
+        fSplines->Close();
     }
     //______________________________________________________
     void AStarTracker::DrawROI(){
@@ -1618,8 +1253,8 @@ namespace larcv {
             double Xstart,Ystart,Xend,Yend;
 
             ProjectTo3D(hit_image_v[iPlane].meta(),
-                      start_pt.X(),start_pt.Y(),start_pt.Z(),
-                      0,iPlane,x_pixel_st,y_pixel_st);
+                        start_pt.X(),start_pt.Y(),start_pt.Z(),
+                        0,iPlane,x_pixel_st,y_pixel_st);
 
             Xstart = x_pixel_st*hit_image_v[iPlane].meta().pixel_width() +hit_image_v[iPlane].meta().tl().x;
             Ystart = y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y;
@@ -1628,8 +1263,8 @@ namespace larcv {
             gStart[iPlane]->SetPoint(0,Xstart,Ystart);
 
             ProjectTo3D(hit_image_v[iPlane].meta(),
-                      end_pt.X(),end_pt.Y(),end_pt.Z(),
-                      0,iPlane,x_pixel_end,y_pixel_end);
+                        end_pt.X(),end_pt.Y(),end_pt.Z(),
+                        0,iPlane,x_pixel_end,y_pixel_end);
 
             Xend = x_pixel_end*hit_image_v[iPlane].meta().pixel_width() +hit_image_v[iPlane].meta().tl().x;
             Yend = y_pixel_end*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y;
@@ -1650,74 +1285,31 @@ namespace larcv {
             gStart[iPlane]->Draw("same P");
         }
         c->SaveAs(Form("%s.pdf",c->GetName()));
-
+        
         for(int iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             gStartNend[iPlane]->Delete();
             gStart[iPlane]->Delete();
         }
         tellMe("histogram and gStartNend deleted",1);
-
-    }
-    //______________________________________________________
-    std::vector<std::pair<int, int> > AStarTracker::GetWireTimeProjection(TVector3 point){
-        std::vector<std::pair<int, int> > projection(3);
-        for(int iPlane = 0;iPlane<3;iPlane++){
-            std::pair<int, int> planeProj;
-            planeProj.first = (int)(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w / 0.3);
-            planeProj.second = (int)(X2Tick(point.X(),iPlane));
-            projection[iPlane] = planeProj;
-        }
-        return projection;
-    }
-    //______________________________________________________
-    void AStarTracker::ReadSplineFile(){
-        TFile *fSplines = TFile::Open("Proton_Muon_Range_dEdx_LAr_TSplines.root","READ");
-        sMuonRange2T   = (TSpline3*)fSplines->Get("sMuonRange2T");
-        sMuonT2dEdx    = (TSpline3*)fSplines->Get("sMuonT2dEdx");
-        sProtonRange2T = (TSpline3*)fSplines->Get("sProtonRange2T");
-        sProtonT2dEdx  = (TSpline3*)fSplines->Get("sProtonT2dEdx");
-        fSplines->Close();
-    }
-    //______________________________________________________
-    double AStarTracker::GetEnergy(std::string partType, double Length = -1){
-        if(partType == "proton"){
-            if(Length == -1){return sProtonRange2T->Eval(_Length3D);}
-            return sProtonRange2T->Eval(Length);
-        }
-        else if(partType == "muon"){
-            if(Length == -1){return sMuonRange2T->Eval(_Length3D);}
-            return sMuonRange2T->Eval(Length);
-        }
-        else{tellMe("ERROR, must be proton or muon",0); return -1;}
-    }
-    //______________________________________________________
-    double AStarTracker::GetTotalDepositedCharge(){
-        if(_3DTrack.size() == 0){tellMe("ERROR, run the 3D reconstruction first",0);return -1;}
-        if(_dQdx.size() == 0){tellMe("ERROR, run the dqdx reco first",0);return -1;}
-        double Qtot = 0;
-        for(int iNode = 0;iNode<_dQdx.size();iNode++){
-            double dqdx = 0;
-            int Nplanes = 0;
-            for(int iPlane = 0;iPlane<3;iPlane++){
-                dqdx+=_dQdx[iNode][iPlane];
-                if(_dQdx[iNode][iPlane] != 0)Nplanes++;
-            }
-            if(Nplanes!=0)dqdx*=3./Nplanes;
-            Qtot+=dqdx;
-        }
-        return Qtot;
-    }
-    //______________________________________________________
-    bool IsInSegment(TVector3 A, TVector3 B, TVector3 C){
-        if((C-A).Dot(B-A)/(B-A).Mag() > 0 && (C-A).Dot(B-A)/(B-A).Mag() < 1) return true;
-        else return false;
+        
     }
     //______________________________________________________
     void AStarTracker::RegularizeTrack(){
-
+        std::cout << "RegularizeTrack()" << std::endl;
         std::vector<TVector3> newTrack;
         TVector3 newPoint;
+
+        if(_3DTrack.size() > 2){
+        for(int iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
+            if((_3DTrack[iPoint+1]-_3DTrack[iPoint]).Mag()>5)continue;
+            newPoint = (_3DTrack[iPoint+1]+_3DTrack[iPoint])*0.5;
+            newTrack.push_back(newPoint);
+        }
+        _3DTrack = newTrack;
+        }
+
+        if(newTrack.size() != 0)newTrack.clear();
         double dist;
         double distMin;
         // select closest point as next one
@@ -1782,27 +1374,518 @@ namespace larcv {
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
     }
     //______________________________________________________
-    double AStarTracker::GetDist2line(TVector3 A, TVector3 B, TVector3 C){
-        TVector3 CrossProd = (B-A).Cross(C-A);
-        TVector3 U = B-A;
-        return CrossProd.Mag()/U.Mag();
-    }
-    //______________________________________________________
     void AStarTracker::ComputeLength(){
         _Length3D = 0;
         for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
             _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
         }
     }
+
+
     //______________________________________________________
-    std::vector<larcv::Image2D> AStarTracker::CropFullImage2bounds(std::vector<TVector3> EndPoints,std::vector<larcv::Image2D> Full_image_v){
+    bool AStarTracker::CheckEndPointsInVolume(TVector3 point){
+        bool endpointInRange = true;
+        if(point.X() <  0    ){endpointInRange = false;}
+        if(point.X() >  270  ){endpointInRange = false;}
+
+        if(point.Y() < -120  ){endpointInRange = false;}
+        if(point.Y() >  120  ){endpointInRange = false;}
+
+        if(point.Z() <  1    ){endpointInRange = false;}
+        if(point.Z() >  1036 ){endpointInRange = false;}
+
+        return endpointInRange;
+    }
+    //______________________________________________________
+    bool AStarTracker::initialize() {
+        ReadSplineFile();
+        //ReadProtonTrackFile();
+        _eventTreated = 0;
+        _eventSuccess = 0;
+        time_bounds.reserve(3);
+        wire_bounds.reserve(3);
+        hit_image_v.reserve(3);
+        hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
+        hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
+        hDistance2Hit = new TH1D("hDistance2Hit","hDistance2Hit",100,0,50);
+        if(_DrawOutputs){
+            hdQdx = new TH1D("hdQdx","hdQdx",100,0,100);
+            hdQdxEntries = new TH1D("hdQdxEntries","hdQdxEntries",hdQdx->GetNbinsX(),hdQdx->GetXaxis()->GetXmin(),hdQdx->GetXaxis()->GetXmax());
+            hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
+        }
+
+        gWorld = new TGraph2D();
+        gWorld->SetNameTitle("gWorld","gWorld");
+
+        gDetector = new TGraph2D();
+        gDetector->SetNameTitle("gDetector","gDetector");
+
+        double detectorLength = 1040;//cm
+        double detectorheight = 230;//cm
+        double detectorwidth  = 250;//cm
+        double Ymindet = -0.5*detectorheight;
+        double Ymaxdet = 0.5*detectorheight;
+        double Xmindet = 0;
+        double Xmaxdet = detectorwidth;
+        double Zmindet = 0;
+        double Zmaxdet = detectorLength;
+        int imax;
+        for(int i = 0;i<1000;i++){
+            /*gDetector->SetPoint(4*i+0,Xmindet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
+             gDetector->SetPoint(4*i+1,Xmindet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));
+             gDetector->SetPoint(4*i+2,Xmaxdet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
+             gDetector->SetPoint(4*i+3,Xmaxdet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));*/
+
+            gDetector->SetPoint(4*i+0,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymindet);
+            gDetector->SetPoint(4*i+1,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymaxdet);
+            gDetector->SetPoint(4*i+2,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymindet);
+            gDetector->SetPoint(4*i+3,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymaxdet);
+
+            imax = 4*i+3;
+        }
+        int newimax;
+        for(int i = 0;i<100;i++){
+            int ipoint = imax+1+i;
+            /*gDetector->SetPoint(4*ipoint+0,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmindet);
+             gDetector->SetPoint(4*ipoint+1,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmindet);
+             gDetector->SetPoint(4*ipoint+2,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmaxdet);
+             gDetector->SetPoint(4*ipoint+3,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmaxdet);*/
+
+            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
+            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
+            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
+            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
+
+            newimax=ipoint;
+        }
+        imax = newimax;
+        for(int i = 0;i<100;i++){
+            int ipoint = imax+1+i;
+            /*gDetector->SetPoint(4*ipoint+0,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
+             gDetector->SetPoint(4*ipoint+1,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
+             gDetector->SetPoint(4*ipoint+2,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);
+             gDetector->SetPoint(4*ipoint+3,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);*/
+
+            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
+        }
+
+        gWorld->SetPoint(0,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(1,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(2,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(3,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(4, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(5, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(6, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(7, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        return true;
+    }
+    //______________________________________________________
+    bool AStarTracker::finalize() {
+        tellMe("Finalizing",0);
+        tellMe(Form("efficiency : %d / %d = %.2f",_eventSuccess,_eventTreated,_eventSuccess*100./_eventTreated),0);
+
+        if(hDistance2Hit->GetEntries() != 0){
+            TCanvas *cDist = new TCanvas();
+            hDistance2Hit->Draw();
+            cDist->SetLogy();
+            //hDistance2Hit->Write();
+            tellMe(Form("hDistance2Hit mean: %.2f , RMS : %.2f",hDistance2Hit->GetMean(),hDistance2Hit->GetRMS()),0);
+            tellMe(Form("entries : %.1f",hDistance2Hit->GetEntries()),0);
+            cDist->SaveAs("DistanceReco2Hit.pdf");
+        }
+
+        if(_DrawOutputs){
+
+            if(hdQdx->GetEntries() > 1){
+                TCanvas *cdQdX = new TCanvas("cdQdX","cdQdX",800,600);
+                for(int i = 0;i<hdQdx->GetNbinsX(); i++){
+                    if(hdQdxEntries->GetBinContent(i+1) == 0) continue;
+                    if(hdQdx->GetBinContent(i+1) == 0) continue;
+                    double a = hdQdx->GetBinContent(i+1);
+                    hdQdx->SetBinContent(i+1,a*1./hdQdxEntries->GetBinContent(i+1));
+                    hdQdx->SetBinError(i+1,0.001*hdQdx->GetBinContent(i+1));
+
+                }
+                hdQdx->Draw();
+                cdQdX->SaveAs("cdQdX.pdf");
+            }
+            if(hdQdX2D->GetEntries() > 1){
+                TCanvas *cdQdX2D = new TCanvas("cdQdX2D","cdQdX2D",800,600);
+                hdQdX2D->Draw("colz");
+                cdQdX2D->SaveAs("cdQdX2D.pdf");
+                cdQdX2D->SaveAs("cdQdX2D.root");
+            }
+        }
+
+        /*TCanvas *cDist = new TCanvas("cDist","cDist",800,600);
+         hDist2point->Draw();
+         cDist->SetLogy();
+         cDist->SaveAs("cDist.pdf");*/
+        return true;
+    }
+    //______________________________________________________
+    bool AStarTracker::ArePointsEqual(TVector3 A, TVector3 B){
+        if((A-B).Mag() < 2)return true;
+        else return false;
+    }
+    //______________________________________________________
+    bool AStarTracker::CheckEndPoints(std::vector< std::pair<int,int> > endPix){
+        tellMe(Form("start point : (%f,%f,%f)",start_pt.X(),start_pt.Y(),start_pt.Z()),2);
+        tellMe(Form("end   point : (%f,%f,%f)",end_pt.X(),end_pt.Y(),end_pt.Z()),2);
+        TVector3 EndPoint[2] = {start_pt,end_pt};
+        double dR = 0.1;
+        double closeEnough = 4;
+
+        for(size_t point = 0;point<2;point++){
+            double minDist = EvalMinDist(EndPoint[point],endPix);
+            double PreviousMinDist = 2*minDist;
+            tellMe(Form("dist = %f.1", minDist),0);
+            if(minDist <= closeEnough){tellMe("Point OK",0);continue;}
+            tellMe("Updating point",0);
+            TVector3 newPoint = EndPoint[point];
+            int iter = 0;
+            int iterMax = 10000;
+            while (minDist > closeEnough && iter < iterMax) {
+                iter++;
+                std::vector<TVector3> openSet = GetOpenSet(newPoint,dR);
+                double minDist = 1e9;
+                for(auto neighbour : openSet){
+                    double dist = EvalMinDist(neighbour,endPix);
+                    if(dist < minDist){minDist=dist;newPoint = neighbour;}
+                }
+                tellMe(Form("iteration #%d",iter),1);
+                if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
+                PreviousMinDist = minDist;
+            }
+            EndPoint[point] = newPoint;
+            tellMe("Point updated",0);
+        }
+        return true;
+    }
+    //______________________________________________________
+    bool IsInSegment(TVector3 A, TVector3 B, TVector3 C){
+        if((C-A).Dot(B-A)/(B-A).Mag() > 0 && (C-A).Dot(B-A)/(B-A).Mag() < 1) return true;
+        else return false;
+    }
+
+
+    //______________________________________________________
+    double AStarTracker::EvalMinDist(TVector3 point){
+        tellMe(Form("EvalMinDist : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
+        double minDist = 1e9;
+        //double minDistplane[3] = {1e9,1e9,1e9};
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            tellMe(Form("plane %zu :",iPlane),2);
+            int pointCol = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w/0.3);
+            int pointRow = hit_image_v[iPlane].meta().row(X2Tick(point.X(),iPlane));
+            tellMe(Form("\t (%d,%d)",pointRow,pointCol),2);
+            double dist = 1e9;
+            bool notEmpty = false;
+            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                    if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+                    if(std::abs(icol-pointCol) > 20 || std::abs(irow-pointRow) > 20) continue;
+                    dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
+                    notEmpty = true;
+                    //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
+                    if(dist < minDist)minDist=dist;
+                }
+            }
+            //if(!notEmpty) minDistplane[iPlane] = 1;
+        }
+        //if(minDistplane[0] == 0 || minDistplane[1] == 0 || minDistplane[2] == 0) minDist = 0;
+        //else minDist = minDistplane[0]+minDistplane[1]+minDistplane[2];
+        return minDist;
+    }
+    //______________________________________________________
+    double AStarTracker::EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix){
+        tellMe(Form("EvalMinDist : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
+        double minDist = 1e9;
+        //double minDistplane[3] = {1e9,1e9,1e9};
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            tellMe(Form("plane %zu :",iPlane),2);
+            int pointCol = hit_image_v[iPlane].meta().col(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w/0.3);
+            int pointRow = hit_image_v[iPlane].meta().row(X2Tick(point.X(),iPlane));
+            tellMe(Form("\t (%d,%d)",pointRow,pointCol),2);
+            double dist = 1e9;
+            bool notEmpty = false;
+            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                    if(icol != endPix[iPlane].first && irow != endPix[iPlane].second)continue;
+                    if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+                    if(std::abs(icol-pointCol) > 10 || std::abs(irow-pointRow) > 10) continue;
+                    dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
+                    notEmpty = true;
+                    //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
+                    if(dist < minDist)minDist=dist;
+                }
+            }
+            //if(!notEmpty) minDistplane[iPlane] = 1;
+        }
+        //if(minDistplane[0] == 0 || minDistplane[1] == 0 || minDistplane[2] == 0) minDist = 0;
+        //else minDist = minDistplane[0]+minDistplane[1]+minDistplane[2];
+        return minDist;
+    }
+    //______________________________________________________
+    double AStarTracker::X2Tick(double x, size_t plane) const {
+
+        //auto ts = larutil::TimeService::GetME();
+        auto larp = larutil::LArProperties::GetME();
+        //std::cout << "ts->TriggerOffsetTPC() = " << ts->TriggerOffsetTPC() << std::endl;
+        // (X [cm] / Drift Velocity [cm/us] - TPC waveform tick 0 offset) ... [us]
+        //double tick = (x / larp->DriftVelocity() - ts->TriggerOffsetTPC() - _speedOffset);
+        double tick = (x/ larp->DriftVelocity())*2+3200;
+        // 1st plane's tick
+        /*if(plane==0) return tick * 2;// 2 ticks/us
+         // 2nd plane needs more drift time for plane0=>plane1 gap (0.3cm) difference
+         tick -= 0.3 / larp->DriftVelocity(larp->Efield(1));
+         // 2nd plane's tick
+         if(plane==1) return tick * 2;
+         // 3rd plane needs more drift time for plane1=>plane2 gap (0.3cm) difference
+         tick -= 0.3 / larp->DriftVelocity(larp->Efield(2));*/
+        return tick;// * 2;
+    }
+    //______________________________________________________
+    double AStarTracker::Tick2X(double tick, size_t plane) const{
+        //std::cout << "tick : " << tick;
+        //auto ts = larutil::TimeService::GetME();
+        auto larp = larutil::LArProperties::GetME();
+        // remove tick offset due to plane
+        /*if(plane >= 1) {tick += 0.3/larp->DriftVelocity(larp->Efield(1));}
+         if(plane >= 2) {
+         tick += 0.3/larp->DriftVelocity(larp->Efield(2));
+         }*/
+        //tick/=2.;
+        //double x = (tick+ts->TriggerOffsetTPC()+_speedOffset)*larp->DriftVelocity();
+        //std::cout << "  =>  x : " << x << "  => new tick : " << X2Tick(x,plane) << std::endl;
+
+        return ((tick-3200)*larp->DriftVelocity())*0.5;
+    }
+    //______________________________________________________
+    double AStarTracker::GetEnergy(std::string partType, double Length = -1){
+        if(partType == "proton"){
+            if(Length == -1){return sProtonRange2T->Eval(_Length3D);}
+            return sProtonRange2T->Eval(Length);
+        }
+        else if(partType == "muon"){
+            if(Length == -1){return sMuonRange2T->Eval(_Length3D);}
+            return sMuonRange2T->Eval(Length);
+        }
+        else{tellMe("ERROR, must be proton or muon",0); return -1;}
+    }
+    //______________________________________________________
+    double AStarTracker::GetTotalDepositedCharge(){
+        if(_3DTrack.size() == 0){tellMe("ERROR, run the 3D reconstruction first",0);return -1;}
+        if(_dQdx.size() == 0){tellMe("ERROR, run the dqdx reco first",0);return -1;}
+        double Qtot = 0;
+        for(int iNode = 0;iNode<_dQdx.size();iNode++){
+            double dqdx = 0;
+            int Nplanes = 0;
+            for(int iPlane = 0;iPlane<3;iPlane++){
+                dqdx+=_dQdx[iNode][iPlane];
+                if(_dQdx[iNode][iPlane] != 0)Nplanes++;
+            }
+            if(Nplanes!=0)dqdx*=3./Nplanes;
+            Qtot+=dqdx;
+        }
+        return Qtot;
+    }
+    //______________________________________________________
+    double AStarTracker::GetDist2line(TVector3 A, TVector3 B, TVector3 C){
+        TVector3 CrossProd = (B-A).Cross(C-A);
+        TVector3 U = B-A;
+        return CrossProd.Mag()/U.Mag();
+    }
+    //______________________________________________________
+    double AStarTracker::GetDist2track(TVector3 thisPoint){
+        double dist = 15000;
+        if(_3DTrack.size() > 2){
+            for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
+                if(_3DTrack[iNode] == thisPoint)continue;
+                double alpha = ( (thisPoint-_3DTrack[iNode]).Dot(_3DTrack[iNode+1]-_3DTrack[iNode]) )/( (thisPoint-_3DTrack[iNode]).Mag()*(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag() );
+                if(alpha > 0 && alpha<1){
+                    dist = std::min(dist, GetDist2line(_3DTrack[iNode],_3DTrack[iNode+1],thisPoint) );
+                }
+                dist = std::min( dist, (thisPoint-_3DTrack[iNode]).Mag()  );
+                dist = std::min( dist, (thisPoint-_3DTrack[iNode+1]).Mag());
+            }
+        }
+        return dist;
+    }
+
+
+    //______________________________________________________
+    TVector3 AStarTracker::CheckEndPoints(TVector3 point){
+        tellMe(Form("start point : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
+        double dR = 0.1;
+        double closeEnough = 4;
+
+        double minDist = EvalMinDist(point);
+        double PreviousMinDist = 2*minDist;
+        tellMe(Form("dist = %f.1", minDist),1);
+        if(minDist <= closeEnough){tellMe("Point OK",1);return point;}
+        tellMe("Updating point",1);
+        TVector3 newPoint = point;
+        int iter = 0;
+        int iterMax = 10000;
+        while (minDist > closeEnough && iter < iterMax) {
+            iter++;
+            std::vector<TVector3> openSet = GetOpenSet(newPoint,dR);
+            double minDist = 1e9;
+            for(auto neighbour : openSet){
+                double dist = EvalMinDist(neighbour);
+                if(dist < minDist){minDist=dist;newPoint = neighbour;}
+            }
+            tellMe(Form("iteration #%d",iter),1);
+            if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
+            PreviousMinDist = minDist;
+        }
+        tellMe("Point updated",1);
+        return newPoint;
+    }
+    //______________________________________________________
+    TVector3 AStarTracker::GetFurtherFromVertex(){
+        TVector3 FurtherFromVertex(1,1,1);
+        double dist2vertex = 0;
+        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+            if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
+        }
+        return FurtherFromVertex;
+    }
+    //______________________________________________________
+    TVector3 AStarTracker::CheckEndPoints(TVector3 point, std::vector< std::pair<int,int> > endPix){
+        tellMe(Form("start point : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
+        double dR = 0.1;
+        double closeEnough = 4;
+
+        double minDist = EvalMinDist(point,endPix);
+        double PreviousMinDist = 2*minDist;
+        tellMe(Form("dist = %f.1", minDist),0);
+        if(minDist <= closeEnough){tellMe("Point OK",0);return point;}
+        tellMe("Updating point",0);
+        TVector3 newPoint = point;
+        int iter = 0;
+        int iterMax = 10000;
+        while (minDist > closeEnough && iter < iterMax) {
+            iter++;
+            std::vector<TVector3> openSet = GetOpenSet(newPoint,dR);
+            double minDist = 1e9;
+            for(auto neighbour : openSet){
+                double dist = EvalMinDist(neighbour,endPix);
+                if(dist < minDist){minDist=dist;newPoint = neighbour;}
+            }
+            tellMe(Form("iteration #%d",iter),1);
+            if(minDist < closeEnough || iter >= iterMax || minDist >= PreviousMinDist) break;
+            PreviousMinDist = minDist;
+        }
+        tellMe("Point updated",0);
+        return newPoint;
+    }
+
+
+    //______________________________________________________
+    std::vector<TVector3> AStarTracker::FitBrokenLine(){
+        std::vector<TVector3> Skeleton;
+
+        Skeleton.push_back(start_pt);
+        Skeleton.push_back(GetFurtherFromVertex());
+
+        std::cout << "not implemented yet" << std::endl;
+        // (1) compute summed distance of all 3D points to the current line
+        // (2) add 3D points if needed
+        // (3) vary 3D point position to get best fit
+        // (4) as long as not best possible fit, add ans fit 3D points
+        return _3DTrack;
+    }
+    //______________________________________________________
+    std::vector<TVector3> AStarTracker::OrderList(std::vector<TVector3> list){
+        std::vector<TVector3> newList;
+        newList.push_back(list[0]);
+        double dist = 1e9;
+        double distMin = 1e9;
+        int newCandidate;
+        bool goOn = true;
+        int iter = 0;
+        while(goOn == true && list.size()>0){
+            iter++;
+            std::cout << "iter : " << iter << ", list.size() = " << list.size() << ", newList.size() = " << newList.size()<< std::endl;
+            for(int iNode=0;iNode<list.size();iNode++){
+                if(list[iNode] == newList.back())continue;
+                dist = (list[iNode]-newList.back()).Mag();
+                if(dist<distMin){distMin=dist;newCandidate = iNode;}
+            }
+
+            std::cout << "distMin = " << distMin << std::endl;
+            std::cout << "list.size() = " << list.size() << std::endl;
+
+            if(distMin > 10 || list.size() <= 1){
+                goOn = false;
+                break;
+            }
+            if(distMin <= 10){
+                newList.push_back(list[newCandidate]);
+                list.erase(list.begin()+newCandidate);
+                distMin = 100000;
+            }
+        }
+        std::cout << "list ordered OK" << std::endl;
+        return newList;
+    }
+    //______________________________________________________
+    std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, double dR){
+        std::vector<TVector3> openSet;
+
+        for(int ix = -1;ix<2;ix++){
+            for(int iy = -1;iy<2;iy++){
+                for(int iz = -1;iz<2;iz++){
+                    //if(ix == 0 && iy == 0 && iz == 0)continue;
+                    TVector3 neighbour = newPoint;
+                    neighbour.SetX(newPoint.X()+dR*ix);
+                    neighbour.SetY(newPoint.Y()+dR*iy);
+                    neighbour.SetZ(newPoint.Z()+dR*iz);
+                    openSet.push_back(neighbour);
+                }
+            }
+        }
+        return openSet;
+    }
+    //______________________________________________________
+    std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, int BoxSize, double dR){
+        std::vector<TVector3> openSet;
+
+        for(int ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
+            for(int iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
+                for(int iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
+                    //if(ix == 0 && iy == 0 && iz == 0)continue;
+                    TVector3 neighbour = newPoint;
+                    neighbour.SetX(newPoint.X()+dR*ix);
+                    neighbour.SetY(newPoint.Y()+dR*iy);
+                    neighbour.SetZ(newPoint.Z()+dR*iz);
+                    openSet.push_back(neighbour);
+                }
+            }
+        }
+        return openSet;
+    }
+
+
+    //______________________________________________________
+    std::vector<larcv::Image2D> AStarTracker::CropFullImage2bounds(std::vector<TVector3> EndPoints){
         std::vector<larcv::ImageMeta> Full_meta_v(3);
-        for(int iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = Full_image_v[iPlane].meta();}
+        for(int iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = original_full_image_v[iPlane].meta();}
 
         SetTimeAndWireBounds(EndPoints, Full_meta_v);
         std::vector<std::pair<double,double> > time_bounds = GetTimeBounds();
         std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
         std::vector<larcv::Image2D> data_images;
+        std::vector<larcv::Image2D> tagged_images;
 
         /*for(int iPlane = 0;iPlane<3;iPlane++){
             std::cout << "time bounds["<<iPlane<<"].first  : " << time_bounds[iPlane].first << std::endl;
@@ -1813,31 +1896,38 @@ namespace larcv {
 
         // find dead/bad wires and paint them with 20
         for(int iPlane=0;iPlane<3;iPlane++){
-            for(int icol = 0;icol<Full_image_v[iPlane].meta().cols();icol++){
+            for(int icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
                 int summedVal = 0;
-                for(int irow = 0;irow<Full_image_v[iPlane].meta().rows();irow++){
-                    if(Full_image_v[iPlane].pixel(irow,icol) > 10)summedVal+=Full_image_v[iPlane].pixel(irow,icol);
+                for(int irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
+                    if(original_full_image_v[iPlane].pixel(irow,icol) > 10)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
-                    Full_image_v[iPlane].paint_col(icol,20);
+                    original_full_image_v[iPlane].paint_col(icol,20);
                 }
             }
         }
         // make smaller image by inverting and cropping the full one
         for(int iPlane = 0;iPlane<3;iPlane++){
-            double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*Full_image_v[iPlane].meta().pixel_width());
-            double image_height = 1.*(size_t)((time_bounds[iPlane].second - time_bounds[iPlane].first)*Full_image_v[iPlane].meta().pixel_height());
-            size_t col_count    = (size_t)(image_width / Full_image_v[iPlane].meta().pixel_width());
-            size_t row_count    = (size_t)(image_height/ Full_image_v[iPlane].meta().pixel_height());
-            double origin_x     = Full_image_v[iPlane].meta().tl().x+wire_bounds[iPlane].first *Full_image_v[iPlane].meta().pixel_width();
-            double origin_y     = Full_image_v[iPlane].meta().br().y+time_bounds[iPlane].second*Full_image_v[iPlane].meta().pixel_height();
+            double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_width());
+            double image_height = 1.*(size_t)((time_bounds[iPlane].second - time_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_height());
+            size_t col_count    = (size_t)(image_width / original_full_image_v[iPlane].meta().pixel_width());
+            size_t row_count    = (size_t)(image_height/ original_full_image_v[iPlane].meta().pixel_height());
+            double origin_x     = original_full_image_v[iPlane].meta().tl().x+wire_bounds[iPlane].first *original_full_image_v[iPlane].meta().pixel_width();
+            double origin_y     = original_full_image_v[iPlane].meta().br().y+time_bounds[iPlane].second*original_full_image_v[iPlane].meta().pixel_height();
             larcv::ImageMeta newMeta(image_width, 6.*row_count,row_count, col_count,origin_x,origin_y,iPlane);
+            larcv::ImageMeta newTagMeta(image_width, 6.*row_count,row_count, col_count,origin_x,origin_y,iPlane);
             //std::cout << "about to look for overlap : "<< std::endl;
             //std::cout << "...new Meta X : " << newMeta.tl().x << " => " << newMeta.br().x << "  Y : " << newMeta.br().y << " => " << newMeta.tl().y << std::endl;
-            //std::cout << "...FullMeta X : " << Full_image_v[iPlane].meta().tl().x << " => " << Full_image_v[iPlane].meta().br().x << "  Y : " << Full_image_v[iPlane].meta().br().y << " => " << Full_image_v[iPlane].meta().tl().y << std::endl;
-            newMeta = Full_image_v[iPlane].meta().overlap(newMeta);
-            larcv::Image2D newImage = Full_image_v[iPlane].crop(newMeta);
+            //std::cout << "...FullMeta X : " << original_full_image_v[iPlane].meta().tl().x << " => " << original_full_image_v[iPlane].meta().br().x << "  Y : " << original_full_image_v[iPlane].meta().br().y << " => " << original_full_image_v[iPlane].meta().tl().y << std::endl;
+            newMeta = original_full_image_v[iPlane].meta().overlap(newMeta);
+            newTagMeta = taggedPix_v[iPlane].meta().overlap(newTagMeta);
+
+            larcv::Image2D newImage = original_full_image_v[iPlane].crop(newMeta);
+            larcv::Image2D newTaggedImage = taggedPix_v[iPlane].crop(newTagMeta);
+
             larcv::Image2D invertedImage = newImage;
+            larcv::Image2D invertedTagImage = newTaggedImage;
+
             for(int icol = 0;icol<newImage.meta().cols();icol++){
                 for(int irow = 0;irow<newImage.meta().rows();irow++){
                     if(newImage.pixel(irow, icol) > 10){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
@@ -1845,8 +1935,37 @@ namespace larcv {
                 }
             }
             data_images.push_back(invertedImage);
+
+            for(int icol = 0;icol<newTaggedImage.meta().cols();icol++){
+                for(int irow = 0;irow<newTaggedImage.meta().rows();irow++){
+                    if(newTaggedImage.pixel(irow, icol) > 10){invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,newTaggedImage.pixel(irow, icol));}
+                    else{invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,0);}
+                }
+            }
+            tagged_images.push_back(invertedTagImage);
         }
+        CroppedTaggedPix_v = tagged_images;
+
+        for(int iPlane = 0;iPlane<3;iPlane++){
+            for(int icol = 0;icol<data_images[iPlane].meta().cols();icol++){
+                for(int irow = 0;irow<data_images[iPlane].meta().rows();irow++){
+                    if(CroppedTaggedPix_v[iPlane].pixel(irow, icol) > 10){data_images[iPlane].set_pixel(irow,icol,0);}
+                }
+            }
+        }
+
         return data_images;
+    }
+    //______________________________________________________
+    std::vector<std::pair<int, int> > AStarTracker::GetWireTimeProjection(TVector3 point){
+        std::vector<std::pair<int, int> > projection(3);
+        for(int iPlane = 0;iPlane<3;iPlane++){
+            std::pair<int, int> planeProj;
+            planeProj.first = (int)(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w / 0.3);
+            planeProj.second = (int)(X2Tick(point.X(),iPlane));
+            projection[iPlane] = planeProj;
+        }
+        return projection;
     }
 
     //
