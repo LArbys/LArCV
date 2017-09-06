@@ -369,13 +369,13 @@ namespace larcv {
 
     if (nprotons){
 
-      for (int x=0; x < nprotons; x++){
+      for (int x=0; x < (int)nprotons; x++){
         const auto& proton1 = proton_v[x];
         max_proton_e  = 0;
         max_proton_e += proton1.depeng;
         auto trackid  = proton1.trackid;
 
-        for (int y=x+1; y < nprotons; y++ ){
+        for (int y=x+1; y < (int)nprotons; y++ ){
           const auto& proton2 = proton_v[y];
           if (proton2.daughterof(proton1)) {
             max_proton_e += proton2.depeng;

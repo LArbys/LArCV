@@ -41,8 +41,10 @@
 #pragma link C++ class larcv::GenDeadChannelMap+;
 #pragma link C++ class larcv::DeadWireAna+;
 #pragma link C++ class larcv::GoodcROIFilter+;
+#pragma link C++ class larcv::CosmicTrackAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

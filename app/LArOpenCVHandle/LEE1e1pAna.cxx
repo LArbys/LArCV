@@ -156,7 +156,7 @@ namespace larcv {
     auto vtx_counts = ev_pgraph->PGraphArray().size();
 	
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
-    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
+    for (int vtx_idx = 0; vtx_idx < (int)vtx_counts; ++vtx_idx) {
       ClearVertex();
 
       _vtxid += 1;

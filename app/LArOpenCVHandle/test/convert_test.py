@@ -39,10 +39,11 @@ while io1.next_event() and io2.read_entry(ctr):
     io1.set_id(io1.run_id(), io1.subrun_id(), io1.event_id())
     #io1.next_event()
     #io1.go_to()
-    
     #io2.read_entry()
     #io1.save_entry()
     ctr+=1
+
+
 io1.close()
 io2.finalize()
 
