@@ -25,16 +25,17 @@ edfs = {}
 mdfs = {}
 
 sample_name0 = "nue"
-sample_file0 = "/home/vgenty/vgenty/vertex_study/1e1p/test_08312017/vertex/nominal_no_stopmu/comb_ana.root"
+sample_file0 = "comb_ana_nue.root"
 
 sample_name1 = "cosmic"
-sample_file1 = "/home/vgenty/vgenty/vertex_study/extbnb/test_08312017/vertex/nominal_stopmuoff/comb_ana.root"
+sample_file1 = "comb_ana_cosmic_no_stopmu.root"
 
 for name,file_ in [(sample_name0,sample_file0),
                    (sample_name1,sample_file1)]:
     
     INPUT_FILE  = file_
     
+    print "@FILE=",INPUT_FILE
     #
     # Vertex wise Trees
     #

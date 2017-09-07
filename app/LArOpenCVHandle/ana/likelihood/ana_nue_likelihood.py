@@ -26,7 +26,7 @@ print "...num with cROI........",event_df.query("num_croi>0").index.size
 print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
 print "...reco.................",event_df.query("num_vertex>0").index.size
 print
-if name=='nue':
+if name in ['nue','ncpizero']:
     print "1L1P....................",event_df.query("selected1L1P==1").index.size
     print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
     print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
@@ -37,6 +37,13 @@ if name=='nue':
     print "...good cROI counter....",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800").index.size
     print "...reco.................",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800 & num_vertex>0").dropna().index.size
     print
+
+print "===> Total Vertices <===".format(scedr)
+print "...total................",all_df.query("num_vertex>0").index.size
+print "...events...............",len(all_df.query("num_vertex>0").groupby(rse))
+print
+
+if name in ['nue','ncpizero']:
     print "===> GOOD vertices scedr<{} <===".format(scedr)
     SS="scedr<@scedr"
     print "...total................",all_df.query("num_vertex>0").query(SS).index.size
@@ -58,11 +65,7 @@ if name=='nue':
     print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
     print
 
-if name=='cosmic':
-    print "===> Total Vertices <===".format(scedr)
-    print "...total................",all_df.query("num_vertex>0").index.size
-    print "...events...............",len(all_df.query("num_vertex>0").groupby(rse))
-    print
+
 
 
 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -78,7 +81,7 @@ print "...num with cROI........",event_df.query("num_croi>0").index.size
 print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
 print "...reco.................",event_df.query("num_vertex>0").index.size
 print
-if name=='nue':
+if name in ['nue','ncpizero']:
     print "1L1P....................",event_df.query("selected1L1P==1").index.size
     print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
     print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
@@ -89,6 +92,13 @@ if name=='nue':
     print "...good cROI counter....",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800").index.size
     print "...reco.................",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800 & num_vertex>0").dropna().index.size
     print
+
+print "===> Total Vertices <===".format(scedr)
+print "...total................",all_df.query("num_vertex>0").index.size
+print "...events...............",len(all_df.query("num_vertex>0").groupby(rse))
+print
+
+if name in ['nue','ncpizero']:
     print "=> GOOD vertices scedr<{} <=".format(scedr)
     SS="scedr<@scedr"
     print "...total................",all_df.query("num_vertex>0").query(SS).index.size
@@ -109,12 +119,6 @@ if name=='nue':
     print "...total................",all_df.query("num_vertex>0").query(SS).index.size
     print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
     print
-if name=='cosmic':
-    print "=> Total Vertices <=".format(scedr)
-    print "...total................",all_df.query("num_vertex>0").index.size
-    print "...events...............",len(all_df.query("num_vertex>0").groupby(rse))
-    print
-
 
 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 print "~~~~~~~~~ LL Output ~~~~~~~~~"
@@ -130,7 +134,7 @@ print "...num with cROI........",event_df.query("num_croi>0").index.size
 print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
 print "...reco.................",event_df.query("num_vertex>0").index.size
 print
-if name=='nue':
+if name in ['nue','ncpizero']:
     print "1L1P....................",event_df.query("selected1L1P==1").index.size
     print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
     print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
@@ -141,6 +145,13 @@ if name=='nue':
     print "...good cROI counter....",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800").index.size
     print "...reco.................",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800 & num_vertex>0").dropna().index.size
     print
+
+print "===> Total Vertices <===".format(scedr)
+print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT").index.size
+print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT").groupby(rse))
+print
+
+if name in ['nue','ncpizero']:
     print "=> GOOD vertices scedr<{} <=".format(scedr)
     SS="scedr<@scedr"
     print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT ").query(SS).index.size
@@ -161,13 +172,9 @@ if name=='nue':
     print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).index.size
     print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).groupby(rse))
     print
-if name=='cosmic':
-    print "===> Total Vertices <===".format(scedr)
-    print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT").index.size
-    print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT ").groupby(rse))
-    print
 
-if name == 'cosmic':
+
+if name != 'nue':
     sys.exit(1)
 
 #

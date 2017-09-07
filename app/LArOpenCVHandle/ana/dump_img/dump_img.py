@@ -6,14 +6,15 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+import ROOT
 from ROOT import geo2d
 pygeo = geo2d.PyDraw()
 
 FILE1  = str(sys.argv[1])
 FILE2  = str(sys.argv[2])
 ENTRY  = int(sys.argv[3])
-ROID   = int(sys.argv[4])
-VTXID  = int(sys.argv[5])
+VTXID  = int(sys.argv[4])
+NAME   = str(sys.argv[5])
 
 iom = larcv.IOManager()
 iom.add_in_file(FILE1)
@@ -45,13 +46,19 @@ img_v = [lim.ExtractMat(img) for img in img_v]
 img_v = [pygeo.image(img) for img in img_v]
 img_v = [img.T[::-1,:].copy() for img in img_v]
 
+X = pgraph.ParticleArray().front().X()
+Y = pgraph.ParticleArray().front().Y()
+Z = pgraph.ParticleArray().front().Z()
+
+meta_v = pgraph.ParticleArray().front().BB()
 
 colors=['magenta','white','yellow']
 ctor_v = []
+
 for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
     pix2d_vv=[None,None,None]
     print "@parid=",parid,"&id_=",id_
-
+    
     for plane in xrange(3):
         pix2d_v = ev_ctor.Pixel2DClusterArray(plane).at(id_)
         pix2d_v = [[pix2d_v[ii].X(),pix2d_v[ii].Y()] for ii in xrange(pix2d_v.size())]
@@ -64,16 +71,44 @@ for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
     ctor_v.append(pix2d_vv)
         
 for plane in xrange(3):
+
+    xpixel = ROOT.Double()
+    ypixel = ROOT.Double()
+
+
     SS="Plane {}".format(plane)
     fig,ax=plt.subplots(figsize=(20,22))
     ax.imshow(img_v[plane],cmap='jet',vmin=0,vmax=255,interpolation='none')
+
+    larcv.Project3D(meta_v[plane],X,Y,Z,0.0,plane,xpixel,ypixel)
+
+    ax.plot(xpixel,meta_v[plane].rows()-ypixel,'*',color='yellow',markersize=10)
+
+    xmin = 1e9
+    xmax =-1e9
+
+    ymin = 1e9
+    ymax =-1e9
+
     for ix,ctor in enumerate(ctor_v):
         ctor=ctor[plane]
         if ctor.size==0: continue
-        ax.plot(ctor[:,0],ctor[:,1],'-',lw=3,color=colors[ix],alpha=1.0)
+        ax.plot(ctor[:,0],ctor[:,1],'-',lw=2,color=colors[ix],alpha=1.0)
+        
+        if ctor[:,0].min() < xmin : xmin = ctor[:,0].min()
+        if ctor[:,0].max() > xmax : xmax = ctor[:,0].max()
 
-    SS=os.path.join("ll_dump","nue","{}_{}_{}_{}_{}_{}.pdf".format(os.path.basename(FILE1).split(".")[0].split("_")[-1],ENTRY,ROID,VTXID,parid,plane))
+        if ctor[:,1].min() < ymin : ymin = ctor[:,1].min()
+        if ctor[:,1].max() > ymax : ymax = ctor[:,1].max()
+
+    
+    if xmin != 1e9:
+        ax.set_xlim(xmin-25,xmax+25)
+        ax.set_ylim(ymin-25,ymax+25)
+        
+    SS=os.path.join("img_dump",NAME,"{}_{}_{}_{}_{}.pdf".format(os.path.basename(FILE1).split(".")[0].split("_")[-1],ENTRY,VTXID,parid,plane))
     print SS
+    ax.set_title("%.02f,%.02f,%.02f" % (X,Y,Z))
     plt.savefig(SS)
     plt.clf()
     plt.cla()

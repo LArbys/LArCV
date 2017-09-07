@@ -55,7 +55,7 @@ def drop_y(df):
 comb_df = comb_df.set_index(rse).join(event_vertex_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
 drop_y(comb_df)
     
-if name == "nue":
+if name == "nue" or name == "ncpizero":
     nufilter_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
     mc_df       = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
         
