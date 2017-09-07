@@ -124,7 +124,7 @@ print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 print "~~~~~~~~~ LL Output ~~~~~~~~~"
 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-LLCUT=-18.125
+LLCUT=-14.625
 all_df   = pd.read_pickle(os.path.join(BASE_PATH,"ll_bin","{}_post_LL.pkl".format(name)))
 #event_df = all_df.groupby(rse).nth(0) 
 
