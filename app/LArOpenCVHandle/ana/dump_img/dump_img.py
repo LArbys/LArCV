@@ -82,7 +82,7 @@ for plane in xrange(3):
 
     larcv.Project3D(meta_v[plane],X,Y,Z,0.0,plane,xpixel,ypixel)
 
-    ax.plot(xpixel,meta_v[plane].rows()-ypixel,'*',color='yellow',markersize=10)
+    ax.plot(xpixel,meta_v[plane].rows()-ypixel,'*',color='yellow',markersize=30)
 
     xmin = 1e9
     xmax =-1e9
@@ -93,7 +93,7 @@ for plane in xrange(3):
     for ix,ctor in enumerate(ctor_v):
         ctor=ctor[plane]
         if ctor.size==0: continue
-        ax.plot(ctor[:,0],ctor[:,1],'-',lw=2,color=colors[ix],alpha=1.0)
+        ax.plot(ctor[:,0],ctor[:,1],'-',lw=5,color=colors[ix],alpha=1.0)
         
         if ctor[:,0].min() < xmin : xmin = ctor[:,0].min()
         if ctor[:,0].max() > xmax : xmax = ctor[:,0].max()

@@ -8,7 +8,9 @@ import pandas as pd
 
 import ROOT
 import root_numpy as rn
-from larocv import larocv
+
+from util.fill_df import *
+
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
@@ -95,192 +97,19 @@ for name,file_ in [(sample_name0,sample_file0),
 
 dfs['nue'] = dfs['nue'].query("scedr<5")
 
-def track_shower_assumption(df):
-    df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
-    df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
-    
-    df['trk_frac_avg'] = df.apply(lambda x : x['par1_frac'] if(x['par1_type']==1) else x['par2_frac'],axis=1)
-    df['shr_frac_avg'] = df.apply(lambda x : x['par2_frac'] if(x['par2_type']==2) else x['par1_frac'],axis=1)
+
 
 ts_mdf_m = {}
 for name, comb_df in dfs.copy().iteritems():
-print
+    print
     print "@ sample",name
     print
     
     ts_mdf = comb_df.copy()
 
-    print "Asking nue assumption"
-    print "Asking npar==2"
-    print "Asking in_fiducial==1"
-    print "Asking pathexists2==1"
-
-    ts_mdf = ts_mdf.query("npar==2")
-    track_shower_assumption(ts_mdf)
-    ts_mdf = ts_mdf.query("par1_type != par2_type")
-    ts_mdf = ts_mdf.query("in_fiducial==1")
-    ts_mdf = ts_mdf.query("pathexists2==1")
-    
-    #
-    # SSNet Fraction
-    #
-    ts_mdf['trk_frac'] = ts_mdf.apply(lambda x : x['trk_frac_avg'] / x['nplanes_v'][x['trkid']],axis=1) 
-    ts_mdf['shr_frac'] = ts_mdf.apply(lambda x : x['shr_frac_avg'] / x['nplanes_v'][x['shrid']],axis=1) 
-    
-    #
-    # PCA
-    #
-    
-    ts_mdf['cosangle3d']=ts_mdf.apply(lambda x : larocv.CosOpeningAngle(x['par_trunk_pca_theta_estimate_v'][0],
-                                                                        x['par_trunk_pca_phi_estimate_v'][0],
-                                                                        x['par_trunk_pca_theta_estimate_v'][1],
-                                                                        x['par_trunk_pca_phi_estimate_v'][1]),axis=1)
-    
-    ts_mdf['angle3d'] = ts_mdf.apply(lambda x : np.arccos(x['cosangle3d']),axis=1)
-    
-    
-    ts_mdf['shr_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : x['par_trunk_pca_theta_estimate_v'][x['shrid']],axis=1) 
-    ts_mdf['trk_trunk_pca_theta_estimate'] = ts_mdf.apply(lambda x : x['par_trunk_pca_theta_estimate_v'][x['trkid']],axis=1) 
-    
-    ts_mdf['shr_trunk_pca_cos_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['shrid']]),axis=1) 
-    ts_mdf['trk_trunk_pca_cos_theta_estimate'] = ts_mdf.apply(lambda x : np.cos(x['par_trunk_pca_theta_estimate_v'][x['trkid']]),axis=1) 
-
-    
-    #
-    # 3D
-    #
-    ts_mdf['shr_3d_length'] = ts_mdf.apply(lambda x : x['par_pca_end_len_v'][x['shrid']],axis=1)
-    ts_mdf['trk_3d_length'] = ts_mdf.apply(lambda x : x['par_pca_end_len_v'][x['trkid']],axis=1)
-
-    ts_mdf['shr_3d_QavgL'] = ts_mdf.apply(lambda x : x['qsum_v'][x['shrid']] / x['par_pca_end_len_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['trk_3d_QavgL'] = ts_mdf.apply(lambda x : x['qsum_v'][x['trkid']] / x['par_pca_end_len_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-
-    #
-    # Max deflection
-    #
-    ts_mdf['shr_triangle_d_max'] = ts_mdf.apply(lambda x : x['triangle_d_max_v'][x['shrid']],axis=1)
-    ts_mdf['trk_triangle_d_max'] = ts_mdf.apply(lambda x : x['triangle_d_max_v'][x['trkid']],axis=1)
-    
-    #
-    # Mean pixel dist from 2D PCA
-    #
-    ts_mdf['shr_mean_pixel_dist'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_mean_pixel_dist_max'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_mean_pixel_dist_min'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_mean_pixel_dist_ratio'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_min_v'][x['shrid']] / x['mean_pixel_dist_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_mean_pixel_dist'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_mean_pixel_dist_max'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_mean_pixel_dist_min'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_min_v'][x['trkid']],axis=1)
-    ts_mdf['trk_mean_pixel_dist_ratio'] = ts_mdf.apply(lambda x : x['mean_pixel_dist_min_v'][x['trkid']] / x['mean_pixel_dist_max_v'][x['trkid']],axis=1)     
-
-    #
-    # Sigma pixel dist from 2D PCA
-    #
-    ts_mdf['shr_sigma_pixel_dist']       = ts_mdf.apply(lambda x : x['sigma_pixel_dist_v'][x['shrid']]/x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_sigma_pixel_dist_max']   = ts_mdf.apply(lambda x : x['sigma_pixel_dist_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_sigma_pixel_dist_min']   = ts_mdf.apply(lambda x : x['sigma_pixel_dist_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_sigma_pixel_dist_ratio'] = ts_mdf.apply(lambda x : x['sigma_pixel_dist_min_v'][x['shrid']] / x['sigma_pixel_dist_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_sigma_pixel_dist']       = ts_mdf.apply(lambda x : x['sigma_pixel_dist_v'][x['trkid']]/x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_sigma_pixel_dist_max']   = ts_mdf.apply(lambda x : x['sigma_pixel_dist_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_sigma_pixel_dist_min']   = ts_mdf.apply(lambda x : x['sigma_pixel_dist_min_v'][x['trkid']],axis=1)
-    ts_mdf['trk_sigma_pixel_dist_ratio'] = ts_mdf.apply(lambda x : x['sigma_pixel_dist_min_v'][x['trkid']] / x['sigma_pixel_dist_max_v'][x['trkid']],axis=1)    
-
-    #
-    # Ratio of # num pixels
-    #
-    ts_mdf['shr_par_pixel_ratio'] = ts_mdf.apply(lambda x : x['par_pixel_ratio_v'][x['shrid']],axis=1)
-    ts_mdf['trk_par_pixel_ratio'] = ts_mdf.apply(lambda x : x['par_pixel_ratio_v'][x['trkid']],axis=1) 
-
-    #
-    # 2D angle difference @ vertex
-    #
-    ts_mdf['anglediff0'] = ts_mdf['anglediff'].values 
-
-    #
-    # 2D length
-    #
-    ts_mdf['shr_avg_length']   = ts_mdf.apply(lambda x : x['length_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_length_min']   = ts_mdf.apply(lambda x : x['length_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_length_max']   = ts_mdf.apply(lambda x : x['length_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_length_ratio'] = ts_mdf.apply(lambda x : x['length_min_v'][x['shrid']] / x['length_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_avg_length']   = ts_mdf.apply(lambda x : x['length_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_length_min']   = ts_mdf.apply(lambda x : x['length_min_v'][x['trkid']],axis=1)
-    ts_mdf['trk_length_max']   = ts_mdf.apply(lambda x : x['length_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_length_ratio'] = ts_mdf.apply(lambda x : x['length_min_v'][x['trkid']] / x['length_max_v'][x['trkid']],axis=1)
-    
-    #
-    # 2D width
-    #
-    ts_mdf['shr_avg_width']   = ts_mdf.apply(lambda x : x['width_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_width_min']   = ts_mdf.apply(lambda x : x['width_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_width_max']   = ts_mdf.apply(lambda x : x['width_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_width_ratio'] = ts_mdf.apply(lambda x : x['width_min_v'][x['shrid']] / x['width_max_v'][x['shrid']],axis=1)
-
-    ts_mdf['trk_avg_width']   = ts_mdf.apply(lambda x : x['width_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_width_max']   = ts_mdf.apply(lambda x : x['width_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_width_min']   = ts_mdf.apply(lambda x : x['width_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_width_ratio'] = ts_mdf.apply(lambda x : x['width_min_v'][x['trkid']] / x['width_max_v'][x['trkid']],axis=1)
-
-    #
-    # 2D perimeter
-    #
-    ts_mdf['shr_avg_perimeter'] = ts_mdf.apply(lambda x : x['perimeter_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_perimeter_min'] = ts_mdf.apply(lambda x : x['perimeter_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_perimeter_max'] = ts_mdf.apply(lambda x : x['perimeter_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_perimeter_ratio'] = ts_mdf.apply(lambda x : x['perimeter_min_v'][x['shrid']] / x['perimeter_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_avg_perimeter'] = ts_mdf.apply(lambda x : x['perimeter_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_perimeter_min'] = ts_mdf.apply(lambda x : x['perimeter_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_perimeter_max'] = ts_mdf.apply(lambda x : x['perimeter_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_perimeter_ratio'] = ts_mdf.apply(lambda x : x['perimeter_min_v'][x['trkid']] / x['perimeter_max_v'][x['trkid']],axis=1)
-
-    #
-    # 2D area
-    #
-    ts_mdf['shr_avg_area'] = ts_mdf.apply(lambda x : x['area_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_area_min'] = ts_mdf.apply(lambda x : x['area_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_area_max'] = ts_mdf.apply(lambda x : x['area_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_area_ratio'] = ts_mdf.apply(lambda x : x['area_min_v'][x['shrid']] / x['area_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_avg_area'] = ts_mdf.apply(lambda x : x['area_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_area_min'] = ts_mdf.apply(lambda x : x['area_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_area_max'] = ts_mdf.apply(lambda x : x['area_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_area_ratio'] = ts_mdf.apply(lambda x : x['area_min_v'][x['trkid']] / x['area_max_v'][x['trkid']],axis=1)
-
-    #
-    # N pixel
-    #
-    ts_mdf['shr_avg_npixel'] = ts_mdf.apply(lambda x : x['npixel_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_npixel_min'] = ts_mdf.apply(lambda x : x['npixel_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_npixel_max'] = ts_mdf.apply(lambda x : x['npixel_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_npixel_ratio'] = ts_mdf.apply(lambda x : x['npixel_min_v'][x['shrid']] / x['npixel_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_avg_npixel'] = ts_mdf.apply(lambda x : x['npixel_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_npixel_min'] = ts_mdf.apply(lambda x : x['npixel_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_npixel_max'] = ts_mdf.apply(lambda x : x['npixel_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_npixel_ratio'] = ts_mdf.apply(lambda x : x['npixel_min_v'][x['trkid']] / x['npixel_max_v'][x['trkid']],axis=1)
-
-    #
-    # Q sum
-    #
-    ts_mdf['shr_avg_qsum']   = ts_mdf.apply(lambda x : x['qsum_v'][x['shrid']] / x['nplanes_v'][x['shrid']],axis=1)
-    ts_mdf['shr_qsum_min']   = ts_mdf.apply(lambda x : x['qsum_min_v'][x['shrid']],axis=1)
-    ts_mdf['shr_qsum_max']   = ts_mdf.apply(lambda x : x['qsum_max_v'][x['shrid']],axis=1)
-    ts_mdf['shr_qsum_ratio'] = ts_mdf.apply(lambda x : x['qsum_min_v'][x['shrid']] / x['qsum_max_v'][x['shrid']],axis=1)
-    
-    ts_mdf['trk_avg_qsum']   = ts_mdf.apply(lambda x : x['qsum_v'][x['trkid']] / x['nplanes_v'][x['trkid']],axis=1)
-    ts_mdf['trk_qsum_min']   = ts_mdf.apply(lambda x : x['qsum_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_qsum_max']   = ts_mdf.apply(lambda x : x['qsum_max_v'][x['trkid']],axis=1)
-    ts_mdf['trk_qsum_ratio'] = ts_mdf.apply(lambda x : x['qsum_min_v'][x['trkid']] / x['qsum_max_v'][x['trkid']],axis=1)
-
-    #
-    #
-    #
+    ts_mdf = nue_assumption(ts_mdf)
+    ts_mdf = fill_parameters(ts_mdf)
     ts_mdf_m[name] = ts_mdf.copy()
-
 
 
 #

@@ -6,173 +6,42 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from util.print_ import ana_stats
+
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
 
 rse    = ['run','subrun','event']
-rsev   = ['run','subrun','event','vtxid']
-rserv  = ['run','subrun','event','roid','vtxid']
 
 name = str(sys.argv[1])
-print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-print "~~~~~~~~~ Raw Output ~~~~~~~~~"
-print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+print "~~~~~~~~~~~~~ Raw Output ~~~~~~~~~~~~~~~~"
+print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
 all_df   = pd.read_pickle(os.path.join(BASE_PATH,"ll_bin","{}_all.pkl".format(name)))
 event_df = all_df.groupby(rse).nth(0) 
 
 scedr=5
-print "Loaded events...........",event_df.index.size
-print "...num with cROI........",event_df.query("num_croi>0").index.size
-print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
-print "...reco.................",event_df.query("num_vertex>0").index.size
-print
-if name in ['nue','ncpizero']:
-    print "1L1P....................",event_df.query("selected1L1P==1").index.size
-    print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
-    print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
-    print "...reco.................",event_df.query("good_croi_ctr>0 & selected1L1P==1 & num_vertex>0").dropna().index.size
-    print
-    print "1L1P E in [200,800] MeV.",event_df.query("selected1L1P==1 & energyInit>=200 & energyInit<=800").index.size
-    print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1 & energyInit>=200 & energyInit<=800").index.size
-    print "...good cROI counter....",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800").index.size
-    print "...reco.................",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800 & num_vertex>0").dropna().index.size
-    print
-
-print "===> Total Vertices <===".format(scedr)
-print "...total................",all_df.query("num_vertex>0").index.size
-print "...events...............",len(all_df.query("num_vertex>0").groupby(rse))
-print
-
-if name in ['nue','ncpizero']:
-    print "===> GOOD vertices scedr<{} <===".format(scedr)
-    SS="scedr<@scedr"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print
-    print ">>>good cROI<<<"
-    SS="scedr<@scedr & good_croi_ctr>0"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print 
-    print ">>>good cROI + 1L1P<<<"
-    SS="scedr<@scedr & good_croi_ctr>0 & selected1L1P==1"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print
-    print ">>>good cROI + 1L1P + E<<<"
-    SS="scedr<@scedr & good_croi_ctr>0 & selected1L1P==1 & energyInit>=200 & energyInit<=800"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print
-
-
-
+LLCUT=None
+ana_stats(all_df,event_df,scedr,name,LLCUT)
 
 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 print "~~~~~~~~~ Nue Assumption Output ~~~~~~~~~"
 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 all_df   = pd.read_pickle(os.path.join(BASE_PATH,"ll_bin","{}_post_nue.pkl".format(name)))
-#event_df = all_df.groupby(rse).nth(0) 
-
 scedr=5
-print "Loaded events...........",event_df.index.size
-print "...num with cROI........",event_df.query("num_croi>0").index.size
-print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
-print "...reco.................",event_df.query("num_vertex>0").index.size
-print
-if name in ['nue','ncpizero']:
-    print "1L1P....................",event_df.query("selected1L1P==1").index.size
-    print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
-    print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
-    print "...reco.................",event_df.query("good_croi_ctr>0 & selected1L1P==1 & num_vertex>0").dropna().index.size
-    print
-    print "1L1P E in [200,800] MeV.",event_df.query("selected1L1P==1 & energyInit>=200 & energyInit<=800").index.size
-    print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1 & energyInit>=200 & energyInit<=800").index.size
-    print "...good cROI counter....",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800").index.size
-    print "...reco.................",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800 & num_vertex>0").dropna().index.size
-    print
+LLCUT=None
+ana_stats(all_df,event_df,scedr,name,LLCUT)
 
-print "===> Total Vertices <===".format(scedr)
-print "...total................",all_df.query("num_vertex>0").index.size
-print "...events...............",len(all_df.query("num_vertex>0").groupby(rse))
-print
+print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+print "~~~~~~~~~~~~~~ LL Output ~~~~~~~~~~~~~~~~"
+print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-if name in ['nue','ncpizero']:
-    print "=> GOOD vertices scedr<{} <=".format(scedr)
-    SS="scedr<@scedr"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print
-    print ">>>good cROI<<<"
-    SS="scedr<@scedr & good_croi_ctr>0"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print 
-    print ">>>good cROI + 1L1P<<<"
-    SS="scedr<@scedr & good_croi_ctr>0 & selected1L1P==1"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print
-    print ">>>good cROI + 1L1P + E<<<"
-    SS="scedr<@scedr & good_croi_ctr>0 & selected1L1P==1 & energyInit>=200 & energyInit<=800"
-    print "...total................",all_df.query("num_vertex>0").query(SS).index.size
-    print "...events...............",len(all_df.query("num_vertex>0").query(SS).groupby(rse))
-    print
-
-print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-print "~~~~~~~~~ LL Output ~~~~~~~~~"
-print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
-LLCUT=-14.625
 all_df   = pd.read_pickle(os.path.join(BASE_PATH,"ll_bin","{}_post_LL.pkl".format(name)))
-#event_df = all_df.groupby(rse).nth(0) 
-
 scedr=5
-print "Loaded events...........",event_df.index.size
-print "...num with cROI........",event_df.query("num_croi>0").index.size
-print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
-print "...reco.................",event_df.query("num_vertex>0").index.size
-print
-if name in ['nue','ncpizero']:
-    print "1L1P....................",event_df.query("selected1L1P==1").index.size
-    print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
-    print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
-    print "...reco.................",event_df.query("good_croi_ctr>0 & selected1L1P==1 & num_vertex>0").dropna().index.size
-    print
-    print "1L1P E in [200,800] MeV.",event_df.query("selected1L1P==1 & energyInit>=200 & energyInit<=800").index.size
-    print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1 & energyInit>=200 & energyInit<=800").index.size
-    print "...good cROI counter....",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800").index.size
-    print "...reco.................",event_df.query("selected1L1P==1 & good_croi_ctr>0 & energyInit>=200 & energyInit<=800 & num_vertex>0").dropna().index.size
-    print
-
-print "===> Total Vertices <===".format(scedr)
-print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT").index.size
-print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT").groupby(rse))
-print
-
-if name in ['nue','ncpizero']:
-    print "=> GOOD vertices scedr<{} <=".format(scedr)
-    SS="scedr<@scedr"
-    print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT ").query(SS).index.size
-    print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).groupby(rse))
-    print
-    print ">>>good cROI<<<"
-    SS="scedr<@scedr & good_croi_ctr>0"
-    print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT ").query(SS).index.size
-    print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT ").query(SS).groupby(rse))
-    print 
-    print ">>>good cROI + 1L1P<<<"
-    SS="scedr<@scedr & good_croi_ctr>0 & selected1L1P==1"
-    print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).index.size
-    print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).groupby(rse))
-    print
-    print ">>>good cROI + 1L1P + E<<<"
-    SS="scedr<@scedr & good_croi_ctr>0 & selected1L1P==1 & energyInit>=200 & energyInit<=800"
-    print "...total..LL............",all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).index.size
-    print "...events.LL............",len(all_df.query("num_vertex>0 & LL>@LLCUT").query(SS).groupby(rse))
-    print
-
+LLCUT=-14.625
+ana_stats(all_df,event_df,scedr,name,LLCUT)
 
 if name != 'nue':
     sys.exit(1)
@@ -230,7 +99,6 @@ eff_plot(event_df.query("good_croi_ctr>0 & selected1L1P==1"),
          "energyInit >= 200 & energyInit <= 800","P01Theta",
          "P01Theta [rad]","Count / pi/20 [rad]",
          "P01Theta")
-
          
 #
 # Likelihood Plots
