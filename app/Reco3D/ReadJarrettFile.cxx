@@ -79,7 +79,7 @@ namespace larcv {
         auto ev_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
         //auto tag_img_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
         auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
-        auto tag_img_cont_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
+        auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
         //auto tag_img_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"containedtags");
         auto ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
@@ -94,7 +94,7 @@ namespace larcv {
         //auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
         auto full_adc_img_v = &(ev_img_v->Image2DArray());
         auto full_tag_img_thru_v = &(tag_img_thru_v->Image2DArray());
-        auto full_tag_img_cont_v = &(tag_img_cont_v->Image2DArray());
+        auto full_tag_img_stop_v = &(tag_img_stop_v->Image2DArray());
         auto mc_roi_v = ev_partroi_v->ROIArray();
 
         // get MC vertex
@@ -170,8 +170,8 @@ namespace larcv {
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             Tagged_Image[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
-            if(full_tag_img_thru_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_thru_v)[iPlane] );
-            if(full_tag_img_cont_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_cont_v)[iPlane] );
+            //if(full_tag_img_thru_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_thru_v)[iPlane] );
+            //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
         }
         tracker.SetOriginalImage(Full_image_v);
         tracker.SetTaggedImage(Tagged_Image);

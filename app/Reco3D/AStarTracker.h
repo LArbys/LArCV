@@ -111,8 +111,11 @@ namespace larcv {
         void ComputedQdX();
         void Reconstruct();
         void ReconstructVertex();
+        void ConstructTrack();
+        void ConstructVertex();
         void ReconstructEvent();
         void ImprovedCluster();
+        void PreSortAndOrderPoints();
         void SortAndOrderPoints();
         void MaskTrack();
 

@@ -517,6 +517,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::MaskTrack(){
+        std::cout << "MaskTrack()" << std::endl;
         if(_vertexTracks.size()==0)return;
         for(auto thisTrack : _vertexTracks){
             if(thisTrack.size()==0)continue;
@@ -528,7 +529,7 @@ namespace larcv {
                 for(int iPlane=0;iPlane<3;iPlane++){
                     //ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode-1].X(),thisTrack[iNode-1].Y(),thisTrack[iNode-1].Z(),0,iPlane,x_proj0,y_proj0);
                     ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode].X(),thisTrack[iNode].Y(),thisTrack[iNode].Z(),0,iPlane,x_proj,y_proj);
-                    int shellMask = 3;
+                    int shellMask = 4;
                     if(x_proj > hit_image_v[iPlane].meta().cols()-(shellMask+1) || x_proj < (shellMask+1)) continue;
                     if(y_proj > hit_image_v[iPlane].meta().rows()-(shellMask+1) || y_proj < (shellMask+1)) continue;
                     for(int i = -shellMask;i<shellMask+1;i++){
@@ -544,7 +545,90 @@ namespace larcv {
     void AStarTracker::ReconstructVertex(){
         std::cout << "ReconstructVertex()" << std::endl;
         size_t oldSize = 5;
-        double trackMinLength = 5;
+        double trackMinLength = 2;
+        if(_vertexTracks.size()!=0)_vertexTracks.clear();
+        std::cout << "_vertexTracks.size() = " << _vertexTracks.size() << std::endl;
+        if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
+        std::cout << "_vertexEndPoints.size() = " << _vertexEndPoints.size() << std::endl;
+        std::cout << "start_pt : (" << start_pt.X() << "," << start_pt.Y() << "," << start_pt.Y() <<")"<< std::endl;
+        _vertexEndPoints.push_back(start_pt);
+        _track++;
+        DrawTrack();
+        while(_vertexTracks.size()!=oldSize && _vertexTracks.size()<9){
+            oldSize = _vertexTracks.size();
+            // first start from Vertex
+            ImprovedCluster();
+            end_pt = GetFurtherFromVertex();
+            std::cout << "start_pt : (" << start_pt.X() << "," << start_pt.Y() << "," << start_pt.Y() <<")"<< std::endl;
+            std::cout << "end_pt : (" << end_pt.X() << "," << end_pt.Y() << "," << end_pt.Z() << ")" << std::endl;
+            SortAndOrderPoints();
+            std::cout << "_3DTrack.size() == " << _3DTrack.size() << std::endl;
+            RegularizeTrack();
+            ComputeLength();
+            if(_Length3D > trackMinLength){
+                _vertexEndPoints.push_back(end_pt);
+                _vertexTracks.push_back(_3DTrack);
+            }
+            MaskTrack();
+
+
+            // check and see if the further point is actually the end of the track?
+            std::cout << "check end point:" << std::endl;
+            std::vector<TVector3> firstTrackBit = _3DTrack;
+            MaskTrack();
+            TVector3 vertexPoint = start_pt;
+            start_pt = end_pt;
+            std::cout << "start_pt : (" << start_pt.X() << "," << start_pt.Y() << "," << start_pt.Z() << ")" << std::endl;
+            //DrawTrack();
+            ImprovedCluster();
+            end_pt = GetFurtherFromVertex();
+            SortAndOrderPoints();
+            std::cout << "_3DTrack.size() : " << _3DTrack.size() << std::endl;
+            RegularizeTrack();
+            ComputeLength();
+            _track++;
+            //DrawTrack();
+            //if(_Length3D < 0.5*trackMinLength){MaskTrack();start_pt = vertexPoint;continue;}
+            //_3DTrack.push_back(end_pt);
+            for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+                firstTrackBit.push_back(_3DTrack[iNode]);
+            }
+            _3DTrack = firstTrackBit;
+            ComputeLength();
+            if(_Length3D > trackMinLength){
+                _vertexEndPoints.push_back(end_pt);
+                std::cout << "adding last bi of track to the end : _vertexTracks.size() = " << _vertexTracks.size() << std::endl;
+                if(_vertexTracks.size()>0)_vertexTracks.back()=_3DTrack;
+                else _vertexTracks.push_back(_3DTrack);
+            }
+            std::cout << "ok here?" << std::endl;
+            start_pt = vertexPoint;// reset start point to the original vertex point
+            MaskTrack();
+            _track++;
+        }
+        DrawVertex();
+    }
+    //______________________________________________________
+    void AStarTracker::ConstructTrack(){
+        double trackMinLength = 2;
+        ImprovedCluster();
+        end_pt = GetFurtherFromVertex();
+        std::cout << "start_pt : (" << start_pt.X() << "," << start_pt.Y() << "," << start_pt.Y() <<")"<< std::endl;
+        std::cout << "end_pt : (" << end_pt.X() << "," << end_pt.Y() << "," << end_pt.Z() << ")" << std::endl;
+        SortAndOrderPoints();
+        std::cout << "_3DTrack.size() == " << _3DTrack.size() << std::endl;
+        RegularizeTrack();
+        ComputeLength();
+        if(_Length3D > trackMinLength){
+            _vertexEndPoints.push_back(end_pt);
+            _vertexTracks.push_back(_3DTrack);
+        }
+    }
+    //______________________________________________________
+    void AStarTracker::ConstructVertex(){
+        std::cout << "ConstructVertex()" << std::endl;
+        size_t oldSize = 5;
+        double trackMinLength = 2;
         if(_vertexTracks.size()!=0)_vertexTracks.clear();
         std::cout << "_vertexTracks.size() = " << _vertexTracks.size() << std::endl;
         if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
@@ -553,57 +637,58 @@ namespace larcv {
         _vertexEndPoints.push_back(start_pt);
         while(_vertexTracks.size()!=oldSize && _vertexTracks.size()<9){
             oldSize = _vertexTracks.size();
-            // first start from Vertex
+            ConstructTrack();
+            MaskTrack();
+        }
+        // at that point I should ahve all tracks that start at the vertex point
+        TVector3 vertexPoint = start_pt;
+        for(int iEnd=0;iEnd<_vertexEndPoints.size();iEnd++){
+            start_pt = _vertexEndPoints[iEnd];
+            MaskTrack();
+            while(_vertexTracks.size()!=oldSize && _vertexTracks.size()<9){
+                oldSize = _vertexTracks.size();
+                ConstructTrack();
+                MaskTrack();
+            }
+        }
+
+        start_pt = vertexPoint;
+
+
+            // check and see if the further point is actually the end of the track?
+            /*std::cout << "check end point:" << std::endl;
+            std::vector<TVector3> firstTrackBit = _3DTrack;
+            MaskTrack();
+            TVector3 vertexPoint = start_pt;
+            start_pt = end_pt;
+            std::cout << "start_pt : (" << start_pt.X() << "," << start_pt.Y() << "," << start_pt.Z() << ")" << std::endl;
+            //DrawTrack();
             ImprovedCluster();
             end_pt = GetFurtherFromVertex();
-            std::cout << "end_pt : (" << end_pt.X() << "," << end_pt.Y() << "," << end_pt.Z() << ")" << std::endl;
-            _vertexEndPoints.push_back(end_pt);
-            std::vector<TVector3> limitPoints;
-            limitPoints.push_back(start_pt);
-            limitPoints.push_back(end_pt);
-            hit_image_v = CropFullImage2bounds(limitPoints);
-            //if(_3DTrack.size()!=0)_3DTrack.clear();
-            //Reconstruct();
-            //Make3DpointList();
             SortAndOrderPoints();
+            std::cout << "_3DTrack.size() : " << _3DTrack.size() << std::endl;
             RegularizeTrack();
             ComputeLength();
-            if(_Length3D < trackMinLength){MaskTrack();continue;}
-
-            //std::vector<TVector3> firstTrackBit = _3DTrack;
-            //_vertexTracks.push_back(_3DTrack);
-            //_track++;
-            //DrawTrack();
-            //MaskTrack();
-            // check and see if the further point is actually the end of the track?
-            //TVector3 vertexPoint = start_pt;
-            //start_pt = _3DTrack.back();
-            //ImprovedCluster();
-            //end_pt = GetFurtherFromVertex();
-            //std::cout << "end_pt : (" << end_pt.X() << "," << end_pt.Y() << "," << end_pt.Z() << ")" << std::endl;
-            //_vertexEndPoints.push_back(end_pt);
-            //limitPoints.push_back(start_pt);
-            //limitPoints.push_back(end_pt);
-            //hit_image_v = CropFullImage2bounds(limitPoints);
-            //if(_3DTrack.size()!=0)_3DTrack.clear();
-            //Reconstruct();
-            //Make3DpointList();
-            //RegularizeTrack();
-            //ComputeLength();
-
-            //SortAndOrderPoints();
-            //for(int iNode = 0;iNode<_3DTrack.size();iNode++){
-            //    firstTrackBit.push_back(_3DTrack[iNode]);
-            //}
-            //_3DTrack = firstTrackBit;
-            //ComputeLength();
-            //if(_Length3D < trackMinLength){MaskTrack();continue;}
-            //start_pt = vertexPoint; // reset start point to the original vertex point
-
-            _vertexTracks.push_back(_3DTrack);
-            MaskTrack();
             _track++;
-        }
+            //DrawTrack();
+            //if(_Length3D < 0.5*trackMinLength){MaskTrack();start_pt = vertexPoint;continue;}
+            //_3DTrack.push_back(end_pt);
+            for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+                firstTrackBit.push_back(_3DTrack[iNode]);
+            }
+            _3DTrack = firstTrackBit;
+            ComputeLength();
+            if(_Length3D > trackMinLength){
+                _vertexEndPoints.push_back(end_pt);
+                std::cout << "adding last bi of track to the end : _vertexTracks.size() = " << _vertexTracks.size() << std::endl;
+                if(_vertexTracks.size()>0)_vertexTracks.back()=_3DTrack;
+                else _vertexTracks.push_back(_3DTrack);
+            }
+            std::cout << "ok here?" << std::endl;
+            start_pt = vertexPoint;// reset start point to the original vertex point
+            MaskTrack();
+            _track++;*/
+        //}
         DrawVertex();
     }
     //______________________________________________________
@@ -620,7 +705,7 @@ namespace larcv {
             thisvertex.push_back(start_pt);
             hit_image_v = CropFullImage2bounds(thisvertex);
             SetTrackInfo(_run, _subrun, _event, _track);
-            ReconstructVertex();
+            ConstructVertex();
             std::cout << std::endl << std::endl;
         }
 
@@ -637,12 +722,11 @@ namespace larcv {
         ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
-        double rmax = 10;
-        //int iterMax = 100000;
+        double rmax = 6;
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
-        while(foundNewPoint /*&& iter < iterMax*/ && terminate == false){
+        while(foundNewPoint && terminate == false){
             foundNewPoint = false;
             iter++;
             for(int i = 0;i<10000;i++){
@@ -697,7 +781,7 @@ namespace larcv {
                             || x_proj < 10
                             || y_proj < 10)){ReallyTerminate = true;}
                     }
-                    if(!ReallyTerminate && Ncrop < 100){
+                    if(!ReallyTerminate && Ncrop < 20){
                         std::cout << "cropping " << Ncrop << "th time" << std::endl;
                         hit_image_v = CropFullImage2bounds(list3D);
                         Ncrop++;
@@ -722,12 +806,23 @@ namespace larcv {
         }
     }
     //______________________________________________________
+    void AStarTracker::PreSortAndOrderPoints(){
+        TVector3 FurtherFromVertex = GetFurtherFromVertex();
+        std::vector<TVector3> newTrack;
+        newTrack.push_back(start_pt);
+        for(int iNode=0;iNode<_3DTrack.size();iNode++){
+            if((_3DTrack[iNode]-FurtherFromVertex).Mag() < (newTrack.back()-FurtherFromVertex).Mag()){newTrack.push_back(_3DTrack[iNode]);}
+        }
+        _3DTrack = newTrack;
+    }
+    //______________________________________________________
     void AStarTracker::SortAndOrderPoints(){
         // try and get a "track"
         //(1) find point further away from the vertex
         //(2) for each point, look for closest point, which stays the closest to the "current point -> end point line"
         //(3) add this point to the track
         //(4) start again
+        PreSortAndOrderPoints();
         TVector3 FurtherFromVertex;
         double dist2vertex = 0;
         for(int iNode = 0;iNode<_3DTrack.size();iNode++){
@@ -1212,6 +1307,7 @@ namespace larcv {
         c->SaveAs(Form("png/%s.png",c->GetName()));
         for(int iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
+            hTagImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
         }
         std::cout << "vertex drawn OK" << std::endl;
@@ -1309,6 +1405,8 @@ namespace larcv {
         _3DTrack = newTrack;
         }
 
+        std::cout << "RegularizeTrack() 1" << std::endl;
+
         if(newTrack.size() != 0)newTrack.clear();
         double dist;
         double distMin;
@@ -1332,7 +1430,7 @@ namespace larcv {
             newTrack.push_back(newPoint);
         }
         _3DTrack=newTrack;
-
+        std::cout << "RegularizeTrack() 2" << std::endl;
         // make sure I don't have a point that "goes back" w.r.t. the previously selected point and the next one in the _3Dtrack
         newTrack.clear();
         newTrack.push_back(_3DTrack[0]);
@@ -1341,18 +1439,19 @@ namespace larcv {
             if(angle > -0.5) newTrack.push_back(_3DTrack[iNode]);
         }
         _3DTrack = newTrack;
+        std::cout << "RegularizeTrack() 3" << std::endl;
 
         // remove strange things arount the vertex point
         if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
         if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
-
+        std::cout << "RegularizeTrack() 4" << std::endl;
         // remove "useless" points that are parts of straight portions and too close to previous points
         std::vector<TVector3> newPoints;
         int oldNumPoints = _3DTrack.size();
         bool removedPoint = true;
         int iteration = 0;
         double distMax = 0.5;
-        double distLastPoint = 1;
+        double distLastPoint = 0.5;
         while(removedPoint == true && iteration<100){
             removedPoint =false;
             iteration++;
@@ -1371,14 +1470,19 @@ namespace larcv {
             newPoints.push_back(_3DTrack[_3DTrack.size()-1]);
             _3DTrack = newPoints;
         }
+        std::cout << "RegularizeTrack() 5" << std::endl;
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
     }
     //______________________________________________________
     void AStarTracker::ComputeLength(){
+        std::cout << "ComputeLength()" << std::endl;
         _Length3D = 0;
-        for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
-            _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
+        if(_3DTrack.size()>2){
+            for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
+                _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
+            }
         }
+        std::cout << _Length3D << " cm " << std::endl;
     }
 
 
