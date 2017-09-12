@@ -118,6 +118,8 @@ namespace larcv {
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
         void MaskTrack();
+        void DiagnoseVertex();
+        void DiagnoseTrack();
 
         bool initialize();
         bool finalize();
@@ -189,6 +191,12 @@ namespace larcv {
         int _eventTreated;
         int _eventSuccess;
         int _verbose;
+        int _deadWireValue;
+
+        //int _kTooShortDeadWire;
+        //int _ktooShortThinTrack;
+        //int _kMissingTrack;
+        //int _kGoodEnd;
 
         double _ADCthreshold;
         double _speedOffset;
@@ -196,6 +204,10 @@ namespace larcv {
         double GetDist2line(TVector3 A, TVector3 B, TVector3 C);
 
         bool _DrawOutputs;
+        bool _missingTrack;
+        bool _notingReconstructed;
+        bool _tooShortDeadWire;
+        bool _tooShortThinTrack;
 
         TH1D *hdQdx;
         TH1D *hdQdxEntries;
@@ -209,6 +221,8 @@ namespace larcv {
         //TH2D *hdQdX2DNorm;
         TH2D *hAngleLengthGeneral;
         TH1D *hDist2point;
+
+        //std::vector<int> _endPointsStatus;
 
         std::vector< std::vector<double> > _dQdx;
 
