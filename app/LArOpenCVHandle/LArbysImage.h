@@ -45,13 +45,15 @@ namespace larcv {
 		  uint& run, uint& subrun, uint& event, uint& entry);
             
     
-    virtual bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
-			     const std::vector<larcv::Image2D>& track_image_v,
-			     const std::vector<larcv::Image2D>& shower_image_v,
-			     const std::vector<larcv::Image2D>& thrumu_image_v,
-			     const std::vector<larcv::Image2D>& stopmu_image_v,
-			     const std::vector<larcv::Image2D>& chstat_image_v);
+    bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
+		     const std::vector<larcv::Image2D>& track_image_v,
+		     const std::vector<larcv::Image2D>& shower_image_v,
+		     const std::vector<larcv::Image2D>& thrumu_image_v,
+		     const std::vector<larcv::Image2D>& stopmu_image_v,
+		     const std::vector<larcv::Image2D>& chstat_image_v);
 
+    virtual void Process();
+    
     bool StoreParticles(IOManager& iom,
 			const std::vector<larcv::Image2D>& adcimg_v,
 			size_t& pidx);
@@ -113,6 +115,7 @@ namespace larcv {
     std::vector<larcv::Image2D> _empty_image_v;
     std::vector<larcv::Image2D> _thrumu_image_v;
     std::vector<larcv::Image2D> _stopmu_image_v;
+    ROI _current_roi;
 
   };
 

@@ -35,6 +35,7 @@
 
 #pragma link C++ class larcv::LArbysImage+;
 #pragma link C++ class larcv::LArbysImageCheater+;
+#pragma link C++ class larcv::LArbysImageReAna+;
 
 #pragma link C++ class larcv::BadRegionAna+;
 #pragma link C++ class larcv::SegmentFilter+;

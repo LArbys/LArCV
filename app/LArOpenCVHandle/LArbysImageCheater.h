@@ -14,21 +14,17 @@ namespace larcv {
 
     void SetIOManager(IOManager* mgr);
     void SetTrueROIProducer(const std::string& true_prod);
-
+    
   protected:
-    
-    bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
-		     const std::vector<larcv::Image2D>& track_image_v,
-		     const std::vector<larcv::Image2D>& shower_image_v,
-		     const std::vector<larcv::Image2D>& thrumu_image_v,
-		     const std::vector<larcv::Image2D>& stopmu_image_v,
-    		     const std::vector<larcv::Image2D>& chstat_image_v);
-    
+
+    void Process();
+
   private:
     
     ::larutil::SpaceChargeMicroBooNE _sce;
     IOManager* _mgr;
     std::string _true_prod;
+
   };
 
   /**
