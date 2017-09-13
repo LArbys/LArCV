@@ -17,7 +17,10 @@ namespace larcv {
     void initialize();
     bool process(IOManager& mgr);
     void finalize();
-    void SetROIIndex(int index) { _croi_idx = index; }
+    void SetROIIndex(int index) { 
+      _croi_idx = index; 
+      LARCV_DEBUG() << "set _croi_idx=" << _croi_idx;
+    }
     
   private:
     ::larutil::SpaceChargeMicroBooNE _sce;
@@ -27,6 +30,7 @@ namespace larcv {
     std::string _output_roi_producer;
     uint _planes_inside_threshold;
     int _croi_idx;
+
   };
 
   class VertexInROIProcessFactory : public ProcessFactoryBase {
