@@ -15,7 +15,8 @@ namespace larcv {
   
   LArbysImageReAna::LArbysImageReAna(const std::string name) :
     LArbysImage(),
-    _mgr(nullptr)
+    _mgr(nullptr),
+    _vertexid(kINVALID_SIZE)
   {}
   
   void LArbysImageReAna::SetIOManager(IOManager* mgr) {
@@ -54,8 +55,12 @@ namespace larcv {
     }
     
     bool this_roi = true;
-    LARCV_DEBUG() << "@ see " << ev_pgraph->PGraphArray().size() << " event vertex" << std::endl;
+    LARCV_DEBUG() << "...see " << ev_pgraph->PGraphArray().size() << " event vertex" << std::endl;
+
     for(size_t pidx=0; pidx < ev_pgraph->PGraphArray().size(); ++pidx) {
+      if (_vertexid != kINVALID_SIZE && pidx != _vertexid) continue;
+      LARCV_DEBUG() << "...accepted @pidx=" << pidx << std::endl;
+
       const auto& pgraph = ev_pgraph->PGraphArray().at(pidx);
       const auto& meta_v = pgraph.ParticleArray().front().BB();
 
@@ -69,7 +74,7 @@ namespace larcv {
 	}
       }
       if(!this_roi) continue;
-
+      LARCV_DEBUG() << "...same meta" << std::endl;
       auto x = pgraph.ParticleArray().front().X();
       auto y = pgraph.ParticleArray().front().Y();
       auto z = pgraph.ParticleArray().front().Z();
@@ -111,10 +116,17 @@ namespace larcv {
 
   void LArbysImageReAna::SetPGraphProducer(const std::string& pgraph_prod) {
     _pgraph_prod = pgraph_prod;
+    LARCV_DEBUG() << "Setting pgraph producer " << _pgraph_prod << std::endl;
   }
 
   void LArbysImageReAna::SetPixel2DProducer(const std::string& pixel2d_prod) {
     _pixel2d_prod = pixel2d_prod;
+    LARCV_DEBUG() << "Setting pixel2d producer " << _pixel2d_prod << std::endl;
+  }
+
+  void LArbysImageReAna::SetVertexID(int vertexid) {
+    _vertexid = (size_t)vertexid;
+    LARCV_DEBUG() << "Setting vertexid producer " << _vertexid << std::endl;
   }
   
 }

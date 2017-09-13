@@ -14,6 +14,7 @@ namespace larcv {
     void SetIOManager(IOManager* mgr);
     void SetPGraphProducer(const std::string& pgraph_prod);
     void SetPixel2DProducer(const std::string& pixel2d_prod);
+    void SetVertexID(int vertexid);
     
   protected:
     void Process();
@@ -22,6 +23,7 @@ namespace larcv {
     IOManager* _mgr;
     std::string _pgraph_prod;
     std::string _pixel2d_prod;
+    size_t _vertexid;
 
   };
 
