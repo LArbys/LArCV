@@ -16,6 +16,7 @@ namespace larcv {
   {
     _ref_producer=cfg.get<std::string>("RefProducer");
     _ref_type=cfg.get<size_t>("RefType");
+    _remove_duplicate=cfg.get<int>("RemoveDuplicate",0);
     
     auto file_path=cfg.get<std::string>("CSVFilePath");
     auto format=cfg.get<std::string>("Format","II");
@@ -46,12 +47,13 @@ namespace larcv {
 
     bool keepit = (itr != _rse_m.end());
     LARCV_INFO() << "Event key: " << ptr->event_key() << " ... keep it? " << keepit << std::endl;
-
+    bool duplicate = false;
     if(keepit) {
-      if((*itr).second) LARCV_WARNING() << "Run " << rse.run << " Event " << rse.event << " is duplicated!!!" << std::endl;
+      duplicate = (*itr).second;
+      if(duplicate) LARCV_WARNING() << "Run " << rse.run << " Event " << rse.event << " is duplicated!!!" << std::endl;
       (*itr).second = true;
     }
-    
+    if(duplicate && _remove_duplicate) return false;
     return keepit;
   }
 
