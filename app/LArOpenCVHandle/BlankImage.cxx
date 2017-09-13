@@ -35,6 +35,7 @@ namespace larcv {
       Image2D copy_img(img.meta());
       copy_img.paint(_pix_value);
       event_out_image->Emplace(std::move(copy_img));
+      LARCV_DEBUG() << "Emplace " << event_out_image->Image2DArray().size() << std::endl;
     }
     LARCV_INFO() << "Wrote " << event_out_image->Image2DArray().size() << std::endl;
     return true;

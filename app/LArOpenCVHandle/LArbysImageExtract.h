@@ -34,6 +34,11 @@ namespace larcv {
     const cv::Mat& ShowerImage(size_t planeid) const { return _shower_mat_v[planeid]; }
     const cv::Mat& ThruMuImage(size_t planeid) const { return _thrumu_mat_v[planeid]; }
     const cv::Mat& StopMuImage(size_t planeid) const { return _stopmu_mat_v[planeid]; }
+
+
+    const std::vector<ROI>& TrueROI() const { return _true_roi_v; }
+    const std::vector<ROI>& RecoROI() const { return _reco_roi_v; }
+    
     
     const LArbysImageMaker& maker() const { return _LArbysImageMaker; }
     const PreProcessor& pproc() const { return _PreProcessor; }
@@ -46,10 +51,16 @@ namespace larcv {
     std::string _shower_producer;
     std::string _thrumu_producer;
     std::string _stopmu_producer;
+    std::string _true_roi_producer;
+    std::string _reco_roi_producer;
     
     LArbysImageMaker _LArbysImageMaker;
     PreProcessor _PreProcessor;
 
+    // The ROIs
+    std::vector<ROI> _true_roi_v;
+    std::vector<ROI> _reco_roi_v;
+    
     // The images
     std::vector<larocv::ImageMeta> _adc_meta_v;
     std::vector<cv::Mat> _adc_mat_v;

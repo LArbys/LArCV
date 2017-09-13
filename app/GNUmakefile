@@ -26,7 +26,7 @@ endif
 endif
 
 ifdef LAROPENCV_BASEDIR
-SUBDIRS += NuFilter LArOpenCVHandle
+SUBDIRS += LArOpenCVHandle
 endif
 
 #####################################################################################

@@ -2,7 +2,11 @@
 #define PREPROCESSOR_H
 
 #include "Base/larcv_base.h"
+#ifndef __CLING__
+#ifndef __CINT__
 #include <opencv2/opencv.hpp>
+#endif
+#endif
 #include "Base/PSet.h"
 #include "LArOpenCV/ImageCluster/AlgoClass/PixelChunk.h"
 
@@ -41,7 +45,12 @@ namespace larcv {
     MergeStraightShowers(cv::Mat& adc_img,
 			 cv::Mat& track_img,
 			 cv::Mat& shower_img);
-    
+   
+    void
+    MergeEndNubs(cv::Mat& adc_img,
+                 cv::Mat& track_img,
+                 cv::Mat& shower_img);
+  
   private:
     bool
     OverallStraightCompatible(const larocv::PixelChunk& pchunk1,
@@ -96,7 +105,10 @@ namespace larcv {
     uint _min_merge_track_shower_dist;
     double _allowed_merge_neighbor_dist;
     double _allowed_edge_overlap;
-    
+    bool _merge_end_nubs;
+    uint _end_nub_max_pixels;
+    uint _min_track_pixels;
+  
   };
 }
 #endif

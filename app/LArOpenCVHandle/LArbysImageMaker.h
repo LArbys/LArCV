@@ -7,10 +7,13 @@
 #include "DataFormat/IOManager.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventPixel2D.h"
-
-#include <opencv2/opencv.hpp>
 #include <tuple>
 
+#ifndef __CLING__
+#ifndef __CINT__
+#include <opencv2/opencv.hpp>
+#endif
+#endif
 
 namespace larcv {
   class LArbysImageMaker : public larcv_base {
@@ -37,20 +40,23 @@ namespace larcv {
     ExtractImage(const std::vector<Image2D>& image_v);
     
 
-    Image2D
-    ConstructCosmicImage(const EventPixel2D* ev_pixel2d,
-			 const Image2D& adc_image,
-			 const size_t plane,
-			 float value=100);
+    Image2D ConstructCosmicImage(const EventPixel2D& ev_pixel2d,
+				 const Image2D& adc_image,
+				 const size_t plane,
+				 float value=100);
 
-    Image2D
-    ConstructCosmicImage(const EventPixel2D& ev_pixel2d,
-			 const Image2D& adc_image,
-			 const size_t plane,
-			 float value=100);
-
+  Image2D ConstructCosmicImage(const EventPixel2D* ev_pixel2d,
+			       const Image2D& adc_image,
+			       const size_t plane,
+			       float value);
     
-  private:
+    void ConstructCosmicImage(IOManager& mgr,
+			      std::string producer,
+			      ProductType_t datatype, 
+			      const std::vector<larcv::Image2D>& adc_image_v,
+			      std::vector<larcv::Image2D>& mu_image_v);
+    
+  public:
 
     float _charge_max;
     float _charge_min;

@@ -17,8 +17,13 @@ namespace larcv {
     _adc_producer    = cfg.get<std::string>("ADCImageProducer");
     _track_producer  = cfg.get<std::string>("TrackImageProducer","");
     _shower_producer = cfg.get<std::string>("ShowerImageProducer","");
+
     _thrumu_producer = cfg.get<std::string>("ThruMuProducer","");
     _stopmu_producer = cfg.get<std::string>("StopMuProducer","");
+
+    _reco_roi_producer = cfg.get<std::string>("RecoROIProducer","");
+    _true_roi_producer = cfg.get<std::string>("TrueROIProducer","");
+    
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
     _PreProcessor.Configure(cfg.get<larcv::PSet>("PreProcessor"));
   }
@@ -71,6 +76,22 @@ namespace larcv {
       }
       
     }
+
+    EventROI* ev_reco_roi = nullptr;
+    if(!_reco_roi_producer.empty()) {
+      ev_reco_roi = (EventROI*)mgr.get_data(kProductROI,_reco_roi_producer);
+      if(!ev_reco_roi) throw larbys("Unable to fetch ROI producer");
+      _reco_roi_v = ev_reco_roi->ROIArray();
+    }
+
+
+    EventROI* ev_true_roi = nullptr;
+    if(!_reco_roi_producer.empty()) {
+      ev_true_roi = (EventROI*)mgr.get_data(kProductROI,_true_roi_producer);
+      if(!ev_true_roi) throw larbys("Unable to fetch ROI producer");
+      _true_roi_v = ev_true_roi->ROIArray();
+    }
+
     
     FillcvMat();
     return true;

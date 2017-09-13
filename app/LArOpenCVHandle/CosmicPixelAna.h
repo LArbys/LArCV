@@ -4,6 +4,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "LArbysImageMaker.h"
+#include "LArUtil/SpaceChargeMicroBooNE.h"
 
 namespace larcv {
 
@@ -42,8 +43,14 @@ namespace larcv {
     std::string _seg_img2d_prod;
     std::string _thrumu_img_prod;
     std::string _stopmu_img_prod;
+    std::string _true_roi_prod;
     std::string _roi_prod;
-
+    size_t _crop_radius;
+    ProductType_t _tags_datatype;
+    
+    //
+    // Neutrino
+    //
     int _nupixel0;
     int _nupixel1;
     int _nupixel2;
@@ -65,8 +72,39 @@ namespace larcv {
     float _ratiopixelsum;
     float _ratiopixelavg;
 
-    //add SSNet variables
+
+    //
+    // Vertex
+    //
+    larutil::SpaceChargeMicroBooNE _sce;
     
+    int _vertex_nupixel0;
+    int _vertex_nupixel1;
+    int _vertex_nupixel2;
+
+    int _vertex_cosmicpixel0;
+    int _vertex_cosmicpixel1;
+    int _vertex_cosmicpixel2;
+    
+    float _vertex_ratiopixel0;
+    float _vertex_ratiopixel1;
+    float _vertex_ratiopixel2;
+
+    float _vertex_nupixelsum;
+    float _vertex_nupixelavg;
+
+    float _vertex_cosmicpixelsum;
+    float _vertex_cosmicpixelavg;
+    
+    float _vertex_ratiopixelsum;
+    float _vertex_ratiopixelavg;
+
+
+    //
+    //
+    //
+    int _nearest_wire_error;
+    int _not_inside;
   };
 
   /**

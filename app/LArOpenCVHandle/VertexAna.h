@@ -4,6 +4,7 @@
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "LArUtil/SpaceChargeMicroBooNE.h"
+
 #include <TTree.h>
 #include <math.h>
 #include <numeric>
@@ -100,7 +101,9 @@ namespace larcv {
     bool _use_scedr;
 
   private:
-    void Clear();
+    
+    void ClearEvent();
+    void ClearVertex();
 
   };
 

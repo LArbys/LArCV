@@ -3,7 +3,12 @@
 
 #include "Base/larcv_base.h"
 #include "Base/PSet.h"
+#ifndef __CLING__
+#ifndef __CINT__
 #include <opencv2/opencv.hpp>
+#endif
+#endif
+
 namespace larcv {
   class PostTagger : public larcv_base {
 

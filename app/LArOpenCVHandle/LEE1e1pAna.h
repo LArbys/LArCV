@@ -32,6 +32,7 @@ namespace larcv {
   private:
 
     TTree* _tree;
+
     int _entry;
     int _run;
     int _subrun;
@@ -84,6 +85,9 @@ namespace larcv {
     std::string _pcluster_img_prod;
     std::string _truth_roi_prod;  
     std::string _reco_roi_prod;    
+
+    void ClearEvent();
+    void ClearVertex();
     
   };
 

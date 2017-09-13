@@ -31,11 +31,11 @@ namespace larcv {
 
     float width   = bb.width()  + col_pad*bb.pixel_width();
     float height  = bb.height() + row_pad*bb.pixel_height();
-    uint  rows    = bb.rows()   + row_pad;
-    uint  cols    = bb.cols()   + col_pad;
+    unsigned int  rows    = bb.rows()   + row_pad;
+    unsigned int  cols    = bb.cols()   + col_pad;
     float originx = bb.tl().x   - col_pad/2.0;
     float originy = bb.tl().y   - row_pad/2.0;
-    uint  plane   = bb.plane();
+    unsigned int  plane   = bb.plane();
     
     ImageMeta bb_copy(width, height, rows, cols, originx, originy, plane);
 

@@ -91,7 +91,6 @@ namespace larcv {
 
   bool LEE1e1pAna::process(IOManager& mgr)
   {
-
     auto const ev_img2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_img2d_prod));
     if (!ev_img2d) throw larbys("Invalid image producer provided");
     
@@ -114,6 +113,8 @@ namespace larcv {
     auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
     if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
 
+    ClearEvent();
+    
     _run    = ev_img2d->run();
     _subrun = ev_img2d->subrun();
     _event  = ev_img2d->event();
@@ -130,8 +131,10 @@ namespace larcv {
       roid_v.push_back(crop_metas(adc_img_v,bb_v));
     }
 
+    
     _nprotons = 0;
     _nothers  = 0;
+    /*
     for (auto const& truth_roi : ev_roi_v->ROIArray() ) {
       if ( truth_roi.PdgCode()==2212 ) {
 	if ( (truth_roi.EnergyInit()-938.0)>60.0 )
@@ -141,7 +144,8 @@ namespace larcv {
 	_nothers++;
       }
     }
-
+    */
+    
     auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
     
@@ -152,9 +156,11 @@ namespace larcv {
     auto vtx_counts = ev_pgraph->PGraphArray().size();
 	
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
-    for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
+    for (int vtx_idx = 0; vtx_idx < (int)vtx_counts; ++vtx_idx) {
+      ClearVertex();
+
       _vtxid += 1;
-	
+
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
       auto const& roi_v = pgraph.ParticleArray();
       
@@ -278,6 +284,54 @@ namespace larcv {
     return true;
   }
 
+  void LEE1e1pAna::ClearEvent() {
+    _vtxid = kINVALID_INT;
+
+    _nprotons = kINVALID_INT;
+    _nothers = kINVALID_INT;
+    
+    ClearVertex();
+  }
+  
+  void LEE1e1pAna::ClearVertex() {
+
+    _score0.clear();
+    _score1.clear();
+    
+    _shape0 = kINVALID_INT;
+    _shape1 = kINVALID_INT;
+    
+    _score_shower0 = kINVALID_DOUBLE;
+    _score_shower1 = kINVALID_DOUBLE;
+
+    _score_track0 = kINVALID_DOUBLE;
+    _score_track1 = kINVALID_DOUBLE;
+
+    _score0_e = kINVALID_DOUBLE;
+    _score0_g = kINVALID_DOUBLE;
+    _score0_pi = kINVALID_DOUBLE;
+    _score0_mu = kINVALID_DOUBLE;
+    _score0_p = kINVALID_DOUBLE;
+
+    _score1_e  = kINVALID_DOUBLE;
+    _score1_g = kINVALID_DOUBLE;
+    _score1_pi = kINVALID_DOUBLE;
+    _score1_mu = kINVALID_DOUBLE;
+    _score1_p = kINVALID_DOUBLE;
+
+    _npx0 = kINVALID_INT;
+    _npx1 = kINVALID_INT;
+    
+    _q0 = kINVALID_DOUBLE;
+    _q1 = kINVALID_DOUBLE;
+
+    _area0 = kINVALID_DOUBLE;
+    _area1 = kINVALID_DOUBLE;
+
+    _len0 = kINVALID_DOUBLE;
+    _len1 = kINVALID_DOUBLE;
+  }
+  
   void LEE1e1pAna::finalize()
   {
     if(has_ana_file()) {

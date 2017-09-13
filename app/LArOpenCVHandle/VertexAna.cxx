@@ -74,17 +74,20 @@ namespace larcv {
     _event_tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
 
     _tree = new TTree("VertexTree","");
+
     _tree->Branch("run",&_run,"run/I");
     _tree->Branch("subrun",&_subrun,"subrun/I");
     _tree->Branch("event",&_event,"event/I");
     _tree->Branch("entry",&_entry,"entry/I");
     _tree->Branch("roid",&_roid,"roid/I");
     _tree->Branch("vtxid",&_vtxid,"vtxid/I");
+
     _tree->Branch("tx",&_tx,"tx/D");
     _tree->Branch("ty",&_ty,"ty/D");
     _tree->Branch("tz",&_tz,"tz/D");
     _tree->Branch("te",&_te,"te/D");
     _tree->Branch("tt",&_tt,"tt/D");
+
     _tree->Branch("scex",&_scex,"scex/D");
     _tree->Branch("scey",&_scey,"scey/D");
     _tree->Branch("scez",&_scez,"scez/D");
@@ -95,7 +98,7 @@ namespace larcv {
     _tree->Branch("dr",&_dr,"dr/D");
     _tree->Branch("scedr",&_scedr,"scedr/D");
     _tree->Branch("npar",&_npar,"npar/I");
-
+    
     _tree->Branch("nearest_wire_err",&_nearest_wire_err,"nearest_wire_err/I");
     _tree->Branch("in_fiducial",&_in_fiducial,"in_fiducial/I");
 	
@@ -105,15 +108,15 @@ namespace larcv {
     _tree->Branch("scedx",    &_scedx);
     _tree->Branch("scedy",    &_scedy);    
     _tree->Branch("scedz",    &_scedz);
-
+    
   }
 
   bool VertexAna::process(IOManager& mgr)
   {
 
 
-    Clear();
-
+    ClearEvent();
+    
     bool has_mc = false;
     bool has_reco_vtx = false;
 
@@ -266,6 +269,7 @@ namespace larcv {
 
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
     for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
+      ClearVertex();
       _vtxid += 1;
 
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
@@ -326,7 +330,7 @@ namespace larcv {
     }
   }
 
-  void VertexAna::Clear() {
+  void VertexAna::ClearEvent() {
 
     // Indices
     _entry = kINVALID_INT;
@@ -372,8 +376,37 @@ namespace larcv {
 
     _in_fiducial = false;
 
+    _vtxid = kINVALID_INT;
 
+    _nprotons = kINVALID_INT;
+    _nothers = kINVALID_INT;
+    
+    ClearVertex();
   }
 
+  void VertexAna::ClearVertex() {
+    _x = kINVALID_DOUBLE;
+    _y = kINVALID_DOUBLE;
+    _z = kINVALID_DOUBLE;
+
+    _dx = kINVALID_DOUBLE;
+    _dy = kINVALID_DOUBLE;
+    _dz = kINVALID_DOUBLE;
+
+    _dr = kINVALID_DOUBLE;
+
+    _scedx = kINVALID_DOUBLE;
+    _scedy = kINVALID_DOUBLE;
+    _scedz = kINVALID_DOUBLE;
+
+    _scedr = kINVALID_DOUBLE;
+
+    _npar = kINVALID_INT;
+
+    _in_fiducial = kINVALID_INT;
+    
+    
+  }
+  
 }
 #endif

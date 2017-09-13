@@ -22,7 +22,7 @@ namespace larcv {
     LArbysImage(const std::string name="LArbysImage");
     
     /// Default destructor
-    ~LArbysImage(){}
+    virtual ~LArbysImage(){}
 
     void configure(const PSet&);
 
@@ -40,26 +40,24 @@ namespace larcv {
   protected:
 
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
-    void get_rsee(IOManager& mgr,std::string producer,
+
+    void get_rsee(IOManager& mgr, std::string producer,
 		  uint& run, uint& subrun, uint& event, uint& entry);
             
-    void construct_cosmic_image(IOManager& mgr, std::string producer,
-				const std::vector<larcv::Image2D>& adc_image_v,
-				std::vector<larcv::Image2D>& mu_image_v);
-
+    
     bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
 		     const std::vector<larcv::Image2D>& track_image_v,
 		     const std::vector<larcv::Image2D>& shower_image_v,
 		     const std::vector<larcv::Image2D>& thrumu_image_v,
 		     const std::vector<larcv::Image2D>& stopmu_image_v,
-    		     const std::vector<larcv::Image2D>& chstat_image_v);
+		     const std::vector<larcv::Image2D>& chstat_image_v);
 
+    virtual void Process();
+    
     bool StoreParticles(IOManager& iom,
 			const std::vector<larcv::Image2D>& adcimg_v,
 			size_t& pidx);
 
-    TTree* _tree;
-    
     larocv::ImageClusterManager _alg_mgr;
     larocv::ImageManager _adc_img_mgr;
     larocv::ImageManager _track_img_mgr;
@@ -67,6 +65,8 @@ namespace larcv {
     larocv::ImageManager _thrumu_img_mgr;
     larocv::ImageManager _stopmu_img_mgr;
     larocv::ImageManager _chstat_img_mgr;
+
+    ::fcllite::PSet _image_cluster_cfg;
 
     bool _debug;
     bool _preprocess;
@@ -78,11 +78,12 @@ namespace larcv {
     std::string _output_module_name;
     size_t _output_module_offset;
     
-    std::vector<float> _plane_weights;
+    std::string _rse_producer;
     std::string _adc_producer;
     std::string _roi_producer;
     std::string _track_producer;
     std::string _shower_producer;
+    ProductType_t _tags_datatype;
     std::string _thrumu_producer;
     std::string _stopmu_producer;
     std::string _channel_producer;
@@ -90,10 +91,12 @@ namespace larcv {
 
     std::string _vertex_algo_name;
     std::string _par_algo_name;
+    std::string _3D_algo_name;
     
     larocv::AlgorithmID_t _vertex_algo_id;
     larocv::AlgorithmID_t _par_algo_id;
-
+    larocv::AlgorithmID_t _3D_algo_id;
+    
     size_t _vertex_algo_vertex_offset;
     size_t _par_algo_par_offset;
     
@@ -112,6 +115,7 @@ namespace larcv {
     std::vector<larcv::Image2D> _empty_image_v;
     std::vector<larcv::Image2D> _thrumu_image_v;
     std::vector<larcv::Image2D> _stopmu_image_v;
+    ROI _current_roi;
 
   };
 
