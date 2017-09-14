@@ -176,18 +176,12 @@ namespace larcv {
         tracker.SetOriginalImage(Full_image_v);
         tracker.SetTaggedImage(Tagged_Image);
         tracker.SetTrackInfo(run, subrun, event, 0);
-
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
             iTrack++;
-            //int i = iTrack;
             if(!IsGoodVertex(run,subrun,event,pgraph_id))continue;
 
             auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
-            //auto const& roi_v         = pgraph.ParticleArray();
-            //auto const& cluster_idx_v = pgraph.ClusterIndexArray();
-
-            //size_t nparticles = cluster_idx_v.size();
 
             //
             // Get Estimated 3D Start and End Points
@@ -203,6 +197,7 @@ namespace larcv {
             vertex_v.push_back(vertex);
 
         }
+        //tracker.SetEventVertices(MCVertices);
         tracker.SetEventVertices(vertex_v);
         tracker.ReconstructEvent();
         std::cout << std::endl << std::endl;

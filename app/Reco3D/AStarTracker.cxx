@@ -517,29 +517,43 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::MaskTrack(){
-        tellMe("MaskTrack()",1);
-        if(_vertexTracks.size()==0)return;
-        for(auto thisTrack : _vertexTracks){
-            if(thisTrack.size()==0)continue;
-            for(int iNode=1;iNode<thisTrack.size();iNode++){
+        tellMe("MaskTrack()",0);
+        double shellMask = 4;
+        if(_vertexTracks.size() == 0)return;
+        for(int itrack=0;itrack<_vertexTracks.size();itrack++){
+            if(_vertexTracks[itrack].size() < 2)continue;
+            for(int iNode = 0;iNode<_vertexTracks[itrack].size()-1; iNode++){
+                for(int iPlane = 0;iPlane<3;iPlane++){
+                    double x_proj,y_proj;
+                    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
+                    TVector3 A(x_proj,y_proj,0);
+                    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode+1].X(),_vertexTracks[itrack][iNode+1].Y(),_vertexTracks[itrack][iNode+1].Z(),0,iPlane,x_proj,y_proj);
+                    TVector3 B(x_proj,y_proj,0);
+                    for(int irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                        if(irow < std::min(A.Y()-20, B.Y()-20))continue;
+                        if(irow > std::max(A.Y()+20, B.Y()+20))continue;
 
-                //if((thisTrack[iNode]-start_pt).Mag() < 0.5) continue;
-                double x_proj,y_proj;
-                //double x_proj0,y_proj0;
-                for(int iPlane=0;iPlane<3;iPlane++){
-                    //ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode-1].X(),thisTrack[iNode-1].Y(),thisTrack[iNode-1].Z(),0,iPlane,x_proj0,y_proj0);
-                    ProjectTo3D(hit_image_v[iPlane].meta(),thisTrack[iNode].X(),thisTrack[iNode].Y(),thisTrack[iNode].Z(),0,iPlane,x_proj,y_proj);
-                    int shellMask = 3;
-                    if(x_proj > hit_image_v[iPlane].meta().cols()-(shellMask+1) || x_proj < (shellMask+1)) continue;
-                    if(y_proj > hit_image_v[iPlane].meta().rows()-(shellMask+1) || y_proj < (shellMask+1)) continue;
-                    for(int i = -shellMask;i<shellMask+1;i++){
-                        for(int j = -shellMask;j<shellMask+1;j++){
-                            hit_image_v[iPlane].set_pixel(y_proj+i,x_proj+j,0);
-                        }
-                    }
-                }
-            }
-        }
+                        for(int icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                            if(icol < std::min(A.X()-20, B.X()-20))continue;
+                            if(icol > std::max(A.X()+20, B.X()+20))continue;
+                            if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+                            double alphaCol = ((icol+0.5)-A.X())/(B.X()-A.X());
+                            double alphaRow = ((irow+0.5)-A.Y())/(B.Y()-A.Y());
+                            TVector3 pC((icol+0.5),(irow+0.5),0);
+
+                            if(alphaCol >= 0 && alphaCol <= 1 && alphaRow >= 0 && alphaRow <= 1){
+                                if(GetDist2line(A,B,pC) < shellMask){
+                                    hit_image_v[iPlane].set_pixel(irow,icol,0);
+                                }
+                            }
+                            if((pC-A).Mag() < shellMask || (pC-B).Mag() < 0.5*shellMask){
+                                hit_image_v[iPlane].set_pixel(irow,icol,0);
+                            }
+                        }//icol
+                    }// irow
+                }//iPlane
+            }//iNode
+        }//itrack
     }
     //______________________________________________________
     void AStarTracker::ReconstructVertex(){
@@ -601,17 +615,21 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ConstructTrack(){
-        double trackMinLength = 1.5;
+        //double trackMinLength = 1.5;
         ImprovedCluster();
         end_pt = GetFurtherFromVertex();
         SortAndOrderPoints();
         RegularizeTrack();
         ComputeLength();
-        if(_Length3D > trackMinLength){
+        if(_Length3D > 0){
             DiagnoseTrack();
             std::cout << "add track" << std::endl;
+            _3DTrack.push_back(end_pt);
             _vertexEndPoints.push_back(end_pt);
             _vertexTracks.push_back(_3DTrack);
+            ComputeLength();
+            ComputedQdX();
+            hLength->Fill(_Length3D);
         }
         else{std::cout << "xxxxx don't add track xxxxx" << std::endl;}
     }
@@ -622,12 +640,12 @@ namespace larcv {
         size_t newsize = 2;
 
         _missingTrack = false;
-        _notingReconstructed = false;
+        _nothingReconstructed = false;
         _tooShortDeadWire = false;
         _tooShortThinTrack = false;
 
-        double trackMinLength = 2;
-        if(_vertexTracks.size()!=0)_vertexTracks.clear();
+        if(_vertexTracks.size()   !=0)_vertexTracks.clear();
+        if(_vertexQDQX.size()     !=0)_vertexQDQX.clear();
         if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
         _vertexEndPoints.push_back(start_pt);
         while(newsize!=oldSize && newsize<9){
@@ -641,32 +659,48 @@ namespace larcv {
         }
         // at that point I should ahve all tracks that start at the vertex point
         TVector3 vertexPoint = start_pt;
-        for(int iEnd=0;iEnd<_vertexEndPoints.size();iEnd++){
-            std::cout << "end point " << iEnd << " / " << _vertexEndPoints.size() << std::endl;
-            start_pt = _vertexEndPoints[iEnd];
-            MaskTrack();
-            newsize = 1;
-            while(newsize!=oldSize && newsize<9){
-                oldSize = _vertexTracks.size();
-                ConstructTrack();
+        if(_vertexTracks.size()>1){
+            for(int iEnd=1;iEnd<_vertexEndPoints.size();iEnd++){
+                std::cout << "end point " << iEnd << " / " << _vertexEndPoints.size() << std::endl;
+                start_pt = _vertexEndPoints[iEnd];
                 MaskTrack();
-                if(_vertexTracks.size() == 0 && newsize!=1)newsize=1;
-                else{newsize = _vertexTracks.size();}
-                _track++;
-                //DrawTrack();
+                newsize = 1;
+                while(newsize!=oldSize && newsize<9){
+                    oldSize = _vertexTracks.size();
+                    ConstructTrack();
+                    if(_vertexTracks.size() != oldSize)MaskTrack();
+                    if(_vertexTracks.size() == 0 && newsize!=1)newsize=1;
+                    else{newsize = _vertexTracks.size();}
+                    _track++;
+                    //DrawTrack();
+                }
             }
         }
         start_pt = vertexPoint;
+        //std::vector<std::vector<TVector3> > newVertex;
+        /*for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+            bool trackOK = true;
+            for(int jtrack = 0;jtrack<newVertex.size();jtrack++){
+                if(IsTrackIn(_vertexTracks[itrack],newVertex[jtrack])){
+                    trackOK = false;
+                }
+            }
+            if(trackOK){newVertex.push_back(_vertexTracks[itrack]);}
+        }*/
+        //_vertexTracks = newVertex;
         DiagnoseVertex();
         DrawVertex();
     }
     //______________________________________________________
     void AStarTracker::DiagnoseVertex(){
-        if(_vertexTracks.size() == 0)_notingReconstructed = true; // if no track reconstructed, probably wrong
+        tellMe("DiagnoseVertex()",0);
+        if(_vertexTracks.size() == 0)_nothingReconstructed = true; // if no track reconstructed, probably wrong
         if(_vertexTracks.size() == 1)_missingTrack = true;        // if only one track, I obviously miss one? rough labelling
 
         // find events for which the track is too small because of dead wires
+        hit_image_v = CropFullImage2bounds(_vertexEndPoints);
         for(int iEnd = 0;iEnd<_vertexEndPoints.size();iEnd++){
+            std::cout << "_vertexEndPoints[" << iEnd << "/" << _vertexEndPoints.size() << "] = (" << _vertexEndPoints[iEnd].X() << "," << _vertexEndPoints[iEnd].Y() << "," << _vertexEndPoints[iEnd].Z() << ")" << std::endl;
             std::vector< std::vector<double> > projections(3);
             double x_pixel,y_pixel;
             for(int iPlane=0;iPlane<3;iPlane++){
@@ -696,7 +730,7 @@ namespace larcv {
     void AStarTracker::DiagnoseTrack(){
         tellMe("DiagnoseTrack",0);
         _missingTrack = false;
-        _notingReconstructed = false;
+        _nothingReconstructed = false;
         _tooShortDeadWire = false;
         _tooShortThinTrack = false;
 
@@ -725,6 +759,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ReconstructEvent(){
+        tellMe("ReconstructEvent()",0);
         if(_eventVertices.size() == 0){
             tellMe("ERROR, no vertex found",0);
             return;
@@ -754,15 +789,17 @@ namespace larcv {
         ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
-        double rmax = 4;
+        double rmax = 2+0.75*_vertexTracks.size();
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
         while(foundNewPoint && terminate == false){
             foundNewPoint = false;
             iter++;
+            int Ndead = 0;
             for(int i = 0;i<10000;i++){
                 double coord2D[3][3];// for each plane : x,y and ADC value;
+                //if(Ndead >= 2)rmax*=1.5;
                 double r = ran.Uniform(0,rmax);
                 ran.Sphere(x,y,z,r);
                 TVector3 newCandidate(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
@@ -772,7 +809,7 @@ namespace larcv {
 
                 /*if(_3DTrack.size() >= 1){// point too close to already found point
                     for(int i = 0;i<_3DTrack.size();i++){
-                        if((newCandidate-_3DTrack[i]).Mag() < 2) TooClose=true;
+                        if((newCandidate-_3DTrack[i]).Mag() < 1) TooClose=true;
                     }
                 }*/
 
@@ -820,13 +857,14 @@ namespace larcv {
                         terminate=false;
                     }
                 }
-                if(NplanesOK == 3){
-                    //if(!(coord2D[0][2] == coord2D[1][2] || coord2D[0][2] == coord2D[2][2] || coord2D[1][2] == coord2D[2][2])){
-                    if(!(coord2D[0][2] == _deadWireValue && coord2D[1][2] == _deadWireValue && coord2D[2][2] == _deadWireValue)){
-                        list3D.push_back(newCandidate);
-                        foundNewPoint = true;
-                    }
+                Ndead = 0;
+                for(int iPlane=0;iPlane<3;iPlane++){if(coord2D[iPlane][2] == _deadWireValue)Ndead++;}
+                if(NplanesOK > 2 && Ndead<2){
+                    list3D.push_back(newCandidate);
+                    foundNewPoint = true;
                 }
+
+
             }
             double dist = 0;
             if(_3DTrack.size() > 0){
@@ -932,6 +970,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ComputedQdX(){
+        tellMe("ComputedQdX()",0);
         if(_3DTrack.size() == 0){tellMe("ERROR, run the 3D reconstruction first",0);return;}
         if(_dQdx.size() != 0)_dQdx.clear();
         double Npx = 5;
@@ -1005,6 +1044,19 @@ namespace larcv {
             _dQdx.push_back(node_dQdx);
         }// iNode
 
+        std::vector<double> nodedQdxtot;
+        for(int iNode=0;iNode<_dQdx.size();iNode++){// get total dQdx per noded
+            int NplanesOK = 0;
+            double dQdxtot = 0;
+            for(int iPlane = 0;iPlane<3;iPlane++){
+                if(_dQdx[iNode][iPlane] != 0){dQdxtot+=_dQdx[iNode][iPlane];NplanesOK++;}
+            }
+            if(NplanesOK!=0){dQdxtot*=3/NplanesOK;}
+            nodedQdxtot.push_back(dQdxtot);
+            hdQdx->Fill(dQdxtot/_Length3D);
+            hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
+        }
+        _vertexQDQX.push_back(nodedQdxtot);
     }
     //______________________________________________________
     void AStarTracker::CreateDataImage(std::vector<larlite::wire> wire_v){
@@ -1201,7 +1253,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::DrawVertex(){
-        tellMe("DrawVertex",1);
+        tellMe("DrawVertex",0);
 
         TH2D *hImage[3];
         TH2D *hTagImage[3];
@@ -1218,9 +1270,12 @@ namespace larcv {
         if(_3DTrack.size()==0) _3DTrack.push_back(start_pt);
         hit_image_v = CropFullImage2bounds(_3DTrack);
 
+        if(_missingTrack)MaskTrack();
 
-        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,600);
-        c->Divide(3,1);
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
+        c->Divide(1,2);
+        c->cd(1)->Divide(3,1);
+        c->cd(2)->Divide(3,1);
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             gStart[iPlane] = new TGraph();
@@ -1261,7 +1316,10 @@ namespace larcv {
 
                 }
             }
-            c->cd(iPlane+1);
+            c->cd(1)->cd(iPlane+1);
+            hImage[iPlane]->Draw("colz");
+
+            c->cd(2)->cd(iPlane+1);
             hImage[iPlane]->Draw("colz");
             hTagImage[iPlane]->Draw("same colz");
         }
@@ -1275,7 +1333,7 @@ namespace larcv {
                     ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y(),_vertexTracks[i][iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
                     gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
                 }
-                c->cd(iPlane+1);
+                c->cd(2)->cd(iPlane+1);
                 gTrack[iPlane]->SetMarkerStyle(7);
                 gTrack[iPlane]->SetLineColor(i+1);
                 gTrack[iPlane]->SetMarkerColor(i+1);
@@ -1285,7 +1343,7 @@ namespace larcv {
 
 
         for(int iPlane=0;iPlane<3;iPlane++){
-            c->cd(iPlane+1);
+            c->cd(2)->cd(iPlane+1);
             gStartNend[iPlane]->SetMarkerColor(1);
             gStartNend[iPlane]->SetMarkerStyle(20);
             gStartNend[iPlane]->Draw("same P");
@@ -1327,7 +1385,7 @@ namespace larcv {
 
         gEndPoints->Delete();
 
-        if(_notingReconstructed){
+        if(_nothingReconstructed){
             c->SaveAs(Form("png/nothing_reconstructed/%s.png",c->GetName()));
         }
         else if(_missingTrack){
@@ -1496,6 +1554,12 @@ namespace larcv {
             }
             newPoints.push_back(_3DTrack[_3DTrack.size()-1]);
             _3DTrack = newPoints;
+            if(_3DTrack[0]!=start_pt){
+                std::vector<TVector3>::iterator it;
+                it = _3DTrack.begin();
+                _3DTrack.insert (it,start_pt);
+            }
+            //if(_3DTrack.back() != end_pt){_3DTrack.push_back(end_pt);}
         }
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
     }
@@ -1509,6 +1573,74 @@ namespace larcv {
             }
         }
         tellMe(Form("%.1f cm",_Length3D));
+    }
+    //______________________________________________________
+    double AStarTracker::ComputeLength(int node){
+        tellMe("ComputeLength()",1);
+        double Length3D = 0;
+        if(_3DTrack.size()>2){
+            for(int iNode = node;iNode<_3DTrack.size()-1;iNode++){
+                Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
+            }
+        }
+        return Length3D;
+    }
+    //______________________________________________________
+    void AStarTracker::WorldInitialization(){
+        gWorld = new TGraph2D();
+        gWorld->SetNameTitle("gWorld","gWorld");
+
+        gDetector = new TGraph2D();
+        gDetector->SetNameTitle("gDetector","gDetector");
+
+        double detectorLength = 1040;//cm
+        double detectorheight = 230;//cm
+        double detectorwidth  = 250;//cm
+        double Ymindet = -0.5*detectorheight;
+        double Ymaxdet = 0.5*detectorheight;
+        double Xmindet = 0;
+        double Xmaxdet = detectorwidth;
+        double Zmindet = 0;
+        double Zmaxdet = detectorLength;
+        int imax;
+        for(int i = 0;i<1000;i++){
+            gDetector->SetPoint(4*i+0,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymindet);
+            gDetector->SetPoint(4*i+1,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymaxdet);
+            gDetector->SetPoint(4*i+2,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymindet);
+            gDetector->SetPoint(4*i+3,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymaxdet);
+
+            imax = 4*i+3;
+        }
+        int newimax;
+        for(int i = 0;i<100;i++){
+            int ipoint = imax+1+i;
+            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
+            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
+            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
+            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
+
+            newimax=ipoint;
+        }
+        imax = newimax;
+        for(int i = 0;i<100;i++){
+            int ipoint = imax+1+i;
+            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
+            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
+        }
+
+        gWorld->SetPoint(0,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(1,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(2,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(3,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(4, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(5, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
+
+        gWorld->SetPoint(6, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
+        gWorld->SetPoint(7, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
     }
 
 
@@ -1528,8 +1660,8 @@ namespace larcv {
     }
     //______________________________________________________
     bool AStarTracker::initialize() {
+        tellMe("initialize()",0);
         ReadSplineFile();
-        //ReadProtonTrackFile();
         _eventTreated = 0;
         _eventSuccess = 0;
         _deadWireValue = 20;
@@ -1539,89 +1671,39 @@ namespace larcv {
         hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
         hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
         hDistance2Hit = new TH1D("hDistance2Hit","hDistance2Hit",100,0,50);
+        hdQdx   = new TH1D("hdQdx","hdQdx",500,0,100);
+        hLength = new TH1D("hLength","hLength",100,0,1000);
+        hLengthdQdX = new TH2D("hLengthdQdX","hLengthdQdX;L;dQdx",100,0,1000,500,0,500);
         if(_DrawOutputs){
-            hdQdx = new TH1D("hdQdx","hdQdx",100,0,100);
+
             hdQdxEntries = new TH1D("hdQdxEntries","hdQdxEntries",hdQdx->GetNbinsX(),hdQdx->GetXaxis()->GetXmin(),hdQdx->GetXaxis()->GetXmax());
             hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
         }
-
-        gWorld = new TGraph2D();
-        gWorld->SetNameTitle("gWorld","gWorld");
-
-        gDetector = new TGraph2D();
-        gDetector->SetNameTitle("gDetector","gDetector");
-
-        double detectorLength = 1040;//cm
-        double detectorheight = 230;//cm
-        double detectorwidth  = 250;//cm
-        double Ymindet = -0.5*detectorheight;
-        double Ymaxdet = 0.5*detectorheight;
-        double Xmindet = 0;
-        double Xmaxdet = detectorwidth;
-        double Zmindet = 0;
-        double Zmaxdet = detectorLength;
-        int imax;
-        for(int i = 0;i<1000;i++){
-            /*gDetector->SetPoint(4*i+0,Xmindet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
-             gDetector->SetPoint(4*i+1,Xmindet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));
-             gDetector->SetPoint(4*i+2,Xmaxdet,Ymindet,Zmindet+i*(detectorLength/(1000-1)));
-             gDetector->SetPoint(4*i+3,Xmaxdet,Ymaxdet,Zmindet+i*(detectorLength/(1000-1)));*/
-
-            gDetector->SetPoint(4*i+0,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymindet);
-            gDetector->SetPoint(4*i+1,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymaxdet);
-            gDetector->SetPoint(4*i+2,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymindet);
-            gDetector->SetPoint(4*i+3,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymaxdet);
-
-            imax = 4*i+3;
-        }
-        int newimax;
-        for(int i = 0;i<100;i++){
-            int ipoint = imax+1+i;
-            /*gDetector->SetPoint(4*ipoint+0,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmindet);
-             gDetector->SetPoint(4*ipoint+1,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmindet);
-             gDetector->SetPoint(4*ipoint+2,Xmindet+i*(detectorwidth/(100-1)), Ymindet,Zmaxdet);
-             gDetector->SetPoint(4*ipoint+3,Xmindet+i*(detectorwidth/(100-1)), Ymaxdet,Zmaxdet);*/
-
-            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
-            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
-            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
-            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
-
-            newimax=ipoint;
-        }
-        imax = newimax;
-        for(int i = 0;i<100;i++){
-            int ipoint = imax+1+i;
-            /*gDetector->SetPoint(4*ipoint+0,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
-             gDetector->SetPoint(4*ipoint+1,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmindet);
-             gDetector->SetPoint(4*ipoint+2,Xmindet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);
-             gDetector->SetPoint(4*ipoint+3,Xmaxdet,Ymindet+i*(detectorheight/(100-1)),Zmaxdet);*/
-
-            gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
-            gDetector->SetPoint(4*ipoint+1,Zmindet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
-            gDetector->SetPoint(4*ipoint+2,Zmaxdet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
-            gDetector->SetPoint(4*ipoint+3,Zmaxdet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
-        }
-
-        gWorld->SetPoint(0,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(1,-0.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        gWorld->SetPoint(2,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(3,-0.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        gWorld->SetPoint(4, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(5, 1.1*detectorLength,-0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
-        gWorld->SetPoint(6, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
-        gWorld->SetPoint(7, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
-
+        WorldInitialization();
+        std::cout << "world initialized" << std::endl;
         return true;
     }
     //______________________________________________________
     bool AStarTracker::finalize() {
         tellMe("Finalizing",0);
         tellMe(Form("efficiency : %d / %d = %.2f",_eventSuccess,_eventTreated,_eventSuccess*100./_eventTreated),0);
-
+        if(hdQdx->GetEntries() > 1){
+            TCanvas *cdQdX = new TCanvas("cdQdX","cdQdX",800,600);
+            hdQdx->Draw();
+            cdQdX->SetLogy();
+            cdQdX->SaveAs("cdQdX.pdf");
+        }
+        if(hLength->GetEntries()>1){
+            TCanvas *cLength = new TCanvas("cLength","cLength",800,600);
+            hLength->Draw();
+            cLength->SetLogy();
+            cLength->SaveAs("cLength.pdf");
+        }
+        if(hLengthdQdX->GetEntries()>1){
+            //TCanvas *cLengthdQdX = new TCanvas("cLengthdQdX","cLengthdQdX",800,600);
+            //hLengthdQdX->Draw("colz");
+            hLengthdQdX->SaveAs(Form("cLengthdQdX_%d.root",_event));
+        }
         if(hDistance2Hit->GetEntries() != 0){
             TCanvas *cDist = new TCanvas();
             hDistance2Hit->Draw();
@@ -1633,20 +1715,6 @@ namespace larcv {
         }
 
         if(_DrawOutputs){
-
-            if(hdQdx->GetEntries() > 1){
-                TCanvas *cdQdX = new TCanvas("cdQdX","cdQdX",800,600);
-                for(int i = 0;i<hdQdx->GetNbinsX(); i++){
-                    if(hdQdxEntries->GetBinContent(i+1) == 0) continue;
-                    if(hdQdx->GetBinContent(i+1) == 0) continue;
-                    double a = hdQdx->GetBinContent(i+1);
-                    hdQdx->SetBinContent(i+1,a*1./hdQdxEntries->GetBinContent(i+1));
-                    hdQdx->SetBinError(i+1,0.001*hdQdx->GetBinContent(i+1));
-
-                }
-                hdQdx->Draw();
-                cdQdX->SaveAs("cdQdX.pdf");
-            }
             if(hdQdX2D->GetEntries() > 1){
                 TCanvas *cdQdX2D = new TCanvas("cdQdX2D","cdQdX2D",800,600);
                 hdQdX2D->Draw("colz");
@@ -1701,11 +1769,22 @@ namespace larcv {
         return true;
     }
     //______________________________________________________
-    bool IsInSegment(TVector3 A, TVector3 B, TVector3 C){
+    bool AStarTracker::IsInSegment(TVector3 A, TVector3 B, TVector3 C){
         if((C-A).Dot(B-A)/(B-A).Mag() > 0 && (C-A).Dot(B-A)/(B-A).Mag() < 1) return true;
         else return false;
     }
-
+    //______________________________________________________
+    bool AStarTracker::IsTrackIn(std::vector<TVector3> trackA, std::vector<TVector3> trackB){
+        // is track A a sub-sample of track B?
+        double dist = 0;
+        for(int iNode = 0;iNode<trackA.size();iNode++){
+            dist += GetDist2track(trackA[iNode],trackB);
+        }
+        if(trackA.size()>1)dist/=trackA.size();
+        std::cout << "average distance " << dist << " cm" << std::endl;
+        if(dist > 2)return false;
+        else return true;
+    }
 
     //______________________________________________________
     double AStarTracker::EvalMinDist(TVector3 point){
@@ -1832,17 +1911,17 @@ namespace larcv {
         return CrossProd.Mag()/U.Mag();
     }
     //______________________________________________________
-    double AStarTracker::GetDist2track(TVector3 thisPoint){
+    double AStarTracker::GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack){
         double dist = 15000;
-        if(_3DTrack.size() > 2){
-            for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
-                if(_3DTrack[iNode] == thisPoint)continue;
-                double alpha = ( (thisPoint-_3DTrack[iNode]).Dot(_3DTrack[iNode+1]-_3DTrack[iNode]) )/( (thisPoint-_3DTrack[iNode]).Mag()*(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag() );
+        if(thisTrack.size() > 2){
+            for(int iNode = 0;iNode<thisTrack.size()-1;iNode++){
+                if(thisTrack[iNode] == thisPoint)continue;
+                double alpha = ( (thisPoint-thisTrack[iNode]).Dot(thisTrack[iNode+1]-thisTrack[iNode]) )/( (thisPoint-thisTrack[iNode]).Mag()*(thisTrack[iNode+1]-thisTrack[iNode]).Mag() );
                 if(alpha > 0 && alpha<1){
-                    dist = std::min(dist, GetDist2line(_3DTrack[iNode],_3DTrack[iNode+1],thisPoint) );
+                    dist = std::min(dist, GetDist2line(thisTrack[iNode],thisTrack[iNode+1],thisPoint) );
                 }
-                dist = std::min( dist, (thisPoint-_3DTrack[iNode]).Mag()  );
-                dist = std::min( dist, (thisPoint-_3DTrack[iNode+1]).Mag());
+                dist = std::min( dist, (thisPoint-thisTrack[iNode]  ).Mag());
+                dist = std::min( dist, (thisPoint-thisTrack[iNode+1]).Mag());
             }
         }
         return dist;

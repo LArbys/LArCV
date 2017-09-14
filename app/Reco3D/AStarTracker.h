@@ -100,6 +100,7 @@ namespace larcv {
         void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
         void SetVertexEndPoints( std::vector<TVector3> vertexEndPoints     ){_vertexEndPoints = vertexEndPoints;}
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
+        void WorldInitialization();
 
         void DrawTrack();
         void DrawVertex();
@@ -126,7 +127,9 @@ namespace larcv {
         bool ArePointsEqual(TVector3 A, TVector3 B);
         bool CheckEndPointsInVolume(TVector3 point);
         bool IsGoodTrack();
+        bool IsInSegment(TVector3 A, TVector3 B, TVector3 C);
         bool CheckEndPoints(std::vector< std::pair<int,int> > endPix);
+        bool IsTrackIn(std::vector<TVector3> trackA, std::vector<TVector3> trackB);
 
         int  GetCompressionFactorTime(){return _compressionFactor_t;}
         int  GetCompressionFactorWire(){return _compressionFactor_w;}
@@ -135,10 +138,11 @@ namespace larcv {
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
         double GetLength(){return _Length3D;}
         double GetEnergy(std::string partType, double Length);
+        double ComputeLength(int node);
         double GetTotalDepositedCharge();
         double X2Tick(double x, size_t plane) const;   // X[cm] to TPC tick (waveform index) conversion
         double Tick2X(double tick, size_t plane)const; // TPC tick (waveform index) to X[cm] conversion
-        double GetDist2track(TVector3 thisPoint);
+        double GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack);
 
         TVector3        CheckEndPoints(TVector3 point);
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
@@ -205,11 +209,12 @@ namespace larcv {
 
         bool _DrawOutputs;
         bool _missingTrack;
-        bool _notingReconstructed;
+        bool _nothingReconstructed;
         bool _tooShortDeadWire;
         bool _tooShortThinTrack;
 
         TH1D *hdQdx;
+        TH1D *hLength;
         TH1D *hdQdxEntries;
         TH1D *hDistance2MC;
         TH1D *hDistance2MCX;
@@ -220,11 +225,13 @@ namespace larcv {
         TH2D *hdQdX2D;
         //TH2D *hdQdX2DNorm;
         TH2D *hAngleLengthGeneral;
+        TH2D *hLengthdQdX;
         TH1D *hDist2point;
 
         //std::vector<int> _endPointsStatus;
 
         std::vector< std::vector<double> > _dQdx;
+        std::vector< std::vector<double> > _vertexQDQX;
 
         std::vector<TVector3> CorrectedPath;
         std::vector<TVector3> _3DTrack;
