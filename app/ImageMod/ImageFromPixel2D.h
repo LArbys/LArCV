@@ -46,7 +46,8 @@ namespace larcv {
     enum class PIType_t {
       kPITypeFixedPI,
       kPITypeInputImage,
-      kPITypeClusterIndex
+      kPITypeClusterIndex,
+      kPITypeUndefined
     };
     float _fixed_pi;
     PIType_t _type_pi;

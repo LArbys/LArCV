@@ -61,6 +61,7 @@ namespace larcv {
       if(_roitype_to_class[i] != kINVALID_SIZE) continue;
       _roitype_to_class[i] = _roitype_to_class[type_def[i]];
     }
+
   }
 
   void SegFiller::child_initialize()
@@ -342,6 +343,8 @@ namespace larcv {
           label_value = input_label[_caffe_idx_to_img_idx[caffe_idx]];
 
 	size_t class_value = _roitype_to_class[(size_t)label_value];
+	//if(label_value || (size_t)(class_value))
+	//std::cout<<"Label value conversion: " << label_value << " => " << class_value << std::endl;
 	if(class_value == kINVALID_SIZE) {
 	  LARCV_CRITICAL() << "Found invalid ROI type in the label image: " << label_value << std::endl;
 	  throw larbys();

@@ -3,6 +3,8 @@
 
 #include "SegWeightTrackShower.h"
 #include "DataFormat/EventImage2D.h"
+#include "DataFormat/EventPixel2D.h"
+
 namespace larcv {
 
   static SegWeightTrackShowerProcessFactory __global_SegWeightTrackShowerProcessFactory__;
@@ -15,6 +17,8 @@ namespace larcv {
   {
 
     _label_producer = cfg.get<std::string>("LabelProducer");
+
+    _keypt_pixel2d_producer = cfg.get<std::string>("KeyPointProducer","");
     
     _weight_producer = cfg.get<std::string>("WeightProducer");
 
@@ -74,6 +78,10 @@ namespace larcv {
       throw larbys();
     }
 
+
+    //
+    // Initialize 
+    //
     std::vector<float> temp_weight_data;
     std::vector<float> boundary_data;
     for(auto const& plane : _plane_v) {
@@ -179,6 +187,58 @@ namespace larcv {
 	  temp_weight_data[idx] += (boundary_data[idx] * surrounding_weight);
       }
 
+      //
+      // Compute keypoint weghts
+      //
+      
+      if(!_keypt_pixel2d_producer.empty()) {
+	auto ev_pixel = ((EventPixel2D*)(mgr.get_data(kProductPixel2D,_keypt_pixel2d_producer)));
+	auto const& pcluster_m = ev_pixel->Pixel2DClusterArray();
+	auto const& meta_m     = ev_pixel->ClusterMetaArray();
+
+	auto meta_iter = meta_m.find(plane);
+	if(meta_iter == meta_m.end()) {
+	  LARCV_CRITICAL() << "Plane " << plane << " not found in ClusterMetaArray()!" << std::endl;
+	  throw larbys();
+	}
+	
+	auto clus_iter = pcluster_m.find(plane);
+	if(clus_iter==pcluster_m.end()) {
+	  LARCV_CRITICAL() << "Plane " << plane << " not found in Pixel2DClusterArray()!" << std::endl;
+	  throw larbys();
+	}
+
+	auto const& ref_meta   = label_image.meta();
+	auto const& ref_data   = label_image.as_vector();
+	auto const& pcluster_v = (*clus_iter).second;
+	auto const& meta_v     = (*meta_iter).second;
+
+	// sanity check
+	if(meta_v.size() != pcluster_v.size() ) {
+	  LARCV_CRITICAL() << "# cluster meta and # cluster does not match!" << std::endl;
+	  throw larbys();
+	}
+	for(auto const& meta : meta_v) {
+	  if(meta == ref_meta) continue;
+	  LARCV_CRITICAL() << "Found non-compatible image meta!" << std::endl
+			   << "      Cluster: " << meta.dump()
+			   << "      Ref    : " << ref_meta.dump();
+	  throw larbys();
+	}
+      
+	for(size_t cluster_idx=0; cluster_idx<pcluster_v.size(); ++cluster_idx){
+	  auto const& pcluster = pcluster_v[cluster_idx];
+	  auto const& meta     = meta_v[cluster_idx];
+	  for(auto const& pixel2d : pcluster) {
+	    size_t index = (pixel2d.X() * ref_meta.rows() + pixel2d.Y());
+	    if(ref_data[index]>0) temp_weight_data[index] += _weight_max;
+	  }
+	}
+      }
+
+      //
+      // Combine weights
+      //
       float v=0;
       switch(_pool_type) {
       case kSumPool:

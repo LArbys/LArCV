@@ -17,11 +17,11 @@ ifeq ($(LARCV_OPENCV),1)
   CORE_SUBDIRS += CVUtil
 endif
 
-APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe #NuFilter
+APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe
 ifdef LARLITE_BASEDIR
 APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider MeatSlicer
   ifdef LAROPENCV_BASEDIR
-  APP_SUBDIRS += LArOpenCVHandle NuFilter
+  APP_SUBDIRS += LArOpenCVHandle
   endif
 endif
 ifeq ($(LARCV_ANN),1)
@@ -30,8 +30,7 @@ ifeq ($(OSNAME),Linux)
   ANN_OS=linux-g++
 endif
 ifeq ($(OSNAME),Darwin)
-  #ANN_OS=macosx-g++
-  ANN_OS=linux-g++
+  ANN_OS=macosx-g++
 endif
 endif
 

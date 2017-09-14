@@ -44,6 +44,11 @@ namespace larcv {
     /// MergeStraightShowers
     _merge_straight_showers=true;
       
+    /// MergeEndNubs                                                                                                                                  
+    _merge_end_nubs     = false;
+    _min_track_pixels   = 100;
+    _end_nub_max_pixels = 30;
+	    
     LARCV_DEBUG() << "end" << std::endl;
   }
 
@@ -69,6 +74,10 @@ namespace larcv {
     _claim_showers         = pset.get<bool>("ClaimShowers",false);
     _merge_pixel_frac      = pset.get<bool>("MergePixelFrac",false);
     _merge_straight_showers= pset.get<bool>("MergeStraightShowers",false);
+    
+    _merge_end_nubs         = pset.get<bool>("MergeEndNubs",false);
+    _min_track_pixels       = pset.get<uint>("MinTrackPixels",100);
+    _end_nub_max_pixels     = pset.get<uint>("MaxEndNubPixels",0);
     
     LARCV_DEBUG() << "end" << std::endl;
     return;
@@ -511,7 +520,59 @@ namespace larcv {
     }
 
   }
-  
+	
+  void
+  PreProcessor::MergeEndNubs(cv::Mat& adc_img,
+                             cv::Mat& track_img,
+                             cv::Mat& shower_img) {
+
+    auto adc_img_t = PrepareImage(adc_img);
+    auto track_img_t = PrepareImage(track_img);
+    auto shower_img_t = PrepareImage(shower_img);
+
+    auto adc_pchunk_v = MakePixelChunks(adc_img_t,larocv::ChunkType_t::kUnknown,false);
+    auto track_pchunk_v = MakePixelChunks(track_img_t,larocv::ChunkType_t::kTrack,false);
+    auto shower_pchunk_v = MakePixelChunks(shower_img_t,larocv::ChunkType_t::kShower,false);
+
+    std::vector<size_t> cidx_v;
+
+    for(size_t shower1_id=0;shower1_id<shower_pchunk_v.size();++shower1_id) {
+      const auto& shower1 = shower_pchunk_v[shower1_id];
+
+      for(size_t track1_id=0;track1_id<track_pchunk_v.size();++track1_id) {
+        const auto& track1 = track_pchunk_v[track1_id];
+
+        // Check if we're looking at a potential muon track, is it straight?                                                                          
+        if (!track1.straight)
+          continue;
+
+        // Typically mistag involves a good sized muon track with proton nub, ignore small tracks                                                     
+        if (track1.npixel < _min_track_pixels)
+          continue;
+
+        // Are the shower and track connected? If not continue                                                                                        
+        if (!EdgeConnected(shower1,track1))
+          continue;
+
+        // Check to be sure that the attached shower pixels is a small cluster                                                                        
+        if (shower1.npixel > _end_nub_max_pixels)
+          continue;
+
+        cidx_v.push_back(shower1_id);
+
+      } // End loop over track clusters                                                                                                               
+    } // End loop over shower clusters  
+	  
+    LARCV_INFO() << "Found " << cidx_v.size() << " shower end nubs on track clusters" << std::endl;
+    // Using these shower to mask the ADC image. Add them to the track image                                                                          
+    for(const auto& cidx : cidx_v) {
+      const auto& shower_ctor = shower_pchunk_v[cidx].ctor;
+      auto mask_adc = larocv::MaskImage(adc_img,shower_ctor,0,false);
+      track_img += mask_adc;
+      shower_img = larocv::MaskImage(shower_img,shower_ctor,0,true);
+    }
+  }
+		
   bool
   PreProcessor::PreProcess(cv::Mat& adc_img, cv::Mat& track_img, cv::Mat& shower_img)
   {
@@ -533,6 +594,10 @@ namespace larcv {
     if(_merge_straight_showers) MergeStraightShowers(adc_img,track_img,shower_img);
     else LARCV_DEBUG() << "... not" << std::endl;
     
+    LARCV_DEBUG() << "Merging end nubs to track" << std::endl;
+    if(_merge_end_nubs) MergeEndNubs(adc_img,track_img,shower_img);
+    else LARCV_DEBUG() << "... not" << std::endl;
+	 	  
     // Lets make sure the track and shower images do not gain
     // extra pixel value from masking
     adc_img.copyTo(track_img,larocv::Threshold(track_img,1,1));

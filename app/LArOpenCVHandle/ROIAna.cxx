@@ -5,6 +5,9 @@
 #include <numeric>
 #include <array>
 
+#include "LArUtil/Geometry.h"
+#include "LArUtil/LArProperties.h"
+
 namespace larcv {
 
   static ROIAnaProcessFactory __global_ROIAnaProcessFactory__;
@@ -15,8 +18,10 @@ namespace larcv {
     
   void ROIAna::configure(const PSet& cfg)
   {
-    _roi_producer = cfg.get<std::string>("ROIProducer");
-    _img_producer = cfg.get<std::string>("ImageProducer");
+    _roi_producer      = cfg.get<std::string>("ROIProducer");
+    _img_producer      = cfg.get<std::string>("ImageProducer");
+    _seg_producer      = cfg.get<std::string>("SegmentProducer");
+
   }
 
   void ROIAna::initialize()
@@ -46,6 +51,12 @@ namespace larcv {
     _roi_tree->Branch("area_image0",&_area_image0,"area_image0/F");
     _roi_tree->Branch("area_image1",&_area_image1,"area_image1/F");
     _roi_tree->Branch("area_image2",&_area_image2,"area_image2/F");
+
+    _roi_tree->Branch("good_croi0",&_good_croi0,"good_croi0/I");
+    _roi_tree->Branch("good_croi1",&_good_croi1,"good_croi1/I");
+    _roi_tree->Branch("good_croi2",&_good_croi2,"good_croi2/I");
+    _roi_tree->Branch("good_croi_ctr",&_good_croi_ctr,"good_croi_ctr/I");
+      
   }
 
   bool ROIAna::process(IOManager& mgr)
@@ -186,6 +197,98 @@ namespace larcv {
 	_union_area2     = area_union_v[plane];
 	_area_image2     = area_image_v[plane];
       }
+    }
+
+
+    _good_croi0 = kINVALID_INT;
+    _good_croi1 = kINVALID_INT;
+    _good_croi2 = kINVALID_INT;
+    _good_croi_ctr = kINVALID_INT;
+    _nearest_wire_err = kINVALID_INT;
+
+
+    bool has_mc = false;
+    EventROI *seg_roi = nullptr;
+    if (!_seg_producer.empty()) {
+      seg_roi = (EventROI*) mgr.get_data(kProductROI,_seg_producer);
+      if (!seg_roi) larbys("Could not get seg producer");
+      has_mc = true;
+    }
+
+    if(has_mc) {
+
+      float _tx,_ty,_tz,_tt,_te;
+      float _scex,_scey,_scez;
+      _tx = _ty = _tz = _tt = _te = -1.;
+      _scex = _scey = _scez = -1.;
+      auto geo = larutil::Geometry::GetME();
+      auto larp = larutil::LArProperties::GetME();
+      double xyz[3];
+      double wire_v[3];
+
+      for(auto const& roi : seg_roi->ROIArray()){
+	if(std::abs(roi.PdgCode()) == 12 || std::abs(roi.PdgCode()) == 14) {
+	  _tx = roi.X();
+	  _ty = roi.Y();
+	  _tz = roi.Z();
+	  _tt = roi.T();
+	  _te = roi.EnergyInit();
+	  auto const offset = _sce.GetPosOffsets(_tx,_ty,_tz);
+	  _scex = _tx - offset[0] + 0.7;
+	  _scey = _ty + offset[1];
+	  _scez = _tz + offset[2];
+	}
+      }
+
+      xyz[0] = _scex;
+      xyz[1] = _scey;
+      xyz[2] = _scez;
+
+      try {
+	wire_v[0] = geo->NearestWire(xyz,0);
+	wire_v[1] = geo->NearestWire(xyz,1);
+	wire_v[2] = geo->NearestWire(xyz,2);
+	_nearest_wire_err = 0;
+      } catch(const std::exception& e) {
+	LARCV_WARNING()<<"Cannot find nearest wire for ("<<xyz[0]<<","<<xyz[1]<<","<<xyz[2]<<")"<<std::endl;
+	wire_v[0] = wire_v[1] = wire_v[2] = kINVALID_DOUBLE;
+	_nearest_wire_err = 1;
+      }
+
+      const double tick = (_scex / larp->DriftVelocity() + 4) * 2. + 3200.;
+
+      _good_croi0 = 0;
+      _good_croi1 = 0;
+      _good_croi2 = 0;
+      _good_croi_ctr = 0;
+
+      for(auto const& croi : ev_roi->ROIArray()) {
+	auto const& bb_v = croi.BB();
+	size_t good_croi_ctr = 0;
+
+	for(size_t plane=0; plane<bb_v.size(); ++plane) {
+	  auto const& croi_meta = bb_v[plane];
+	  auto const& wire = wire_v[plane];
+	  if( croi_meta.min_x() <= wire && wire <= croi_meta.max_x() &&
+	      croi_meta.min_y() <= tick && tick <= croi_meta.max_y() ) {
+	    ++good_croi_ctr;
+	  }
+	}
+
+	if(good_croi_ctr <= _good_croi_ctr) continue;
+	if(good_croi_ctr > 1) _good_croi_ctr+=1;
+
+	for(size_t plane=0; plane<bb_v.size(); ++plane) {
+	  auto const& croi_meta = bb_v[plane];
+	  auto const& wire = wire_v[plane];
+	  if( croi_meta.min_x() <= wire && wire <= croi_meta.max_x() &&
+	      croi_meta.min_y() <= tick && tick <= croi_meta.max_y() ) {
+	    if(plane == 0) _good_croi0 = 1;
+	    if(plane == 1) _good_croi1 = 1;
+	    if(plane == 2) _good_croi2 = 1;
+	  }
+	}
+      } // end check of true vertex in cROI
     }
 
     _roi_tree->Fill();

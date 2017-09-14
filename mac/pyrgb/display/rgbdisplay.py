@@ -235,7 +235,7 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.rgbroi, 2, utilstart)
         
         # Particle types
-        self.kTypes = {'kBNB':   (self.kBNB, [2]),
+        self.kTypes = {'kBNB':   (self.kBNB, [0,2]),
                        'kOTHER': (self.kOTHER, [i for i in xrange(10) if i != 2]),
                        'kBOTH':  (self.kBOTH, [i for i in xrange(10)])}
 
@@ -595,7 +595,7 @@ class RGBDisplay(QtGui.QWidget):
         #the event is changed. For now lets directly tell ROILayout
 
         #start vichack
-        self.roitool_layout.setImages( int(self.event.text()), self.image )
+        self.roitool_layout.setImages( (int(self.event.text()),int(self.run.text()), int(self.subrun.text()), int(self.event_num.text())), self.image )
         self.roitool_layout.reloadROI()
         #end vichack
         

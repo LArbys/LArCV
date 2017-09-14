@@ -18,6 +18,7 @@
 #include "Processor/ProcessFactory.h"
 #include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
+#include "LArUtil/SpaceChargeMicroBooNE.h"
 
 namespace larcv {
 
@@ -53,6 +54,7 @@ namespace larcv {
     
     std::string _roi_producer;
     std::string _img_producer;
+std::string _seg_producer;
 
     int _run;
     int _subrun;
@@ -77,7 +79,14 @@ namespace larcv {
     float _area_image1;
     float _area_image2;
     
-    
+    larutil::SpaceChargeMicroBooNE _sce;
+
+    int _good_croi0;
+    int _good_croi1;
+    int _good_croi2;
+    int _good_croi_ctr;
+
+    int _nearest_wire_err;    
   };
 
   /**
