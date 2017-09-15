@@ -29,6 +29,7 @@
 #include "TH2D.h"
 #include "TSpline.h"
 #include "TGraph2D.h"
+#include "TGraph.h"
 #include "TFile.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
@@ -110,6 +111,7 @@ namespace larcv {
         void Make3DpointList();
         void ComputeLength();
         void ComputedQdX();
+        void ComputeNewdQdX();
         void Reconstruct();
         void ReconstructVertex();
         void ConstructTrack();
@@ -119,6 +121,7 @@ namespace larcv {
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
         void MaskTrack();
+        void CleanUpVertex();
         void DiagnoseVertex();
         void DiagnoseTrack();
 
@@ -212,6 +215,7 @@ namespace larcv {
         bool _nothingReconstructed;
         bool _tooShortDeadWire;
         bool _tooShortThinTrack;
+        bool _possibleCosmic;
 
         TH1D *hdQdx;
         TH1D *hLength;
@@ -258,6 +262,10 @@ namespace larcv {
         TSpline3 *sProtonRange2T;
         TSpline3 *sProtonT2dEdx;
 
+        TGraph   *gdQdXperPlane[3];
+        std::vector<std::vector<double> > dQdXperPlane_v;
+        std::vector<double>               track_dQdX_v;
+        std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         TGraph2D *gDetector;
         TGraph2D *gWorld;
 

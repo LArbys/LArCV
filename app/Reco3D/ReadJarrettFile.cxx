@@ -55,8 +55,11 @@ namespace larcv {
     {
         std::cout << "[ReadJarrettFile]" << std::endl;
         tracker.initialize();
+        std::cout << "[ReadJarrettFile] tracker initialized" << std::endl;
         tracker.SetCompressionFactors(1,6);
+        std::cout << "[ReadJarrettFile] compression factor initialized" << std::endl;
         tracker.SetVerbose(0);
+        std::cout << "[ReadJarrettFile] verbose initialized" << std::endl;
         iTrack = 0;
 
         ReadVertexFile("data/numuSelected.txt");
