@@ -58,7 +58,7 @@ namespace larcv {
             //_speedOffset=-2;
             _speedOffset=0;
             _verbose = 0;
-            _ADCthreshold = 10;
+            _ADCthreshold = 20;
             _compressionFactor_t = 6;
             _compressionFactor_w = 1;
             _DrawOutputs = false;
@@ -193,18 +193,19 @@ namespace larcv {
         int _subrun;
         int _event;
         int _track;
+        //int _ADCthreshold;
         int _compressionFactor_t;
         int _compressionFactor_w;
         int _eventTreated;
         int _eventSuccess;
         int _verbose;
-        int _deadWireValue;
 
         //int _kTooShortDeadWire;
         //int _ktooShortThinTrack;
         //int _kMissingTrack;
         //int _kGoodEnd;
 
+        double _deadWireValue;
         double _ADCthreshold;
         double _speedOffset;
         double _Length3D;

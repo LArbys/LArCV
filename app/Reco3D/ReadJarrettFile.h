@@ -40,7 +40,7 @@ namespace larcv {
         void initialize();
 
         bool process(IOManager& mgr);
-
+        bool IsGoodEvent(int run, int subrun, int event);
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         void ReadVertexFile(std::string filename);
 

@@ -850,7 +850,7 @@ namespace larcv {
         ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
-        double rmax = 3+0.5*_vertexTracks.size();
+        double rmax = 5+0.5*_vertexTracks.size();
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
@@ -1243,7 +1243,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::DrawTrack(){
-        tellMe("DrawTrack",0);
+        tellMe("DrawTrack()",0);
         TH2D *hImage[3];
         TGraph *gTrack[3];
         TGraph *gStartNend[3];
@@ -1649,7 +1649,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::RegularizeTrack(){
-        tellMe("RegularizeTrack()",1);
+        tellMe("RegularizeTrack()",0);
         std::vector<TVector3> newTrack;
         TVector3 newPoint;
 
@@ -1662,7 +1662,7 @@ namespace larcv {
         _3DTrack = newTrack;
         }
 
-
+        std::cout << "OK 0" << std::endl;
         if(newTrack.size() != 0)newTrack.clear();
         double dist;
         double distMin;
@@ -1685,6 +1685,7 @@ namespace larcv {
             newTrack.push_back(newPoint);
         }
         _3DTrack=newTrack;
+        std::cout << "OK 1" << std::endl;
         // make sure I don't have a point that "goes back" w.r.t. the previously selected point and the next one in the _3Dtrack
         newTrack.clear();
         newTrack.push_back(_3DTrack[0]);
@@ -1693,10 +1694,13 @@ namespace larcv {
             if(angle > -0.5) newTrack.push_back(_3DTrack[iNode]);
         }
         _3DTrack = newTrack;
-
+        std::cout << "OK 2" << std::endl;
         // remove strange things arount the vertex point
+        if(_3DTrack.size() > 3){
         if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
         if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
+        }
+        std::cout << "OK 2-bis" << std::endl;
         // remove "useless" points that are parts of straight portions and too close to previous points
         std::vector<TVector3> newPoints;
         int oldNumPoints = _3DTrack.size();
@@ -1728,6 +1732,7 @@ namespace larcv {
             //if(_3DTrack.back() != end_pt){_3DTrack.push_back(end_pt);}
         }
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
+        std::cout << "OK 3" << std::endl;
     }
     //______________________________________________________
     void AStarTracker::ComputeLength(){
@@ -1830,7 +1835,7 @@ namespace larcv {
         ReadSplineFile();
         _eventTreated = 0;
         _eventSuccess = 0;
-        _deadWireValue = 20;
+        _deadWireValue = 50;
         time_bounds.reserve(3);
         wire_bounds.reserve(3);
         hit_image_v.reserve(3);
@@ -2291,7 +2296,7 @@ namespace larcv {
 
             for(int icol = 0;icol<newImage.meta().cols();icol++){
                 for(int irow = 0;irow<newImage.meta().rows();irow++){
-                    if(newImage.pixel(irow, icol) > 10){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
+                    if(newImage.pixel(irow, icol) > _ADCthreshold){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
                     else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);}
                 }
             }
