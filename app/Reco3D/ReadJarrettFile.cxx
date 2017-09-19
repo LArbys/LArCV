@@ -64,6 +64,7 @@ namespace larcv {
 
         //ReadVertexFile("data/numuSelected.txt");
         ReadVertexFile("data/actualData/FirstNuMuData.txt");
+        std::cout << "[ReadJarrettFile] vertex file read"<< std::endl;
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -89,8 +90,6 @@ namespace larcv {
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
 
-        //auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
-        //auto mc_roi_v = ev_partroi_v->ROIArray();
 
         int run    = ev_pgraph_v->run();
         int subrun = ev_pgraph_v->subrun();
@@ -107,7 +106,10 @@ namespace larcv {
 
 
         // get MC vertex
-        /*std::vector<TVector3> MuonVertices;
+
+        /*auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
+        auto mc_roi_v = ev_partroi_v->ROIArray();
+        std::vector<TVector3> MuonVertices;
         std::vector<TVector3> ProtonVertices;
         std::vector<TVector3> ElectronVertices;
         std::vector<TVector3> MuonEndPoint;
@@ -207,6 +209,7 @@ namespace larcv {
 
         }
         if(vertex_v.size()==0) return true;
+
         //tracker.SetEventVertices(MCVertices);
         tracker.SetEventVertices(vertex_v);
         tracker.ReconstructEvent();

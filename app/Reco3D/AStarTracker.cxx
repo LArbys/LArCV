@@ -517,7 +517,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::MaskTrack(){
-        tellMe("MaskTrack()",0);
+        tellMe("MaskTrack()",1);
         double shellMask = 4;
         if(_vertexTracks.size() == 0)return;
         for(int itrack=0;itrack<_vertexTracks.size();itrack++){
@@ -724,11 +724,32 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::DiagnoseVertex(){
         tellMe("DiagnoseVertex()",0);
+        _nothingReconstructed=false;
+        _missingTrack=false;
+        _tooManyTracksAtVertex= false;
+        _tooShortDeadWire = false;
+        _possibleCosmic = false;
+
         if(_vertexTracks.size() == 0)_nothingReconstructed = true; // if no track reconstructed, probably wrong
         if(_vertexTracks.size() == 1)_missingTrack = true;        // if only one track, I obviously miss one? rough labelling
 
+        // Count how many tracks above 2 cm leave the vertex
+        int NtracksAtVertex = 0;
+        for(int itrack=0;itrack<_vertexTracks.size();itrack++){
+            if(_vertexTracks[itrack][0] == start_pt){
+                _3DTrack = _vertexTracks[itrack];
+                ComputeLength();
+                if(_Length3D > 3){
+                    NtracksAtVertex++;
+                }
+            }
+        }
+        if(NtracksAtVertex>2){_tooManyTracksAtVertex = true;}
+
+
         // find events for which the track is too small because of dead wires
         hit_image_v = CropFullImage2bounds(_vertexEndPoints);
+        ShaveTracks();
         for(int iEnd = 0;iEnd<_vertexEndPoints.size();iEnd++){
             std::cout << "_vertexEndPoints[" << iEnd << "/" << _vertexEndPoints.size() << "] = (" << _vertexEndPoints[iEnd].X() << "," << _vertexEndPoints[iEnd].Y() << "," << _vertexEndPoints[iEnd].Z() << ")" << std::endl;
             std::vector< std::vector<double> > projections(3);
@@ -756,7 +777,7 @@ namespace larcv {
         }
 
         // Find if tracks are back to back at the vertex point
-        int NtracksAtVertex = 0;
+        NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
         for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
@@ -783,6 +804,30 @@ namespace larcv {
                     std::cout << "(AvPt_v[" << iPt <<"]-start_pt).Angle(AvPt_v[" << jPt << "]-start_pt)*180/3.1415 = " << (AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt)*180/3.1415 << std::endl;
                     if(((AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt))*180/3.1415 > 160){_possibleCosmic = true;}
                 }
+            }
+        }
+
+        //find tracks that approach the edge of the detector too much
+        _possiblyCrossing = false;
+        double FVshell = 5;
+        double detectorLength = 1040;//cm
+        double detectorheight = 230;//cm
+        double detectorwidth  = 250;//cm
+        double Ymindet = -0.5*detectorheight+FVshell;
+        double Ymaxdet = 0.5*detectorheight-FVshell;
+        double Xmindet = 0+FVshell;
+        double Xmaxdet = detectorwidth-FVshell;
+        double Zmindet = 0+FVshell;
+        double Zmaxdet = detectorLength-FVshell;
+        for(int itrack=0;itrack<_vertexTracks.size();itrack++){
+            for(int iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
+                if(   _vertexTracks[itrack][iNode].Y() >  Ymaxdet
+                   || _vertexTracks[itrack][iNode].Y() < Ymindet
+                   || _vertexTracks[itrack][iNode].X() < Xmindet
+                   || _vertexTracks[itrack][iNode].X() > Xmaxdet
+                   || _vertexTracks[itrack][iNode].Z() < Zmindet
+                   || _vertexTracks[itrack][iNode].Z() > Zmaxdet
+                   ) _possiblyCrossing = true;
             }
         }
 
@@ -832,6 +877,7 @@ namespace larcv {
             std::vector<TVector3> thisvertex;
             thisvertex.push_back(start_pt);
             hit_image_v = CropFullImage2bounds(thisvertex);
+            ShaveTracks();
             SetTrackInfo(_run, _subrun, _event, _track);
             ConstructVertex();
             std::cout << std::endl << std::endl;
@@ -850,6 +896,7 @@ namespace larcv {
         ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
+        //double rmax = 3+0.5*_vertexTracks.size()+3*exp(-list3D.size()/2.);
         double rmax = 5+0.5*_vertexTracks.size();
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
@@ -916,6 +963,7 @@ namespace larcv {
                     }
                     if(!ReallyTerminate && Ncrop < 20){
                         hit_image_v = CropFullImage2bounds(list3D);
+                        ShaveTracks();
                         Ncrop++;
                         MaskTrack();
                         terminate=false;
@@ -1397,8 +1445,9 @@ namespace larcv {
         }
         if(_3DTrack.size()==0) _3DTrack.push_back(start_pt);
         hit_image_v = CropFullImage2bounds(_3DTrack);
+        ShaveTracks();
 
-        if(_missingTrack)MaskTrack();
+        //if(_missingTrack)MaskTrack();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
         c->Divide(1,2);
@@ -1556,6 +1605,12 @@ namespace larcv {
         else if(_possibleCosmic){
             c->SaveAs(Form("png/PossibleCosmic/%s.png",c->GetName()));
         }
+        else if(_possiblyCrossing){
+            c->SaveAs(Form("png/PossiblyCrossing/%s.png",c->GetName()));
+        }
+        else if(_tooManyTracksAtVertex){
+            c->SaveAs(Form("png/TooManyTracksAtVertex/%s.png",c->GetName()));
+        }
         else if(_tooShortDeadWire){
             c->SaveAs(Form("png/EndPointInDeadRegion/%s.png",c->GetName()));
         }
@@ -1662,7 +1717,6 @@ namespace larcv {
         _3DTrack = newTrack;
         }
 
-        std::cout << "OK 0" << std::endl;
         if(newTrack.size() != 0)newTrack.clear();
         double dist;
         double distMin;
@@ -1685,7 +1739,7 @@ namespace larcv {
             newTrack.push_back(newPoint);
         }
         _3DTrack=newTrack;
-        std::cout << "OK 1" << std::endl;
+
         // make sure I don't have a point that "goes back" w.r.t. the previously selected point and the next one in the _3Dtrack
         newTrack.clear();
         newTrack.push_back(_3DTrack[0]);
@@ -1694,13 +1748,13 @@ namespace larcv {
             if(angle > -0.5) newTrack.push_back(_3DTrack[iNode]);
         }
         _3DTrack = newTrack;
-        std::cout << "OK 2" << std::endl;
+
         // remove strange things arount the vertex point
         if(_3DTrack.size() > 3){
         if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
         if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
         }
-        std::cout << "OK 2-bis" << std::endl;
+
         // remove "useless" points that are parts of straight portions and too close to previous points
         std::vector<TVector3> newPoints;
         int oldNumPoints = _3DTrack.size();
@@ -1732,7 +1786,7 @@ namespace larcv {
             //if(_3DTrack.back() != end_pt){_3DTrack.push_back(end_pt);}
         }
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
-        std::cout << "OK 3" << std::endl;
+
     }
     //______________________________________________________
     void AStarTracker::ComputeLength(){
@@ -1813,7 +1867,34 @@ namespace larcv {
         gWorld->SetPoint(6, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth,-0.6*detectorLength);
         gWorld->SetPoint(7, 1.1*detectorLength, 0.6*detectorLength+0.5*detectorwidth, 0.6*detectorLength);
     }
+    //______________________________________________________
+    void AStarTracker::ShaveTracks(){
+        tellMe("ShaveTracks()",1);
+        bool erasedPixel=true;
+        while(erasedPixel == true){
+            erasedPixel=false;
+            for(int iPlane=0;iPlane<3;iPlane++){
+                //std::cout << iPlane << "/ 3" << std::endl;
+                for(int icol = 3;icol<hit_image_v[iPlane].meta().cols()-3;icol++){
+                    for(int irow = 3;irow<hit_image_v[iPlane].meta().rows()-3;irow++){
+                        //std::cout << "(" << irow << "," << icol << ") / (" << hit_image_v[iPlane].meta().rows() << "," << hit_image_v[iPlane].meta().cols() << ")" << std::endl;
+                        if(hit_image_v[iPlane].pixel(irow,icol) == 0 || hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue)continue;
 
+                        if(   hit_image_v[iPlane].pixel(irow  ,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol  ) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol  ) != 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol  ) != 0){
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);
+                            erasedPixel = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     //______________________________________________________
     bool AStarTracker::CheckEndPointsInVolume(TVector3 point){
@@ -2319,7 +2400,6 @@ namespace larcv {
                 }
             }
         }
-
         return data_images;
     }
     //______________________________________________________
