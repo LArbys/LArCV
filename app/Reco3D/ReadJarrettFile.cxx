@@ -62,7 +62,9 @@ namespace larcv {
         std::cout << "[ReadJarrettFile] verbose initialized" << std::endl;
         iTrack = 0;
 
-        ReadVertexFile("data/numuSelected.txt");
+        //ReadVertexFile("data/numuSelected.txt");
+        ReadVertexFile("data/actualData/FirstNuMuData.txt");
+        std::cout << "[ReadJarrettFile] vertex file read" << std::endl;
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -87,7 +89,7 @@ namespace larcv {
         auto ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
-        auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
+
 
         int run    = ev_pgraph_v->run();
         int subrun = ev_pgraph_v->subrun();
@@ -98,9 +100,11 @@ namespace larcv {
         auto full_adc_img_v = &(ev_img_v->Image2DArray());
         auto full_tag_img_thru_v = &(tag_img_thru_v->Image2DArray());
         auto full_tag_img_stop_v = &(tag_img_stop_v->Image2DArray());
-        auto mc_roi_v = ev_partroi_v->ROIArray();
+
 
         // get MC vertex
+        /*auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
+        auto mc_roi_v = ev_partroi_v->ROIArray();
         std::vector<TVector3> MuonVertices;
         std::vector<TVector3> ProtonVertices;
         std::vector<TVector3> ElectronVertices;
@@ -155,7 +159,7 @@ namespace larcv {
                     }
                 }
             }
-        }
+        }*/
 
 
         // loop over found vertices
@@ -200,6 +204,7 @@ namespace larcv {
             vertex_v.push_back(vertex);
 
         }
+        if(vertex_v.size()==0)return true;
         //tracker.SetEventVertices(MCVertices);
         tracker.SetEventVertices(vertex_v);
         tracker.ReconstructEvent();
@@ -230,18 +235,19 @@ namespace larcv {
         std::string firstline;
         getline(file, firstline);
         bool goOn = true;
-        int Run,SubRun,Event,Entry,ROI_ID,vtxid;
+        int Run,SubRun,Event,Entry,ROI_ID,vtxid,rescale_vtxid;
         double x,y,z;
         char coma;
         while(goOn){
-            file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z;
+            file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z >> coma >> rescale_vtxid;
             if(thisVertexInfo.size()!=0)thisVertexInfo.clear();
             thisVertexInfo.push_back(Run);      //0
             thisVertexInfo.push_back(SubRun);   //1
             thisVertexInfo.push_back(Event);    //2
             thisVertexInfo.push_back(Entry);    //3
             thisVertexInfo.push_back(ROI_ID);   //4
-            thisVertexInfo.push_back(vtxid);    //5
+            //thisVertexInfo.push_back(vtxid);    //5
+            thisVertexInfo.push_back(rescale_vtxid);//5
             _vertexInfo.push_back(thisVertexInfo);
             if(file.eof()){goOn=false;break;}
         }

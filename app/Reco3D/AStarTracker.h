@@ -124,6 +124,7 @@ namespace larcv {
         void CleanUpVertex();
         void DiagnoseVertex();
         void DiagnoseTrack();
+        void ShaveTracks();
 
         bool initialize();
         bool finalize();
@@ -216,6 +217,7 @@ namespace larcv {
         bool _tooShortDeadWire;
         bool _tooShortThinTrack;
         bool _possibleCosmic;
+        bool _possiblyCrossing;
 
         TH1D *hdQdx;
         TH1D *hLength;
