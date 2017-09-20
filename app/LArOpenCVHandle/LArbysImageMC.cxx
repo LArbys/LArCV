@@ -98,6 +98,18 @@ namespace larcv {
     _mc_tree->Branch("daughter2DEndY_vv"       , &_daughter_2dendy_vv);
     _mc_tree->Branch("daughter2DCosAngle_vv"   , &_daughter_2dcosangle_vv);
 
+    _mc_tree->Branch("tend_pt_x", &_tend_pt_x);
+    _mc_tree->Branch("tend_pt_y", &_tend_pt_y);
+    _mc_tree->Branch("tend_pt_z", &_tend_pt_z);
+
+    _mc_tree->Branch("1st_pt_x", &_1st_pt_x);
+    _mc_tree->Branch("1st_pt_y", &_1st_pt_y);
+    _mc_tree->Branch("1st_pt_z", &_1st_pt_z);
+
+    _mc_tree->Branch("last_pt_x", &_last_pt_x);
+    _mc_tree->Branch("last_pt_y", &_last_pt_y);
+    _mc_tree->Branch("last_pt_z", &_last_pt_z);
+
   }
 
   bool LArbysImageMC::process(IOManager& mgr)
@@ -217,6 +229,21 @@ namespace larcv {
 
       // Here is another point in the direction of p, ignore units...
       // Pxyz are info from genie (meaning that it won't be identical to PCA assumption).
+      auto end_pt = roi.EndPosition();
+      _tend_pt_x = end_pt.X();
+      _tend_pt_y = end_pt.Y();
+      _tend_pt_z = end_pt.Z();
+
+      auto first_step = roi.FirstStep();
+      _1st_pt_x = first_step.X();
+      _1st_pt_y = first_step.Y();
+      _1st_pt_z = first_step.Z();
+      
+      auto last_step = roi.LastStep();
+      _last_pt_x = last_step.X();
+      _last_pt_y = last_step.Y();
+      _last_pt_z = last_step.Z();      
+
       auto x1 = x0 + px;
       auto y1 = y0 + py;
       auto z1 = z0 + pz;

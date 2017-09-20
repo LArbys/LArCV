@@ -124,6 +124,17 @@ namespace larcv {
     std::vector<double> _daughterZ_v;
     std::vector<double> _daughter_length3d_v;
 
+    double _tend_pt_x;
+    double _tend_pt_y;
+    double _tend_pt_z;
+    
+    double _1st_pt_x;
+    double _1st_pt_y;
+    double _1st_pt_z;
+
+    double _last_pt_x;
+    double _last_pt_y;
+    double _last_pt_z;
 
   public:
     /// 2D Vertex Info
