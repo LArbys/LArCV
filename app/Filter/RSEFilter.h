@@ -80,12 +80,11 @@ namespace larcv {
     std::map<larcv::RSEID,bool> _rse_m;
     std::string _ref_producer;
     size_t _ref_type;
-
+    bool _remove_duplicate;
     std::string _fname;
     int _run;
     int _subrun;
     int _event;
-
   };
 
   /**

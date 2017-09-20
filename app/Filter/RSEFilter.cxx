@@ -16,6 +16,7 @@ namespace larcv {
   {
     _ref_producer=cfg.get<std::string>("RefProducer");
     _ref_type=cfg.get<size_t>("RefType");
+    _remove_duplicate=cfg.get<int>("RemoveDuplicate",0);
     
     auto file_path=cfg.get<std::string>("CSVFilePath");
     auto format=cfg.get<std::string>("Format","II");
@@ -36,12 +37,13 @@ namespace larcv {
 
   void RSEFilter::initialize()
   {
-    
-    _tree = new TTree("RSEFilter","");
-    _tree->Branch("fname"  , &_fname);
-    _tree->Branch("run"    , &_run   , "run/I");
-    _tree->Branch("subrun" , &_subrun, "subrun/I");
-    _tree->Branch("event"  , &_event , "event/I");
+    if(has_ana_file()) {
+      _tree = new TTree("RSEFilter","");
+      _tree->Branch("fname"  , &_fname);
+      _tree->Branch("run"    , &_run   , "run/I");
+      _tree->Branch("subrun" , &_subrun, "subrun/I");
+      _tree->Branch("event"  , &_event , "event/I");
+    }
   }
 
   bool RSEFilter::process(IOManager& mgr)
@@ -53,18 +55,21 @@ namespace larcv {
 
     bool keepit = (itr != _rse_m.end());
     LARCV_INFO() << "Event key: " << ptr->event_key() << " ... keep it? " << keepit << std::endl;
-
+    bool duplicate = false;
     if(keepit) {
-      if((*itr).second) LARCV_WARNING() << "Run " << rse.run << " Event " << rse.event << " is duplicated!!!" << std::endl;
+      duplicate = (*itr).second;
+      if(duplicate) LARCV_WARNING() << "Run " << rse.run << " Event " << rse.event << " is duplicated!!!" << std::endl;
       (*itr).second = true;
     }
+    if(duplicate && _remove_duplicate) return false;
 
-    _fname  = (std::string) mgr.file_list().front();
-    _run    = (int) ptr->run();
-    _subrun = (int) ptr->subrun();
-    _event  = (int) ptr->event();
-    _tree->Fill();
-
+    if(has_ana_file()) {
+      _fname  = (std::string) mgr.file_list().front();
+      _run    = (int) ptr->run();
+      _subrun = (int) ptr->subrun();
+      _event  = (int) ptr->event();
+      _tree->Fill();
+    }
     return keepit;
   }
 
@@ -75,7 +80,8 @@ namespace larcv {
       LARCV_WARNING() << "Event ID not found in data file (unused): Run " << rse_used.first.run
 		      << " Event " << rse_used.first.event << std::endl;
     }
-    _tree->Write();
+    if(has_ana_file())
+      _tree->Write();
   }
 
 }
