@@ -27,10 +27,10 @@ edfs = {}
 mdfs = {}
 
 sample_name0 = "nue"
-sample_file0 = "comb_ana_nue.root"
+sample_file0 = str(sys.argv[1])
 
 sample_name1 = "cosmic"
-sample_file1 = "comb_ana_cosmic_no_stopmu.root"
+sample_file1 = str(sys.argv[2])
 
 for name,file_ in [(sample_name0,sample_file0),
                    (sample_name1,sample_file1)]:
@@ -95,9 +95,7 @@ for name,file_ in [(sample_name0,sample_file0),
     
     dfs[name] = comb_df.copy()
 
-dfs['nue'] = dfs['nue'].query("scedr<5")
-
-
+dfs['nue'] = dfs['nue'].query("scedr<5 and selected1L1P==1")
 
 ts_mdf_m = {}
 for name, comb_df in dfs.copy().iteritems():
@@ -583,7 +581,7 @@ for key,item in pdf_m.items():
         plt.show()
         
 
-fout = os.path.join(BASE_PATH,"ll_bin","nue_pdfs.root")
+fout = os.path.join(BASE_PATH,"ll_bin","nue_pdfs_{}.root".format(str(sys.argv[3])))
 tf = ROOT.TFile(fout,"RECREATE")
 tf.cd()
 

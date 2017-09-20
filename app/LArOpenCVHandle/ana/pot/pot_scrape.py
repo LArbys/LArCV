@@ -6,12 +6,13 @@ import pandas as pd
 from array import array
 
 FILE=str(sys.argv[1])
+OUTNAME=str(sys.argv[2])
 print "GOT %s"%FILE
 NAME=str(os.path.basename(FILE).split(".")[0])
 print "NAME %s"%NAME
 df = pd.DataFrame(rn.root2array(FILE,treename="analysistree/pottree"))[['run','subrun','pot']]
-df['pot_fname'] = NAME
-FOUT="pot_%s.root"%NAME
+df['pot_fname'] = OUTNAME
+FOUT="pot_%s.root"%OUTNAME
 tf = ROOT.TFile.Open(FOUT,"RECREATE")
 print "OPEN %s"%FOUT
 tf.cd()

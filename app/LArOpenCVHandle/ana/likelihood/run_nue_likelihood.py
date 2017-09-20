@@ -9,14 +9,13 @@ import pandas as pd
 
 import root_numpy as rn
 
-from util.fill_df import *
-
-
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
+sys.path.insert(0,BASE_PATH)
+
+from util.fill_df import *
 
 rse    = ['run','subrun','event']
-rsev   = ['run','subrun','event','vtxid']
 rserv  = ['run','subrun','event','roid','vtxid']
 
 # Vertex data frame
@@ -26,8 +25,9 @@ dfs  = {}
 edfs = {}
 mdfs = {}
 
-name        = sys.argv[1]
-INPUT_FILE  = sys.argv[2]
+name        = str(sys.argv[1])
+INPUT_FILE  = str(sys.argv[2])
+PDF_FILE    = str(sys.argv[3])
 
 vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
 angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
@@ -84,7 +84,7 @@ print "@ sample",name
 print
 comb_cut_df = comb_df.copy()
 print "--> nue assumption"
-comb_cut_df = nu_assumption(comb_cut_df)
+comb_cut_df = nue_assumption(comb_cut_df)
 print "--> fill parameters"
 comb_cut_df = fill_parameters(comb_cut_df)
 
@@ -92,7 +92,7 @@ comb_cut_df = fill_parameters(comb_cut_df)
 # Pull distributions & binning for PDFs from ROOT file @ ll_bin/"
 #
 print "--> reading PDFs"
-fin = os.path.join(BASE_PATH,"ll_bin","nue_pdfs.root")
+fin = os.path.join(BASE_PATH,"ll_bin",PDF_FILE + ".root")
 tf_in = ROOT.TFile(fin,"READ")
 tf_in.cd()
 
@@ -181,16 +181,17 @@ print "Choosing vertex with max LL"
 passed_df = comb_cut_df.copy()
 passed_df = passed_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
 
-OUT=os.path.join("ll_bin","%s_all.pkl" % name)
+OUT=os.path.join(BASE_PATH,"ll_bin","%s_all.pkl" % name)
 comb_df.to_pickle(OUT)
 print "Store",OUT
 print
-OUT=os.path.join("ll_bin","%s_post_nue.pkl" % name)
+OUT=os.path.join(BASE_PATH,"ll_bin","%s_post_nue.pkl" % name)
 comb_cut_df.to_pickle(OUT)
 print "Store",OUT
 print
-OUT=os.path.join("ll_bin","%s_post_LL.pkl" % name)
+OUT=os.path.join(BASE_PATH,"ll_bin","%s_post_LL.pkl" % name)
 passed_df.to_pickle(OUT)
 print "Store",OUT
 print
 print "Done"
+sys.exit(1)
