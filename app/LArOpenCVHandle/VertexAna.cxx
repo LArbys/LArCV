@@ -109,6 +109,10 @@ namespace larcv {
     _tree->Branch("scedy",    &_scedy);    
     _tree->Branch("scedz",    &_scedz);
     
+    _tree->Branch("end_dx",       &_end_dx);
+    _tree->Branch("end_dy",       &_end_dy);    
+    _tree->Branch("end_dz",       &_end_dz);
+    _tree->Branch("end_dxyz",     &_end_dxyz);
   }
 
   bool VertexAna::process(IOManager& mgr)
