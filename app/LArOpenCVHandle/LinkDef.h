@@ -19,6 +19,9 @@
 #pragma link C++ class larcv::VertexAna+;
 #pragma link C++ class larcv::ExampleAna+;
 
+#pragma link C++ namespace handshake+;
+#pragma link C++ class handshake::HandShaker+;
+
 #pragma link C++ class std::vector<std::vector<std::vector<std::pair<size_t,size_t> > > >+;
 #pragma link C++ class std::vector<std::vector<larcv::ImageMeta> >+;
 
@@ -40,8 +43,12 @@
 #pragma link C++ class larcv::DeadWireAna+;
 #pragma link C++ class larcv::GoodcROIFilter+;
 #pragma link C++ class larcv::CosmicTrackAna+;
+#pragma link C++ class larcv::CosmicVertexAna+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
+
+
 
 
 
