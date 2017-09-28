@@ -70,6 +70,16 @@ namespace larcv {
     double _scedy;
     double _scedz;
 
+    double _true_end_proton_x,_true_end_proton_y,_true_end_proton_z;
+    double _true_end_lepton_x,_true_end_lepton_y,_true_end_lepton_z;
+    double _reco_end_p1_x,_reco_end_p1_y,_reco_end_p1_z;
+    double _reco_end_p2_x,_reco_end_p2_y,_reco_end_p2_z;
+    
+    double _end_dx;
+    double _end_dy;
+    double _end_dz;
+    double _end_dxyz;
+
     double _dr;
     double _scedr;
 

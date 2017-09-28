@@ -189,9 +189,29 @@ namespace larcv {
 	}
 
 	if ( roi.PdgCode()==2212 ) {
+	  auto end_pt = roi.EndPosition();
+	  _true_end_proton_x = end_pt.X();
+	  _true_end_proton_y = end_pt.Y();
+	  _true_end_proton_z = end_pt.Z();
+	  LARCV_DEBUG()<<"true end proton xyz "
+		       <<_true_end_proton_x<<" "
+		       <<_true_end_proton_y<<" "
+		       <<_true_end_proton_z<<std::endl;
 	  if ( (roi.EnergyInit()-938.0)>60.0 )
 	    _nprotons++;
 	}
+	
+	if ( roi.PdgCode()==11 || roi.PdgCode() == 13 ) {
+	  auto end_pt = roi.EndPosition();
+	  _true_end_lepton_x = end_pt.X();
+	  _true_end_lepton_y = end_pt.Y();
+	  _true_end_lepton_z = end_pt.Z();
+	  LARCV_DEBUG()<<"true end lepton xyz "
+		       <<_true_end_lepton_x<<" "
+		       <<_true_end_lepton_y<<" "
+		       <<_true_end_lepton_z<<std::endl;
+	}
+	
 	else if ( roi.PdgCode()==111 || roi.PdgCode()==211 || roi.PdgCode()==-211 || roi.PdgCode()==22 || abs(roi.PdgCode())>100 ) {
 	  _nothers++;
 	}
@@ -311,9 +331,57 @@ namespace larcv {
       else{
         if(_dr < _min_vtx_dist) _min_vtx_dist = _dr;
       }
+      
+      if(roi_v.size()==2){
+	_reco_end_p1_x = _reco_end_p1_y = _reco_end_p1_z  =  0;
+	_reco_end_p2_x = _reco_end_p2_y = _reco_end_p2_z  =  0;
+	
+	for (size_t idx =0; idx< roi_v.size(); ++idx) {
+	  auto end_pt = roi_v[idx].EndPosition();
+	  if(idx == 0){
+	    _reco_end_p1_x = end_pt.X();
+	    _reco_end_p1_y = end_pt.Y();
+	    _reco_end_p1_z = end_pt.Z();
+	  }
+	  if(idx == 1){
+	    _reco_end_p2_x = end_pt.X();
+	    _reco_end_p2_y = end_pt.Y();
+	    _reco_end_p2_z = end_pt.Z();
+	  } 
+	}
+      }
+      
+      double true_end_sum_x = _true_end_proton_x + _true_end_lepton_x;
+      double true_end_sum_y = _true_end_proton_y + _true_end_lepton_y;
+      double true_end_sum_z = _true_end_proton_z + _true_end_lepton_z;
+
+      double reco_end_sum_x = _reco_end_p1_x + _reco_end_p2_x;
+      double reco_end_sum_y = _reco_end_p1_y + _reco_end_p2_y;
+      double reco_end_sum_z = _reco_end_p1_z + _reco_end_p2_z;
+
+      _end_dx = (true_end_sum_x - reco_end_sum_x)/2.0;
+      _end_dy = (true_end_sum_y - reco_end_sum_y)/2.0;
+      _end_dz = (true_end_sum_z - reco_end_sum_z)/2.0;
+      
+      _end_dxyz = std::sqrt(1.0/3 * 
+			    (std::pow(_end_dx,2)+
+			     std::pow(_end_dy,2)+
+			     std::pow(_end_dz,2)
+			     ));
+      
+      LARCV_DEBUG()<<" dx "<<_end_dx
+		   <<" dy "<<_end_dy
+		   <<" dz "<<_end_dz
+		   <<" dxyz "<<_end_dxyz<<std::endl;
+	
+      
+      if(roi_v.size() !=2 ) {
+	_end_dx = _end_dy = _end_dz = _end_dxyz= -1 * kINVALID_DOUBLE;
+
+      }
 
       _in_fiducial = InFiducialRegion3D(_x,_y,_z);
-      
+
       _tree->Fill();
     } // end loop over vertex
     
