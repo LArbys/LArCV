@@ -218,14 +218,7 @@ namespace larcv {
 	  float dot  = ((float)maxPt0.X()-(float)startPt.X())*((float)maxPt1.X()-(float)startPt.X()) + ((float)maxPt0.Y()-(float)startPt.Y())*((float)maxPt1.Y()-(float)startPt.Y());
 	  float mag0 = std::sqrt(std::pow((float)maxPt0.X()-(float)startPt.X(),2)+std::pow((float)maxPt0.Y()-(float)startPt.Y(),2));
 	  float mag1 = std::sqrt(std::pow((float)maxPt1.X()-(float)startPt.X(),2)+std::pow((float)maxPt1.Y()-(float)startPt.Y(),2));
-	  _endCos_v.at(plane) = dot/(mag0*mag1);
-	
-	std::cout<<"Vertex Point "<<startPt.X()<<","<<startPt.Y()<<std::endl;
-	std::cout<<"End Point  1 "<<maxPt0.X()<<","<<maxPt0.Y()<<std::endl;
-	std::cout<<"End Point  2 "<<maxPt1.X()<<","<<maxPt1.Y()<<std::endl;
-	std::cout<<"Angle        "<<dot/(mag0*mag1)<<std::endl;
-	std::cout<<"dot          "<<dot<<std::endl;
-	std::cout<<"------------------"<<std::endl;
+	  _endCos_v.at(plane) = dot/(mag0*mag1);	
 	}
 	
 	auto pointsInThru = larocv::FindNonZero(crop_mat_thru);
