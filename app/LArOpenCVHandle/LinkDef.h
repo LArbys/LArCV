@@ -31,8 +31,12 @@
 #pragma link C++ class larcv::DeadWireAna+;
 #pragma link C++ class larcv::GoodcROIFilter+;
 #pragma link C++ class larcv::CosmicTrackAna+;
+#pragma link C++ class larcv::CosmicVertexAna+;
 
 #endif
+
+
+
 
 
 
