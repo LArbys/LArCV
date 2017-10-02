@@ -130,8 +130,11 @@ namespace larcv {
     LARCV_DEBUG() << "end" << std::endl;
     return true;
   }
-
-  void VertexInROI::finalize() {}
+  
+  void VertexInROI::SetROIIndex(int index) {
+    _croi_idx = index; 
+    LARCV_DEBUG() << "set _croi_idx=" << _croi_idx;
+  }
 
 }
 #endif
