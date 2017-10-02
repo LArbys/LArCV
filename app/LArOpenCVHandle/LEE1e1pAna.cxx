@@ -10,6 +10,7 @@
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
 #include "LArbysUtils.h"
+#include <cassert>
 
 namespace larcv {
 
@@ -130,10 +131,10 @@ namespace larcv {
       auto const& bb_v = croi.BB();
       roid_v.push_back(crop_metas(adc_img_v,bb_v));
     }
-
     
     _nprotons = 0;
     _nothers  = 0;
+
     /*
     for (auto const& truth_roi : ev_roi_v->ROIArray() ) {
       if ( truth_roi.PdgCode()==2212 ) {
@@ -157,9 +158,14 @@ namespace larcv {
 	
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
     for (int vtx_idx = 0; vtx_idx < (int)vtx_counts; ++vtx_idx) {
+
+      LARCV_DEBUG() << "@ vtx_idx=" << vtx_idx << std::endl;
+
       ClearVertex();
 
       _vtxid += 1;
+
+      assert((size_t)vtx_idx < ev_pgraph->PGraphArray().size());
 
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
       auto const& roi_v = pgraph.ParticleArray();
@@ -176,15 +182,22 @@ namespace larcv {
       _roid  = roid;
 
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
+      
+      if (roi_v.size() < 2) {
+	_tree->Fill();
+	continue;
+      }
 
-      auto const& roi0 = roi_v[0];
-      auto const& roi1 = roi_v[1];
+      auto const& roi0 = roi_v.at(0);
+      auto const& roi1 = roi_v.at(1);
+
+      LARCV_DEBUG() << "got roi0@" << &roi0 << " &roi1@" << &roi1 << std::endl;
 
       _shape0 = (int)(roi0.Shape());
       _shape1 = (int)(roi1.Shape());
 
-      for(auto& v : _score0) v=0.;
-      for(auto& v : _score1) v=0.;
+      for(auto& v : _score0) v=0;
+      for(auto& v : _score1) v=0;
     
       auto const& score0 = roi0.TypeScore();
       auto const& score1 = roi1.TypeScore();
@@ -194,28 +207,28 @@ namespace larcv {
       _score1_e = _score1_g = _score1_mu = _score1_pi = _score1_p = 0;
       
       for(size_t i=0; i<score0.size() && i<_score0.size(); ++i) {
-	_score0[i] = score0[i];
-	if(i<2) _score_shower0 += score0[i];
-	if(i==2||i==4) _score_track0 += score0[i];
-	if(i==0) _score0_e  = score0[i];
-	if(i==1) _score0_g  = score0[i];
-	if(i==2) _score0_mu = score0[i];
-	if(i==3) _score0_pi = score0[i];
-	if(i==4) _score0_p  = score0[i];
+	_score0.at(i) = score0.at(i);
+	if(i<2) _score_shower0 += score0.at(i);
+	if(i==2||i==4) _score_track0 += score0.at(i);
+	if(i==0) _score0_e  = score0.at(i);
+	if(i==1) _score0_g  = score0.at(i);
+	if(i==2) _score0_mu = score0.at(i);
+	if(i==3) _score0_pi = score0.at(i);
+	if(i==4) _score0_p  = score0.at(i);
       }
       for(size_t i=0; i<score1.size() && i<_score1.size(); ++i) {
-	_score1[i] = score1[i];
-	if(i<2) _score_shower1 += score1[i];
-	if(i==2||i==4) _score_track1 += score1[i];
-	if(i==0) _score1_e  = score1[i];
-	if(i==1) _score1_g  = score1[i];
-	if(i==2) _score1_mu = score1[i];
-	if(i==3) _score1_pi = score1[i];
-	if(i==4) _score1_p  = score1[i];
+	_score1.at(i) = score1.at(i);
+	if(i<2) _score_shower1 += score1.at(i);
+	if(i==2||i==4) _score_track1 += score1.at(i);
+	if(i==0) _score1_e  = score1.at(i);
+	if(i==1) _score1_g  = score1.at(i);
+	if(i==2) _score1_mu = score1.at(i);
+	if(i==3) _score1_pi = score1.at(i);
+	if(i==4) _score1_p  = score1.at(i);
       }
 
-      auto const& cluster_idx0 = cluster_idx_v[0];
-      auto const& cluster_idx1 = cluster_idx_v[1];
+      auto const& cluster_idx0 = cluster_idx_v.at(0);
+      auto const& cluster_idx1 = cluster_idx_v.at(1);
 
       bool done0=false;
       bool done1=false;
@@ -241,8 +254,8 @@ namespace larcv {
 	  _npx0 = pcluster0.size();
 	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
 	  for(size_t i=1; i<ctor0.size(); ++i) {
-	    auto const& pt0 = ctor0[i-1];
-	    auto const& pt1 = ctor0[i];
+	    auto const& pt0 = ctor0.at(i-1);
+	    auto const& pt1 = ctor0.at(i);
 	    _len0 += sqrt(pow((float)(pt0.X()) - (float)(pt1.X()),2) + pow((float)(pt0.Y()) - (float)(pt1.Y()),2));
 	  }
 	  _len0 += sqrt(pow((float)(ctor0.front().X()) - (float)(ctor0.back().X()),2) +
@@ -250,8 +263,8 @@ namespace larcv {
 	  larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor0.size());
 	  for(size_t i=0; i<ctor0.size(); ++i) {
-	    ctor[i].x = ctor0[i].X();
-	    ctor[i].y = ctor0[i].Y();
+	    ctor.at(i).x = ctor0.at(i).X();
+	    ctor.at(i).y = ctor0.at(i).Y();
 	  }
 	  _area0 = larocv::ContourArea(ctor);
 	  done0 = true;
@@ -263,7 +276,7 @@ namespace larcv {
 	  for(auto const& pt : pcluster1) _q1 += pt.Intensity();
 	  for(size_t i=1; i<ctor1.size(); ++i) {
 	    auto const& pt0 = ctor1[i-1];
-	    auto const& pt1 = ctor1[i];
+	    auto const& pt1 = ctor1.at(i);
 	    _len1 += sqrt(pow((float)(pt0.X()) - (float)(pt1.X()),2) + pow((float)(pt0.Y()) - (float)(pt1.Y()),2));
 	  }
 	  _len1 += sqrt(pow((float)(ctor1.front().X()) - (float)(ctor1.back().X()),2) +
@@ -271,8 +284,8 @@ namespace larcv {
 	  larocv::GEO2D_Contour_t ctor;
 	  ctor.resize(ctor1.size());
 	  for(size_t i=0; i<ctor1.size(); ++i) {
-	    ctor[i].x = ctor1[i].X();
-	    ctor[i].y = ctor1[i].Y();
+	    ctor.at(i).x = ctor1.at(i).X();
+	    ctor.at(i).y = ctor1.at(i).Y();
 	  }
 	  _area1 = larocv::ContourArea(ctor);
 	  done1 = true;
