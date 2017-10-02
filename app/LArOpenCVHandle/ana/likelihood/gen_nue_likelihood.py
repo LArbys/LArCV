@@ -141,16 +141,23 @@ for name,file_ in [(sample_name0,sample_file0),
 dfs['nue'] = dfs['nue'].query("scedr<5 and selected1L1P==1")
 
 ts_mdf_m = {}
+
 for name, comb_df in dfs.copy().iteritems():
     print
     print "@ sample",name
     print
     
     ts_mdf = comb_df.copy()
-
+    print "Filling nue assumption..."
     ts_mdf = nue_assumption(ts_mdf)
+    print "...done"
+    print "Filling parameters..."
     ts_mdf = fill_parameters(ts_mdf)
+    print "...done"
+    print "Copying..."
     ts_mdf_m[name] = ts_mdf.copy()
+    print "...done"
+
 
 
 #

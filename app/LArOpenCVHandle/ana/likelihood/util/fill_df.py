@@ -5,10 +5,9 @@ from larocv import larocv
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
     df['shrid'] = df.apply(lambda x : 1 if(x['par2_type']==2) else 0,axis=1)
-    
+
     df['trk_frac_avg'] = df.apply(lambda x : x['par1_frac'] if(x['par1_type']==1) else x['par2_frac'],axis=1)
     df['shr_frac_avg'] = df.apply(lambda x : x['par2_frac'] if(x['par2_type']==2) else x['par1_frac'],axis=1)
-
 
 def nue_assumption(comb_cut_df):
     print "Asking nue assumption"
