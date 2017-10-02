@@ -1,4 +1,18 @@
 import os, sys
+
+if len(sys.argv) != 4:
+    print 
+    print "sample_name0 = \"nue\""
+    print "sample_file0 = str(sys.argv[1])"
+    print
+    print "sample_name1 = \"cosmic\""
+    print "sample_file1 = str(sys.argv[2])"
+    print
+    print "\"nue_pdfs_{}.root\".format(str(sys.argv[3]))"
+    print 
+    sys.exit(1)
+
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -41,57 +55,86 @@ for name,file_ in [(sample_name0,sample_file0),
     #
     # Vertex wise Trees
     #
+    print "Loading vertex TTrees..."
     vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
     angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
     shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
     gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
     match_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MatchAnalysis"))
     dqds_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="dQdSAnalysis"))
+    #cosmic_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="CosmicAnalysis"))
+
+    print "Reindex..."
+    vertex_df.set_index(rserv,inplace=True)
+    angle_df.set_index(rserv,inplace=True) 
+    shape_df.set_index(rserv,inplace=True) 
+    gap_df.set_index(rserv,inplace=True)   
+    match_df.set_index(rserv,inplace=True) 
+    dqds_df.set_index(rserv,inplace=True) 
+    #cosmic_df.set_index(rserv,inplace=True) 
 
     #
     # Combine DataFrames
     #
-    comb_df = pd.concat([vertex_df.set_index(rserv),
-                         angle_df.set_index(rserv),
-                         shape_df.set_index(rserv),
-                         gap_df.set_index(rserv),
-                         angle_df.set_index(rserv),
-                         match_df.set_index(rserv),
-                         dqds_df.set_index(rserv)],axis=1)
-
-    comb_df = comb_df.reset_index()
-    event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-
+    print "Combining Trees..."
+    comb_df = pd.concat([vertex_df,
+                         angle_df,
+                         shape_df,
+                         gap_df,
+                         angle_df,
+                         match_df,
+                         dqds_df],axis=1)
+                         #cosmic_df
+    
+    print comb_df.index.size
+    print "Dropping duplicate cols..."
+    comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+    comb_df.reset_index(inplace=True)
+    comb_df.set_index(rse,inplace=True)
+    
+    print "Loading event TTrees..."
+    event_vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
+    nufilter_df     = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
+    mc_df           = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+    
+    print "Reindex..."
+    event_vertex_df.set_index(rse,inplace=True)
+    nufilter_df.set_index(rse,inplace=True)
+    mc_df.set_index(rse,inplace=True)
+    
     def drop_y(df):
         to_drop = [x for x in df if x.endswith('_y')]
         df.drop(to_drop, axis=1, inplace=True)
-        
-    comb_df = comb_df.set_index(rse).join(event_vertex_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-    drop_y(comb_df)
-    
-    if name == "nue":
-        nufilter_df       = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
-        mc_df             = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
-        
-        comb_df = comb_df.set_index(rse).join(nufilter_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-        drop_y(comb_df)    
-        
-        comb_df = comb_df.set_index(rse).join(mc_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-        drop_y(comb_df)
 
-    #
-    # Store vertex wise data frame
-    #
-    comb_df = comb_df.reset_index()
-    comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+    print "Joining nufilter..."
+    event_vertex_df = event_vertex_df.join(nufilter_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(event_vertex_df)
+    print "...dropped"
+
+    print "Joining mcdf..."
+    event_vertex_df = event_vertex_df.join(mc_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(event_vertex_df)
+    print "...dropped"
+    
+    print "Joining with vertex..."
+    comb_df = comb_df.join(event_vertex_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(event_vertex_df)
+    print "...dropped"
     
     comb_df['cvtxid'] = 0.0
-    
     def func(group):
         group['cvtxid'] = np.arange(0,group['cvtxid'].size)
         return group
 
+    print "Reindex..."
+    comb_df.reset_index(inplace=True)
+
+    print "Setting vertex id..."
     comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
+
     
     dfs[name] = comb_df.copy()
 
