@@ -139,28 +139,48 @@ namespace larcv {
     std::vector<size_t> plane_order_v = {2,0,1};
     for (int vtxID = 0; vtxID < num_verts; ++vtxID) {
 
+      
       _num_allpix_v.clear();
-      _num_allpix_v.resize(3,0);
+      _num_allpix_v.resize(3,-1);
       _num_nottag_v.clear();
-      _num_nottag_v.resize(3,0);
+      _num_nottag_v.resize(3,-1);
       _num_thrutag_v.clear();
-      _num_thrutag_v.resize(3,0);
+      _num_thrutag_v.resize(3,-1);
       _num_stoptag_v.clear();
-      _num_stoptag_v.resize(3,0);
+      _num_stoptag_v.resize(3,-1);
       _pts_in_raw_clus_v.clear();
-      _pts_in_raw_clus_v.resize(3,0);
+      _pts_in_raw_clus_v.resize(3,-1);
       _pts_stopmu_ovrlap_v.clear();
-      _pts_stopmu_ovrlap_v.resize(3,0);
+      _pts_stopmu_ovrlap_v.resize(3,-1);
       _pts_thrumu_ovrlap_v.clear();
-      _pts_thrumu_ovrlap_v.resize(3,0);
+      _pts_thrumu_ovrlap_v.resize(3,-1);
       _endCos_v.clear();
       _endCos_v.resize(3,-2);
       
       auto pgraph = ev_pgraph->PGraphArray().at(vtxID);
       auto const& roi_v = pgraph.ParticleArray();
       auto const& bb_v  = roi_v.front().BB();
-      
+
+      auto iter = std::find(roid_v.begin(),roid_v.end(),bb_v);
+      if (iter == roid_v.end()) throw larbys("Unknown image meta");
+
+      auto roid = iter - roid_v.begin();
+
+      if (roid != _roid) _vtxid = 0;
+
+      _roid  = roid;
+      _vtxid += 1;
+      _run    = ev_img2d->run();
+      _subrun = ev_img2d->subrun();
+      _event  = ev_img2d->event();
+      _entry  = mgr.current_entry();
+
+
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
+      if (cluster_idx_v.size() < 2) {
+	_tree->Fill();
+	continue;
+      }
       auto const& cluster_idx0  = cluster_idx_v[0];
       auto const& cluster_idx1  = cluster_idx_v[1];
       
@@ -236,21 +256,6 @@ namespace larcv {
 	_pts_in_raw_clus_v.at(plane)   = nInClusterRaw;
 
       }
-
-            
-      auto iter = std::find(roid_v.begin(),roid_v.end(),bb_v);
-      if (iter == roid_v.end()) throw larbys("Unknown image meta");
-
-      auto roid = iter - roid_v.begin();
-
-      if (roid != _roid) _vtxid = 0;
-
-      _roid  = roid;
-      _vtxid += 1;
-      _run    = ev_img2d->run();
-      _subrun = ev_img2d->subrun();
-      _event  = ev_img2d->event();
-      _entry  = mgr.current_entry();
       
       _tree->Fill();
     }
