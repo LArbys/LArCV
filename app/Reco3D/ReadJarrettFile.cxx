@@ -63,8 +63,17 @@ namespace larcv {
         iTrack = 0;
 
         //ReadVertexFile("data/numuSelected.txt");
-        ReadVertexFile("data/actualData/FirstNuMuData.txt");
+        //ReadVertexFile("data/actualData/FirstNuMuData.txt");
+        ReadVertexFile("data/actualData/BNBNuMuSelected.txt");
         std::cout << "[ReadJarrettFile] vertex file read" << std::endl;
+
+        hEcomp             = new TH2D("hEcomp","hEcomp;E_th;E_reco",100,0,1000,100,0,1000);
+        hEcomp1D           = new TH1D("hEcomp1D","hEcomp1D; (E_{reco}-E_{truth})/E_{truth}",400,-2,8);
+        hEcomp1D_m         = new TH1D("hEcomp1D_m","hEcomp1D_m; (E_{reco}-E_{truth})/E_{truth}",400,-2,8);
+        hEcomp1D_p         = new TH1D("hEcomp1D_p","hEcomp1D_p; (E_{reco}-E_{truth})/E_{truth}",400,-2,8);
+        hAverageIonization = new TH1D("hAverageIonization","hAverageIonization",100,0,10000);
+        hEcompdQdx         = new TH2D("hEcompdQdx","hEcompdQdx;AverageADCperPix/L;(E_{reco}-E_{truth})/E_{truth}",100,0,1000,100,-2,8);
+        hIonvsLength       = new TH2D("hIonvsLength","hIonvsLength;L [cm];AverageADCperPix",100,0,1000,100,0,10000);
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -81,19 +90,27 @@ namespace larcv {
         // Loop per vertex (larcv type is PGraph "Particle Graph")
         //
 
-        auto ev_img_v      = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
-        //auto tag_img_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
+        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
+        run    = ev_pgraph_v->run();
+        subrun = ev_pgraph_v->subrun();
+        event  = ev_pgraph_v->event();
+        if(!IsGoodEntry(run,subrun,event)){ return true;}
+
+
+        auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
+        //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
+        //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"containedtags");
         auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
         auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
-        //auto tag_img_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"containedtags");
-        auto ev_pgraph_v   = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
+
+
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
 
 
-        int run    = ev_pgraph_v->run();
-        int subrun = ev_pgraph_v->subrun();
-        int event  = ev_pgraph_v->event();
+
+
+
 
         // get the event clusters and full images
         //auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
@@ -102,7 +119,9 @@ namespace larcv {
         auto full_tag_img_stop_v = &(tag_img_stop_v->Image2DArray());
 
 
+        //______________
         // get MC vertex
+        //--------------
         /*auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
         auto mc_roi_v = ev_partroi_v->ROIArray();
         std::vector<TVector3> MuonVertices;
@@ -114,11 +133,13 @@ namespace larcv {
         for(int iMC = 0;iMC<mc_roi_v.size();iMC++){
             if(mc_roi_v[iMC].PdgCode() == 13){
                 std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+                Em_t = mc_roi_v[iMC].EnergyDeposit();
                 MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
                 MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
             if(mc_roi_v[iMC].PdgCode() == 2212){
                 std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+                Ep_t = mc_roi_v[iMC].EnergyDeposit();
                 ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
                 ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
@@ -160,6 +181,9 @@ namespace larcv {
                 }
             }
         }*/
+        //______________
+        // End MC
+        //--------------
 
 
         // loop over found vertices
@@ -183,10 +207,11 @@ namespace larcv {
         tracker.SetOriginalImage(Full_image_v);
         tracker.SetTaggedImage(Tagged_Image);
         tracker.SetTrackInfo(run, subrun, event, 0);
+        std::cout << run << " " << subrun << " " << event <<  std::endl;
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
             iTrack++;
-            if(!IsGoodVertex(run,subrun,event,pgraph_id))continue;
+            if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
             auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
 
@@ -208,7 +233,15 @@ namespace larcv {
         //tracker.SetEventVertices(MCVertices);
         tracker.SetEventVertices(vertex_v);
         tracker.ReconstructEvent();
+
+        /*std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
+        std::vector<double> ionPerTrack = tracker.GetAverageIonization();
+        std::vector<double> VertexLengths = tracker.GetVertexLength();
         std::cout << std::endl << std::endl;
+        if(ionPerTrack.size()!=2)return true;
+        if(!tracker.IsGoodVertex())return true;*/
+
+        //MCevaluation();
         
         return true;
     }
@@ -221,7 +254,19 @@ namespace larcv {
                && subrun == _vertexInfo[ivertex][1]
                && event  == _vertexInfo[ivertex][2]
                //&& ROIid  == _vertexInfo[ivertex][4]
-               && vtxID  == _vertexInfo[ivertex][5])okVertex = true;
+               && vtxID  == _vertexInfo[ivertex][5]
+               )okVertex = true;
+        }
+        return okVertex;
+    }
+
+    bool ReadJarrettFile::IsGoodEntry(int run, int subrun, int event){
+        bool okVertex = false;
+        for(int ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
+            if(   run    == _vertexInfo[ivertex][0]
+               && subrun == _vertexInfo[ivertex][1]
+               && event  == _vertexInfo[ivertex][2]
+               )okVertex = true;
         }
         return okVertex;
     }
@@ -240,6 +285,7 @@ namespace larcv {
         char coma;
         while(goOn){
             file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z >> coma >> rescale_vtxid;
+            //file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z ;
             if(thisVertexInfo.size()!=0)thisVertexInfo.clear();
             thisVertexInfo.push_back(Run);      //0
             thisVertexInfo.push_back(SubRun);   //1
@@ -254,10 +300,65 @@ namespace larcv {
         std::cout << _vertexInfo.size() << " vertices to loop through" << std::endl;
 
     }
+
+    void ReadJarrettFile::MCevaluation(){
+
+        std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
+        std::vector<double> ionPerTrack = tracker.GetAverageIonization();
+        std::vector<double> VertexLengths = tracker.GetVertexLength();
+
+        if(ionPerTrack.size()!=2)return;
+        if(!tracker.IsGoodVertex())return;
+
+        if(ionPerTrack[0] > ionPerTrack[1]){
+            hEcomp->Fill(Ep_t,Energies_v[0][0]); // first track is proton
+            hEcomp->Fill(Em_t,Energies_v[1][1]); // second track is muon
+            hEcomp1D->Fill((Energies_v[0][0]-Ep_t)/Ep_t);
+            hEcomp1D->Fill((Energies_v[1][1]-Em_t)/Em_t);
+            hEcomp1D_m->Fill((Energies_v[1][1]-Em_t)/Em_t);
+            hEcomp1D_p->Fill((Energies_v[0][0]-Ep_t)/Ep_t);
+            hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Energies_v[0][0]-Ep_t)/Ep_t);
+            hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Energies_v[1][1]-Em_t)/Em_t);
+        }
+        else{
+            hEcomp->Fill(Ep_t,Energies_v[1][0]); // second track is proton
+            hEcomp->Fill(Em_t,Energies_v[0][1]); // first track is muon
+            hEcomp1D->Fill((Energies_v[1][0]-Ep_t)/Ep_t);
+            hEcomp1D->Fill((Energies_v[0][1]-Em_t)/Em_t);
+            hEcomp1D_p->Fill((Energies_v[1][0]-Ep_t)/Ep_t);
+            hEcomp1D_m->Fill((Energies_v[0][1]-Em_t)/Em_t);
+            hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Energies_v[0][0]-Ep_t)/Ep_t);
+            hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Energies_v[1][1]-Em_t)/Em_t);
+        }
+
+        if( std::abs((Energies_v[0][0]-Ep_t)/Ep_t) > 0.1 || std::abs((Energies_v[1][1]-Em_t)/Em_t) > 0.1 ){
+            checkEvents.push_back(Form("%d_%d_%d",run,subrun,event));
+        }
+
+
+        for(int itrack = 0;itrack<ionPerTrack.size();itrack++){
+            hAverageIonization->Fill(ionPerTrack[itrack]);
+            hIonvsLength->Fill(VertexLengths[itrack],ionPerTrack[itrack]);
+            
+        }
+    }
     
     void ReadJarrettFile::finalize()
     {
+        if(hEcomp->GetEntries() > 1){
+            hEcomp->SaveAs(Form("hEcomp_%d_%d_%d.root",run,subrun,event));
+            hEcompdQdx->SaveAs(Form("hEcompdQdx_%d_%d_%d.root",run,subrun,event));
+            hEcomp1D->SaveAs(Form("hEcomp1D_%d_%d_%d.root",run,subrun,event));
+            hEcomp1D_m->SaveAs(Form("hEcomp1D_m_%d_%d_%d.root",run,subrun,event));
+            hEcomp1D_p->SaveAs(Form("hEcomp1D_p_%d_%d_%d.root",run,subrun,event));
+            hIonvsLength->SaveAs(Form("hIonvsLength_%d_%d_%d.root",run,subrun,event));
+            hAverageIonization->SaveAs(Form("hAverageIonization_%d_%d_%d.root",run,subrun,event));
+        }
         tracker.finalize();
+
+        for(auto picture:checkEvents){
+            std::cout << picture << std::endl;
+        }
     }
     
 }

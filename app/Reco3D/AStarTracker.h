@@ -131,6 +131,7 @@ namespace larcv {
         bool ArePointsEqual(TVector3 A, TVector3 B);
         bool CheckEndPointsInVolume(TVector3 point);
         bool IsGoodTrack();
+        bool IsGoodVertex();
         bool IsInSegment(TVector3 A, TVector3 B, TVector3 C);
         bool CheckEndPoints(std::vector< std::pair<int,int> > endPix);
         bool IsTrackIn(std::vector<TVector3> trackA, std::vector<TVector3> trackB);
@@ -141,6 +142,7 @@ namespace larcv {
         double EvalMinDist(TVector3 point);
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
         double GetLength(){return _Length3D;}
+        std::vector<double> GetVertexLength();
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
@@ -165,9 +167,12 @@ namespace larcv {
             RegularizeTrack();
             return GetTrack();
         }
-        
+
+        std::vector<double>                GetAverageIonization();
         std::vector< std::vector<int> >    _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
+        std::vector< std::vector<double> > GetEnergies();
+
 
 
         std::vector<std::pair<double,double> > GetTimeBounds(){return time_bounds;}
@@ -216,6 +221,7 @@ namespace larcv {
         bool _nothingReconstructed;
         bool _tooShortDeadWire;
         bool _tooShortThinTrack;
+        bool _tooManyTracksAtVertex;
         bool _possibleCosmic;
         bool _possiblyCrossing;
 

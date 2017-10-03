@@ -14,6 +14,9 @@
 #ifndef __READJARRETTFILE_H__
 #define __READJARRETTFILE_H__
 
+#include "TH2D.h"
+#include "TH1D.h"
+
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "AStarTracker.h"
@@ -42,14 +45,30 @@ namespace larcv {
         bool process(IOManager& mgr);
 
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
+        bool IsGoodEntry(int run, int subrun, int event);
         void ReadVertexFile(std::string filename);
 
         void finalize();
+
+        void MCevaluation();
 
     private :
         int iTrack;
         larcv::AStarTracker tracker;
         std::vector< std::vector<int> > _vertexInfo;
+        TH2D *hEcomp;
+        TH1D *hAverageIonization;
+        TH1D *hEcomp1D;
+        TH1D *hEcomp1D_m;
+        TH1D *hEcomp1D_p;
+        TH2D *hEcompdQdx;
+        TH2D *hIonvsLength;
+        double Ep_t;
+        double Em_t;
+        int run;
+        int subrun;
+        int event;
+        std::vector<std::string> checkEvents;
 
     };
 
