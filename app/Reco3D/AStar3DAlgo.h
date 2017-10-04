@@ -23,7 +23,6 @@ Uses Image2D to hold image.
 #include "DataFormat/Image2D.h"
 #include "Base/PSet.h"
 
-// larlitecv
 #include "AStar3DAlgoConfig.h"
 
 namespace larcv {

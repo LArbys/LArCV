@@ -28,6 +28,7 @@ namespace larcv {
       path_restriction_radius = 10.0;
       compression_mode = 2;
       store_score_image = false;
+      lattice_padding = 5;
     };
     virtual ~AStar3DAlgoConfig() {};
 
