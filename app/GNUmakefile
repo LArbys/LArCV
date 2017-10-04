@@ -6,7 +6,7 @@ endif
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := ImageMod Filter PMTWeights HiResDivider Merger 
+SUBDIRS := ImageMod Filter PMTWeights HiResDivider Merger Reco3D
 ifdef LARLITE_BASEDIR
 SUBDIRS += Supera/APILArLite
 endif
