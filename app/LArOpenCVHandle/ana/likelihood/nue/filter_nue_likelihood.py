@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
+sys.path.insert(0,BASE_PATH)
 
 print "-->initialize"
 ANAFILE = str(sys.argv[1])
