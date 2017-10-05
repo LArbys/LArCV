@@ -8,7 +8,7 @@
 #include "LArbysUtils.h"
 
 namespace larcv {
-
+  
   static LArbysImageMCProcessFactory __global_LArbysImageMCProcessFactory__;
 
   LArbysImageMC::LArbysImageMC(const std::string name)
@@ -97,6 +97,30 @@ namespace larcv {
     _mc_tree->Branch("daughter2DEndX_vv"       , &_daughter_2dendx_vv);
     _mc_tree->Branch("daughter2DEndY_vv"       , &_daughter_2dendy_vv);
     _mc_tree->Branch("daughter2DCosAngle_vv"   , &_daughter_2dcosangle_vv);
+
+    _mc_tree->Branch("true_proton_end_pt_x", &_true_proton_end_pt_x);
+    _mc_tree->Branch("true_proton_end_pt_y", &_true_proton_end_pt_y);
+    _mc_tree->Branch("true_proton_end_pt_z", &_true_proton_end_pt_z);
+
+    _mc_tree->Branch("proton_1st_pt_x", &_proton_1st_pt_x);
+    _mc_tree->Branch("proton_1st_pt_y", &_proton_1st_pt_y);
+    _mc_tree->Branch("proton_1st_pt_z", &_proton_1st_pt_z);
+
+    _mc_tree->Branch("proton_last_pt_x", &_proton_last_pt_x);
+    _mc_tree->Branch("proton_last_pt_y", &_proton_last_pt_y);
+    _mc_tree->Branch("proton_last_pt_z", &_proton_last_pt_z);
+
+    _mc_tree->Branch("true_lepton_end_pt_x", &_true_lepton_end_pt_x);
+    _mc_tree->Branch("true_lepton_end_pt_y", &_true_lepton_end_pt_y);
+    _mc_tree->Branch("true_lepton_end_pt_z", &_true_lepton_end_pt_z);
+
+    _mc_tree->Branch("lepton_1st_pt_x", &_lepton_1st_pt_x);
+    _mc_tree->Branch("lepton_1st_pt_y", &_lepton_1st_pt_y);
+    _mc_tree->Branch("lepton_1st_pt_z", &_lepton_1st_pt_z);
+
+    _mc_tree->Branch("lepton_last_pt_x", &_lepton_last_pt_x);
+    _mc_tree->Branch("lepton_last_pt_y", &_lepton_last_pt_y);
+    _mc_tree->Branch("lepton_last_pt_z", &_lepton_last_pt_z);
 
   }
 
@@ -195,7 +219,7 @@ namespace larcv {
         continue;
       }
 
-
+      
       LARCV_DEBUG() << "This particle is PDG code " << roi.ParentPdgCode() << std::endl;
 
       // Get a unit vector for this pdg in 3 coordinates
@@ -217,6 +241,10 @@ namespace larcv {
 
       // Here is another point in the direction of p, ignore units...
       // Pxyz are info from genie (meaning that it won't be identical to PCA assumption).
+      auto end_pt = roi.EndPosition();
+      auto first_step = roi.FirstStep();
+      auto last_step = roi.LastStep();      
+
       auto x1 = x0 + px;
       auto y1 = y0 + py;
       auto z1 = z0 + pz;
@@ -283,17 +311,17 @@ namespace larcv {
 
 	daughter_2dcosangle_v.push_back(cosangle);
       }
-
+      
       _daughterPx_v.push_back(roi.Px());
       _daughterPy_v.push_back(roi.Py());
       _daughterPz_v.push_back(roi.Pz());
       _daughterX_v.push_back(roi.X());
       _daughterY_v.push_back(roi.Y());
       _daughterZ_v.push_back(roi.Z());
-
+      
       double length3d = sqrt(pow(roi.LastStep().X()-roi.FirstStep().X(),2)+pow(roi.LastStep().Y()-roi.FirstStep().Y(),2)+pow(roi.LastStep().Z()-roi.FirstStep().Z(),2));
       _daughter_length3d_v.push_back(length3d);
-
+      
       int pdgcode = roi.PdgCode();
 
       _daughter_pdg_v.push_back((int) roi.PdgCode());
@@ -313,7 +341,20 @@ namespace larcv {
           _nproton++;
 	  _ke_sum_proton  += (roi.EnergyInit() - 938.0);
         }
-        //capture proton
+
+	_true_proton_end_pt_x = end_pt.X();
+	_true_proton_end_pt_y = end_pt.Y();
+	_true_proton_end_pt_z = end_pt.Z();
+	
+	_proton_1st_pt_x = first_step.X();
+	_proton_1st_pt_y = first_step.Y();
+	_proton_1st_pt_z = first_step.Z();
+	
+	_proton_last_pt_x = last_step.X();
+	_proton_last_pt_y = last_step.Y();
+	_proton_last_pt_z = last_step.Z();      
+	
+	//capture proton
         aparticle thispro;
         thispro.trackid       = roi.TrackID();
         thispro.parenttrackid = roi.ParentTrackID();
@@ -350,6 +391,19 @@ namespace larcv {
           _hi_lep_e = roi.EnergyInit();
           _hi_lep_pdg = pdgcode;
         }
+	
+	_true_lepton_end_pt_x = end_pt.X();
+	_true_lepton_end_pt_y = end_pt.Y();
+	_true_lepton_end_pt_z = end_pt.Z();
+	
+	_lepton_1st_pt_x = first_step.X();
+	_lepton_1st_pt_y = first_step.Y();
+	_lepton_1st_pt_z = first_step.Z();
+	
+	_lepton_last_pt_x = last_step.X();
+	_lepton_last_pt_y = last_step.Y();
+	_lepton_last_pt_z = last_step.Z();      
+	
       }
 
       // shower are electron, gamma, pi0
@@ -365,7 +419,7 @@ namespace larcv {
     float max_proton_e = 0;
     std::vector<float> proton_engs;
     proton_engs.reserve(nprotons);
-
+    
 
     if (nprotons){
 

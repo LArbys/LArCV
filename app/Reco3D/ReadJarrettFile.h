@@ -1,0 +1,94 @@
+/**
+ * \file ReadJarrettFile.h
+ *
+ * \ingroup Package_Name
+ *
+ * \brief Class def header for a class ReadJarrettFile
+ *
+ * @author hourlier
+ */
+
+/** \addtogroup Package_Name
+
+ @{*/
+#ifndef __READJARRETTFILE_H__
+#define __READJARRETTFILE_H__
+
+#include "TH2D.h"
+#include "TH1D.h"
+
+#include "Processor/ProcessBase.h"
+#include "Processor/ProcessFactory.h"
+#include "AStarTracker.h"
+
+namespace larcv {
+
+    /**
+     \class ProcessBase
+     User defined class ReadJarrettFile ... these comments are used to generate
+     doxygen documentation!
+     */
+    class ReadJarrettFile : public ProcessBase {
+
+    public:
+
+        /// Default constructor
+        ReadJarrettFile(const std::string name="ReadJarrettFile");
+
+        /// Default destructor
+        ~ReadJarrettFile(){}
+
+        void configure(const PSet&);
+
+        void initialize();
+
+        bool process(IOManager& mgr);
+
+        bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
+        bool IsGoodEntry(int run, int subrun, int event);
+        void ReadVertexFile(std::string filename);
+
+        void finalize();
+
+        void MCevaluation();
+
+    private :
+        int iTrack;
+        larcv::AStarTracker tracker;
+        std::vector< std::vector<int> > _vertexInfo;
+        TH2D *hEcomp;
+        TH1D *hAverageIonization;
+        TH1D *hEcomp1D;
+        TH1D *hEcomp1D_m;
+        TH1D *hEcomp1D_p;
+        TH2D *hEcompdQdx;
+        TH2D *hIonvsLength;
+        double Ep_t;
+        double Em_t;
+        int run;
+        int subrun;
+        int event;
+        std::vector<std::string> checkEvents;
+
+    };
+
+    /**
+     \class larcv::ReadJarrettFileFactory
+     \brief A concrete factory class for larcv::ReadJarrettFile
+     */
+    class ReadJarrettFileProcessFactory : public ProcessFactoryBase {
+    public:
+        /// ctor
+        ReadJarrettFileProcessFactory() { ProcessFactory::get().add_factory("ReadJarrettFile",this); }
+        /// dtor
+        ~ReadJarrettFileProcessFactory() {}
+        /// creation method
+        ProcessBase* create(const std::string instance_name) { return new ReadJarrettFile(instance_name); }
+
+    };
+    
+}
+
+#endif
+/** @} */ // end of doxygen group 
+

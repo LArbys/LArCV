@@ -16,20 +16,18 @@ namespace larcv {
     void configure(const PSet&);
     void initialize();
     bool process(IOManager& mgr);
-    void finalize();
-    void SetROIIndex(int index) { 
-      _croi_idx = index; 
-      LARCV_DEBUG() << "set _croi_idx=" << _croi_idx;
-    }
+    void finalize(){};
+    void SetROIIndex(int index);
+    int _croi_idx;
     
   private:
-    ::larutil::SpaceChargeMicroBooNE _sce;
 
+    ::larutil::SpaceChargeMicroBooNE _sce;
     std::string _truth_roi_producer;
     std::string _input_roi_producer;
     std::string _output_roi_producer;
     uint _planes_inside_threshold;
-    int _croi_idx;
+
 
   };
 

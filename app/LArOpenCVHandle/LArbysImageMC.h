@@ -124,6 +124,29 @@ namespace larcv {
     std::vector<double> _daughterZ_v;
     std::vector<double> _daughter_length3d_v;
 
+    double _true_proton_end_pt_x;
+    double _true_proton_end_pt_y;
+    double _true_proton_end_pt_z;
+
+    double _proton_1st_pt_x;
+    double _proton_1st_pt_y;
+    double _proton_1st_pt_z;
+
+    double _proton_last_pt_x;
+    double _proton_last_pt_y;
+    double _proton_last_pt_z;
+
+    double _true_lepton_end_pt_x;
+    double _true_lepton_end_pt_y;
+    double _true_lepton_end_pt_z;
+
+    double _lepton_1st_pt_x;
+    double _lepton_1st_pt_y;
+    double _lepton_1st_pt_z;
+
+    double _lepton_last_pt_x;
+    double _lepton_last_pt_y;
+    double _lepton_last_pt_z;
 
   public:
     /// 2D Vertex Info

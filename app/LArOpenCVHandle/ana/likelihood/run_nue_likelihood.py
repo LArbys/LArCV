@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, gc
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -9,14 +9,13 @@ import pandas as pd
 
 import root_numpy as rn
 
-from util.fill_df import *
-
-
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
+sys.path.insert(0,BASE_PATH)
+
+from util.fill_df import *
 
 rse    = ['run','subrun','event']
-rsev   = ['run','subrun','event','vtxid']
 rserv  = ['run','subrun','event','roid','vtxid']
 
 # Vertex data frame
@@ -26,65 +25,107 @@ dfs  = {}
 edfs = {}
 mdfs = {}
 
-name        = sys.argv[1]
-INPUT_FILE  = sys.argv[2]
+name        = str(sys.argv[1])
+INPUT_FILE  = str(sys.argv[2])
+PDF_FILE    = str(sys.argv[3])
 
+print "Loading vertex TTrees..."
 vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
 angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
 shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
 gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
 match_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MatchAnalysis"))
 dqds_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="dQdSAnalysis"))
+cosmic_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="CosmicAnalysis"))
+
+print "Reindex..."
+vertex_df.set_index(rserv,inplace=True)
+angle_df.set_index(rserv,inplace=True) 
+shape_df.set_index(rserv,inplace=True) 
+gap_df.set_index(rserv,inplace=True)   
+match_df.set_index(rserv,inplace=True) 
+dqds_df.set_index(rserv,inplace=True) 
+cosmic_df.set_index(rserv,inplace=True) 
+
 
 #
 # Combine DataFrames
 #
-comb_df = pd.concat([vertex_df.set_index(rserv),
-                     angle_df.set_index(rserv),
-                     shape_df.set_index(rserv),
-                     gap_df.set_index(rserv),
-                     angle_df.set_index(rserv),
-                     match_df.set_index(rserv),
-                     dqds_df.set_index(rserv)],axis=1)
+print "Combining Trees..."
+comb_df = pd.concat([vertex_df,
+                     angle_df,
+                     shape_df,
+                     gap_df,
+                     angle_df,
+                     match_df,
+                     dqds_df,
+                     cosmic_df],axis=1)
 
-comb_df = comb_df.reset_index()
-event_vertex_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
+print "Dropping duplicate cols..."
+comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+comb_df.reset_index(inplace=True)
+comb_df.set_index(rse,inplace=True)
+
+print "Loading event TTrees..."
+event_vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
+nufilter_df     = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
+mc_df           = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
+
+print "Reindex..."
+event_vertex_df.set_index(rse,inplace=True)
+nufilter_df.set_index(rse,inplace=True)
+mc_df.set_index(rse,inplace=True)
 
 def drop_y(df):
     to_drop = [x for x in df if x.endswith('_y')]
     df.drop(to_drop, axis=1, inplace=True)
-    
-comb_df = comb_df.set_index(rse).join(event_vertex_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-drop_y(comb_df)
-    
-if name not in ['cosmic']:
-    nufilter_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
-    mc_df       = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
-        
-    comb_df = comb_df.set_index(rse).join(nufilter_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-    drop_y(comb_df)    
-        
-    comb_df = comb_df.set_index(rse).join(mc_df.set_index(rse),how='outer',lsuffix='',rsuffix='_y').reset_index()
-    drop_y(comb_df)
 
-comb_df = comb_df.reset_index()
-comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+print "Joining nufilter..."
+event_vertex_df = event_vertex_df.join(nufilter_df,how='outer',lsuffix='',rsuffix='_y')
+print "...dropping"
+drop_y(event_vertex_df)
+print "...dropped"
+
+print "Joining mcdf..."
+event_vertex_df = event_vertex_df.join(mc_df,how='outer',lsuffix='',rsuffix='_y')
+print "...dropping"
+drop_y(event_vertex_df)
+print "...dropped"
+
+print "Joining with vertex..."
+comb_df = comb_df.join(event_vertex_df,how='outer',lsuffix='',rsuffix='_y')
+print "...dropping"
+drop_y(event_vertex_df)
+print "...dropped"
 
 comb_df['cvtxid'] = 0.0
-
 def func(group):
     group['cvtxid'] = np.arange(0,group['cvtxid'].size)
     return group
 
-comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
-comb_cut_df = comb_df.copy()
+print "Reindex..."
+comb_df.reset_index(inplace=True)
 
+print "Setting vertex id..."
+comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
+
+
+print "Open storage..."
 print
 print "@ sample",name
 print
-comb_cut_df = comb_df.copy()
+print "Storing comb_df"
+OUT   = os.path.join(BASE_PATH,"ll_bin","%s_all.pkl" % name)
+comb_df.to_pickle(OUT)
+print "DONE!"
+print "...stored"
 print "--> nue assumption"
-comb_cut_df = nu_assumption(comb_cut_df)
+comb_cut_df = nue_assumption(comb_df)
+print "Removing comb_df..."
+del comb_df
+print "Collect..."
+gc.collect()
+print "...collected"
 print "--> fill parameters"
 comb_cut_df = fill_parameters(comb_cut_df)
 
@@ -92,7 +133,7 @@ comb_cut_df = fill_parameters(comb_cut_df)
 # Pull distributions & binning for PDFs from ROOT file @ ll_bin/"
 #
 print "--> reading PDFs"
-fin = os.path.join(BASE_PATH,"ll_bin","nue_pdfs.root")
+fin = os.path.join(BASE_PATH,"ll_bin",PDF_FILE + ".root")
 tf_in = ROOT.TFile(fin,"READ")
 tf_in.cd()
 
@@ -171,26 +212,20 @@ def LL(row):
 # Apply the LL
 #
 print "Applying LL"
-k0 = comb_cut_df.apply(LL,axis=1)
-comb_cut_df['LL']=k0
-
+comb_cut_df['LL']= comb_cut_df.apply(LL,axis=1)
+print "Storing comb_cut_df"
+OUT   = os.path.join(BASE_PATH,"ll_bin","%s_post_nue.pkl" % name)
+comb_cut_df.to_pickle(OUT)
+print "...stored"
 #
 # Choose the vertex @ event with the highest LL
 #
 print "Choosing vertex with max LL"
-passed_df = comb_cut_df.copy()
-passed_df = passed_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
-
-OUT=os.path.join("ll_bin","%s_all.pkl" % name)
-comb_df.to_pickle(OUT)
-print "Store",OUT
-print
-OUT=os.path.join("ll_bin","%s_post_nue.pkl" % name)
-comb_cut_df.to_pickle(OUT)
-print "Store",OUT
-print
-OUT=os.path.join("ll_bin","%s_post_LL.pkl" % name)
+passed_df = comb_cut_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
+print "Storing passed_df"
+OUT   = os.path.join(BASE_PATH,"ll_bin","%s_post_LL.pkl" % name)
 passed_df.to_pickle(OUT)
-print "Store",OUT
-print
+print "...stored"
+
 print "Done"
+sys.exit(1)

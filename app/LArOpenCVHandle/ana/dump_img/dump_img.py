@@ -14,7 +14,8 @@ FILE1  = str(sys.argv[1])
 FILE2  = str(sys.argv[2])
 ENTRY  = int(sys.argv[3])
 VTXID  = int(sys.argv[4])
-NAME   = str(sys.argv[5])
+ROID   = int(sys.argv[5])
+NAME   = str(sys.argv[6])
 
 iom = larcv.IOManager()
 iom.add_in_file(FILE1)
@@ -106,7 +107,16 @@ for plane in xrange(3):
         ax.set_xlim(xmin-25,xmax+25)
         ax.set_ylim(ymin-25,ymax+25)
         
-    SS=os.path.join("img_dump",NAME,"{}_{}_{}_{}_{}.pdf".format(os.path.basename(FILE1).split(".")[0].split("_")[-1],ENTRY,VTXID,parid,plane))
+    this_num = os.path.basename(FILE1).split(".")[0].split("_")[-1]
+    SS=os.path.join("img_dump",NAME,"{}_{}_{}_{}_{}_{}_{}_{}_{}.pdf".format(ev_img.run(),
+                                                                         ev_img.subrun(),
+                                                                         ev_img.event(),
+                                                                         this_num,
+                                                                         ENTRY,
+                                                                         VTXID,
+                                                                         ROID,
+                                                                         parid,
+                                                                         plane))
     print SS
     ax.set_title("%.02f,%.02f,%.02f" % (X,Y,Z))
     plt.savefig(SS)

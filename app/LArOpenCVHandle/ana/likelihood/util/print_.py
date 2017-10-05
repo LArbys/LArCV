@@ -39,7 +39,7 @@ def ana_stats(all_df,event_df,scedr,name,LLCUT):
     print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
     print "...reco.................",event_df.query("num_vertex>0").index.size
     print
-    if 'cosmic' not in name:
+    if 'extbnb' not in name and 'corsika' not in name:
         print "1L1P....................",event_df.query("selected1L1P==1").index.size
         print "...num with cROI........",event_df.query("num_croi>0 & selected1L1P==1").index.size
         print "...good cROI counter....",event_df.query("good_croi_ctr>0 & selected1L1P==1").index.size
@@ -57,7 +57,7 @@ def ana_stats(all_df,event_df,scedr,name,LLCUT):
         print "...total................",all_df.query(SS).index.size
         print "...events...............",len(all_df.query(SS).groupby(rse))
         print
-        if 'cosmic' not in name:
+        if 'extbnb' not in name and 'corsika' not in name:
             print ">>> num_vertex>0 & 1L1P <<<"
             SS="num_vertex>0 & selected1L1P==1"
             print "...total................",all_df.query(SS).index.size
@@ -95,7 +95,7 @@ def ana_stats(all_df,event_df,scedr,name,LLCUT):
         print "...total................",all_df.query(SS).index.size
         print "...events...............",len(all_df.query(SS).groupby(rse))
         print
-        if 'cosmic' not in name:
+        if 'extbnb' not in name and 'corsika' not in name:
             print ">>> num_vertex>0 & 1L1P <<<"
             SS="num_vertex>0 & selected1L1P==1 & LL>@LLCUT"
             print "...total................",all_df.query(SS).index.size
