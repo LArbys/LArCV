@@ -1,5 +1,14 @@
 #https://open.spotify.com/track/7DcWaEjsO3PTAODV2fKeSn
 import os, sys
+
+if len(sys.argv) != 4:
+    print 
+    print "ANAFILE = str(sys.argv[1])"
+    print "PGRFILE = str(sys.argv[2])"
+    print "LLCUT   = float(sys.argv[3])"
+    print 
+    sys.exit(1)
+
 import ROOT
 import numpy as np
 import pandas as pd
@@ -9,6 +18,7 @@ BASE_PATH = os.path.dirname(BASE_PATH)
 print "-->initialize"
 ANAFILE = str(sys.argv[1])
 PGRFILE = str(sys.argv[2])
+LLCUT   = float(sys.argv[3])
 OUTFILE = os.path.basename(PGRFILE).split(".")[0].split("_")
 OUTFILE = "_".join(OUTFILE[:-1]) + "_nue_LL_filter_" + OUTFILE[-1]
 
@@ -19,7 +29,6 @@ LL_df = initialize_df(ANAFILE)
 LL_df = nue_assumption(LL_df)
 LL_df = apply_ll(LL_df,pdf_fin)
 
-LLCUT = -100000
 LL_df = LL_df.query("LL>@LLCUT")
 
 print "-->load larcv"
@@ -77,4 +86,4 @@ for name, row in LL_df.iterrows():
 
 proc.finalize()
 
-
+sys.exit(1)
