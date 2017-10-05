@@ -1,6 +1,93 @@
 import numpy as np
 import pandas as pd
 from larocv import larocv
+import ROOT
+import root_numpy as rn
+from common import *
+
+
+
+def initialize_df(input_file):
+
+    print "Loading vertex TTrees..."
+    vertex_df = pd.DataFrame(rn.root2array(input_file,treename='VertexTree'))
+    angle_df  = pd.DataFrame(rn.root2array(input_file,treename='AngleAnalysis'))
+    shape_df  = pd.DataFrame(rn.root2array(input_file,treename='ShapeAnalysis'))
+    gap_df    = pd.DataFrame(rn.root2array(input_file,treename="GapAnalysis"))
+    match_df  = pd.DataFrame(rn.root2array(input_file,treename="MatchAnalysis"))
+    dqds_df   = pd.DataFrame(rn.root2array(input_file,treename="dQdSAnalysis"))
+    cosmic_df = pd.DataFrame(rn.root2array(input_file,treename="CosmicAnalysis"))
+
+
+    print "Reindex..."
+    vertex_df.set_index(rserv,inplace=True)
+    angle_df.set_index(rserv,inplace=True) 
+    shape_df.set_index(rserv,inplace=True) 
+    gap_df.set_index(rserv,inplace=True)   
+    match_df.set_index(rserv,inplace=True) 
+    dqds_df.set_index(rserv,inplace=True) 
+    cosmic_df.set_index(rserv,inplace=True) 
+
+    #
+    # Combine DataFrames
+    #
+    print "Combining Trees..."
+    comb_df = pd.concat([vertex_df,
+                         angle_df,
+                         shape_df,
+                         gap_df,
+                         angle_df,
+                         match_df,
+                         dqds_df,
+                         cosmic_df],axis=1)
+    
+    print comb_df.index.size
+    print "Dropping duplicate cols..."
+    comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+    comb_df.reset_index(inplace=True)
+    comb_df.set_index(rse,inplace=True)
+    
+    print "Loading event TTrees..."
+    event_vertex_df = pd.DataFrame(rn.root2array(input_file,treename="EventVertexTree"))
+    nufilter_df     = pd.DataFrame(rn.root2array(input_file,treename="NuFilterTree"))
+    mc_df           = pd.DataFrame(rn.root2array(input_file,treename="MCTree"))
+    
+    print "Reindex..."
+    event_vertex_df.set_index(rse,inplace=True)
+    nufilter_df.set_index(rse,inplace=True)
+    mc_df.set_index(rse,inplace=True)
+    
+    print "Joining nufilter..."
+    event_vertex_df = event_vertex_df.join(nufilter_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(event_vertex_df)
+    print "...dropped"
+        
+    print "Joining mcdf..."
+    event_vertex_df = event_vertex_df.join(mc_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(event_vertex_df)
+    print "...dropped"
+
+    print "Joining with vertex..."
+    comb_df = comb_df.join(event_vertex_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(event_vertex_df)
+    print "...dropped"
+
+    comb_df['cvtxid'] = 0.0
+    def func(group):
+        group['cvtxid'] = np.arange(0,group['cvtxid'].size)
+        return group
+
+    print "Reindex..."
+    comb_df.reset_index(inplace=True)
+
+    print "Setting vertex id..."
+    comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
+    
+    return comb_df
+    
 
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)
@@ -24,7 +111,7 @@ def nue_assumption(comb_cut_df):
     return comb_cut_df
 
 
-def fill_parameters(comb_cut_df) :
+def fill_parameters(comb_cut_df,ll_only=False) :
     # SSNet Fraction
     #
     comb_cut_df['trk_frac'] = comb_cut_df.apply(lambda x : x['trk_frac_avg'] / x['nplanes_v'][x['trkid']],axis=1) 
@@ -180,3 +267,65 @@ def fill_parameters(comb_cut_df) :
     comb_cut_df['trk_qsum_ratio'] = comb_cut_df.apply(lambda x : x['qsum_min_v'][x['trkid']] / x['qsum_max_v'][x['trkid']],axis=1)
     
     return comb_cut_df
+
+
+def apply_ll(comb_cut_df,fin):
+    print "--> reading PDFs"
+    tf_in = ROOT.TFile(fin,"READ")
+    tf_in.cd()
+    
+    keys_v = [key.GetName() for key in tf_in.GetListOfKeys()]
+    
+    sig_spectrum_m = {}
+    bkg_spectrum_m = {}
+    
+    for key in keys_v:
+        hist = tf_in.Get(key)
+        arr = rn.hist2array(hist,return_edges=True)
+        
+        data = arr[0]
+        bins = arr[1][0]
+        
+        assert data.sum() > 0.99999
+
+        dx   = (bins[1] - bins[0]) / 2.0
+        
+        centers = (bins + dx)[:-1]
+        
+        type_ = key.split("_")[0]
+        
+        param = None
+        if type_ == "sig":
+            param = "_".join(key.split("_")[1:])
+            sig_spectrum_m[param] = (centers,data)
+        elif  type_ == "bkg":
+            param = "_".join(key.split("_")[1:])
+            bkg_spectrum_m[param] = (centers,data)
+        else:
+            raise Exception
+
+    tf_in.Close()
+
+    #
+    # Assert sig. and bkg. read from file correctly
+    #
+    for key in sig_spectrum_m.keys():
+        assert key in sig_spectrum_m.keys(), "key=%s missing from sig"%key
+        assert key in bkg_spectrum_m.keys(), "key=%s missing from bkg"%key
+        assert sig_spectrum_m[key][0].size == bkg_spectrum_m[key][0].size
+        assert sig_spectrum_m[key][1].size == bkg_spectrum_m[key][1].size
+
+    for key in bkg_spectrum_m.keys():
+        assert key in sig_spectrum_m.keys(), "key=%s missing from sig"%key
+        assert key in bkg_spectrum_m.keys(), "key=%s missing from bkg"%key
+        assert sig_spectrum_m[key][0].size == bkg_spectrum_m[key][0].size
+        assert sig_spectrum_m[key][1].size == bkg_spectrum_m[key][1].size
+
+
+    #
+    # Apply the LL
+    #
+    print "Applying LL"
+    comb_cut_df['LL']= comb_cut_df.apply(LL,args=(sig_spectrum_m,bkg_spectrum_m,),axis=1)
+    passed_df = comb_cut_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
+    return passed_df

@@ -41,11 +41,12 @@ print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 all_df   = pd.read_pickle(os.path.join(BASE_PATH,"ll_bin","{}_post_LL.pkl".format(name)))
 
 scedr=5
+LLCUT=-17.125
 LLCUT=-15.125
 ana_stats(all_df,event_df,scedr,name,LLCUT)
 
-if name != 'nue':
-    sys.exit(1)
+# if name != 'nue':
+sys.exit(1)
 
 #
 # Kinematic Plots

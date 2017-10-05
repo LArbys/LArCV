@@ -33,17 +33,6 @@
 #pragma link C++ class larcv::CosmicTrackAna+;
 #pragma link C++ class larcv::CosmicVertexAna+;
 
+#pragma link C++ class larcv::VertexFilter+;
+
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
