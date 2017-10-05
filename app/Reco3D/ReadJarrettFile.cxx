@@ -62,9 +62,10 @@ namespace larcv {
         std::cout << "[ReadJarrettFile] verbose initialized" << std::endl;
         iTrack = 0;
 
-        //ReadVertexFile("data/numuSelected.txt");
-        //ReadVertexFile("data/actualData/FirstNuMuData.txt");
-        ReadVertexFile("data/actualData/BNBNuMuSelected.txt");
+        std::string filename = "data/numuSelected.txt";
+        //std::string filename = "data/actualData/BNBNuMuSelected.txt";
+        std::cout << filename << std::endl;
+        ReadVertexFile(filename);// when using runall.sh
         std::cout << "[ReadJarrettFile] vertex file read" << std::endl;
 
         hEcomp             = new TH2D("hEcomp","hEcomp;E_th;E_reco",100,0,1000,100,0,1000);
@@ -122,7 +123,7 @@ namespace larcv {
         //______________
         // get MC vertex
         //--------------
-        /*auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
+        auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
         auto mc_roi_v = ev_partroi_v->ROIArray();
         std::vector<TVector3> MuonVertices;
         std::vector<TVector3> ProtonVertices;
@@ -130,7 +131,7 @@ namespace larcv {
         std::vector<TVector3> MuonEndPoint;
         std::vector<TVector3> ProtonEndPoint;
         std::vector<TVector3> ElectronEndPoint;
-        for(int iMC = 0;iMC<mc_roi_v.size();iMC++){
+        for(size_t iMC = 0;iMC<mc_roi_v.size();iMC++){
             if(mc_roi_v[iMC].PdgCode() == 13){
                 std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
                 Em_t = mc_roi_v[iMC].EnergyDeposit();
@@ -155,14 +156,14 @@ namespace larcv {
         bool isNumu = false;
         bool isNue = false;
         std::vector<int> goodMuon, goodElectron;
-        for(int iProton = 0;iProton<ProtonVertices.size();iProton++){
+        for(size_t iProton = 0;iProton<ProtonVertices.size();iProton++){
             isVertex = false;
             isNumu = false;
             isNue = false;
-            for(int iMuon = 0;iMuon<MuonVertices.size();iMuon++){
+            for(size_t iMuon = 0;iMuon<MuonVertices.size();iMuon++){
                 if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;isNumu = true;goodMuon.push_back(iMuon);}
             }
-            for(int iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
+            for(size_t iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
                 if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;isNue = true;goodElectron.push_back(iElectron);}
             }
             if(isVertex && MCVertices.size()!=0 && ProtonVertices[iProton] == MCVertices[MCVertices.size()-1])continue;
@@ -170,17 +171,17 @@ namespace larcv {
                 MCVertices.push_back(ProtonVertices[iProton]);
                 MCEndPoint.push_back(ProtonEndPoint[iProton]);
                 if(isNumu){
-                    for(int imu = 0;imu<goodMuon.size();imu++){
+                    for(size_t imu = 0;imu<goodMuon.size();imu++){
                         MCEndPoint.push_back(MuonEndPoint[goodMuon[imu]]);
                     }
                 }
                 if(isNue){
-                    for(int ie = 0;ie<goodElectron.size();ie++){
+                    for(size_t ie = 0;ie<goodElectron.size();ie++){
                         MCEndPoint.push_back(ElectronEndPoint[goodElectron[ie]]);
                     }
                 }
             }
-        }*/
+        }
         //______________
         // End MC
         //--------------
@@ -196,7 +197,7 @@ namespace larcv {
         double tickRange = 8502;
 
         // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             Tagged_Image[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
@@ -222,7 +223,7 @@ namespace larcv {
             EndPoints.push_back(vertex);
 
             bool WrongEndPoint = false;
-            for(int iPoint = 0;iPoint<EndPoints.size();iPoint++){
+            for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
                 if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ){std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; WrongEndPoint = false;}
             }
             if(WrongEndPoint)continue;
@@ -249,7 +250,7 @@ namespace larcv {
     bool ReadJarrettFile::IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID)
     {
         bool okVertex = false;
-        for(int ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
+        for(size_t ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
             if(   run    == _vertexInfo[ivertex][0]
                && subrun == _vertexInfo[ivertex][1]
                && event  == _vertexInfo[ivertex][2]
@@ -262,7 +263,7 @@ namespace larcv {
 
     bool ReadJarrettFile::IsGoodEntry(int run, int subrun, int event){
         bool okVertex = false;
-        for(int ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
+        for(size_t ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
             if(   run    == _vertexInfo[ivertex][0]
                && subrun == _vertexInfo[ivertex][1]
                && event  == _vertexInfo[ivertex][2]
@@ -284,16 +285,16 @@ namespace larcv {
         double x,y,z;
         char coma;
         while(goOn){
-            file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z >> coma >> rescale_vtxid;
-            //file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z ;
+            //file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z >> coma >> rescale_vtxid;
+            file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z ;
             if(thisVertexInfo.size()!=0)thisVertexInfo.clear();
             thisVertexInfo.push_back(Run);      //0
             thisVertexInfo.push_back(SubRun);   //1
             thisVertexInfo.push_back(Event);    //2
             thisVertexInfo.push_back(Entry);    //3
             thisVertexInfo.push_back(ROI_ID);   //4
-            //thisVertexInfo.push_back(vtxid);    //5
-            thisVertexInfo.push_back(rescale_vtxid);//5
+            thisVertexInfo.push_back(vtxid);    //5
+            //thisVertexInfo.push_back(rescale_vtxid);//5
             _vertexInfo.push_back(thisVertexInfo);
             if(file.eof()){goOn=false;break;}
         }
@@ -336,7 +337,7 @@ namespace larcv {
         }
 
 
-        for(int itrack = 0;itrack<ionPerTrack.size();itrack++){
+        for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
             hAverageIonization->Fill(ionPerTrack[itrack]);
             hIonvsLength->Fill(VertexLengths[itrack],ionPerTrack[itrack]);
             

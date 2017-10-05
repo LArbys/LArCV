@@ -98,7 +98,7 @@ namespace larcv {
         std::vector<TVector3> MuonEndPoint;
         std::vector<TVector3> ProtonEndPoint;
         std::vector<TVector3> ElectronEndPoint;
-        for(int iMC = 0;iMC<mc_roi_v.size();iMC++){
+        for(size_t iMC = 0;iMC<mc_roi_v.size();iMC++){
             if(mc_roi_v[iMC].PdgCode() == 13){
                 std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
                 MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
@@ -121,14 +121,14 @@ namespace larcv {
         bool isNumu = false;
         bool isNue = false;
         std::vector<int> goodMuon, goodElectron;
-        for(int iProton = 0;iProton<ProtonVertices.size();iProton++){
+        for(size_t iProton = 0;iProton<ProtonVertices.size();iProton++){
             isVertex = false;
             isNumu = false;
             isNue = false;
-            for(int iMuon = 0;iMuon<MuonVertices.size();iMuon++){
+            for(size_t iMuon = 0;iMuon<MuonVertices.size();iMuon++){
                 if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;isNumu = true;goodMuon.push_back(iMuon);}
             }
-            for(int iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
+            for(size_t iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
                 if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;isNue = true;goodElectron.push_back(iElectron);}
             }
             if(isVertex && MCVertices.size()!=0 && ProtonVertices[iProton] == MCVertices[MCVertices.size()-1])continue;
@@ -136,12 +136,12 @@ namespace larcv {
                 MCVertices.push_back(ProtonVertices[iProton]);
                 MCEndPoint.push_back(ProtonEndPoint[iProton]);
                 if(isNumu){
-                    for(int imu = 0;imu<goodMuon.size();imu++){
+                    for(size_t imu = 0;imu<goodMuon.size();imu++){
                         MCEndPoint.push_back(MuonEndPoint[goodMuon[imu]]);
                     }
                 }
                 if(isNue){
-                    for(int ie = 0;ie<goodElectron.size();ie++){
+                    for(size_t ie = 0;ie<goodElectron.size();ie++){
                         MCEndPoint.push_back(ElectronEndPoint[goodElectron[ie]]);
                     }
                 }
@@ -158,7 +158,7 @@ namespace larcv {
         double tickRange = 8502;
 
         // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
@@ -184,7 +184,7 @@ namespace larcv {
             EndPoints.push_back(vertex);
 
             bool WrongEndPoint = false;
-            for(int iPoint = 0;iPoint<EndPoints.size();iPoint++){
+            for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
                 if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ){std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; WrongEndPoint = false;}
             }
             if(WrongEndPoint)continue;
@@ -201,7 +201,7 @@ namespace larcv {
     bool ReadRuiFile::IsGoodVertex(int run, int subrun, int event, int ROIid, int vtxID)
     {
         bool okVertex = false;
-        for(int ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
+        for(size_t ivertex = 0;ivertex<_vertexInfo.size();ivertex++){
             if(   run    == _vertexInfo[ivertex][0]
                && subrun == _vertexInfo[ivertex][1]
                && event  == _vertexInfo[ivertex][2]
