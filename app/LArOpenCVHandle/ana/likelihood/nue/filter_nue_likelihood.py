@@ -30,6 +30,7 @@ from util.fill_df import *
 pdf_fin = os.path.join(BASE_PATH,"ll_bin","nue_pdfs.root")
 LL_df = initialize_df(ANAFILE)
 LL_df = nue_assumption(LL_df)
+LL_df = fill_parameters(LL_df)
 LL_df = apply_ll(LL_df,pdf_fin)
 
 LL_df = LL_df.query("LL>@LLCUT")
