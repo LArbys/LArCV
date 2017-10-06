@@ -25,7 +25,6 @@ import root_numpy as rn
 
 from util.fill_df import *
 
-
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
 
@@ -50,92 +49,7 @@ for name,file_ in [(sample_name0,sample_file0),
                    (sample_name1,sample_file1)]:
     
     INPUT_FILE  = file_
-    
-    print "@FILE=",INPUT_FILE
-    #
-    # Vertex wise Trees
-    #
-    print "Loading vertex TTrees..."
-    vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename='VertexTree'))
-    angle_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='AngleAnalysis'))
-    shape_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename='ShapeAnalysis'))
-    gap_df    = pd.DataFrame(rn.root2array(INPUT_FILE,treename="GapAnalysis"))
-    match_df  = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MatchAnalysis"))
-    dqds_df   = pd.DataFrame(rn.root2array(INPUT_FILE,treename="dQdSAnalysis"))
-    #cosmic_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="CosmicAnalysis"))
-
-    print "Reindex..."
-    vertex_df.set_index(rserv,inplace=True)
-    angle_df.set_index(rserv,inplace=True) 
-    shape_df.set_index(rserv,inplace=True) 
-    gap_df.set_index(rserv,inplace=True)   
-    match_df.set_index(rserv,inplace=True) 
-    dqds_df.set_index(rserv,inplace=True) 
-    #cosmic_df.set_index(rserv,inplace=True) 
-
-    #
-    # Combine DataFrames
-    #
-    print "Combining Trees..."
-    comb_df = pd.concat([vertex_df,
-                         angle_df,
-                         shape_df,
-                         gap_df,
-                         angle_df,
-                         match_df,
-                         dqds_df],axis=1)
-                         #cosmic_df
-    
-    print comb_df.index.size
-    print "Dropping duplicate cols..."
-    comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
-    comb_df.reset_index(inplace=True)
-    comb_df.set_index(rse,inplace=True)
-    
-    print "Loading event TTrees..."
-    event_vertex_df = pd.DataFrame(rn.root2array(INPUT_FILE,treename="EventVertexTree"))
-    nufilter_df     = pd.DataFrame(rn.root2array(INPUT_FILE,treename="NuFilterTree"))
-    mc_df           = pd.DataFrame(rn.root2array(INPUT_FILE,treename="MCTree"))
-    
-    print "Reindex..."
-    event_vertex_df.set_index(rse,inplace=True)
-    nufilter_df.set_index(rse,inplace=True)
-    mc_df.set_index(rse,inplace=True)
-    
-    def drop_y(df):
-        to_drop = [x for x in df if x.endswith('_y')]
-        df.drop(to_drop, axis=1, inplace=True)
-
-    print "Joining nufilter..."
-    event_vertex_df = event_vertex_df.join(nufilter_df,how='outer',lsuffix='',rsuffix='_y')
-    print "...dropping"
-    drop_y(event_vertex_df)
-    print "...dropped"
-
-    print "Joining mcdf..."
-    event_vertex_df = event_vertex_df.join(mc_df,how='outer',lsuffix='',rsuffix='_y')
-    print "...dropping"
-    drop_y(event_vertex_df)
-    print "...dropped"
-    
-    print "Joining with vertex..."
-    comb_df = comb_df.join(event_vertex_df,how='outer',lsuffix='',rsuffix='_y')
-    print "...dropping"
-    drop_y(event_vertex_df)
-    print "...dropped"
-    
-    comb_df['cvtxid'] = 0.0
-    def func(group):
-        group['cvtxid'] = np.arange(0,group['cvtxid'].size)
-        return group
-
-    print "Reindex..."
-    comb_df.reset_index(inplace=True)
-
-    print "Setting vertex id..."
-    comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
-
-    
+    comb_df = initialize_df(INPUT_FILE)
     dfs[name] = comb_df.copy()
 
 dfs['nue'] = dfs['nue'].query("scedr<5 and selected1L1P==1")

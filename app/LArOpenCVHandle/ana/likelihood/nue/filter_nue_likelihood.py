@@ -47,7 +47,6 @@ proc.initialize()
 vertex_filter_id = proc.process_id("VertexFilter")
 vertex_filter    = proc.process_ptr(vertex_filter_id)
 
-
 id_v  = ROOT.std.vector("bool")()
 par_v = ROOT.std.vector(ROOT.std.pair("int","int"))()
 
