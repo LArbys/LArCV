@@ -70,6 +70,15 @@ namespace larcv {
       roi0.Shape( par_pair.first  ? kShapeTrack : kShapeShower );
       roi1.Shape( par_pair.second ? kShapeTrack : kShapeShower );
 
+
+      if (roi0.Shape() == kShapeShower) roi0.PdgCode(11);
+      else roi0.PdgCode(14);
+
+      if (roi1.Shape() == kShapeShower) roi1.PdgCode(11);
+      else roi1.PdgCode(14);
+      
+      assert (roi1.PdgCode() != roi0.PdgCode());
+
       LARCV_DEBUG() << "set par0 shape=" << (int)roi0.Shape() << std::endl;
       LARCV_DEBUG() << "set par1 shape=" << (int)roi1.Shape() << std::endl;
       
