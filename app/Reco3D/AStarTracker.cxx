@@ -36,7 +36,7 @@ namespace larcv {
     void AStarTracker::SetTimeAndWireBoundsProtonsErez(){
 
         int itrack = 0;
-        for(int tracknum = 0;tracknum<_SelectableTracks.size(); tracknum++){
+        for(size_t tracknum = 0;tracknum<_SelectableTracks.size(); tracknum++){
             if(_run    != _SelectableTracks[tracknum][0])continue;
             if(_subrun != _SelectableTracks[tracknum][1])continue;
             if(_event  != _SelectableTracks[tracknum][2])continue;
@@ -100,7 +100,7 @@ namespace larcv {
             while(!( (size_t)(time_bounds[iPlane].second - time_bounds[iPlane].first)%_compressionFactor_t == 0)){time_bounds[iPlane].second++;}
             tellMe(Form("%zu rows for %d compression factor",(size_t)(time_bounds[iPlane].second - time_bounds[iPlane].first),_compressionFactor_t),1);
         }
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
 
             while(!( (size_t)(wire_bounds[iPlane].second - wire_bounds[iPlane].first)%_compressionFactor_w == 0)){wire_bounds[iPlane].second++;}
             tellMe(Form("%zu cols for %d compression factor",(size_t)(wire_bounds[iPlane].second - wire_bounds[iPlane].first),_compressionFactor_w),1);
@@ -166,7 +166,7 @@ namespace larcv {
             tellMe(Form("%zu rows for %d compression factor",(size_t)(time_bounds[iPlane].second - time_bounds[iPlane].first),_compressionFactor_t),1);
         }
 
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
 
             while(!( (size_t)(wire_bounds[iPlane].second - wire_bounds[iPlane].first)%_compressionFactor_w == 0)){
                 wire_bounds[iPlane].second++;//=(_compressionFactor_w-((size_t)(wire_bounds[iPlane].second - wire_bounds[iPlane].first)%_compressionFactor_w));
@@ -286,7 +286,7 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             // make sure starting point is projected back in the range
-            for(int iPoint = 0;iPoint<points.size();iPoint++){
+            for(size_t iPoint = 0;iPoint<points.size();iPoint++){
                 double Xpoint = X2Tick(points[iPoint].X(),iPlane);
                 double wireProjStartPt = larutil::GeometryHelper::GetME()->Point_3Dto2D(points[iPoint],iPlane).w / 0.3 ;
 
@@ -368,7 +368,7 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             // make sure starting point is projected back in the range
-            for(int iPoint = 0;iPoint<points.size();iPoint++){
+            for(size_t iPoint = 0;iPoint<points.size();iPoint++){
 
                 double _parent_x = points[iPoint].X();
                 double _parent_y = points[iPoint].Y();
@@ -520,20 +520,20 @@ namespace larcv {
         tellMe("MaskTrack()",1);
         double shellMask = 4;
         if(_vertexTracks.size() == 0)return;
-        for(int itrack=0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack].size() < 2)continue;
-            for(int iNode = 1;iNode<_vertexTracks[itrack].size()-1; iNode++){
-                for(int iPlane = 0;iPlane<3;iPlane++){
+            for(size_t iNode = 1;iNode<_vertexTracks[itrack].size()-1; iNode++){
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
                     double x_proj,y_proj;
                     ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
                     TVector3 A(x_proj,y_proj,0);
                     ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode+1].X(),_vertexTracks[itrack][iNode+1].Y(),_vertexTracks[itrack][iNode+1].Z(),0,iPlane,x_proj,y_proj);
                     TVector3 B(x_proj,y_proj,0);
-                    for(int irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                    for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
                         if(irow < std::min(A.Y()-20, B.Y()-20))continue;
                         if(irow > std::max(A.Y()+20, B.Y()+20))continue;
 
-                        for(int icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                        for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
                             if(icol < std::min(A.X()-20, B.X()-20))continue;
                             if(icol > std::max(A.X()+20, B.X()+20))continue;
                             if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
@@ -597,7 +597,7 @@ namespace larcv {
             //DrawTrack();
             //if(_Length3D < 0.5*trackMinLength){MaskTrack();start_pt = vertexPoint;continue;}
             //_3DTrack.push_back(end_pt);
-            for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+            for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
                 firstTrackBit.push_back(_3DTrack[iNode]);
             }
             _3DTrack = firstTrackBit;
@@ -662,7 +662,7 @@ namespace larcv {
         // at that point I should ahve all tracks that start at the vertex point
         TVector3 vertexPoint = start_pt;
         if(_vertexTracks.size()>1){
-            for(int iEnd=1;iEnd<_vertexEndPoints.size();iEnd++){
+            for(size_t iEnd=1;iEnd<_vertexEndPoints.size();iEnd++){
                 std::cout << "end point " << iEnd << " / " << _vertexEndPoints.size() << std::endl;
                 start_pt = _vertexEndPoints[iEnd];
                 MaskTrack();
@@ -691,17 +691,17 @@ namespace larcv {
         std::vector<std::vector<TVector3> > Tracks2fuse;
         std::vector<int> trackFused;
         bool skip = false;
-        for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(Tracks2fuse.size()!=0)Tracks2fuse.clear();
-            for(int ptrack=0;ptrack<trackFused.size();ptrack++){if(trackFused[ptrack] == itrack)skip=true;}
+            for(size_t ptrack=0;ptrack<trackFused.size();ptrack++){if(trackFused[ptrack] == itrack)skip=true;}
             if(skip)continue;
             start_pt = _vertexTracks[itrack][0];
             Tracks2fuse.push_back(_vertexTracks[itrack]);
             trackFused.push_back(itrack);
 
-            for(int jtrack = itrack+1;jtrack<_vertexTracks.size();jtrack++){
+            for(size_t jtrack = itrack+1;jtrack<_vertexTracks.size();jtrack++){
                 skip=false;
-                for(int ptrack=0;ptrack<trackFused.size();ptrack++){if(trackFused[ptrack] == jtrack)skip=true;}
+                for(size_t ptrack=0;ptrack<trackFused.size();ptrack++){if(trackFused[ptrack] == jtrack)skip=true;}
                 if(skip)continue;
                 if(_vertexTracks[itrack].back() == _vertexTracks[jtrack][0] || _vertexTracks[jtrack].back() == _vertexTracks[itrack][0]){
                     Tracks2fuse.push_back(_vertexTracks[jtrack]);
@@ -710,8 +710,8 @@ namespace larcv {
             }
 
             std::vector<TVector3> fusedTrack;
-            for(int kTrack=0;kTrack<Tracks2fuse.size();kTrack++){
-                for(int iNode=0;iNode<Tracks2fuse[kTrack].size();iNode++){
+            for(size_t kTrack=0;kTrack<Tracks2fuse.size();kTrack++){
+                for(size_t iNode=0;iNode<Tracks2fuse[kTrack].size();iNode++){
                     fusedTrack.push_back(Tracks2fuse[kTrack][iNode]);
                 }
             }
@@ -736,24 +736,24 @@ namespace larcv {
         ShaveTracks();
 
         std::vector<int> trackEndsInDeadWire;
-        for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             _tooShortDeadWire = false;
             std::vector< std::vector<double> > projections(3);
             double x_pixel,y_pixel;
-            for(int iPlane=0;iPlane<3;iPlane++){
+            for(size_t iPlane=0;iPlane<3;iPlane++){
                 ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack].back().X(),_vertexTracks[itrack].back().Y(),_vertexTracks[itrack].back().Z(),0,iPlane,x_pixel,y_pixel);
-                for(int i = -2;i<3;i++){
-                    for(int j = -2;j<3;j++){
+                for(size_t i = -2;i<3;i++){
+                    for(size_t j = -2;j<3;j++){
                         if(j==0 && i==0)continue;
                         projections[iPlane].push_back(hit_image_v[iPlane].pixel(y_pixel+i,x_pixel+j));
                     }
                 }
-                for(int iPlane = 0;iPlane<3;iPlane++){
-                    for(int i=0;i<projections[iPlane].size();i++){
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
+                    for(size_t i=0;i<projections[iPlane].size();i++){
                         if(projections[iPlane][i] == 0) continue;
-                        for(int jPlane = 0;jPlane<3;jPlane++){
+                        for(size_t jPlane = 0;jPlane<3;jPlane++){
                             if(iPlane==jPlane)continue;
-                            for(int j = 0;j<projections[jPlane].size();j++){
+                            for(size_t j = 0;j<projections[jPlane].size();j++){
                                 if(projections[iPlane][i] == _deadWireValue && projections[iPlane][i] == projections[jPlane][j]){
                                     _tooShortDeadWire = true;
                                 }
@@ -775,20 +775,20 @@ namespace larcv {
             ran->SetSeed(0);
             double x,y,z;
 
-            for(int itrack = 0;itrack<trackEndsInDeadWire.size();itrack++){
+            for(size_t itrack = 0;itrack<trackEndsInDeadWire.size();itrack++){
                 _tooShortDeadWire = false;
                 TVector3 newPoint;
                 TVector3 oldEndPoint=_vertexTracks[itrack].back();
                 double fractionSphereEmpty[3] = {0,0,0};
                 double fractionSphereDead[3]  = {0,0,0};
                 double fractionSphereTrack[3] = {0,0,0};
-                for(int i=0;i<100;i++){
+                for(size_t i=0;i<100;i++){
                     ran->Sphere(x,y,z,1.5);
                     newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                     //_vertexTracks[itrack].push_back(newPoint);
                     double x_pixel,y_pixel;
                     double projValue[3];
-                    for(int iPlane=0;iPlane<3;iPlane++){
+                    for(size_t iPlane=0;iPlane<3;iPlane++){
                         ProjectTo3D(hit_image_v[iPlane].meta(),newPoint.X(),newPoint.Y(),newPoint.Z(),0,iPlane,x_pixel,y_pixel);
                         projValue[iPlane] = hit_image_v[iPlane].pixel(y_pixel,x_pixel);
                         if(projValue[iPlane] == 0)fractionSphereEmpty[iPlane]++;
@@ -796,7 +796,7 @@ namespace larcv {
                         if(projValue[iPlane] != 0 && projValue[iPlane]!= _deadWireValue)fractionSphereTrack[iPlane]++;
                     }
                 }
-                for(int iPlane = 0;iPlane<3;iPlane++){
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
                     std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << " on track" << std::endl;
                     std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane] << " on empty" << std::endl;
                     std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane]  << " on dead" << std::endl;
@@ -814,12 +814,12 @@ namespace larcv {
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
-        for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack][0] == start_pt){
                 NtracksAtVertex++;
                 TVector3 AvPt;
                 NpointAveragedOn = 0;
-                for(int iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
+                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
                     if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < 50 ){
                         AvPt+=(_vertexTracks[itrack][iNode]-start_pt);
                         NpointAveragedOn++;
@@ -834,7 +834,7 @@ namespace larcv {
         // look for vertex with more than 2 tracks at teh vertex point
         NtracksAtVertex=0;
         _tooManyTracksAtVertex = false;
-        for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack][0] == start_pt){
                 _3DTrack = _vertexTracks[itrack];
                 ComputeLength();
@@ -848,8 +848,8 @@ namespace larcv {
 
         _possibleCosmic = false;
         if(AvPt_v.size() >= 2){
-            for(int iPt = 0;iPt<AvPt_v.size();iPt++){
-                for(int jPt = 0;jPt<AvPt_v.size();jPt++){
+            for(size_t iPt = 0;iPt<AvPt_v.size();iPt++){
+                for(size_t jPt = 0;jPt<AvPt_v.size();jPt++){
                     if(jPt==iPt)continue;
                     std::cout << "(AvPt_v[" << iPt <<"]-start_pt).Angle(AvPt_v[" << jPt << "]-start_pt)*180/3.1415 = " << (AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt)*180/3.1415 << std::endl;
                     if(((AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt))*180/3.1415 > 170){_possibleCosmic = true;}
@@ -869,8 +869,8 @@ namespace larcv {
         double Xmaxdet = detectorwidth-FVshell;
         double Zmindet = 0+FVshell;
         double Zmaxdet = detectorLength-FVshell;
-        for(int itrack=0;itrack<_vertexTracks.size();itrack++){
-            for(int iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
                 if(   _vertexTracks[itrack][iNode].Y() >  Ymaxdet
                    || _vertexTracks[itrack][iNode].Y() < Ymindet
                    || _vertexTracks[itrack][iNode].X() < Xmindet
@@ -892,20 +892,20 @@ namespace larcv {
 
         std::vector< std::vector<double> > projections(3);
         double x_pixel,y_pixel;
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             ProjectTo3D(hit_image_v[iPlane].meta(),end_pt.X(),end_pt.Y(),end_pt.Z(),0,iPlane,x_pixel,y_pixel);
-            for(int i = -2;i<3;i++){
-                for(int j = -2;j<3;j++){
+            for(size_t i = -2;i<3;i++){
+                for(size_t j = -2;j<3;j++){
                     projections[iPlane].push_back(hit_image_v[iPlane].pixel(y_pixel+i,x_pixel+j));
                 }
             }
         }
-        for(int iPlane = 0;iPlane<3;iPlane++){
-            for(int i=0;i<projections[iPlane].size();i++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            for(size_t i=0;i<projections[iPlane].size();i++){
                 if(projections[iPlane][i] == 0) continue;
-                for(int jPlane = 0;jPlane<3;jPlane++){
+                for(size_t jPlane = 0;jPlane<3;jPlane++){
                     if(iPlane==jPlane)continue;
-                    for(int j = 0;j<projections[jPlane].size();j++){
+                    for(size_t j = 0;j<projections[jPlane].size();j++){
                         if(projections[iPlane][i] == projections[jPlane][j]) _tooShortDeadWire = true;
                     }
                 }
@@ -922,7 +922,7 @@ namespace larcv {
         }
         fEventOutput = TFile::Open(Form("root/cVertex_%05d_%05d_%05d.root",_run,_subrun,_event),"RECREATE");
 
-        for(int iVertex = 0;iVertex<_eventVertices.size();iVertex++){
+        for(size_t iVertex = 0;iVertex<_eventVertices.size();iVertex++){
             start_pt = _eventVertices[iVertex];
             std::vector<TVector3> thisvertex;
             thisvertex.push_back(start_pt);
@@ -954,7 +954,7 @@ namespace larcv {
             foundNewPoint = false;
             iter++;
             int Ndead = 0;
-            for(int i = 0;i<10000;i++){
+            for(size_t i = 0;i<10000;i++){
                 double coord2D[3][3];// for each plane : x,y and ADC value;
                 //if(Ndead >= 2)rmax*=1.5;
                 double r = ran.Uniform(0,rmax);
@@ -965,7 +965,7 @@ namespace larcv {
                 bool TooClose = false;
 
                 /*if(_3DTrack.size() >= 1){// point too close to already found point
-                    for(int i = 0;i<_3DTrack.size();i++){
+                    for(size_t i = 0;i<_3DTrack.size();i++){
                         if((newCandidate-_3DTrack[i]).Mag() < 1) TooClose=true;
                     }
                 }*/
@@ -974,7 +974,7 @@ namespace larcv {
                     if((lastNode-refNode).Dot(newCandidate-lastNode)/((lastNode-refNode).Mag()*(newCandidate-lastNode).Mag()) < 0.5) TooClose=true;
                 }*/
                 if(list3D.size() >= 1){// point too close to already found point
-                    for(int i = 0;i<list3D.size()-1;i++){
+                    for(size_t i = 0;i<list3D.size()-1;i++){
                         if((newCandidate-list3D[i]).Mag() < 1) TooClose=true;
                     }
                 }
@@ -986,7 +986,7 @@ namespace larcv {
                 if(TooClose)continue;
 
                 int NplanesOK=0;
-                for(int iPlane = 0;iPlane<3;iPlane++){
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
                     double x_proj, y_proj;
                     ProjectTo3D(hit_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
                     coord2D[iPlane][0] = x_proj;
@@ -1002,7 +1002,7 @@ namespace larcv {
                 }
                 if(terminate){
                     bool ReallyTerminate = false;
-                    for(int iPlane=0;iPlane<3;iPlane++){
+                    for(size_t iPlane=0;iPlane<3;iPlane++){
                         double x_proj,y_proj;
                         ProjectTo3D(original_full_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
                         if((x_proj > original_full_image_v[iPlane].meta().cols()-10
@@ -1019,7 +1019,7 @@ namespace larcv {
                     }
                 }
                 Ndead = 0;
-                for(int iPlane=0;iPlane<3;iPlane++){if(coord2D[iPlane][2] == _deadWireValue)Ndead++;}
+                for(size_t iPlane=0;iPlane<3;iPlane++){if(coord2D[iPlane][2] == _deadWireValue)Ndead++;}
                 if(NplanesOK > 2 && Ndead<2){
                     list3D.push_back(newCandidate);
                     foundNewPoint = true;
@@ -1029,7 +1029,7 @@ namespace larcv {
             }
             double dist = 0;
             if(_3DTrack.size() > 0){
-                for(int i = 0;i<list3D.size();i++){
+                for(size_t i = 0;i<list3D.size();i++){
                     if((_3DTrack[0]-list3D[i]).Mag() > dist){lastNode = list3D[i];dist = (_3DTrack[0]-list3D[i]).Mag();}
                 }
             }
@@ -1041,7 +1041,7 @@ namespace larcv {
         TVector3 FurtherFromVertex = GetFurtherFromVertex();
         std::vector<TVector3> newTrack;
         newTrack.push_back(start_pt);
-        for(int iNode=0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
             if((_3DTrack[iNode]-FurtherFromVertex).Mag() < (newTrack.back()-FurtherFromVertex).Mag()){newTrack.push_back(_3DTrack[iNode]);}
         }
         _3DTrack = newTrack;
@@ -1056,7 +1056,7 @@ namespace larcv {
         PreSortAndOrderPoints();
         TVector3 FurtherFromVertex;
         double dist2vertex = 0;
-        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
         }
         end_pt = FurtherFromVertex;
@@ -1072,10 +1072,10 @@ namespace larcv {
         bool goOn = true;
         while(list3D.size() < _3DTrack.size() && goOn == true){
             bestGlobalScore = 1e9;
-            for(int iNode=0;iNode<_3DTrack.size();iNode++){
+            for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
                 bool alreadySelected = false;
                 if(ArePointsEqual(_3DTrack[iNode],list3D.back())){alreadySelected = true;}
-                for(int ilist = 0;ilist<list3D.size();ilist++){
+                for(size_t ilist = 0;ilist<list3D.size();ilist++){
                     //if( ArePointsEqual(list3D[ilist],_3DTrack[iNode]) ){alreadySelected = true;}
                     if( list3D[ilist] == _3DTrack[iNode] ){alreadySelected = true;}
                 }
@@ -1089,7 +1089,7 @@ namespace larcv {
                 double remainDir  = (FurtherFromVertex-list3D.back()).Dot(_3DTrack[iNode]-list3D.back())/((FurtherFromVertex-list3D.back()).Mag()*(_3DTrack[iNode]-list3D.back()).Mag() );
 
                 int NplanesDead=0;
-                for(int iPlane = 0;iPlane<3;iPlane++){
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
                     double x_proj, y_proj;
                     ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(), _3DTrack[iNode].Y(), _3DTrack[iNode].Z(),0, iPlane, x_proj,y_proj);
                     if(hit_image_v[iPlane].pixel(y_proj,x_proj) == 20) NplanesDead++;
@@ -1136,9 +1136,9 @@ namespace larcv {
         if(_dQdx.size() != 0)_dQdx.clear();
         double Npx = 5;
         double dist,xp,yp,alpha;
-        for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
+        for(size_t iNode = 0;iNode<_3DTrack.size()-1;iNode++){
             std::vector<double> node_dQdx(3);
-            for(int iPlane = 0;iPlane<3;iPlane++){
+            for(size_t iPlane = 0;iPlane<3;iPlane++){
                 double localdQdx = 0;
                 int NpxLocdQdX = 0;
                 double X1,Y1,X2,Y2;
@@ -1149,8 +1149,8 @@ namespace larcv {
                 TVector3 A(X1,Y1,0); // projection of node iNode on plane iPlane
                 TVector3 B(X2,Y2,0); // projection of node iNode+1 on plane iPlane
 
-                for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                    for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                    for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                         if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
                         double theta0; // angle with which the segment [iNode, iNode+1] is ssen by the current point
                         double theta1; // angle with which the segment [jNode, jNode+1] is seen by the current point
@@ -1206,10 +1206,10 @@ namespace larcv {
         }// iNode
 
         std::vector<double> nodedQdxtot;
-        for(int iNode=0;iNode<_dQdx.size();iNode++){// get total dQdx per noded
+        for(size_t iNode=0;iNode<_dQdx.size();iNode++){// get total dQdx per noded
             int NplanesOK = 0;
             double dQdxtot = 0;
-            for(int iPlane = 0;iPlane<3;iPlane++){
+            for(size_t iPlane = 0;iPlane<3;iPlane++){
                 if(_dQdx[iNode][iPlane] != 0){dQdxtot+=_dQdx[iNode][iPlane];NplanesOK++;}
             }
             if(NplanesOK!=0){dQdxtot*=3/NplanesOK;}
@@ -1229,20 +1229,20 @@ namespace larcv {
         //dQdXperPlane_v.reserve(3);
         //track_dQdX_v.reserve(_3DTrack.size());
 
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             gdQdXperPlane[iPlane] = new TGraph();
         }
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
             std::vector<double> dQdXOnePlane_v;
-            for(int iNode=0;iNode<_3DTrack.size();iNode++){
+            for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
                 int Npx = 0;
                 double dQdx_per_plane = 0;
                 double x_proj,y_proj;
 
                 ProjectTo3D(hit_image_v[iPlane].meta(),_3DTrack[iNode].X(), _3DTrack[iNode].Y(), _3DTrack[iNode].Z(),0, iPlane, x_proj,y_proj);
-                for(int irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     if(irow < y_proj-20 || irow > y_proj+20)continue;
-                    for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                    for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                         if(icol<x_proj-20 || icol>x_proj+20)continue;
                         if(sqrt( pow(irow-y_proj,2)+pow(icol-x_proj,2) ) < shellPix){
                             if(hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue && hit_image_v[iPlane].pixel(irow,icol)!=0){
@@ -1258,9 +1258,9 @@ namespace larcv {
             }
             dQdXperPlane_v.push_back(dQdXOnePlane_v);
         }
-        for(int iNode=0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
             double thisdqdx = 0;
-            for(int iPlane=0;iPlane<3;iPlane++){
+            for(size_t iPlane=0;iPlane<3;iPlane++){
                 thisdqdx+=dQdXperPlane_v[iPlane][iNode];
             }
             track_dQdX_v.push_back(thisdqdx);
@@ -1356,7 +1356,7 @@ namespace larcv {
 
 
         TVector3 SumPoints;
-        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             SumPoints+=(_3DTrack[iNode]-_3DTrack[0]);
         }
         SumPoints*=1./_3DTrack.size();
@@ -1364,7 +1364,7 @@ namespace larcv {
 
         TVector3 FurtherFromVertex;
         double dist2vertex = 0;
-        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
         }
 
@@ -1406,8 +1406,8 @@ namespace larcv {
                                       hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
 
 
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+            for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
                 }
             }
@@ -1416,7 +1416,7 @@ namespace larcv {
         TCanvas *c = new TCanvas(Form("c_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("c_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1800);
         c->Divide(1,3);
         c->cd(1)->Divide(3,1);
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(1)->cd(iPlane+1);
             hImage[iPlane]->Draw("colz");
             gTrack[iPlane]->SetMarkerStyle(7);
@@ -1441,7 +1441,7 @@ namespace larcv {
         }
         c->cd(2)->Divide(2,1);
         TH2D *hAngleLength = new TH2D(Form("hAngleLength%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("hAngleLength%05d_%05d_%05d_%04d;angle;length",_run,_subrun,_event,_track),220,-1.1,1.1,200,0,20);
-        for(int iNode = 1;iNode < _3DTrack.size()-1;iNode++){
+        for(size_t iNode = 1;iNode < _3DTrack.size()-1;iNode++){
             double ilength = (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag();
             double angle = (_3DTrack[iNode]-_3DTrack[iNode-1]).Dot( (_3DTrack[iNode+1]-_3DTrack[iNode-1]) )/( (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag() * (_3DTrack[iNode+1]-_3DTrack[iNode-1]).Mag() );
             hAngleLength->Fill( angle, ilength );
@@ -1454,14 +1454,14 @@ namespace larcv {
 
         c->cd(2)->cd(2);
         TGraph *gTrackdQdX = new TGraph();
-        for(int iNode=0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
             gTrackdQdX->SetPoint(iNode,ComputeLength(iNode),track_dQdX_v[iNode]);
         }
         gTrackdQdX->SetMarkerStyle(7);
         gTrackdQdX->Draw("ALP");
 
         c->cd(3)->Divide(3,1);
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(3)->cd(iPlane+1);
             gdQdXperPlane[iPlane]->SetMarkerStyle(7);
             gdQdXperPlane[iPlane]->Draw("APL");
@@ -1470,7 +1470,7 @@ namespace larcv {
         //c->SaveAs(Form("%s.pdf",c->GetName()));
         c->SaveAs(Form("track/%s.png",c->GetName()));
         //c->SaveAs(Form("%s.jpg",c->GetName()));
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             gTrack[iPlane]->Delete();
             gStartNend[iPlane]->Delete();
@@ -1492,14 +1492,14 @@ namespace larcv {
         TGraph *gAverage[3];
         double x_pixel_st, y_pixel_st;
 
-        for(int i=0;i<_vertexTracks.size();i++){
+        for(size_t i=0;i<_vertexTracks.size();i++){
             _3DTrack = _vertexTracks[i];
             ComputeLength();
         }
 
         _3DTrack.clear();
-        for(int i=0;i<_vertexTracks.size();i++){
-            for(int iNode=0;iNode<_vertexTracks[i].size();iNode++){
+        for(size_t i=0;i<_vertexTracks.size();i++){
+            for(size_t iNode=0;iNode<_vertexTracks[i].size();iNode++){
                 _3DTrack.push_back(_vertexTracks[i][iNode]);
             }
         }
@@ -1509,13 +1509,13 @@ namespace larcv {
 
         if(_tooShortDeadWire){
             MaskTrack();
-            for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+            for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
                 TVector3 newPoint;
                 TVector3 oldEndPoint = _vertexTracks[itrack].back();
                 double x,y,z;
                 TRandom3 *ran = new TRandom3();
                 ran->SetSeed(0);
-                for(int i=0;i<100;i++){
+                for(size_t i=0;i<100;i++){
                     ran->Sphere(x,y,z,1.5);
                     newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                     _vertexTracks[itrack].push_back(newPoint);
@@ -1531,12 +1531,12 @@ namespace larcv {
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
-        for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack][0] == start_pt){
                 NtracksAtVertex++;
                 TVector3 AvPt;
                 NpointAveragedOn = 0;
-                for(int iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
+                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
                     if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < 50 ){
                         AvPt+=(_vertexTracks[itrack][iNode]-start_pt);
                         NpointAveragedOn++;
@@ -1546,10 +1546,10 @@ namespace larcv {
                 AvPt_v.push_back(AvPt+start_pt);
             }
         }
-        for(int iPlane = 0;iPlane<3;iPlane++){gAverage[iPlane]=new TGraph();}
-        for(int iPt = 0;iPt<AvPt_v.size();iPt++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){gAverage[iPlane]=new TGraph();}
+        for(size_t iPt = 0;iPt<AvPt_v.size();iPt++){
             double x_proj,y_proj;
-            for(int iPlane=0;iPlane<3;iPlane++){
+            for(size_t iPlane=0;iPlane<3;iPlane++){
                 ProjectTo3D(hit_image_v[iPlane].meta(),AvPt_v[iPt].X(),AvPt_v[iPt].Y(),AvPt_v[iPt].Z(),0,iPlane,x_proj,y_proj);
                 gAverage[iPlane]->SetPoint(iPt,x_proj*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_proj*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
             }
@@ -1560,7 +1560,7 @@ namespace larcv {
             gStartNend[iPlane] = new TGraph();
             ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel_st,y_pixel_st);
             gStart[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-            for(int iend = 0;iend<_vertexEndPoints.size();iend++){
+            for(size_t iend = 0;iend<_vertexEndPoints.size();iend++){
                 ProjectTo3D(hit_image_v[iPlane].meta(),_vertexEndPoints[iend].X(),_vertexEndPoints[iend].Y(),_vertexEndPoints[iend].Z(),0,iPlane,x_pixel_st,y_pixel_st);
                 gStartNend[iPlane]->SetPoint(iend,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
             }
@@ -1583,13 +1583,13 @@ namespace larcv {
                                       hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
 
 
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+            for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
                 }
             }
-            for(int icol=0;icol<CroppedTaggedPix_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<CroppedTaggedPix_v[iPlane].meta().rows();irow++){
+            for(size_t icol=0;icol<CroppedTaggedPix_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<CroppedTaggedPix_v[iPlane].meta().rows();irow++){
                     hTagImage[iPlane]->SetBinContent(icol+1,irow+1,CroppedTaggedPix_v[iPlane].pixel(irow,icol));
 
                 }
@@ -1602,12 +1602,12 @@ namespace larcv {
             if(hTagImage[iPlane]->GetEntries()>1)hTagImage[iPlane]->Draw("same colz");
         }
 
-        for(int i=0;i<_vertexTracks.size();i++){
+        for(size_t i=0;i<_vertexTracks.size();i++){
             TGraph *gTrack[3];
             double x_pixel, y_pixel;
             for(size_t iPlane=0;iPlane<3;iPlane++){gTrack[iPlane] = new TGraph();}
-            for(int iPlane=0;iPlane<3;iPlane++){
-                for(int iNode=0;iNode<_vertexTracks[i].size();iNode++){
+            for(size_t iPlane=0;iPlane<3;iPlane++){
+                for(size_t iNode=0;iNode<_vertexTracks[i].size();iNode++){
                     ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y(),_vertexTracks[i][iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
                     gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
                 }
@@ -1620,7 +1620,7 @@ namespace larcv {
         }
 
 
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(2)->cd(iPlane+1);
             gStartNend[iPlane]->SetMarkerColor(1);
             gStartNend[iPlane]->SetMarkerStyle(20);
@@ -1644,19 +1644,19 @@ namespace larcv {
 
         TGraph2D *gEndPoints = new TGraph2D();
         gEndPoints->SetNameTitle(Form("gEndPoints_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("gEndPoints_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track));
-        for(int i=0;i<_vertexEndPoints.size();i++){
+        for(size_t i=0;i<_vertexEndPoints.size();i++){
             gEndPoints->SetPoint(i,_vertexEndPoints[i].Z(),_vertexEndPoints[i].X(),_vertexEndPoints[i].Y());
         }
 
         fEventOutput->cd();
         int Npoint = 0;
-        for(int i=0;i<_vertexTracks.size();i++){
+        for(size_t i=0;i<_vertexTracks.size();i++){
             TGraph2D *gSingleTrack = new TGraph2D();
-            gSingleTrack->SetNameTitle(Form("gSingleTrack_%05d_%05d_%05d_%04d_%02d",_run,_subrun,_event,_track,i),Form("gSingleTrack_%05d_%05d_%05d_%04d_%02d",_run,_subrun,_event,_track,i));
+            gSingleTrack->SetNameTitle(Form("gSingleTrack_%05d_%05d_%05d_%04d_%02zu",_run,_subrun,_event,_track,i),Form("gSingleTrack_%05d_%05d_%05d_%04d_%02zu",_run,_subrun,_event,_track,i));
             gSingleTrack->SetLineColor(i+1);
             gSingleTrack->SetMarkerColor(i+1);
             gSingleTrack->SetMarkerStyle(7);
-            for(int iNode=0;iNode<_vertexTracks[i].size();iNode++){
+            for(size_t iNode=0;iNode<_vertexTracks[i].size();iNode++){
                 gFullVertex->SetPoint(Npoint,_vertexTracks[i][iNode].Z(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y());
                 gSingleTrack->SetPoint(iNode,_vertexTracks[i][iNode].Z(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y());
                 Npoint++;
@@ -1691,7 +1691,7 @@ namespace larcv {
         else{
             c->SaveAs(Form("png/%s.png",c->GetName()));
         }
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             hTagImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
@@ -1732,8 +1732,8 @@ namespace larcv {
                                       hit_image_v[iPlane].meta().br().y,
                                       hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
 
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+            for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
                 }
             }
@@ -1766,7 +1766,7 @@ namespace larcv {
 
         TCanvas *c = new TCanvas(Form("ROI_%d_%d_%d_%d",_run,_subrun,_event,_track),Form("ROI_%d_%d_%d_%d",_run,_subrun,_event,_track),450,150);
         c->Divide(3,1);
-        for(int iPlane=0;iPlane<3;iPlane++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(iPlane+1);
             hImage[iPlane]->Draw("colz");
             gStart[iPlane]->SetMarkerStyle(7);
@@ -1777,7 +1777,7 @@ namespace larcv {
         }
         c->SaveAs(Form("%s.pdf",c->GetName()));
         
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             gStartNend[iPlane]->Delete();
             gStart[iPlane]->Delete();
@@ -1792,7 +1792,7 @@ namespace larcv {
         TVector3 newPoint;
 
         if(_3DTrack.size() > 2){
-        for(int iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
+        for(size_t iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
             if((_3DTrack[iPoint+1]-_3DTrack[iPoint]).Mag()>5)continue;
             newPoint = (_3DTrack[iPoint+1]+_3DTrack[iPoint])*0.5;
             newTrack.push_back(newPoint);
@@ -1809,9 +1809,9 @@ namespace larcv {
         newTrack.push_back(_3DTrack[0]);
         while(_3DTrack.size() != newTrack.size()){
             distMin=1e9;
-            for(int iNode=0;iNode<_3DTrack.size();iNode++){
+            for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
                 pointAlreadyChosen = false;
-                for(int jNode = 0;jNode<newTrack.size();jNode++){
+                for(size_t jNode = 0;jNode<newTrack.size();jNode++){
                     if(_3DTrack[iNode] == newTrack[jNode])pointAlreadyChosen = true;
                 }
                 if(pointAlreadyChosen)continue;
@@ -1826,7 +1826,7 @@ namespace larcv {
         // make sure I don't have a point that "goes back" w.r.t. the previously selected point and the next one in the _3Dtrack
         newTrack.clear();
         newTrack.push_back(_3DTrack[0]);
-        for(int iNode = 1;iNode < _3DTrack.size()-1;iNode++){
+        for(size_t iNode = 1;iNode < _3DTrack.size()-1;iNode++){
             double angle = (_3DTrack[iNode]-newTrack.back()).Dot( (_3DTrack[iNode+1]-newTrack.back()) )/( (_3DTrack[iNode]-newTrack.back()).Mag() * (_3DTrack[iNode+1]-newTrack.back()).Mag() );
             if(angle > -0.5) newTrack.push_back(_3DTrack[iNode]);
         }
@@ -1847,7 +1847,7 @@ namespace larcv {
             iteration++;
             newPoints.clear();
             newPoints.push_back(_3DTrack[0]);
-            for(int iNode = 1;iNode<_3DTrack.size()-1;iNode++){
+            for(size_t iNode = 1;iNode<_3DTrack.size()-1;iNode++){
                 double dist2line = GetDist2line(newPoints[newPoints.size()-1],_3DTrack[iNode+1],_3DTrack[iNode]);
                 double dist2point = (_3DTrack[iNode]-newPoints[newPoints.size()-1]).Mag();
                 if(dist2line < distMax && dist2point < distLastPoint){
@@ -1872,7 +1872,7 @@ namespace larcv {
         tellMe("ComputeLength()",1);
         _Length3D = 0;
         if(_3DTrack.size()>2){
-            for(int iNode = 0;iNode<_3DTrack.size()-1;iNode++){
+            for(size_t iNode = 0;iNode<_3DTrack.size()-1;iNode++){
                 _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
             }
         }
@@ -1884,7 +1884,7 @@ namespace larcv {
         tellMe("ComputeLength()",1);
         double Length3D = 0;
         if(_3DTrack.size()>2){
-            for(int iNode = node;iNode<_3DTrack.size()-1;iNode++){
+            for(size_t iNode = node;iNode<_3DTrack.size()-1;iNode++){
                 Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
             }
         }
@@ -1908,7 +1908,7 @@ namespace larcv {
         double Zmindet = 0;
         double Zmaxdet = detectorLength;
         int imax;
-        for(int i = 0;i<1000;i++){
+        for(size_t i = 0;i<1000;i++){
             gDetector->SetPoint(4*i+0,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymindet);
             gDetector->SetPoint(4*i+1,Zmindet+i*(detectorLength/(1000-1)), Xmindet, Ymaxdet);
             gDetector->SetPoint(4*i+2,Zmindet+i*(detectorLength/(1000-1)), Xmaxdet, Ymindet);
@@ -1917,7 +1917,7 @@ namespace larcv {
             imax = 4*i+3;
         }
         int newimax;
-        for(int i = 0;i<100;i++){
+        for(size_t i = 0;i<100;i++){
             int ipoint = imax+1+i;
             gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymindet);
             gDetector->SetPoint(4*ipoint+1,Zmindet, Xmindet+i*(detectorwidth/(100-1)), Ymaxdet);
@@ -1927,7 +1927,7 @@ namespace larcv {
             newimax=ipoint;
         }
         imax = newimax;
-        for(int i = 0;i<100;i++){
+        for(size_t i = 0;i<100;i++){
             int ipoint = imax+1+i;
             gDetector->SetPoint(4*ipoint+0,Zmindet, Xmindet, Ymindet+i*(detectorheight/(100-1)));
             gDetector->SetPoint(4*ipoint+1,Zmindet, Xmaxdet, Ymindet+i*(detectorheight/(100-1)));
@@ -1953,9 +1953,9 @@ namespace larcv {
         bool erasedPixel=true;
         while(erasedPixel == true){
             erasedPixel=false;
-            for(int iPlane=0;iPlane<3;iPlane++){
-                for(int icol = 3;icol<hit_image_v[iPlane].meta().cols()-3;icol++){
-                    for(int irow = 3;irow<hit_image_v[iPlane].meta().rows()-3;irow++){
+            for(size_t iPlane=0;iPlane<3;iPlane++){
+                for(size_t icol = 3;icol<hit_image_v[iPlane].meta().cols()-3;icol++){
+                    for(size_t irow = 3;irow<hit_image_v[iPlane].meta().rows()-3;irow++){
                         if(hit_image_v[iPlane].pixel(irow,icol) == 0 || hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue)continue;
 
                         if(   hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
@@ -2120,7 +2120,7 @@ namespace larcv {
     bool AStarTracker::IsTrackIn(std::vector<TVector3> trackA, std::vector<TVector3> trackB){
         // is track A a sub-sample of track B?
         double dist = 0;
-        for(int iNode = 0;iNode<trackA.size();iNode++){
+        for(size_t iNode = 0;iNode<trackA.size();iNode++){
             dist += GetDist2track(trackA[iNode],trackB);
         }
         if(trackA.size()>1)dist/=trackA.size();
@@ -2141,10 +2141,10 @@ namespace larcv {
             tellMe(Form("\t (%d,%d)",pointRow,pointCol),2);
             double dist = 1e9;
             bool notEmpty = false;
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+            for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-                    if(std::abs(icol-pointCol) > 20 || std::abs(irow-pointRow) > 20) continue;
+                    if(std::abs((int)(icol-pointCol)) > 20 || std::abs((int)(irow-pointRow)) > 20) continue;
                     dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
                     notEmpty = true;
                     //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
@@ -2169,11 +2169,11 @@ namespace larcv {
             tellMe(Form("\t (%d,%d)",pointRow,pointCol),2);
             double dist = 1e9;
             bool notEmpty = false;
-            for(int icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
-                for(int irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+            for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     if(icol != endPix[iPlane].first && irow != endPix[iPlane].second)continue;
                     if(hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-                    if(std::abs(icol-pointCol) > 10 || std::abs(irow-pointRow) > 10) continue;
+                    if(std::abs((int)(icol-pointCol)) > 10 || std::abs((int)(irow-pointRow)) > 10) continue;
                     dist = sqrt(pow(pointCol-icol,2)+pow(pointRow-irow,2));
                     notEmpty = true;
                     //if(dist < minDistplane[iPlane])minDistplane[iPlane]=dist;
@@ -2233,7 +2233,7 @@ namespace larcv {
     //______________________________________________________
     std::vector< std::vector<double> > AStarTracker::GetEnergies(){
         std::vector< std::vector<double> > Energies_v;
-        for(int itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             std::vector<double> singleTrackEnergy(2);
             _3DTrack = _vertexTracks[itrack];
             singleTrackEnergy[0] = GetEnergy("proton");
@@ -2245,13 +2245,13 @@ namespace larcv {
     //______________________________________________________
     std::vector<double> AStarTracker::GetAverageIonization(){
         std::vector<double> averageIonizatioPerTrack(_vertexTracks.size(),0);
-        for(int itrack = 0;itrack< _vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack< _vertexTracks.size();itrack++){
             _3DTrack = _vertexTracks[itrack];
             ComputeNewdQdX();
             double AvIon = 0;
             //averageIonizatioPerTrack[itrack] = AvIon;
             if(track_dQdX_v.size()==0)continue;
-            for(int iNode = 0;iNode<track_dQdX_v.size();iNode++){
+            for(size_t iNode = 0;iNode<track_dQdX_v.size();iNode++){
                 AvIon+=track_dQdX_v[iNode]/track_dQdX_v.size();
             }
             averageIonizatioPerTrack[itrack] = AvIon;
@@ -2261,7 +2261,7 @@ namespace larcv {
     //______________________________________________________
     std::vector<double> AStarTracker::GetVertexLength(){
         std::vector<double> VertexLengths(_vertexTracks.size(),0);
-        for(int itrack = 0;itrack< _vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack< _vertexTracks.size();itrack++){
             _3DTrack = _vertexTracks[itrack];
             ComputeLength();
             VertexLengths[itrack] = _Length3D;
@@ -2273,10 +2273,10 @@ namespace larcv {
         if(_3DTrack.size() == 0){tellMe("ERROR, run the 3D reconstruction first",0);return -1;}
         if(_dQdx.size() == 0){tellMe("ERROR, run the dqdx reco first",0);return -1;}
         double Qtot = 0;
-        for(int iNode = 0;iNode<_dQdx.size();iNode++){
+        for(size_t iNode = 0;iNode<_dQdx.size();iNode++){
             double dqdx = 0;
             int Nplanes = 0;
-            for(int iPlane = 0;iPlane<3;iPlane++){
+            for(size_t iPlane = 0;iPlane<3;iPlane++){
                 dqdx+=_dQdx[iNode][iPlane];
                 if(_dQdx[iNode][iPlane] != 0)Nplanes++;
             }
@@ -2295,7 +2295,7 @@ namespace larcv {
     double AStarTracker::GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack){
         double dist = 15000;
         if(thisTrack.size() > 2){
-            for(int iNode = 0;iNode<thisTrack.size()-1;iNode++){
+            for(size_t iNode = 0;iNode<thisTrack.size()-1;iNode++){
                 if(thisTrack[iNode] == thisPoint)continue;
                 double alpha = ( (thisPoint-thisTrack[iNode]).Dot(thisTrack[iNode+1]-thisTrack[iNode]) )/( (thisPoint-thisTrack[iNode]).Mag()*(thisTrack[iNode+1]-thisTrack[iNode]).Mag() );
                 if(alpha > 0 && alpha<1){
@@ -2342,7 +2342,7 @@ namespace larcv {
     TVector3 AStarTracker::GetFurtherFromVertex(){
         TVector3 FurtherFromVertex(1,1,1);
         double dist2vertex = 0;
-        for(int iNode = 0;iNode<_3DTrack.size();iNode++){
+        for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
         }
         return FurtherFromVertex;
@@ -2403,7 +2403,7 @@ namespace larcv {
         int iter = 0;
         while(goOn == true && list.size()>0){
             iter++;
-            for(int iNode=0;iNode<list.size();iNode++){
+            for(size_t iNode=0;iNode<list.size();iNode++){
                 if(list[iNode] == newList.back())continue;
                 dist = (list[iNode]-newList.back()).Mag();
                 if(dist<distMin){distMin=dist;newCandidate = iNode;}
@@ -2427,9 +2427,9 @@ namespace larcv {
     std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, double dR){
         std::vector<TVector3> openSet;
 
-        for(int ix = -1;ix<2;ix++){
-            for(int iy = -1;iy<2;iy++){
-                for(int iz = -1;iz<2;iz++){
+        for(size_t ix = -1;ix<2;ix++){
+            for(size_t iy = -1;iy<2;iy++){
+                for(size_t iz = -1;iz<2;iz++){
                     //if(ix == 0 && iy == 0 && iz == 0)continue;
                     TVector3 neighbour = newPoint;
                     neighbour.SetX(newPoint.X()+dR*ix);
@@ -2445,9 +2445,9 @@ namespace larcv {
     std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, int BoxSize, double dR){
         std::vector<TVector3> openSet;
 
-        for(int ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
-            for(int iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
-                for(int iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
+        for(size_t ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
+            for(size_t iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
+                for(size_t iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
                     //if(ix == 0 && iy == 0 && iz == 0)continue;
                     TVector3 neighbour = newPoint;
                     neighbour.SetX(newPoint.X()+dR*ix);
@@ -2464,7 +2464,7 @@ namespace larcv {
     //______________________________________________________
     std::vector<larcv::Image2D> AStarTracker::CropFullImage2bounds(std::vector<TVector3> EndPoints){
         std::vector<larcv::ImageMeta> Full_meta_v(3);
-        for(int iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = original_full_image_v[iPlane].meta();}
+        for(size_t iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = original_full_image_v[iPlane].meta();}
 
         SetTimeAndWireBounds(EndPoints, Full_meta_v);
         std::vector<std::pair<double,double> > time_bounds = GetTimeBounds();
@@ -2473,10 +2473,10 @@ namespace larcv {
         std::vector<larcv::Image2D> tagged_images;
 
         // find dead/bad wires and paint them with 20
-        for(int iPlane=0;iPlane<3;iPlane++){
-            for(int icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
+        for(size_t iPlane=0;iPlane<3;iPlane++){
+            for(size_t icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
                 int summedVal = 0;
-                for(int irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
+                for(size_t irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
                     if(original_full_image_v[iPlane].pixel(irow,icol) > 10)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
@@ -2485,7 +2485,7 @@ namespace larcv {
             }
         }
         // make smaller image by inverting and cropping the full one
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
             double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_width());
             double image_height = 1.*(size_t)((time_bounds[iPlane].second - time_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_height());
             size_t col_count    = (size_t)(image_width / original_full_image_v[iPlane].meta().pixel_width());
@@ -2504,16 +2504,16 @@ namespace larcv {
             larcv::Image2D invertedImage = newImage;
             larcv::Image2D invertedTagImage = newTaggedImage;
 
-            for(int icol = 0;icol<newImage.meta().cols();icol++){
-                for(int irow = 0;irow<newImage.meta().rows();irow++){
+            for(size_t icol = 0;icol<newImage.meta().cols();icol++){
+                for(size_t irow = 0;irow<newImage.meta().rows();irow++){
                     if(newImage.pixel(irow, icol) > 10){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
                     else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);}
                 }
             }
             data_images.push_back(invertedImage);
 
-            for(int icol = 0;icol<newTaggedImage.meta().cols();icol++){
-                for(int irow = 0;irow<newTaggedImage.meta().rows();irow++){
+            for(size_t icol = 0;icol<newTaggedImage.meta().cols();icol++){
+                for(size_t irow = 0;irow<newTaggedImage.meta().rows();irow++){
                     if(newTaggedImage.pixel(irow, icol) > 10){invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,newTaggedImage.pixel(irow, icol));}
                     else{invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,0);}
                 }
@@ -2522,9 +2522,9 @@ namespace larcv {
         }
         CroppedTaggedPix_v = tagged_images;
 
-        for(int iPlane = 0;iPlane<3;iPlane++){
-            for(int icol = 0;icol<data_images[iPlane].meta().cols();icol++){
-                for(int irow = 0;irow<data_images[iPlane].meta().rows();irow++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            for(size_t icol = 0;icol<data_images[iPlane].meta().cols();icol++){
+                for(size_t irow = 0;irow<data_images[iPlane].meta().rows();irow++){
                     if(CroppedTaggedPix_v[iPlane].pixel(irow, icol) > 10){data_images[iPlane].set_pixel(irow,icol,0);}
                 }
             }
@@ -2535,7 +2535,7 @@ namespace larcv {
     //______________________________________________________
     std::vector<std::pair<int, int> > AStarTracker::GetWireTimeProjection(TVector3 point){
         std::vector<std::pair<int, int> > projection(3);
-        for(int iPlane = 0;iPlane<3;iPlane++){
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
             std::pair<int, int> planeProj;
             planeProj.first = (int)(larutil::GeometryHelper::GetME()->Point_3Dto2D(point,iPlane).w / 0.3);
             planeProj.second = (int)(X2Tick(point.X(),iPlane));

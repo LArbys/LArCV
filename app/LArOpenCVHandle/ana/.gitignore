@@ -18,3 +18,4 @@ bnb_in
 bnb_out
 *.root
 *.png
+*.h5

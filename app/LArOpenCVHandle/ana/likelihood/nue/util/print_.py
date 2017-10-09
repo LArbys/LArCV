@@ -36,6 +36,7 @@ def ana_stats(all_df,event_df,scedr,name,LLCUT):
     rse    = ['run','subrun','event']
     print "Loaded events...........",event_df.index.size
     print "...num with cROI........",event_df.query("num_croi>0").index.size
+    print "...num cROI total.......",event_df.query("num_croi>0")['num_croi'].values.sum()
     print "...good cROI counter....",event_df.query("good_croi_ctr>0").index.size
     print "...reco.................",event_df.query("num_vertex>0").index.size
     print
@@ -52,8 +53,8 @@ def ana_stats(all_df,event_df,scedr,name,LLCUT):
         print
     if LLCUT == None:
         print "===> TOTAL Vertices <===".format(scedr)
-        print ">>> num_vertex>0 <<<"
-        SS="num_vertex>0"
+        print ">>> num_vertex>0 & scedr>20<<<"
+        SS="num_vertex>0 & scedr>20"
         print "...total................",all_df.query(SS).index.size
         print "...events...............",len(all_df.query(SS).groupby(rse))
         print
