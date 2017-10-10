@@ -143,6 +143,7 @@ namespace larcv {
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
+        std::vector<double> GetVertexAngle(double dAverage);
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
@@ -220,10 +221,11 @@ namespace larcv {
         bool _missingTrack;
         bool _nothingReconstructed;
         bool _tooShortDeadWire;
-        bool _tooShortThinTrack;
+        bool _tooShortFaintTrack;
         bool _tooManyTracksAtVertex;
         bool _possibleCosmic;
         bool _possiblyCrossing;
+        bool _branchingTracks;
 
         TH1D *hdQdx;
         TH1D *hLength;
