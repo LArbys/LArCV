@@ -58,15 +58,22 @@ namespace larcv {
     tracker.SetCompressionFactors(1,6);
     tracker.SetVerbose(0);
     iTrack = 0;
+    NvertexSubmitted = 0;
 
     hEcomp             = new TH2D("hEcomp","hEcomp;E_th;E_reco",100,0,1000,100,0,1000);
-    hEcomp1D           = new TH1D("hEcomp1D","hEcomp1D; (E_{reco}-E_{truth})/E_{truth}",400,-2,8);
+    hEcomp1D           = new TH1D("hEcomp1D","hEcomp1D; (E_{reco}-E_{truth})/E_{truth}",500,-2,8);
     hEcomp1D_m         = new TH1D("hEcomp1D_m","hEcomp1D_m; (E_{reco}-E_{truth})/E_{truth}",400,-2,8);
     hEcomp1D_p         = new TH1D("hEcomp1D_p","hEcomp1D_p; (E_{reco}-E_{truth})/E_{truth}",400,-2,8);
     hAverageIonization = new TH1D("hAverageIonization","hAverageIonization",100,0,10000);
+    hEnuReco           = new TH1D("hEnuReco","hEnuReco; E_{#nu, reco} (MeV)",200,0,2000);
+    hEnuTh             = new TH1D("hEnuTh","hEnuTh;E_{#nu, th} (MeV)",200,0,2000);
     hEcompdQdx         = new TH2D("hEcompdQdx","hEcompdQdx;AverageADCperPix/L;(E_{reco}-E_{truth})/E_{truth}",100,0,1000,100,-2,8);
     hIonvsLength       = new TH2D("hIonvsLength","hIonvsLength;L [cm];AverageADCperPix",100,0,1000,100,0,10000);
-
+    hEnuComp           = new TH2D("hEnuComp","hEnuComp;hEnuTh (MeV);hEnuReco (MeV)",200,0,2000,200,0,2000);
+    hEnuComp1D         = new TH1D("hEnuComp1D","hEnuComp1D;(E_{reco}-E_{truth})/E_{truth}",500,-2,10);
+    hEnuvsPM_th        = new TH2D("hEnuvsPM_th","hEnuvsPM_th;E_{#nu};E_{p}+E_{m}",200,0,2000,200,0,2000);
+    hPM_th_Reco_1D     = new TH1D("hPM_th_Reco_1D","hPM_th_Reco_1D;(E_{p+m reco}-E_{p+m th})/E_{p+m th}",200,-2,10);
+    hPM_th_Reco        = new TH2D("hPM_th_Reco","hPM_th_Reco;E_{p+m th};E_{p+m reco}",200,0,2000,200,0,2000);
   }
 
   bool ReadNueFile::process(IOManager& mgr)
@@ -85,6 +92,7 @@ namespace larcv {
 
     auto ev_img_v       = (EventImage2D*) mgr.get_data(kProductImage2D,"wire");
     auto ev_pgraph_v    = (EventPGraph*)  mgr.get_data(kProductPGraph,"test_nue");
+    if (ev_pgraph_v->PGraphArray().empty()) return true;
     //auto ev_ctor_v      = (EventPixel2D*) mgr.get_data(kProductPixel2D,"test_nue_ctor");
     auto ev_pix_v       = (EventPixel2D*) mgr.get_data(kProductPixel2D,"test_nue_img");
     auto ev_partroi_v   = (EventROI*)     mgr.get_data(kProductROI,"segment");
@@ -162,6 +170,10 @@ namespace larcv {
       }
     }
 
+    //______________
+    // End MC
+    //--------------
+
 
     // loop over found vertices
     std::vector<TVector3> vertex_v;
@@ -202,8 +214,8 @@ namespace larcv {
       bool WrongEndPoint = false;
       for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
 	if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ) {
-	    std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; 
-	    WrongEndPoint = false;
+	  std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; 
+	  WrongEndPoint = false;
 	}
       }
       if(WrongEndPoint) continue;
@@ -247,6 +259,7 @@ namespace larcv {
       } // end ROI
     } // end vertex
 
+    NvertexSubmitted+=vertex_v.size();
     tracker.SetOriginalImage(Full_image_v);
     tracker.SetTaggedImage(Tagged_Image);
     tracker.SetTrackInfo(run, subrun, event, 0);
@@ -261,50 +274,82 @@ namespace larcv {
 
 
   void ReadNueFile::MCevaluation(){
+    std::cout << "MCevaluation()" << std::endl;
 
     std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
     std::vector<double> ionPerTrack = tracker.GetAverageIonization();
     std::vector<double> VertexLengths = tracker.GetVertexLength();
 
-    if(ionPerTrack.size()!=2) return;
-    if(!tracker.IsGoodVertex()) return;
+    if(ionPerTrack.size()!=2)return;
+    if(!tracker.IsGoodVertex())return;
+
+    std::cout << "in store energies : " << std::endl;
+    std::cout << Energies_v[0][0] << ":" << Energies_v[0][1] << std::endl;
+    std::cout << Energies_v[1][0] << ":" << Energies_v[1][1] << std::endl;
+
+    double Epreco;
+    double Emreco;
 
     if(ionPerTrack[0] > ionPerTrack[1]){
-      hEcomp->Fill(Ep_t,Energies_v[0][0]); // first track is proton
-      hEcomp->Fill(Em_t,Energies_v[1][1]); // second track is muon
-      hEcomp1D->Fill((Energies_v[0][0]-Ep_t)/Ep_t);
-      hEcomp1D->Fill((Energies_v[1][1]-Em_t)/Em_t);
-      hEcomp1D_m->Fill((Energies_v[1][1]-Em_t)/Em_t);
-      hEcomp1D_p->Fill((Energies_v[0][0]-Ep_t)/Ep_t);
-      hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Energies_v[0][0]-Ep_t)/Ep_t);
-      hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Energies_v[1][1]-Em_t)/Em_t);
+      Epreco = Energies_v[0][0];// first track is proton
+      Emreco = Energies_v[1][1];// second track is muon
+      hEcomp->Fill(Ep_t,Epreco);
+      hEcomp->Fill(Em_t,Emreco);
+      hEcomp1D->Fill((Epreco-Ep_t)/Ep_t);
+      hEcomp1D->Fill((Emreco-Em_t)/Em_t);
+      hEcomp1D_p->Fill((Epreco-Ep_t)/Ep_t);
+      hEcomp1D_m->Fill((Emreco-Em_t)/Em_t);
+      hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Epreco-Ep_t)/Ep_t);
+      hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Emreco-Em_t)/Em_t);
+      if( std::abs((Epreco-Ep_t)/Ep_t) > 0.1 || std::abs((Emreco-Em_t)/Em_t) > 0.1 ){
+	checkEvents.push_back(Form("%d_%d_%d",run,subrun,event));
+      }
     }
     else{
-      hEcomp->Fill(Ep_t,Energies_v[1][0]); // second track is proton
-      hEcomp->Fill(Em_t,Energies_v[0][1]); // first track is muon
-      hEcomp1D->Fill((Energies_v[1][0]-Ep_t)/Ep_t);
-      hEcomp1D->Fill((Energies_v[0][1]-Em_t)/Em_t);
-      hEcomp1D_p->Fill((Energies_v[1][0]-Ep_t)/Ep_t);
-      hEcomp1D_m->Fill((Energies_v[0][1]-Em_t)/Em_t);
-      hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Energies_v[0][0]-Ep_t)/Ep_t);
-      hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Energies_v[1][1]-Em_t)/Em_t);
+      Epreco = Energies_v[1][0]; // second track is proton
+      Emreco = Energies_v[0][1]; // first track is muon
+      hEcomp->Fill(Ep_t,Epreco);
+      hEcomp->Fill(Em_t,Emreco);
+      hEcomp1D->Fill((Epreco-Ep_t)/Ep_t);
+      hEcomp1D->Fill((Emreco-Em_t)/Em_t);
+      hEcomp1D_p->Fill((Epreco-Ep_t)/Ep_t);
+      hEcomp1D_m->Fill((Emreco-Em_t)/Em_t);
+      hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Epreco-Ep_t)/Ep_t);
+      hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Emreco-Em_t)/Em_t);
+      if( std::abs((Epreco-Ep_t)/Ep_t) > 0.1 || std::abs((Emreco-Em_t)/Em_t) > 0.1 ){
+	checkEvents.push_back(Form("%d_%d_%d",run,subrun,event));
+      }
     }
 
-    if( std::abs((Energies_v[0][0]-Ep_t)/Ep_t) > 0.1 || std::abs((Energies_v[1][1]-Em_t)/Em_t) > 0.1 ){
-      checkEvents.push_back(Form("%d_%d_%d",run,subrun,event));
-    }
+    hEnuvsPM_th->Fill(NeutrinoEnergyTh,Ep_t+Em_t);
+    hPM_th_Reco_1D->Fill(((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t));
+    hPM_th_Reco->Fill(Ep_t+Em_t,Epreco+Emreco);
+
+    std::cout << "proton : Epreco = " << Epreco << " MeV, Epth : " << Ep_t << " MeV..." << 100*(Epreco-Ep_t)/Ep_t << " %" << std::endl;
+    std::cout << "muon   : Emreco = " << Emreco << " MeV, Emth : " << Em_t << " MeV..." << 100*(Emreco-Em_t)/Em_t << " %" << std::endl;
+
+    std::cout << "E nu th   : " << NeutrinoEnergyTh << " MeV" << std::endl;
+    std::cout << "E nu Reco : " << Epreco+Emreco << " MeV" << std::endl;
+    std::cout << "relative Enu diff: " << 100*((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh << " %" << std::endl;
+    std::cout << "relative Enu_p+m diff: " << 100*((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t) << " %" << std::endl;
+    hEnuReco->Fill(Epreco+Emreco);
+    hEnuComp->Fill(NeutrinoEnergyTh,Epreco+Emreco);
+    hEnuComp1D->Fill(((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh);
 
 
     for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
       hAverageIonization->Fill(ionPerTrack[itrack]);
       hIonvsLength->Fill(VertexLengths[itrack],ionPerTrack[itrack]);
+            
     }
-
   }
     
   void ReadNueFile::finalize()
   {
+    std::cout << NvertexSubmitted << " vertex submitted" << std::endl;
+    std::cout << "saving root files?...";
     if(hEcomp->GetEntries() > 1){
+      std::cout << "... yes" << std::endl;
       hEcomp->SaveAs(Form("hEcomp_%d_%d_%d.root",run,subrun,event));
       hEcompdQdx->SaveAs(Form("hEcompdQdx_%d_%d_%d.root",run,subrun,event));
       hEcomp1D->SaveAs(Form("hEcomp1D_%d_%d_%d.root",run,subrun,event));
@@ -312,12 +357,21 @@ namespace larcv {
       hEcomp1D_p->SaveAs(Form("hEcomp1D_p_%d_%d_%d.root",run,subrun,event));
       hIonvsLength->SaveAs(Form("hIonvsLength_%d_%d_%d.root",run,subrun,event));
       hAverageIonization->SaveAs(Form("hAverageIonization_%d_%d_%d.root",run,subrun,event));
+      hEnuReco->SaveAs(Form("hEnuReco_%d_%d_%d.root",run,subrun,event));
+      hEnuTh->SaveAs(Form("hEnuTh_%d_%d_%d.root",run,subrun,event));
+      hEnuComp->SaveAs(Form("hEnuComp_%d_%d_%d.root",run,subrun,event));
+      hEnuComp1D->SaveAs(Form("hEnuComp1D_%d_%d_%d.root",run,subrun,event));
+      hEnuvsPM_th->SaveAs(Form("hEnuvsPM_th_%d_%d_%d.root",run,subrun,event));
+      hPM_th_Reco_1D->SaveAs(Form("hPM_th_Reco_1D_%d_%d_%d.root",run,subrun,event));
+      hPM_th_Reco->SaveAs(Form("hPM_th_Reco_%d_%d_%d.root",run,subrun,event));
     }
+    else{std::cout << "... no" << std::endl;}
     tracker.finalize();
 
     for(auto picture:checkEvents){
       std::cout << picture << std::endl;
     }
+
   }    
 
 }

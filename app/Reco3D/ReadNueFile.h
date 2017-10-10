@@ -22,11 +22,21 @@ namespace larcv {
   private :
     int iTrack;
     larcv::AStarTracker tracker;
+
     TH2D *hEcomp;
     TH1D *hAverageIonization;
     TH1D *hEcomp1D;
     TH1D *hEcomp1D_m;
     TH1D *hEcomp1D_p;
+    TH1D *hEnuReco;
+    TH1D *hEnuTh;
+    TH2D *hEnuvsPM_th;
+    TH1D *hPM_th_Reco_1D;
+    TH2D *hPM_th_Reco;
+    TH2D *hEnuComp;
+    TH1D *hEnuComp1D;
+    double NeutrinoEnergyTh;
+    double NeutrinoEnergyReco;
     TH2D *hEcompdQdx;
     TH2D *hIonvsLength;
     double Ep_t;
@@ -34,7 +44,9 @@ namespace larcv {
     int run;
     int subrun;
     int event;
+    int NvertexSubmitted;
     std::vector<std::string> checkEvents;
+
     void MCevaluation();
     
 
