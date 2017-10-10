@@ -37,6 +37,9 @@
 #include "AStarUtils.h"
 #include "AStar3DAlgoProton.h"
 
+// test
+// #include "CVUtil/CVUtil.h"
+
 namespace larcv {
 
   static ReadNueFileProcessFactory __global_ReadNueFileProcessFactory__;
@@ -233,8 +236,13 @@ namespace larcv {
 	  auto const& pix_meta = pix_meta_v.at(cidx);
 	  
 	  auto& plane_img = Full_image_v.at(plane);
-	  for(const auto& px : pix)
-	    plane_img.set_pixel((size_t)px.Y(),(size_t)px.X(),0);
+	  for(const auto& px : pix) {
+	    auto posx = pix_meta.pos_x(px.Y());
+	    auto posy = pix_meta.pos_y(px.X());
+	    auto row = plane_img.meta().row(posy);
+	    auto col = plane_img.meta().col(posx);
+	    plane_img.set_pixel(row,col,0);
+	  }
 	} // end plane
       } // end ROI
     } // end vertex

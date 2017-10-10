@@ -611,7 +611,7 @@ namespace larcv {
             MaskTrack();
             _track++;
         }
-        //DrawVertex();
+        DrawVertex();
     }
     //______________________________________________________
     void AStarTracker::ConstructTrack(){
@@ -682,7 +682,7 @@ namespace larcv {
         start_pt = vertexPoint;
         CleanUpVertex();
         DiagnoseVertex();
-        //DrawVertex();
+        DrawVertex();
     }
     //______________________________________________________
     void AStarTracker::CleanUpVertex(){
