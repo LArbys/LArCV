@@ -13,7 +13,7 @@ int main(int nargs, char** argv){
     }
 
     std::cout << "***********************" << std::endl;
-    std::cout << "  RUN 3D RECO : STRAT  " << std::endl;
+    std::cout << "  RUN 3D RECO : START  " << std::endl;
     std::cout << "***********************" << std::endl;
 
     std::string cfg = argv[1];
@@ -24,7 +24,7 @@ int main(int nargs, char** argv){
     proc.configure(cfg);
     proc.override_input_file(data_inputs);
     proc.initialize();
-    proc.batch_process(0);
+    proc.batch_process(0,30);
     proc.finalize();
 
     std::cout << "**********************" << std::endl;
