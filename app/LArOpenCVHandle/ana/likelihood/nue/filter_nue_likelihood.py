@@ -51,9 +51,23 @@ vertex_filter    = proc.process_ptr(vertex_filter_id)
 id_v  = ROOT.std.vector("bool")()
 par_v = ROOT.std.vector(ROOT.std.pair("int","int"))()
 
-for name, row in LL_df.iterrows():
-    entry = int(row['entry'])
-    assert entry < proc.io().get_n_entries()
+LL_df.reset_index(inplace=True)
+LL_df.set_index('entry',inplace=True)
+
+for entry in xrange(proc.io().get_n_entries()):
+    print "@entry=",entry
+
+    #
+    # do nothing
+    #
+    if entry not in LL_df.index:
+        proc.process_entry(entry)
+        continue
+        
+    #
+    # do something
+    #
+    row=LL_df.loc[entry]
 
     nvtx = int(row['num_vertex'])
     pgid = int(row['cvtxid'])
