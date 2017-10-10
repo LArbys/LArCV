@@ -79,7 +79,6 @@ namespace larcv {
     hPM_th_Reco_1D     = new TH1D("hPM_th_Reco_1D","hPM_th_Reco_1D;(E_{p+m reco}-E_{p+m th})/E_{p+m th}",200,-2,10);
     hPM_th_Reco        = new TH2D("hPM_th_Reco","hPM_th_Reco;E_{p+m th};E_{p+m reco}",200,0,2000,200,0,2000);
     
-    ana_file().cd();
     _reco3d_tree = new TTree("Reco3DTree","");
     _reco3d_tree->Branch("run"    , &_run   , "run/I");
     _reco3d_tree->Branch("subrun" , &_subrun, "subrun/I");
