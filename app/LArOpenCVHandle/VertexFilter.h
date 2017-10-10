@@ -16,6 +16,8 @@ namespace larcv {
     void initialize() {}
     bool process(IOManager& mgr);
     void finalize() {}
+    void clear();
+
     
     void SetIndexVector(const std::vector<bool>& vec)
     { _idx_v = vec; }

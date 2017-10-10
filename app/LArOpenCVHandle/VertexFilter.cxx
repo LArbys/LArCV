@@ -43,7 +43,16 @@ namespace larcv {
     if (!(out_pg_v->PGraphArray().empty()))           throw larbys("data product not empty");
     if (!(out_ctor_v->Pixel2DClusterArray().empty())) throw larbys("data product not empty");
     if (!(out_img_v->Pixel2DClusterArray().empty()))  throw larbys("data product not empty");
+    
+    //
+    // nothing to do
+    //
+    if (_idx_v.empty()) return true;
+    if (_par_v.empty()) return true;
 
+    //
+    // something to do
+    //
     if (_idx_v.size() != in_pg_v->PGraphArray().size()) 
       throw larbys("pgraph & index vector size differ");
     
@@ -69,7 +78,6 @@ namespace larcv {
 
       roi0.Shape( par_pair.first  ? kShapeTrack : kShapeShower );
       roi1.Shape( par_pair.second ? kShapeTrack : kShapeShower );
-
 
       if (roi0.Shape() == kShapeShower) roi0.PdgCode(11);
       else roi0.PdgCode(14);
@@ -103,7 +111,6 @@ namespace larcv {
       LARCV_DEBUG() << "ctor_m sz=     " << ctor_m.size() << std::endl;
       LARCV_DEBUG() << "ctor_meta_m sz=" << ctor_meta_m.size() << std::endl;
       
-
       auto const& pcluster_m      = in_img_v->Pixel2DClusterArray();
       auto const& pcluster_meta_m = in_img_v->ClusterMetaArray();
 
@@ -173,9 +180,16 @@ namespace larcv {
     } // end pgraph
     
     LARCV_DEBUG() << "end" << std::endl;
+    clear();
     return true;
   }
-
+  
+  void VertexFilter::clear() {
+    LARCV_DEBUG() << "start" << std::endl;
+    _idx_v.clear();
+    _par_v.clear();
+    LARCV_DEBUG() << "end" << std::endl;
+  }
 
 }
 #endif

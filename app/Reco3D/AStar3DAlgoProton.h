@@ -1,5 +1,5 @@
-#ifndef __ASTAR_3D_ALGOPROTON__
-#define __ASTAR_3D_ALGOPROTON__
+#ifndef __ASTAR_3D_ALGOPROTON_H__
+#define __ASTAR_3D_ALGOPROTON_H__
 
 /**
 

@@ -1,3 +1,7 @@
+#ifndef __ASTAR_3D_ALGOPROTON_CXX__
+#define __ASTAR_3D_ALGOPROTON_CXX__
+
+
 #include "AStar3DAlgo.h"
 #include "AStar3DAlgoProton.h"
 #include <vector>
@@ -13,12 +17,12 @@
 namespace larcv {
 
   std::vector<AStar3DNode> AStar3DAlgoProton::findpath( const std::vector<larcv::Image2D>& img_v,
-                                                       const std::vector<larcv::Image2D>& badch_v,
-                                                       const std::vector<larcv::Image2D>& tagged_v,
-                                                       const int start_row, const int goal_row,
-                                                       const std::vector<int>& start_cols,
-                                                       const std::vector<int>& goal_cols,
-                                                       int& goal_reached  ) {
+							const std::vector<larcv::Image2D>& badch_v,
+							const std::vector<larcv::Image2D>& tagged_v,
+							const int start_row, const int goal_row,
+							const std::vector<int>& start_cols,
+							const std::vector<int>& goal_cols,
+							int& goal_reached  ) {
     
     const larcv::ImageMeta& meta = img_v.front().meta();
 
@@ -247,9 +251,9 @@ namespace larcv {
       }
       // if ( verbose>0)
       std::cout << "could not reach goal. best node: " 
-                   << " (" << img_v.front().meta().pos_x( current->cols[0] ) << "," << img_v.front().meta().pos_y( current->row ) << ")"
-                   << " fscore=" << current->fscore << " g-score=" << current->gscore 
-                   << " hscore=" << current->fscore-current->gscore << std::endl;
+		<< " (" << img_v.front().meta().pos_x( current->cols[0] ) << "," << img_v.front().meta().pos_y( current->row ) << ")"
+		<< " fscore=" << current->fscore << " g-score=" << current->gscore 
+		<< " hscore=" << current->fscore-current->gscore << std::endl;
       goal_reached = 0;
     }
     else {
@@ -271,14 +275,14 @@ namespace larcv {
 
 
   void AStar3DAlgoProton::evaluateNeighborNodes( AStar3DNode* current,
-                                                const AStar3DNode* start,
-                                                const AStar3DNode* goal,
-                                                const std::vector<larcv::Image2D>& img_v,
-                                                const std::vector<larcv::Image2D>& badch_v,
-                                                const std::vector<larcv::Image2D>& tagged_v,
-                                                AStar3DNodePtrList& openset,
-                                                AStar3DNodePtrList& closedset,
-                                                Lattice& lattice ) {
+						 const AStar3DNode* start,
+						 const AStar3DNode* goal,
+						 const std::vector<larcv::Image2D>& img_v,
+						 const std::vector<larcv::Image2D>& badch_v,
+						 const std::vector<larcv::Image2D>& tagged_v,
+						 AStar3DNodePtrList& openset,
+						 AStar3DNodePtrList& closedset,
+						 Lattice& lattice ) {
 
     const A3DPixPos_t& center = current->nodeid;
 
@@ -308,14 +312,14 @@ namespace larcv {
   }
 
   bool AStar3DAlgoProton::evaluteLatticePoint( const A3DPixPos_t& latticept,
-                                              AStar3DNode* current, const AStar3DNode* start,
-                                              const AStar3DNode* goal,
-                                              const std::vector<larcv::Image2D>& img_v,
-                                              const std::vector<larcv::Image2D>& badch_v,
-                                              const std::vector<larcv::Image2D>& tagged_v,
-                                              AStar3DNodePtrList& openset,
-                                              AStar3DNodePtrList& closedset,
-                                              Lattice& lattice ) {
+					       AStar3DNode* current, const AStar3DNode* start,
+					       const AStar3DNode* goal,
+					       const std::vector<larcv::Image2D>& img_v,
+					       const std::vector<larcv::Image2D>& badch_v,
+					       const std::vector<larcv::Image2D>& tagged_v,
+					       AStar3DNodePtrList& openset,
+					       AStar3DNodePtrList& closedset,
+					       Lattice& lattice ) {
     // returns true if updated, false if not
 
     const int nplanes = img_v.size();
@@ -331,10 +335,10 @@ namespace larcv {
 
     if ( verbose>3 ) {
       std::cout << " lattice pt (" << latticept[0] << "," << latticept[1] << "," << latticept[2] << ") "
-        << "img pos: (r=" << neighbor_node->row << "," << neighbor_node->cols[0] << "," << neighbor_node->cols[1] << "," << neighbor_node->cols[2] << ") "
-        << "within_image=" << neighbor_node->within_image 
-        << " closed=" << neighbor_node->closed 
-        << " badchnode=" << neighbor_node->badchnode;
+		<< "img pos: (r=" << neighbor_node->row << "," << neighbor_node->cols[0] << "," << neighbor_node->cols[1] << "," << neighbor_node->cols[2] << ") "
+		<< "within_image=" << neighbor_node->within_image 
+		<< " closed=" << neighbor_node->closed 
+		<< " badchnode=" << neighbor_node->badchnode;
     }
 
     if ( neighbor_node->closed ) {
@@ -477,42 +481,42 @@ namespace larcv {
     float jump_cost = norm1;
     //if ( neighbor_node->badchnode ) jump_cost = norm1*10.0; // pay a cost for using a badch node
 
-      float curvature_cost = 0.0;
+    float curvature_cost = 0.0;
       
-      if(doPxValEstimate){
-          curvature_cost = 1;
-          double px_value_cost = 0;
-          int row = neighbor_node->row;
-          for(size_t p = 0; p<3;p++){
-              px_value_cost+=100*exp(-1.*img_v.at(p).pixel( row, neighbor_node->cols[p] )/20);// penalizes low value pixels
-          }
-          jump_cost*=(1+px_value_cost);
+    if(doPxValEstimate){
+      curvature_cost = 1;
+      double px_value_cost = 0;
+      int row = neighbor_node->row;
+      for(size_t p = 0; p<3;p++){
+	px_value_cost+=100*exp(-1.*img_v.at(p).pixel( row, neighbor_node->cols[p] )/20);// penalizes low value pixels
       }
-      else{
-          // calculate local curvature cost
-          curvature_cost = 0.0;
-          float dir2[3] = {0};
-          if ( current->prev!=NULL ) {
-              AStar3DNode* prev = current->prev;
-              float norm2 = 0.;
-              for (int i=1; i<3; i++ ) {
-                  dir2[i] = current->tyz[i]-prev->tyz[i];
-                  norm2 += dir2[i]*dir2[i];
-              }
-              dir2[0] = (current->tyz[0]-prev->tyz[0])*cm_per_tick;
-              norm2 += dir2[0]*dir2[0];
-              norm2 = sqrt(norm2);
-              for ( int i=0; i<3; i++)
-              dir2[i] /= norm2;
-              float dcos = 0;
-              for (int i=0; i<3; i++) {
-                  dcos += dir1[i]*dir2[i];
-              }
-              curvature_cost = 0.1*exp(10*fabs(0.5*(1-dcos)));
-              jump_cost *= curvature_cost;
-              //std::cout << "plop" << std::endl;
-          }
+      jump_cost*=(1+px_value_cost);
+    }
+    else{
+      // calculate local curvature cost
+      curvature_cost = 0.0;
+      float dir2[3] = {0};
+      if ( current->prev!=NULL ) {
+	AStar3DNode* prev = current->prev;
+	float norm2 = 0.;
+	for (int i=1; i<3; i++ ) {
+	  dir2[i] = current->tyz[i]-prev->tyz[i];
+	  norm2 += dir2[i]*dir2[i];
+	}
+	dir2[0] = (current->tyz[0]-prev->tyz[0])*cm_per_tick;
+	norm2 += dir2[0]*dir2[0];
+	norm2 = sqrt(norm2);
+	for ( int i=0; i<3; i++)
+	  dir2[i] /= norm2;
+	float dcos = 0;
+	for (int i=0; i<3; i++) {
+	  dcos += dir1[i]*dir2[i];
+	}
+	curvature_cost = 0.1*exp(10*fabs(0.5*(1-dcos)));
+	jump_cost *= curvature_cost;
+	//std::cout << "plop" << std::endl;
       }
+    }
 
 
       
@@ -622,3 +626,4 @@ namespace larcv {
   }
 }
 
+#endif

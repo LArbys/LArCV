@@ -22,6 +22,6 @@ if len(sys.argv) > 1:
 
 proc.initialize()
 
-proc.batch_process(1,1)
+proc.batch_process(3,1)
 
 proc.finalize()
