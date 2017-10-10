@@ -1776,6 +1776,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
+        std::cout << "GOT: " << _spline_file << std::endl;
         assert (!_spline_file.empty());
         TFile *fSplines = TFile::Open(_spline_file.c_str(),"READ");
         sMuonRange2T   = (TSpline3*)fSplines->Get("sMuonRange2T");
@@ -1787,6 +1788,7 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::SetSplineFile(const std::string& fpath) {
       _spline_file = fpath;
+      std::cout << "set spline file=" << _spline_file << std::endl;
     }
     //______________________________________________________
     void AStarTracker::DrawROI(){

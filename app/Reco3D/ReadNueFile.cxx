@@ -55,7 +55,6 @@ namespace larcv {
   {
     LARCV_INFO() << "[ReadNueFile]" << std::endl;
     assert(!_spline_file.empty());
-
     tracker.SetSplineFile(_spline_file);
     tracker.initialize();
     tracker.SetCompressionFactors(1,6);
@@ -283,8 +282,12 @@ namespace larcv {
     std::vector<double> ionPerTrack = tracker.GetAverageIonization();
     std::vector<double> VertexLengths = tracker.GetVertexLength();
 
-    if(ionPerTrack.size()!=2)return;
-    if(!tracker.IsGoodVertex())return;
+    std::cout << "E" << Energies_v.size() << std::endl;
+    std::cout << "i" << ionPerTrack.size() << std::endl;
+    std::cout << "v" << VertexLengths.size() << std::endl;
+
+    if(ionPerTrack.size()!=2)   return;
+    if(!tracker.IsGoodVertex()) return;
 
     std::cout << "in store energies : " << std::endl;
     std::cout << Energies_v[0][0] << ":" << Energies_v[0][1] << std::endl;
@@ -379,6 +382,7 @@ namespace larcv {
   void ReadNueFile::SetSplineLocation(const std::string& fpath) {
     LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
     tracker.SetSplineFile(fpath);
+    _spline_file = fpath;
     LARCV_DEBUG() << "end" << std::endl;
   }
 
