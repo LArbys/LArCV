@@ -1,14 +1,27 @@
 #https://open.spotify.com/track/7DcWaEjsO3PTAODV2fKeSn
 import os, sys
+
+if len(sys.argv) != 5:
+    print 
+    print "ANAFILE = str(sys.argv[1])"
+    print "PGRFILE = str(sys.argv[2])"
+    print "LLCUT   = float(sys.argv[3])"
+    print "OUTDIR  = str(sys.argv[4])" 
+    print 
+    sys.exit(1)
+
 import ROOT
 import numpy as np
 import pandas as pd
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
+sys.path.insert(0,BASE_PATH)
 
 print "-->initialize"
 ANAFILE = str(sys.argv[1])
 PGRFILE = str(sys.argv[2])
+LLCUT   = float(sys.argv[3])
+OUTDIR  = str(sys.argv[4])
 OUTFILE = os.path.basename(PGRFILE).split(".")[0].split("_")
 OUTFILE = "_".join(OUTFILE[:-1]) + "_nue_LL_filter_" + OUTFILE[-1]
 
@@ -17,9 +30,9 @@ from util.fill_df import *
 pdf_fin = os.path.join(BASE_PATH,"ll_bin","nue_pdfs.root")
 LL_df = initialize_df(ANAFILE)
 LL_df = nue_assumption(LL_df)
+LL_df = fill_parameters(LL_df)
 LL_df = apply_ll(LL_df,pdf_fin)
 
-LLCUT = -100000
 LL_df = LL_df.query("LL>@LLCUT")
 
 print "-->load larcv"
@@ -29,12 +42,11 @@ proc.configure(os.path.join(BASE_PATH,"filter_likelihood.cfg"))
 flist_v = ROOT.std.vector("std::string")()
 flist_v.push_back(ROOT.std.string(PGRFILE))
 proc.override_input_file(flist_v)
-proc.override_output_file(ROOT.std.string(OUTFILE + ".root"))
+proc.override_output_file(ROOT.std.string(os.path.join(OUTDIR,OUTFILE + ".root")))
 proc.initialize()
 
 vertex_filter_id = proc.process_id("VertexFilter")
 vertex_filter    = proc.process_ptr(vertex_filter_id)
-
 
 id_v  = ROOT.std.vector("bool")()
 par_v = ROOT.std.vector(ROOT.std.pair("int","int"))()
@@ -77,4 +89,4 @@ for name, row in LL_df.iterrows():
 
 proc.finalize()
 
-
+sys.exit(0)

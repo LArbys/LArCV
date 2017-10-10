@@ -20,7 +20,7 @@ namespace larcv {
   {
     _in_pg_prod   = cfg.get<std::string>("InputPGraphProducer");
     _in_ctor_prod = cfg.get<std::string>("InputCtorProducer");
-    _in_img_prod  = cfg.get<std::string>("OutputImgProducer");
+    _in_img_prod  = cfg.get<std::string>("InputImgProducer");
 
     _out_pg_prod   = cfg.get<std::string>("OutputPGraphProducer");
     _out_ctor_prod = cfg.get<std::string>("OutputCtorProducer");
@@ -70,6 +70,15 @@ namespace larcv {
       roi0.Shape( par_pair.first  ? kShapeTrack : kShapeShower );
       roi1.Shape( par_pair.second ? kShapeTrack : kShapeShower );
 
+
+      if (roi0.Shape() == kShapeShower) roi0.PdgCode(11);
+      else roi0.PdgCode(14);
+
+      if (roi1.Shape() == kShapeShower) roi1.PdgCode(11);
+      else roi1.PdgCode(14);
+      
+      assert (roi1.PdgCode() != roi0.PdgCode());
+
       LARCV_DEBUG() << "set par0 shape=" << (int)roi0.Shape() << std::endl;
       LARCV_DEBUG() << "set par1 shape=" << (int)roi1.Shape() << std::endl;
       
@@ -84,25 +93,53 @@ namespace larcv {
       auto const& cidx0 = ci_old_v.front();
       auto const& cidx1 = ci_old_v.back();
 
+      LARCV_DEBUG() << "cidx0=" << cidx0 << std::endl;
+      LARCV_DEBUG() << "cidx1=" << cidx1 << std::endl;
+
       auto const& ctor_m      = in_ctor_v->Pixel2DClusterArray();
       auto const& ctor_meta_m = in_ctor_v->ClusterMetaArray();
+      
+      LARCV_DEBUG() << "px ctor producer=" <<   _in_ctor_prod << std::endl;
+      LARCV_DEBUG() << "ctor_m sz=     " << ctor_m.size() << std::endl;
+      LARCV_DEBUG() << "ctor_meta_m sz=" << ctor_meta_m.size() << std::endl;
+      
 
       auto const& pcluster_m      = in_img_v->Pixel2DClusterArray();
       auto const& pcluster_meta_m = in_img_v->ClusterMetaArray();
 
+      LARCV_DEBUG() << "px img producer=" <<   _in_img_prod << std::endl;
+      LARCV_DEBUG() << "pcluster_m sz=     " << pcluster_m.size() << std::endl;
+      LARCV_DEBUG() << "pcluster_meta_m sz=" << pcluster_meta_m.size() << std::endl;
+
       for(size_t plane=0; plane<3; ++plane) {
+	
+	LARCV_DEBUG() << "@plane=" << plane << std::endl;
 
 	auto iter_pcluster = pcluster_m.find(plane);
-	if(iter_pcluster == pcluster_m.end()) continue;
+	if(iter_pcluster == pcluster_m.end()) {
+	  LARCV_DEBUG() << "skip pcluster_m" << std::endl;
+	  continue;
+	}
 
 	auto iter_pcluster_meta = pcluster_meta_m.find(plane);
-	if(iter_pcluster_meta == pcluster_meta_m.end()) continue;
+	if(iter_pcluster_meta == pcluster_meta_m.end()) {
+	  LARCV_DEBUG() << "skip pcluster_meta_m" << std::endl;
+	  continue;
+	}
 	
 	auto iter_ctor = ctor_m.find(plane);
-	if(iter_ctor == ctor_m.end()) continue;
+	if(iter_ctor == ctor_m.end()) {
+	  LARCV_DEBUG() << "skip ctor_m" << std::endl;
+	  continue;
+	}
 
 	auto iter_ctor_meta = ctor_meta_m.find(plane);
-	if(iter_ctor_meta == ctor_meta_m.end()) continue;
+	if(iter_ctor_meta == ctor_meta_m.end()) {
+	  LARCV_DEBUG() << "skip ctor_meta_m" << std::endl;
+	  continue;
+	}
+
+	LARCV_DEBUG() << "accepted!" << std::endl;
 
 	auto const& pcluster_v      = (*iter_pcluster).second;
 	auto const& pcluster_meta_v = (*iter_pcluster_meta).second;
@@ -124,13 +161,15 @@ namespace larcv {
 	auto const& ctor1      = ctor_v.at(cidx1);
 	auto const& ctor_meta1 = ctor_meta_v.at(cidx1);
 
-
 	out_ctor_v->Append(plane,ctor0,ctor_meta0);
-	out_img_v->Append(plane,pcluster0,pcluster_meta0);
-
 	out_ctor_v->Append(plane,ctor1,ctor_meta1);
+
+	out_img_v->Append(plane,pcluster0,pcluster_meta0);
 	out_img_v->Append(plane,pcluster1,pcluster_meta1);
+	
+	LARCV_DEBUG() << "end this plane" << std::endl;
       } // end plane
+      LARCV_DEBUG() << "end this pgraph" << std::endl;
     } // end pgraph
     
     LARCV_DEBUG() << "end" << std::endl;
