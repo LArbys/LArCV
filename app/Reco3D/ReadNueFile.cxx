@@ -45,7 +45,9 @@ namespace larcv {
   static ReadNueFileProcessFactory __global_ReadNueFileProcessFactory__;
 
   ReadNueFile::ReadNueFile(const std::string name)
-    : ProcessBase(name), _spline_file("")
+    : ProcessBase(name), 
+      _spline_file(""), 
+      _reco3d_tree(nullptr)
   {}
 
   void ReadNueFile::configure(const PSet& cfg)
@@ -76,14 +78,27 @@ namespace larcv {
     hEnuvsPM_th        = new TH2D("hEnuvsPM_th","hEnuvsPM_th;E_{#nu};E_{p}+E_{m}",200,0,2000,200,0,2000);
     hPM_th_Reco_1D     = new TH1D("hPM_th_Reco_1D","hPM_th_Reco_1D;(E_{p+m reco}-E_{p+m th})/E_{p+m th}",200,-2,10);
     hPM_th_Reco        = new TH2D("hPM_th_Reco","hPM_th_Reco;E_{p+m th};E_{p+m reco}",200,0,2000,200,0,2000);
+    
+    ana_file().cd();
+    _reco3d_tree = new TTree("Reco3DTree","");
+    _reco3d_tree->Branch("run"    , &_run   , "run/I");
+    _reco3d_tree->Branch("subrun" , &_subrun, "subrun/I");
+    _reco3d_tree->Branch("event"  , &_event , "event/I");
+    
+    _reco3d_tree->Branch("E_muon_v"   , &_E_muon_v);
+    _reco3d_tree->Branch("E_proton_v" , &_E_proton_v);
+    _reco3d_tree->Branch("Length_v"   , &_Length_v);
+    _reco3d_tree->Branch("Avg_Ion_v"  , &_avg_ion_v);
+      
   }
 
   bool ReadNueFile::process(IOManager& mgr)
   {
-    std::cout << std::endl;
-    std::cout << "============================================" << std::endl;
-    std::cout << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
-    std::cout << "============================================" << std::endl;
+    Clear();
+    LARCV_INFO() << std::endl;
+    LARCV_INFO() << "============================================" << std::endl;
+    LARCV_INFO() << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
+    LARCV_INFO() << "============================================" << std::endl;
     gStyle->SetOptStat(0);
 
     TVector3 vertex, endPoint[2];
@@ -100,10 +115,14 @@ namespace larcv {
     auto ev_partroi_v   = (EventROI*)     mgr.get_data(kProductROI,"segment");
     // auto tag_img_thru_v = (EventImage2D*) mgr.get_data(kProductImage2D,"thrumutags");
     // auto tag_img_stop_v = (EventImage2D*) mgr.get_data(kProductImage2D,"stopmutags");
-
-    int run    = ev_pgraph_v->run();
-    int subrun = ev_pgraph_v->subrun();
-    int event  = ev_pgraph_v->event();
+    
+    run    = ev_pgraph_v->run();
+    subrun = ev_pgraph_v->subrun();
+    event  = ev_pgraph_v->event();
+    
+    _run    = run;
+    _subrun = subrun;
+    _event  = event;
 
     // get the event clusters and full images
     const auto& full_adc_img_v = ev_img_v->Image2DArray();
@@ -124,17 +143,17 @@ namespace larcv {
     std::vector<TVector3> ElectronEndPoint;
     for(size_t iMC = 0;iMC<mc_roi_v.size();iMC++){
       if(mc_roi_v[iMC].PdgCode() == 13){
-	std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+	LARCV_INFO() << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
 	MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
 	MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
       }
       if(mc_roi_v[iMC].PdgCode() == 2212){
-	std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+	LARCV_INFO() << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
 	ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
 	ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
       }
       if(mc_roi_v[iMC].PdgCode() == 11){
-	std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+	LARCV_INFO() << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
 	ElectronVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
 	ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
       }
@@ -216,7 +235,7 @@ namespace larcv {
       bool WrongEndPoint = false;
       for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
 	if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ) {
-	  std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; 
+	  LARCV_INFO() << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; 
 	  WrongEndPoint = false;
 	}
       }
@@ -267,31 +286,41 @@ namespace larcv {
     tracker.SetTrackInfo(run, subrun, event, 0);
     tracker.SetEventVertices(vertex_v);
     tracker.ReconstructEvent();
-    std::cout << std::endl << std::endl;
-        
+    LARCV_INFO() << std::endl << std::endl;
+    
     MCevaluation();
     
+    
+    _reco3d_tree->Fill();
     return true;
   }
 
 
   void ReadNueFile::MCevaluation(){
-    std::cout << "MCevaluation()" << std::endl;
+    LARCV_INFO() << "MCevaluation()" << std::endl;
 
     std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
     std::vector<double> ionPerTrack = tracker.GetAverageIonization();
     std::vector<double> VertexLengths = tracker.GetVertexLength();
+    
+    _E_muon_v.resize(Energies_v.size(),kINVALID_DOUBLE);
+    _E_proton_v.resize(Energies_v.size(),kINVALID_DOUBLE);
 
-    std::cout << "E" << Energies_v.size() << std::endl;
-    std::cout << "i" << ionPerTrack.size() << std::endl;
-    std::cout << "v" << VertexLengths.size() << std::endl;
+    for(size_t trackid=0; trackid<Energies_v.size(); ++trackid) {
+      assert(Energies_v[trackid].size() == 2);
+      _E_proton_v[trackid] = Energies_v[trackid].front();
+      _E_muon_v[trackid]   = Energies_v[trackid].back();
+    }
 
+    _Length_v  = VertexLengths;
+    _avg_ion_v = ionPerTrack;
+    
     if(ionPerTrack.size()!=2)   return;
     if(!tracker.IsGoodVertex()) return;
 
-    std::cout << "in store energies : " << std::endl;
-    std::cout << Energies_v[0][0] << ":" << Energies_v[0][1] << std::endl;
-    std::cout << Energies_v[1][0] << ":" << Energies_v[1][1] << std::endl;
+    LARCV_INFO() << "in store energies : " << std::endl;
+    LARCV_INFO() << Energies_v[0][0] << ":" << Energies_v[0][1] << std::endl;
+    LARCV_INFO() << Energies_v[1][0] << ":" << Energies_v[1][1] << std::endl;
 
     double Epreco;
     double Emreco;
@@ -331,13 +360,13 @@ namespace larcv {
     hPM_th_Reco_1D->Fill(((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t));
     hPM_th_Reco->Fill(Ep_t+Em_t,Epreco+Emreco);
 
-    std::cout << "proton : Epreco = " << Epreco << " MeV, Epth : " << Ep_t << " MeV..." << 100*(Epreco-Ep_t)/Ep_t << " %" << std::endl;
-    std::cout << "muon   : Emreco = " << Emreco << " MeV, Emth : " << Em_t << " MeV..." << 100*(Emreco-Em_t)/Em_t << " %" << std::endl;
+    LARCV_INFO() << "proton : Epreco = " << Epreco << " MeV, Epth : " << Ep_t << " MeV..." << 100*(Epreco-Ep_t)/Ep_t << " %" << std::endl;
+    LARCV_INFO() << "muon   : Emreco = " << Emreco << " MeV, Emth : " << Em_t << " MeV..." << 100*(Emreco-Em_t)/Em_t << " %" << std::endl;
 
-    std::cout << "E nu th   : " << NeutrinoEnergyTh << " MeV" << std::endl;
-    std::cout << "E nu Reco : " << Epreco+Emreco << " MeV" << std::endl;
-    std::cout << "relative Enu diff: " << 100*((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh << " %" << std::endl;
-    std::cout << "relative Enu_p+m diff: " << 100*((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t) << " %" << std::endl;
+    LARCV_INFO() << "E nu th   : " << NeutrinoEnergyTh << " MeV" << std::endl;
+    LARCV_INFO() << "E nu Reco : " << Epreco+Emreco << " MeV" << std::endl;
+    LARCV_INFO() << "relative Enu diff: " << 100*((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh << " %" << std::endl;
+    LARCV_INFO() << "relative Enu_p+m diff: " << 100*((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t) << " %" << std::endl;
     hEnuReco->Fill(Epreco+Emreco);
     hEnuComp->Fill(NeutrinoEnergyTh,Epreco+Emreco);
     hEnuComp1D->Fill(((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh);
@@ -352,10 +381,10 @@ namespace larcv {
     
   void ReadNueFile::finalize()
   {
-    std::cout << NvertexSubmitted << " vertex submitted" << std::endl;
-    std::cout << "saving root files?...";
+    LARCV_INFO() << NvertexSubmitted << " vertex submitted" << std::endl;
+    LARCV_INFO() << "saving root files?...";
     if(hEcomp->GetEntries() > 1){
-      std::cout << "... yes" << std::endl;
+      LARCV_INFO() << "... yes" << std::endl;
       hEcomp->SaveAs(Form("root/hEcomp_%d_%d_%d.root",run,subrun,event));
       hEcompdQdx->SaveAs(Form("root/hEcompdQdx_%d_%d_%d.root",run,subrun,event));
       hEcomp1D->SaveAs(Form("root/hEcomp1D_%d_%d_%d.root",run,subrun,event));
@@ -371,12 +400,18 @@ namespace larcv {
       hPM_th_Reco_1D->SaveAs(Form("root/hPM_th_Reco_1D_%d_%d_%d.root",run,subrun,event));
       hPM_th_Reco->SaveAs(Form("root/hPM_th_Reco_%d_%d_%d.root",run,subrun,event));
     }
-    else{std::cout << "... no" << std::endl;}
+    else{LARCV_INFO() << "... no" << std::endl;}
     tracker.finalize();
 
     for(auto picture:checkEvents){
-      std::cout << picture << std::endl;
+      LARCV_INFO() << picture << std::endl;
     }
+
+    if(has_ana_file()) {
+      ana_file().cd();
+      _reco3d_tree->Write();
+    }
+
 
   }    
   void ReadNueFile::SetSplineLocation(const std::string& fpath) {
@@ -384,6 +419,17 @@ namespace larcv {
     tracker.SetSplineFile(fpath);
     _spline_file = fpath;
     LARCV_DEBUG() << "end" << std::endl;
+  }
+
+  void ReadNueFile::Clear() {
+    _run    = kINVALID_INT;
+    _subrun = kINVALID_INT;
+    _event  = kINVALID_INT;
+
+    _E_muon_v.clear();
+    _E_proton_v.clear();
+    _Length_v.clear();
+    _avg_ion_v.clear();
   }
 
 }
