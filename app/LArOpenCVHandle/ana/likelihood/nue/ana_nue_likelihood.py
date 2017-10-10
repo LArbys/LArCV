@@ -1,4 +1,15 @@
 import os, sys
+
+if len(sys.argv) != 3:
+    print
+    print "name = str(sys.argv[1])"
+    print "LLCUT = str(sys.argv[1])"
+    print
+    print "...bye"
+    print
+    sys.exit(1)
+
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -41,11 +52,10 @@ print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 all_df   = pd.read_pickle(os.path.join(BASE_PATH,"ll_bin","{}_post_LL.pkl".format(name)))
 
 scedr=5
-LLCUT=-17.125
-LLCUT=-15.125
+LLCUT=float(sys.argv[2])#-17.875
 ana_stats(all_df,event_df,scedr,name,LLCUT)
 
-# if name != 'nue':
+#if name != 'nue':
 sys.exit(1)
 
 #
