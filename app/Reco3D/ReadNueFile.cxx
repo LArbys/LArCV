@@ -38,14 +38,14 @@
 #include "AStar3DAlgoProton.h"
 
 // test
-// #include "CVUtil/CVUtil.h"
+#include <cassert>
 
 namespace larcv {
 
   static ReadNueFileProcessFactory __global_ReadNueFileProcessFactory__;
 
   ReadNueFile::ReadNueFile(const std::string name)
-    : ProcessBase(name)
+    : ProcessBase(name), _spline_file("")
   {}
 
   void ReadNueFile::configure(const PSet& cfg)
@@ -53,7 +53,10 @@ namespace larcv {
 
   void ReadNueFile::initialize()
   {
-    std::cout << "[ReadNueFile]" << std::endl;
+    LARCV_INFO() << "[ReadNueFile]" << std::endl;
+    assert(!_spline_file.empty());
+
+    tracker.SetSplineFile(_spline_file);
     tracker.initialize();
     tracker.SetCompressionFactors(1,6);
     tracker.SetVerbose(0);
@@ -350,20 +353,20 @@ namespace larcv {
     std::cout << "saving root files?...";
     if(hEcomp->GetEntries() > 1){
       std::cout << "... yes" << std::endl;
-      hEcomp->SaveAs(Form("hEcomp_%d_%d_%d.root",run,subrun,event));
-      hEcompdQdx->SaveAs(Form("hEcompdQdx_%d_%d_%d.root",run,subrun,event));
-      hEcomp1D->SaveAs(Form("hEcomp1D_%d_%d_%d.root",run,subrun,event));
-      hEcomp1D_m->SaveAs(Form("hEcomp1D_m_%d_%d_%d.root",run,subrun,event));
-      hEcomp1D_p->SaveAs(Form("hEcomp1D_p_%d_%d_%d.root",run,subrun,event));
-      hIonvsLength->SaveAs(Form("hIonvsLength_%d_%d_%d.root",run,subrun,event));
-      hAverageIonization->SaveAs(Form("hAverageIonization_%d_%d_%d.root",run,subrun,event));
-      hEnuReco->SaveAs(Form("hEnuReco_%d_%d_%d.root",run,subrun,event));
-      hEnuTh->SaveAs(Form("hEnuTh_%d_%d_%d.root",run,subrun,event));
-      hEnuComp->SaveAs(Form("hEnuComp_%d_%d_%d.root",run,subrun,event));
-      hEnuComp1D->SaveAs(Form("hEnuComp1D_%d_%d_%d.root",run,subrun,event));
-      hEnuvsPM_th->SaveAs(Form("hEnuvsPM_th_%d_%d_%d.root",run,subrun,event));
-      hPM_th_Reco_1D->SaveAs(Form("hPM_th_Reco_1D_%d_%d_%d.root",run,subrun,event));
-      hPM_th_Reco->SaveAs(Form("hPM_th_Reco_%d_%d_%d.root",run,subrun,event));
+      hEcomp->SaveAs(Form("root/hEcomp_%d_%d_%d.root",run,subrun,event));
+      hEcompdQdx->SaveAs(Form("root/hEcompdQdx_%d_%d_%d.root",run,subrun,event));
+      hEcomp1D->SaveAs(Form("root/hEcomp1D_%d_%d_%d.root",run,subrun,event));
+      hEcomp1D_m->SaveAs(Form("root/hEcomp1D_m_%d_%d_%d.root",run,subrun,event));
+      hEcomp1D_p->SaveAs(Form("root/hEcomp1D_p_%d_%d_%d.root",run,subrun,event));
+      hIonvsLength->SaveAs(Form("root/hIonvsLength_%d_%d_%d.root",run,subrun,event));
+      hAverageIonization->SaveAs(Form("root/hAverageIonization_%d_%d_%d.root",run,subrun,event));
+      hEnuReco->SaveAs(Form("root/hEnuReco_%d_%d_%d.root",run,subrun,event));
+      hEnuTh->SaveAs(Form("root/hEnuTh_%d_%d_%d.root",run,subrun,event));
+      hEnuComp->SaveAs(Form("root/hEnuComp_%d_%d_%d.root",run,subrun,event));
+      hEnuComp1D->SaveAs(Form("root/hEnuComp1D_%d_%d_%d.root",run,subrun,event));
+      hEnuvsPM_th->SaveAs(Form("root/hEnuvsPM_th_%d_%d_%d.root",run,subrun,event));
+      hPM_th_Reco_1D->SaveAs(Form("root/hPM_th_Reco_1D_%d_%d_%d.root",run,subrun,event));
+      hPM_th_Reco->SaveAs(Form("root/hPM_th_Reco_%d_%d_%d.root",run,subrun,event));
     }
     else{std::cout << "... no" << std::endl;}
     tracker.finalize();
@@ -373,6 +376,11 @@ namespace larcv {
     }
 
   }    
+  void ReadNueFile::SetSplineLocation(const std::string& fpath) {
+    LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
+    tracker.SetSplineFile(fpath);
+    LARCV_DEBUG() << "end" << std::endl;
+  }
 
 }
 #endif

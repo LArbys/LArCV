@@ -14,7 +14,7 @@
 #pragma link C++ class larcv::AStar3DNodePtrList+;
 #pragma link C++ class larcv::AStar3DAlgo+;
 
-#pragma link C++ class larcv::ReadRuiFile+;
+//#pragma link C++ class larcv::ReadRuiFile+;
 #pragma link C++ class larcv::ReadJarrettFile+;
 #pragma link C++ class larcv::ReadNueFile+;
 

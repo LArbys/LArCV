@@ -27,6 +27,8 @@
 #include "AStar3DAlgo.h"
 #include "AStar3DAlgoProton.h"
 
+#include <cassert>
+
 namespace larcv {
 
     void AStarTracker::tellMe(std::string s, int verboseMin = 0){
@@ -1774,12 +1776,17 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
-        TFile *fSplines = TFile::Open("Proton_Muon_Range_dEdx_LAr_TSplines.root","READ");
+        assert (!_spline_file.empty());
+        TFile *fSplines = TFile::Open(_spline_file.c_str(),"READ");
         sMuonRange2T   = (TSpline3*)fSplines->Get("sMuonRange2T");
         sMuonT2dEdx    = (TSpline3*)fSplines->Get("sMuonT2dEdx");
         sProtonRange2T = (TSpline3*)fSplines->Get("sProtonRange2T");
         sProtonT2dEdx  = (TSpline3*)fSplines->Get("sProtonT2dEdx");
         fSplines->Close();
+    }
+    //______________________________________________________
+    void AStarTracker::SetSplineFile(const std::string& fpath) {
+      _spline_file = fpath;
     }
     //______________________________________________________
     void AStarTracker::DrawROI(){

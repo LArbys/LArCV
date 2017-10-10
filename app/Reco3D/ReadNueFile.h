@@ -18,10 +18,14 @@ namespace larcv {
     void initialize();
     bool process(IOManager& mgr);
     void finalize();
-
+    
+    void SetSplineLocation(const std::string& fpath);
+    
   private :
     int iTrack;
     larcv::AStarTracker tracker;
+
+    std::string _spline_file;
 
     TH2D *hEcomp;
     TH1D *hAverageIonization;
@@ -48,7 +52,6 @@ namespace larcv {
     std::vector<std::string> checkEvents;
 
     void MCevaluation();
-    
 
   };
 
