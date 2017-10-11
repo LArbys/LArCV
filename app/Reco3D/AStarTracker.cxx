@@ -776,8 +776,13 @@ namespace larcv {
         if(trackEndsInDeadWire.size()!=0)_tooShortDeadWire=true;
         std::vector<int> newTrackEndsInDeadWire;
         //if(_tooShortDeadWire){// look if the track goes all the way to the end in at least one good plane
-
-            MaskTrack();
+	//
+	//vic
+	//
+	//MaskTrack();
+	//
+	//vic
+	//
             TRandom3 *ran = new TRandom3();
             ran->SetSeed(0);
             double x,y,z;
