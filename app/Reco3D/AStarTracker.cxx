@@ -779,7 +779,7 @@ namespace larcv {
 	//
 	//vic
 	//
-	//MaskTrack();
+	MaskTrack();
 	//
 	//vic
 	//
