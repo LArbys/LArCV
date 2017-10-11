@@ -1588,7 +1588,13 @@ namespace larcv {
         std::vector< std::vector<TVector3> > trackEndPoints_v;
         std::vector<TVector3> thisTrackEndPoint;
         //if(_tooShortDeadWire){
-        MaskTrack();
+	//
+	//vic
+	//
+        //MaskTrack();
+	//
+	//vic
+	//
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(thisTrackEndPoint.size()!=0)thisTrackEndPoint.clear();
             TVector3 newPoint;
