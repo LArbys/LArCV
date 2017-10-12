@@ -20,7 +20,8 @@ namespace larcv {
     void finalize();
     
     void SetSplineLocation(const std::string& fpath);
-    void Clear();
+    void ClearEvent();
+    void ClearVertex();
 
   private :
     int iTrack;
@@ -28,41 +29,65 @@ namespace larcv {
 
     std::string _spline_file;
 
-    TTree *_reco3d_tree;
+    TTree *_recoTree;
+    std::string _img2d_producer;
+    std::string _pgraph_producer;
+    std::string _par_pix_producer;
+    std::string _true_roi_producer;
 
-    TH2D *hEcomp;
-    TH1D *hAverageIonization;
-    TH1D *hEcomp1D;
-    TH1D *hEcomp1D_m;
-    TH1D *hEcomp1D_p;
-    TH1D *hEnuReco;
-    TH1D *hEnuTh;
-    TH2D *hEnuvsPM_th;
-    TH1D *hPM_th_Reco_1D;
-    TH2D *hPM_th_Reco;
-    TH2D *hEnuComp;
-    TH1D *hEnuComp1D;
-    double NeutrinoEnergyTh;
-    double NeutrinoEnergyReco;
-    TH2D *hEcompdQdx;
-    TH2D *hIonvsLength;
-    double Ep_t;
-    double Em_t;
-    int run;
-    int subrun;
-    int event;
-    int NvertexSubmitted;
     std::vector<std::string> checkEvents;
 
-    void MCevaluation();
     int _run;
     int _subrun;
     int _event;
+    int _nentry;
+
     std::vector<double> _E_muon_v;
     std::vector<double> _E_proton_v;
     std::vector<double> _Length_v;
-    std::vector<double> _avg_ion_v;
+    std::vector<double> _Avg_Ion_v;
+    std::vector<double> _Angle_v;
 
+    std::vector<int> _Reco_goodness_v;
+
+    double _Ep_t;
+    double _Em_t;
+    int _GoodVertex;
+    int _Nreco;
+    int _entry;
+
+    //
+    // start point
+    //
+    double _MuonStartPoint_X;
+    double _ProtonStartPoint_X;
+    double _ElectronStartPoint_X;
+
+    double _MuonStartPoint_Y;
+    double _ProtonStartPoint_Y;
+    double _ElectronStartPoint_Y;
+
+    double _MuonStartPoint_Z;
+    double _ProtonStartPoint_Z;
+    double _ElectronStartPoint_Z;
+
+    
+    //
+    // end point
+    //
+    double _MuonEndPoint_X;
+    double _ProtonEndPoint_X;
+    double _ElectronEndPoint_X;
+
+    double _MuonEndPoint_Y;
+    double _ProtonEndPoint_Y;
+    double _ElectronEndPoint_Y;
+
+    double _MuonEndPoint_Z;
+    double _ProtonEndPoint_Z;
+    double _ElectronEndPoint_Z;
+
+    
   };
 
   class ReadNueFileProcessFactory : public ProcessFactoryBase {
