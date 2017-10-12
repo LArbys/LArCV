@@ -105,9 +105,9 @@ namespace larcv {
     //  insec: intersection point (x,y)
     //  crosses: does the intersection occur, and if it does, is it within the bounds of the line segments
 
-    //std::cout << "[lineSegmentIntersection2D] begin" << std::endl;
-    //std::cout << "  testing: ls1=(" << ls1[0][0] << "," << ls1[0][1] << ") -> (" << ls1[1][0] << ","<< ls1[1][1] <<")" << std::endl;
-    //std::cout << "  testing: ls2=(" << ls2[0][0] << "," << ls2[0][1] << ") -> (" << ls2[1][0] << ","<< ls2[1][1] <<")" << std::endl;
+    // std::cout << "[lineSegmentIntersection2D] begin" << std::endl;
+    // std::cout << "  testing: ls1=(" << ls1[0][0] << "," << ls1[0][1] << ") -> (" << ls1[1][0] << ","<< ls1[1][1] <<")" << std::endl;
+    // std::cout << "  testing: ls2=(" << ls2[0][0] << "," << ls2[0][1] << ") -> (" << ls2[1][0] << ","<< ls2[1][1] <<")" << std::endl;
     insec.resize(2,0.0);
     float Y1 = ls1[1][1] - ls1[0][1];
     float X1 = ls1[0][0] - ls1[1][0];
@@ -140,8 +140,8 @@ namespace larcv {
 	break;
     }
     
-    //std::cout << "  crosses=" << crosses << ": intersection=(" << insec[0] << "," << insec[1] << ")" << std::endl;
-    //std::cout << "[lineSegmentIntersection2D] end." << std::endl;
+    // std::cout << "  crosses=" << crosses << ": intersection=(" << insec[0] << "," << insec[1] << ")" << std::endl;
+    // std::cout << "[lineSegmentIntersection2D] end." << std::endl;
     return;
   }
 
@@ -448,8 +448,17 @@ namespace larcv {
     lineSegmentIntersection2D( segs[1], segs[2], intersection12, combo_crosses[2] );
 
     int combo[3][2] = { {0,1}, {0,2}, {1,2} };
+    std::vector<float>* pintersections[3] = { &intersection01, &intersection02, &intersection12 };
     for (int i=0; i<3; i++) {
       if ( combo_crosses[i]==0 ) {
+	
+	// check if very close to boundary
+	if ( pintersections[i]->at(1)>-118.0 && pintersections[i]->at(1)<118.0
+	     && pintersections[i]->at(0)>0 && pintersections[i]->at(0)<1036.0 ) {
+	  combo_crosses[i] = 1;
+	  continue;
+	}
+	
 	// check if miss involves wire's whose tips are very close
 	int idx1 = combo[i][0];
 	int idx2 = combo[i][1];
@@ -478,7 +487,10 @@ namespace larcv {
 
     crosses = 1;
     for (int i=0; i<3; i++) {
-      if ( combo_crosses[i]==0 ) crosses = 0;
+      if ( combo_crosses[i]==0 ) {
+	//std::cout << "combo_crosses[" << i << "] = 0" << std::endl;
+	crosses = 0;
+      }
     }
     
     // get area of intersection triangle
