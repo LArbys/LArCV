@@ -1,5 +1,15 @@
 import os, sys, gc
 
+if len(sys.argv) != 4:
+    print
+    print "name        = str(sys.argv[1])"
+    print "INPUT_FILE  = str(sys.argv[2])"
+    print "PDF_FILE    = str(sys.argv[3])"
+    print
+    print "...bye"
+    print
+    sys.exit(1)
+
 import ROOT
 import numpy as np
 import pandas as pd

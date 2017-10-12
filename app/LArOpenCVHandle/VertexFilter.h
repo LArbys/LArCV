@@ -13,9 +13,10 @@ namespace larcv {
     ~VertexFilter(){}
 
     void configure(const PSet&);
-    void initialize() {}
+    void initialize();
     bool process(IOManager& mgr);
-    void finalize() {}
+    void finalize();
+    void clear();
     
     void SetIndexVector(const std::vector<bool>& vec)
     { _idx_v = vec; }
@@ -24,6 +25,16 @@ namespace larcv {
     { _par_v = vec; }
 
   private:
+    
+    TTree* _tree;
+    int _run;
+    int _subrun;
+    int _event;
+    int _entry;
+    
+    int _cvtxid;
+    int _fvtxid;
+    
     std::string _in_pg_prod;
     std::string _in_ctor_prod;
     std::string _in_img_prod;
@@ -34,7 +45,7 @@ namespace larcv {
 
     std::vector<bool> _idx_v;
     std::vector<std::pair<int,int> > _par_v;
-
+    
   };
 
   class VertexFilterProcessFactory : public ProcessFactoryBase {

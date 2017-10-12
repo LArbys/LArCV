@@ -327,5 +327,8 @@ def apply_ll(comb_cut_df,fin):
     #
     print "Applying LL"
     comb_cut_df['LL']= comb_cut_df.apply(LL,args=(sig_spectrum_m,bkg_spectrum_m,),axis=1)
+    return comb_cut_df
+
+def maximize_ll(comb_cut_df):
     passed_df = comb_cut_df.sort_values(["LL"],ascending=False).groupby(rse).head(1)
     return passed_df

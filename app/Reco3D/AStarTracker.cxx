@@ -27,6 +27,8 @@
 #include "AStar3DAlgo.h"
 #include "AStar3DAlgoProton.h"
 
+#include <cassert>
+
 namespace larcv {
 
     void AStarTracker::tellMe(std::string s, int verboseMin = 0){
@@ -733,49 +735,48 @@ namespace larcv {
         if(trackEndsInDeadWire.size()!=0)_tooShortDeadWire=true;
         std::vector<int> newTrackEndsInDeadWire;
         //if(_tooShortDeadWire){// look if the track goes all the way to the end in at least one good plane
+        MaskTrack();
+        TRandom3 *ran = new TRandom3();
+        ran->SetSeed(0);
+        double x,y,z;
 
-            MaskTrack();
-            TRandom3 *ran = new TRandom3();
-            ran->SetSeed(0);
-            double x,y,z;
-
-            for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             //for(size_t itrack = 0;itrack<trackEndsInDeadWire.size();itrack++){
-                //_tooShortDeadWire = false;
-                TVector3 newPoint;
-                TVector3 oldEndPoint=_vertexTracks[itrack].back();
-                double fractionSphereEmpty[3] = {0,0,0};
-                double fractionSphereDead[3]  = {0,0,0};
-                double fractionSphereTrack[3] = {0,0,0};
-                for(size_t i=0;i<100;i++){
-                    ran->Sphere(x,y,z,1.5);
-                    newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
-                    //_vertexTracks[itrack].push_back(newPoint);
-                    double x_pixel,y_pixel;
-                    double projValue[3];
-                    for(size_t iPlane=0;iPlane<3;iPlane++){
-                        ProjectTo3D(hit_image_v[iPlane].meta(),newPoint.X(),newPoint.Y(),newPoint.Z(),0,iPlane,x_pixel,y_pixel);
-                        projValue[iPlane] = hit_image_v[iPlane].pixel(y_pixel,x_pixel);
-                        if(projValue[iPlane] == 0)fractionSphereEmpty[iPlane]++;
-                        if(projValue[iPlane] == _deadWireValue) fractionSphereDead[iPlane]++;
-                        if(projValue[iPlane] != 0 && projValue[iPlane]!= _deadWireValue)fractionSphereTrack[iPlane]++;
-                    }
+            //_tooShortDeadWire = false;
+            TVector3 newPoint;
+            TVector3 oldEndPoint=_vertexTracks[itrack].back();
+            double fractionSphereEmpty[3] = {0,0,0};
+            double fractionSphereDead[3]  = {0,0,0};
+            double fractionSphereTrack[3] = {0,0,0};
+            for(size_t i=0;i<100;i++){
+                ran->Sphere(x,y,z,1.5);
+                newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
+                //_vertexTracks[itrack].push_back(newPoint);
+                double x_pixel,y_pixel;
+                double projValue[3];
+                for(size_t iPlane=0;iPlane<3;iPlane++){
+                    ProjectTo3D(hit_image_v[iPlane].meta(),newPoint.X(),newPoint.Y(),newPoint.Z(),0,iPlane,x_pixel,y_pixel);
+                    projValue[iPlane] = hit_image_v[iPlane].pixel(y_pixel,x_pixel);
+                    if(projValue[iPlane] == 0)fractionSphereEmpty[iPlane]++;
+                    if(projValue[iPlane] == _deadWireValue) fractionSphereDead[iPlane]++;
+                    if(projValue[iPlane] != 0 && projValue[iPlane]!= _deadWireValue)fractionSphereTrack[iPlane]++;
                 }
-                int NplanesDead = 0;
-                int NplanesTrack= 0;
-                for(size_t iPlane = 0;iPlane<3;iPlane++){
-                    std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << " on track" << std::endl;
-                    std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane] << " on empty" << std::endl;
-                    std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane]  << " on dead" << std::endl;
-                    if(fractionSphereDead[iPlane]  > 30)NplanesDead++;
-                    if(fractionSphereTrack[iPlane] > 10)NplanesTrack++;
-                }
-                //if((NplanesDead == 2 && NplanesTrack == 0) || NplanesDead < 2) _tooShortDeadWire = false;
-                if(NplanesDead == 2 && NplanesTrack != 0) _tooShortDeadWire = true;
-                if(NplanesDead == 0 && NplanesTrack == 2) _tooShortFaintTrack = true;
-                if(NplanesDead == 1 && NplanesTrack == 1) _tooShortFaintTrack = true;
-                //if(_tooShortDeadWire)newTrackEndsInDeadWire.push_back(itrack);
             }
+            int NplanesDead = 0;
+            int NplanesTrack= 0;
+            for(size_t iPlane = 0;iPlane<3;iPlane++){
+                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << " on track" << std::endl;
+                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane] << " on empty" << std::endl;
+                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane]  << " on dead" << std::endl;
+                if(fractionSphereDead[iPlane]  > 30)NplanesDead++;
+                if(fractionSphereTrack[iPlane] > 10)NplanesTrack++;
+            }
+            //if((NplanesDead == 2 && NplanesTrack == 0) || NplanesDead < 2) _tooShortDeadWire = false;
+            if(NplanesDead == 2 && NplanesTrack != 0) _tooShortDeadWire = true;
+            if(NplanesDead == 0 && NplanesTrack == 2) _tooShortFaintTrack = true;
+            if(NplanesDead == 1 && NplanesTrack == 1) _tooShortFaintTrack = true;
+            //if(_tooShortDeadWire)newTrackEndsInDeadWire.push_back(itrack);
+        }
         //}
 
         if(newTrackEndsInDeadWire.size()!=0)_tooShortDeadWire=true;
@@ -1541,7 +1542,7 @@ namespace larcv {
         std::vector<TVector3> thisTrackEndPoint;
         //if(_tooShortDeadWire){
         //MaskTrack();
-        /*for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(thisTrackEndPoint.size()!=0)thisTrackEndPoint.clear();
             TVector3 newPoint;
             TVector3 oldEndPoint = _vertexTracks[itrack].back();
@@ -1555,7 +1556,7 @@ namespace larcv {
                 thisTrackEndPoint.push_back(newPoint);
             }
             trackEndPoints_v.push_back(thisTrackEndPoint);
-        }*/
+        }
         //}
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
@@ -1748,12 +1749,19 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
-        TFile *fSplines = TFile::Open("Proton_Muon_Range_dEdx_LAr_TSplines.root","READ");
+        std::cout << "GOT: " << _spline_file << std::endl;
+        assert (!_spline_file.empty());
+        TFile *fSplines = TFile::Open(_spline_file.c_str(),"READ");
         sMuonRange2T   = (TSpline3*)fSplines->Get("sMuonRange2T");
         sMuonT2dEdx    = (TSpline3*)fSplines->Get("sMuonT2dEdx");
         sProtonRange2T = (TSpline3*)fSplines->Get("sProtonRange2T");
         sProtonT2dEdx  = (TSpline3*)fSplines->Get("sProtonT2dEdx");
         fSplines->Close();
+    }
+    //______________________________________________________
+    void AStarTracker::SetSplineFile(const std::string& fpath) {
+      _spline_file = fpath;
+      std::cout << "set spline file=" << _spline_file << std::endl;
     }
     //______________________________________________________
     void AStarTracker::DrawROI(){

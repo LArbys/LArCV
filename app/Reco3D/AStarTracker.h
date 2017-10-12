@@ -55,6 +55,7 @@ namespace larcv {
             _mctrack_producer  = "mcreco";
             _wire_producer     = "caldata";
             _hit_producer      = "gaushit";
+	    _spline_file       = "";
             //_speedOffset=-2;
             _speedOffset=0;
             _verbose = 0;
@@ -86,6 +87,7 @@ namespace larcv {
 
         void ReadProtonTrackFile();
         void ReadSplineFile();
+        void SetSplineFile(const std::string& fpath);
         void SetTrackInfo(int run, int subrun, int event, int track){_run = run; _subrun = subrun; _event = event; _track = track;}
         void tellMe(std::string s, int verboseMin);
         void CreateDataImage(std::vector<larlite::wire> wire_v);
@@ -213,6 +215,8 @@ namespace larcv {
         //int _ktooShortThinTrack;
         //int _kMissingTrack;
         //int _kGoodEnd;
+
+        std::string _spline_file;
 
         double _ADCthreshold;
         double _speedOffset;

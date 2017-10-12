@@ -13,7 +13,7 @@ namespace larcv {
   static VertexFilterProcessFactory __global_VertexFilterProcessFactory__;
 
   VertexFilter::VertexFilter(const std::string name)
-    : ProcessBase(name)
+    : ProcessBase(name), _tree(nullptr)
   {}
     
   void VertexFilter::configure(const PSet& cfg)
@@ -25,6 +25,17 @@ namespace larcv {
     _out_pg_prod   = cfg.get<std::string>("OutputPGraphProducer");
     _out_ctor_prod = cfg.get<std::string>("OutputCtorProducer");
     _out_img_prod  = cfg.get<std::string>("OutputImgProducer");
+  }
+
+  void VertexFilter::initialize() {
+    
+    _tree = new TTree("VertexFilterTree","");
+    _tree->Branch("run"    , &_run    , "run/I");
+    _tree->Branch("subrun" , &_subrun , "subrun/I");
+    _tree->Branch("event"  , &_event  , "event/I");
+    _tree->Branch("entry"  , &_entry  , "entry/I");
+    _tree->Branch("cvtxid" , &_cvtxid , "cvtxid/I");
+    _tree->Branch("fvtxid" , &_fvtxid , "fvtxid/I");
   }
 
 
@@ -44,6 +55,20 @@ namespace larcv {
     if (!(out_ctor_v->Pixel2DClusterArray().empty())) throw larbys("data product not empty");
     if (!(out_img_v->Pixel2DClusterArray().empty()))  throw larbys("data product not empty");
 
+    _run    = (uint) in_pg_v->run();
+    _subrun = (uint) in_pg_v->subrun();
+    _event  = (uint) in_pg_v->event();
+    _entry  = (uint) mgr.current_entry();
+    
+    //
+    // nothing to do
+    //
+    if (_idx_v.empty()) return true;
+    if (_par_v.empty()) return true;
+
+    //
+    // something to do
+    //
     if (_idx_v.size() != in_pg_v->PGraphArray().size()) 
       throw larbys("pgraph & index vector size differ");
     
@@ -69,7 +94,6 @@ namespace larcv {
 
       roi0.Shape( par_pair.first  ? kShapeTrack : kShapeShower );
       roi1.Shape( par_pair.second ? kShapeTrack : kShapeShower );
-
 
       if (roi0.Shape() == kShapeShower) roi0.PdgCode(11);
       else roi0.PdgCode(14);
@@ -103,7 +127,6 @@ namespace larcv {
       LARCV_DEBUG() << "ctor_m sz=     " << ctor_m.size() << std::endl;
       LARCV_DEBUG() << "ctor_meta_m sz=" << ctor_meta_m.size() << std::endl;
       
-
       auto const& pcluster_m      = in_img_v->Pixel2DClusterArray();
       auto const& pcluster_meta_m = in_img_v->ClusterMetaArray();
 
@@ -170,12 +193,38 @@ namespace larcv {
 	LARCV_DEBUG() << "end this plane" << std::endl;
       } // end plane
       LARCV_DEBUG() << "end this pgraph" << std::endl;
+      
+      assert (!out_pg_v->PGraphArray().empty());
+
+      _cvtxid = pgid;
+      _fvtxid = out_pg_v->PGraphArray().size() - 1;
+      _tree->Fill();
     } // end pgraph
-    
     LARCV_DEBUG() << "end" << std::endl;
+    clear();
     return true;
   }
+  
+  void VertexFilter::finalize() {
+    assert(_tree);
+    _tree->Write();
+  }
 
+  void VertexFilter::clear() {
+    LARCV_DEBUG() << "start" << std::endl;
+    _idx_v.clear();
+    _par_v.clear();
+
+    _run = kINVALID_INT;
+    _subrun = kINVALID_INT;
+    _event = kINVALID_INT;
+    _entry = kINVALID_INT;
+
+    _cvtxid = kINVALID_INT;
+    _fvtxid = kINVALID_INT;
+
+    LARCV_DEBUG() << "end" << std::endl;
+  }
 
 }
 #endif

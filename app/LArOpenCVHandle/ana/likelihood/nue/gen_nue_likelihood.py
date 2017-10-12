@@ -80,16 +80,6 @@ for name, comb_df in dfs.copy().iteritems():
 import collections
 pdf_m = collections.OrderedDict()
 
-# xlo= 0.0
-# xhi= 40.0
-# dx = 2
-# pdf_m['shr_triangle_d_max'] = ((xlo,xhi,dx),"Shower - Max 2D Deflection [pix]")
-
-# xlo= 0.0
-# xhi= 40.0
-# dx = 2
-# pdf_m['trk_triangle_d_max'] = ((xlo,xhi,dx),"Track - Max 2D Deflection [pix]")
-
 #
 #
 #
@@ -98,22 +88,6 @@ xhi= 10.0
 dx = 0.2
 pdf_m['shr_mean_pixel_dist'] = ((xlo,xhi,dx),"Shower - Mean Distance from 2D PCA [pix]")
 
-# xlo= 0.0
-# xhi= 10.0
-# dx = 0.2
-# pdf_m['trk_mean_pixel_dist'] = ((xlo,xhi,dx),"Track - Mean Distance from 2D PCA [pix]")
-
-# xlo= 0.0
-# xhi= 10.0
-# dx = 0.2
-# pdf_m['shr_mean_pixel_dist_max'] = ((xlo,xhi,dx),"Shower - Max Mean Distance from 2D PCA [pix]")
-
-# xlo= 0.0
-# xhi= 10.0
-# dx = 0.2
-# pdf_m['trk_mean_pixel_dist_max'] = ((xlo,xhi,dx),"Track - Max Mean Distance from 2D PCA [pix]")
-
-
 #
 #
 #
@@ -121,22 +95,6 @@ xlo= 0.0
 xhi= 10.0
 dx = 0.2
 pdf_m['shr_sigma_pixel_dist'] = ((xlo,xhi,dx),"Shower - Sigma Distance from 2D PCA [pix]")
-
-# xlo= 0.0
-# xhi= 10.0
-# dx = 0.2
-# pdf_m['trk_sigma_pixel_dist'] = ((xlo,xhi,dx),"Track - Sigma Distance from 2D PCA [pix]")
-
-# xlo= 0.0
-# xhi= 10.0
-# dx = 0.2
-# pdf_m['shr_sigma_pixel_dist_max'] = ((xlo,xhi,dx),"Shower - Max Sigma Distance from 2D PCA [pix]")
-
-# xlo= 0.0
-# xhi= 10.0
-# dx = 0.2
-# pdf_m['trk_sigma_pixel_dist_max'] = ((xlo,xhi,dx),"Track - Max Sigma Distance from 2D PCA [pix]")
-
 
 #
 #
@@ -156,11 +114,6 @@ xhi= 1.0
 dx = 0.05
 pdf_m['cosangle3d'] = ((xlo,xhi,dx),"Cos 3D Opening Angle")
 
-#xlo= 0
-#xhi= 3.14159
-#dx = 3.14159/40.0
-#pdf_m['angle3d'] = ((xlo,xhi,dx),"3D Opening Angle")
-
 xlo= 0
 xhi= 180
 dx = 5
@@ -176,17 +129,6 @@ xhi= 1.0
 dx = 0.05
 pdf_m['trk_trunk_pca_cos_theta_estimate'] = ((xlo,xhi,dx),"Track - Cos 3D Beam Angle")
 
-#xlo= 0
-#xhi= 3.14159
-#dx = 3.14159/40.0
-#pdf_m['trk_trunk_pca_theta_estimate'] = ((xlo,xhi,dx),"Track - 3D Beam Angle")
-
-#xlo= 0
-#xhi= 3.14159
-#dx = 3.14159/40.0
-#pdf_m['shr_trunk_pca_theta_estimate'] = ((xlo,xhi,dx),"Shower - 3D Beam Angle")
-
-
 #
 # Length
 #
@@ -200,27 +142,6 @@ xhi= 500
 dx = 10
 pdf_m['trk_avg_length'] = ((xlo,xhi,dx),"Track - Average 2D Length [pix]")
 
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['shr_length_min'] = ((xlo,xhi,dx),"Shower - Min 2D Length [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['trk_length_min'] = ((xlo,xhi,dx),"Track - Min 2D Length [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['shr_length_max'] = ((xlo,xhi,dx),"Shower - Max 2D Length [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['trk_length_max'] = ((xlo,xhi,dx),"Track - Max 2D Length [pix]")
-
-
 #
 # Area
 #
@@ -233,26 +154,6 @@ xlo= 0
 xhi= 1000
 dx = 20
 pdf_m['trk_avg_area'] = ((xlo,xhi,dx),"Track - Average 2D Area [pix^2]")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['shr_area_min'] = ((xlo,xhi,dx),"Shower - Min 2D Area [pix^2]")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['trk_area_min'] = ((xlo,xhi,dx),"Track - Min 2D Area [pix^2]")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['shr_area_max'] = ((xlo,xhi,dx),"Shower - Max 2D Area [pix^2]")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['trk_area_max'] = ((xlo,xhi,dx),"Track - Max 2D Area [pix^2]")
 
 #
 # 3D length
@@ -280,93 +181,6 @@ xlo= 0
 xhi= 50
 dx = 1
 pdf_m['trk_avg_width'] = ((xlo,xhi,dx),"Track - Average 2D Width [px]")
-
-# xlo= 0
-# xhi= 50
-# dx = 2
-# pdf_m['shr_width_min'] = ((xlo,xhi,dx),"Shower - Min 2D Width [px]")
-
-# xlo= 0
-# xhi= 50
-# dx = 2
-# pdf_m['trk_width_min'] = ((xlo,xhi,dx),"Track - Min 2D Width [px]")
-
-# xlo= 0
-# xhi= 50
-# dx = 2
-# pdf_m['shr_width_max'] = ((xlo,xhi,dx),"Shower - Max 2D Width [px]")
-
-# xlo= 0
-# xhi= 50
-# dx = 2
-# pdf_m['trk_width_max'] = ((xlo,xhi,dx),"Track - Max 2D Width [px]")
-
-
-#
-# npixel
-#
-# xlo= 0
-# xhi= 1000
-# dx = 20
-# pdf_m['shr_avg_npixel'] = ((xlo,xhi,dx),"Shower - Average Num. Pixel")
-
-# xlo= 0
-# xhi= 1000
-# dx = 20
-# pdf_m['trk_avg_npixel'] = ((xlo,xhi,dx),"Track - Average Num. Pixel")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['shr_npixel_min'] = ((xlo,xhi,dx),"Shower - Min Num. Pixel")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['trk_npixel_min'] = ((xlo,xhi,dx),"Track - Min Num. Pixel")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['shr_npixel_max'] = ((xlo,xhi,dx),"Shower - Max Num. Pixel")
-
-# xlo= 0
-# xhi= 600
-# dx = 10
-# pdf_m['trk_npixel_max'] = ((xlo,xhi,dx),"Track - Max Num. Pixel")
-
-#
-# Perimeter
-#
-#xlo= 0
-#xhi= 300
-#dx = 5
-#pdf_m['shr_avg_perimeter'] = ((xlo,xhi,dx),"Shower - Average 2D Perimeter [pix]")
-
-#xlo= 0
-#xhi= 300
-#dx = 5
-#pdf_m['trk_avg_perimeter'] = ((xlo,xhi,dx),"Track - Average 2D Perimeter [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['shr_perimeter_min'] = ((xlo,xhi,dx),"Shower - Min 2D Perimeter [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['trk_perimeter_min'] = ((xlo,xhi,dx),"Track - Min 2D Perimeter [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['shr_perimeter_min'] = ((xlo,xhi,dx),"Shower - Max 2D Perimeter [pix]")
-
-# xlo= 0
-# xhi= 300
-# dx = 5
-# pdf_m['trk_perimeter_min'] = ((xlo,xhi,dx),"Track - Max 2D Perimeter [pix]")
 
 #
 # Qaverage/L
@@ -402,75 +216,18 @@ xhi= 1
 dx = 0.01
 pdf_m['shr_frac'] = ((xlo,xhi,dx), "Shower Frac" )
 
+#
+# qsum
+#
+xlo= 0
+xhi= 100000
+dx = 1000
+pdf_m['shr_qsum_max'] = ((xlo,xhi,dx),"shr_qsum_max")
 
-# #Length
-
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['shr_length_ratio'] = ((xlo,xhi,dx),"shr_length_ratio")
-
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['trk_length_ratio'] = ((xlo,xhi,dx),"trk_length_ratio")
-
-
-# #Width
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['shr_width_ratio'] = ((xlo,xhi,dx),"shr_width_ratio")
-
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['trk_width_ratio'] = ((xlo,xhi,dx),"trk_width_ratio")
-
-
-# #Area
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['shr_area_ratio'] = ((xlo,xhi,dx),"shr_area_ratio")
-
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['trk_area_ratio'] = ((xlo,xhi,dx),"trk_area_ratio")
-
-#qsum
-# xlo= 0
-# xhi= 100000
-# dx = 1000
-# pdf_m['shr_qsum_max'] = ((xlo,xhi,dx),"shr_qsum_max")
-
-# xlo= 0
-# xhi= 100000
-# dx = 1000
-# pdf_m['trk_qsum_max'] = ((xlo,xhi,dx),"trk_qsum_max")
-
-# #area
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['shr_perimeter_ratio'] = ((xlo,xhi,dx),"shr_perimeter_ratio")
-
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['trk_perimeter_ratio'] = ((xlo,xhi,dx),"trk_perimeter_ratio")
-
-# #area
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['shr_npixel_ratio'] = ((xlo,xhi,dx),"shr_npixel_ratio")
-
-# xlo= 0
-# xhi= 1.0
-# dx = 0.025
-# pdf_m['trk_npixel_ratio'] = ((xlo,xhi,dx),"trk_npixel_ratio")
+xlo= 0
+xhi= 100000
+dx = 1000
+pdf_m['shr_qsum_min'] = ((xlo,xhi,dx),"shr_qsum_min")
 
 #
 #

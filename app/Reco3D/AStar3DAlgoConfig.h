@@ -1,5 +1,5 @@
-#ifndef __ASTAR3D_ALGO_CONFIG__
-#define __ASTAR3D_ALGO_CONFIG__
+#ifndef __ASTAR3D_ALGO_CONFIG_H__
+#define __ASTAR3D_ALGO_CONFIG_H__
 
 /*
   class: AStar3DAlgoConfig
