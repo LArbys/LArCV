@@ -100,6 +100,7 @@ namespace larcv {
         void SetOriginalImage(   std::vector<larcv::Image2D> originalimage ){original_full_image_v = originalimage;}
         void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
         void SetVertexEndPoints( std::vector<TVector3> vertexEndPoints     ){_vertexEndPoints = vertexEndPoints;}
+        void SetSingleVertex(TVector3 vertexPoint){start_pt = vertexPoint;}
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
         void WorldInitialization();
 
@@ -144,6 +145,7 @@ namespace larcv {
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
         std::vector<double> GetVertexAngle(double dAverage);
+        std::vector<bool> GetRecoGoodness();
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
