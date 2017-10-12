@@ -1,3 +1,6 @@
+#ifndef __ASTAR3DALGOCONFIG_CXX__
+#define __ASTAR3DALGOCONFIG_CXX__
+
 #include "AStar3DAlgoConfig.h"
 
 namespace larcv {
@@ -48,3 +51,4 @@ namespace larcv {
   }
   
 }
+#endif

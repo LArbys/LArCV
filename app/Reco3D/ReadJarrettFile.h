@@ -16,6 +16,7 @@
 
 #include "TH2D.h"
 #include "TH1D.h"
+#include "TTree.h"
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
@@ -53,7 +54,9 @@ namespace larcv {
         void MCevaluation();
 
     private :
+
         int iTrack;
+
         larcv::AStarTracker tracker;
         std::vector< std::vector<int> > _vertexInfo;
         TH2D *hEcomp;
@@ -61,6 +64,17 @@ namespace larcv {
         TH1D *hEcomp1D;
         TH1D *hEcomp1D_m;
         TH1D *hEcomp1D_p;
+        TH2D *hEcomp_m;
+        TH2D *hEcomp_p;
+        TH1D *hEnuReco;
+        TH1D *hEnuTh;
+        TH2D *hEnuvsPM_th;
+        TH1D *hPM_th_Reco_1D;
+        TH2D *hPM_th_Reco;
+        TH2D *hEnuComp;
+        TH1D *hEnuComp1D;
+        double NeutrinoEnergyTh;
+        double NeutrinoEnergyReco;
         TH2D *hEcompdQdx;
         TH2D *hIonvsLength;
         double Ep_t;
@@ -68,7 +82,18 @@ namespace larcv {
         int run;
         int subrun;
         int event;
+        int NvertexSubmitted;
+        int NgoodReco;
         std::vector<std::string> checkEvents;
+
+        TTree *_recoTree;
+        std::vector<double> _E_muon_v;
+        std::vector<double> _E_proton_v;
+        std::vector<double> _Length_v;
+        std::vector<double> _Avg_Ion_v;
+        std::vector<double> _Angle_v;
+        std::vector<bool>   _Reco_goodness_v;
+        bool GoodVertex;
 
     };
 

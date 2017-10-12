@@ -13,7 +13,7 @@ int main(int nargs, char** argv){
     }
 
     std::cout << "***********************" << std::endl;
-    std::cout << "  RUN 3D RECO : STRAT  " << std::endl;
+    std::cout << "  RUN 3D RECO : START  " << std::endl;
     std::cout << "***********************" << std::endl;
 
     std::string cfg = argv[1];

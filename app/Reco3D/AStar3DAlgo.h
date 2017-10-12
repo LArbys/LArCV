@@ -1,5 +1,5 @@
-#ifndef __ASTAR_3D_ALGO__
-#define __ASTAR_3D_ALGO__
+#ifndef __ASTAR_3D_ALGO_H__
+#define __ASTAR_3D_ALGO_H__
 
 /** 
 

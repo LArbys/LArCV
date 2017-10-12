@@ -55,6 +55,7 @@ namespace larcv {
             _mctrack_producer  = "mcreco";
             _wire_producer     = "caldata";
             _hit_producer      = "gaushit";
+	    _spline_file       = "";
             //_speedOffset=-2;
             _speedOffset=0;
             _verbose = 0;
@@ -86,6 +87,7 @@ namespace larcv {
 
         void ReadProtonTrackFile();
         void ReadSplineFile();
+        void SetSplineFile(const std::string& fpath);
         void SetTrackInfo(int run, int subrun, int event, int track){_run = run; _subrun = subrun; _event = event; _track = track;}
         void tellMe(std::string s, int verboseMin);
         void CreateDataImage(std::vector<larlite::wire> wire_v);
@@ -100,6 +102,7 @@ namespace larcv {
         void SetOriginalImage(   std::vector<larcv::Image2D> originalimage ){original_full_image_v = originalimage;}
         void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
         void SetVertexEndPoints( std::vector<TVector3> vertexEndPoints     ){_vertexEndPoints = vertexEndPoints;}
+        void SetSingleVertex(TVector3 vertexPoint){start_pt = vertexPoint;}
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
         void WorldInitialization();
 
@@ -143,6 +146,8 @@ namespace larcv {
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
+        std::vector<double> GetVertexAngle(double dAverage);
+        std::vector<bool> GetRecoGoodness();
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
@@ -211,6 +216,8 @@ namespace larcv {
         //int _kMissingTrack;
         //int _kGoodEnd;
 
+        std::string _spline_file;
+
         double _ADCthreshold;
         double _speedOffset;
         double _Length3D;
@@ -220,10 +227,11 @@ namespace larcv {
         bool _missingTrack;
         bool _nothingReconstructed;
         bool _tooShortDeadWire;
-        bool _tooShortThinTrack;
+        bool _tooShortFaintTrack;
         bool _tooManyTracksAtVertex;
         bool _possibleCosmic;
         bool _possiblyCrossing;
+        bool _branchingTracks;
 
         TH1D *hdQdx;
         TH1D *hLength;

@@ -1,3 +1,6 @@
+#ifndef __ASTAR_3D_ALGO_CXX__
+#define __ASTAR_3D_ALGO_CXX__
+
 #include "AStar3DAlgo.h"
 #include <vector>
 #include <cmath>
@@ -983,3 +986,4 @@ namespace larcv {
 
 }
 
+#endif
