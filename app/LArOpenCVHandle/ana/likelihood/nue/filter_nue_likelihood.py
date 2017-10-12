@@ -20,7 +20,7 @@ sys.path.insert(0,BASE_PATH)
 print "-->initialize"
 ANAFILE = str(sys.argv[1])
 PGRFILE = str(sys.argv[2])
-num = int(PGRFILE.split(".")[0].split("_")[-1])
+num = int(os.path.basename(PGRFILE).split(".")[0].split("_")[-1])
 
 LLCUT   = str(sys.argv[3])
 if LLCUT == "None":
