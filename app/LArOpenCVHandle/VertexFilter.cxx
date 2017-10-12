@@ -72,6 +72,7 @@ namespace larcv {
     if (_idx_v.size() != in_pg_v->PGraphArray().size()) 
       throw larbys("pgraph & index vector size differ");
     
+    int cluster_index_id = -1;
     for(size_t pgid=0; pgid < in_pg_v->PGraphArray().size(); ++pgid) {
       if (!_idx_v[pgid]) continue;
       LARCV_DEBUG() << "pass @pgid="<<pgid<<std::endl;
@@ -101,14 +102,18 @@ namespace larcv {
       if (roi1.Shape() == kShapeShower) roi1.PdgCode(11);
       else roi1.PdgCode(14);
       
-      assert (roi1.PdgCode() != roi0.PdgCode());
 
       LARCV_DEBUG() << "set par0 shape=" << (int)roi0.Shape() << std::endl;
       LARCV_DEBUG() << "set par1 shape=" << (int)roi1.Shape() << std::endl;
       
       PGraph pg_new;
-      pg_new.Emplace(std::move(roi0),0);
-      pg_new.Emplace(std::move(roi1),1);
+
+      cluster_index_id++;
+      pg_new.Emplace(std::move(roi0),cluster_index_id);
+
+      cluster_index_id++;
+      pg_new.Emplace(std::move(roi1),cluster_index_id);
+
       out_pg_v->Emplace(std::move(pg_new));
       
       //
