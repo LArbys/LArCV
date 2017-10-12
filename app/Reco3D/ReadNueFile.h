@@ -52,6 +52,8 @@ namespace larcv {
 
     double _Ep_t;
     double _Em_t;
+    double _Ee_t;
+
     int _GoodVertex;
     int _Nreco;
     int _entry;

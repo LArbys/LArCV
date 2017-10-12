@@ -85,6 +85,7 @@ namespace larcv {
 
     _recoTree->Branch("Ep_t"       , &_Ep_t       , "Ep_t/D");
     _recoTree->Branch("Em_t"       , &_Em_t       , "Em_t/D");
+    _recoTree->Branch("Ee_t"       , &_Ee_t       , "Ee_t/D");
     _recoTree->Branch("GoodVertex" , &_GoodVertex , "GoodVertex/I");
     _recoTree->Branch("Nreco" , &_Nreco , "Nreco/I");
     
@@ -122,7 +123,7 @@ namespace larcv {
     LARCV_INFO() << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
     LARCV_INFO() << "============================================" << std::endl;
     gStyle->SetOptStat(0);
-
+    gROOT->SetBatch(kTRUE);
     TVector3 vertex;
 
     //
@@ -176,6 +177,7 @@ namespace larcv {
 	  _MuonEndPoint_X = mc_roi_v[iMC].EndPosition().X();
 	  _MuonEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
 	  _MuonEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
+	  _Em_t = mc_roi_v[iMC].EnergyDeposit();
 	  found_muon = true;
 	}
 	if(mc_roi_v[iMC].PdgCode() == 2212){
@@ -188,6 +190,7 @@ namespace larcv {
 	  _ProtonEndPoint_X = mc_roi_v[iMC].EndPosition().X();
 	  _ProtonEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
 	  _ProtonEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
+	  _Ep_t = mc_roi_v[iMC].EnergyDeposit();
 	  found_proton = true;
 	}
 	if(mc_roi_v[iMC].PdgCode() == 11){
@@ -200,6 +203,7 @@ namespace larcv {
 	  _ElectronEndPoint_X = mc_roi_v[iMC].EndPosition().X();
 	  _ElectronEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
 	  _ElectronEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
+	  _Ee_t = mc_roi_v[iMC].EnergyDeposit();
 	  found_electron = true;
 	}
       } // end rois
@@ -302,6 +306,7 @@ namespace larcv {
     tracker.SetTrackInfo(_run, _subrun, _event, 0);
 
     for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
+
       const auto& vtx = vertex_v[ivertex];
       tracker.SetSingleVertex(vtx);
       tracker.ReconstructVertex();
@@ -382,6 +387,10 @@ namespace larcv {
     _MuonEndPoint_Z = -1.0*kINVALID_DOUBLE;
     _ProtonEndPoint_Z = -1.0*kINVALID_DOUBLE;
     _ElectronEndPoint_Z = -1.0*kINVALID_DOUBLE;
+
+    _Ep_t = -1.0*kINVALID_DOUBLE;
+    _Em_t = -1.0*kINVALID_DOUBLE;
+    _Ee_t = -1.0*kINVALID_DOUBLE;
   }
 
   void ReadNueFile::ClearVertex() {
@@ -390,11 +399,7 @@ namespace larcv {
     _Length_v.clear();
     _Avg_Ion_v.clear();
     _Angle_v.clear();
-    
     _Reco_goodness_v.clear();
-
-    _Ep_t = -1.0*kINVALID_DOUBLE;
-    _Em_t = -1.0*kINVALID_DOUBLE;
     _GoodVertex = -1.0*kINVALID_INT;
   }
 
