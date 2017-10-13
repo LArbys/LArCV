@@ -94,6 +94,14 @@ namespace larcv {
         std::vector<double> _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
         bool GoodVertex;
+        bool _missingTrack;
+        bool _nothingReconstructed;
+        bool _tooShortDeadWire;
+        bool _tooShortFaintTrack;
+        bool _tooManyTracksAtVertex;
+        bool _possibleCosmic;
+        bool _possiblyCrossing;
+        bool _branchingTracks;
 
     };
 

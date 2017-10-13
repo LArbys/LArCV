@@ -54,6 +54,7 @@ namespace larcv {
     void ReadJarrettFile::initialize()
     {
         std::cout << "[ReadJarrettFile]" << std::endl;
+        tracker.SetSplineFile("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root");
         tracker.initialize();
         tracker.SetCompressionFactors(1,6);
         tracker.SetVerbose(0);
@@ -61,7 +62,8 @@ namespace larcv {
         NvertexSubmitted = 0;
         NgoodReco=0;
 
-        std::string filename = "data/numuSelected.txt";
+        //std::string filename = "data/numuSelected.txt";
+        std::string filename = "data/JarrettSelectedMC/NuMuSelection_10-5.txt";
         //std::string filename = "data/actualData/BNBNuMuSelected.txt";
         std::cout << filename << std::endl;
         ReadVertexFile(filename);// when using runall.sh
@@ -96,6 +98,14 @@ namespace larcv {
         _recoTree->Branch("Em_t", &Em_t);
         _recoTree->Branch("Reco_goodness_v",&_Reco_goodness_v);
         _recoTree->Branch("GoodVertex",&GoodVertex);
+        _recoTree->Branch("missingTrack",&_missingTrack);
+        _recoTree->Branch("nothingReconstructed",&_nothingReconstructed);
+        _recoTree->Branch("tooShortDeadWire",&_tooShortDeadWire);
+        _recoTree->Branch("tooShortFaintTrack",&_tooShortFaintTrack);
+        _recoTree->Branch("tooManyTracksAtVertex",&_tooManyTracksAtVertex);
+        _recoTree->Branch("possibleCosmic",&_possibleCosmic);
+        _recoTree->Branch("possiblyCrossing",&_possiblyCrossing);
+        _recoTree->Branch("branchingTracks",&_branchingTracks);
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -264,14 +274,10 @@ namespace larcv {
         if(vertex_v.size()==0)return true;
         NvertexSubmitted+=vertex_v.size();
         for(int ivertex = 0;ivertex<vertex_v.size();ivertex++){
-            //std::vector<TVector3> thisvertex;
-            //thisvertex.push_back(vertex_v[ivertex]);
             tracker.SetSingleVertex(vertex_v[ivertex]);
-            //tracker.SetEventVertices(thisvertex);
             tracker.ReconstructVertex();
             MCevaluation();
             std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-            //std::vector<double> ionPerTrack = tracker.GetAverageIonization();
             std::vector<double> VertexLengths = tracker.GetVertexLength();
 
             _E_muon_v.resize(Energies_v.size());
@@ -286,12 +292,19 @@ namespace larcv {
             _Avg_Ion_v = tracker.GetAverageIonization();
             _Angle_v = tracker.GetVertexAngle(3); // average over 3 cm to estimate the angles
             _Reco_goodness_v = tracker.GetRecoGoodness();
+
+            _missingTrack          = _Reco_goodness_v[0];
+            _nothingReconstructed  = _Reco_goodness_v[1];
+            _tooShortDeadWire      = _Reco_goodness_v[2];
+            _tooShortFaintTrack    = _Reco_goodness_v[3];
+            _tooManyTracksAtVertex = _Reco_goodness_v[4];
+            _possibleCosmic        = _Reco_goodness_v[5];
+            _possiblyCrossing      = _Reco_goodness_v[6];
+            _branchingTracks       = _Reco_goodness_v[7];
+
             GoodVertex = false;
             GoodVertex = tracker.IsGoodVertex();
             if(GoodVertex)NgoodReco++;
-
-            //if(_Avg_Ion_v.size()!=2)   continue;
-            //if(!tracker.IsGoodVertex()) continue;
 
             _recoTree->Fill();
 
@@ -343,15 +356,16 @@ namespace larcv {
         char coma;
         while(goOn){
             //file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z >> coma >> rescale_vtxid;
-            file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z ;
+            file >> Run >> SubRun >> Event >> Entry >> ROI_ID >> vtxid >> rescale_vtxid >> x >> y >> z ;
+            //file >> Run >> coma >> SubRun >> coma >> Event >> coma >> Entry >> coma >> ROI_ID >> coma >> vtxid >> coma >> x >> coma >> y >> coma >> z ;
             if(thisVertexInfo.size()!=0)thisVertexInfo.clear();
             thisVertexInfo.push_back(Run);      //0
             thisVertexInfo.push_back(SubRun);   //1
             thisVertexInfo.push_back(Event);    //2
             thisVertexInfo.push_back(Entry);    //3
             thisVertexInfo.push_back(ROI_ID);   //4
-            thisVertexInfo.push_back(vtxid);    //5
-            //thisVertexInfo.push_back(rescale_vtxid);//5
+            //thisVertexInfo.push_back(vtxid);    //5
+            thisVertexInfo.push_back(rescale_vtxid);//5
             _vertexInfo.push_back(thisVertexInfo);
             if(file.eof()){goOn=false;break;}
         }
@@ -424,8 +438,8 @@ namespace larcv {
     void ReadJarrettFile::finalize()
     {
         std::cout << NvertexSubmitted << " vertex submitted" << std::endl;
-        LARCV_INFO() << NgoodReco << " well reconstructed vertices" << std::endl;
-        LARCV_INFO() << NgoodReco*100./NvertexSubmitted << " % efficiency" << std::endl;
+        std::cout << NgoodReco << " well reconstructed vertices" << std::endl;
+        std::cout << NgoodReco*100./NvertexSubmitted << " % efficiency" << std::endl;
         std::cout << "saving root files?...";
         if(hEcomp->GetEntries() > 1){
             std::cout << "... yes" << std::endl;
