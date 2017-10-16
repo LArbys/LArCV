@@ -53,6 +53,7 @@ namespace larcv {
 
     void ReadJarrettFile::initialize()
     {
+        _isMC = true;
         std::cout << "[ReadJarrettFile]" << std::endl;
         tracker.SetSplineFile("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root");
         tracker.initialize();
@@ -62,9 +63,10 @@ namespace larcv {
         NvertexSubmitted = 0;
         NgoodReco=0;
 
-        //std::string filename = "data/numuSelected.txt";
-        std::string filename = "data/JarrettSelectedMC/NuMuSelection_10-5.txt";
-        //std::string filename = "data/actualData/BNBNuMuSelected.txt";
+        std::string filename;
+        if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
+        if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/p00/NuMuSelection_5e19_p00set.txt";
+
         std::cout << filename << std::endl;
         ReadVertexFile(filename);// when using runall.sh
 
@@ -152,10 +154,10 @@ namespace larcv {
 
         Ep_t = -1;
         Em_t = -1;
-
         //______________
         // get MC vertex
         //--------------
+
         auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
         auto mc_roi_v = ev_partroi_v->ROIArray();
         std::vector<TVector3> MuonVertices;
@@ -276,7 +278,7 @@ namespace larcv {
         for(int ivertex = 0;ivertex<vertex_v.size();ivertex++){
             tracker.SetSingleVertex(vertex_v[ivertex]);
             tracker.ReconstructVertex();
-            MCevaluation();
+            if(_isMC)MCevaluation();
             std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
             std::vector<double> VertexLengths = tracker.GetVertexLength();
 
@@ -290,7 +292,7 @@ namespace larcv {
 
             _Length_v = tracker.GetVertexLength();;
             _Avg_Ion_v = tracker.GetAverageIonization();
-            _Angle_v = tracker.GetVertexAngle(3); // average over 3 cm to estimate the angles
+            _Angle_v = tracker.GetVertexAngle(5); // average over 5 cm to estimate the angles
             _Reco_goodness_v = tracker.GetRecoGoodness();
 
             _missingTrack          = _Reco_goodness_v[0];

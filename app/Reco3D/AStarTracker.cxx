@@ -685,7 +685,7 @@ namespace larcv {
             //ComputeNewdQdX();
             //DrawTrack();
             ComputeLength();
-            if(_Length3D > 5)newVertexTracks.push_back(_3DTrack);
+            if(_Length3D > 2)newVertexTracks.push_back(_3DTrack);
         }
 
         _vertexTracks = newVertexTracks;
@@ -748,8 +748,8 @@ namespace larcv {
             double fractionSphereEmpty[3] = {0,0,0};
             double fractionSphereDead[3]  = {0,0,0};
             double fractionSphereTrack[3] = {0,0,0};
-            for(size_t i=0;i<100;i++){
-                ran->Sphere(x,y,z,1.5);
+            for(size_t i=0;i<300;i++){
+                ran->Sphere(x,y,z,2);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 //_vertexTracks[itrack].push_back(newPoint);
                 double x_pixel,y_pixel;
@@ -768,9 +768,11 @@ namespace larcv {
                 std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << " on track" << std::endl;
                 std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane] << " on empty" << std::endl;
                 std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane]  << " on dead" << std::endl;
-                if(fractionSphereDead[iPlane]  > 30)NplanesDead++;
-                if(fractionSphereTrack[iPlane] > 10)NplanesTrack++;
+                if(fractionSphereDead[iPlane]  > 40)NplanesDead++;
+                if(fractionSphereTrack[iPlane] > 13)NplanesTrack++;
             }
+            std::cout << NplanesDead << " dead wires planes" << std::endl;
+            std::cout << NplanesTrack << " track planes" << std::endl;
             //if((NplanesDead == 2 && NplanesTrack == 0) || NplanesDead < 2) _tooShortDeadWire = false;
             if(NplanesDead == 2 && NplanesTrack != 0) _tooShortDeadWire = true;
             if(NplanesDead == 0 && NplanesTrack == 2) _tooShortFaintTrack = true;
@@ -1550,7 +1552,7 @@ namespace larcv {
             TRandom3 *ran = new TRandom3();
             ran->SetSeed(0);
             for(size_t i=0;i<100;i++){
-                ran->Sphere(x,y,z,1.5);
+                ran->Sphere(x,y,z,2);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 //_vertexTracks[itrack].push_back(newPoint);
                 thisTrackEndPoint.push_back(newPoint);
@@ -1606,7 +1608,7 @@ namespace larcv {
 
             c->cd(2)->cd(iPlane+1);
             hImageMasked[iPlane]->Draw("colz");
-            if(hTagImage[iPlane]->GetEntries()>1)hTagImage[iPlane]->Draw("same colz");
+            if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
 
             if(trackEndPoints_v.size()!=0){
                 for(size_t itrack = 0;itrack<trackEndPoints_v.size();itrack++){

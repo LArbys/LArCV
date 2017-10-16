@@ -102,7 +102,7 @@ namespace larcv {
         bool _possibleCosmic;
         bool _possiblyCrossing;
         bool _branchingTracks;
-
+        bool _isMC;
     };
 
     /**
