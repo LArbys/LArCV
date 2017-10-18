@@ -37,6 +37,7 @@
 #include "AStarTracker.h"
 
 
+//#include "../../core/DataFormat/EventPGraph.h"
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
 
@@ -53,9 +54,10 @@ namespace larcv {
 
     void ReadJarrettFile::initialize()
     {
-        _isMC = true;
+        _isMC = false;
         std::cout << "[ReadJarrettFile]" << std::endl;
         tracker.SetSplineFile("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root");
+        tracker.SetOutputDir("png");
         tracker.initialize();
         tracker.SetCompressionFactors(1,6);
         tracker.SetVerbose(0);
@@ -68,7 +70,7 @@ namespace larcv {
         if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/p00/NuMuSelection_5e19_p00set.txt";
 
         std::cout << filename << std::endl;
-        ReadVertexFile(filename);// when using runall.sh
+        if(_isMC)ReadVertexFile(filename);// when using runall.sh
 
         hEcomp             = new TH2D("hEcomp","hEcomp;E_th;E_reco",100,0,1000,100,0,1000);
         hEcomp_m           = new TH2D("hEcomp_m","hEcomp_m;E_th;E_reco",100,0,1000,100,0,1000);
@@ -124,11 +126,13 @@ namespace larcv {
         // Loop per vertex (larcv type is PGraph "Particle Graph")
         //
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
+        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu");
+        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
+        if(ev_pgraph_v->PGraphArray().size()==0)return true;
         run    = ev_pgraph_v->run();
         subrun = ev_pgraph_v->subrun();
         event  = ev_pgraph_v->event();
-        if(!IsGoodEntry(run,subrun,event)){ return true;}
+        if(_isMC && !IsGoodEntry(run,subrun,event)){ return true;}
 
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
@@ -157,7 +161,7 @@ namespace larcv {
         //______________
         // get MC vertex
         //--------------
-
+        /*
         auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
         auto mc_roi_v = ev_partroi_v->ROIArray();
         std::vector<TVector3> MuonVertices;
@@ -222,7 +226,7 @@ namespace larcv {
                 }
             }
         }
-
+         */
         //______________
         // End MC
         //--------------
@@ -254,7 +258,7 @@ namespace larcv {
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
             iTrack++;
-            if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
+            if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
             auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
 

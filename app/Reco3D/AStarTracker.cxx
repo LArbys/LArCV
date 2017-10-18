@@ -560,7 +560,7 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::ReconstructVertex(){
         tellMe("ReconstructEvent()",0);
-        fEventOutput = TFile::Open(Form("root/cVertex_%05d_%05d_%05d_%03d.root",_run,_subrun,_event,_track),"RECREATE");
+        fEventOutput = TFile::Open(Form("%s/cVertex_%05d_%05d_%05d_%03d.root",_outdir.c_str(),_run,_subrun,_event,_track),"RECREATE");
         std::vector<TVector3> thisvertex;
         thisvertex.push_back(start_pt);
         hit_image_v = CropFullImage2bounds(thisvertex);
@@ -862,6 +862,8 @@ namespace larcv {
         if(_tooManyTracksAtVertex){tellMe("_tooManyTracksAtVertex",0);}
         if(_possiblyCrossing     ){tellMe("_possiblyCrossing",0);}
         if(_possibleCosmic       ){tellMe("_possibleCosmic",0);}
+        _possiblyCrossing = false;
+        _possibleCosmic = false;
         if(!_tooManyTracksAtVertex && !_tooShortDeadWire && !_tooShortFaintTrack && !_possibleCosmic && !_possiblyCrossing){tellMe("seems OK",0);}
     }
     //______________________________________________________
@@ -928,7 +930,8 @@ namespace larcv {
         ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
-        double rmax = 1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
+        //double rmax = 1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
+        double rmax = 3;//1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
@@ -936,6 +939,7 @@ namespace larcv {
             foundNewPoint = false;
             iter++;
             int Ndead = 0;
+            double MaxsummedADC = 0;
             for(size_t i = 0;i<10000;i++){
                 double coord2D[3][3];// for each plane : x,y and ADC value;
                 //if(Ndead >= 2)rmax*=1.5;
@@ -957,7 +961,7 @@ namespace larcv {
                 }*/
                 if(list3D.size() >= 1){// point too close to already found point
                     for(size_t i = 0;i<list3D.size()-1;i++){
-                        if((newCandidate-list3D[i]).Mag() < 1) TooClose=true;
+                        if((newCandidate-list3D[i]).Mag() < 0.5) TooClose=true;
                     }
                 }
                 /*if(list3D.size() >= 2){// point "goes back"
@@ -968,6 +972,7 @@ namespace larcv {
                 if(TooClose)continue;
 
                 int NplanesOK=0;
+                double pointSummedADC = 0;
                 for(size_t iPlane = 0;iPlane<3;iPlane++){
                     double x_proj, y_proj;
                     ProjectTo3D(hit_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
@@ -981,6 +986,7 @@ namespace larcv {
                        || y_proj < 10) {terminate = true;break;}
                     coord2D[iPlane][2] = hit_image_v[iPlane].pixel(y_proj,x_proj);
                     if(coord2D[iPlane][2] != 0){NplanesOK++;}
+                    if(coord2D[iPlane][2] != _deadWireValue)pointSummedADC+=coord2D[iPlane][2];
                 }
                 if(terminate){
                     bool ReallyTerminate = false;
@@ -1003,8 +1009,11 @@ namespace larcv {
                 Ndead = 0;
                 for(size_t iPlane=0;iPlane<3;iPlane++){if(coord2D[iPlane][2] == _deadWireValue)Ndead++;}
                 if(NplanesOK > 2 && Ndead<2){
-                    list3D.push_back(newCandidate);
-                    foundNewPoint = true;
+                    if(pointSummedADC > MaxsummedADC){
+                        MaxsummedADC = pointSummedADC;
+                        list3D.push_back(newCandidate);
+                        foundNewPoint = true;
+                    }
                 }
 
 
@@ -1694,31 +1703,31 @@ namespace larcv {
         gEndPoints->Delete();
 
         if(_nothingReconstructed){
-            c->SaveAs(Form("png/nothing_reconstructed/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/nothing_reconstructed_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_missingTrack){
-            c->SaveAs(Form("png/onlyOneTrack/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/onlyOneTrack_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_possibleCosmic){
-            c->SaveAs(Form("png/StraightAtVertex/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/StraightAtVertex_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_possiblyCrossing){
-            c->SaveAs(Form("png/PossiblyCrossing/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/PossiblyCrossing_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_tooShortDeadWire){
-            c->SaveAs(Form("png/EndPointInDeadRegion/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/EndPointInDeadRegion_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_tooManyTracksAtVertex){
-            c->SaveAs(Form("png/TooManyTracksAtVertex/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/TooManyTracksAtVertex_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_branchingTracks){
-            c->SaveAs(Form("png/BranchingTracks/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/BranchingTracks_%s.png",_outdir.c_str(),c->GetName()));
         }
         else if(_tooShortFaintTrack){
-            c->SaveAs(Form("png/TooShortFaintTrack/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/TooShortFaintTrack_%s.png",_outdir.c_str(),c->GetName()));
         }
         else{
-            c->SaveAs(Form("png/OKtracks/%s.png",c->GetName()));
+            c->SaveAs(Form("%s/OKtracks_%s.png",_outdir.c_str(),c->GetName()));
         }
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
@@ -2056,7 +2065,7 @@ namespace larcv {
         ReadSplineFile();
         _eventTreated = 0;
         _eventSuccess = 0;
-        _deadWireValue = 20;
+        _deadWireValue = _ADCthreshold+1;
         time_bounds.reserve(3);
         wire_bounds.reserve(3);
         hit_image_v.reserve(3);
@@ -2078,47 +2087,6 @@ namespace larcv {
     //______________________________________________________
     bool AStarTracker::finalize() {
         tellMe("Finalizing",0);
-        tellMe(Form("efficiency : %d / %d = %.2f",_eventSuccess,_eventTreated,_eventSuccess*100./_eventTreated),0);
-        if(hdQdx->GetEntries() > 1){
-            TCanvas *cdQdX = new TCanvas("cdQdX","cdQdX",800,600);
-            hdQdx->Draw();
-            cdQdX->SetLogy();
-            cdQdX->SaveAs("cdQdX.pdf");
-        }
-        if(hLength->GetEntries()>1){
-            TCanvas *cLength = new TCanvas("cLength","cLength",800,600);
-            hLength->Draw();
-            cLength->SetLogy();
-            cLength->SaveAs("cLength.pdf");
-        }
-        if(hLengthdQdX->GetEntries()>1){
-            //TCanvas *cLengthdQdX = new TCanvas("cLengthdQdX","cLengthdQdX",800,600);
-            //hLengthdQdX->Draw("colz");
-            hLengthdQdX->SaveAs(Form("cLengthdQdX_%d.root",_event));
-        }
-        if(hDistance2Hit->GetEntries() != 0){
-            TCanvas *cDist = new TCanvas();
-            hDistance2Hit->Draw();
-            cDist->SetLogy();
-            //hDistance2Hit->Write();
-            tellMe(Form("hDistance2Hit mean: %.2f , RMS : %.2f",hDistance2Hit->GetMean(),hDistance2Hit->GetRMS()),0);
-            tellMe(Form("entries : %.1f",hDistance2Hit->GetEntries()),0);
-            cDist->SaveAs("DistanceReco2Hit.pdf");
-        }
-
-        if(_DrawOutputs){
-            if(hdQdX2D->GetEntries() > 1){
-                TCanvas *cdQdX2D = new TCanvas("cdQdX2D","cdQdX2D",800,600);
-                hdQdX2D->Draw("colz");
-                cdQdX2D->SaveAs("cdQdX2D.pdf");
-                cdQdX2D->SaveAs("cdQdX2D.root");
-            }
-        }
-
-        /*TCanvas *cDist = new TCanvas("cDist","cDist",800,600);
-         hDist2point->Draw();
-         cDist->SetLogy();
-         cDist->SaveAs("cDist.pdf");*/
         return true;
     }
     //______________________________________________________
