@@ -18,6 +18,9 @@
 #include "TH1D.h"
 #include "TTree.h"
 
+#include "DataFormat/storage_manager.h"
+#include "DataFormat/track.h"
+
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "AStarTracker.h"
@@ -56,7 +59,7 @@ namespace larcv {
     private :
 
         int iTrack;
-
+        larlite::storage_manager _storage;
         larcv::AStarTracker tracker;
         std::vector< std::vector<int> > _vertexInfo;
         TH2D *hEcomp;
@@ -93,6 +96,7 @@ namespace larcv {
         std::vector<double> _Avg_Ion_v;
         std::vector<double> _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
+        std::vector<larlite::event_track> _EventRecoVertices;
         bool GoodVertex;
         bool _missingTrack;
         bool _nothingReconstructed;

@@ -3,6 +3,7 @@
 
 #include "AStarTracker.h"
 #include "DataFormat/track.h"
+#include "DataFormat/vertex.h"
 #include "DataFormat/hit.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/mctrack.h"
@@ -560,7 +561,7 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::ReconstructVertex(){
         tellMe("ReconstructEvent()",0);
-        fEventOutput = TFile::Open(Form("%s/cVertex_%05d_%05d_%05d_%03d.root",_outdir.c_str(),_run,_subrun,_event,_track),"RECREATE");
+        //fEventOutput = TFile::Open(Form("%s/cVertex_%05d_%05d_%05d_%03d.root",_outdir.c_str(),_run,_subrun,_event,_track),"RECREATE");
         std::vector<TVector3> thisvertex;
         thisvertex.push_back(start_pt);
         hit_image_v = CropFullImage2bounds(thisvertex);
@@ -569,9 +570,9 @@ namespace larcv {
         ConstructVertex();
         std::cout << std::endl << std::endl;
 
-        gDetector->Write();
-        gWorld->Write();
-        fEventOutput->Close();
+        //gDetector->Write();
+        //gWorld->Write();
+        //fEventOutput->Close();
     }
     //______________________________________________________
     void AStarTracker::ConstructTrack(){
@@ -643,6 +644,7 @@ namespace larcv {
         _branchingTracks = false;
         CleanUpVertex();
         DiagnoseVertex();
+        MakeVertexTrack();
         DrawVertex();
         std::cout << "vertex drawn" << std::endl;
     }
@@ -931,7 +933,7 @@ namespace larcv {
         double x,y,z;
         int Ncrop=0;
         //double rmax = 1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
-        double rmax = 3;//1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
+        double rmax = 3+3*exp(-list3D.size()/3.);
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
@@ -1499,7 +1501,7 @@ namespace larcv {
         }
         if(_3DTrack.size()==0) _3DTrack.push_back(start_pt);
         hit_image_v = CropFullImage2bounds(_3DTrack);
-        ShaveTracks();
+        //ShaveTracks();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
         c->Divide(1,2);
@@ -1552,7 +1554,8 @@ namespace larcv {
         std::vector< std::vector<TVector3> > trackEndPoints_v;
         std::vector<TVector3> thisTrackEndPoint;
         //if(_tooShortDeadWire){
-        //MaskTrack();
+        MaskTrack();
+        ShaveTracks();
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(thisTrackEndPoint.size()!=0)thisTrackEndPoint.clear();
             TVector3 newPoint;
@@ -1670,6 +1673,7 @@ namespace larcv {
         }
 
 
+        /*
         //TFile *fout = TFile::Open(Form("root/cVertex_%05d_%05d_%05d_%04d.root",_run,_subrun,_event,_track),"RECREATE");
         TGraph2D *gFullVertex = new TGraph2D();
         gFullVertex->SetNameTitle(Form("gFullVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("gFullVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track));
@@ -1679,8 +1683,9 @@ namespace larcv {
         for(size_t i=0;i<_vertexEndPoints.size();i++){
             gEndPoints->SetPoint(i,_vertexEndPoints[i].Z(),_vertexEndPoints[i].X(),_vertexEndPoints[i].Y());
         }
-
-        fEventOutput->cd();
+        //tellMe("about to fEventOutput->cd();",0);
+        //fEventOutput->cd();
+        //tellMe("fEventOutput->cd() OK",0);
         int Npoint = 0;
         for(size_t i=0;i<_vertexTracks.size();i++){
             TGraph2D *gSingleTrack = new TGraph2D();
@@ -1693,14 +1698,15 @@ namespace larcv {
                 gSingleTrack->SetPoint(iNode,_vertexTracks[i][iNode].Z(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y());
                 Npoint++;
             }
-            gSingleTrack->Write();
+            //gSingleTrack->Write();
         }
 
-        gEndPoints->Write();
-        gFullVertex->Write();
-        c->Write();
+        //gEndPoints->Write();
+        //gFullVertex->Write();
+        //c->Write();
 
         gEndPoints->Delete();
+         */
 
         if(_nothingReconstructed){
             c->SaveAs(Form("%s/nothing_reconstructed_%s.png",_outdir.c_str(),c->GetName()));
@@ -2024,20 +2030,113 @@ namespace larcv {
                            && hit_image_v[iPlane].pixel(irow+1,icol-1) == 0
                            && hit_image_v[iPlane].pixel(irow-1,icol  ) != 0
                            && hit_image_v[iPlane].pixel(irow-2,icol  ) != 0){
-                            hit_image_v[iPlane].set_pixel(irow,icol,0);
-                            erasedPixel = true;
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
+                        }
+                       /* if(hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
+                           && hit_image_v[iPlane].pixel(irow+2,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol+1) == 0
+                           ){
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
+                        }*/
+                        /*if(hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
+                           && hit_image_v[iPlane].pixel(irow+2,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol-1) == 0
+                           ){
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
+                        }*/
+                        if(hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
+                           && hit_image_v[iPlane].pixel(irow+1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol+1) == 0
+                           ){
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
+                        }
+                        if(hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
+                           && hit_image_v[iPlane].pixel(irow+1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol  ) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol+1) == 0
+
+                           && hit_image_v[iPlane].pixel(irow  ,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol+1) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-1,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol  ) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol+1) == 0
+
+                           ){
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
                         }
 
-                        /*if(   hit_image_v[iPlane].pixel(irow  ,icol  ) != 0
-                           && hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
-                           && hit_image_v[iPlane].pixel(irow  ,icol+2) == 0
+                        if(hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
+                           && hit_image_v[iPlane].pixel(irow+2,icol-2) == 0
+                           && hit_image_v[iPlane].pixel(irow+2,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow+2,icol-0) == 0
+                           && hit_image_v[iPlane].pixel(irow+2,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow+2,icol+2) == 0
+
+                           && hit_image_v[iPlane].pixel(irow+1,icol-2) == 0
+                           && hit_image_v[iPlane].pixel(irow+1,icol+2) == 0
+
                            && hit_image_v[iPlane].pixel(irow  ,icol-2) == 0
-                           //&& hit_image_v[iPlane].pixel(irow+1,icol  ) == 0
-                           && hit_image_v[iPlane].pixel(irow-1,icol  ) == 0
+                           && hit_image_v[iPlane].pixel(irow  ,icol+2) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-1,icol-2) == 0
+                           && hit_image_v[iPlane].pixel(irow-1,icol+2) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-2,icol-2) == 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol-0) == 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow-2,icol+2) == 0
+
                            ){
-                            hit_image_v[iPlane].set_pixel(irow,icol,0);
-                            erasedPixel = true;
-                        }*/
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
+                        }
+
+                        if(   hit_image_v[iPlane].pixel(irow  ,icol  ) != _deadWireValue
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol-3) == 0
+                           && hit_image_v[iPlane].pixel(irow-2  ,icol-3) == 0
+                           && hit_image_v[iPlane].pixel(irow-1  ,icol-3) == 0
+                           && hit_image_v[iPlane].pixel(irow    ,icol-3) == 0
+                           && hit_image_v[iPlane].pixel(irow+1  ,icol-3) == 0
+                           && hit_image_v[iPlane].pixel(irow+2  ,icol-3) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol-2) == 0
+                           && hit_image_v[iPlane].pixel(irow+3  ,icol-2) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol-1) == 0
+                           && hit_image_v[iPlane].pixel(irow+3  ,icol-1) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol) == 0
+                           && hit_image_v[iPlane].pixel(irow+3  ,icol) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol+1) == 0
+                           && hit_image_v[iPlane].pixel(irow+3  ,icol+1) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol+2) == 0
+                           && hit_image_v[iPlane].pixel(irow+3  ,icol+2) == 0
+
+                           && hit_image_v[iPlane].pixel(irow-3  ,icol+3) == 0
+                           && hit_image_v[iPlane].pixel(irow-2  ,icol+3) == 0
+                           && hit_image_v[iPlane].pixel(irow-1  ,icol+3) == 0
+                           && hit_image_v[iPlane].pixel(irow    ,icol+3) == 0
+                           && hit_image_v[iPlane].pixel(irow+1  ,icol+3) == 0
+                           && hit_image_v[iPlane].pixel(irow+2  ,icol+3) == 0
+                           && hit_image_v[iPlane].pixel(irow+3  ,icol+3) == 0
+                           ){
+                            hit_image_v[iPlane].set_pixel(irow,icol,0);erasedPixel = true;
+                        }
+
                     }
                 }
             }
@@ -2664,6 +2763,32 @@ namespace larcv {
             return true;
         }
         return false;
+    }
+    //______________________________________________________
+    void AStarTracker::MakeVertexTrack(){
+        tellMe("MakeVertexTracks()",0);
+        if(_vertexLarliteTracks.size()!=0)_vertexLarliteTracks.clear();
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            _3DTrack=_vertexTracks[itrack];
+            MakeTrack();
+            _vertexLarliteTracks.push_back(_thisLarliteTrack);
+        }
+    }
+    //______________________________________________________
+    void AStarTracker::MakeTrack(){
+        tellMe("MakeTrack()",0);
+        _thisLarliteTrack.clear_data();
+        for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
+            _thisLarliteTrack.add_vertex(_3DTrack[iNode]);
+        }
+        for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
+            if(iNode<_3DTrack.size()-1){
+                _thisLarliteTrack.add_direction(_3DTrack[iNode+1]-_3DTrack[iNode]);
+            }
+            else{
+                _thisLarliteTrack.add_direction(_3DTrack[iNode]-_3DTrack[iNode-1]);
+            }
+        }
     }
     //______________________________________________________
     void AStarTracker::TellMeRecoedPath(){

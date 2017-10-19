@@ -3,7 +3,9 @@
 
 #include "ReadJarrettFile.h"
 
+#include "DataFormat/storage_manager.h"
 #include "DataFormat/track.h"
+#include "DataFormat/vertex.h"
 #include "DataFormat/hit.h"
 #include "DataFormat/Image2D.h"
 #include "DataFormat/EventImage2D.h"
@@ -110,6 +112,12 @@ namespace larcv {
         _recoTree->Branch("possibleCosmic",&_possibleCosmic);
         _recoTree->Branch("possiblyCrossing",&_possiblyCrossing);
         _recoTree->Branch("branchingTracks",&_branchingTracks);
+
+
+        _storage.set_io_mode(larlite::storage_manager::kWRITE);
+        _storage.set_out_filename("larlite_reco3DTracks.root");
+        //_storage.set_data_to_write(std::vector<larlite::event_track>,"3Dtrack");
+        if(!_storage.open())std::cout << "ERROR, larlite output file could not open" << std::endl;
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -127,12 +135,19 @@ namespace larcv {
         //
 
         auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu");
+        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue");
         //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
-        if(ev_pgraph_v->PGraphArray().size()==0)return true;
+
         run    = ev_pgraph_v->run();
         subrun = ev_pgraph_v->subrun();
         event  = ev_pgraph_v->event();
-        if(_isMC && !IsGoodEntry(run,subrun,event)){ return true;}
+
+        _storage.set_id(run,subrun,event);
+        larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
+        larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
+
+        if(ev_pgraph_v->PGraphArray().size()==0){_storage.next_event(true); return true;}
+        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.next_event(true); return true;}
 
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
@@ -277,14 +292,23 @@ namespace larcv {
 
         }
 
-        if(vertex_v.size()==0)return true;
         NvertexSubmitted+=vertex_v.size();
-        for(int ivertex = 0;ivertex<vertex_v.size();ivertex++){
+        if(vertex_v.size()!=0){
+        for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
+            double xyz[3] = {vertex_v[ivertex].X(),vertex_v[ivertex].Y(),vertex_v[ivertex].Z()};
+            vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
             tracker.SetSingleVertex(vertex_v[ivertex]);
             tracker.ReconstructVertex();
+            larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
+            //*(track_ptr) = recoedVertex;
+            for(auto itrack:recoedVertex){
+                track_ptr->push_back(itrack);
+            }
+            //_EventRecoVertices.push_back(recoedVertex);
             if(_isMC)MCevaluation();
             std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
             std::vector<double> VertexLengths = tracker.GetVertexLength();
+
 
             _E_muon_v.resize(Energies_v.size());
             _E_proton_v.resize(Energies_v.size());
@@ -315,11 +339,10 @@ namespace larcv {
             _recoTree->Fill();
 
         }
+        }
+        _storage.next_event(true);
         std::cout << "...Reconstruted..." << std::endl;
 
-
-
-        
         return true;
     }
 
@@ -473,7 +496,7 @@ namespace larcv {
             ana_file().cd();
             _recoTree->Write();
         }
-
+        _storage.close();
         for(auto picture:checkEvents){
             std::cout << picture << std::endl;
         }

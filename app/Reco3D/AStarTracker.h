@@ -113,6 +113,8 @@ namespace larcv {
         void DrawROI();
         void TellMeRecoedPath();
         void Make3DpointList();
+        void MakeVertexTrack();
+        void MakeTrack();
         void ComputeLength();
         void ComputedQdX();
         void ComputeNewdQdX();
@@ -160,6 +162,8 @@ namespace larcv {
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
         TVector3        GetFurtherFromVertex();
 
+
+
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, int BoxSize, double dR);
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
@@ -178,6 +182,8 @@ namespace larcv {
         std::vector< std::vector<int> >    _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
+
+        larlite::event_track GetReconstructedVertexTracks(){return _vertexLarliteTracks;}
 
 
 
@@ -289,6 +295,9 @@ namespace larcv {
         TGraph2D *gWorld;
 
         TFile *fEventOutput;
+
+        larlite::track _thisLarliteTrack;
+        larlite::event_track _vertexLarliteTracks;
 
         TCanvas *c2;
     };
