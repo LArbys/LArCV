@@ -34,5 +34,6 @@
 #pragma link C++ class larcv::CosmicVertexAna+;
 
 #pragma link C++ class larcv::VertexFilter+;
+#pragma link C++ class larcv::PIDImageMaker+;
 
 #endif
