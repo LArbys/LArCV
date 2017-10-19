@@ -20,32 +20,48 @@ namespace larcv {
   { if(this->empty()) throw larbys("Empty Pixel2DCluster!");
     float  min_x   = std::numeric_limits<float>::max();
     size_t min_idx = std::numeric_limits<size_t>::max();
-    for(size_t idx = 0; idx < this->size(); ++idx) 
-      if( (*this)[idx].X() < min_x ) min_idx = idx;
+    for(size_t idx = 0; idx < this->size(); ++idx) {
+      if( (*this)[idx].X() < min_x ) {
+	min_idx = idx;
+	min_x = (*this)[idx].X();
+      }
+    }
     return min_idx;
   }
   size_t Pixel2DCluster::argmin_y() const
   { if(this->empty()) throw larbys("Empty Pixel2DCluster!");
     float  min_y   = std::numeric_limits<float>::max();
     size_t min_idx = std::numeric_limits<size_t>::max();
-    for(size_t idx = 0; idx < this->size(); ++idx) 
-      if( (*this)[idx].Y() < min_y ) min_idx = idx;
+    for(size_t idx = 0; idx < this->size(); ++idx) {
+          if( (*this)[idx].Y() < min_y ) {
+	min_idx = idx;
+	min_y = (*this)[idx].Y();
+      }
+    }
     return min_idx;
   }
   size_t Pixel2DCluster::argmax_x() const
   { if(this->empty()) throw larbys("Empty Pixel2DCluster!");
-    float  max_x   = std::numeric_limits<float>::max();
+    float  max_x   = std::numeric_limits<float>::min();
     size_t max_idx = std::numeric_limits<size_t>::max();
-    for(size_t idx = 0; idx < this->size(); ++idx) 
-      if( (*this)[idx].X() < max_x ) max_idx = idx;
+    for(size_t idx = 0; idx < this->size(); ++idx) {
+      if( (*this)[idx].X() > max_x ) {
+	max_idx = idx;
+	max_x = (*this)[idx].X();
+      }
+    }
     return max_idx;
   }
   size_t Pixel2DCluster::argmax_y() const
   { if(this->empty()) throw larbys("Empty Pixel2DCluster!");
-    float  max_x   = std::numeric_limits<float>::max();
+    float  max_y   = std::numeric_limits<float>::min();
     size_t max_idx = std::numeric_limits<size_t>::max();
-    for(size_t idx = 0; idx < this->size(); ++idx) 
-      if( (*this)[idx].Y() < max_x ) max_idx = idx;
+    for(size_t idx = 0; idx < this->size(); ++idx) {
+      if( (*this)[idx].Y() > max_y ) {
+	max_idx = idx;
+	max_y = (*this)[idx].Y();
+      }
+    }
     return max_idx;
   }
 
