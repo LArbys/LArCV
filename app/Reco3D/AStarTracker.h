@@ -149,7 +149,8 @@ namespace larcv {
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
-        std::vector<double> GetVertexAngle(double dAverage);
+        std::vector< std::vector<double> > GetVertexAngle(double dAverage);
+        std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);

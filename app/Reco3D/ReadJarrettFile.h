@@ -51,6 +51,7 @@ namespace larcv {
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
         void ReadVertexFile(std::string filename);
+        std::vector<TVector3> GetJarretVertex(int run, int subrun, int event);
 
         void finalize();
 
@@ -88,13 +89,14 @@ namespace larcv {
         int NvertexSubmitted;
         int NgoodReco;
         std::vector<std::string> checkEvents;
+        std::string _filename;
 
         TTree *_recoTree;
         std::vector<double> _E_muon_v;
         std::vector<double> _E_proton_v;
         std::vector<double> _Length_v;
         std::vector<double> _Avg_Ion_v;
-        std::vector<double> _Angle_v;
+        std::vector<std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;
         bool GoodVertex;

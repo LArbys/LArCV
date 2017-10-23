@@ -549,8 +549,15 @@ namespace larcv {
                                     hit_image_v[iPlane].set_pixel(irow,icol,0);
                                 }
                             }
-                            if((pC-A).Mag() < shellMask || (pC-B).Mag() < 0.5*shellMask){
-                                hit_image_v[iPlane].set_pixel(irow,icol,0);
+                            if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 2){
+                                if((pC-A).Mag() < shellMask || (pC-B).Mag() < shellMask){
+                                    hit_image_v[iPlane].set_pixel(irow,icol,0);
+                                }
+                            }
+                            else{
+                                if((pC-A).Mag() < shellMask || (pC-B).Mag() < 2*shellMask){
+                                    hit_image_v[iPlane].set_pixel(irow,icol,0);
+                                }
                             }
                         }//icol
                     }// irow
@@ -741,7 +748,8 @@ namespace larcv {
         TRandom3 *ran = new TRandom3();
         ran->SetSeed(0);
         double x,y,z;
-
+        double radiusSphere = 3;
+        double NrandomPts = 100*radiusSphere*radiusSphere;
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             //for(size_t itrack = 0;itrack<trackEndsInDeadWire.size();itrack++){
             //_tooShortDeadWire = false;
@@ -750,8 +758,9 @@ namespace larcv {
             double fractionSphereEmpty[3] = {0,0,0};
             double fractionSphereDead[3]  = {0,0,0};
             double fractionSphereTrack[3] = {0,0,0};
-            for(size_t i=0;i<300;i++){
-                ran->Sphere(x,y,z,2);
+
+            for(size_t i=0;i<NrandomPts;i++){
+                ran->Sphere(x,y,z,3);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 //_vertexTracks[itrack].push_back(newPoint);
                 double x_pixel,y_pixel;
@@ -767,18 +776,21 @@ namespace larcv {
             int NplanesDead = 0;
             int NplanesTrack= 0;
             for(size_t iPlane = 0;iPlane<3;iPlane++){
-                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << " on track" << std::endl;
-                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane] << " on empty" << std::endl;
-                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane]  << " on dead" << std::endl;
-                if(fractionSphereDead[iPlane]  > 40)NplanesDead++;
-                if(fractionSphereTrack[iPlane] > 13)NplanesTrack++;
+                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane]*100./NrandomPts << "% on track" << std::endl;
+                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane]*100./NrandomPts << "% on empty" << std::endl;
+                std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane ]*100./NrandomPts  << "% on dead" << std::endl;
+                if(fractionSphereDead[iPlane]*100./NrandomPts  > 40)NplanesDead++;
+                if(fractionSphereTrack[iPlane]*100./NrandomPts > 1.5)NplanesTrack++;
             }
             std::cout << NplanesDead << " dead wires planes" << std::endl;
             std::cout << NplanesTrack << " track planes" << std::endl;
-            //if((NplanesDead == 2 && NplanesTrack == 0) || NplanesDead < 2) _tooShortDeadWire = false;
-            if(NplanesDead == 2 && NplanesTrack != 0) _tooShortDeadWire = true;
+
+            if(NplanesDead == 2 && NplanesTrack == 1) _tooShortDeadWire = true;
+            if(NplanesDead == 3 && NplanesTrack == 0) _tooShortDeadWire = true;
             if(NplanesDead == 0 && NplanesTrack == 2) _tooShortFaintTrack = true;
+            if(NplanesDead == 0 && NplanesTrack == 1) _tooShortFaintTrack = true;
             if(NplanesDead == 1 && NplanesTrack == 1) _tooShortFaintTrack = true;
+            if(NplanesDead == 1 && NplanesTrack == 2) _tooShortDeadWire = true;
             //if(_tooShortDeadWire)newTrackEndsInDeadWire.push_back(itrack);
         }
         //}
@@ -933,7 +945,7 @@ namespace larcv {
         double x,y,z;
         int Ncrop=0;
         //double rmax = 1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
-        double rmax = 3+3*exp(-list3D.size()/3.);
+        double rmax = 2+4*exp(-list3D.size()/3.);
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
@@ -1563,8 +1575,8 @@ namespace larcv {
             double x,y,z;
             TRandom3 *ran = new TRandom3();
             ran->SetSeed(0);
-            for(size_t i=0;i<100;i++){
-                ran->Sphere(x,y,z,2);
+            for(size_t i=0;i<200;i++){
+                ran->Sphere(x,y,z,3);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 //_vertexTracks[itrack].push_back(newPoint);
                 thisTrackEndPoint.push_back(newPoint);
@@ -1708,6 +1720,7 @@ namespace larcv {
         gEndPoints->Delete();
          */
 
+        c->SaveAs(Form("%s/%s.root",_outdir.c_str(),c->GetName()));
         if(_nothingReconstructed){
             c->SaveAs(Form("%s/nothing_reconstructed_%s.png",_outdir.c_str(),c->GetName()));
         }
@@ -2386,7 +2399,49 @@ namespace larcv {
         return VertexLengths;
     }
     //______________________________________________________
-    std::vector<double> AStarTracker::GetVertexAngle(double dAverage = 5){
+    std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 5){
+        // Find if tracks are back to back at the vertex point
+        // angle computed by averaging over the first x cm around the vertex
+        int NtracksAtVertex = 0;
+        int NpointAveragedOn = 0;
+        std::vector<TVector3> AvPt_v;
+        std::vector<double> thisTrackAngles;
+        std::vector<std::vector<double> > vertexAngles_v;
+
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+            if(_vertexTracks[itrack][0] == start_pt){
+                NtracksAtVertex++;
+                TVector3 AvPt;
+                NpointAveragedOn = 0;
+                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
+                    if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < dAverage ){
+                        AvPt+=(_vertexTracks[itrack][iNode]-start_pt);
+                        NpointAveragedOn++;
+                    }
+                }
+                if(NpointAveragedOn!=0){AvPt*=1./NpointAveragedOn;}
+                AvPt_v.push_back(AvPt+start_pt);
+            }
+        }
+
+
+        if(AvPt_v.size() >= 2){
+            for(size_t iPt = 0;iPt<AvPt_v.size();iPt++){
+                if(thisTrackAngles.size()!=0)thisTrackAngles.clear();
+                for(size_t jPt = 0;jPt<AvPt_v.size();jPt++){
+                    if(jPt==iPt)continue;
+                    double thisAngle = (AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt)*180/3.1415;
+                    thisTrackAngles.push_back(thisAngle);
+                }
+                vertexAngles_v.push_back(thisTrackAngles);
+            }
+        }
+
+
+        return vertexAngles_v;
+    }
+    //______________________________________________________
+    std::vector<double> AStarTracker::GetOldVertexAngle(double dAverage = 5){
         // Find if tracks are back to back at the vertex point
         // angle computed by averaging over the first x cm around the vertex
         int NtracksAtVertex = 0;

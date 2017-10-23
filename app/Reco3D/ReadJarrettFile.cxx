@@ -70,9 +70,13 @@ namespace larcv {
         std::string filename;
         if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
         if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/p00/NuMuSelection_5e19_p00set.txt";
+        //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
+        _filename = filename;
         if(_isMC)ReadVertexFile(filename);// when using runall.sh
+        //ReadVertexFile(filename);// when using runall.sh
+
 
         hEcomp             = new TH2D("hEcomp","hEcomp;E_th;E_reco",100,0,1000,100,0,1000);
         hEcomp_m           = new TH2D("hEcomp_m","hEcomp_m;E_th;E_reco",100,0,1000,100,0,1000);
@@ -116,7 +120,6 @@ namespace larcv {
 
         _storage.set_io_mode(larlite::storage_manager::kWRITE);
         _storage.set_out_filename("larlite_reco3DTracks.root");
-        //_storage.set_data_to_write(std::vector<larlite::event_track>,"3Dtrack");
         if(!_storage.open())std::cout << "ERROR, larlite output file could not open" << std::endl;
     }
 
@@ -134,27 +137,35 @@ namespace larcv {
         // Loop per vertex (larcv type is PGraph "Particle Graph")
         //
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu");
-        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue");
-        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
-
+        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu"); // only comment when EXTBNB
         run    = ev_pgraph_v->run();
-        subrun = ev_pgraph_v->subrun();
-        event  = ev_pgraph_v->event();
-
-        _storage.set_id(run,subrun,event);
-        larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
-        larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
-
+         subrun = ev_pgraph_v->subrun();
+         event  = ev_pgraph_v->event();
         if(ev_pgraph_v->PGraphArray().size()==0){_storage.next_event(true); return true;}
         if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.next_event(true); return true;}
 
+        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue");
+        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
         //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
         //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"containedtags");
         auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
         auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
+
+
+        /*run    = ev_img_v->run();
+        subrun = ev_img_v->subrun();
+        event  = ev_img_v->event();*/
+
+        _storage.set_id(run,subrun,event);
+        larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
+        larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
+
+
+
+
+
 
 
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
@@ -270,10 +281,12 @@ namespace larcv {
         tracker.SetTaggedImage(Tagged_Image);
         tracker.SetTrackInfo(run, subrun, event, 0);
         std::cout << run << " " << subrun << " " << event <<  std::endl;
+
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
             iTrack++;
             if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
+            //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
             auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
 
@@ -292,6 +305,8 @@ namespace larcv {
 
         }
 
+        //vertex_v = GetJarretVertex(run, subrun, event);
+
         NvertexSubmitted+=vertex_v.size();
         if(vertex_v.size()!=0){
         for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
@@ -300,7 +315,7 @@ namespace larcv {
             tracker.SetSingleVertex(vertex_v[ivertex]);
             tracker.ReconstructVertex();
             larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
-            //*(track_ptr) = recoedVertex;
+            *(track_ptr) = recoedVertex;
             for(auto itrack:recoedVertex){
                 track_ptr->push_back(itrack);
             }
@@ -320,7 +335,7 @@ namespace larcv {
 
             _Length_v = tracker.GetVertexLength();;
             _Avg_Ion_v = tracker.GetAverageIonization();
-            _Angle_v = tracker.GetVertexAngle(5); // average over 5 cm to estimate the angles
+            _Angle_v = tracker.GetVertexAngle(15); // average over 5 cm to estimate the angles
             _Reco_goodness_v = tracker.GetRecoGoodness();
 
             _missingTrack          = _Reco_goodness_v[0];
@@ -400,6 +415,26 @@ namespace larcv {
         }
         std::cout << _vertexInfo.size() << " vertices to loop through" << std::endl;
 
+    }
+
+    std::vector<TVector3> ReadJarrettFile::GetJarretVertex(int run, int subrun, int event){
+        std::vector<TVector3> vertex_vector;
+        std::ifstream file(Form("%s",_filename.c_str()));
+        if(!file){std::cout << "ERROR, could not open file of selected vertices to sort through" << std::endl;return vertex_vector;}
+        std::string firstline;
+        getline(file, firstline);
+        bool goOn = true;
+        int Run,SubRun,Event,Entry,ROI_ID,vtxid,rescale_vtxid;
+        double x,y,z;
+        char coma;
+        while(goOn){
+            file >> Run >> SubRun >> Event >> Entry >> ROI_ID >> vtxid >> rescale_vtxid >> x >> y >> z ;
+            if(run == Run && SubRun == subrun && event == Event){
+                vertex_vector.push_back(TVector3(x,y,z));
+            }
+            if(file.eof()){goOn=false;break;}
+        }
+        return vertex_vector;
     }
 
     void ReadJarrettFile::MCevaluation(){
