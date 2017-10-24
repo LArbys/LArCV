@@ -1,4 +1,11 @@
 import os,sys
+
+BASE_PATH = os.path.realpath(__file__)
+BASE_PATH = os.path.dirname(BASE_PATH)
+sys.path.insert(0,BASE_PATH)
+
+from util.dutil import segment_image
+
 from larcv import larcv
 import numpy as np
 
@@ -17,6 +24,32 @@ VTXID  = int(sys.argv[4])
 ROID   = int(sys.argv[5])
 NAME   = str(sys.argv[6])
 
+mycmap = matplotlib.cm.get_cmap('jet')
+mycmap.set_under('w')
+mycmap.set_over('b')
+
+#
+# ssnet image readout
+#
+proc = larcv.ProcessDriver('ProcessDriver') 
+proc.configure(os.path.join(BASE_PATH,"ssnet_config.cfg"))
+
+flist_v = ROOT.std.vector("std::string")()
+flist_v.push_back(FILE1)
+flist_v.push_back(FILE2)
+proc.override_input_file(flist_v)
+proc.initialize()
+
+ext_id   = proc.process_id("LArbysImageExtract")
+print "GOT: LArbysImageExtract @ ",ext_id
+ext_proc = proc.process_ptr(ext_id)   
+print "reading ssnet..."
+proc.process_entry(ENTRY)
+print "...read"
+
+#
+# vertex readout
+#
 iom = larcv.IOManager()
 iom.add_in_file(FILE1)
 iom.add_in_file(FILE2)
@@ -34,25 +67,14 @@ print "GOT:",ev_pgraph.PGraphArray().size(),"vertices"
 
 print "ev_pgraph sz=",ev_pgraph.PGraphArray().size()
 pgraph = ev_pgraph.PGraphArray().at(VTXID)
+
 parray = pgraph.ParticleArray()
+pgroi  = parray.front()
+meta_v = pgroi.BB()
 
-print larcv.load_cvutil()
-img_v = [ev_img.at(i).crop(parray.front().BB(i)) for i in xrange(3)]
-
-lim = larcv.LArbysImageMaker()
-lim._charge_max = 255
-lim._charge_min = 0
-lim._charge_to_gray_scale = 1
-
-img_v = [lim.ExtractMat(img) for img in img_v]
-img_v = [pygeo.image(img) for img in img_v]
-img_v = [img.T[::-1,:].copy() for img in img_v]
-
-X = pgraph.ParticleArray().front().X()
-Y = pgraph.ParticleArray().front().Y()
-Z = pgraph.ParticleArray().front().Z()
-
-meta_v = pgraph.ParticleArray().front().BB()
+X = pgroi.X()
+Y = pgroi.Y()
+Z = pgroi.Z()
 
 colors=['magenta','white','yellow']
 ctor_v = []
@@ -64,13 +86,21 @@ for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
     for plane in xrange(3):
         pix2d_v = ev_ctor.Pixel2DClusterArray(plane).at(id_)
         pix2d_v = [[pix2d_v[ii].X(),pix2d_v[ii].Y()] for ii in xrange(pix2d_v.size())]
-        
         if len(pix2d_v)!=0: pix2d_v.append(pix2d_v[0])
-            
         pix2d_vv[plane] = np.array(pix2d_v)
-
     ctor_v.append(pix2d_vv)
-        
+
+#
+# fill images
+#
+print "fill images..."
+ext_proc.FillcvMat(pgroi)
+print "...filled"
+
+print "pythonize image..."
+img_v = segment_image(ext_proc,pygeo,1)
+print "...pythonized"
+
 for plane in xrange(3):
 
     xpixel = ROOT.Double()
@@ -111,20 +141,18 @@ for plane in xrange(3):
     ax.set_title(SS,fontweight='bold',fontsize=50)        
 
     this_num = os.path.basename(FILE1).split(".")[0].split("_")[-1]
-    SS=os.path.join("img_dump",NAME,"{}_{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
-                                                                            ev_img.subrun(),
-                                                                            ev_img.event(),
-                                                                            this_num,
-                                                                            ENTRY,
-                                                                            VTXID,
-                                                                            ROID,
-                                                                            parid,
-                                                                            plane))
+    SS=os.path.join("ssnet_dump",NAME,"{}_{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
+                                                                              ev_img.subrun(),
+                                                                              ev_img.event(),
+                                                                              this_num,
+                                                                              ENTRY,
+                                                                              VTXID,
+                                                                              ROID,
+                                                                              parid,
+                                                                              plane))
     
 
     plt.savefig(SS)
     plt.clf()
     plt.cla()
     plt.close()
-
-        
