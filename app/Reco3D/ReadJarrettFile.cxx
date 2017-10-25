@@ -69,8 +69,7 @@ namespace larcv {
 
         std::string filename;
         if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
-        if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/p00/NuMuSelection_5e19_p00set.txt";
-        //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
+        if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
         _filename = filename;
@@ -137,14 +136,16 @@ namespace larcv {
         // Loop per vertex (larcv type is PGraph "Particle Graph")
         //
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu"); // only comment when EXTBNB
+        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu"); // for BNB 5e19, comment when EXTBNB
+        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue"); // for nue processing
+        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");// for MC
         run    = ev_pgraph_v->run();
-         subrun = ev_pgraph_v->subrun();
-         event  = ev_pgraph_v->event();
-        if(ev_pgraph_v->PGraphArray().size()==0){_storage.next_event(true); return true;}
-        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.next_event(true); return true;}
+        subrun = ev_pgraph_v->subrun();
+        event  = ev_pgraph_v->event();
+        if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
+        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
-        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue");
+        //
         //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
@@ -158,7 +159,7 @@ namespace larcv {
         subrun = ev_img_v->subrun();
         event  = ev_img_v->event();*/
 
-        _storage.set_id(run,subrun,event);
+        //_storage.set_id(run,subrun,event);
         larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
         larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
 
@@ -305,7 +306,7 @@ namespace larcv {
 
         }
 
-        //vertex_v = GetJarretVertex(run, subrun, event);
+        //vertex_v = GetJarretVertex(run, subrun, event);// for BNBEXT
 
         NvertexSubmitted+=vertex_v.size();
         if(vertex_v.size()!=0){
@@ -355,6 +356,7 @@ namespace larcv {
 
         }
         }
+        _storage.set_id(run,subrun,event);
         _storage.next_event(true);
         std::cout << "...Reconstruted..." << std::endl;
 
