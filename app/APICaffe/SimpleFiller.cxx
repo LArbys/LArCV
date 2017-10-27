@@ -268,7 +268,7 @@ namespace larcv {
     }
 
     // Convert type to class
-    size_t caffe_class = _roitype_to_class[roi_type];
+    size_t caffe_class = 1;//_roitype_to_class[roi_type];
 
     if(caffe_class == kINVALID_SIZE) {
       LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;

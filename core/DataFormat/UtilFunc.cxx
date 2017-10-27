@@ -48,16 +48,16 @@ namespace larcv {
   std::string ROIType2String(const ROIType_t type) 
   {
     switch(type) {
-    case kROIUnknown: return "Unknown";
-    case kROICosmic:  return "Cosmic";
-    case kROIBNB:     return "BNB";
-    case kROIEminus:  return "Eminus";
-    case kROIGamma:   return "Gamms";
-    case kROIPizero:  return "Pizero";
-    case kROIMuminus: return "Muminus";
-    case kROIKminus:  return "Kminus";
-    case kROIPiminus: return "Piminus";
-    case kROIProton:  return "Proton";
+    case kROIUnknown: return "Unknown";//0
+    case kROICosmic:  return "Cosmic"; //1
+    case kROIBNB:     return "BNB";    //2
+    case kROIEminus:  return "Eminus"; //3
+    case kROIGamma:   return "Gamms";  //4
+    case kROIPizero:  return "Pizero"; //5
+    case kROIMuminus: return "Muminus";//6
+    case kROIKminus:  return "Kminus"; //7
+    case kROIPiminus: return "Piminus";//8
+    case kROIProton:  return "Proton"; //9
     default:
       std::stringstream ss;
       ss << "Unsupported type: " << type << std::endl;
