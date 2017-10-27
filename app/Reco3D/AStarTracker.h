@@ -129,7 +129,7 @@ namespace larcv {
         void MaskTrack();
         void CleanUpVertex();
         void DiagnoseVertex();
-        void DiagnoseTrack();
+        void DiagnoseTrack(size_t itrack);
         void ShaveTracks();
 
         bool initialize();
@@ -234,12 +234,19 @@ namespace larcv {
         bool _DrawOutputs;
         bool _missingTrack;
         bool _nothingReconstructed;
-        bool _tooShortDeadWire;
-        bool _tooShortFaintTrack;
         bool _tooManyTracksAtVertex;
         bool _possibleCosmic;
+        bool _tooShortDeadWire;
+        bool _tooShortFaintTrack;
         bool _possiblyCrossing;
         bool _branchingTracks;
+        bool _jumpingTracks;
+
+        std::vector<bool> _tooShortDeadWire_v;
+        std::vector<bool> _tooShortFaintTrack_v;
+        std::vector<bool> _possiblyCrossing_v;
+        std::vector<bool> _branchingTracks_v;
+        std::vector<bool> _jumpingTracks_v;
 
         TH1D *hdQdx;
         TH1D *hLength;

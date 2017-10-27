@@ -63,7 +63,6 @@ namespace larcv {
         tracker.initialize();
         tracker.SetCompressionFactors(1,6);
         tracker.SetVerbose(0);
-        iTrack = 0;
         NvertexSubmitted = 0;
         NgoodReco=0;
 
@@ -74,7 +73,7 @@ namespace larcv {
         std::cout << filename << std::endl;
         _filename = filename;
         if(_isMC)ReadVertexFile(filename);// when using runall.sh
-        //ReadVertexFile(filename);// when using runall.sh
+        //ReadVertexFile(filename);// when running on extBNB numu
 
 
         hEcomp             = new TH2D("hEcomp","hEcomp;E_th;E_reco",100,0,1000,100,0,1000);
@@ -115,6 +114,7 @@ namespace larcv {
         _recoTree->Branch("possibleCosmic",&_possibleCosmic);
         _recoTree->Branch("possiblyCrossing",&_possiblyCrossing);
         _recoTree->Branch("branchingTracks",&_branchingTracks);
+        _recoTree->Branch("jumpingTracks",&_jumpingTracks);
 
 
         _storage.set_io_mode(larlite::storage_manager::kWRITE);
@@ -145,8 +145,6 @@ namespace larcv {
         if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
         if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
-        //
-        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
         //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
@@ -155,9 +153,9 @@ namespace larcv {
         auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
 
 
-        /*run    = ev_img_v->run();
-        subrun = ev_img_v->subrun();
-        event  = ev_img_v->event();*/
+        //run    = ev_img_v->run();
+        //subrun = ev_img_v->subrun();
+        //event  = ev_img_v->event();
 
         //_storage.set_id(run,subrun,event);
         larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
@@ -283,25 +281,13 @@ namespace larcv {
         tracker.SetTrackInfo(run, subrun, event, 0);
         std::cout << run << " " << subrun << " " << event <<  std::endl;
 
-        for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
+        for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {// comment when running on EXTBNB
 
-            iTrack++;
             if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
             //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
-            auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
-
-            //
-            // Get Estimated 3D Start and End Points
-            std::vector<TVector3> EndPoints;
+            auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
             TVector3 vertex(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
-            EndPoints.push_back(vertex);
-
-            bool WrongEndPoint = false;
-            for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
-                if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ){std::cout << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; WrongEndPoint = false;}
-            }
-            if(WrongEndPoint)continue;
             vertex_v.push_back(vertex);
 
         }
@@ -310,51 +296,52 @@ namespace larcv {
 
         NvertexSubmitted+=vertex_v.size();
         if(vertex_v.size()!=0){
-        for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
-            double xyz[3] = {vertex_v[ivertex].X(),vertex_v[ivertex].Y(),vertex_v[ivertex].Z()};
-            vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
-            tracker.SetSingleVertex(vertex_v[ivertex]);
-            tracker.ReconstructVertex();
-            larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
-            *(track_ptr) = recoedVertex;
-            for(auto itrack:recoedVertex){
-                track_ptr->push_back(itrack);
+            for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
+                double xyz[3] = {vertex_v[ivertex].X(),vertex_v[ivertex].Y(),vertex_v[ivertex].Z()};
+                vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
+                tracker.SetSingleVertex(vertex_v[ivertex]);
+                tracker.ReconstructVertex();
+                larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
+                *(track_ptr) = recoedVertex;
+                for(auto itrack:recoedVertex){
+                    track_ptr->push_back(itrack);
+                }
+                //_EventRecoVertices.push_back(recoedVertex);
+                if(_isMC)MCevaluation();
+                std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
+                std::vector<double> VertexLengths = tracker.GetVertexLength();
+
+
+                _E_muon_v.resize(Energies_v.size());
+                _E_proton_v.resize(Energies_v.size());
+
+                for(size_t trackid=0; trackid<Energies_v.size(); ++trackid) {
+                    _E_proton_v[trackid] = Energies_v[trackid].front();
+                    _E_muon_v[trackid]   = Energies_v[trackid].back();
+                }
+
+                _Length_v = tracker.GetVertexLength();;
+                _Avg_Ion_v = tracker.GetAverageIonization();
+                _Angle_v = tracker.GetVertexAngle(15); // average over 5 cm to estimate the angles
+                _Reco_goodness_v = tracker.GetRecoGoodness();
+
+                _missingTrack          = _Reco_goodness_v[0];
+                _nothingReconstructed  = _Reco_goodness_v[1];
+                _tooShortDeadWire      = _Reco_goodness_v[2];
+                _tooShortFaintTrack    = _Reco_goodness_v[3];
+                _tooManyTracksAtVertex = _Reco_goodness_v[4];
+                _possibleCosmic        = _Reco_goodness_v[5];
+                _possiblyCrossing      = _Reco_goodness_v[6];
+                _branchingTracks       = _Reco_goodness_v[7];
+                _jumpingTracks         = _Reco_goodness_v[8];
+                
+                GoodVertex = false;
+                GoodVertex = tracker.IsGoodVertex();
+                if(GoodVertex)NgoodReco++;
+                
+                _recoTree->Fill();
+                
             }
-            //_EventRecoVertices.push_back(recoedVertex);
-            if(_isMC)MCevaluation();
-            std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-            std::vector<double> VertexLengths = tracker.GetVertexLength();
-
-
-            _E_muon_v.resize(Energies_v.size());
-            _E_proton_v.resize(Energies_v.size());
-
-            for(size_t trackid=0; trackid<Energies_v.size(); ++trackid) {
-                _E_proton_v[trackid] = Energies_v[trackid].front();
-                _E_muon_v[trackid]   = Energies_v[trackid].back();
-            }
-
-            _Length_v = tracker.GetVertexLength();;
-            _Avg_Ion_v = tracker.GetAverageIonization();
-            _Angle_v = tracker.GetVertexAngle(15); // average over 5 cm to estimate the angles
-            _Reco_goodness_v = tracker.GetRecoGoodness();
-
-            _missingTrack          = _Reco_goodness_v[0];
-            _nothingReconstructed  = _Reco_goodness_v[1];
-            _tooShortDeadWire      = _Reco_goodness_v[2];
-            _tooShortFaintTrack    = _Reco_goodness_v[3];
-            _tooManyTracksAtVertex = _Reco_goodness_v[4];
-            _possibleCosmic        = _Reco_goodness_v[5];
-            _possiblyCrossing      = _Reco_goodness_v[6];
-            _branchingTracks       = _Reco_goodness_v[7];
-
-            GoodVertex = false;
-            GoodVertex = tracker.IsGoodVertex();
-            if(GoodVertex)NgoodReco++;
-
-            _recoTree->Fill();
-
-        }
         }
         _storage.set_id(run,subrun,event);
         _storage.next_event(true);
@@ -390,6 +377,7 @@ namespace larcv {
 
     void ReadJarrettFile::ReadVertexFile(std::string filename)
     {
+        std::cout << "ReadVertexFile" << std::endl;
         if(_vertexInfo.size()!=0)_vertexInfo.clear();
         std::vector<int> thisVertexInfo;
         std::ifstream file(Form("%s",filename.c_str()));
