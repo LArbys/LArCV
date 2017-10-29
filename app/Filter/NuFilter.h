@@ -48,7 +48,7 @@ namespace larcv {
     
     std::string _roi_producer_name;
     
-    uint _nu_pdg;
+    int _nu_pdg;
     int _interaction_mode;
     
     double _min_nu_init_e;

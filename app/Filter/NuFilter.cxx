@@ -25,7 +25,7 @@ namespace larcv {
   void NuFilter::configure(const PSet& cfg)
   {
     this->set_verbosity((msg::Level_t)cfg.get<uint>("Verbosity",2));
-    _nu_pdg = cfg.get<unsigned int>("NuPDG");
+    _nu_pdg = cfg.get<int>("NuPDG");
     _interaction_mode = cfg.get<int>("InteractionMode");
     _dep_sum_lepton = 0.0;
     _dep_sum_proton = 0.0;
@@ -61,10 +61,10 @@ namespace larcv {
     uint nlepton  = 0;
     uint nproton  = 0;
     
-    uint unknown_ctr=0.0;
+    uint unknown_ctr = 0.0;
     
     // Get neutrino ROI
-    auto roi = ev_roi->at(0);
+    const auto& roi = ev_roi->at(0);
     
     uint pdgcode          = roi.PdgCode();
     uint interaction_mode = roi.NuInteractionType();
@@ -154,12 +154,12 @@ namespace larcv {
 
     
     // requested nu PDG code
-    if (pdgcode == _nu_pdg) {
+    if (pdgcode == _nu_pdg or _nu_pdg == 0) {
       pdg_b = true;
     }
 
     // requested nu interaction mode
-    if ((interaction_mode == _interaction_mode) or (_interaction_mode < 0)) {
+    if ((interaction_mode == _interaction_mode) or (_interaction_mode == 0)) {
       interaction_mode_b = true;
     } 
 
