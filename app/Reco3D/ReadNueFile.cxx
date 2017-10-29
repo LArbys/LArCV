@@ -322,7 +322,7 @@ namespace larcv {
       
       _Length_v  = tracker.GetVertexLength();;
       _Avg_Ion_v = tracker.GetAverageIonization();
-      _Angle_v   = tracker.GetVertexAngle(3); // average over 3 cm to estimate the angles
+      //_Angle_v   = tracker.GetVertexAngle(3); // average over 3 cm to estimate the angles
 
       auto Reco_goodness_v = tracker.GetRecoGoodness();
       _Reco_goodness_v.resize(Reco_goodness_v.size(),kINVALID_INT);
