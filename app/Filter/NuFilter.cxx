@@ -2,6 +2,7 @@
 #define __NUFILTER_CXX__
 
 #include "NuFilter.h"
+#include "DataFormat/EventImage2D.h"
 #include "DataFormat/EventROI.h"
 
 namespace larcv {
@@ -25,6 +26,8 @@ namespace larcv {
   void NuFilter::configure(const PSet& cfg)
   {
     this->set_verbosity((msg::Level_t)cfg.get<uint>("Verbosity",2));
+    _rse_producer = cfg.get<std::string>("RSEProducer");
+
     _nu_pdg = cfg.get<int>("NuPDG");
     _interaction_mode = cfg.get<int>("InteractionMode");
     _dep_sum_lepton = 0.0;
@@ -66,9 +69,9 @@ namespace larcv {
     // Get neutrino ROI
     const auto& roi = ev_roi->at(0);
     
-    uint pdgcode          = roi.PdgCode();
-    uint interaction_mode = roi.NuInteractionType();
-    double energy_init    = roi.EnergyInit();
+    int pdgcode          = roi.PdgCode();
+    int interaction_mode = roi.NuInteractionType();
+    double energy_init   = roi.EnergyInit();
 
     std::vector<aparticle> protons_v;
     std::vector<aparticle> leptons_v;
@@ -216,6 +219,12 @@ namespace larcv {
     _event    = kINVALID_UINT;
     _entry    = kINVALID_UINT;
     _selected = kINVALID_UINT;
+
+    auto rse_prod = (EventImage2D*) mgr.get_data(kProductImage2D,_rse_producer);
+    _run    = rse_prod->run();
+    _subrun = rse_prod->subrun();
+    _event  = rse_prod->event();
+    _entry  = mgr.current_entry();
     
     if(_roi_producer_name.empty()) {
       _event_tree->Fill();
@@ -224,10 +233,6 @@ namespace larcv {
 
     auto ev_roi = (EventROI*) mgr.get_data(kProductROI, _roi_producer_name);
 
-    _run    = ev_roi->run();
-    _subrun = ev_roi->subrun();
-    _event  = ev_roi->event();
-    _entry  = mgr.current_entry();
     
     bool signal_selected = MCSelect(ev_roi);
     LARCV_DEBUG() << "selected: " << signal_selected << std::endl;
@@ -235,7 +240,7 @@ namespace larcv {
     
     // if atleast 1 of config selection is false, then test against signal selected
     if ( !_select_signal or !_select_background) {
-      if ( _select_signal     and !signal_selected ) {
+      if ( _select_signal and !signal_selected ) {
 	_event_tree->Fill();
 	LARCV_DEBUG() << "false" << std::endl;
 	return false;

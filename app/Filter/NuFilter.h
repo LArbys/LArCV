@@ -47,7 +47,8 @@ namespace larcv {
     bool MCSelect(const EventROI* ev_roi);
     
     std::string _roi_producer_name;
-    
+    std::string _rse_producer;
+
     int _nu_pdg;
     int _interaction_mode;
     

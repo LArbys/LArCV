@@ -30,13 +30,9 @@ namespace larcv {
     ~LArbysImageMC(){}
 
     void configure(const PSet&);
-
     void initialize();
-
     bool process(IOManager& mgr);
-
     void finalize();
-
     void Clear();
 
   protected:
@@ -49,10 +45,12 @@ namespace larcv {
     TTree* _mc_tree;
 
     /// Event ID
-    uint _run;
-    uint _subrun;
-    uint _event;
-    uint _entry;
+    int _run;
+    int _subrun;
+    int _event;
+    int _entry;
+
+    std::string _rse_producer;
 
     /// Primary Particle Info
     int _parent_pdg;//primary particle pdg
