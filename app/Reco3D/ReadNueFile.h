@@ -20,13 +20,20 @@ namespace larcv {
     void finalize();
     
     void SetSplineLocation(const std::string& fpath);
+    void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
     void ClearEvent();
     void ClearVertex();
+    void FillMC(const std::vector<ROI>& mc_roi_v);
 
   private :
+
+    std::string _foutll;
     int iTrack;
+    larlite::storage_manager _storage;
     larcv::AStarTracker tracker;
 
+    std::vector< std::vector<int> > _vertexInfo;
+    
     std::string _spline_file;
 
     TTree *_recoTree;
@@ -42,13 +49,28 @@ namespace larcv {
     int _event;
     int _nentry;
 
+    std::vector<larcv::ImageMeta> _Full_meta_v;
+    std::vector<larcv::Image2D> _Full_image_v;
+    std::vector<larcv::Image2D> _Tagged_Image;
+
     std::vector<double> _E_muon_v;
     std::vector<double> _E_proton_v;
     std::vector<double> _Length_v;
     std::vector<double> _Avg_Ion_v;
-    std::vector<double> _Angle_v;
-
+    std::vector<std::vector<double> > _Angle_v;
     std::vector<int> _Reco_goodness_v;
+    std::vector<larlite::event_track> _EventRecoVertices;
+
+    int _missingTrack;
+    int _nothingReconstructed;
+    int _tooShortDeadWire;
+    int _tooShortFaintTrack;
+    int _tooManyTracksAtVertex;
+    int _possibleCosmic;
+    int _possiblyCrossing;
+    int _branchingTracks;
+    int _jumpingTracks;
+    bool _isMC;
 
     double _Ep_t;
     double _Em_t;
@@ -73,7 +95,6 @@ namespace larcv {
     double _ProtonStartPoint_Z;
     double _ElectronStartPoint_Z;
 
-    
     //
     // end point
     //
@@ -88,7 +109,6 @@ namespace larcv {
     double _MuonEndPoint_Z;
     double _ProtonEndPoint_Z;
     double _ElectronEndPoint_Z;
-
     
   };
 

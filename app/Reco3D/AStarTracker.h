@@ -199,7 +199,6 @@ namespace larcv {
         TSpline3* GetProtonT2dEdx(){return sProtonT2dEdx;}
         TSpline3* GetMuonT2dEdx(){return sMuonT2dEdx;}
 
-
     protected:
         
         std::string _track_producer;
