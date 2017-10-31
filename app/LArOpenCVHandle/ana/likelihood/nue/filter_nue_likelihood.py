@@ -76,7 +76,7 @@ gc.collect()
 LL_sel_df = maximize_ll(LL_df)
 
 if LLCUT != None:
-    LL_sel_df = LL_df.query("LL>@LLCUT")
+    LL_sel_df = LL_sel_df.query("LL>@LLCUT")
 
 LL_df.to_pickle(os.path.join(OUTDIR,"ana_LL_df_%d.pkl" % num))
 del LL_df

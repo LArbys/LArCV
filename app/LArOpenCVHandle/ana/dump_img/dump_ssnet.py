@@ -76,7 +76,7 @@ X = pgroi.X()
 Y = pgroi.Y()
 Z = pgroi.Z()
 
-colors=['magenta','white','yellow']
+colors = ['magenta','white','yellow']
 ctor_v = []
 
 for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
@@ -88,6 +88,7 @@ for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
         pix2d_v = [[pix2d_v[ii].X(),pix2d_v[ii].Y()] for ii in xrange(pix2d_v.size())]
         if len(pix2d_v)!=0: pix2d_v.append(pix2d_v[0])
         pix2d_vv[plane] = np.array(pix2d_v)
+
     ctor_v.append(pix2d_vv)
 
 #
@@ -102,13 +103,13 @@ img_v = segment_image(ext_proc,pygeo,1)
 print "...pythonized"
 
 for plane in xrange(3):
-
+    
     xpixel = ROOT.Double()
     ypixel = ROOT.Double()
 
     SS="Plane {}".format(plane)
     fig,ax=plt.subplots(figsize=(20,22))
-    ax.imshow(img_v[plane],cmap='jet',vmin=0,vmax=255,interpolation='none')
+    ax.imshow(img_v[plane],cmap=mycmap,vmin=0,vmax=255,interpolation='none')
 
     larcv.Project3D(meta_v[plane],X,Y,Z,0.0,plane,xpixel,ypixel)
 

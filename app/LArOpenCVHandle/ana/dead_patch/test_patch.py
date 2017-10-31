@@ -42,36 +42,55 @@ for module in dm.Names():# Name function to show all LArOpenCV modules
     print idx, module
     idx+=1
 
-
 dwp = larocv.DeadWirePatch()
 dwp._bondage = True
-for entry in xrange(int(proc.io().get_n_entries())):
+
+mycmap = matplotlib.cm.get_cmap('jet')
+mycmap.set_under('w')
+mycmap.set_over('w')
+
+for entry in [7]:
     print "@entry=",entry
     proc.process_entry(entry)
 
-    plane=1
-    
-    img1 =  mgr.InputImages(0).at(plane).clone()
-    img2 =  mgr.InputImages(5).at(plane).clone()
-    
-    img  = dwp.Patch(img1,img2);
+    for plane in [0,1,2]:
+        print "... @plane=",plane
+        
+        
+        aimage =  mgr.InputImages(0).at(plane).clone()
+        timage =  mgr.InputImages(1).at(plane).clone()
+        simage =  mgr.InputImages(2).at(plane).clone()
+        dimage =  mgr.InputImages(5).at(plane).clone()
 
-    fig,ax = plt.subplots(figsize=(20,20))
-    simg=pygeo.image(img1)
-    img_01  = np.where(simg >10.0,50.0 ,0.0).astype(np.uint8)# Threshold shower image
-    img_02  = np.where(simg >254.0,90,0.0).astype(np.uint8)# Threshold track  image
-    plt.imshow(img_01+img_02,vmin=0,vmax=255,interpolation='none')
-    plt.savefig("dump/00_%04d.png" % entry)
-    plt.close()
-    plt.cla()
-    plt.clf()
+        aimg =  pygeo.image(aimage)
+        timg =  pygeo.image(timage)
+        simg =  pygeo.image(simage)
+        dimg =  pygeo.image(dimage)
+        
+        timg = np.where(timg>10,200,1.0)
+        simg = np.where(simg>10,100,1.0)
 
-    fig,ax = plt.subplots(figsize=(20,20))
-    simg=pygeo.image(img)
-    img_01  = np.where(simg >10.0,50.0 ,0.0).astype(np.uint8)# Threshold shower image
-    img_02  = np.where(simg >254.0,90,0.0).astype(np.uint8)# Threshold track  image
-    plt.imshow(img_01+img_02,vmin=0,vmax=255,interpolation='none')
-    plt.savefig("dump/01_%04d.png" % entry)
-    plt.close()
-    plt.cla()
-    plt.clf()
+        fig,ax = plt.subplots(figsize=(20,20))
+
+        plt.imshow(timg+simg,vmin=0,vmax=255,interpolation='none',cmap=mycmap)
+
+        plt.savefig("dump/00_%04d_plane_%04d.png" % (entry,plane))
+        plt.close()
+        plt.cla()
+        plt.clf()
+
+        c_aimage = dwp.Patch(aimage,dimage);
+        c_aimg   = pygeo.image(c_aimage)
+
+        c_aimg  -= aimg
+        c_aimg   = np.where(c_aimg>10,256,0.0)
+
+        fig,ax = plt.subplots(figsize=(20,20))
+
+        plt.imshow(timg+simg+c_aimg,vmin=0,vmax=255,interpolation='none',cmap=mycmap)
+
+        plt.savefig("dump/01_%04d_plane_%04d.png" % (entry,plane))
+        plt.close()
+        plt.cla()
+        plt.clf()
+        
