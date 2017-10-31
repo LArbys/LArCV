@@ -1,9 +1,9 @@
 import ROOT
 from array import array
 
-kINVALID_INT    = ROOT.std.numeric_limits("int")().min()
-kINVALID_FLOAT  = ROOT.std.numeric_limits("float")().min()
-kINVALID_DOUBLE = ROOT.std.numeric_limits("double")().min()
+kINVALID_INT    = ROOT.std.numeric_limits("int")().lowest()
+kINVALID_FLOAT  = ROOT.std.numeric_limits("float")().lowest()
+kINVALID_DOUBLE = ROOT.std.numeric_limits("double")().lowest()
 
 class ROOTData:
     def __init__(self):
@@ -56,6 +56,7 @@ class ROOTData:
         self.reco_shower_dX    = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_shower_dY    = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_shower_dZ    = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_shower_good  = array( 'i', [ kINVALID_INT   ] )
 
         # position
         self.reco_X = array( 'f', [ kINVALID_FLOAT ] )
@@ -97,6 +98,7 @@ class ROOTData:
         self.reco_shower_dX[0]    = kINVALID_FLOAT
         self.reco_shower_dY[0]    = kINVALID_FLOAT
         self.reco_shower_dZ[0]    = kINVALID_FLOAT
+        self.reco_shower_good[0]  = kINVALID_INT
 
         self.reco_X[0] = kINVALID_FLOAT
         self.reco_Y[0] = kINVALID_FLOAT
@@ -122,6 +124,7 @@ class ROOTData:
         tree.Branch("reco_shower_dX", self.reco_shower_dX, "reco_shower_dX/F")
         tree.Branch("reco_shower_dY", self.reco_shower_dY, "reco_shower_dY/F")
         tree.Branch("reco_shower_dZ", self.reco_shower_dZ, "reco_shower_dZ/F")
+	tree.Branch("reco_shower_good", self.reco_shower_good, "reco_shower_good/I")
 
         #position
         tree.Branch("reco_X", self.reco_X , "reco_X/F")

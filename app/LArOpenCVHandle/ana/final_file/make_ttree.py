@@ -82,7 +82,7 @@ for index,row in comb_df.iterrows():
         rd.reco_shower_E[0] = energyY
     else:
         rd.reco_shower_E[0] = (energyU + energyV) / 2.0
-
+    print row['reco_dedx_Y']
     rd.reco_shower_dEdx[0] = row['reco_dedx_Y']
     rd.reco_shower_dX[0]   = row['mc_dcosx']
     rd.reco_shower_dY[0]   = row['mc_dcosy']
@@ -92,10 +92,19 @@ for index,row in comb_df.iterrows():
     #
     # track vars
     #
-    rd.reco_track_E_p[0]  = row['E_proton_v'].values[0]
-    rd.reco_track_E_m[0]  = row['E_muon_v'].values[0]
-    rd.reco_track_len[0]  = row['Length_v'].values[0]
-    rd.reco_track_ion[0]  = row['Avg_ion_v'].values[0]
+
+    if row["E_proton_v"].values.size > 0: 
+        rd.reco_track_E_p[0]  = row['E_proton_v'].values[0]
+
+    if row["E_muon_v"].values.size > 0:
+        rd.reco_track_E_m[0]  = row['E_muon_v'].values[0]
+
+    if row['Length_v'].values.size > 0:
+        rd.reco_track_len[0]  = row['Length_v'].values[0]
+
+    if row['Avg_Ion_v'].values.size > 0:
+        rd.reco_track_ion[0]  = row['Avg_Ion_v'].values[0]
+
     rd.reco_track_good[0] = row['GoodVertex']
 
     #
