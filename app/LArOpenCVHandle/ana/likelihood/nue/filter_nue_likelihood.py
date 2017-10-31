@@ -73,12 +73,17 @@ gc.collect()
 #
 # store LL
 #
-LL_df.to_pickle(os.path.join(OUTDIR,"ana_LL_df_%d.pkl" % num))
+LL_sel_df = maximize_ll(LL_df)
 
 if LLCUT != None:
-    LL_df = maximize_ll(LL_df)
-    LL_df = LL_df.query("LL>@LLCUT")
-    
+    LL_sel_df = LL_df.query("LL>@LLCUT")
+
+LL_df.to_pickle(os.path.join(OUTDIR,"ana_LL_df_%d.pkl" % num))
+del LL_df
+gc.collect()
+
+LL_sel_df.to_pickle(os.path.join(OUTDIR,"ana_LL_sel_df_%d.pkl" % num))
+
 print "-->load larcv"
 from larcv import larcv
 proc = larcv.ProcessDriver('ProcessDriver')
@@ -96,8 +101,8 @@ vertex_filter    = proc.process_ptr(vertex_filter_id)
 id_v  = ROOT.std.vector("bool")()
 par_v = ROOT.std.vector(ROOT.std.pair("int","int"))()
 
-LL_df.reset_index(inplace=True)
-LL_df.set_index('entry',inplace=True)
+LL_sel_df.reset_index(inplace=True)
+LL_sel_df.set_index('entry',inplace=True)
 
 for entry in xrange(proc.io().get_n_entries()):
     print "@entry=",entry
@@ -105,14 +110,14 @@ for entry in xrange(proc.io().get_n_entries()):
     #
     # do nothing
     #
-    if entry not in LL_df.index:
+    if entry not in LL_sel_df.index:
         proc.process_entry(entry)
         continue
         
     #
     # do something
     #
-    row  = LL_df.loc[entry]
+    row  = LL_sel_df.loc[entry]
 
     nvtx_v = row['num_vertex']
     pgid_v = row['cvtxid']
