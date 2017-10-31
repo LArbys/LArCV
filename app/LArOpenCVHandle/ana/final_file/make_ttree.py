@@ -60,7 +60,6 @@ rd = ROOTData()
 tree = ROOT.TTree("nue_ana_tree","")
 rd.init_tree(tree)
 
-
 for index,row in comb_df.iterrows():
     rd.reset()
 
@@ -72,6 +71,9 @@ for index,row in comb_df.iterrows():
 
     rd.LL[0] = row['LL']
     
+    #
+    # shower vars
+    #
     energyU = row['reco_energy_U']
     energyV = row['reco_energy_V']
     energyY = row['reco_energy_Y']
@@ -80,6 +82,29 @@ for index,row in comb_df.iterrows():
         rd.reco_shower_E[0] = energyY
     else:
         rd.reco_shower_E[0] = (energyU + energyV) / 2.0
+
+    rd.reco_shower_dEdx[0] = row['reco_dedx_Y']
+    rd.reco_shower_dX[0]   = row['mc_dcosx']
+    rd.reco_shower_dY[0]   = row['mc_dcosy']
+    rd.reco_shower_dZ[0]   = row['mc_dcosz']
+    rd.reco_shower_good[0] = 0
+
+    #
+    # track vars
+    #
+    rd.reco_track_E_p[0]  = row['E_proton_v'].values[0]
+    rd.reco_track_E_m[0]  = row['E_muon_v'].values[0]
+    rd.reco_track_len[0]  = row['Length_v'].values[0]
+    rd.reco_track_ion[0]  = row['Avg_ion_v'].values[0]
+    rd.reco_track_good[0] = row['GoodVertex']
+
+    #
+    # position
+    #
+    
+    rd.reco_X[0] = row['x']
+    rd.reco_Y[0] = row['y']
+    rd.reco_Z[0] = row['z']
 
     tree.Fill()
 
