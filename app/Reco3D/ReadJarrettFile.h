@@ -117,6 +117,8 @@ namespace larcv {
         bool _branchingTracks;
         bool _jumpingTracks;
         bool _isMC;
+
+	std::string _input_pgraph_producer;
     };
 
     /**

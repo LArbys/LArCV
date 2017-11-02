@@ -675,7 +675,9 @@ namespace larcv {
             _vertexTracks.push_back(_3DTrack);
             ComputeLength();
             ComputeNewdQdX();
-            hLength->Fill(_Length3D);
+	    if (_DrawOutputs){
+	      hLength->Fill(_Length3D);
+	    }
             _track++;
             //DrawTrack();
         }
@@ -736,6 +738,8 @@ namespace larcv {
         _vertexLength = GetVertexLength();
         DiagnoseVertex();
         MakeVertexTrack();
+        if (_DrawOutputs) DrawVertex();
+        std::cout << "vertex drawn" << std::endl;
     }
     //______________________________________________________
     void AStarTracker::CleanUpVertex(){
@@ -1283,8 +1287,10 @@ namespace larcv {
             }
             if(NplanesOK!=0){dQdxtot*=3/NplanesOK;}
             nodedQdxtot.push_back(dQdxtot);
-            hdQdx->Fill(dQdxtot/_Length3D);
-            hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
+	    if (_DrawOutputs) {
+	      hdQdx->Fill(dQdxtot/_Length3D);
+	      hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
+	    }
         }
         _vertexQDQX.push_back(nodedQdxtot);
     }
@@ -1526,8 +1532,10 @@ namespace larcv {
         for(size_t iNode = 1;iNode < _3DTrack.size()-1;iNode++){
             double ilength = (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag();
             double angle = (_3DTrack[iNode]-_3DTrack[iNode-1]).Dot( (_3DTrack[iNode+1]-_3DTrack[iNode-1]) )/( (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag() * (_3DTrack[iNode+1]-_3DTrack[iNode-1]).Mag() );
-            hAngleLength->Fill( angle, ilength );
-            hAngleLengthGeneral->Fill(angle,ilength);
+	    if(_DrawOutputs) {
+	      hAngleLength->Fill( angle, ilength );
+	      hAngleLengthGeneral->Fill(angle,ilength);
+	    }
         }
         c->cd(2)->cd(1);
         hAngleLengthGeneral->Draw("colz");
@@ -1934,7 +1942,10 @@ namespace larcv {
                 if(dist < distMin){distMin = dist;newPoint = _3DTrack[iNode];}
             }
             if(distMin > 20) break;
-            hDist2point->Fill(distMin);
+
+	    if (_DrawOutputs) {
+	      hDist2point->Fill(distMin);
+	    }
             newTrack.push_back(newPoint);
         }
         _3DTrack=newTrack;
@@ -2238,16 +2249,15 @@ namespace larcv {
         time_bounds.reserve(3);
         wire_bounds.reserve(3);
         hit_image_v.reserve(3);
-        hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
-        hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
-        hDistance2Hit = new TH1D("hDistance2Hit","hDistance2Hit",100,0,50);
-        hdQdx   = new TH1D("hdQdx","hdQdx",500,0,100);
-        hLength = new TH1D("hLength","hLength",100,0,1000);
-        hLengthdQdX = new TH2D("hLengthdQdX","hLengthdQdX;L;dQdx",100,0,1000,500,0,500);
         if(_DrawOutputs){
-
-            hdQdxEntries = new TH1D("hdQdxEntries","hdQdxEntries",hdQdx->GetNbinsX(),hdQdx->GetXaxis()->GetXmin(),hdQdx->GetXaxis()->GetXmax());
-            hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
+	  hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
+	  hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
+	  hDistance2Hit = new TH1D("hDistance2Hit","hDistance2Hit",100,0,50);
+	  hdQdx   = new TH1D("hdQdx","hdQdx",500,0,100);
+	  hLength = new TH1D("hLength","hLength",100,0,1000);
+	  hLengthdQdX = new TH2D("hLengthdQdX","hLengthdQdX;L;dQdx",100,0,1000,500,0,500);
+	  hdQdxEntries = new TH1D("hdQdxEntries","hdQdxEntries",hdQdx->GetNbinsX(),hdQdx->GetXaxis()->GetXmin(),hdQdx->GetXaxis()->GetXmax());
+	  hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
         }
         WorldInitialization();
         std::cout << "world initialized" << std::endl;

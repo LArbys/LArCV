@@ -17,6 +17,7 @@ namespace larcv {
 
   void LArbysImageMC::configure(const PSet& cfg)
   {
+    _rse_producer       = cfg.get<std::string>("RSEProducer");
     _producer_roi       = cfg.get<std::string>("MCProducer");
     _producer_image2d   = cfg.get<std::string>("Image2DProducer");
     _neutrino_present   = cfg.get<bool>("NeutrinoPresent",true);
@@ -26,10 +27,10 @@ namespace larcv {
   {
     _mc_tree = new TTree("MCTree","MC infomation");
 
-    _mc_tree->Branch("run",&_run,"run/i");
-    _mc_tree->Branch("subrun",&_subrun,"subrun/i");
-    _mc_tree->Branch("event",&_event,"event/i");
-    _mc_tree->Branch("entry"  ,&_entry  , "entry/i");
+    _mc_tree->Branch("run",&_run,"run/I");
+    _mc_tree->Branch("subrun",&_subrun,"subrun/I");
+    _mc_tree->Branch("event",&_event,"event/I");
+    _mc_tree->Branch("entry"  ,&_entry  , "entry/I");
     _mc_tree->Branch("parentPDG",&_parent_pdg,"parentPDG/I");
     _mc_tree->Branch("signal",&_is_signal,"_is_signal/O");
 
@@ -129,6 +130,12 @@ namespace larcv {
 
     Clear();
 
+    auto rse_prod = (EventImage2D*) mgr.get_data(kProductImage2D,_rse_producer);
+    _run    = rse_prod->run();
+    _subrun = rse_prod->subrun();
+    _event  = rse_prod->event();
+    _entry  = mgr.current_entry();
+
     if (_producer_roi.empty()) {
       _mc_tree->Fill();
       return true;
@@ -138,11 +145,6 @@ namespace larcv {
 
     if (_producer_image2d.empty()) throw larbys("Empty image2d producer specified");
     const auto ev_image2d = (larcv::EventImage2D*) mgr.get_data(kProductImage2D,_producer_image2d);
-
-    _run    = (uint) ev_roi->run();
-    _subrun = (uint) ev_roi->subrun();
-    _event  = (uint) ev_roi->event();
-    _entry  = (uint) mgr.current_entry();
 
     _entry_info.run    = _run;
     _entry_info.subrun = _subrun;

@@ -40,6 +40,7 @@ print "GOT: ",alg,"@ id=",alg_id
 
 SPLINE_PATH = os.path.join(BASE_PATH,"..","Proton_Muon_Range_dEdx_LAr_TSplines.root")
 alg.SetSplineLocation(SPLINE_PATH)
+alg.SetLLOutName(ROOT.std.string(os.path.join(OUTPUT_DIR,"tracker_reco_%d.root" % num)))
 
 proc.initialize()
 proc.batch_process()
