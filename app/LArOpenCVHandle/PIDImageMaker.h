@@ -51,13 +51,14 @@ namespace larcv {
     void RecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
 		       std::vector<larcv::Image2D>& p0_img_v,
 		       std::vector<larcv::Image2D>& p1_img_v);
+    
     void VoidImgFiller(std::vector<larcv::Image2D>& p0_img_v,
 		       std::vector<larcv::Image2D>& p1_img_v);
           
   private:
 
     size_t _nevents;
-    size_t _nevents_selected;
+    size_t _nevents_passing_nueLL;
 
     std::string _roi_input_producer;
     std::string _p0_roi_output_producer;
