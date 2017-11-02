@@ -115,6 +115,10 @@ namespace larcv {
         _recoTree->Branch("possiblyCrossing",&_possiblyCrossing);
         _recoTree->Branch("branchingTracks",&_branchingTracks);
         _recoTree->Branch("jumpingTracks",&_jumpingTracks);
+        _recoTree->Branch("RecoVertex",&RecoVertex);
+        _recoTree->Branch("MCvertex",&MCvertex);
+        _recoTree->Branch("vertexPhi",&_vertexPhi);
+        _recoTree->Branch("vertexTheta",&_vertexTheta);
 
 
         _storage.set_io_mode(larlite::storage_manager::kWRITE);
@@ -130,20 +134,24 @@ namespace larcv {
         std::cout << "============================================" << std::endl;
         gStyle->SetOptStat(0);
 
-        TVector3 vertex, endPoint[2];
+        TVector3 vertex(-1,-1,-1);
+        TVector3 endPoint[2];
+        MCvertex.SetXYZ(-1,-1,-1);
 
         //
         // Loop per vertex (larcv type is PGraph "Particle Graph")
         //
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu"); // for BNB 5e19, comment when EXTBNB
+        EventPGraph *ev_pgraph_v = 0;
+        if(!_isMC)ev_pgraph_v = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu"); // for BNB 5e19, comment when EXTBNB
+        if(_isMC) ev_pgraph_v  = (EventPGraph*) mgr.get_data(kProductPGraph,"test");// for MC
+        if(ev_pgraph_v->PGraphArray().size()==0)return true;
         //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue"); // for nue processing
         //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");// for MC
         run    = ev_pgraph_v->run();
         subrun = ev_pgraph_v->subrun();
         event  = ev_pgraph_v->event();
-        if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
-        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
+
 
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
@@ -161,11 +169,8 @@ namespace larcv {
         larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
         larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
 
-
-
-
-
-
+        if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
+        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
@@ -183,75 +188,80 @@ namespace larcv {
 
         Ep_t = -1;
         Em_t = -1;
-        //______________
-        // get MC vertex
-        //--------------
-        /*
-        auto ev_partroi_v  = (EventROI*)mgr.get_data(kProductROI,"segment");
-        auto mc_roi_v = ev_partroi_v->ROIArray();
-        std::vector<TVector3> MuonVertices;
-        std::vector<TVector3> ProtonVertices;
-        std::vector<TVector3> ElectronVertices;
-        std::vector<TVector3> MuonEndPoint;
-        std::vector<TVector3> ProtonEndPoint;
-        std::vector<TVector3> ElectronEndPoint;
-        for(size_t iMC = 0;iMC<mc_roi_v.size();iMC++){
-            if(mc_roi_v[iMC].PdgCode() == 14){
-                NeutrinoEnergyTh = mc_roi_v[iMC].EnergyDeposit();
-                hEnuTh->Fill(NeutrinoEnergyTh);
-                std::cout << "Neutrino : " << NeutrinoEnergyTh << " MeV" << std::endl;
-            }
-            if(mc_roi_v[iMC].PdgCode() == 13){
-                std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                Em_t = mc_roi_v[iMC].EnergyDeposit();
-                MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
-                MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
-            }
-            if(mc_roi_v[iMC].PdgCode() == 2212){
-                std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                Ep_t = mc_roi_v[iMC].EnergyDeposit();
-                ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
-                ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
-            }
-            if(mc_roi_v[iMC].PdgCode() == 11){
-                std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                ElectronVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
-                ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
-            }
-        }
-        std::vector<TVector3> MCVertices;
-        std::vector<TVector3> MCEndPoint;
-        bool isVertex = false;
-        bool isNumu = false;
-        bool isNue = false;
-        std::vector<int> goodMuon, goodElectron;
-        for(size_t iProton = 0;iProton<ProtonVertices.size();iProton++){
-            isVertex = false;
-            isNumu = false;
-            isNue = false;
-            for(size_t iMuon = 0;iMuon<MuonVertices.size();iMuon++){
-                if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;isNumu = true;goodMuon.push_back(iMuon);}
-            }
-            for(size_t iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
-                if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;isNue = true;goodElectron.push_back(iElectron);}
-            }
-            if(isVertex && MCVertices.size()!=0 && ProtonVertices[iProton] == MCVertices[MCVertices.size()-1])continue;
-            if(isVertex){
-                MCVertices.push_back(ProtonVertices[iProton]);
-                MCEndPoint.push_back(ProtonEndPoint[iProton]);
-                if(isNumu){
-                    for(size_t imu = 0;imu<goodMuon.size();imu++){
-                        MCEndPoint.push_back(MuonEndPoint[goodMuon[imu]]);
-                    }
+
+        EventROI *ev_partroi_v = 0;
+        std::vector<larcv::ROI> mc_roi_v;
+        //____________________
+        // get MC vertex info
+        //--------------------
+
+        if(_isMC){
+            ev_partroi_v= (EventROI*)mgr.get_data(kProductROI,"segment");
+            mc_roi_v = ev_partroi_v->ROIArray();
+            std::vector<TVector3> MuonVertices;
+            std::vector<TVector3> ProtonVertices;
+            std::vector<TVector3> ElectronVertices;
+            std::vector<TVector3> MuonEndPoint;
+            std::vector<TVector3> ProtonEndPoint;
+            std::vector<TVector3> ElectronEndPoint;
+            for(size_t iMC = 0;iMC<mc_roi_v.size();iMC++){
+                if(mc_roi_v[iMC].PdgCode() == 14){
+                    NeutrinoEnergyTh = mc_roi_v[iMC].EnergyDeposit();
+                    hEnuTh->Fill(NeutrinoEnergyTh);
+                    std::cout << "Neutrino : " << NeutrinoEnergyTh << " MeV" << std::endl;
                 }
-                if(isNue){
-                    for(size_t ie = 0;ie<goodElectron.size();ie++){
-                        MCEndPoint.push_back(ElectronEndPoint[goodElectron[ie]]);
-                    }
+                if(mc_roi_v[iMC].PdgCode() == 13){
+                    std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+                    Em_t = mc_roi_v[iMC].EnergyDeposit();
+                    MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
+                    MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
+                }
+                if(mc_roi_v[iMC].PdgCode() == 2212){
+                    std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+                    Ep_t = mc_roi_v[iMC].EnergyDeposit();
+                    ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
+                    ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
+                }
+                if(mc_roi_v[iMC].PdgCode() == 11){
+                    std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
+                    ElectronVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
+                    ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
                 }
             }
+            std::vector<TVector3> MCVertices;
+            std::vector<TVector3> MCEndPoint;
+            bool isVertex = false;
+            bool isNumu = false;
+            bool isNue = false;
+            std::vector<int> goodMuon, goodElectron;
+            for(size_t iProton = 0;iProton<ProtonVertices.size();iProton++){
+                isVertex = false;
+                isNumu = false;
+                isNue = false;
+                for(size_t iMuon = 0;iMuon<MuonVertices.size();iMuon++){
+                    if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;isNumu = true;goodMuon.push_back(iMuon);}
+                }
+                for(size_t iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
+                    if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;isNue = true;goodElectron.push_back(iElectron);}
+                }
+                if(isVertex && MCVertices.size()!=0 && ProtonVertices[iProton] == MCVertices[MCVertices.size()-1])continue;
+                if(isVertex){
+                    MCVertices.push_back(ProtonVertices[iProton]);
+                    MCEndPoint.push_back(ProtonEndPoint[iProton]);
+                    MCvertex = ProtonVertices[iProton];
+                    if(isNumu){
+                        for(size_t imu = 0;imu<goodMuon.size();imu++){
+                            MCEndPoint.push_back(MuonEndPoint[goodMuon[imu]]);
+                        }
+                    }
+                    if(isNue){
+                        for(size_t ie = 0;ie<goodElectron.size();ie++){
+                            MCEndPoint.push_back(ElectronEndPoint[goodElectron[ie]]);
+                        }
+                    }
+                }
+            }
         }
-         */
         //______________
         // End MC
         //--------------
@@ -280,15 +290,17 @@ namespace larcv {
         tracker.SetTaggedImage(Tagged_Image);
         tracker.SetTrackInfo(run, subrun, event, 0);
         std::cout << run << " " << subrun << " " << event <<  std::endl;
+        //if(!(subrun == 107 && event == 96242)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {// comment when running on EXTBNB
 
-            if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
+            if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
             //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
             auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
             TVector3 vertex(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
             vertex_v.push_back(vertex);
+            RecoVertex=vertex;
 
         }
 
@@ -301,15 +313,14 @@ namespace larcv {
                 vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
                 tracker.SetSingleVertex(vertex_v[ivertex]);
                 tracker.ReconstructVertex();
+                tracker.DrawVertex();
                 larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
                 *(track_ptr) = recoedVertex;
-                for(auto itrack:recoedVertex){
-                    track_ptr->push_back(itrack);
-                }
-                //_EventRecoVertices.push_back(recoedVertex);
                 if(_isMC)MCevaluation();
                 std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-                std::vector<double> VertexLengths = tracker.GetVertexLength();
+                _Length_v = tracker.GetVertexLength();
+                _vertexPhi =   tracker.GetVertexPhi();
+                _vertexTheta = tracker.GetVertexTheta();
 
 
                 _E_muon_v.resize(Energies_v.size());
@@ -320,20 +331,20 @@ namespace larcv {
                     _E_muon_v[trackid]   = Energies_v[trackid].back();
                 }
 
-                _Length_v = tracker.GetVertexLength();;
+                _Length_v  = _Length_v;
                 _Avg_Ion_v = tracker.GetAverageIonization();
-                _Angle_v = tracker.GetVertexAngle(15); // average over 5 cm to estimate the angles
+                _Angle_v   = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
                 _Reco_goodness_v = tracker.GetRecoGoodness();
 
-                _missingTrack          = _Reco_goodness_v[0];
-                _nothingReconstructed  = _Reco_goodness_v[1];
-                _tooShortDeadWire      = _Reco_goodness_v[2];
-                _tooShortFaintTrack    = _Reco_goodness_v[3];
-                _tooManyTracksAtVertex = _Reco_goodness_v[4];
-                _possibleCosmic        = _Reco_goodness_v[5];
-                _possiblyCrossing      = _Reco_goodness_v[6];
-                _branchingTracks       = _Reco_goodness_v[7];
-                _jumpingTracks         = _Reco_goodness_v[8];
+                _missingTrack          = _Reco_goodness_v.at(0);
+                _nothingReconstructed  = _Reco_goodness_v.at(1);
+                _tooShortDeadWire      = _Reco_goodness_v.at(2);
+                _tooShortFaintTrack    = _Reco_goodness_v.at(3);
+                _tooManyTracksAtVertex = _Reco_goodness_v.at(4);
+                _possibleCosmic        = _Reco_goodness_v.at(5);
+                _possiblyCrossing      = _Reco_goodness_v.at(6);
+                _branchingTracks       = _Reco_goodness_v.at(7);
+                _jumpingTracks         = _Reco_goodness_v.at(8);
                 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
@@ -431,11 +442,10 @@ namespace larcv {
         std::cout << "MCevaluation()" << std::endl;
 
         std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-        std::vector<double> ionPerTrack = tracker.GetAverageIonization();
-        std::vector<double> VertexLengths = tracker.GetVertexLength();
+        //_Length_v = tracker.GetVertexLength();
 
         if(!tracker.IsGoodVertex()){std::cout << "error: is not good vertex" << std::endl;return;}
-        if(ionPerTrack.size()!=2){std::cout << "error: ionPerTrack.size() = " << ionPerTrack.size() << std::endl;return;}
+        if(_Avg_Ion_v.size()!=2){std::cout << "error: _Avg_Ion_v.size() = " << _Avg_Ion_v.size() << std::endl;return;}
 
         std::cout << "in store energies : " << std::endl;
         std::cout << Energies_v[0][0] << ":" << Energies_v[0][1] << std::endl;
@@ -444,7 +454,7 @@ namespace larcv {
         double Epreco;
         double Emreco;
 
-        if(ionPerTrack[0] > ionPerTrack[1]){
+        if(_Avg_Ion_v[0] > _Avg_Ion_v[1]){
             Epreco = Energies_v[0][0];// first track is proton
             Emreco = Energies_v[1][1];// second track is muon
         }
@@ -464,8 +474,8 @@ namespace larcv {
         hEnuvsPM_th->Fill(NeutrinoEnergyTh,Ep_t+Em_t);
         hPM_th_Reco_1D->Fill(((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t));
         hPM_th_Reco->Fill(Ep_t+Em_t,Epreco+Emreco);
-        hEcompdQdx->Fill(ionPerTrack[1]/VertexLengths[1],(Epreco-Ep_t)/Ep_t);
-        hEcompdQdx->Fill(ionPerTrack[0]/VertexLengths[0],(Emreco-Em_t)/Em_t);
+        hEcompdQdx->Fill(_Avg_Ion_v[1]/_Length_v[1],(Epreco-Ep_t)/Ep_t);
+        hEcompdQdx->Fill(_Avg_Ion_v[0]/_Length_v[0],(Emreco-Em_t)/Em_t);
         if( std::abs((Epreco-Ep_t)/Ep_t) > 0.1 || std::abs((Emreco-Em_t)/Em_t) > 0.1 ){
             checkEvents.push_back(Form("%d_%d_%d",run,subrun,event));
         }
@@ -482,9 +492,9 @@ namespace larcv {
         hEnuComp1D->Fill(((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh);
 
 
-        for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
-            hAverageIonization->Fill(ionPerTrack[itrack]);
-            hIonvsLength->Fill(VertexLengths[itrack],ionPerTrack[itrack]);
+        for(size_t itrack = 0;itrack<_Avg_Ion_v.size();itrack++){
+            hAverageIonization->Fill(_Avg_Ion_v[itrack]);
+            hIonvsLength->Fill(_Length_v[itrack],_Avg_Ion_v[itrack]);
             
         }
     }
@@ -516,15 +526,15 @@ namespace larcv {
         }
         else{std::cout << "... no" << std::endl;}
         tracker.finalize();
+        std::cout << "finalized tracker" << std::endl;
 
         if(has_ana_file()) {
             ana_file().cd();
             _recoTree->Write();
         }
+        std::cout << "wrote _recoTree" << std::endl;
         _storage.close();
-        for(auto picture:checkEvents){
-            std::cout << picture << std::endl;
-        }
+        std::cout << "finalized storage" << std::endl;
     }
     
 }

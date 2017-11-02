@@ -60,6 +60,7 @@ namespace larcv {
             _speedOffset=0;
             _verbose = 0;
             _ADCthreshold = 15;
+            //_RecoverValue = 16.01;
             _compressionFactor_t = 6;
             _compressionFactor_w = 1;
             _DrawOutputs = false;
@@ -92,6 +93,7 @@ namespace larcv {
         void SetTrackInfo(int run, int subrun, int event, int track){_run = run; _subrun = subrun; _event = event; _track = track;}
         void tellMe(std::string s, int verboseMin);
         void CreateDataImage(std::vector<larlite::wire> wire_v);
+        void ResetRecoveries(){NumberRecoveries = 0;}
         void SetTimeAndWireBounds();
         void SetTimeAndWireBoundsProtonsErez();
         void SetTimeAndWireBounds(TVector3 pointStart, TVector3 pointEnd);
@@ -103,8 +105,9 @@ namespace larcv {
         void SetOriginalImage(   std::vector<larcv::Image2D> originalimage ){original_full_image_v = originalimage;}
         void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
         void SetVertexEndPoints( std::vector<TVector3> vertexEndPoints     ){_vertexEndPoints = vertexEndPoints;}
-        void SetSingleVertex(TVector3 vertexPoint){start_pt = vertexPoint;}
+        void SetSingleVertex(TVector3 vertexPoint){NumberRecoveries=0; start_pt = vertexPoint;}
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
+        void FeedTrack(std::vector<TVector3> newTrack);
         void WorldInitialization();
 
         void DrawTrack();
@@ -126,11 +129,15 @@ namespace larcv {
         void ImprovedCluster();
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
+        void MaskVertex();
         void MaskTrack();
         void CleanUpVertex();
         void DiagnoseVertex();
         void DiagnoseTrack(size_t itrack);
         void ShaveTracks();
+        void RecoverFromFail();
+        void EnhanceDerivative();
+        void DumpTrack();
 
         bool initialize();
         bool finalize();
@@ -179,7 +186,10 @@ namespace larcv {
             return GetTrack();
         }
 
-        std::vector<double>                GetAverageIonization();
+        std::vector<double>  GetAverageIonization();
+        std::vector<double>  GetVertexPhi(){return _vertexPhi;}
+        std::vector<double>  GetVertexTheta(){return _vertexTheta;}
+
         std::vector< std::vector<int> >    _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
@@ -193,6 +203,8 @@ namespace larcv {
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
 
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
+        std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
+        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative()*/;ShaveTracks();}
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
@@ -218,6 +230,8 @@ namespace larcv {
         int _eventSuccess;
         int _verbose;
         int _deadWireValue;
+        int failedPlane;
+        int NumberRecoveries;
 
         //int _kTooShortDeadWire;
         //int _ktooShortThinTrack;
@@ -229,6 +243,7 @@ namespace larcv {
         double _ADCthreshold;
         double _speedOffset;
         double _Length3D;
+        double _RecoverValue;
         double GetDist2line(TVector3 A, TVector3 B, TVector3 C);
 
         bool _DrawOutputs;
@@ -296,8 +311,12 @@ namespace larcv {
         TSpline3 *sProtonT2dEdx;
 
         TGraph   *gdQdXperPlane[3];
-        std::vector<std::vector<double> > dQdXperPlane_v;
+
         std::vector<double>               track_dQdX_v;
+        std::vector<double>               _vertexLength;
+        std::vector<double>               _vertexPhi;
+        std::vector<double>               _vertexTheta;
+        std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         TGraph2D *gDetector;
         TGraph2D *gWorld;

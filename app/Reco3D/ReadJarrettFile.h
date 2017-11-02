@@ -96,9 +96,16 @@ namespace larcv {
         std::vector<double> _E_proton_v;
         std::vector<double> _Length_v;
         std::vector<double> _Avg_Ion_v;
+        std::vector<double> _vertexPhi;
+        std::vector<double> _vertexTheta;
         std::vector<std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;
+
+
+        TVector3 MCvertex;
+        TVector3 RecoVertex;
+
         bool GoodVertex;
         bool _missingTrack;
         bool _nothingReconstructed;
