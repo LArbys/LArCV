@@ -52,13 +52,15 @@ namespace larcv {
     {}
 
     void ReadJarrettFile::configure(const PSet& cfg)
-    {}
+    {
+      _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
+    }
 
     void ReadJarrettFile::initialize()
     {
         _isMC = false;
         std::cout << "[ReadJarrettFile]" << std::endl;
-        tracker.SetSplineFile("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root");
+        tracker.SetSplineFile("Proton_Muon_Range_dEdx_LAr_TSplines.root");
         tracker.SetOutputDir("png");
         tracker.initialize();
         tracker.SetCompressionFactors(1,6);
@@ -67,8 +69,8 @@ namespace larcv {
         NgoodReco=0;
 
         std::string filename;
-        if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
-        if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
+        //if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
+        //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
         _filename = filename;
@@ -136,7 +138,7 @@ namespace larcv {
         // Loop per vertex (larcv type is PGraph "Particle Graph")
         //
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_numu"); // for BNB 5e19, comment when EXTBNB
+        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer); // for BNB 5e19, comment when EXTBNB
         //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue"); // for nue processing
         //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");// for MC
         run    = ev_pgraph_v->run();
