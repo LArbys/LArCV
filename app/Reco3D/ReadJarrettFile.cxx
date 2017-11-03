@@ -121,6 +121,8 @@ namespace larcv {
         _recoTree->Branch("MCvertex",&MCvertex);
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
+        _recoTree->Branch("closestWall",&_closestWall);
+        
 
 
         _storage.set_io_mode(larlite::storage_manager::kWRITE);
@@ -140,36 +142,25 @@ namespace larcv {
         TVector3 endPoint[2];
         MCvertex.SetXYZ(-1,-1,-1);
 
-        //
-        // Loop per vertex (larcv type is PGraph "Particle Graph")
-        //
 
         auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer); // for BNB 5e19, comment when EXTBNB
-        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test_nue"); // for nue processing
-        //auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,"test");// for MC
         run    = ev_pgraph_v->run();
         subrun = ev_pgraph_v->subrun();
         event  = ev_pgraph_v->event();
 
 
 
-        auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
-        //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"combinedtags");
-        //auto tag_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,"containedtags");
-        auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
-        auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
 
-
-        //run    = ev_img_v->run();
-        //subrun = ev_img_v->subrun();
-        //event  = ev_img_v->event();
-
-        //_storage.set_id(run,subrun,event);
         larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
         larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
 
         if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
         if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
+
+        auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
+        auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
+        auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
+
 
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");

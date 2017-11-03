@@ -119,6 +119,7 @@ namespace larcv {
         void MakeVertexTrack();
         void MakeTrack();
         void ComputeLength();
+        void ComputeClosestWall();
         void ComputedQdX();
         void ComputeNewdQdX();
         void Reconstruct();
@@ -156,6 +157,7 @@ namespace larcv {
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
+        std::vector<double> GetClosestWall();
         std::vector< std::vector<double> > GetVertexAngle(double dAverage);
         std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
@@ -315,6 +317,7 @@ namespace larcv {
         std::vector<double>               _vertexLength;
         std::vector<double>               _vertexPhi;
         std::vector<double>               _vertexTheta;
+        std::vector<double>               _closestWall;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         TGraph2D *gDetector;

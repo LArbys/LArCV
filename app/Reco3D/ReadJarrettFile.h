@@ -98,6 +98,7 @@ namespace larcv {
         std::vector<double> _Avg_Ion_v;
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
+        std::vector<double> _closestWall;
         std::vector<std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;

@@ -697,6 +697,7 @@ namespace larcv {
         _nothingReconstructed = false;
 
         if(_vertexTracks.size()   !=0)_vertexTracks.clear();
+        if(_closestWall.size()    !=0)_closestWall.clear();
         if(_vertexLength.size()   !=0)_vertexLength.clear();
         if(_vertexQDQX.size()     !=0)_vertexQDQX.clear();
         if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
@@ -2469,6 +2470,40 @@ namespace larcv {
         return VertexLengths;
     }
     //______________________________________________________
+    std::vector<double> GetClosestWall(){
+        if(_closestWall.size()!=_vertexTracks.size()) ComputeClosestWall;
+        return _closestWall;
+    }
+    //______________________________________________________
+    void ComputeClosestWall(){
+        if(_closestWall.size()==_vertexTracks.size()) return;
+        if(_closestWall.size()!=0)_closestWall.clear();
+
+        //find tracks that approach the edge of the detector too much
+        double detectorLength = 1036.8;//cm
+        double detectorheight = 233;//cm
+        double detectorwidth  = 256.35;//cm
+        double Ymindet = -0.5*detectorheight;
+        double Ymaxdet = 0.5*detectorheight;
+        double Xmindet = 0;
+        double Xmaxdet = detectorwidth;
+        double Zmindet = 0;
+        double Zmaxdet = detectorLength;
+
+        double minApproach = 1e9;
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
+                if( std::abs(_vertexTracks[itrack][iNode].X()-Xmindet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].X()-Xmindet);
+                if( std::abs(_vertexTracks[itrack][iNode].X()-Xmaxdet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].X()-Xmaxdet);
+                if( std::abs(_vertexTracks[itrack][iNode].Y()-Ymindet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].Y()-Ymindet);
+                if( std::abs(_vertexTracks[itrack][iNode].Y()-Ymaxdet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].Y()-Ymaxdet);
+                if( std::abs(_vertexTracks[itrack][iNode].Z()-Zmindet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].Z()-Zmindet);
+                if( std::abs(_vertexTracks[itrack][iNode].Z()-Zmaxdet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].Z()-Zmaxdet);
+            }
+            _closestWall.push_back(minApproach);
+        }
+    }
+    //______________________________________________________
     std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 5){
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
@@ -2684,7 +2719,7 @@ namespace larcv {
         // (1) compute summed distance of all 3D points to the current line
         // (2) add 3D points if needed
         // (3) vary 3D point position to get best fit
-        // (4) as long as not best possible fit, add ans fit 3D points
+        // (4) as long as not best possible fit, add and fit 3D points
         return _3DTrack;
     }
     //______________________________________________________
