@@ -43,14 +43,18 @@
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
 
+#include <cassert>
+
 namespace larcv {
 
     static ReadJarrettFileProcessFactory __global_ReadJarrettFileProcessFactory__;
 
     ReadJarrettFile::ReadJarrettFile(const std::string name)
-    : ProcessBase(name)
+    : ProcessBase(name),
+      _foutll(""),
+      _spline_file("")
     {}
-
+  
     void ReadJarrettFile::configure(const PSet& cfg)
     {
       _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
@@ -59,12 +63,14 @@ namespace larcv {
     void ReadJarrettFile::initialize()
     {
         _isMC = false;
-        std::cout << "[ReadJarrettFile]" << std::endl;
-        tracker.SetSplineFile("Proton_Muon_Range_dEdx_LAr_TSplines.root");
-        tracker.SetOutputDir("png");
-        tracker.initialize();
+	LARCV_INFO() << "[ReadJarrettFile]" << std::endl;
+	assert(!_spline_file.empty());
+	tracker.SetDrawOutputs(false);
+	tracker.SetOutputDir("png");
+	tracker.SetSplineFile(_spline_file);
+	tracker.initialize();
         tracker.SetCompressionFactors(1,6);
-        tracker.SetVerbose(0);
+        tracker.SetVerbose(2);
         NvertexSubmitted = 0;
         NgoodReco=0;
 
@@ -122,10 +128,16 @@ namespace larcv {
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
 
+	if (_foutll.empty()) throw larbys("specify larlite file output name");
 
-        _storage.set_io_mode(larlite::storage_manager::kWRITE);
-        _storage.set_out_filename("larlite_reco3DTracks.root");
-        if(!_storage.open())std::cout << "ERROR, larlite output file could not open" << std::endl;
+	_storage.set_io_mode(larlite::storage_manager::kWRITE);
+	_storage.set_out_filename(_foutll);
+
+	if(!_storage.open()) {
+	  LARCV_CRITICAL() << "ERROR, larlite output file could not open" << std::endl;
+	  throw larbys("die");
+	}
+	
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -535,6 +547,15 @@ namespace larcv {
         _storage.close();
         std::cout << "finalized storage" << std::endl;
     }
-    
+
+  void ReadJarrettFile::SetSplineLocation(const std::string& fpath) {
+    LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
+    tracker.SetSplineFile(fpath);
+    _spline_file = fpath;
+    LARCV_DEBUG() << "end" << std::endl;
+  }
+  
+
+  
 }
 #endif

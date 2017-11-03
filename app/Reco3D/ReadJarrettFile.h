@@ -43,11 +43,12 @@ namespace larcv {
         ~ReadJarrettFile(){}
 
         void configure(const PSet&);
-
         void initialize();
-
         bool process(IOManager& mgr);
 
+	void SetSplineLocation(const std::string& fpath);
+	void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
+	
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
         void ReadVertexFile(std::string filename);
@@ -119,6 +120,8 @@ namespace larcv {
         bool _isMC;
 
 	std::string _input_pgraph_producer;
+	std::string _spline_file;
+	std::string _foutll;
     };
 
     /**
