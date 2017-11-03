@@ -27,7 +27,7 @@ namespace larcv {
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
 	
     _nevents = 0;
-    _nevents_selected = 0;
+    _nevents_passing_nueLL = 0;
   }
 
   void PIDImageMaker::initialize()
@@ -67,48 +67,56 @@ namespace larcv {
     p0_img_v.clear();
     std::vector<Image2D> p1_img_v;
     p1_img_v.clear();
-    
+
     if (ev_pcluster_array.size() == 3) {
+    
+      ROI proi;
+      event_p0_roi->clear();
+      event_p0_roi->Append(proi);
+      event_p1_roi->clear();
+      event_p1_roi->Append(proi);
+      
       RecoImgFiller(ev_pcluster_array, p0_img_v, p1_img_v);
-    }else{
+      for(auto each : p0_img_v) event_p0_image->Append(each);
+      for(auto each : p1_img_v) event_p1_image->Append(each);
+
+      return true;
+    }else return false;
+    
+    /*else{
       //LARCV_CRITICAL()<<"No pixel2d clusters found. "<<std::endl;
+      std::cout<<"run"<<run
+	       <<"subrun"<<subrun
+	       <<"event"<<event
+	       <<"pixel2dclusterarraysize"<<ev_pcluster_array.size()<<std::endl;
       VoidImgFiller(p0_img_v,p1_img_v);
     }
-    
-    LARCV_DEBUG()<<"p0_img_v size "<<p0_img_v.size()<<std::endl;
-    LARCV_DEBUG()<<"p1_img_v size "<<p1_img_v.size()<<std::endl;
-
-    ROI proi;
-    event_p0_roi->clear();
-    event_p0_roi->Append(proi);
-    event_p1_roi->clear();
-    event_p1_roi->Append(proi);
     
     //event_p0_image->Emplace(std::move(p0_img_v));
     //event_p1_image->Emplace(std::move(p1_img_v));
     
     for(auto each : p0_img_v) event_p0_image->Append(each);
     for(auto each : p1_img_v) event_p1_image->Append(each);
-	
-    return true;
+    */
+    //return true;
   }
 
   void PIDImageMaker::finalize()
   {
-    std::cout<<"===========>>>>>>total events : "<<_nevents<<std::endl;
-    std::cout<<"========>>>>>>selected events : "<<_nevents_selected<<std::endl;
+    std::cout<<"================>>>>>>total events : "<<_nevents<<std::endl;
+    std::cout<<"========>>>>>>passing NueLL events : "<<_nevents_passing_nueLL<<std::endl;
   }
 
   void PIDImageMaker::RecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
 				    std::vector<larcv::Image2D>& p0_img_v,
 				    std::vector<larcv::Image2D>& p1_img_v){
     
-    _nevents_selected++;
+    _nevents_passing_nueLL++;
 
     for (size_t plane = 0; plane< 3; ++plane){
       
       auto pcluster_v = ev_pcluster_array[plane];
-      
+
       if (pcluster_v.size()!=2) {
 	LARCV_CRITICAL()<<"Not 2 particles on plane on"<<plane<<std::endl;
 	Image2D img(576,576);
@@ -159,8 +167,6 @@ namespace larcv {
     }
   }
   
-
-
   void PIDImageMaker::VoidImgFiller(std::vector<larcv::Image2D>& p0_img_v,
 				    std::vector<larcv::Image2D>& p1_img_v){
     for (size_t plane = 0; plane< 3; ++plane){
