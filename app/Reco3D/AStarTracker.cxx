@@ -2470,12 +2470,13 @@ namespace larcv {
         return VertexLengths;
     }
     //______________________________________________________
-    std::vector<double> GetClosestWall(){
-        if(_closestWall.size()!=_vertexTracks.size()) ComputeClosestWall;
-        return _closestWall;
-    }
+  std::vector<double> AStarTracker::GetClosestWall(){
+    if(_closestWall.size()!=_vertexTracks.size())
+      ComputeClosestWall();
+    return _closestWall;
+  }
     //______________________________________________________
-    void ComputeClosestWall(){
+  void AStarTracker::ComputeClosestWall(){
         if(_closestWall.size()==_vertexTracks.size()) return;
         if(_closestWall.size()!=0)_closestWall.clear();
 
@@ -2757,9 +2758,9 @@ namespace larcv {
     std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, double dR){
         std::vector<TVector3> openSet;
 
-        for(size_t ix = -1;ix<2;ix++){
-            for(size_t iy = -1;iy<2;iy++){
-                for(size_t iz = -1;iz<2;iz++){
+        for(int ix = -1;ix<2;ix++){
+            for(int iy = -1;iy<2;iy++){
+                for(int iz = -1;iz<2;iz++){
                     //if(ix == 0 && iy == 0 && iz == 0)continue;
                     TVector3 neighbour = newPoint;
                     neighbour.SetX(newPoint.X()+dR*ix);
@@ -2773,21 +2774,21 @@ namespace larcv {
     }
     //______________________________________________________
     std::vector<TVector3> AStarTracker::GetOpenSet(TVector3 newPoint, int BoxSize, double dR){
-        std::vector<TVector3> openSet;
-
-        for(size_t ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
-            for(size_t iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
-                for(size_t iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
-                    //if(ix == 0 && iy == 0 && iz == 0)continue;
-                    TVector3 neighbour = newPoint;
-                    neighbour.SetX(newPoint.X()+dR*ix);
-                    neighbour.SetY(newPoint.Y()+dR*iy);
-                    neighbour.SetZ(newPoint.Z()+dR*iz);
-                    openSet.push_back(neighbour);
-                }
-            }
-        }
-        return openSet;
+      std::vector<TVector3> openSet;
+	
+      for(int ix = (int)(-0.5*BoxSize);ix<(int)(0.5*BoxSize);ix++){
+	for(int iy = (int)(-0.5*BoxSize);iy<(int)(0.5*BoxSize);iy++){
+	  for(int iz = (int)(-0.5*BoxSize);iz<(0.5*BoxSize);iz++){
+	    //if(ix == 0 && iy == 0 && iz == 0)continue;
+	    TVector3 neighbour = newPoint;
+	    neighbour.SetX(newPoint.X()+dR*ix);
+	    neighbour.SetY(newPoint.Y()+dR*iy);
+	    neighbour.SetZ(newPoint.Z()+dR*iz);
+	    openSet.push_back(neighbour);
+	  }
+	}
+      }
+      return openSet;
     }
 
     //______________________________________________________
