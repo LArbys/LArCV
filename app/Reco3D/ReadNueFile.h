@@ -49,6 +49,8 @@ namespace larcv {
     int _event;
     int _nentry;
 
+    bool _mask_shower;
+
     std::vector<larcv::ImageMeta> _Full_meta_v;
     std::vector<larcv::Image2D> _Full_image_v;
     std::vector<larcv::Image2D> _Tagged_Image;

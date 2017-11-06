@@ -45,7 +45,7 @@ namespace larcv {
     _pgraph_producer   = cfg.get<std::string>("PGraphProducer");
     _par_pix_producer  = cfg.get<std::string>("ParPixelProducer");
     _true_roi_producer = cfg.get<std::string>("TrueROIProducer");
-  
+    _mask_shower       = cfg.get<bool>("MaskShower",true);
   }
 
   void ReadNueFile::initialize()
@@ -191,7 +191,6 @@ namespace larcv {
     // No vertex, continue (but fill)
     //
     if (ev_pgraph_v->PGraphArray().empty()) {
-      _recoTree->Fill();
       ClearVertex();
       return true;
     }
@@ -229,10 +228,6 @@ namespace larcv {
     vertex_v.clear();
     vertex_v.reserve(ev_pgraph_v->PGraphArray().size());
 
-    static std::vector<TVector3> EndPoints;
-    EndPoints.clear();
-    EndPoints.reserve(ev_pgraph_v->PGraphArray().size());
-
     for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
       iTrack++;
@@ -243,58 +238,50 @@ namespace larcv {
 
       //
       // Get Estimated 3D Start and End Points
-      TVector3 vertex(pgraph.ParticleArray().front().X(),
-		      pgraph.ParticleArray().front().Y(),
-		      pgraph.ParticleArray().front().Z());
-      EndPoints.push_back(vertex);
+      vertex_v.emplace_back(pgraph.ParticleArray().front().X(),
+			    pgraph.ParticleArray().front().Y(),
+			    pgraph.ParticleArray().front().Z());
 
-      bool WrongEndPoint = false;
-      for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
-	if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ) {
-	  LARCV_INFO() << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; 
-	  WrongEndPoint = false;
-	}
-      }
-      if(WrongEndPoint) continue;
-      vertex_v.push_back(vertex);
+      if (_mask_shower) {
+	//
+	// mask shower particle pixels 
+	// method : pixels stored via larbys image
+	//
+	for(size_t roid=0; roid < roi_v.size(); ++roid) {
+	  const auto& roi = roi_v[roid];
+	  auto cidx = cluster_idx_v.at(roid);
 
-      //
-      // mask shower particle pixels 
-      // method : pixels stored via larbys image
-      //
-      for(size_t roid=0; roid < roi_v.size(); ++roid) {
-	const auto& roi = roi_v[roid];
-	auto cidx = cluster_idx_v.at(roid);
-
-	if (roi.Shape() == kShapeTrack) continue;
+	  if (roi.Shape() == kShapeTrack) continue;
 	
-	for(size_t plane=0; plane<3; ++plane) {
+	  for(size_t plane=0; plane<3; ++plane) {
 	  
-	  auto iter_pix = pix_m.find(plane);
-	  if(iter_pix == pix_m.end())
-	    continue;
+	    auto iter_pix = pix_m.find(plane);
+	    if(iter_pix == pix_m.end())
+	      continue;
 
-	  auto iter_pix_meta = pix_meta_m.find(plane);
-	  if(iter_pix_meta == pix_meta_m.end())
-	    continue;
+	    auto iter_pix_meta = pix_meta_m.find(plane);
+	    if(iter_pix_meta == pix_meta_m.end())
+	      continue;
 	  
-	  auto const& pix_v      = (*iter_pix).second;
-	  auto const& pix_meta_v = (*iter_pix_meta).second;
+	    auto const& pix_v      = (*iter_pix).second;
+	    auto const& pix_meta_v = (*iter_pix_meta).second;
 	  
-	  auto const& pix      = pix_v.at(cidx);
-	  auto const& pix_meta = pix_meta_v.at(cidx);
+	    auto const& pix      = pix_v.at(cidx);
+	    auto const& pix_meta = pix_meta_v.at(cidx);
 	  
-	  auto& plane_img = _Full_image_v.at(plane);
+	    auto& plane_img = _Full_image_v.at(plane);
 
-	  for(const auto& px : pix) {
-	    auto posx = pix_meta.pos_x(px.Y());
-	    auto posy = pix_meta.pos_y(px.X());
-	    auto row = plane_img.meta().row(posy);
-	    auto col = plane_img.meta().col(posx);
-	    plane_img.set_pixel(row,col,0);
-	  }
-	} // end plane
-      } // end ROI
+	    for(const auto& px : pix) {
+	      auto posx = pix_meta.pos_x(px.Y());
+	      auto posy = pix_meta.pos_y(px.X());
+	      auto row = plane_img.meta().row(posy);
+	      auto col = plane_img.meta().col(posx);
+	      plane_img.set_pixel(row,col,0);
+	    }
+	  } // end plane
+	} // end ROI
+      } // end mask shower
+
     } // end vertex
 
 
