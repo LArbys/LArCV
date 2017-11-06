@@ -36,4 +36,7 @@
 #pragma link C++ class larcv::VertexFilter+;
 #pragma link C++ class larcv::PIDImageMaker+;
 
+#pragma link C++ class larcv::PGraphTruthMatch+;
+
 #endif
+
