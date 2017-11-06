@@ -187,6 +187,7 @@ namespace larcv {
             RegularizeTrack();
             return GetTrack();
         }
+        std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
         std::vector<double>  GetAverageIonization();
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
