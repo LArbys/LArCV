@@ -61,6 +61,7 @@ namespace larcv {
     std::vector<int> _Reco_goodness_v;
     std::vector<larlite::event_track> _EventRecoVertices;
 
+
     int _missingTrack;
     int _nothingReconstructed;
     int _tooShortDeadWire;
@@ -71,6 +72,11 @@ namespace larcv {
     int _branchingTracks;
     int _jumpingTracks;
     bool _isMC;
+
+    int   _vtx_id;
+    float _vtx_x;
+    float _vtx_y;
+    float _vtx_z;
 
     double _Ep_t;
     double _Em_t;

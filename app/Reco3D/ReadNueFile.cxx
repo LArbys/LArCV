@@ -68,6 +68,11 @@ namespace larcv {
     //
     // Reco information
     // 
+    _recoTree->Branch("vtx_id", &_vtx_id, "vtx_id/I");
+    _recoTree->Branch("vtx_x" , &_vtx_x , "vtx_x/F");
+    _recoTree->Branch("vtx_y" , &_vtx_y , "vtx_y/F");
+    _recoTree->Branch("vtx_z" , &_vtx_z , "vtx_z/F");
+
     _recoTree->Branch("E_muon_v"   , &_E_muon_v);
     _recoTree->Branch("E_proton_v" , &_E_proton_v);
     _recoTree->Branch("Length_v"   , &_Length_v);
@@ -192,10 +197,6 @@ namespace larcv {
     }
 
 
-    // loop over found vertices
-    static std::vector<TVector3> vertex_v;
-    vertex_v.clear();
-
     static double wireRange = 5000;
     static double tickRange = 8502;
 
@@ -221,7 +222,16 @@ namespace larcv {
       //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
     }
 
+    //
+    // loop over found vertices
+    //
+    static std::vector<TVector3> vertex_v;
+    vertex_v.clear();
+    vertex_v.reserve(ev_pgraph_v->PGraphArray().size());
 
+    static std::vector<TVector3> EndPoints;
+    EndPoints.clear();
+    EndPoints.reserve(ev_pgraph_v->PGraphArray().size());
 
     for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
@@ -233,7 +243,6 @@ namespace larcv {
 
       //
       // Get Estimated 3D Start and End Points
-      std::vector<TVector3> EndPoints;
       TVector3 vertex(pgraph.ParticleArray().front().X(),
 		      pgraph.ParticleArray().front().Y(),
 		      pgraph.ParticleArray().front().Z());
@@ -293,20 +302,24 @@ namespace larcv {
     tracker.SetTaggedImage(_Tagged_Image);
     tracker.SetTrackInfo(_run, _subrun, _event, 0);
 
-
     for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
 
       const auto& vtx = vertex_v[ivertex];
       double xyz[3] = {vtx.X(),vtx.Y(),vtx.Z()};
       vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
 
+      _vtx_id = (int) ivertex;
+      _vtx_x  = (float) vtx.X();
+      _vtx_y  = (float) vtx.Y();
+      _vtx_z  = (float) vtx.Z();
+
       tracker.SetSingleVertex(vtx);
       tracker.ReconstructVertex();
-
-     auto recoedVertex = tracker.GetReconstructedVertexTracks();
+      
+      auto recoedVertex = tracker.GetReconstructedVertexTracks();
      
-     for(const auto& itrack : recoedVertex)
-       track_ptr->emplace_back(std::move(itrack));
+      for(const auto& itrack : recoedVertex)
+	track_ptr->emplace_back(std::move(itrack));
      
       auto Energies_v = tracker.GetEnergies();
       _E_muon_v.resize(Energies_v.size());
@@ -339,7 +352,7 @@ namespace larcv {
       _jumpingTracks         = (int) _Reco_goodness_v[8];
 
       auto GoodVertex = false;
-      GoodVertex = tracker.IsGoodVertex();
+      GoodVertex  = tracker.IsGoodVertex();
       _GoodVertex = (int) GoodVertex;
       _Nreco++;
       
@@ -408,6 +421,10 @@ namespace larcv {
   }
 
   void ReadNueFile::ClearVertex() {
+    _vtx_id = -1.0 * kINVALID_INT;
+    _vtx_x  = -1.0 * kINVALID_FLOAT;
+    _vtx_y  = -1.0 * kINVALID_FLOAT;
+    _vtx_z  = -1.0 * kINVALID_FLOAT;
     _E_muon_v.clear();
     _E_proton_v.clear();
     _Length_v.clear();

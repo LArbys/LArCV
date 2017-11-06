@@ -2434,7 +2434,6 @@ namespace larcv {
     std::vector<double> AStarTracker::GetClosestWall(){
         if(_closestWall.size() != _vertexTracks.size()) ComputeClosestWall();
         return _closestWall;
-
     }
     //______________________________________________________
     void AStarTracker::ComputeClosestWall(){
