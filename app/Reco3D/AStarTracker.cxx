@@ -2470,12 +2470,12 @@ namespace larcv {
         return VertexLengths;
     }
     //______________________________________________________
-    std::vector<double> GetClosestWall(){
-        if(_closestWall.size()!=_vertexTracks.size()) ComputeClosestWall;
+  std::vector<double> AStarTracker::GetClosestWall(){
+    if(_closestWall.size()!=_vertexTracks.size()) ComputeClosestWall();
         return _closestWall;
     }
     //______________________________________________________
-    void ComputeClosestWall(){
+  void AStarTracker::ComputeClosestWall(){
         if(_closestWall.size()==_vertexTracks.size()) return;
         if(_closestWall.size()!=0)_closestWall.clear();
 
