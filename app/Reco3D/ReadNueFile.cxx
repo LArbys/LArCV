@@ -15,6 +15,7 @@
 #include "DataFormat/mctrack.h"
 #include "DataFormat/wire.h"
 #include "DataFormat/vertex.h"
+#include "DataFormat/event_ass.h"
 
 // ROOT
 #include "TTree.h"
@@ -160,9 +161,9 @@ namespace larcv {
     // auto tag_img_thru_v = (EventImage2D*) mgr.get_data(kProductImage2D,"thrumutags");
     // auto tag_img_stop_v = (EventImage2D*) mgr.get_data(kProductImage2D,"stopmutags");
     
-
-    auto track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
-    auto vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
+    auto ev_vertex = (larlite::event_vertex*) _storage.get_data(larlite::data::kVertex,"trackReco");
+    auto ev_track  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco");
+    auto ev_ass    = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco");
 
     _run    = (int) ev_pgraph_v->run();
     _subrun = (int) ev_pgraph_v->subrun();
@@ -289,11 +290,15 @@ namespace larcv {
     tracker.SetTaggedImage(_Tagged_Image);
     tracker.SetTrackInfo(_run, _subrun, _event, 0);
 
-    for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
+    std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
+    ass_vertex_to_track_vv.resize(vertex_v.size());
 
+    for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
       const auto& vtx = vertex_v[ivertex];
       double xyz[3] = {vtx.X(),vtx.Y(),vtx.Z()};
-      vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
+      ev_vertex->push_back(larlite::vertex(xyz,ivertex));
+
+      auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
 
       _vtx_id = (int) ivertex;
       _vtx_x  = (float) vtx.X();
@@ -305,9 +310,11 @@ namespace larcv {
       
       auto recoedVertex = tracker.GetReconstructedVertexTracks();
      
-      for(const auto& itrack : recoedVertex)
-	track_ptr->emplace_back(std::move(itrack));
-     
+      for(const auto& itrack : recoedVertex) {
+	ev_track->emplace_back(std::move(itrack));
+	ass_vertex_to_track_v.push_back(ev_track->size()-1);
+      }
+
       auto Energies_v = tracker.GetEnergies();
       _E_muon_v.resize(Energies_v.size());
       _E_proton_v.resize(Energies_v.size());
@@ -346,10 +353,17 @@ namespace larcv {
       _recoTree->Fill();
       ClearVertex();
     }
+
+    // set the ass
+    ev_ass->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_vv);
+
     _storage.set_id(_run,_subrun,_event);
     _storage.next_event(true);
     
     std::cout << "...Reconstruted..." << std::endl;
+
+     
+
     return true;
   }
 
