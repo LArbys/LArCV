@@ -193,9 +193,10 @@ namespace larcv {
     //
     if (ev_pgraph_v->PGraphArray().empty()) {
       ClearVertex();
+      _storage.set_id(_run,_subrun,_event);
+      _storage.next_event(true);
       return true;
     }
-
 
     static double wireRange = 5000;
     static double tickRange = 8502;
