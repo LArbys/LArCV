@@ -313,11 +313,11 @@ namespace larcv {
 
         TGraph   *gdQdXperPlane[3];
 
-        std::vector<double>               track_dQdX_v;
-        std::vector<double>               _vertexLength;
-        std::vector<double>               _vertexPhi;
-        std::vector<double>               _vertexTheta;
-        std::vector<double>               _closestWall;
+        std::vector<double> track_dQdX_v;
+        std::vector<double> _vertexLength;
+        std::vector<double> _vertexPhi;
+        std::vector<double> _vertexTheta;
+        std::vector<double> _closestWall;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         TGraph2D *gDetector;
