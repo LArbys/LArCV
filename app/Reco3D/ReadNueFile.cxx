@@ -68,6 +68,7 @@ namespace larcv {
     //
     // Reco information
     // 
+    _recoTree->Branch("vtx_id", &_vtx_id, "vtx_id/I");
     _recoTree->Branch("vtx_x" , &_vtx_x , "vtx_x/F");
     _recoTree->Branch("vtx_y" , &_vtx_y , "vtx_y/F");
     _recoTree->Branch("vtx_z" , &_vtx_z , "vtx_z/F");
@@ -307,9 +308,10 @@ namespace larcv {
       double xyz[3] = {vtx.X(),vtx.Y(),vtx.Z()};
       vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
 
-      _vtx_x = (float)vtx.X();
-      _vtx_y = (float)vtx.Y();
-      _vtx_z = (float)vtx.Z();
+      _vtx_id = (int) ivertex;
+      _vtx_x  = (float) vtx.X();
+      _vtx_y  = (float) vtx.Y();
+      _vtx_z  = (float) vtx.Z();
 
       tracker.SetSingleVertex(vtx);
       tracker.ReconstructVertex();
@@ -419,9 +421,10 @@ namespace larcv {
   }
 
   void ReadNueFile::ClearVertex() {
-    _vtx_x = -1.0 * kINVALID_FLOAT;
-    _vtx_y = -1.0 * kINVALID_FLOAT;
-    _vtx_z = -1.0 * kINVALID_FLOAT;
+    _vtx_id = -1.0 * kINVALID_INT;
+    _vtx_x  = -1.0 * kINVALID_FLOAT;
+    _vtx_y  = -1.0 * kINVALID_FLOAT;
+    _vtx_z  = -1.0 * kINVALID_FLOAT;
     _E_muon_v.clear();
     _E_proton_v.clear();
     _Length_v.clear();

@@ -73,6 +73,7 @@ namespace larcv {
     int _jumpingTracks;
     bool _isMC;
 
+    int   _vtx_id;
     float _vtx_x;
     float _vtx_y;
     float _vtx_z;
