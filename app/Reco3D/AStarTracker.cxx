@@ -641,7 +641,6 @@ namespace larcv {
                 }//iPlane
             }//iNode
         }//itrack
-        tellMe("Vertex masked",0);
     }
     //______________________________________________________
     void AStarTracker::ReconstructVertex(){
@@ -803,6 +802,8 @@ namespace larcv {
         //ShaveTracks();
         MaskVertex();
 
+        ComputeClosestWall();
+
         if(_jumpingTracks_v.size()      != 0) _jumpingTracks_v.clear();
         if(_possiblyCrossing_v.size()   != 0) _possiblyCrossing_v.clear();
         if(_tooShortDeadWire_v.size()   != 0) _tooShortDeadWire_v.clear();
@@ -831,39 +832,17 @@ namespace larcv {
         }
 
         // Find if tracks are back to back at the vertex point
-        int NtracksAtVertex = 0;
-        int NpointAveragedOn = 0;
-        std::vector<TVector3> AvPt_v;
+        std::vector<std::vector<double> > Angle_v = GetVertexAngle(15);
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
-            if(_vertexTracks[itrack][0] == start_pt){
-                NtracksAtVertex++;
-                TVector3 AvPt;
-                NpointAveragedOn = 0;
-                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
-                    if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < 50 ){
-                        AvPt+=(_vertexTracks[itrack][iNode]-start_pt);
-                        NpointAveragedOn++;
-                    }
-                }
-                if(NpointAveragedOn!=0){AvPt*=1./NpointAveragedOn;}
-                AvPt_v.push_back(AvPt+start_pt);
-            }
-        }
-        _possibleCosmic = false;
-        if(AvPt_v.size() >= 2){
-            for(size_t iPt = 0;iPt<AvPt_v.size();iPt++){
-                for(size_t jPt = 0;jPt<AvPt_v.size();jPt++){
-                    if(jPt==iPt)continue;
-                    double thisAngle = (AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt)*180/3.1415;
-                    if(thisAngle > 170){_possibleCosmic = true;}
-                }
+            for(size_t jtrack = 0;jtrack<_vertexTracks.size();jtrack++){
+                if(Angle_v[itrack][jtrack] > 170)_possibleCosmic=true;
             }
         }
 
 
 
         // look for vertex with more than 2 tracks at the vertex point
-        NtracksAtVertex=0;
+        int NtracksAtVertex=0;
         _tooManyTracksAtVertex = false;
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack][0] == start_pt && _vertexLength[itrack] > 5)NtracksAtVertex++;
@@ -962,31 +941,13 @@ namespace larcv {
             }
         }
 
+        //find tracks that approach the edge of the detector too much
+        double FVshell = 2;
+        if(_closestWall[itrack] < FVshell) _possiblyCrossing = true;
+
         if(_jumpingTracks)tellMe("_jumpingTracks",0);
         if(_tooShortDeadWire)tellMe("_tooShortDeadWire",0);
         if(_tooShortFaintTrack)tellMe("_tooShortFaintTrack",0);
-
-
-        //find tracks that approach the edge of the detector too much
-        double FVshell = 10;
-        double detectorLength = 1036.8;//cm
-        double detectorheight = 233;//cm
-        double detectorwidth  = 256.35;//cm
-        double Ymindet = -0.5*detectorheight+FVshell;
-        double Ymaxdet = 0.5*detectorheight-FVshell;
-        double Xmindet = 0+FVshell;
-        double Xmaxdet = detectorwidth-FVshell;
-        double Zmindet = 0+FVshell;
-        double Zmaxdet = detectorLength-FVshell;
-        for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
-            if(   _vertexTracks[itrack][iNode].Y() > Ymaxdet // top-piercing
-               || _vertexTracks[itrack][iNode].Y() < Ymindet // bottom-piercing
-               || _vertexTracks[itrack][iNode].X() < Xmindet // anode/cathode piercing  => remove this because no flash-matching yet
-               || _vertexTracks[itrack][iNode].X() > Xmaxdet // anode/cathode piercing  => remove this because no flash-matching yet
-               || _vertexTracks[itrack][iNode].Z() < Zmindet // front-piercing
-               || _vertexTracks[itrack][iNode].Z() > Zmaxdet // back-piercing
-               ) _possiblyCrossing = true;
-        }
         if(_possiblyCrossing)tellMe("Leaving Fiducial Volume",0);
 
 
@@ -2470,13 +2431,14 @@ namespace larcv {
         return VertexLengths;
     }
     //______________________________________________________
-    std::vector<double> GetClosestWall(){
-        if(_closestWall.size()!=_vertexTracks.size()) ComputeClosestWall;
+    std::vector<double> AStarTracker::GetClosestWall(){
+        if(_closestWall.size() != _vertexTracks.size()) ComputeClosestWall();
         return _closestWall;
+
     }
     //______________________________________________________
-    void ComputeClosestWall(){
-        if(_closestWall.size()==_vertexTracks.size()) return;
+    void AStarTracker::ComputeClosestWall(){
+        if(_closestWall.size() ==_vertexTracks.size()) return;
         if(_closestWall.size()!=0)_closestWall.clear();
 
         //find tracks that approach the edge of the detector too much
