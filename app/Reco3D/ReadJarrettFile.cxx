@@ -58,11 +58,11 @@ namespace larcv {
     void ReadJarrettFile::configure(const PSet& cfg)
     {
         _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
+        _isMC                      = cfg.get<bool>("IsMC");
     }
 
     void ReadJarrettFile::initialize()
     {
-        _isMC = false;
         LARCV_INFO() << "[ReadJarrettFile]" << std::endl;
         //SetSplineLocation("Proton_Muon_Range_dEdx_LAr_TSplines.root");
         assert(!_spline_file.empty());
