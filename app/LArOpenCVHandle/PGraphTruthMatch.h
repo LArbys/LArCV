@@ -17,7 +17,6 @@ namespace larcv {
     void finalize();
 
   private:
-
     TTree* _tree;
     
     std::string _adc_img2d_prod;
@@ -31,16 +30,26 @@ namespace larcv {
     int _entry; 
 
     int _vtxid;
-    int _vtx_on_nu;
-    std::vector<int> _vtx_on_nu_v;
-
-    std::vector<std::vector<int> > _par_id_vv;
-    std::vector<int> _par_npx_v;
 
     float _vtx_x;
     float _vtx_y;
     float _vtx_z;
 
+    int _vtx_on_nu;
+
+    std::vector<float> _unknownfrac_v;
+    std::vector<float> _electronfrac_v;
+    std::vector<float> _gammafrac_v;
+    std::vector<float> _pizerofrac_v;
+    std::vector<float> _muonfrac_v;
+    std::vector<float> _kminusfrac_v;
+    std::vector<float> _piminusfrac_v;
+    std::vector<float> _protonfrac_v;
+
+    std::vector<int> _vtx_on_nu_v;
+    std::vector<int> _par_npx_v;
+    std::vector<int> _par_id_v;
+    std::vector<std::vector<int> > _par_id_vv;
 
     void ClearVertex();
 

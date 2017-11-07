@@ -43,32 +43,47 @@ namespace larcv {
     _tree->Branch("vtx_on_nu"   , &_vtx_on_nu, "vtx_on_nu/I");
     _tree->Branch("vtx_on_nu_v" , &_vtx_on_nu_v);
 
-    _tree->Branch("par_id_vv", &_par_id_vv);
+
+    _tree->Branch("unknownfrac_v" , &_unknownfrac_v);
+    _tree->Branch("electronfrac_v", &_electronfrac_v);
+    _tree->Branch("gammafrac_v"   , &_gammafrac_v);
+    _tree->Branch("pizerofrac_v"  , &_pizerofrac_v);
+    _tree->Branch("muonfrac_v"    , &_muonfrac_v);
+    _tree->Branch("kminusfrac_v"  , &_kminusfrac_v);
+    _tree->Branch("piminusfrac_v" , &_piminusfrac_v);
+    _tree->Branch("protonfrac_v"  , &_protonfrac_v);
+
     _tree->Branch("par_npx_v", &_par_npx_v);
+    _tree->Branch("par_id_v" , &_par_id_v);
+    _tree->Branch("par_id_vv", &_par_id_vv);
+
     LARCV_DEBUG() << "end" << std::endl;
   }
   
   bool PGraphTruthMatch::process(IOManager& mgr)
   {
 
-    LARCV_DEBUG() << "start" << std::endl;
-    LARCV_DEBUG() << "@entry=" << mgr.current_entry() << std::endl;
-    _entry = mgr.current_entry();
     auto ev_adc_img     = (EventImage2D*) mgr.get_data(kProductImage2D , _adc_img2d_prod);
 
     _run    = (int)ev_adc_img->run();
     _subrun = (int)ev_adc_img->subrun();
     _event  = (int)ev_adc_img->event();
+    _entry  = (int)mgr.current_entry();
 
+    if (_true_img2d_prod.empty()) {
+      _tree->Fill();
+      return true;
+    }
+    
     auto ev_seg_img     = (EventImage2D*) mgr.get_data(kProductImage2D , _true_img2d_prod);
     auto ev_reco_pgraph = (EventPGraph*)  mgr.get_data(kProductPGraph  , _reco_pgraph_prod);
     auto ev_reco_pix    = (EventPixel2D*) mgr.get_data(kProductPixel2D , _reco_pixel_prod);
 
-    const auto& adc_img_v      = ev_adc_img->Image2DArray();
-    const auto& seg_img_v      = ev_seg_img->Image2DArray();
-    const auto& pgraph_v       = ev_reco_pgraph->PGraphArray();
-    const auto& pix_m          = ev_reco_pix->Pixel2DClusterArray();
-    const auto& pix_meta_m     = ev_reco_pix->ClusterMetaArray();
+    const auto& adc_img_v   = ev_adc_img->Image2DArray();
+    const auto& seg_img_v   = ev_seg_img->Image2DArray();
+    const auto& pgraph_v    = ev_reco_pgraph->PGraphArray();
+    const auto& pix_m       = ev_reco_pix->Pixel2DClusterArray();
+    const auto& pix_meta_m  = ev_reco_pix->ClusterMetaArray();
 
     LARCV_DEBUG() << "GOT: " << pgraph_v.size() << " vertices" << std::endl;
     for(size_t pgraph_id = 0; pgraph_id < pgraph_v.size(); ++pgraph_id) {    
@@ -116,6 +131,7 @@ namespace larcv {
 	float pixel_type = 0.0;
 	pixel_type += plane_img.pixel(yy,xx);
 
+	// check a ``box" around this projected location
 	int yp1 = yy+1;
 	int xp1 = xx+1;
 
@@ -155,11 +171,22 @@ namespace larcv {
       // particle enclose which NU daughters?
       //
 
-      _par_id_vv.resize(roi_v.size());
-      _par_npx_v.resize(roi_v.size(),0);
-      LARCV_DEBUG() << "GOT: " << roi_v.size() << " particles" << std::endl;
+      auto npars = roi_v.size();
+      _unknownfrac_v.resize(npars);
+      _electronfrac_v.resize(npars);
+      _gammafrac_v.resize(npars);
+      _pizerofrac_v.resize(npars);
+      _muonfrac_v.resize(npars);
+      _kminusfrac_v.resize(npars);
+      _piminusfrac_v.resize(npars);
+      _protonfrac_v.resize(npars);
 
-      for(size_t roid=0; roid < roi_v.size(); ++roid) {
+      _par_id_v.resize(npars);
+      _par_id_vv.resize(npars);
+      _par_npx_v.resize(npars,0);
+      LARCV_DEBUG() << "GOT: " << npars << " particles" << std::endl;
+
+      for(size_t roid=0; roid < npars; ++roid) {
 	
 	std::vector<int> pixel_type_v(((int)larcv::kROITypeMax)+1,0);
 
@@ -200,8 +227,42 @@ namespace larcv {
       for(auto px_count : pixel_type_v) 
 	npixels += px_count;
 
-      _par_id_vv[roid] = std::move(pixel_type_v);
       _par_npx_v[roid] = npixels;
+
+      auto res_iter = std::max_element(std::begin(pixel_type_v), std::end(pixel_type_v));
+      auto res_loc  = std::distance(std::begin(pixel_type_v), res_iter);
+      _par_id_v[roid] = res_loc;
+
+      auto& unknownfrac  = _unknownfrac_v[roid];
+      auto& electronfrac = _electronfrac_v[roid];
+      auto& gammafrac    = _gammafrac_v[roid];
+      auto& pizerofrac   = _pizerofrac_v[roid];
+      auto& muonfrac     = _muonfrac_v[roid];
+      auto& kminusfrac   = _kminusfrac_v[roid];
+      auto& piminusfrac  = _piminusfrac_v[roid];
+      auto& protonfrac   = _protonfrac_v[roid];
+
+      unknownfrac  = 0.0;
+      electronfrac = 0.0;
+      gammafrac    = 0.0;
+      pizerofrac   = 0.0;
+      muonfrac     = 0.0;
+      kminusfrac   = 0.0;
+      piminusfrac  = 0.0;
+      protonfrac   = 0.0;
+      
+      if (npixels) {
+	unknownfrac  = (float) pixel_type_v.at(0) / (float) npixels;
+	electronfrac = (float) pixel_type_v.at(3) / (float) npixels;
+	gammafrac    = (float) pixel_type_v.at(4) / (float) npixels;
+	pizerofrac   = (float) pixel_type_v.at(5) / (float) npixels;
+	muonfrac     = (float) pixel_type_v.at(6) / (float) npixels;
+	kminusfrac   = (float) pixel_type_v.at(7) / (float) npixels;
+	piminusfrac  = (float) pixel_type_v.at(8) / (float) npixels;
+	protonfrac   = (float) pixel_type_v.at(9) / (float) npixels;
+      }
+
+      _par_id_vv[roid] = std::move(pixel_type_v);
 
       } // end this particle
       LARCV_DEBUG() << "... next" << std::endl;
@@ -219,18 +280,28 @@ namespace larcv {
   }
   
   void PGraphTruthMatch::ClearVertex() {
+    _vtx_x = -1.0*kINVALID_FLOAT;
+    _vtx_y = -1.0*kINVALID_FLOAT;
+    _vtx_z = -1.0*kINVALID_FLOAT;
 
-    _vtx_x = kINVALID_FLOAT;
-    _vtx_y = kINVALID_FLOAT;
-    _vtx_z = kINVALID_FLOAT;
-
-    _vtxid     = kINVALID_INT;
-    _vtx_on_nu = kINVALID_INT;
+    _vtxid     = -1.0*kINVALID_INT;
+    _vtx_on_nu = -1.0*kINVALID_INT;
 
     _vtx_on_nu_v.clear();
 
+    _par_id_v.clear();
     _par_id_vv.clear();
     _par_npx_v.clear();
+    
+    _unknownfrac_v.clear();  
+    _electronfrac_v.clear(); 
+    _gammafrac_v.clear();    
+    _pizerofrac_v.clear();   
+    _muonfrac_v.clear();     
+    _kminusfrac_v.clear();   
+    _piminusfrac_v.clear();  
+    _protonfrac_v.clear();   
+
   }
 
 
