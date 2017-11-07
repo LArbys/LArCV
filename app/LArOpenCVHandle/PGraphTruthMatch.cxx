@@ -111,7 +111,7 @@ namespace larcv {
 	int xx = (int) (xpixel+0.5);
 	int yy = (int) (ypixel+0.5);
 
-	yy = nrows - yy;
+	yy = nrows - yy - 1;
 
 	float pixel_type = 0.0;
 	pixel_type += plane_img.pixel(yy,xx);

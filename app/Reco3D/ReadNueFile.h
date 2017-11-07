@@ -25,7 +25,9 @@ namespace larcv {
     void ClearVertex();
     void FillMC(const std::vector<ROI>& mc_roi_v);
 
-  private :
+  private:
+    
+    void advance_larlite();
 
     std::string _foutll;
     int iTrack;

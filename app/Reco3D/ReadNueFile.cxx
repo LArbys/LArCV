@@ -193,8 +193,7 @@ namespace larcv {
     //
     if (ev_pgraph_v->PGraphArray().empty()) {
       ClearVertex();
-      _storage.set_id(_run,_subrun,_event);
-      _storage.next_event(true);
+      advance_larlite();
       return true;
     }
 
@@ -237,7 +236,7 @@ namespace larcv {
       auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
       auto const& roi_v         = pgraph.ParticleArray();
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
-
+      
       //
       // Get Estimated 3D Start and End Points
       vertex_v.emplace_back(pgraph.ParticleArray().front().X(),
@@ -310,10 +309,12 @@ namespace larcv {
       tracker.ReconstructVertex();
       
       auto recoedVertex = tracker.GetReconstructedVertexTracks();
-     
-      for(const auto& itrack : recoedVertex) {
-	ev_track->emplace_back(std::move(itrack));
-	ass_vertex_to_track_v.push_back(ev_track->size()-1);
+      
+      LARCV_INFO() << "found " << recoedVertex.size() << " tracks" << std::endl;
+
+      for(auto& itrack : recoedVertex) {
+	ass_vertex_to_track_v.push_back(ev_track->size());
+	ev_track->push_back(itrack);
       }
 
       auto Energies_v = tracker.GetEnergies();
@@ -358,13 +359,8 @@ namespace larcv {
     // set the ass
     ev_ass->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_vv);
 
-    _storage.set_id(_run,_subrun,_event);
-    _storage.next_event(true);
+    advance_larlite();
     
-    std::cout << "...Reconstruted..." << std::endl;
-
-     
-
     return true;
   }
 
@@ -495,6 +491,13 @@ namespace larcv {
     return;
   } // end mc
 
+  void ReadNueFile::advance_larlite() {
+    _storage.set_id(_run,_subrun,_event);
+    _storage.next_event(true);
+  }
+
 
 }
 #endif
+
+
