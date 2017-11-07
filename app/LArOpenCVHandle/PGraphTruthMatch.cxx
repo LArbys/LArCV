@@ -62,7 +62,7 @@ namespace larcv {
   
   bool PGraphTruthMatch::process(IOManager& mgr)
   {
-
+    ClearVertex();
     auto ev_adc_img     = (EventImage2D*) mgr.get_data(kProductImage2D , _adc_img2d_prod);
 
     _run    = (int)ev_adc_img->run();

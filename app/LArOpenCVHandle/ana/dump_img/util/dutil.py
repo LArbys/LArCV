@@ -33,8 +33,8 @@ def segment_image(ext_proc,pygeo,cosmicid=0):
         tmuimg = pygeo.image(thrumuimg)
         smuimg = pygeo.image(stopmuimg)
     
-        smuimg = np.where(smuimg>0.0,0.0,1.0)
-        tmuimg = np.where(tmuimg>0.0,0.0,1.0)
+        smuimg = np.where(smuimg>0.0,-1.0,1.0)
+        tmuimg = np.where(tmuimg>0.0,-1.0,1.0)
 
         if cosmicid == 1:
             img_v[plane] *= tmuimg
