@@ -35,6 +35,7 @@ int main(int nargs, char** argv){
 
     proc.initialize();
     proc.batch_process(0);
+    std::cout << "RUN 3D RECO : about to finalize" << std::endl;
     proc.finalize();
 
     std::cout << "**********************" << std::endl;

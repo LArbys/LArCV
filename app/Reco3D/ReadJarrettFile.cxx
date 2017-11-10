@@ -76,7 +76,7 @@ namespace larcv {
         NgoodReco=0;
 
         std::string filename;
-        //if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
+        if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
         //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
@@ -194,6 +194,7 @@ namespace larcv {
 
         EventROI *ev_partroi_v = 0;
         std::vector<larcv::ROI> mc_roi_v;
+        std::vector<TVector3> MCVertices;
         //____________________
         // get MC vertex info
         //--------------------
@@ -230,7 +231,7 @@ namespace larcv {
                     ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
                 }
             }
-            std::vector<TVector3> MCVertices;
+
             std::vector<TVector3> MCEndPoint;
             bool isVertex = false;
             bool isNumu = false;
@@ -307,7 +308,7 @@ namespace larcv {
         }
 
         //vertex_v = GetJarretVertex(run, subrun, event);// for BNBEXT
-
+        vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         if(vertex_v.size()!=0){
             for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
@@ -315,7 +316,7 @@ namespace larcv {
                 vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
                 tracker.SetSingleVertex(vertex_v[ivertex]);
                 tracker.ReconstructVertex();
-                tracker.DrawVertex();
+                //tracker.DrawVertex();
                 larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
                 *(track_ptr) = recoedVertex;
                 if(_isMC)MCevaluation();
@@ -538,6 +539,23 @@ namespace larcv {
         std::cout << "wrote _recoTree" << std::endl;
         _storage.close();
         std::cout << "finalized storage" << std::endl;
+
+        hEcomp->Delete();
+        hEcomp_p->Delete();
+        hEcomp_m->Delete();
+        hEcompdQdx->Delete();
+        hEcomp1D->Delete();
+        hEcomp1D_m->Delete();
+        hEcomp1D_p->Delete();
+        hIonvsLength->Delete();
+        hAverageIonization->Delete();
+        hEnuReco->Delete();
+        hEnuTh->Delete();
+        hEnuComp->Delete();
+        hEnuComp1D->Delete();
+        hEnuvsPM_th->Delete();
+        hPM_th_Reco_1D->Delete();
+        hPM_th_Reco->Delete();
     }
     
     void ReadJarrettFile::SetSplineLocation(const std::string& fpath) {

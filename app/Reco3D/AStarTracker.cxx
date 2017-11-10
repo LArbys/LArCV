@@ -673,7 +673,7 @@ namespace larcv {
             _vertexEndPoints.push_back(end_pt);
             _vertexTracks.push_back(_3DTrack);
             ComputeLength();
-            ComputeNewdQdX();
+            //ComputeNewdQdX();
 	    if (_DrawOutputs){
 	      hLength->Fill(_Length3D);
 	    }
@@ -700,6 +700,7 @@ namespace larcv {
         if(_vertexLength.size()   !=0)_vertexLength.clear();
         if(_vertexQDQX.size()     !=0)_vertexQDQX.clear();
         if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
+        if(_vertex_dQdX_v.size()  !=0)_vertex_dQdX_v.clear();
         _vertexEndPoints.push_back(start_pt);
 
         // look for tracks that start from the vertex
@@ -739,7 +740,7 @@ namespace larcv {
         DiagnoseVertex();
         MakeVertexTrack();
         if (_DrawOutputs) DrawVertex();
-        std::cout << "vertex drawn" << std::endl;
+        //std::cout << "vertex drawn" << std::endl;
     }
     //______________________________________________________
     void AStarTracker::CleanUpVertex(){
@@ -1249,18 +1250,18 @@ namespace larcv {
             }
             if(NplanesOK!=0){dQdxtot*=3/NplanesOK;}
             nodedQdxtot.push_back(dQdxtot);
-	    if (_DrawOutputs) {
-	      hdQdx->Fill(dQdxtot/_Length3D);
-	      hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
-	    }
+            if (_DrawOutputs) {
+                hdQdx->Fill(dQdxtot/_Length3D);
+                hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
+            }
         }
         _vertexQDQX.push_back(nodedQdxtot);
     }
     //______________________________________________________
     void AStarTracker::ComputeNewdQdX(){
-        tellMe("ComputeNewdQdX()",1);
+        tellMe("ComputeNewdQdX()",0);
         if(_3DTrack.size() == 0){tellMe("ERROR no track found",0);return;}
-        double shellPix=5;
+        double shellPix=2;
         if(dQdXperPlane_v.size()!=0)dQdXperPlane_v.clear();
         if(track_dQdX_v.size()  !=0)track_dQdX_v.clear();
         //dQdXperPlane_v.reserve(3);
@@ -1284,8 +1285,8 @@ namespace larcv {
                     if(irow < y_proj-20 || irow > y_proj+20)continue;
                     for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                         if(icol<x_proj-20 || icol>x_proj+20)continue;
-                        if(sqrt( pow(irow-y_proj,2)+pow(icol-x_proj,2) ) < shellPix){
-                            if(hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue && hit_image_v[iPlane].pixel(irow,icol)!=0){
+                        if(sqrt( pow(irow+0.5-y_proj,2)+pow(icol+0.5-x_proj,2) ) < shellPix){
+                            if(hit_image_v[iPlane].pixel(irow,icol) > _deadWireValue+0.5){
                                 Npx++;
                                 dQdx_per_plane+= hit_image_v[iPlane].pixel(irow,icol);
                                 
@@ -1294,8 +1295,10 @@ namespace larcv {
                     }
                 }
                 gdQdXperPlane[iPlane]->SetPoint(iNode,ComputeLength(iNode),dQdx_per_plane);
-                dQdXOnePlane_v.push_back(dQdx_per_plane);
+                if(Npx!=0)dQdXOnePlane_v.push_back(dQdx_per_plane/Npx);
+                else dQdXOnePlane_v.push_back(dQdx_per_plane);
             }
+            _thisLarliteTrack.add_dqdx(dQdXOnePlane_v);
             dQdXperPlane_v.push_back(dQdXOnePlane_v);
         }
         for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
@@ -1305,6 +1308,7 @@ namespace larcv {
             }
             track_dQdX_v.push_back(thisdqdx);
         }
+        _vertex_dQdX_v.push_back(track_dQdX_v);
 
     }
     //______________________________________________________
@@ -2403,15 +2407,17 @@ namespace larcv {
     }
     //______________________________________________________
     std::vector<double> AStarTracker::GetAverageIonization(){
+        tellMe("GetAverageIonization()",0);
+        if(_vertex_dQdX_v.size()!=_vertexTracks.size()){_vertex_dQdX_v.clear();ComputeNewdQdX();}
         std::vector<double> averageIonizatioPerTrack(_vertexTracks.size(),0);
         for(size_t itrack = 0;itrack< _vertexTracks.size();itrack++){
             _3DTrack = _vertexTracks[itrack];
-            ComputeNewdQdX();
+            //ComputeNewdQdX();
             double AvIon = 0;
-            //averageIonizatioPerTrack[itrack] = AvIon;
-            if(track_dQdX_v.size()==0)continue;
-            for(size_t iNode = 0;iNode<track_dQdX_v.size();iNode++){
-                AvIon+=track_dQdX_v[iNode]/track_dQdX_v.size();
+            averageIonizatioPerTrack[itrack] = AvIon;
+            if(_vertex_dQdX_v[itrack].size()==0)continue;
+            for(size_t iNode = 0;iNode<_vertex_dQdX_v[itrack].size();iNode++){
+                AvIon+=_vertex_dQdX_v[itrack][iNode]/_vertex_dQdX_v[itrack].size();
             }
             averageIonizatioPerTrack[itrack] = AvIon;
         }
@@ -3008,6 +3014,7 @@ namespace larcv {
     void AStarTracker::MakeTrack(){
         tellMe("MakeTrack()",0);
         _thisLarliteTrack.clear_data();
+        ComputeNewdQdX();
         for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             _thisLarliteTrack.add_vertex(_3DTrack[iNode]);
         }

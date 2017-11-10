@@ -321,6 +321,7 @@ namespace larcv {
         std::vector<double> _closestWall;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
+        std::vector<std::vector<double> > _vertex_dQdX_v;
         TGraph2D *gDetector;
         TGraph2D *gWorld;
 
