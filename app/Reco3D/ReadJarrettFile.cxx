@@ -76,12 +76,12 @@ namespace larcv {
         NgoodReco=0;
 
         std::string filename;
-        if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
+        //if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
         //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
         _filename = filename;
-        if(_isMC)ReadVertexFile(filename);// when using runall.sh
+        //if(_isMC)ReadVertexFile(filename);// when using runall.sh
         //ReadVertexFile(filename);// when running on extBNB numu
 
 
@@ -170,7 +170,7 @@ namespace larcv {
         larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
 
         if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
-        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
+        //if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
         auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
@@ -299,7 +299,7 @@ namespace larcv {
 
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {// comment when running on EXTBNB
 
-            if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
+            //if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
             //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
             auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
@@ -310,7 +310,7 @@ namespace larcv {
         }
 
         //vertex_v = GetJarretVertex(run, subrun, event);// for BNBEXT
-        vertex_v = MCVertices;
+        //vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         if(vertex_v.size()!=0){
             for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
@@ -323,7 +323,7 @@ namespace larcv {
                 *(track_ptr) = recoedVertex;
                 if(_isMC)MCevaluation();
                 std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-		_vtx_id      = (int) ivertex;
+                _vtx_id      = (int) ivertex;
                 _Length_v    = tracker.GetVertexLength();
                 _vertexPhi   = tracker.GetVertexPhi();
                 _vertexTheta = tracker.GetVertexTheta();
