@@ -1170,7 +1170,7 @@ namespace larcv {
         tellMe("ComputedQdX()",0);
         if(_3DTrack.size() == 0){tellMe("ERROR, run the 3D reconstruction first",0);return;}
         if(_dQdx.size() != 0)_dQdx.clear();
-        double Npx = 5;
+        double Npx = 10;
         double dist,xp,yp,alpha;
         for(size_t iNode = 0;iNode<_3DTrack.size()-1;iNode++){
             std::vector<double> node_dQdx(3);
@@ -1261,7 +1261,7 @@ namespace larcv {
     void AStarTracker::ComputeNewdQdX(){
         tellMe("ComputeNewdQdX()",0);
         if(_3DTrack.size() == 0){tellMe("ERROR no track found",0);return;}
-        double shellPix=2;
+        double shellPix=3;
         if(dQdXperPlane_v.size()!=0)dQdXperPlane_v.clear();
         if(track_dQdX_v.size()  !=0)track_dQdX_v.clear();
         //dQdXperPlane_v.reserve(3);
