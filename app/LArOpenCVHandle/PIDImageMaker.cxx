@@ -13,19 +13,19 @@ namespace larcv {
     
   void PIDImageMaker::configure(const PSet& cfg)
   {
-
-    _roi_input_producer = cfg.get<std::string>("ROIInputProducer");
+    _roi_input_producer     = cfg.get<std::string>("ROIInputProducer");
     _p0_roi_output_producer = cfg.get<std::string>("P0ROIOutputProducer");
     _p1_roi_output_producer = cfg.get<std::string>("P1ROIOutputProducer");
-    _pgraph_producer = cfg.get<std::string>("RecoPGraphProducer");
-    _pixel2d_ctor_producer = cfg.get<std::string>("Pixel2DContourProducer");
-    _pixel2d_img_producer = cfg.get<std::string>("Pixel2DImageProducer");
-    
-    _p0_image_producer = cfg.get<std::string>("P0OutImageProducer");
-    _p1_image_producer = cfg.get<std::string>("P1OutImageProducer");
+    _pgraph_producer        = cfg.get<std::string>("RecoPGraphProducer");
+    _pixel2d_ctor_producer  = cfg.get<std::string>("Pixel2DContourProducer");
+    _pixel2d_img_producer   = cfg.get<std::string>("Pixel2DImageProducer");
+    _p0_image_producer      = cfg.get<std::string>("P0OutImageProducer");
+    _p1_image_producer      = cfg.get<std::string>("P1OutImageProducer");
+    _multi_image_producer   = cfg.get<std::string>("MultiOutImageProducer");
+    _outimage_dim           = cfg.get<std::pair<int, int>>("OutputImageDim");
     
     _LArbysImageMaker.Configure(cfg.get<larcv::PSet>("LArbysImageMaker"));
-	
+      
     _nevents = 0;
     _nevents_passing_nueLL = 0;
   }
@@ -44,6 +44,7 @@ namespace larcv {
     
     auto event_p0_image      = (EventImage2D*)(mgr.get_data(kProductImage2D,_p0_image_producer));  
     auto event_p1_image      = (EventImage2D*)(mgr.get_data(kProductImage2D,_p1_image_producer));  
+    auto event_multi_image   = (EventImage2D*)(mgr.get_data(kProductImage2D,_multi_image_producer));  
     auto event_p0_roi        = (EventROI*)(mgr.get_data(kProductROI, _p0_roi_output_producer));
     auto event_p1_roi        = (EventROI*)(mgr.get_data(kProductROI, _p1_roi_output_producer));
 
@@ -54,7 +55,19 @@ namespace larcv {
 
     _alg_mgr.SetRSEE(run,subrun,event,entry);
     
-    //auto ev_pgraph = event_pgraph->PGraphArray();
+    auto pgraph_v = event_pgraph->PGraphArray();
+    if(pgraph_v.size()){
+      ROI croi = pgraph_v[0].ParticleArray().front();
+      std::vector<Image2D> p01_croi_img;
+      CROIImgFiller(croi, p01_croi_img);
+    }
+    
+    
+    
+    if(pgraph_v.size()>1)
+      std::cout<<"size of pgraph_v"<<pgraph_v.size()<<std::endl;
+    //ROI croi = event_pgraph->ParticleArray();
+    	
     //auto ev_ctor_meta_array = event_ctor_pixel2d->MetaArray();
     //auto ev_roi              = event_roi->ROIArray();
     
@@ -67,6 +80,8 @@ namespace larcv {
     p0_img_v.clear();
     std::vector<Image2D> p1_img_v;
     p1_img_v.clear();
+    std::vector<Image2D> p01_img_v;
+    p01_img_v.clear();
 
     if (ev_pcluster_array.size() == 3) {
     
@@ -76,9 +91,11 @@ namespace larcv {
       event_p1_roi->clear();
       event_p1_roi->Append(proi);
       
-      RecoImgFiller(ev_pcluster_array, p0_img_v, p1_img_v);
-      for(auto each : p0_img_v) event_p0_image->Append(each);
-      for(auto each : p1_img_v) event_p1_image->Append(each);
+      SPIDRecoImgFiller(ev_pcluster_array, p0_img_v, p1_img_v);
+      MPIDRecoImgFiller(ev_pcluster_array, p01_img_v);
+      for(auto each : p0_img_v ) event_p0_image->Append(each);
+      for(auto each : p1_img_v ) event_p1_image->Append(each);
+      for(auto each : p01_img_v) event_multi_image->Append(each);
 
       return true;
     }else return false;
@@ -107,9 +124,10 @@ namespace larcv {
     std::cout<<"========>>>>>>passing NueLL events : "<<_nevents_passing_nueLL<<std::endl;
   }
 
-  void PIDImageMaker::RecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
-				    std::vector<larcv::Image2D>& p0_img_v,
-				    std::vector<larcv::Image2D>& p1_img_v){
+  void PIDImageMaker::SPIDRecoImgFiller(std::map<larcv::PlaneID_t, 
+					std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
+					std::vector<larcv::Image2D>& p0_img_v,
+					std::vector<larcv::Image2D>& p1_img_v){
     
     _nevents_passing_nueLL++;
 
@@ -118,20 +136,21 @@ namespace larcv {
       auto pcluster_v = ev_pcluster_array[plane];
 
       if (pcluster_v.size()!=2) {
-	LARCV_CRITICAL()<<"Not 2 particles on plane on"<<plane<<std::endl;
-	Image2D img(576,576);
-	img.resize(576,576, 0.0);
+	//Need improve
+	//LARCV_CRITICAL()<<"Not 2 particles on plane "<<plane<<std::endl;
+	Image2D img(_outimage_dim.first,_outimage_dim.second);
+	img.resize(_outimage_dim.first,_outimage_dim.second, 0.0);
 	
 	p0_img_v.emplace_back(std::move(img));
 	p1_img_v.emplace_back(std::move(img));
 	continue;
       }
-      
+            
       for (size_t pid = 0; pid < 2; ++pid ){
 	auto pcluster = pcluster_v[pid];
-	Image2D img(576,576);
+	Image2D img(_outimage_dim.first,_outimage_dim.second);
 	if (!pcluster.size()) {
-	  img.resize(576, 576, 0.0);
+	  img.resize(_outimage_dim.first,_outimage_dim.second, 0.0);
 	}
 	else{
 	  LARCV_DEBUG()<<"max_x "<<pcluster.max_x()
@@ -150,8 +169,8 @@ namespace larcv {
 	  for (auto pixel: pcluster) {
 	    //LARCV_DEBUG()<<"raw x "<<pixel.X()<<" raw y "<<pixel.Y()<<std::endl;
 	    //LARCV_DEBUG()<<"cal x "<<pixel.X() - pcluster.min_x()<<"cal y "<<pixel.Y() - pcluster.min_y()<<std::endl;
-	    if(pixel.X() - pcluster.min_x() > 575 ||
-	       pixel.Y() - pcluster.min_y() > 575) continue;
+	    if(pixel.X() - pcluster.min_x() > (_outimage_dim.first  -1) ||
+	       pixel.Y() - pcluster.min_y() > (_outimage_dim.second -1)) continue;
 	    
 	    img.set_pixel(pixel.X() - pcluster.min_x(), 
 			  pixel.Y() - pcluster.min_y(),
@@ -160,23 +179,87 @@ namespace larcv {
 	    //if(plane==2)std::cout<<pixel.X() - pcluster.min_x()<<", "<<pixel.Y() - pcluster.min_y()<<", "<<pixel.Intensity()<<std::endl;
 	  }
 	}
-
 	if (pid == 0 ) p0_img_v.emplace_back(std::move(img));
 	if (pid == 1 ) p1_img_v.emplace_back(std::move(img));
       }
     }
+  }
+
+  void PIDImageMaker::MPIDRecoImgFiller(std::map<larcv::PlaneID_t, 
+					std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
+					std::vector<larcv::Image2D>& p01_img_v){
+    
+    _nevents_passing_nueLL++;
+    
+    for (size_t plane = 0; plane< 3; ++plane){
+      
+      auto pcluster_v = ev_pcluster_array[plane];
+      //IF there are not exaxtly 2 particles reconstructed
+
+      // Here needs upates!
+      if ( pcluster_v.size()!=2  || !(pcluster_v[0].size() * pcluster_v[1].size())) {
+	//Need improve
+	//LARCV_CRITICAL()<<"Not 2 particles on plane on"<<plane<<std::endl;
+	Image2D img(_outimage_dim.first,_outimage_dim.second);
+	img.resize(_outimage_dim.first,_outimage_dim.second, 0.0);
+	
+	p01_img_v.emplace_back(std::move(img));
+	continue;
+      }
+      
+      //IF there are 2 particles reconstructed
+      Image2D img(_outimage_dim.first,_outimage_dim.second);
+      img.resize(_outimage_dim.first,_outimage_dim.second, 0.0);
+     
+      //if(!(pcluster_v[0].size() * pcluster_v[1].size())) continue;
+
+      int max_x = (pcluster_v[0].max_x() > pcluster_v[1].max_x() ? pcluster_v[0].max_x() : pcluster_v[1].max_x());
+      int min_x = (pcluster_v[0].min_x() < pcluster_v[1].min_x() ? pcluster_v[0].min_x() : pcluster_v[1].min_x());
+      int max_y = (pcluster_v[0].max_y() > pcluster_v[1].max_y() ? pcluster_v[0].max_y() : pcluster_v[1].max_y());
+      int min_y = (pcluster_v[0].min_y() < pcluster_v[1].min_y() ? pcluster_v[0].min_y() : pcluster_v[1].min_y());
+
+      LARCV_DEBUG()<<"created pixel 2d image size is "<<img.size()<<std::endl;
+      for (size_t pid = 0; pid < 2; ++pid ){
+	auto pcluster = pcluster_v[pid];
+	for (auto pixel: pcluster) {
+	  //LARCV_DEBUG()<<"raw x "<<pixel.X()<<" raw y "<<pixel.Y()<<std::endl;
+	  //LARCV_DEBUG()<<"cal x "<<pixel.X() - pcluster.min_x()<<"cal y "<<pixel.Y() - pcluster.min_y()<<std::endl;
+	  if(pixel.X() - min_x > (_outimage_dim.first  -6) ||
+	     pixel.Y() - min_y > (_outimage_dim.second -6)) continue;
+	  
+
+
+	  img.set_pixel(pixel.X() - min_x+5, 
+			pixel.Y() - min_y+5,
+			pixel.Intensity());
+	  
+	}
+      }
+      p01_img_v.emplace_back(std::move(img));
+    }
+    //std::cout<<"p01_img_v has size of "<<p01_img_v.size()<<std::endl;
   }
   
   void PIDImageMaker::VoidImgFiller(std::vector<larcv::Image2D>& p0_img_v,
 				    std::vector<larcv::Image2D>& p1_img_v){
     for (size_t plane = 0; plane< 3; ++plane){
       
-      Image2D img(576,576);
-      img.resize(576,576, 0.0);
+      Image2D img(_outimage_dim.first,_outimage_dim.second);
+      img.resize(_outimage_dim.first,_outimage_dim.second, 0.0);
       
       p0_img_v.emplace_back(std::move(img));
       p1_img_v.emplace_back(std::move(img));
     }
   }
+  
+  void PIDImageMaker::CROIImgFiller(ROI croi, std::vector<larcv::Image2D>& p01_img_v){
+    //croi
+    
+    for(size_t plane =0; plane <=2 ;++plane){
+      ImageMeta this_plane_meta = croi.BB(plane);
+    }
+    
+  }
+  
 }
 #endif

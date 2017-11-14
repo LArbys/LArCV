@@ -1,6 +1,7 @@
 #ifndef __LARCVBASE_PARSER_H__
 #define __LARCVBASE_PARSER_H__
 
+#include <utility>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -49,6 +50,8 @@ namespace larcv {
     template<> std::vector< unsigned long  > FromString< std::vector< unsigned long  > > (const std::string& value );
     /// Parse larcv::PSet configuration file content
     template<> std::vector< bool           > FromString< std::vector< bool           > > (const std::string& value );
+    /// Parse larcv::PSet configuration file content
+    template<> std::pair< int, int > FromString< std::pair< int, int > > (const std::string& value);
     /// Parse larcv::PSet configuration file content
     template <class T> std::string ToString(const T& value)
     { return std::to_string(value); }
