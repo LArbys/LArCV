@@ -15,6 +15,7 @@
 #include "DataFormat/mctrack.h"
 #include "DataFormat/wire.h"
 #include "DataFormat/vertex.h"
+#include "DataFormat/event_ass.h"
 
 // ROOT
 #include "TTree.h"
@@ -45,7 +46,7 @@ namespace larcv {
     _pgraph_producer   = cfg.get<std::string>("PGraphProducer");
     _par_pix_producer  = cfg.get<std::string>("ParPixelProducer");
     _true_roi_producer = cfg.get<std::string>("TrueROIProducer");
-  
+    _mask_shower       = cfg.get<bool>("MaskShower",true);
   }
 
   void ReadNueFile::initialize()
@@ -68,6 +69,11 @@ namespace larcv {
     //
     // Reco information
     // 
+    _recoTree->Branch("vtx_id", &_vtx_id, "vtx_id/I");
+    _recoTree->Branch("vtx_x" , &_vtx_x , "vtx_x/F");
+    _recoTree->Branch("vtx_y" , &_vtx_y , "vtx_y/F");
+    _recoTree->Branch("vtx_z" , &_vtx_z , "vtx_z/F");
+
     _recoTree->Branch("E_muon_v"   , &_E_muon_v);
     _recoTree->Branch("E_proton_v" , &_E_proton_v);
     _recoTree->Branch("Length_v"   , &_Length_v);
@@ -155,9 +161,9 @@ namespace larcv {
     // auto tag_img_thru_v = (EventImage2D*) mgr.get_data(kProductImage2D,"thrumutags");
     // auto tag_img_stop_v = (EventImage2D*) mgr.get_data(kProductImage2D,"stopmutags");
     
-
-    auto track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
-    auto vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
+    auto ev_vertex = (larlite::event_vertex*) _storage.get_data(larlite::data::kVertex,"trackReco");
+    auto ev_track  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco");
+    auto ev_ass    = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco");
 
     _run    = (int) ev_pgraph_v->run();
     _subrun = (int) ev_pgraph_v->subrun();
@@ -186,15 +192,10 @@ namespace larcv {
     // No vertex, continue (but fill)
     //
     if (ev_pgraph_v->PGraphArray().empty()) {
-      _recoTree->Fill();
       ClearVertex();
+      advance_larlite();
       return true;
     }
-
-
-    // loop over found vertices
-    static std::vector<TVector3> vertex_v;
-    vertex_v.clear();
 
     static double wireRange = 5000;
     static double tickRange = 8502;
@@ -221,7 +222,12 @@ namespace larcv {
       //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
     }
 
-
+    //
+    // loop over found vertices
+    //
+    static std::vector<TVector3> vertex_v;
+    vertex_v.clear();
+    vertex_v.reserve(ev_pgraph_v->PGraphArray().size());
 
     for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
 
@@ -230,62 +236,53 @@ namespace larcv {
       auto const& pgraph        = ev_pgraph_v->PGraphArray().at(pgraph_id);
       auto const& roi_v         = pgraph.ParticleArray();
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
-
+      
       //
       // Get Estimated 3D Start and End Points
-      std::vector<TVector3> EndPoints;
-      TVector3 vertex(pgraph.ParticleArray().front().X(),
-		      pgraph.ParticleArray().front().Y(),
-		      pgraph.ParticleArray().front().Z());
-      EndPoints.push_back(vertex);
+      vertex_v.emplace_back(pgraph.ParticleArray().front().X(),
+			    pgraph.ParticleArray().front().Y(),
+			    pgraph.ParticleArray().front().Z());
 
-      bool WrongEndPoint = false;
-      for(size_t iPoint = 0;iPoint<EndPoints.size();iPoint++){
-	if(!tracker.CheckEndPointsInVolume(EndPoints[iPoint]) ) {
-	  LARCV_INFO() << "=============> ERROR! End point " << iPoint << " outside of volume" << std::endl; 
-	  WrongEndPoint = false;
-	}
-      }
-      if(WrongEndPoint) continue;
-      vertex_v.push_back(vertex);
+      if (_mask_shower) {
+	//
+	// mask shower particle pixels 
+	// method : pixels stored via larbys image
+	//
+	for(size_t roid=0; roid < roi_v.size(); ++roid) {
+	  const auto& roi = roi_v[roid];
+	  auto cidx = cluster_idx_v.at(roid);
 
-      //
-      // mask shower particle pixels 
-      // method : pixels stored via larbys image
-      //
-      for(size_t roid=0; roid < roi_v.size(); ++roid) {
-	const auto& roi = roi_v[roid];
-	auto cidx = cluster_idx_v.at(roid);
-
-	if (roi.Shape() == kShapeTrack) continue;
+	  if (roi.Shape() == kShapeTrack) continue;
 	
-	for(size_t plane=0; plane<3; ++plane) {
+	  for(size_t plane=0; plane<3; ++plane) {
 	  
-	  auto iter_pix = pix_m.find(plane);
-	  if(iter_pix == pix_m.end())
-	    continue;
+	    auto iter_pix = pix_m.find(plane);
+	    if(iter_pix == pix_m.end())
+	      continue;
 
-	  auto iter_pix_meta = pix_meta_m.find(plane);
-	  if(iter_pix_meta == pix_meta_m.end())
-	    continue;
+	    auto iter_pix_meta = pix_meta_m.find(plane);
+	    if(iter_pix_meta == pix_meta_m.end())
+	      continue;
 	  
-	  auto const& pix_v      = (*iter_pix).second;
-	  auto const& pix_meta_v = (*iter_pix_meta).second;
+	    auto const& pix_v      = (*iter_pix).second;
+	    auto const& pix_meta_v = (*iter_pix_meta).second;
 	  
-	  auto const& pix      = pix_v.at(cidx);
-	  auto const& pix_meta = pix_meta_v.at(cidx);
+	    auto const& pix      = pix_v.at(cidx);
+	    auto const& pix_meta = pix_meta_v.at(cidx);
 	  
-	  auto& plane_img = _Full_image_v.at(plane);
+	    auto& plane_img = _Full_image_v.at(plane);
 
-	  for(const auto& px : pix) {
-	    auto posx = pix_meta.pos_x(px.Y());
-	    auto posy = pix_meta.pos_y(px.X());
-	    auto row = plane_img.meta().row(posy);
-	    auto col = plane_img.meta().col(posx);
-	    plane_img.set_pixel(row,col,0);
-	  }
-	} // end plane
-      } // end ROI
+	    for(const auto& px : pix) {
+	      auto posx = pix_meta.pos_x(px.Y());
+	      auto posy = pix_meta.pos_y(px.X());
+	      auto row = plane_img.meta().row(posy);
+	      auto col = plane_img.meta().col(posx);
+	      plane_img.set_pixel(row,col,0);
+	    }
+	  } // end plane
+	} // end ROI
+      } // end mask shower
+
     } // end vertex
 
 
@@ -293,21 +290,33 @@ namespace larcv {
     tracker.SetTaggedImage(_Tagged_Image);
     tracker.SetTrackInfo(_run, _subrun, _event, 0);
 
+    std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
+    ass_vertex_to_track_vv.resize(vertex_v.size());
 
     for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
-
       const auto& vtx = vertex_v[ivertex];
       double xyz[3] = {vtx.X(),vtx.Y(),vtx.Z()};
-      vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
+      ev_vertex->push_back(larlite::vertex(xyz,ivertex));
+
+      auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
+
+      _vtx_id = (int) ivertex;
+      _vtx_x  = (float) vtx.X();
+      _vtx_y  = (float) vtx.Y();
+      _vtx_z  = (float) vtx.Z();
 
       tracker.SetSingleVertex(vtx);
       tracker.ReconstructVertex();
+      
+      auto recoedVertex = tracker.GetReconstructedVertexTracks();
+      
+      LARCV_INFO() << "found " << recoedVertex.size() << " tracks" << std::endl;
 
-     auto recoedVertex = tracker.GetReconstructedVertexTracks();
-     
-     for(const auto& itrack : recoedVertex)
-       track_ptr->emplace_back(std::move(itrack));
-     
+      for(auto& itrack : recoedVertex) {
+	ass_vertex_to_track_v.push_back(ev_track->size());
+	ev_track->push_back(itrack);
+      }
+
       auto Energies_v = tracker.GetEnergies();
       _E_muon_v.resize(Energies_v.size());
       _E_proton_v.resize(Energies_v.size());
@@ -339,17 +348,19 @@ namespace larcv {
       _jumpingTracks         = (int) _Reco_goodness_v[8];
 
       auto GoodVertex = false;
-      GoodVertex = tracker.IsGoodVertex();
+      GoodVertex  = tracker.IsGoodVertex();
       _GoodVertex = (int) GoodVertex;
       _Nreco++;
       
       _recoTree->Fill();
       ClearVertex();
     }
-    _storage.set_id(_run,_subrun,_event);
-    _storage.next_event(true);
+
+    // set the ass
+    ev_ass->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_vv);
+
+    advance_larlite();
     
-    std::cout << "...Reconstruted..." << std::endl;
     return true;
   }
 
@@ -408,6 +419,10 @@ namespace larcv {
   }
 
   void ReadNueFile::ClearVertex() {
+    _vtx_id = -1.0 * kINVALID_INT;
+    _vtx_x  = -1.0 * kINVALID_FLOAT;
+    _vtx_y  = -1.0 * kINVALID_FLOAT;
+    _vtx_z  = -1.0 * kINVALID_FLOAT;
     _E_muon_v.clear();
     _E_proton_v.clear();
     _Length_v.clear();
@@ -476,6 +491,13 @@ namespace larcv {
     return;
   } // end mc
 
+  void ReadNueFile::advance_larlite() {
+    _storage.set_id(_run,_subrun,_event);
+    _storage.next_event(true);
+  }
+
 
 }
 #endif
+
+

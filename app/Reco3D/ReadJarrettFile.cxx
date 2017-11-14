@@ -51,31 +51,32 @@ namespace larcv {
 
     ReadJarrettFile::ReadJarrettFile(const std::string name)
     : ProcessBase(name),
-      _foutll(""),
-      _spline_file("")
+    _foutll("larlite_reco3D.root"),
+    _spline_file("")
     {}
-  
+
     void ReadJarrettFile::configure(const PSet& cfg)
     {
-      _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
+        _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
+        _isMC                      = cfg.get<bool>("IsMC");
     }
 
     void ReadJarrettFile::initialize()
     {
-        _isMC = false;
-	LARCV_INFO() << "[ReadJarrettFile]" << std::endl;
-	assert(!_spline_file.empty());
-	tracker.SetDrawOutputs(false);
-	tracker.SetOutputDir("png");
-	tracker.SetSplineFile(_spline_file);
-	tracker.initialize();
+        LARCV_INFO() << "[ReadJarrettFile]" << std::endl;
+        //SetSplineLocation("Proton_Muon_Range_dEdx_LAr_TSplines.root");
+        assert(!_spline_file.empty());
+        tracker.SetDrawOutputs(false);
+        tracker.SetOutputDir("png");
+        tracker.SetSplineFile(_spline_file);
+        tracker.initialize();
         tracker.SetCompressionFactors(1,6);
-        tracker.SetVerbose(2);
+        tracker.SetVerbose(0);
         NvertexSubmitted = 0;
         NgoodReco=0;
 
         std::string filename;
-        //if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
+        if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
         //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
@@ -105,6 +106,8 @@ namespace larcv {
         _recoTree->Branch("run",&run);
         _recoTree->Branch("subrun",&subrun);
         _recoTree->Branch("event",&event);
+	_recoTree->Branch("vtx_id", &_vtx_id , "vtx_id/I");
+	
         _recoTree->Branch("E_muon_v",&_E_muon_v);
         _recoTree->Branch("E_proton_v",&_E_proton_v);
         _recoTree->Branch("Length_v",&_Length_v);
@@ -128,18 +131,18 @@ namespace larcv {
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
         _recoTree->Branch("closestWall",&_closestWall);
-        
 
-	if (_foutll.empty()) throw larbys("specify larlite file output name");
 
-	_storage.set_io_mode(larlite::storage_manager::kWRITE);
-	_storage.set_out_filename(_foutll);
+        if (_foutll.empty()) throw larbys("specify larlite file output name");
 
-	if(!_storage.open()) {
-	  LARCV_CRITICAL() << "ERROR, larlite output file could not open" << std::endl;
-	  throw larbys("die");
-	}
-	
+        _storage.set_io_mode(larlite::storage_manager::kWRITE);
+        _storage.set_out_filename(_foutll);
+
+        if(!_storage.open()) {
+            LARCV_CRITICAL() << "ERROR, larlite output file could not open" << std::endl;
+            throw larbys("die");
+        }
+
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -193,10 +196,10 @@ namespace larcv {
 
         EventROI *ev_partroi_v = 0;
         std::vector<larcv::ROI> mc_roi_v;
+        std::vector<TVector3> MCVertices;
         //____________________
         // get MC vertex info
         //--------------------
-
         if(_isMC){
             ev_partroi_v= (EventROI*)mgr.get_data(kProductROI,"segment");
             mc_roi_v = ev_partroi_v->ROIArray();
@@ -230,7 +233,7 @@ namespace larcv {
                     ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
                 }
             }
-            std::vector<TVector3> MCVertices;
+
             std::vector<TVector3> MCEndPoint;
             bool isVertex = false;
             bool isNumu = false;
@@ -307,7 +310,7 @@ namespace larcv {
         }
 
         //vertex_v = GetJarretVertex(run, subrun, event);// for BNBEXT
-
+        vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         if(vertex_v.size()!=0){
             for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
@@ -315,14 +318,16 @@ namespace larcv {
                 vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
                 tracker.SetSingleVertex(vertex_v[ivertex]);
                 tracker.ReconstructVertex();
-                tracker.DrawVertex();
+                //tracker.DrawVertex();
                 larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
                 *(track_ptr) = recoedVertex;
                 if(_isMC)MCevaluation();
                 std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-                _Length_v = tracker.GetVertexLength();
-                _vertexPhi =   tracker.GetVertexPhi();
+		_vtx_id      = (int) ivertex;
+                _Length_v    = tracker.GetVertexLength();
+                _vertexPhi   = tracker.GetVertexPhi();
                 _vertexTheta = tracker.GetVertexTheta();
+                _closestWall = tracker.GetClosestWall();
 
 
                 _E_muon_v.resize(Energies_v.size());
@@ -347,13 +352,13 @@ namespace larcv {
                 _possiblyCrossing      = _Reco_goodness_v.at(6);
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
-                
+
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
                 if(GoodVertex)NgoodReco++;
-                
+
                 _recoTree->Fill();
-                
+
             }
         }
         _storage.set_id(run,subrun,event);
@@ -497,10 +502,10 @@ namespace larcv {
         for(size_t itrack = 0;itrack<_Avg_Ion_v.size();itrack++){
             hAverageIonization->Fill(_Avg_Ion_v[itrack]);
             hIonvsLength->Fill(_Length_v[itrack],_Avg_Ion_v[itrack]);
-            
+
         }
     }
-    
+
     void ReadJarrettFile::finalize()
     {
         std::cout << NvertexSubmitted << " vertex submitted" << std::endl;
@@ -529,7 +534,7 @@ namespace larcv {
         else{std::cout << "... no" << std::endl;}
         tracker.finalize();
         std::cout << "finalized tracker" << std::endl;
-
+        
         if(has_ana_file()) {
             ana_file().cd();
             _recoTree->Write();
@@ -537,16 +542,33 @@ namespace larcv {
         std::cout << "wrote _recoTree" << std::endl;
         _storage.close();
         std::cout << "finalized storage" << std::endl;
+
+        hEcomp->Delete();
+        hEcomp_p->Delete();
+        hEcomp_m->Delete();
+        hEcompdQdx->Delete();
+        hEcomp1D->Delete();
+        hEcomp1D_m->Delete();
+        hEcomp1D_p->Delete();
+        hIonvsLength->Delete();
+        hAverageIonization->Delete();
+        hEnuReco->Delete();
+        hEnuTh->Delete();
+        hEnuComp->Delete();
+        hEnuComp1D->Delete();
+        hEnuvsPM_th->Delete();
+        hPM_th_Reco_1D->Delete();
+        hPM_th_Reco->Delete();
     }
-
-  void ReadJarrettFile::SetSplineLocation(const std::string& fpath) {
-    LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
-    tracker.SetSplineFile(fpath);
-    _spline_file = fpath;
-    LARCV_DEBUG() << "end" << std::endl;
-  }
-  
-
-  
+    
+    void ReadJarrettFile::SetSplineLocation(const std::string& fpath) {
+        LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
+        tracker.SetSplineFile(fpath);
+        _spline_file = fpath;
+        LARCV_DEBUG() << "end" << std::endl;
+    }
+    
+    
+    
 }
 #endif

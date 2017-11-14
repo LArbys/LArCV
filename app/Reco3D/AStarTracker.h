@@ -187,6 +187,7 @@ namespace larcv {
             RegularizeTrack();
             return GetTrack();
         }
+        std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
         std::vector<double>  GetAverageIonization();
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
@@ -313,13 +314,14 @@ namespace larcv {
 
         TGraph   *gdQdXperPlane[3];
 
-        std::vector<double>               track_dQdX_v;
-        std::vector<double>               _vertexLength;
-        std::vector<double>               _vertexPhi;
-        std::vector<double>               _vertexTheta;
-        std::vector<double>               _closestWall;
+        std::vector<double> track_dQdX_v;
+        std::vector<double> _vertexLength;
+        std::vector<double> _vertexPhi;
+        std::vector<double> _vertexTheta;
+        std::vector<double> _closestWall;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
+        std::vector<std::vector<double> > _vertex_dQdX_v;
         TGraph2D *gDetector;
         TGraph2D *gWorld;
 

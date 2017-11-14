@@ -25,7 +25,9 @@ namespace larcv {
     void ClearVertex();
     void FillMC(const std::vector<ROI>& mc_roi_v);
 
-  private :
+  private:
+    
+    void advance_larlite();
 
     std::string _foutll;
     int iTrack;
@@ -49,6 +51,8 @@ namespace larcv {
     int _event;
     int _nentry;
 
+    bool _mask_shower;
+
     std::vector<larcv::ImageMeta> _Full_meta_v;
     std::vector<larcv::Image2D> _Full_image_v;
     std::vector<larcv::Image2D> _Tagged_Image;
@@ -61,6 +65,7 @@ namespace larcv {
     std::vector<int> _Reco_goodness_v;
     std::vector<larlite::event_track> _EventRecoVertices;
 
+
     int _missingTrack;
     int _nothingReconstructed;
     int _tooShortDeadWire;
@@ -71,6 +76,11 @@ namespace larcv {
     int _branchingTracks;
     int _jumpingTracks;
     bool _isMC;
+
+    int   _vtx_id;
+    float _vtx_x;
+    float _vtx_y;
+    float _vtx_z;
 
     double _Ep_t;
     double _Em_t;
