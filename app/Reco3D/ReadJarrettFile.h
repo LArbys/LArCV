@@ -87,6 +87,7 @@ namespace larcv {
         int run;
         int subrun;
         int event;
+	int _vtx_id;
         int NvertexSubmitted;
         int NgoodReco;
         std::vector<std::string> checkEvents;

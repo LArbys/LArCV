@@ -106,6 +106,8 @@ namespace larcv {
         _recoTree->Branch("run",&run);
         _recoTree->Branch("subrun",&subrun);
         _recoTree->Branch("event",&event);
+	_recoTree->Branch("vtx_id", &_vtx_id , "vtx_id/I");
+	
         _recoTree->Branch("E_muon_v",&_E_muon_v);
         _recoTree->Branch("E_proton_v",&_E_proton_v);
         _recoTree->Branch("Length_v",&_Length_v);
@@ -321,8 +323,9 @@ namespace larcv {
                 *(track_ptr) = recoedVertex;
                 if(_isMC)MCevaluation();
                 std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-                _Length_v = tracker.GetVertexLength();
-                _vertexPhi =   tracker.GetVertexPhi();
+		_vtx_id      = (int) ivertex;
+                _Length_v    = tracker.GetVertexLength();
+                _vertexPhi   = tracker.GetVertexPhi();
                 _vertexTheta = tracker.GetVertexTheta();
                 _closestWall = tracker.GetClosestWall();
 
