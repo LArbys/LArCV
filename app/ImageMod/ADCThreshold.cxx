@@ -29,9 +29,9 @@ namespace larcv {
   {
     auto event_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_image_producer));
 
-    size_t run    = (uint) ev_image->run();
-    size_t subrun = (uint) ev_image->subrun();
-    size_t event  = (uint) ev_image->event();
+    //size_t run    = (uint) ev_image->run();
+    //size_t subrun = (uint) ev_image->subrun();
+    //size_t event  = (uint) ev_image->event();
     
     std::vector<larcv::Image2D> image_v;
     event_image->Move(image_v);

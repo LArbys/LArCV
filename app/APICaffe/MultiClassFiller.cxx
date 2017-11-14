@@ -278,13 +278,13 @@ namespace larcv {
       ROIType_t roi_type = roi.Type();
       if(roi_type == kROIUnknown) roi_type = PDG2ROIType(roi.PdgCode());
       auto const& caffe_class = _roitype_to_class.at(roi_type);
-      if(caffe_class == kINVALID_SIZE) {
+      /*if(caffe_class == kINVALID_SIZE) {
 	LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;
 	for(size_t roi_index=0; roi_index<roi_v.size(); ++roi_index)
 	  LARCV_CRITICAL() << "Dumping ROI " << roi_index << std::endl << roi_v[roi_index].dump() << std::endl;
 	throw larbys();
-      }
-      _entry_label_data[caffe_class] = 1;
+	}
+      _entry_label_data[caffe_class] = 1;*/
       LARCV_INFO() << "Setting ROI type " << roi_type 
 		   << " with PDG code " << roi.PdgCode()
 		   << " (caffe class " << caffe_class << ")" << std::endl;
