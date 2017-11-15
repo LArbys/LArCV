@@ -7,6 +7,7 @@
 #include <utility> // for pair
 
 #include "DataFormat/ImageMeta.h"
+#include "DataFormat/Image2D.h"
 
 namespace dbscan {
 
