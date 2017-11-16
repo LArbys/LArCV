@@ -56,7 +56,6 @@ namespace larcv {
     _process_time_analyze = 0;
     _process_time_cluster_storage = 0;
 
-
     _image_cluster_cfg = ::fcllite::PSet(_alg_mgr.Name(),cfg.get_pset(_alg_mgr.Name()).data_string());
     
     _vertex_algo_name    = cfg.get<std::string>("VertexAlgoName");
@@ -345,8 +344,9 @@ namespace larcv {
     } // end image fed to reco
 
     LARCV_DEBUG() << "return " << status << std::endl;
+    LARCV_DEBUG() << std::endl;
     return status;
-  }
+  } // end process
 
   bool LArbysImage::StoreParticles(IOManager& iom,
 				   const std::vector<Image2D>& adc_image_v,
@@ -365,16 +365,18 @@ namespace larcv {
     adc_cvimg_v.clear();
     adc_cvimg_v.resize(3);
 
-    auto event_pgraph        = (EventPGraph*)  iom.get_data(kProductPGraph,_output_producer);
-    auto event_ctor_pixel    = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_ctor");
-    auto event_img_pixel     = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer+"_img");
+    auto event_pgraph           = (EventPGraph*)  iom.get_data(kProductPGraph,_output_producer);
+    auto event_ctor_pixel       = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_ctor");
+    auto event_img_pixel        = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_img");
+    auto event_ctor_super_pixel = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_super_ctor");
+    auto event_img_super_pixel  = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_super_img");
     
     const auto& data_mgr = _alg_mgr.DataManager();
     const auto& ass_man  = data_mgr.AssManager();
     
     const auto vtx3d_array = (larocv::data::Vertex3DArray*) data_mgr.Data(_vertex_algo_id, _vertex_algo_vertex_offset);
     const auto& vtx3d_v = vtx3d_array->as_vector();
-    
+
     const auto par_array = (larocv::data::ParticleArray*) data_mgr.Data(_par_algo_id,_par_algo_par_offset);
     const auto& par_v = par_array->as_vector();
 
@@ -398,6 +400,18 @@ namespace larcv {
       if (par_id_v.empty()) {
 	LARCV_DEBUG() << "No associated particles to vertex " << vtxid << std::endl;
 	continue;
+      }
+
+      std::vector<const larocv::data::ParticleCluster*> super_pcluster_v(3,nullptr);
+
+      for(size_t plane=0; plane<3; ++plane) {
+	const auto super_par_array = (larocv::data::ParticleClusterArray*) data_mgr.Data(_vertex_algo_id,1+plane+3);
+	const auto& super_par_v = super_par_array->as_vector();
+	std::cout << "GOT: " << super_par_v.size() << " super clusters on this plane" << std::endl;
+	auto super_ass_id_v = ass_man.GetManyAss(vtx3d,super_par_array->ID());
+	if (super_ass_id_v.empty()) continue;
+	assert (super_ass_id_v.size()==1);
+	super_pcluster_v[plane] = &(super_par_v.at(super_ass_id_v.front()));
       }
 
       PGraph pgraph;
@@ -434,26 +448,51 @@ namespace larcv {
 	pgraph.Emplace(std::move(proi),pidx);
 	pidx++;
 
+
 	// @ Each plane, store pixels and contour per matched particle
 	for(size_t plane=0; plane<3; ++plane) {
+
 	  const auto& pmeta = adc_image_v[plane].meta();
 	    
+	  std::vector<Pixel2D> super_pixel_v, super_ctor_v;
 	  std::vector<Pixel2D> pixel_v, ctor_v;
-	    
+
 	  const auto& pcluster = par._par_v[plane];
 	  const auto& pctor = pcluster._ctor;
 	  
-	  const auto& img2d = adc_image_v[plane];
-	  auto& cvimg = adc_cvimg_v[plane];
+	  const auto& img2d = adc_image_v.at(plane);
+	  const auto& cvimg = adc_cvimg_v.at(plane);
 	  
 	  if(!pctor.empty()) {
-	    auto masked = larocv::MaskImage(cvimg,pctor,0,false);
-	    auto par_pixel_v = larocv::FindNonZero(masked);
+
+	    const auto& super_pcluster = super_pcluster_v[plane];
+	    if (!super_pcluster) {
+	      LARCV_CRITICAL() << "particle exists but super contour not present" << std::endl;
+	      throw larbys("die");
+	    }
+	    const auto& super_pctor = super_pcluster->_ctor;
+	    auto super_pctor_masked = larocv::MaskImage(cvimg,super_pctor,0,false);
+	    auto super_par_pixel_v = larocv::FindNonZero(super_pctor_masked);
+
+	    auto pctor_masked = larocv::MaskImage(cvimg,pctor,0,false);
+	    auto par_pixel_v = larocv::FindNonZero(pctor_masked);
+
+	    super_pixel_v.reserve(super_par_pixel_v.size());
+	    super_ctor_v.reserve(super_pctor.size());
+
 	    pixel_v.reserve(par_pixel_v.size());
-	    cvimg = larocv::MaskImage(cvimg,pctor,0,true);
+	    ctor_v.reserve(pctor.size());
 	    
-	    // Store Image2D pixel values
-	    pixel_v.reserve(par_pixel_v.size());
+	    // Store super particle Image2D pixels
+	    for (const auto& px : super_par_pixel_v) {
+	      auto col  = cvimg.cols - px.x - 1;
+	      auto row  = px.y;
+	      auto gray = img2d.pixel(col,row);
+	      super_pixel_v.emplace_back(col,row);
+	      super_pixel_v.back().Intensity(gray);
+	    }	    
+	    
+	    // Store the particle Image2D pixels
 	    for (const auto& px : par_pixel_v) {
 	      auto col  = cvimg.cols - px.x - 1;
 	      auto row  = px.y;
@@ -462,8 +501,16 @@ namespace larcv {
 	      pixel_v.back().Intensity(gray);
 	    }
 
+	    // Store super contour
+	    for(const auto& pt : super_pctor)  {
+	      auto col  = cvimg.cols - pt.x - 1;
+	      auto row  = pt.y;
+	      auto gray = 1.0;
+	      super_ctor_v.emplace_back(row,col);
+	      super_ctor_v.back().Intensity(gray);
+	    }
+
 	    // Store contour
-	    ctor_v.reserve(pctor.size());
 	    for(const auto& pt : pctor)  {
 	      auto col  = cvimg.cols - pt.x - 1;
 	      auto row  = pt.y;
@@ -471,12 +518,18 @@ namespace larcv {
 	      ctor_v.emplace_back(row,col);
 	      ctor_v.back().Intensity(gray);
 	    }
-	  }
+	  } // empty particle contour on this plane
 	  
-	  Pixel2DCluster pixcluster(std::move(pixel_v));
-	  event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
+	  Pixel2DCluster super_pixcluster(std::move(super_pixel_v));
+	  Pixel2DCluster super_pixctor(std::move(super_ctor_v));
 
+	  Pixel2DCluster pixcluster(std::move(pixel_v));
 	  Pixel2DCluster pixctor(std::move(ctor_v));
+
+	  event_img_super_pixel->Emplace(plane,std::move(super_pixcluster),pmeta);
+	  event_ctor_super_pixel->Emplace(plane,std::move(super_pixctor),pmeta);
+
+	  event_img_pixel->Emplace(plane,std::move(pixcluster),pmeta);
 	  event_ctor_pixel->Emplace(plane,std::move(pixctor),pmeta);
 
 	} // end this plane

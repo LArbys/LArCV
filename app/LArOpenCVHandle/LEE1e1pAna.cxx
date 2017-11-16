@@ -31,7 +31,7 @@ namespace larcv {
 
     LARCV_DEBUG() << "Image2DProducer:  " << _img2d_prod << std::endl;
     LARCV_DEBUG() << "PGraphProducer:   " << _pgraph_prod << std::endl;
-    LARCV_DEBUG() << "PxContouProducer: " << _pcluster_ctor_prod << std::endl;
+    LARCV_DEBUG() << "PxContourProducer: " << _pcluster_ctor_prod << std::endl;
     LARCV_DEBUG() << "PxImageProducer:  " << _pcluster_img_prod << std::endl;
     LARCV_DEBUG() << "TrueROIProducer:  " << _truth_roi_prod << std::endl;
     LARCV_DEBUG() << "RecoROIProducer:  " << _reco_roi_prod << std::endl;
@@ -40,8 +40,6 @@ namespace larcv {
   
   void LEE1e1pAna::initialize()
   {
-    _score0.resize(5,0.0);
-    _score1.resize(5,0.0);
     
     _tree = new TTree("LEE1e1pTree","");
     _tree->Branch("run",&_run,"run/I");
@@ -53,13 +51,6 @@ namespace larcv {
     
     _tree->Branch("shape0",&_shape0,"shape0/I");
     _tree->Branch("shape1",&_shape1,"shape1/I");
-    _tree->Branch("score0","std::vector<double>",&_score0);
-    _tree->Branch("score1","std::vector<double>",&_score1);
-
-    _tree->Branch("score_shower0",&_score_shower0,"score_shower0/D");
-    _tree->Branch("score_shower1",&_score_shower1,"score_shower1/D");
-    _tree->Branch("score_track0",&_score_track0,"score_track0/D");
-    _tree->Branch("score_track1",&_score_track1,"score_track1/D");
 
     _tree->Branch("q0",&_q0,"q0/D");
     _tree->Branch("q1",&_q1,"q1/D");
@@ -75,19 +66,6 @@ namespace larcv {
 
     _tree->Branch("len0",&_len0,"len0/D");
     _tree->Branch("len1",&_len1,"len1/D");
-    
-    _tree->Branch("score1_e",&_score1_e,"score1_e/D");
-    _tree->Branch("score1_g",&_score1_g,"score1_g/D");
-    _tree->Branch("score1_pi",&_score1_pi,"score1_pi/D");
-    _tree->Branch("score1_mu",&_score1_mu,"score1_mu/D");
-    _tree->Branch("score1_p",&_score1_p,"score1_p/D");
-    
-    _tree->Branch("score0_e",&_score0_e,"score0_e/D");
-    _tree->Branch("score0_g",&_score0_g,"score0_g/D");
-    _tree->Branch("score0_pi",&_score0_pi,"score0_pi/D");
-    _tree->Branch("score0_mu",&_score0_mu,"score0_mu/D");
-    _tree->Branch("score0_p",&_score0_p,"score0_p/D");
-    
   }
 
   bool LEE1e1pAna::process(IOManager& mgr)
@@ -134,18 +112,6 @@ namespace larcv {
     
     _nprotons = 0;
     _nothers  = 0;
-
-    /*
-    for (auto const& truth_roi : ev_roi_v->ROIArray() ) {
-      if ( truth_roi.PdgCode()==2212 ) {
-	if ( (truth_roi.EnergyInit()-938.0)>60.0 )
-	  _nprotons++;
-      }
-      else if ( truth_roi.PdgCode()==111 || truth_roi.PdgCode()==211 || truth_roi.PdgCode()==-211 || truth_roi.PdgCode()==22 || abs(truth_roi.PdgCode())>100 ) {
-	_nothers++;
-      }
-    }
-    */
     
     auto const& ctor_m = ev_ctor_v->Pixel2DClusterArray();
     auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
@@ -182,50 +148,19 @@ namespace larcv {
       _roid  = roid;
 
       auto const& cluster_idx_v = pgraph.ClusterIndexArray();
-      
+      LARCV_DEBUG() << "cluster index array size=" << cluster_idx_v.size() << std::endl;
       if (roi_v.size() < 2) {
 	_tree->Fill();
 	continue;
       }
 
       auto const& roi0 = roi_v.at(0);
+      LARCV_DEBUG() << "got roi0@" << &roi0 << "..." << std::endl;
       auto const& roi1 = roi_v.at(1);
-
-      LARCV_DEBUG() << "got roi0@" << &roi0 << " &roi1@" << &roi1 << std::endl;
+      LARCV_DEBUG() << "got roi1@" << &roi1 << "..." << std::endl;
 
       _shape0 = (int)(roi0.Shape());
       _shape1 = (int)(roi1.Shape());
-
-      for(auto& v : _score0) v=0;
-      for(auto& v : _score1) v=0;
-    
-      auto const& score0 = roi0.TypeScore();
-      auto const& score1 = roi1.TypeScore();
-      
-      _score_shower0 = _score_shower1 = _score_track0 = _score_track1 = 0;
-      _score0_e = _score0_g = _score0_mu = _score0_pi = _score0_p = 0;
-      _score1_e = _score1_g = _score1_mu = _score1_pi = _score1_p = 0;
-      
-      for(size_t i=0; i<score0.size() && i<_score0.size(); ++i) {
-	_score0.at(i) = score0.at(i);
-	if(i<2) _score_shower0 += score0.at(i);
-	if(i==2||i==4) _score_track0 += score0.at(i);
-	if(i==0) _score0_e  = score0.at(i);
-	if(i==1) _score0_g  = score0.at(i);
-	if(i==2) _score0_mu = score0.at(i);
-	if(i==3) _score0_pi = score0.at(i);
-	if(i==4) _score0_p  = score0.at(i);
-      }
-      for(size_t i=0; i<score1.size() && i<_score1.size(); ++i) {
-	_score1.at(i) = score1.at(i);
-	if(i<2) _score_shower1 += score1.at(i);
-	if(i==2||i==4) _score_track1 += score1.at(i);
-	if(i==0) _score1_e  = score1.at(i);
-	if(i==1) _score1_g  = score1.at(i);
-	if(i==2) _score1_mu = score1.at(i);
-	if(i==3) _score1_pi = score1.at(i);
-	if(i==4) _score1_p  = score1.at(i);
-      }
 
       auto const& cluster_idx0 = cluster_idx_v.at(0);
       auto const& cluster_idx1 = cluster_idx_v.at(1);
@@ -248,8 +183,19 @@ namespace larcv {
 	auto const& pcluster_v = (*iter_pcluster).second;
 	auto const& ctor_v = (*iter_ctor).second;
 	
+	if (cluster_idx0 > pcluster_v.size()) {
+	  LARCV_CRITICAL() << "idx0 " << cluster_idx0 << " vs " << pcluster_v.size() << std::endl;
+	  throw larbys("die");
+	}
+
+	if (cluster_idx1 > pcluster_v.size()) {
+	  LARCV_CRITICAL() << "idx1 " << cluster_idx1 << " vs " << pcluster_v.size() << std::endl;
+	  throw larbys("die");
+	}
+
 	auto const& pcluster0 = pcluster_v.at(cluster_idx0);
 	auto const& ctor0 = ctor_v.at(cluster_idx0);
+
 	if(!done0 && ctor0.size()>2) {
 	  _npx0 = pcluster0.size();
 	  for(auto const& pt : pcluster0) _q0 += pt.Intensity();
@@ -308,29 +254,8 @@ namespace larcv {
   
   void LEE1e1pAna::ClearVertex() {
 
-    _score0.clear();
-    _score1.clear();
-    
     _shape0 = kINVALID_INT;
     _shape1 = kINVALID_INT;
-    
-    _score_shower0 = kINVALID_DOUBLE;
-    _score_shower1 = kINVALID_DOUBLE;
-
-    _score_track0 = kINVALID_DOUBLE;
-    _score_track1 = kINVALID_DOUBLE;
-
-    _score0_e = kINVALID_DOUBLE;
-    _score0_g = kINVALID_DOUBLE;
-    _score0_pi = kINVALID_DOUBLE;
-    _score0_mu = kINVALID_DOUBLE;
-    _score0_p = kINVALID_DOUBLE;
-
-    _score1_e  = kINVALID_DOUBLE;
-    _score1_g = kINVALID_DOUBLE;
-    _score1_pi = kINVALID_DOUBLE;
-    _score1_mu = kINVALID_DOUBLE;
-    _score1_p = kINVALID_DOUBLE;
 
     _npx0 = kINVALID_INT;
     _npx1 = kINVALID_INT;
