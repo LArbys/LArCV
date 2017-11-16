@@ -407,7 +407,6 @@ namespace larcv {
       for(size_t plane=0; plane<3; ++plane) {
 	const auto super_par_array = (larocv::data::ParticleClusterArray*) data_mgr.Data(_vertex_algo_id,1+plane+3);
 	const auto& super_par_v = super_par_array->as_vector();
-	std::cout << "GOT: " << super_par_v.size() << " super clusters on this plane" << std::endl;
 	auto super_ass_id_v = ass_man.GetManyAss(vtx3d,super_par_array->ID());
 	if (super_ass_id_v.empty()) continue;
 	assert (super_ass_id_v.size()==1);
