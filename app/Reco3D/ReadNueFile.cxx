@@ -53,7 +53,7 @@ namespace larcv {
   {
     LARCV_INFO() << "[ReadNueFile]" << std::endl;
     assert(!_spline_file.empty());
-    tracker.SetDrawOutputs(false);
+    tracker.SetDrawOutputs(true);
     tracker.SetOutputDir("png");
     tracker.SetSplineFile(_spline_file);
     tracker.initialize();
@@ -153,7 +153,11 @@ namespace larcv {
     
     auto ev_img_v       = (EventImage2D*) mgr.get_data(kProductImage2D,_img2d_producer);
     auto ev_pgraph_v    = (EventPGraph*)  mgr.get_data(kProductPGraph,_pgraph_producer);
-    auto ev_pix_v       = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
+    
+    EventPixel2D* ev_pix_v = nullptr;
+    if (!_par_pix_producer.empty())
+      ev_pix_v = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
+
     EventROI* ev_partroi_v = nullptr;
     if (!_true_roi_producer.empty())
       ev_partroi_v = (EventROI*) mgr.get_data(kProductROI,_true_roi_producer);
@@ -172,12 +176,9 @@ namespace larcv {
 
     // get the event clusters and full images
     const auto& full_adc_img_v = ev_img_v->Image2DArray();
-    const auto& pix_m          = ev_pix_v->Pixel2DClusterArray();
-    const auto& pix_meta_m     = ev_pix_v->ClusterMetaArray();
-
+    
     // const auto& full_tag_img_thru_v = tag_img_thru_v->Image2DArray();
     // const auto& full_tag_img_stop_v = tag_img_stop_v->Image2DArray();
-
 
     //
     // Fill MC if exists
@@ -244,6 +245,11 @@ namespace larcv {
 			    pgraph.ParticleArray().front().Z());
 
       if (_mask_shower) {
+	
+	assert (ev_pix_v);
+	const auto& pix_m          = ev_pix_v->Pixel2DClusterArray();
+	const auto& pix_meta_m     = ev_pix_v->ClusterMetaArray();
+
 	//
 	// mask shower particle pixels 
 	// method : pixels stored via larbys image
@@ -346,8 +352,6 @@ namespace larcv {
       _possiblyCrossing      = (int) _Reco_goodness_v[6];
       _branchingTracks       = (int) _Reco_goodness_v[7];
       _jumpingTracks         = (int) _Reco_goodness_v[8];
-
-      if(_nothingReconstructed) tracker.DrawVertex();
 
       auto GoodVertex = false;
       GoodVertex  = tracker.IsGoodVertex();

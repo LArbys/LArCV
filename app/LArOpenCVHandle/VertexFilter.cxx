@@ -19,12 +19,12 @@ namespace larcv {
   void VertexFilter::configure(const PSet& cfg)
   {
     _in_pg_prod   = cfg.get<std::string>("InputPGraphProducer");
-    _in_ctor_prod = cfg.get<std::string>("InputCtorProducer");
-    _in_img_prod  = cfg.get<std::string>("InputImgProducer");
+    _in_ctor_prod = cfg.get<std::string>("InputCtorProducer","");
+    _in_img_prod  = cfg.get<std::string>("InputImgProducer","");
 
     _out_pg_prod   = cfg.get<std::string>("OutputPGraphProducer");
-    _out_ctor_prod = cfg.get<std::string>("OutputCtorProducer");
-    _out_img_prod  = cfg.get<std::string>("OutputImgProducer");
+    _out_ctor_prod = cfg.get<std::string>("OutputCtorProducer","");
+    _out_img_prod  = cfg.get<std::string>("OutputImgProducer","");
   }
 
   void VertexFilter::initialize() {
@@ -44,16 +44,37 @@ namespace larcv {
     LARCV_DEBUG() << "start" << std::endl;
 
     auto in_pg_v   = (EventPGraph*)  mgr.get_data(kProductPGraph,  _in_pg_prod);
-    auto in_ctor_v = (EventPixel2D*) mgr.get_data(kProductPixel2D, _in_ctor_prod);
-    auto in_img_v  = (EventPixel2D*) mgr.get_data(kProductPixel2D, _in_img_prod);
-
-    auto out_pg_v   = (EventPGraph*)  mgr.get_data(kProductPGraph,  _out_pg_prod);
-    auto out_ctor_v = (EventPixel2D*) mgr.get_data(kProductPixel2D, _out_ctor_prod);
-    auto out_img_v  = (EventPixel2D*) mgr.get_data(kProductPixel2D, _out_img_prod);
-
+    auto out_pg_v  = (EventPGraph*)  mgr.get_data(kProductPGraph,  _out_pg_prod);
     if (!(out_pg_v->PGraphArray().empty()))           throw larbys("data product not empty");
-    if (!(out_ctor_v->Pixel2DClusterArray().empty())) throw larbys("data product not empty");
-    if (!(out_img_v->Pixel2DClusterArray().empty()))  throw larbys("data product not empty");
+
+    EventPixel2D* in_ctor_v  = nullptr;
+    EventPixel2D* in_img_v   = nullptr;
+    EventPixel2D* out_ctor_v = nullptr;
+    EventPixel2D* out_img_v  = nullptr;
+
+    bool set_pixel = false;
+
+    if (!_in_ctor_prod.empty() or !_in_img_prod.empty()) {
+      if (_in_ctor_prod.empty() or _in_img_prod.empty()) {
+	LARCV_CRITICAL() << "must specify both INPUT ctor and img producer" << std::endl;
+	throw larbys();
+      }
+
+      in_ctor_v = (EventPixel2D*) mgr.get_data(kProductPixel2D, _in_ctor_prod);
+      in_img_v  = (EventPixel2D*) mgr.get_data(kProductPixel2D, _in_img_prod);
+
+      if (_out_ctor_prod.empty() or _out_img_prod.empty()) {
+	LARCV_CRITICAL() << "must specify both OUTPUT ctor and img producer" << std::endl;
+	throw larbys();
+      }
+      out_ctor_v = (EventPixel2D*) mgr.get_data(kProductPixel2D, _out_ctor_prod);
+      out_img_v  = (EventPixel2D*) mgr.get_data(kProductPixel2D, _out_img_prod);
+      
+      if (!(out_ctor_v->Pixel2DClusterArray().empty())) throw larbys("data product not empty");
+      if (!(out_img_v->Pixel2DClusterArray().empty()))  throw larbys("data product not empty");
+      set_pixel = true;
+    }
+
 
     _run    = (uint) in_pg_v->run();
     _subrun = (uint) in_pg_v->subrun();
@@ -64,7 +85,7 @@ namespace larcv {
     // nothing to do
     //
     if (_idx_v.empty()) return true;
-    if (_par_v.empty()) return true;
+    if (_par_v.empty() and set_pixel) return true;
 
     //
     // something to do
@@ -77,7 +98,22 @@ namespace larcv {
       if (!_idx_v[pgid]) continue;
       LARCV_DEBUG() << "pass @pgid="<<pgid<<std::endl;
       const auto& pg_old = (*in_pg_v).PGraphArray()[pgid];
-      
+
+      //
+      // don't filter the particles
+      //
+      if (!set_pixel) {
+	out_pg_v->Append(pg_old);
+	_cvtxid = pgid;
+	_fvtxid = out_pg_v->PGraphArray().size() - 1;
+	_tree->Fill();
+	continue;
+      }
+
+      //
+      // filter the particles and set type
+      //
+
       const auto& par_pair = _par_v[pgid];
       if (par_pair.first  < 0) throw larbys("particle 0 invalid aho");
       if (par_pair.second < 0) throw larbys("particle 1 invalid aho");
