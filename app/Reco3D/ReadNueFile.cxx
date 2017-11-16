@@ -347,6 +347,8 @@ namespace larcv {
       _branchingTracks       = (int) _Reco_goodness_v[7];
       _jumpingTracks         = (int) _Reco_goodness_v[8];
 
+      if(_nothingReconstructed) tracker.DrawVertex();
+
       auto GoodVertex = false;
       GoodVertex  = tracker.IsGoodVertex();
       _GoodVertex = (int) GoodVertex;
