@@ -457,17 +457,6 @@ namespace larcv {
 	  std::vector<Pixel2D> super_pixel_v, super_ctor_v;
 	  std::vector<Pixel2D> pixel_v, ctor_v;
 
-	  const auto& super_pcluster = super_pcluster_v[plane];
-	  if (!super_pcluster) {
-	    if (par._par_v[plane]._ctor.size()) {
-	      LARCV_CRITICAL() << "particle exists but super contour not present" << std::endl;
-	      throw larbys("die");
-	    }
-	    continue;
-	  }
-
-	  const auto& super_pctor = super_pcluster->_ctor;
-
 	  const auto& pcluster = par._par_v[plane];
 	  const auto& pctor = pcluster._ctor;
 	  
@@ -476,16 +465,22 @@ namespace larcv {
 	  
 	  if(!pctor.empty()) {
 
+	    const auto& super_pcluster = super_pcluster_v[plane];
+	    if (!super_pcluster) {
+	      LARCV_CRITICAL() << "particle exists but super contour not present" << std::endl;
+	      throw larbys("die");
+	    }
+	    const auto& super_pctor = super_pcluster->_ctor;
 	    auto super_pctor_masked = larocv::MaskImage(cvimg,super_pctor,0,false);
-	    auto pctor_masked = larocv::MaskImage(cvimg,pctor,0,false);
-
 	    auto super_par_pixel_v = larocv::FindNonZero(super_pctor_masked);
+
+	    auto pctor_masked = larocv::MaskImage(cvimg,pctor,0,false);
 	    auto par_pixel_v = larocv::FindNonZero(pctor_masked);
 
 	    super_pixel_v.reserve(super_par_pixel_v.size());
-	    pixel_v.reserve(par_pixel_v.size());
-
 	    super_ctor_v.reserve(super_pctor.size());
+
+	    pixel_v.reserve(par_pixel_v.size());
 	    ctor_v.reserve(pctor.size());
 	    
 	    // Store super particle Image2D pixels
