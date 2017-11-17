@@ -87,13 +87,15 @@ namespace larcv {
         int run;
         int subrun;
         int event;
-	int _vtx_id;
+        int _vtx_id;
         int NvertexSubmitted;
         int NgoodReco;
+        int NtracksReco;
         std::vector<std::string> checkEvents;
         std::string _filename;
 
         TTree *_recoTree;
+        std::vector<int>    _trk_id_v;
         std::vector<double> _E_muon_v;
         std::vector<double> _E_proton_v;
         std::vector<double> _Length_v;
@@ -101,6 +103,10 @@ namespace larcv {
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
+        std::vector<double> _Ion_5cm_v;
+        std::vector<double> _Ion_10cm_v;
+        std::vector<double> _Ion_tot_v;
+        std::vector<double> _IondivLength_v;
         std::vector<std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;

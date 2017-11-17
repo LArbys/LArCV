@@ -164,6 +164,7 @@ namespace larcv {
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
+        double CorrectIonization(double ion);
         double X2Tick(double x, size_t plane) const;   // X[cm] to TPC tick (waveform index) conversion
         double Tick2X(double tick, size_t plane)const; // TPC tick (waveform index) to X[cm] conversion
         double GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack);
@@ -189,7 +190,8 @@ namespace larcv {
         }
         std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
-        std::vector<double>  GetAverageIonization();
+        std::vector<double>  GetAverageIonization(double distAvg = -1);
+        std::vector<double>  GetTotalIonization(double distAvg = -1);
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 

@@ -652,7 +652,6 @@ namespace larcv {
         //ShaveTracks();
         SetTrackInfo(_run, _subrun, _event, _track);
         ConstructVertex();
-        std::cout << std::endl << std::endl;
 
         //gDetector->Write();
         //gWorld->Write();
@@ -1261,7 +1260,7 @@ namespace larcv {
     void AStarTracker::ComputeNewdQdX(){
         tellMe("ComputeNewdQdX()",0);
         if(_3DTrack.size() == 0){tellMe("ERROR no track found",0);return;}
-        double shellPix=3;
+        double shellPix=2;
         if(dQdXperPlane_v.size()!=0)dQdXperPlane_v.clear();
         if(track_dQdX_v.size()  !=0)track_dQdX_v.clear();
         //dQdXperPlane_v.reserve(3);
@@ -1286,7 +1285,7 @@ namespace larcv {
                     for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                         if(icol<x_proj-20 || icol>x_proj+20)continue;
                         if(sqrt( pow(irow+0.5-y_proj,2)+pow(icol+0.5-x_proj,2) ) < shellPix){
-                            if(hit_image_v[iPlane].pixel(irow,icol) > _deadWireValue+0.5){
+                            if(hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue && hit_image_v[iPlane].pixel(irow,icol)!=0){
                                 Npx++;
                                 dQdx_per_plane+= hit_image_v[iPlane].pixel(irow,icol);
                                 
@@ -2406,13 +2405,45 @@ namespace larcv {
         return Energies_v;
     }
     //______________________________________________________
-    std::vector<double> AStarTracker::GetAverageIonization(){
+    double AStarTracker::CorrectIonization(double ion){
+        double IonFactor = 120;
+        double A = 1.9;
+        double B = -0.74;
+
+        ion/=IonFactor;
+        ion = A*ion + B;
+        return ion;
+    }
+    //______________________________________________________
+    std::vector<double> AStarTracker::GetAverageIonization(double distAvg){
         tellMe("GetAverageIonization()",0);
+        larlite::geo::View_t views[3] = {larlite::geo::kU,larlite::geo::kV,larlite::geo::kZ};
         if(_vertex_dQdX_v.size()!=_vertexTracks.size()){_vertex_dQdX_v.clear();ComputeNewdQdX();}
         std::vector<double> averageIonizatioPerTrack(_vertexTracks.size(),0);
-        for(size_t itrack = 0;itrack< _vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack < _vertexLarliteTracks.size();itrack++){
+            double ionTotal = 0;
+            double ion = 0;
+            int NnodesTot = 0;
+            averageIonizatioPerTrack[itrack] = ionTotal;
+            for(size_t iNode = 0;iNode < _vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
+                if(distAvg!= -1 && _vertexLarliteTracks[itrack].Length(0)-_vertexLarliteTracks[itrack].Length(iNode) > distAvg)continue;
+                int NplanesOK = 0;
+                ion  = 0;
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
+                    ion += _vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[iPlane]);
+                    if(_vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[iPlane])!=0)NplanesOK++;
+                }
+                if(ion!=0)NnodesTot++;
+                if(NplanesOK!=0)ion*=3./NplanesOK;
+                ion  = CorrectIonization(ion);
+                ionTotal+=ion;
+            }
+            if(NnodesTot == 0) NnodesTot = 1;
+            averageIonizatioPerTrack[itrack] = ionTotal/NnodesTot;
+        }
+
+        /*for(size_t itrack = 0;itrack< _vertexTracks.size();itrack++){
             _3DTrack = _vertexTracks[itrack];
-            //ComputeNewdQdX();
             double AvIon = 0;
             averageIonizatioPerTrack[itrack] = AvIon;
             if(_vertex_dQdX_v[itrack].size()==0)continue;
@@ -2420,8 +2451,34 @@ namespace larcv {
                 AvIon+=_vertex_dQdX_v[itrack][iNode]/_vertex_dQdX_v[itrack].size();
             }
             averageIonizatioPerTrack[itrack] = AvIon;
-        }
+        }*/
         return averageIonizatioPerTrack;
+    }
+    //______________________________________________________
+    std::vector<double> AStarTracker::GetTotalIonization(double distAvg){
+        tellMe("GetTotalIonization()",0);
+        larlite::geo::View_t views[3] = {larlite::geo::kU,larlite::geo::kV,larlite::geo::kZ};
+        if(_vertex_dQdX_v.size()!=_vertexTracks.size()){_vertex_dQdX_v.clear();ComputeNewdQdX();}
+        std::vector<double> IonizatioPerTrack(_vertexTracks.size(),0);
+        for(size_t itrack = 0;itrack < _vertexLarliteTracks.size();itrack++){
+            double ionTotal = 0;
+            double ion = 0;
+            IonizatioPerTrack[itrack] = ionTotal;
+            for(size_t iNode = 0;iNode < _vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
+                if(distAvg!= -1 && _vertexLarliteTracks[itrack].Length(0)-_vertexLarliteTracks[itrack].Length(iNode) > distAvg)continue;
+                int NplanesOK = 0;
+                ion  = 0;
+                for(size_t iPlane = 0;iPlane<3;iPlane++){
+                    ion += _vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[iPlane]);
+                    if(_vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[iPlane])!=0)NplanesOK++;
+                }
+                if(NplanesOK!=0)ion*=3./NplanesOK;
+                ion  = CorrectIonization(ion);
+                ionTotal+=ion;
+            }
+            IonizatioPerTrack[itrack] = ionTotal;
+        }
+        return IonizatioPerTrack;
     }
     //______________________________________________________
     std::vector<double> AStarTracker::GetVertexLength(){
@@ -2472,6 +2529,7 @@ namespace larcv {
     }
     //______________________________________________________
     std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 5){
+        tellMe(Form("GetVertexAngle(%.1f)",dAverage),0);
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
@@ -2950,6 +3008,7 @@ namespace larcv {
         }
     }
     //-------------------------------------------------------
+
 
     //
     //
