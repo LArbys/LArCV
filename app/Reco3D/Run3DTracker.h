@@ -1,9 +1,9 @@
 /**
- * \file ReadJarrettFile.h
+ * \file Run3DTracker.h
  *
  * \ingroup Package_Name
  *
- * \brief Class def header for a class ReadJarrettFile
+ * \brief Class def header for a class Run3DTracker
  *
  * @author hourlier
  */
@@ -11,12 +11,13 @@
 /** \addtogroup Package_Name
 
  @{*/
-#ifndef __READJARRETTFILE_H__
-#define __READJARRETTFILE_H__
+#ifndef __RUN3DTRACKER_H__
+#define __RUN3DTRACKER_H__
 
 #include "TH2D.h"
 #include "TH1D.h"
 #include "TTree.h"
+#include "TVector3.h"
 
 #include "DataFormat/storage_manager.h"
 #include "DataFormat/track.h"
@@ -29,26 +30,30 @@ namespace larcv {
 
     /**
      \class ProcessBase
-     User defined class ReadJarrettFile ... these comments are used to generate
+     User defined class Run3DTracker ... these comments are used to generate
      doxygen documentation!
      */
-    class ReadJarrettFile : public ProcessBase {
+    class Run3DTracker : public ProcessBase {
 
     public:
 
         /// Default constructor
-        ReadJarrettFile(const std::string name="ReadJarrettFile");
+        Run3DTracker(const std::string name="Run3DTracker");
 
         /// Default destructor
-        ~ReadJarrettFile(){}
+        ~Run3DTracker(){}
 
         void configure(const PSet&);
         void initialize();
         bool process(IOManager& mgr);
 
-	void SetSplineLocation(const std::string& fpath);
-	void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
-	
+        void SetSplineLocation(const std::string& fpath);
+        void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
+        void advance_larlite();
+        void FillMC(const std::vector<ROI>& mc_roi_v);
+        void ClearEvent();
+        void ClearVertex();
+
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
         void ReadVertexFile(std::string filename);
@@ -58,35 +63,24 @@ namespace larcv {
 
         void MCevaluation();
 
-    private :
+        private :
 
         int iTrack;
         larlite::storage_manager _storage;
         larcv::AStarTracker tracker;
         std::vector< std::vector<int> > _vertexInfo;
-        TH2D *hEcomp;
-        TH1D *hAverageIonization;
-        TH1D *hEcomp1D;
-        TH1D *hEcomp1D_m;
-        TH1D *hEcomp1D_p;
-        TH2D *hEcomp_m;
-        TH2D *hEcomp_p;
-        TH1D *hEnuReco;
-        TH1D *hEnuTh;
-        TH2D *hEnuvsPM_th;
-        TH1D *hPM_th_Reco_1D;
-        TH2D *hPM_th_Reco;
-        TH2D *hEnuComp;
-        TH1D *hEnuComp1D;
         double NeutrinoEnergyTh;
         double NeutrinoEnergyReco;
-        TH2D *hEcompdQdx;
-        TH2D *hIonvsLength;
         double Ep_t;
         double Em_t;
-        int run;
-        int subrun;
-        int event;
+
+        int _run;
+        int _subrun;
+        int _event;
+        int _nentry;
+        int _entry;
+        int _Nreco;
+
         int _vtx_id;
         int NvertexSubmitted;
         int NgoodReco;
@@ -111,7 +105,7 @@ namespace larcv {
         std::vector<bool>   _Reco_goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;
 
-
+        std::vector<TVector3> MCVertices;
         TVector3 MCvertex;
         TVector3 RecoVertex;
 
@@ -125,26 +119,67 @@ namespace larcv {
         bool _possiblyCrossing;
         bool _branchingTracks;
         bool _jumpingTracks;
-        bool _isMC;
 
-	std::string _input_pgraph_producer;
-	std::string _spline_file;
-	std::string _foutll;
+        float _vtx_x;
+        float _vtx_y;
+        float _vtx_z;
+
+        double _Ep_t;
+        double _Em_t;
+        double _Ee_t;
+
+        //
+        // start point
+        //
+        double _MuonStartPoint_X;
+        double _ProtonStartPoint_X;
+        double _ElectronStartPoint_X;
+
+        double _MuonStartPoint_Y;
+        double _ProtonStartPoint_Y;
+        double _ElectronStartPoint_Y;
+
+        double _MuonStartPoint_Z;
+        double _ProtonStartPoint_Z;
+        double _ElectronStartPoint_Z;
+
+        //
+        // end point
+        //
+        double _MuonEndPoint_X;
+        double _ProtonEndPoint_X;
+        double _ElectronEndPoint_X;
+
+        double _MuonEndPoint_Y;
+        double _ProtonEndPoint_Y;
+        double _ElectronEndPoint_Y;
+        
+        double _MuonEndPoint_Z;
+        double _ProtonEndPoint_Z;
+        double _ElectronEndPoint_Z;
+
+        std::string _input_pgraph_producer;
+        std::string _img2d_producer;
+        std::string _par_pix_producer;
+        std::string _true_roi_producer;
+        std::string _spline_file;
+        std::string _foutll;
+        bool _mask_shower;
     };
 
     /**
-     \class larcv::ReadJarrettFileFactory
-     \brief A concrete factory class for larcv::ReadJarrettFile
+     \class larcv::Run3DTrackerFactory
+     \brief A concrete factory class for larcv::Run3DTracker
      */
-    class ReadJarrettFileProcessFactory : public ProcessFactoryBase {
+    class Run3DTrackerProcessFactory : public ProcessFactoryBase {
     public:
         /// ctor
-        ReadJarrettFileProcessFactory() { ProcessFactory::get().add_factory("ReadJarrettFile",this); }
+        Run3DTrackerProcessFactory() { ProcessFactory::get().add_factory("Run3DTracker",this); }
         /// dtor
-        ~ReadJarrettFileProcessFactory() {}
+        ~Run3DTrackerProcessFactory() {}
         /// creation method
-        ProcessBase* create(const std::string instance_name) { return new ReadJarrettFile(instance_name); }
-
+        ProcessBase* create(const std::string instance_name) { return new Run3DTracker(instance_name); }
+        
     };
     
 }

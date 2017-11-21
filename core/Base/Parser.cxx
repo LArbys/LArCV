@@ -171,6 +171,15 @@ namespace larcv {
       return res;
     }
     
+    template<> std::pair< int, int > FromString< std::pair< int, int > > (const std::string& value )
+    {
+      auto str_v = FromString<std::vector<std::string> >(value);
+      std::pair<int , int> res;
+      res.first  = FromString<int>(str_v[0]);
+      res.second = FromString<int>(str_v[1]);
+      return res;
+    }
+
     template<> std::string ToString<std::string>(const std::string& value)
     {
       std::string res(value);

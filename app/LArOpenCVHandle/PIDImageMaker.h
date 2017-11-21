@@ -14,10 +14,12 @@
 #ifndef __PIDIMAGEMAKER_H__
 #define __PIDIMAGEMAKER_H__
 
+#include "utility"
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
 #include "LArbysImageMaker.h"
 #include "LArOpenCV/ImageCluster/Base/ImageClusterManager.h"
+#include "DataFormat/ImageMeta.h"
 #include "DataFormat/EventROI.h"
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
@@ -48,18 +50,28 @@ namespace larcv {
 
     void finalize();
 
-    void RecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
-		       std::vector<larcv::Image2D>& p0_img_v,
-		       std::vector<larcv::Image2D>& p1_img_v);
+    //Function to get image from vertex reco for SPID
+    void SPIDRecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
+			   std::vector<larcv::Image2D>& p0_img_v,
+			   std::vector<larcv::Image2D>& p1_img_v);
+
+    //Function to get image from vertex reco for MPID
+    void MPIDRecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
+			   std::vector<larcv::Image2D>& p01_img_v);
     
+    //Funttion to get empty image
     void VoidImgFiller(std::vector<larcv::Image2D>& p0_img_v,
 		       std::vector<larcv::Image2D>& p1_img_v);
-          
+    //Function to get image from CROI form MPID
+    void CROIImgFiller(ROI croi, std::vector<larcv::Image2D>& p01_img_v);
+    
   private:
 
     size_t _nevents;
     size_t _nevents_passing_nueLL;
 
+    std::pair<int, int> _outimage_dim;
+    
     std::string _roi_input_producer;
     std::string _p0_roi_output_producer;
     std::string _p1_roi_output_producer;
@@ -70,6 +82,8 @@ namespace larcv {
 
     std::string _p0_image_producer;
     std::string _p1_image_producer;
+    
+    std::string _multi_image_producer;
 
     larocv::ImageClusterManager _alg_mgr;
     

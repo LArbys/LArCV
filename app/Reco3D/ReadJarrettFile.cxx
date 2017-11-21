@@ -76,12 +76,12 @@ namespace larcv {
         NgoodReco=0;
 
         std::string filename;
-        if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
+        //if(_isMC)filename="/Volumes/DataStorage/DeepLearningData/VertexedFiles/NuMuSelection_10-5.txt";
         //if(!_isMC)filename = "/Volumes/DataStorage/DeepLearningData/data_5e19/EXTBNB/EXTBNBSelected.txt";
 
         std::cout << filename << std::endl;
         _filename = filename;
-        if(_isMC)ReadVertexFile(filename);// when using runall.sh
+        //if(_isMC)ReadVertexFile(filename);// when using runall.sh
         //ReadVertexFile(filename);// when running on extBNB numu
 
 
@@ -106,12 +106,18 @@ namespace larcv {
         _recoTree->Branch("run",&run);
         _recoTree->Branch("subrun",&subrun);
         _recoTree->Branch("event",&event);
-	_recoTree->Branch("vtx_id", &_vtx_id , "vtx_id/I");
+        _recoTree->Branch("vtx_id", &_vtx_id , "vtx_id/I");
+        _recoTree->Branch("trk_id_v", &_trk_id_v);
+        _recoTree->Branch("NtracksReco",&NtracksReco);
 	
         _recoTree->Branch("E_muon_v",&_E_muon_v);
         _recoTree->Branch("E_proton_v",&_E_proton_v);
         _recoTree->Branch("Length_v",&_Length_v);
         _recoTree->Branch("Avg_Ion_v",&_Avg_Ion_v);
+        _recoTree->Branch("Ion_5cm_v",&_Ion_5cm_v);
+        _recoTree->Branch("Ion_10cm_v",&_Ion_10cm_v);
+        _recoTree->Branch("Ion_tot_v",&_Ion_tot_v);
+        _recoTree->Branch("_IondivLength_v",&_IondivLength_v);
         _recoTree->Branch("Angle_v",&_Angle_v);
         _recoTree->Branch("Ep_t", &Ep_t);
         _recoTree->Branch("Em_t", &Em_t);
@@ -170,7 +176,7 @@ namespace larcv {
         larlite::event_vertex* vertex_ptr = (larlite::event_vertex*)_storage.get_data(larlite::data::kVertex,"trackReco");
 
         if(ev_pgraph_v->PGraphArray().size()==0){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
-        if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
+        //if(_isMC && !IsGoodEntry(run,subrun,event)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
         auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
@@ -299,7 +305,7 @@ namespace larcv {
 
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {// comment when running on EXTBNB
 
-            if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
+            //if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
             //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
             auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
@@ -310,26 +316,30 @@ namespace larcv {
         }
 
         //vertex_v = GetJarretVertex(run, subrun, event);// for BNBEXT
-        vertex_v = MCVertices;
+        //vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
+        int TrackID = 0;
+
         if(vertex_v.size()!=0){
             for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
+                NtracksReco = 0;
+                if(_trk_id_v.size()!=0)_trk_id_v.clear();
+                if(_IondivLength_v.size()!=0)_IondivLength_v.clear();
                 double xyz[3] = {vertex_v[ivertex].X(),vertex_v[ivertex].Y(),vertex_v[ivertex].Z()};
                 vertex_ptr->push_back(larlite::vertex(xyz,ivertex));
                 tracker.SetSingleVertex(vertex_v[ivertex]);
                 tracker.ReconstructVertex();
-                //tracker.DrawVertex();
                 larlite::event_track recoedVertex = tracker.GetReconstructedVertexTracks();
-                *(track_ptr) = recoedVertex;
-                if(_isMC)MCevaluation();
+
+                for(size_t itrack = 0; itrack<recoedVertex.size();itrack++){
+                    recoedVertex[itrack].set_track_id(TrackID);
+                    (*track_ptr).push_back(recoedVertex[itrack]);
+                    _trk_id_v.push_back(TrackID);
+                    TrackID++;
+                    if(recoedVertex[itrack].Length(0) > 5){NtracksReco++;}
+                }
+
                 std::vector< std::vector<double> > Energies_v = tracker.GetEnergies();
-		_vtx_id      = (int) ivertex;
-                _Length_v    = tracker.GetVertexLength();
-                _vertexPhi   = tracker.GetVertexPhi();
-                _vertexTheta = tracker.GetVertexTheta();
-                _closestWall = tracker.GetClosestWall();
-
-
                 _E_muon_v.resize(Energies_v.size());
                 _E_proton_v.resize(Energies_v.size());
 
@@ -338,9 +348,21 @@ namespace larcv {
                     _E_muon_v[trackid]   = Energies_v[trackid].back();
                 }
 
-                _Length_v  = _Length_v;
-                _Avg_Ion_v = tracker.GetAverageIonization();
+                _vtx_id      = (int) ivertex;
+                _Length_v    = tracker.GetVertexLength();
+                _closestWall = tracker.GetClosestWall();
+
+                _Avg_Ion_v   = tracker.GetAverageIonization();
+                _Ion_5cm_v   = tracker.GetTotalIonization(5);
+                _Ion_10cm_v  = tracker.GetTotalIonization(10);
+                _Ion_tot_v   = tracker.GetTotalIonization();
+                for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
+                    _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
+                }
+
                 _Angle_v   = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
+                _vertexPhi   = tracker.GetVertexPhi();
+                _vertexTheta = tracker.GetVertexTheta();
                 _Reco_goodness_v = tracker.GetRecoGoodness();
 
                 _missingTrack          = _Reco_goodness_v.at(0);
@@ -357,7 +379,12 @@ namespace larcv {
                 GoodVertex = tracker.IsGoodVertex();
                 if(GoodVertex)NgoodReco++;
 
+                //______________________
+                if(_isMC)MCevaluation();
+                //----------------------
+
                 _recoTree->Fill();
+                std::cout << std::endl << std::endl;
 
             }
         }

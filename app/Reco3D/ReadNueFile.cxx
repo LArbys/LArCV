@@ -92,38 +92,6 @@ namespace larcv {
     _recoTree->Branch("branchingTracks",&_branchingTracks);
     _recoTree->Branch("jumpingTracks",&_jumpingTracks);
 
-
-    //
-    // MC Information
-    //
-    _recoTree->Branch("Ep_t"       , &_Ep_t       , "Ep_t/D");
-    _recoTree->Branch("Em_t"       , &_Em_t       , "Em_t/D");
-    _recoTree->Branch("Ee_t"       , &_Ee_t       , "Ee_t/D");
-
-    _recoTree->Branch("MuonStartPoint_X", &_MuonStartPoint_X, "MuonStartPoint_X/D");
-    _recoTree->Branch("ProtonStartPoint_X", &_ProtonStartPoint_X, "ProtonStartPoint_X/D");
-    _recoTree->Branch("ElectronStartPoint_X", &_ElectronStartPoint_X, "ElectronStartPoint_X/D");
-
-    _recoTree->Branch("MuonStartPoint_Y", &_MuonStartPoint_Y, "MuonStartPoint_Y/D");
-    _recoTree->Branch("ProtonStartPoint_Y", &_ProtonStartPoint_Y, "ProtonStartPoint_Y/D");
-    _recoTree->Branch("ElectronStartPoint_Y", &_ElectronStartPoint_Y, "ElectronStartPoint_Y/D");
-
-    _recoTree->Branch("MuonStartPoint_Z", &_MuonStartPoint_Z, "MuonStartPoint_Z/D");
-    _recoTree->Branch("ProtonStartPoint_Z", &_ProtonStartPoint_Z, "ProtonStartPoint_Z/D");
-    _recoTree->Branch("ElectronStartPoint_Z", &_ElectronStartPoint_Z, "ElectronStartPoint_Z/D");
-
-    _recoTree->Branch("MuonEndPoint_X", &_MuonEndPoint_X, "MuonEndPoint_X/D");
-    _recoTree->Branch("ProtonEndPoint_X", &_ProtonEndPoint_X, "ProtonEndPoint_X/D");
-    _recoTree->Branch("ElectronEndPoint_X", &_ElectronEndPoint_X, "ElectronEndPoint_X/D");
-
-    _recoTree->Branch("MuonEndPoint_Y", &_MuonEndPoint_Y, "MuonEndPoint_Y/D");
-    _recoTree->Branch("ProtonEndPoint_Y", &_ProtonEndPoint_Y, "ProtonEndPoint_Y/D");
-    _recoTree->Branch("ElectronEndPoint_Y", &_ElectronEndPoint_Y, "ElectronEndPoint_Y/D");
-
-    _recoTree->Branch("MuonEndPoint_Z", &_MuonEndPoint_Z, "MuonEndPoint_Z/D");
-    _recoTree->Branch("ProtonEndPoint_Z", &_ProtonEndPoint_Z, "ProtonEndPoint_Z/D");
-    _recoTree->Branch("ElectronEndPoint_Z", &_ElectronEndPoint_Z, "ElectronEndPoint_Z/D");
-    
     if (_foutll.empty()) throw larbys("specify larlite file output name");
 
     _storage.set_io_mode(larlite::storage_manager::kWRITE);
@@ -153,7 +121,11 @@ namespace larcv {
     
     auto ev_img_v       = (EventImage2D*) mgr.get_data(kProductImage2D,_img2d_producer);
     auto ev_pgraph_v    = (EventPGraph*)  mgr.get_data(kProductPGraph,_pgraph_producer);
-    auto ev_pix_v       = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
+    
+    EventPixel2D* ev_pix_v = nullptr;
+    if (!_par_pix_producer.empty())
+      ev_pix_v = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
+
     EventROI* ev_partroi_v = nullptr;
     if (!_true_roi_producer.empty())
       ev_partroi_v = (EventROI*) mgr.get_data(kProductROI,_true_roi_producer);
@@ -172,20 +144,9 @@ namespace larcv {
 
     // get the event clusters and full images
     const auto& full_adc_img_v = ev_img_v->Image2DArray();
-    const auto& pix_m          = ev_pix_v->Pixel2DClusterArray();
-    const auto& pix_meta_m     = ev_pix_v->ClusterMetaArray();
-
+    
     // const auto& full_tag_img_thru_v = tag_img_thru_v->Image2DArray();
     // const auto& full_tag_img_stop_v = tag_img_stop_v->Image2DArray();
-
-
-    //
-    // Fill MC if exists
-    //
-    if (ev_partroi_v) {
-      const auto& mc_roi_v = ev_partroi_v->ROIArray();
-      FillMC(mc_roi_v);
-    }
 
 
     //
@@ -244,6 +205,11 @@ namespace larcv {
 			    pgraph.ParticleArray().front().Z());
 
       if (_mask_shower) {
+	
+	assert (ev_pix_v);
+	const auto& pix_m          = ev_pix_v->Pixel2DClusterArray();
+	const auto& pix_meta_m     = ev_pix_v->ClusterMetaArray();
+
 	//
 	// mask shower particle pixels 
 	// method : pixels stored via larbys image
