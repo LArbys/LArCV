@@ -16,7 +16,7 @@
 
 //#pragma link C++ class larcv::ReadRuiFile+;
 #pragma link C++ class larcv::ReadJarrettFile+;
-#pragma link C++ class larcv::testMasking+;
 #pragma link C++ class larcv::ReadNueFile+;
+#pragma link C++ class larcv::Run3DTracker+;
 
 #endif
