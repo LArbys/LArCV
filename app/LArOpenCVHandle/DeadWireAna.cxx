@@ -35,10 +35,12 @@ namespace larcv {
     _tree->Branch("vertex_in_dead_plane0", &_vertex_in_dead_plane0, "vertex_in_dead_plane0/I");
     _tree->Branch("vertex_in_dead_plane1", &_vertex_in_dead_plane1, "vertex_in_dead_plane1/I");
     _tree->Branch("vertex_in_dead_plane2", &_vertex_in_dead_plane2, "vertex_in_dead_plane2/I");
+    _tree->Branch("vertex_in_dead", &_vertex_in_dead, "vertex_in_dead/I");
 
     _tree->Branch("vertex_near_dead_plane0", &_vertex_near_dead_plane0, "vertex_near_dead_plane0/I");
     _tree->Branch("vertex_near_dead_plane1", &_vertex_near_dead_plane1, "vertex_near_dead_plane1/I");
     _tree->Branch("vertex_near_dead_plane2", &_vertex_near_dead_plane2, "vertex_near_dead_plane2/I");
+    _tree->Branch("vertex_near_dead", &_vertex_near_dead, "vertex_near_dead/I");
     
     _tree->Branch("nearest_wire_error", &_nearest_wire_error, "_nearest_wire_error/I");
 
@@ -52,7 +54,7 @@ namespace larcv {
     auto dead_img = (EventImage2D*) mgr.get_data(kProductImage2D,_ev_img2d_prod);
     if (dead_img->Image2DArray().size() != 3) throw larbys("Dead wire image does not have 3 planes");
 
-    auto seg_roi  = (EventROI*)     mgr.get_data(kProductROI,_seg_roi_prod);
+    auto seg_roi  = (EventROI*) mgr.get_data(kProductROI,_seg_roi_prod);
 
     _run    = (int) seg_roi->run();
     _subrun = (int) seg_roi->subrun();
@@ -97,6 +99,9 @@ namespace larcv {
       return true;
     }
     
+    _vertex_in_dead = 0;
+    _vertex_near_dead = 0;
+
     for(size_t plane=0; plane<3; ++plane) {
       LARCV_DEBUG() << "@plane="<<plane<<std::endl;
       
@@ -121,7 +126,6 @@ namespace larcv {
       
       int in_dead = 0;
       int near_dead = 0;
-      
       
       if (img.pixel((int)ypixel,(int)xpixel) == 0.0) in_dead = 1;
       
@@ -152,8 +156,15 @@ namespace larcv {
 	_vertex_in_dead_plane2   = in_dead;
 	_vertex_near_dead_plane2 = near_dead;
       }
+      
+      _vertex_in_dead   += (int)in_dead;
+      _vertex_near_dead += (int)near_dead;
+
     } // end plane
     
+    _vertex_in_dead   = _vertex_in_dead > 1 ? 1 : 0;
+    _vertex_near_dead = _vertex_near_dead > 1 ? 1 : 0;
+
     _tree->Fill();
     return true;
   }
