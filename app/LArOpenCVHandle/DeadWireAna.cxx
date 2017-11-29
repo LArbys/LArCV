@@ -32,6 +32,14 @@ namespace larcv {
     _tree->Branch("event"  , &_event  , "event/I");
     _tree->Branch("entry"  , &_entry  , "entry/I");
 
+    _tree->Branch("x",&_x,"x/F");
+    _tree->Branch("y",&_y,"y/F");
+    _tree->Branch("z",&_z,"z/F");
+
+    _tree->Branch("sx",&_sx,"sx/F");
+    _tree->Branch("sy",&_sy,"sy/F");
+    _tree->Branch("sz",&_sz,"sz/F");
+
     _tree->Branch("vertex_in_dead_plane0", &_vertex_in_dead_plane0, "vertex_in_dead_plane0/I");
     _tree->Branch("vertex_in_dead_plane1", &_vertex_in_dead_plane1, "vertex_in_dead_plane1/I");
     _tree->Branch("vertex_in_dead_plane2", &_vertex_in_dead_plane2, "vertex_in_dead_plane2/I");
@@ -74,7 +82,15 @@ namespace larcv {
     auto scex = tx - offset[0] + 0.7;
     auto scey = ty + offset[1];
     auto scez = tz + offset[2];
-    
+
+    _x = tx;
+    _y = ty;
+    _z = tz;
+      
+    _sx = scex;
+    _sy = scey;
+    _sz = scez;
+
     LARCV_DEBUG() << "(x,y,z,t)==>sce(x,y,z,t) : ("<<tx<<","<<ty<<","<<tz<<","<<tt<<")==>("<<scex<<","<<scey<<","<<scez<<","<<tt<<")"<<std::endl;
 
     auto geo  = larutil::Geometry::GetME();

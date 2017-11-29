@@ -41,8 +41,10 @@
 #pragma link C++ class larcv::ROIPad+;
 
 #pragma link C++ class larcv::UnionROI+;
+#pragma link C++ class larcv::ROIClipper+;
 //ADD_NEW_CLASS ... do not change this line
 #endif
+
 
 
 

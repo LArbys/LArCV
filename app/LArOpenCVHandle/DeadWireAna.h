@@ -28,6 +28,14 @@ namespace larcv {
     int _event;
     int _entry;
 
+    float _x;
+    float _y;
+    float _z;
+
+    float _sx;
+    float _sy;
+    float _sz;
+
     int _vertex_in_dead_plane0;
     int _vertex_in_dead_plane1;
     int _vertex_in_dead_plane2;
