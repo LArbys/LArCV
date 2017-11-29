@@ -37,6 +37,10 @@
 #include "AStar3DAlgo.h"
 #include "AStar3DAlgoProton.h"
 
+#include "Processor/ProcessBase.h"
+#include "Processor/ProcessFactory.h"
+#include "LArUtil/SpaceChargeMicroBooNE.h"
+
 namespace larcv {
     /**
      \class AStarTracker
@@ -120,6 +124,7 @@ namespace larcv {
         void MakeTrack();
         void ComputeLength();
         void ComputeClosestWall();
+	void ComputeClosestWall_SCE();
         void ComputedQdX();
         void ComputeNewdQdX();
         void Reconstruct();
@@ -158,6 +163,7 @@ namespace larcv {
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
         std::vector<double> GetClosestWall();
+	std::vector<double> GetClosestWall_SCE();
         std::vector< std::vector<double> > GetVertexAngle(double dAverage);
         std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
@@ -172,8 +178,6 @@ namespace larcv {
         TVector3        CheckEndPoints(TVector3 point);
         TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
         TVector3        GetFurtherFromVertex();
-
-
 
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, int BoxSize, double dR);
@@ -215,7 +219,7 @@ namespace larcv {
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
         TSpline3* GetProtonT2dEdx(){return sProtonT2dEdx;}
         TSpline3* GetMuonT2dEdx(){return sMuonT2dEdx;}
-
+	
     protected:
         
         std::string _track_producer;
@@ -321,6 +325,7 @@ namespace larcv {
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
+	std::vector<double> _closestWall_SCE;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         std::vector<std::vector<double> > _vertex_dQdX_v;
@@ -333,6 +338,9 @@ namespace larcv {
         larlite::event_track _vertexLarliteTracks;
 
         TCanvas *c2;
+
+    private:
+	//	larutil::SpaceChargeMicroBooNE _sce;
     };
 }
 #endif

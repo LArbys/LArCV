@@ -25,6 +25,8 @@
 #include "Processor/ProcessFactory.h"
 #include "AStarTracker.h"
 
+#include "LArUtil/SpaceChargeMicroBooNE.h"
+
 namespace larcv {
 
     /**
@@ -57,7 +59,7 @@ namespace larcv {
         void finalize();
 
         void MCevaluation();
-
+	
     private :
 
         int iTrack;
@@ -103,6 +105,7 @@ namespace larcv {
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
+	std::vector<double> _closestWallSCE;
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
         std::vector<double> _Ion_tot_v;
@@ -114,7 +117,8 @@ namespace larcv {
 
         TVector3 MCvertex;
         TVector3 RecoVertex;
-
+	TVector3 RecoVertex_SCE;
+	
         bool GoodVertex;
         bool _missingTrack;
         bool _nothingReconstructed;

@@ -694,12 +694,13 @@ namespace larcv {
         _tooShortFaintTrack = false;
         _nothingReconstructed = false;
 
-        if(_vertexTracks.size()   !=0)_vertexTracks.clear();
-        if(_closestWall.size()    !=0)_closestWall.clear();
-        if(_vertexLength.size()   !=0)_vertexLength.clear();
-        if(_vertexQDQX.size()     !=0)_vertexQDQX.clear();
-        if(_vertexEndPoints.size()!=0)_vertexEndPoints.clear();
-        if(_vertex_dQdX_v.size()  !=0)_vertex_dQdX_v.clear();
+        if(_vertexTracks.size()    !=0)_vertexTracks.clear();
+        if(_closestWall.size()     !=0)_closestWall.clear();
+	if(_closestWall_SCE.size() !=0)_closestWall_SCE.clear();
+        if(_vertexLength.size()    !=0)_vertexLength.clear();
+        if(_vertexQDQX.size()      !=0)_vertexQDQX.clear();
+        if(_vertexEndPoints.size() !=0)_vertexEndPoints.clear();
+        if(_vertex_dQdX_v.size()   !=0)_vertex_dQdX_v.clear();
         _vertexEndPoints.push_back(start_pt);
 
         // look for tracks that start from the vertex
@@ -803,7 +804,8 @@ namespace larcv {
         MaskVertex();
 
         ComputeClosestWall();
-
+	ComputeClosestWall_SCE();
+	
         if(_jumpingTracks_v.size()      != 0) _jumpingTracks_v.clear();
         if(_possiblyCrossing_v.size()   != 0) _possiblyCrossing_v.clear();
         if(_tooShortDeadWire_v.size()   != 0) _tooShortDeadWire_v.clear();
@@ -1308,7 +1310,6 @@ namespace larcv {
             track_dQdX_v.push_back(thisdqdx);
         }
         _vertex_dQdX_v.push_back(track_dQdX_v);
-
     }
     //______________________________________________________
     bool AStarTracker::IsGoodVertex(){
@@ -2495,14 +2496,22 @@ namespace larcv {
     }
     //______________________________________________________
     std::vector<double> AStarTracker::GetClosestWall(){
-        if(_closestWall.size() != _vertexTracks.size()) ComputeClosestWall();
+        if(_closestWall.size()     != _vertexTracks.size()) ComputeClosestWall();
         return _closestWall;
     }
+  
+    std::vector<double> AStarTracker::GetClosestWall_SCE(){
+  	if(_closestWall_SCE.size() != _vertexTracks.size()) ComputeClosestWall_SCE();
+	return _closestWall_SCE;
+    }
+  
+  
+
     //______________________________________________________
     void AStarTracker::ComputeClosestWall(){
         if(_closestWall.size() ==_vertexTracks.size()) return;
         if(_closestWall.size()!=0)_closestWall.clear();
-
+	
         //find tracks that approach the edge of the detector too much
         double detectorLength = 1036.8;//cm
         double detectorheight = 233;//cm
@@ -2527,6 +2536,50 @@ namespace larcv {
             _closestWall.push_back(minApproach);
         }
     }
+  
+    void AStarTracker::ComputeClosestWall_SCE(){
+        if(_closestWall_SCE.size() ==_vertexTracks.size()) return;
+        if(_closestWall_SCE.size()!=0)_closestWall_SCE.clear();
+
+	larutil::SpaceChargeMicroBooNE sce;
+	
+        //find tracks that approach the edge of the detector too much
+        double detectorLength = 1036.8;//cm
+        double detectorheight = 233;//cm
+        double detectorwidth  = 256.35;//cm
+        double Ymindet = -0.5*detectorheight;
+        double Ymaxdet = 0.5*detectorheight;
+        double Xmindet = 0;
+        double Xmaxdet = detectorwidth;
+        double Zmindet = 0;
+        double Zmaxdet = detectorLength;
+
+        double minApproach = 1e9;
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
+
+	      double pt_X = _vertexTracks[itrack][iNode].X();
+	      double pt_Y = _vertexTracks[itrack][iNode].Y();
+	      double pt_Z = _vertexTracks[itrack][iNode].Z();
+
+	      auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
+
+	      double sceptX = pt_X - sceOffset[0] + 0.7;
+	      double sceptY = pt_Y - sceOffset[1];
+	      double sceptZ = pt_Z - sceOffset[2];
+		
+	      
+	      if( std::abs(sceptX-Xmindet) < minApproach) minApproach = std::abs(sceptX-Xmindet);
+	      if( std::abs(sceptX-Xmaxdet) < minApproach) minApproach = std::abs(sceptX-Xmaxdet);
+	      if( std::abs(sceptY-Ymindet) < minApproach) minApproach = std::abs(sceptY-Ymindet);
+	      if( std::abs(sceptY-Ymaxdet) < minApproach) minApproach = std::abs(sceptY-Ymaxdet);
+	      if( std::abs(sceptZ-Zmindet) < minApproach) minApproach = std::abs(sceptZ-Zmindet);
+	      if( std::abs(sceptZ-Zmaxdet) < minApproach) minApproach = std::abs(sceptZ-Zmaxdet);
+            }
+            _closestWall_SCE.push_back(minApproach);
+        }
+    }
+  
     //______________________________________________________
     std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 5){
         tellMe(Form("GetVertexAngle(%.1f)",dAverage),0);
