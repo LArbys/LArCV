@@ -20,6 +20,7 @@ namespace larcv {
     std::string _img_producer;       
     std::string _input_roi_producer; 
     std::string _output_roi_producer;
+    bool _remove_duplicates;
 
   };
 
