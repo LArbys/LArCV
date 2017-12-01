@@ -586,9 +586,9 @@ namespace larcv {
         }//iNode
     }
     //______________________________________________________
-    void AStarTracker::MaskVertex(){
+    void AStarTracker::MaskVertex(double shellMask){
         tellMe("MaskVertex()",0);
-        double shellMask = 4;
+        if(shellMask==-1)shellMask = 1;
         double MaskedValue = 0;
         if(_vertexTracks.size() == 0)return;
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
@@ -618,17 +618,24 @@ namespace larcv {
                             TVector3 pC((icol+0.5),(irow+0.5),0);
                             double alpha = ((B-A).Dot(pC-A))/(pow((B-A).Mag(),2));
 
-                            if(alpha  >= -0.1 && alpha <= 1.1){
-                                if(GetDist2line(A,B,pC) < shellMask){
-                                    hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+
+                            if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 8){
+                                double newShellMask=std::max(4.0,shellMask);
+                                if(alpha  >= -0.1 && alpha <= 1.1){
+                                    if(GetDist2line(A,B,pC) < newShellMask){
+                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+                                    }
                                 }
-                            }
-                            if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 2){
-                                if((pC-A).Mag() < 0.75*shellMask || (pC-B).Mag() < 0.75*shellMask){
+                                if((pC-A).Mag() < 0.75*newShellMask || (pC-B).Mag() < 0.75*newShellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
                                 }
                             }
                             else{
+                                if(alpha  >= -0.1 && alpha <= 1.1){
+                                    if(GetDist2line(A,B,pC) < shellMask){
+                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+                                    }
+                                }
                                 if((pC-A).Mag() < 1.5*shellMask || (pC-B).Mag() < 1.5*shellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
                                 }
@@ -800,7 +807,7 @@ namespace larcv {
         if(_vertexTracks.size() == 0){_nothingReconstructed = true; return;} // if no track reconstructed, probably wrong vertex
         CropFullImage2boundsIntegrated(_vertexEndPoints);
         //ShaveTracks();
-        MaskVertex();
+        MaskVertex(4);
 
         ComputeClosestWall();
 
@@ -1000,7 +1007,7 @@ namespace larcv {
             TVector3 newCandidate;
             for(size_t i = 0;i<10000;i++){
                 double coord2D[3][3];// for each plane : x,y and ADC value;
-                double r = ran.Uniform(0,rmax);
+                double r = ran.Uniform(0.5,rmax);
                 ran.Sphere(x,y,z,r);
                 newCandidate.SetXYZ(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
                 if(!CheckEndPointsInVolume(newCandidate)) continue; // point out of detector volume
@@ -1010,6 +1017,11 @@ namespace larcv {
                 if(list3D.size() >= 1){// point too close to already found point
                     for(size_t i = 0;i<list3D.size()-1;i++){
                         if((newCandidate-list3D[i]).Mag() < 0.5) TooClose=true;
+                    }
+                }
+                for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+                    for(size_t i = 1;i<_vertexTracks[itrack].size();i++){
+                        if((newCandidate-_vertexTracks[itrack][i]).Mag() < 3) TooClose=true;
                     }
                 }
 
@@ -1056,6 +1068,7 @@ namespace larcv {
                     if(pointSummedADC > MaxsummedADC){
                         MaxsummedADC = pointSummedADC;
                         list3D.push_back(newCandidate);
+                        //for(size_t iPlane=0;iPlane<3;iPlane++){hit_image_v[iPlane].set_pixel(coord2D[iPlane][1],coord2D[iPlane][0],0);}
                         foundNewPoint = true;
                     }
                 }
@@ -1083,14 +1096,24 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::SortAndOrderPoints(){
+        tellMe("SortAndOrderPoints()",0);
         // try and get a "track"
         //(1) find point further away from the vertex
         //(2) for each point, look for closest point, which stays the closest to the "current point -> end point line"
         //(3) add this point to the track
         //(4) start again
         PreSortAndOrderPoints();
+
+        /*TVector3 FurtherFromVertex = GetFurtherFromVertex();
+        std::vector<TVector3> newTrack;
+        newTrack.push_back(start_pt);
+        for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
+            if((_3DTrack[iNode]-FurtherFromVertex).Mag() < (newTrack.back()-FurtherFromVertex).Mag()){newTrack.push_back(_3DTrack[iNode]);}
+        }
+        _3DTrack = newTrack;*/
+
         TVector3 FurtherFromVertex;
-        double dist2vertex = 0;
+         double dist2vertex = 0;
         for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
         }
@@ -1880,12 +1903,14 @@ namespace larcv {
         TVector3 newPoint;
 
         if(_3DTrack.size() > 2){
-        for(size_t iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
-            if((_3DTrack[iPoint+1]-_3DTrack[iPoint]).Mag()>5)continue;
-            newPoint = (_3DTrack[iPoint+1]+_3DTrack[iPoint])*0.5;
-            newTrack.push_back(newPoint);
-        }
-        _3DTrack = newTrack;
+            newTrack.push_back(_3DTrack[0]);
+            for(size_t iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
+                newPoint = (_3DTrack[iPoint+1]+_3DTrack[iPoint])*0.5;
+                if((_3DTrack[iPoint+1]-_3DTrack[iPoint]).Mag()>5)newPoint = _3DTrack[iPoint+1];
+                newTrack.push_back(newPoint);
+            }
+            newTrack.push_back(_3DTrack.back());
+            _3DTrack = newTrack;
         }
 
 
@@ -1961,18 +1986,42 @@ namespace larcv {
         //DumpTrack();
         TVector3 vertexNeighbour = start_pt;
         int iterNeighbour = 0;
-        std::vector<TVector3> vertexNeighbour_v;
-        while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<10){
+        if(newTrack.size()!=0)newTrack.clear();
+        newTrack.push_back(_3DTrack[0]);
+        for(size_t iNode=1;iNode<_3DTrack.size();iNode++){
+            iterNeighbour=0;
+            while((newTrack.back()-_3DTrack[iNode]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()){
+                vertexNeighbour = _3DTrack[iNode-1]+(_3DTrack[iNode]-_3DTrack[iNode-1])*2*(iterNeighbour/((_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()));
+                if(vertexNeighbour!=newTrack.back())newTrack.push_back(vertexNeighbour);
+                iterNeighbour++;
+            }
+            if(newTrack.back()!=_3DTrack[iNode])newTrack.push_back(_3DTrack[iNode]);
+        }
+        _3DTrack = newTrack;
+        /*while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<100){
             iterNeighbour++;
-            vertexNeighbour = start_pt+(_3DTrack[1]-start_pt)*(iterNeighbour/(_3DTrack[1]-start_pt).Mag());
+            vertexNeighbour = start_pt+(_3DTrack[1]-start_pt)*3*(iterNeighbour/(_3DTrack[1]-start_pt).Mag());
             vertexNeighbour_v.push_back(vertexNeighbour);
         }
         if(vertexNeighbour_v.size()!=0){
             std::vector<TVector3>::iterator it;
-        it = _3DTrack.begin();
-        _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
-        }
+            it = _3DTrack.begin();
+            _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
+        }*/
         //DumpTrack();
+        /*TVector3 vertexNeighbour = start_pt;
+        int iterNeighbour = 0;
+        std::vector<TVector3> vertexNeighbour_v;
+        while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<100){
+            iterNeighbour++;
+            vertexNeighbour = start_pt+(_3DTrack[1]-start_pt)*3*(iterNeighbour/(_3DTrack[1]-start_pt).Mag());
+            vertexNeighbour_v.push_back(vertexNeighbour);
+        }
+        if(vertexNeighbour_v.size()!=0){
+            std::vector<TVector3>::iterator it;
+            it = _3DTrack.begin();
+            _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
+        }*/
 
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
     }

@@ -51,7 +51,7 @@ namespace larcv {
 
     Run3DTracker::Run3DTracker(const std::string name)
     : ProcessBase(name),
-    _foutll(""),
+    _foutll("larlite_reco3D.root"),
     _spline_file(""),
     _recoTree(nullptr)
     {}
@@ -62,7 +62,7 @@ namespace larcv {
         _img2d_producer            = cfg.get<std::string>("Image2DProducer");
         _par_pix_producer          = cfg.get<std::string>("ParPixelProducer");
         _true_roi_producer         = cfg.get<std::string>("TrueROIProducer");
-        _mask_shower               = cfg.get<bool>("MaskShower",true);
+        _mask_shower               = cfg.get<bool>("MaskShower",false);
 
     }
 
@@ -308,7 +308,7 @@ namespace larcv {
         std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
         ass_vertex_to_track_vv.resize(vertex_v.size());
 
-        //vertex_v = MCVertices;
+        vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         int TrackID = 0;
 
@@ -382,7 +382,7 @@ namespace larcv {
 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                if(GoodVertex)tracker.DrawVertex();
+                tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
@@ -532,6 +532,7 @@ namespace larcv {
                 MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
             }
             if(mc_roi_v[iMC].PdgCode() == 2212){
+                if(mc_roi_v[iMC].EnergyDeposit() < 60) continue;
                 std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
                 Ep_t = mc_roi_v[iMC].EnergyDeposit();
                 ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));

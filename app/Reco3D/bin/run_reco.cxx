@@ -31,7 +31,7 @@ int main(int nargs, char** argv){
     algo->SetSplineLocation("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root");
     algo->SetLLOutName("larlite_reco3D.root");
     proc.initialize();
-    proc.batch_process(0,50);
+    proc.batch_process(0);
     std::cout << "RUN 3D RECO : about to finalize" << std::endl;
     proc.finalize();
 
