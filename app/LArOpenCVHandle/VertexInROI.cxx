@@ -113,7 +113,7 @@ namespace larcv {
 
 	LARCV_DEBUG() << "Good cROI counter is " << good_croi << " as index " << croi_idx << std::endl;
       
-	if (good_croi>=_planes_inside_threshold)  {
+	if (good_croi>=_planes_inside_threshold and ev_croi_true_v->ROIArray().empty())  {
 	  one_good = true;
 	  ev_croi_true_v->Append(croi);
 	}

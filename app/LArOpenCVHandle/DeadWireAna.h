@@ -1,16 +1,3 @@
-/**
- * \file DeadWireAna.h
- *
- * \ingroup Package_Name
- * 
- * \brief Class def header for a class DeadWireAna
- *
- * @author vgenty
- */
-
-/** \addtogroup Package_Name
-
-    @{*/
 #ifndef __DEADWIREANA_H__
 #define __DEADWIREANA_H__
 
@@ -21,19 +8,10 @@
 
 namespace larcv {
 
-  /**
-     \class ProcessBase
-     User defined class DeadWireAna ... these comments are used to generate
-     doxygen documentation!
-  */
   class DeadWireAna : public ProcessBase {
 
   public:
-    
-    /// Default constructor
     DeadWireAna(const std::string name="DeadWireAna");
-    
-    /// Default destructor
     ~DeadWireAna(){}
 
     void configure(const PSet&);
@@ -50,13 +28,23 @@ namespace larcv {
     int _event;
     int _entry;
 
+    float _x;
+    float _y;
+    float _z;
+
+    float _sx;
+    float _sy;
+    float _sz;
+
     int _vertex_in_dead_plane0;
     int _vertex_in_dead_plane1;
     int _vertex_in_dead_plane2;
+    int _vertex_in_dead;
 
     int _vertex_near_dead_plane0;
     int _vertex_near_dead_plane1;
     int _vertex_near_dead_plane2;
+    int _vertex_near_dead;
 
     int _nearest_wire_error;
 
@@ -67,17 +55,10 @@ namespace larcv {
     larutil::SpaceChargeMicroBooNE _sce;
   };
 
-  /**
-     \class larcv::DeadWireAnaFactory
-     \brief A concrete factory class for larcv::DeadWireAna
-  */
   class DeadWireAnaProcessFactory : public ProcessFactoryBase {
   public:
-    /// ctor
     DeadWireAnaProcessFactory() { ProcessFactory::get().add_factory("DeadWireAna",this); }
-    /// dtor
     ~DeadWireAnaProcessFactory() {}
-    /// creation method
     ProcessBase* create(const std::string instance_name) { return new DeadWireAna(instance_name); }
   };
 

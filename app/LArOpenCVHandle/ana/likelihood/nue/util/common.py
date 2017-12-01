@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 
-rse    = ['run','subrun','event']
-rserv  = ['run','subrun','event','roid','vtxid']
+rse   = ['run','subrun','event']
+rsev  = ['run','subrun','event','vtxid']
+rsec  = ['run','subrun','event','cvtxid']
+rserv = ['run','subrun','event','roid','vtxid']
 
 #
 # Drop if column name ends in _y

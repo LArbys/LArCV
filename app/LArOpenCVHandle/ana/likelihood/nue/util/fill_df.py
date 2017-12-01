@@ -7,7 +7,7 @@ from common import *
 
 
 
-def initialize_df(input_file):
+def initialize_df(input_file,data=False):
 
     print "Loading vertex TTrees..."
     vertex_df = pd.DataFrame(rn.root2array(input_file,treename='VertexTree'))
@@ -32,30 +32,74 @@ def initialize_df(input_file):
     # Combine DataFrames
     #
     print "Combining Trees..."
-    comb_df = pd.concat([vertex_df,
-                         angle_df,
-                         shape_df,
-                         gap_df,
-                         angle_df,
-                         match_df,
-                         dqds_df,
-                         cosmic_df],axis=1)
+    comb_df = pd.DataFrame()
+    if data==False:
+        print "... is not data"
+        comb_df = pd.concat([vertex_df,
+                             angle_df,
+                             shape_df,
+                             gap_df,
+                             angle_df,
+                             match_df,
+                             dqds_df,
+                             cosmic_df],axis=1)
+    else:
+        print "... is data"
+        comb_df = pd.concat([angle_df,
+                             shape_df,
+                             gap_df,
+                             angle_df,
+                             match_df,
+                             dqds_df,
+                             cosmic_df],axis=1)        
+
     
-    print comb_df.index.size
     print "Dropping duplicate cols..."
     comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
+    print "...dropped"
+
+    print "Reindex..."
+    comb_df.reset_index(inplace=True)
+    print "...done"
+
+    print "Setting vertex id..."
+    comb_df['cvtxid'] = 0.0
+    def func(group):
+        group['cvtxid'] = np.arange(0,group['cvtxid'].size)
+        return group
+    comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
+    print "...set"
+
+    print "Reindex..."
+    comb_df.reset_index(inplace=True)
+    print "...done"
+
+    print "Joining with truth..."
+    pg_df = pd.DataFrame(rn.root2array(input_file,treename="PGraphTruthMatch"))
+    
+    pg_df.rename(columns={'vtxid' : 'cvtxid'},inplace=True)
+
+    pg_df.set_index(rsec,inplace=True)
+    comb_df.set_index(rsec,inplace=True)
+
+    comb_df = pd.concat([comb_df,pg_df],axis=1,join_axes=[comb_df.index])
+    print "...joined"
+
+    print "Reindex..."
     comb_df.reset_index(inplace=True)
     comb_df.set_index(rse,inplace=True)
-    
+    print "...done"
+
     print "Loading event TTrees..."
     event_vertex_df = pd.DataFrame(rn.root2array(input_file,treename="EventVertexTree"))
     nufilter_df     = pd.DataFrame(rn.root2array(input_file,treename="NuFilterTree"))
     mc_df           = pd.DataFrame(rn.root2array(input_file,treename="MCTree"))
-    
+
     print "Reindex..."
     event_vertex_df.set_index(rse,inplace=True)
     nufilter_df.set_index(rse,inplace=True)
     mc_df.set_index(rse,inplace=True)
+    print "...done"
     
     print "Joining nufilter..."
     event_vertex_df = event_vertex_df.join(nufilter_df,how='outer',lsuffix='',rsuffix='_y')
@@ -75,19 +119,11 @@ def initialize_df(input_file):
     drop_y(event_vertex_df)
     print "...dropped"
 
-    comb_df['cvtxid'] = 0.0
-    def func(group):
-        group['cvtxid'] = np.arange(0,group['cvtxid'].size)
-        return group
-
     print "Reindex..."
     comb_df.reset_index(inplace=True)
+    print "...done"
 
-    print "Setting vertex id..."
-    comb_df = comb_df.groupby(['run','subrun','event']).apply(func)
-    
     return comb_df
-    
 
 def track_shower_assumption(df):
     df['trkid'] = df.apply(lambda x : 0 if(x['par1_type']==1) else 1,axis=1)

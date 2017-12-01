@@ -133,11 +133,12 @@ namespace larcv {
         _recoTree->Branch("branchingTracks",&_branchingTracks);
         _recoTree->Branch("jumpingTracks",&_jumpingTracks);
         _recoTree->Branch("RecoVertex",&RecoVertex);
+	_recoTree->Branch("RecoVertex_SCE",&RecoVertex_SCE);
         _recoTree->Branch("MCvertex",&MCvertex);
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
         _recoTree->Branch("closestWall",&_closestWall);
-
+	_recoTree->Branch("closestWallSCE",&_closestWallSCE);
 
         if (_foutll.empty()) throw larbys("specify larlite file output name");
 
@@ -148,7 +149,7 @@ namespace larcv {
             LARCV_CRITICAL() << "ERROR, larlite output file could not open" << std::endl;
             throw larbys("die");
         }
-
+	
     }
 
     bool ReadJarrettFile::process(IOManager& mgr)
@@ -160,16 +161,16 @@ namespace larcv {
         gStyle->SetOptStat(0);
 
         TVector3 vertex(-1,-1,-1);
+	TVector3 vertex_SCE(-1,-1,-1);
         TVector3 endPoint[2];
         MCvertex.SetXYZ(-1,-1,-1);
 
+	larutil::SpaceChargeMicroBooNE sce;
 
         auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer); // for BNB 5e19, comment when EXTBNB
         run    = ev_pgraph_v->run();
         subrun = ev_pgraph_v->subrun();
         event  = ev_pgraph_v->event();
-
-
 
 
         larlite::event_track* track_ptr = (larlite::event_track*)_storage.get_data(larlite::data::kTrack,"trackReco");
@@ -305,13 +306,27 @@ namespace larcv {
 
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {// comment when running on EXTBNB
 
+	  auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
+	  
+	  double pt_X = pgraph.ParticleArray().front().X();
+	  double pt_Y = pgraph.ParticleArray().front().Y();
+	  double pt_Z = pgraph.ParticleArray().front().Z();
+
+	  auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
+
+	  double sceptX = pt_X - sceOffset[0] + 0.7;
+	  double sceptY = pt_Y - sceOffset[1];
+	  double sceptZ = pt_Z - sceOffset[2];
+	  
             //if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
             //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
 
-            auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
-            TVector3 vertex(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
-            vertex_v.push_back(vertex);
-            RecoVertex=vertex;
+	  TVector3 vertex(pt_X,pt_Y,pt_Z);
+	  TVector3 vertex_SCE(sceptX,sceptY,sceptZ);
+	  vertex_v.push_back(vertex);
+	  
+	  RecoVertex     = vertex;
+	  RecoVertex_SCE = vertex_SCE;
 
         }
 
@@ -348,21 +363,22 @@ namespace larcv {
                     _E_muon_v[trackid]   = Energies_v[trackid].back();
                 }
 
-                _vtx_id      = (int) ivertex;
-                _Length_v    = tracker.GetVertexLength();
-                _closestWall = tracker.GetClosestWall();
-
-                _Avg_Ion_v   = tracker.GetAverageIonization();
-                _Ion_5cm_v   = tracker.GetTotalIonization(5);
-                _Ion_10cm_v  = tracker.GetTotalIonization(10);
-                _Ion_tot_v   = tracker.GetTotalIonization();
+                _vtx_id         = (int) ivertex;
+                _Length_v       = tracker.GetVertexLength();
+                _closestWall    = tracker.GetClosestWall();
+		_closestWallSCE = tracker.GetClosestWall_SCE();
+		
+                _Avg_Ion_v      = tracker.GetAverageIonization();
+                _Ion_5cm_v      = tracker.GetTotalIonization(5);
+                _Ion_10cm_v     = tracker.GetTotalIonization(10);
+                _Ion_tot_v      = tracker.GetTotalIonization();
                 for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
                     _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
                 }
 
-                _Angle_v   = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
-                _vertexPhi   = tracker.GetVertexPhi();
-                _vertexTheta = tracker.GetVertexTheta();
+                _Angle_v         = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
+                _vertexPhi       = tracker.GetVertexPhi();
+                _vertexTheta     = tracker.GetVertexTheta();
                 _Reco_goodness_v = tracker.GetRecoGoodness();
 
                 _missingTrack          = _Reco_goodness_v.at(0);
