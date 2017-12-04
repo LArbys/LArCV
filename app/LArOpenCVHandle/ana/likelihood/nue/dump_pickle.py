@@ -21,21 +21,36 @@ num = int(os.path.basename(ANAFILE).split(".")[0].split("_")[-1])
 
 from util.fill_df import *
 
-print "--> truth_df(...)"
+print "--> initialize_truth(...)"
+truth_df = pd.DataFrame()
 truth_df = initialize_truth(ANAFILE)
-truth_df.to_pickle(os.path.join(OUTDIR,"ana_truth_df_%d.pkl" % num))
-del truth_df
-gc.collect()
 
-print "--> initialize_df(...)"
+vertex_df = pd.DataFrame()
+
 try:
-    all_df = initialize_df(ANAFILE)
-    all_df.to_pickle(os.path.join(OUTDIR,"ana_all_df_%d.pkl" % num))
-    del all_df
+    print "--> initialize_df(...)"
+    vertex_df = initialize_df(ANAFILE)
+    vertex_df.to_pickle(os.path.join(OUTDIR,"ana_vertex_df_%d.pkl" % num))
+
+    del vertex_df
     gc.collect()
+
+    print "--> initialize_r(...)"    
+    comb_df = pd.DataFrame()
+    comb_df = initialize_r(truth_df,vertex_df)
+    comb_df.to_pickle(os.path.join(OUTDIR,"ana_comb_df_%d.pkl" % num))
+
+    del comb_df
+    gc.collect()
+
 except IOError:
     print "...no vertex found in file"
+    truth_df.to_pickle(os.path.join(OUTDIR,"ana_comb_df_%d.pkl" % num))
 
+truth_df.to_pickle(os.path.join(OUTDIR,"ana_truth_df_%d.pkl" % num))
+
+del truth_df
+gc.collect()
 
 print "---> done"
 sys.exit(0)

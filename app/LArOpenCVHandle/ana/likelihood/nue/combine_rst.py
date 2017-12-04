@@ -1,11 +1,10 @@
 import os, sys, gc
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 4:
     print 
-    print "VTX_DF  = str(sys.argv[1]) -- ana_all_df"
+    print "VTX_DF  = str(sys.argv[1]) -- ana_comb_df"
     print "ST_DF   = str(sys.argv[2]) -- st_comb_df"
-    print "TRUE_DF = str(sys.argv[3]) -- ana_truth_df"
-    print "OUTDIR  = str(sys.argv[4])"
+    print "OUTDIR  = str(sys.argv[3])"
     print 
     sys.exit(1)
 
@@ -27,9 +26,10 @@ from util.fill_df import *
 
 print "--> initialize_rst(...)"
 
-rst_df = initialize_rst(VTX_DF,ST_DF,TRUE_DF)
+rst_df = initialize_rst(VTX_DF,ST_DF)
 
 rst_df.to_pickle(os.path.join(OUTDIR,"rst_comb_df_%d.pkl" % num))
+
 del rst_df
 gc.collect()
 

@@ -5,13 +5,15 @@ import ROOT
 import root_numpy as rn
 from common import *
 
-
-def initialize_rst(VTX_DF,ST_DF,TRUE_DF):
+def initialize_rst(VTX_DF,ST_DF):
 
     comb_df = pd.DataFrame()
     
-    ana_locv_df = pd.read_pickle(VTX_DF)
-    ana_locv_df.query("num_vertex>0",inplace=True)
+    ana_vtx_df = pd.read_pickle(VTX_DF)
+    ana_locv_df = ana_vtx_df.query("num_vertex>0").copy()
+    ana_rest_df = ana_vtx_df.drop(ana_locv_df.index)
+
+    assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
 
     ana_locv_df.drop(['vtxid'],axis=1,inplace=True)
     ana_locv_df.rename(columns={'cvtxid' : 'vtxid'},inplace=True)
@@ -30,23 +32,14 @@ def initialize_rst(VTX_DF,ST_DF,TRUE_DF):
     comb_df.reset_index(inplace=True)
 
     print "comb_df.index.size=",comb_df.index.size
-    
-    ana_true_df = pd.read_pickle(TRUE_DF)
-    
-    print "ana_true_df.index.size=",ana_true_df.index.size
 
-    ana_true_df.set_index(RSE,inplace=True)
     comb_df.set_index(RSE,inplace=True)
-    
-    comb_df = comb_df.join(ana_true_df,how='outer',lsuffix='',rsuffix='_y')
-    drop_y(comb_df)
+    ana_rest_df.set_index(RSE,inplace=True)
+
+    comb_df = comb_df.join(ana_res_df,how='outer',lsuffix='',rsuffix='_y')
+    drop_y(nufilter_df)
 
     comb_df.reset_index(inplace=True)
-
-    print "now comb_df.index.size=",comb_df.index.size
-
-    assert len(comb_df.groupby(RSE)) == int(ana_true_df.index.size)
-
     return comb_df
 
 
@@ -138,6 +131,23 @@ def initialize_truth(input_file,data=False):
     return nufilter_df
 
     
+def initialize_r(ana_true_df,ana_reco_df):
+    
+    comb_df = pd.DataFrame()
+    
+    print "ana_true_df.index.size=",ana_true_df.index.size
+
+    ana_true_df.set_index(RSE,inplace=True)
+    ana_reco_df.set_index(RSE,inplace=True)
+    
+    comb_df = ana_reco_df.join(ana_true_df,how='outer',lsuffix='',rsuffix='_y')
+    drop_y(comb_df)
+
+    comb_df.reset_index(inplace=True)
+
+    assert len(comb_df.groupby(RSE)) == int(ana_true_df.index.size)
+
+    return comb_df
 
 def initialize_df(input_file,data=False):
 
@@ -149,7 +159,6 @@ def initialize_df(input_file,data=False):
     match_df  = pd.DataFrame(rn.root2array(input_file,treename="MatchAnalysis"))
     dqds_df   = pd.DataFrame(rn.root2array(input_file,treename="dQdSAnalysis"))
     cosmic_df = pd.DataFrame(rn.root2array(input_file,treename="CosmicAnalysis"))
-
 
     print "Reindex..."
     vertex_df.set_index(rserv,inplace=True)
@@ -165,27 +174,16 @@ def initialize_df(input_file,data=False):
     #
     print "Combining Trees..."
     comb_df = pd.DataFrame()
-    if data==False:
-        print "... is not data"
-        comb_df = pd.concat([vertex_df,
-                             angle_df,
-                             shape_df,
-                             gap_df,
-                             angle_df,
-                             match_df,
-                             dqds_df,
-                             cosmic_df],axis=1)
-    else:
-        print "... is data"
-        comb_df = pd.concat([angle_df,
-                             shape_df,
-                             gap_df,
-                             angle_df,
-                             match_df,
-                             dqds_df,
-                             cosmic_df],axis=1)        
 
+    df_v = []
     
+    if data==False:
+        df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
+    else:
+        df_v = [vertex_df,angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
+
+    comb_df = pd.concat(df_v,axis=1)
+
     print "Dropping duplicate cols..."
     comb_df = comb_df.loc[:,~comb_df.columns.duplicated()]
     print "...dropped"
@@ -224,37 +222,21 @@ def initialize_df(input_file,data=False):
 
     print "Loading event TTrees..."
     event_vertex_df = pd.DataFrame(rn.root2array(input_file,treename="EventVertexTree"))
-    nufilter_df     = pd.DataFrame(rn.root2array(input_file,treename="NuFilterTree"))
-    mc_df           = pd.DataFrame(rn.root2array(input_file,treename="MCTree"))
 
     print "Reindex..."
     event_vertex_df.set_index(rse,inplace=True)
-    nufilter_df.set_index(rse,inplace=True)
-    mc_df.set_index(rse,inplace=True)
     print "...done"
-    
-    print "Joining nufilter..."
-    event_vertex_df = event_vertex_df.join(nufilter_df,how='outer',lsuffix='',rsuffix='_y')
-    print "...dropping"
-    drop_y(event_vertex_df)
-    print "...dropped"
-        
-    print "Joining mcdf..."
-    event_vertex_df = event_vertex_df.join(mc_df,how='outer',lsuffix='',rsuffix='_y')
-    print "...dropping"
-    drop_y(event_vertex_df)
-    print "...dropped"
 
     print "Joining with vertex..."
     comb_df = comb_df.join(event_vertex_df,how='outer',lsuffix='',rsuffix='_y')
     print "...dropping"
-    drop_y(event_vertex_df)
+    drop_y(comb_df)
     print "...dropped"
 
     print "Reindex..."
     comb_df.reset_index(inplace=True)
     print "...done"
-
+    
     return comb_df
 
 def track_shower_assumption(df):

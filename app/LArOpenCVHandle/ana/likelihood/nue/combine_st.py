@@ -31,7 +31,7 @@ num = int(os.path.basename(SHR_ANA1).split(".")[0].split("_")[-1])
 
 from util.fill_df import *
 
-print "--> st_df(...)"
+print "--> initialize_st(...)"
 
 st_df = initialize_st(SHR_ANA1,
                       SHR_TRUTH,
