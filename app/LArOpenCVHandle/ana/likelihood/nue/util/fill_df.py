@@ -177,7 +177,7 @@ def initialize_df(input_file,data=False):
 
     df_v = []
     
-    if data==False:
+    if data==True:
         df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
     else:
         df_v = [vertex_df,angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
