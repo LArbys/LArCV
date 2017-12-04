@@ -21,9 +21,14 @@ num = int(os.path.basename(ANAFILE).split(".")[0].split("_")[-1])
 
 from util.fill_df import *
 
-print "--> initialize"
-all_df = initialize_df(ANAFILE)
+print "--> truth_df(...)"
+truth_df = initialize_truth(ANAFILE)
+truth_df.to_pickle(os.path.join(OUTDIR,"ana_truth_df_%d.pkl" % num))
+del truth_df
+gc.collect()
 
+print "--> initialize_df(...)"
+all_df = initialize_df(ANAFILE)
 all_df.to_pickle(os.path.join(OUTDIR,"ana_all_df_%d.pkl" % num))
 del all_df
 gc.collect()

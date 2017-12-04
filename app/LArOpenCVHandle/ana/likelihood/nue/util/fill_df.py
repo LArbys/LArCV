@@ -5,7 +5,29 @@ import ROOT
 import root_numpy as rn
 from common import *
 
+def initialize_truth(input_file,data=False):
+    print "Loading event TTrees..."
+    nufilter_df     = pd.DataFrame(rn.root2array(input_file,treename="NuFilterTree"))
+    mc_df           = pd.DataFrame(rn.root2array(input_file,treename="MCTree"))
 
+    print "Reindex..."
+    nufilter_df.set_index(rse,inplace=True)
+    mc_df.set_index(rse,inplace=True)
+    print "...done"
+    
+    print "Joining mcdf..."
+    nufilter_df = nufilter_df.join(mc_df,how='outer',lsuffix='',rsuffix='_y')
+    print "...dropping"
+    drop_y(nufilter_df)
+    print "...dropped"
+
+    print "Reindex..."
+    nufilter_df.reset_index(inplace=True)
+    print "...done"
+
+    return nufilter_df
+
+    
 
 def initialize_df(input_file,data=False):
 
