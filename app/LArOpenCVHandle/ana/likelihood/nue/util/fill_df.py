@@ -5,13 +5,57 @@ import ROOT
 import root_numpy as rn
 from common import *
 
+
+def initialize_rst(VTX_DF,ST_DF,TRUE_DF):
+
+    comb_df = pd.DataFrame()
+    
+    ana_locv_df = pd.read_pickle(VTX_DF)
+    ana_locv_df.query("num_vertex>0",inplace=True)
+
+    ana_locv_df.drop(['vtxid'],axis=1,inplace=True)
+    ana_locv_df.rename(columns={'cvtxid' : 'vtxid'},inplace=True)
+    ana_locv_df.set_index(RSEV,inplace=True)
+    ana_locv_df = ana_locv_df.add_prefix('locv_')
+
+    ana_st_df = pd.read_pickle(ST_DF)
+    ana_st_df.set_index(RSEV,inplace=True)
+
+    print "ana_locv_df.index.size=",ana_locv_df.index.size
+    print "ana_st_df.index.size=",ana_st_df.index.size
+
+    df_v    = [ana_locv_df,ana_st_df]
+    comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
+
+    comb_df.reset_index(inplace=True)
+
+    print "comb_df.index.size=",comb_df.index.size
+    
+    ana_true_df = pd.read_pickle(TRUE_DF)
+    
+    print "ana_true_df.index.size=",ana_true_df.index.size
+
+    ana_true_df.set_index(RSE,inplace=True)
+    comb_df.set_index(RSE,inplace=True)
+    
+    comb_df = comb_df.join(ana_true_df,how='outer',lsuffix='',rsuffix='_y')
+    drop_y(comb_df)
+
+    comb_df.reset_index(inplace=True)
+
+    print "now comb_df.index.size=",comb_df.index.size
+
+    assert len(comb_df.groupby(RSE)) == int(ana_true_df.index.size)
+
+    return comb_df
+
+
 def initialize_st(SHR_ANA1,
                   SHR_TRUTH,
                   TRK_ANA1,
                   TRK_ANA2,
                   TRK_TRUTH,
-                  TRK_PGRPH,
-                  isdata=False):
+                  TRK_PGRPH):
 
     comb_df = pd.DataFrame()
     
@@ -235,7 +279,7 @@ def nue_assumption(comb_cut_df):
     return comb_cut_df
 
 
-def fill_parameters(comb_cut_df,ll_only=False) :
+def fill_parameters(comb_cut_df,ll_only=False):
     # SSNet Fraction
     #
     comb_cut_df['trk_frac'] = comb_cut_df.apply(lambda x : x['trk_frac_avg'] / x['nplanes_v'][x['trkid']],axis=1) 
