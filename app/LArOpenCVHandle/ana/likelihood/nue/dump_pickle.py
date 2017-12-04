@@ -32,13 +32,13 @@ try:
     vertex_df = initialize_df(ANAFILE)
     vertex_df.to_pickle(os.path.join(OUTDIR,"ana_vertex_df_%d.pkl" % num))
 
-    del vertex_df
-    gc.collect()
-
     print "--> initialize_r(...)"    
     comb_df = pd.DataFrame()
     comb_df = initialize_r(truth_df,vertex_df)
     comb_df.to_pickle(os.path.join(OUTDIR,"ana_comb_df_%d.pkl" % num))
+
+    del vertex_df
+    gc.collect()
 
     del comb_df
     gc.collect()
