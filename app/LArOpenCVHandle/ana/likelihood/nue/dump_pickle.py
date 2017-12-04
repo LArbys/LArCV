@@ -28,10 +28,14 @@ del truth_df
 gc.collect()
 
 print "--> initialize_df(...)"
-all_df = initialize_df(ANAFILE)
-all_df.to_pickle(os.path.join(OUTDIR,"ana_all_df_%d.pkl" % num))
-del all_df
-gc.collect()
+try:
+    all_df = initialize_df(ANAFILE)
+    all_df.to_pickle(os.path.join(OUTDIR,"ana_all_df_%d.pkl" % num))
+    del all_df
+    gc.collect()
+except IOError:
+    print "...no vertex found in file"
+
 
 print "---> done"
 sys.exit(0)
