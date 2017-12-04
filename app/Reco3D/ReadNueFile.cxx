@@ -77,10 +77,17 @@ namespace larcv {
     _recoTree->Branch("E_muon_v"   , &_E_muon_v);
     _recoTree->Branch("E_proton_v" , &_E_proton_v);
     _recoTree->Branch("Length_v"   , &_Length_v);
-    _recoTree->Branch("Avg_Ion_v"  , &_Avg_Ion_v);
+    _recoTree->Branch("Avg_Ion_v",&_Avg_Ion_v);    
+    _recoTree->Branch("Ion_5cm_v",&_Ion_5cm_v);
+    _recoTree->Branch("Ion_10cm_v",&_Ion_10cm_v);
+    _recoTree->Branch("Ion_tot_v",&_Ion_tot_v);
+    _recoTree->Branch("IondivLength_v",&_IondivLength_v);
     _recoTree->Branch("Angle_v"    , &_Angle_v);
+    _recoTree->Branch("vertexPhi",&_vertexPhi_v);
+    _recoTree->Branch("vertexTheta",&_vertexTheta_v);
+    _recoTree->Branch("closestWall",&_closestWall_v);
     _recoTree->Branch("Reco_goodness_v" , &_Reco_goodness_v);
-    _recoTree->Branch("GoodVertex" , &_GoodVertex , "GoodVertex/I");
+    _recoTree->Branch("GoodVertex" , &_GoodVertex, "GoodVertex/I");
     _recoTree->Branch("Nreco" , &_Nreco , "Nreco/I");
     _recoTree->Branch("missingTrack",&_missingTrack);
     _recoTree->Branch("nothingReconstructed",&_nothingReconstructed);
@@ -91,6 +98,7 @@ namespace larcv {
     _recoTree->Branch("possiblyCrossing",&_possiblyCrossing);
     _recoTree->Branch("branchingTracks",&_branchingTracks);
     _recoTree->Branch("jumpingTracks",&_jumpingTracks);
+
 
     if (_foutll.empty()) throw larbys("specify larlite file output name");
 
@@ -147,7 +155,6 @@ namespace larcv {
     
     // const auto& full_tag_img_thru_v = tag_img_thru_v->Image2DArray();
     // const auto& full_tag_img_stop_v = tag_img_stop_v->Image2DArray();
-
 
     //
     // No vertex, continue (but fill)
@@ -256,7 +263,8 @@ namespace larcv {
     tracker.SetTaggedImage(_Tagged_Image);
     tracker.SetTrackInfo(_run, _subrun, _event, 0);
 
-    std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
+    static std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
+    ass_vertex_to_track_vv.clear();
     ass_vertex_to_track_vv.resize(vertex_v.size());
 
     for(size_t ivertex = 0;ivertex<vertex_v.size();ivertex++){
@@ -284,17 +292,29 @@ namespace larcv {
       }
 
       auto Energies_v = tracker.GetEnergies();
-      _E_muon_v.resize(Energies_v.size());
-      _E_proton_v.resize(Energies_v.size());
+      size_t ntracks = Energies_v.size();
+
+      _E_muon_v.resize(ntracks);
+      _E_proton_v.resize(ntracks);
       
-      for(size_t trackid=0; trackid<Energies_v.size(); ++trackid) {
+      for(size_t trackid=0; trackid<ntracks; ++trackid) {
 	_E_proton_v[trackid] = Energies_v[trackid].front();
 	_E_muon_v[trackid]   = Energies_v[trackid].back();
       }
       
-      _Length_v  = tracker.GetVertexLength();;
-      _Avg_Ion_v = tracker.GetAverageIonization();
-      _Angle_v   = tracker.GetVertexAngle(15); 
+      _Length_v      = tracker.GetVertexLength();;
+      _Angle_v       = tracker.GetVertexAngle(15);
+      _Avg_Ion_v     = tracker.GetAverageIonization();
+      _closestWall_v = tracker.GetClosestWall();
+      _Ion_5cm_v     = tracker.GetTotalIonization(5);
+      _Ion_10cm_v    = tracker.GetTotalIonization(10);
+      _Ion_tot_v     = tracker.GetTotalIonization();
+      _vertexPhi_v   = tracker.GetVertexPhi();
+      _vertexTheta_v = tracker.GetVertexTheta();      
+
+      _IondivLength_v.resize(ntracks,-1.0*kINVALID_DOUBLE);
+      for(size_t itrack = 0; itrack<ntracks;itrack++)
+	_IondivLength_v[itrack] = _Ion_tot_v[itrack] / _Length_v[itrack];
 
       auto Reco_goodness_v = tracker.GetRecoGoodness();
       _Reco_goodness_v.resize(Reco_goodness_v.size(),kINVALID_INT);
@@ -394,6 +414,13 @@ namespace larcv {
     _Length_v.clear();
     _Avg_Ion_v.clear();
     _Angle_v.clear();
+    _vertexPhi_v.clear();
+    _vertexTheta_v.clear();
+    _closestWall_v.clear();
+    _Ion_5cm_v.clear();
+    _Ion_10cm_v.clear();
+    _Ion_tot_v.clear();
+    _IondivLength_v.clear();
     _Reco_goodness_v.clear();
     _GoodVertex = -1.0*kINVALID_INT;
     _missingTrack = -1.0*kINVALID_INT;
