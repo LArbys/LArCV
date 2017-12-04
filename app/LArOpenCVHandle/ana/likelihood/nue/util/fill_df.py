@@ -18,7 +18,8 @@ def initialize_st(SHR_ANA1,
     match_shr_df = None
     match_trk_df = None
 
-    if isdata==False:
+    isdata = False
+    try:
         match_shr_df  = pd.DataFrame(rn.root2array(SHR_TRUTH,treename="ShowerTruthMatch"))
         match_trk_df  = pd.DataFrame(rn.root2array(TRK_TRUTH,treename="TrackTruthMatch"))
 
@@ -30,6 +31,9 @@ def initialize_st(SHR_ANA1,
 
         print "match_shr_df.index.size=",match_shr_df.index.size
         print "match_trk_df.index.size=",match_trk_df.index.size
+
+    except IOError:
+        isdata = True
 
     pgraph_trk_df = pd.DataFrame(rn.root2array(TRK_PGRPH,treename="TrackPGraphMatch"))
     ana_shr_df    = pd.DataFrame(rn.root2array(SHR_ANA1))
@@ -57,9 +61,9 @@ def initialize_st(SHR_ANA1,
     df_v = []
 
     if isdata==False:
-        df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df]
-    else:
         df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df,match_shr_df,match_trk_df]
+    else:
+        df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df]
 
     comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
     comb_df.reset_index(inplace=True)

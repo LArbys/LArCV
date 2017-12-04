@@ -32,19 +32,13 @@ num = int(os.path.basename(SHR_ANA1).split(".")[0].split("_")[-1])
 from util.fill_df import *
 
 print "--> st_df(...)"
-isdata = False
-if SHR_TRUTH=="" or TRK_TRUTH=="":
-    assert SHR_TRUTH==""
-    assert TRK_TRUTH==""
-    isdata=True
 
 st_df = initialize_st(SHR_ANA1,
                       SHR_TRUTH,
                       TRK_ANA1,
                       TRK_ANA2,
                       TRK_TRUTH,
-                      TRK_PGRPH,
-                      isdata)
+                      TRK_PGRPH)
 
 st_df.to_pickle(os.path.join(OUTDIR,"st_comb_df_%d.pkl" % num))
 del st_df
