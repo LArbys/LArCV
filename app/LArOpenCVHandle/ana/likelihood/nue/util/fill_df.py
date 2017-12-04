@@ -5,6 +5,68 @@ import ROOT
 import root_numpy as rn
 from common import *
 
+def initialize_st(SHR_ANA1,
+                  SHR_TRUTH,
+                  TRK_ANA1,
+                  TRK_ANA2,
+                  TRK_TRUTH,
+                  TRK_PGRPH,
+                  isdata=False):
+
+    comb_df = pd.DataFrame()
+    
+    match_shr_df = None
+    match_trk_df = None
+
+    if isdata==False:
+        match_shr_df  = pd.DataFrame(rn.root2array(SHR_TRUTH,treename="ShowerTruthMatch"))
+        match_trk_df  = pd.DataFrame(rn.root2array(TRK_TRUTH,treename="TrackTruthMatch"))
+
+        match_shr_df.set_index(RSEV,inplace=True)
+        match_trk_df.set_index(RSEV,inplace=True)
+
+        match_shr_df  = match_shr_df.add_prefix("mchshr_")
+        match_trk_df  = match_trk_df.add_prefix("mchtrk_")
+
+        print "match_shr_df.index.size=",match_shr_df.index.size
+        print "match_trk_df.index.size=",match_trk_df.index.size
+
+    pgraph_trk_df = pd.DataFrame(rn.root2array(TRK_PGRPH,treename="TrackPGraphMatch"))
+    ana_shr_df    = pd.DataFrame(rn.root2array(SHR_ANA1))
+    ana_trk1_df   = pd.DataFrame(rn.root2array(TRK_ANA1))
+    ana_trk2_df   = pd.DataFrame(rn.root2array(TRK_ANA2))
+
+    ana_shr_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
+    ana_trk2_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
+
+    pgraph_trk_df.set_index(RSEV,inplace=True)
+    ana_shr_df.set_index(RSEV,inplace=True)
+    ana_trk1_df.set_index(RSEV,inplace=True)
+    ana_trk2_df.set_index(RSEV,inplace=True)
+    
+    pgraph_trk_df = pgraph_trk_df.add_prefix("pgtrk_")
+    ana_shr_df    = ana_shr_df.add_prefix("anashr_")
+    ana_trk1_df   = ana_trk1_df.add_prefix("anatrk1_")
+    ana_trk2_df   = ana_trk2_df.add_prefix("anatrk2_")
+
+    print "pgraph_trk_df.index.size=",pgraph_trk_df.index.size
+    print "ana_shr_df.index.size=",ana_shr_df.index.size
+    print "ana_trk1_df.index.size=",ana_trk1_df.index.size
+    print "ana_trk2_df.index.size=",ana_trk2_df.index.size
+
+    df_v = []
+
+    if isdata==False:
+        df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df]
+    else:
+        df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df,match_shr_df,match_trk_df]
+
+    comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
+    comb_df.reset_index(inplace=True)
+    
+    return comb_df
+
+
 def initialize_truth(input_file,data=False):
     print "Loading event TTrees..."
     nufilter_df     = pd.DataFrame(rn.root2array(input_file,treename="NuFilterTree"))

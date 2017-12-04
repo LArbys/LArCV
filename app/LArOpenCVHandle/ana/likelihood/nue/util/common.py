@@ -6,6 +6,11 @@ rsev  = ['run','subrun','event','vtxid']
 rsec  = ['run','subrun','event','cvtxid']
 rserv = ['run','subrun','event','roid','vtxid']
 
+RSE   = list(rse)
+RSEV  = list(rsev)
+RSEVC = list(rsec)
+RSERV = list(rserv)
+
 #
 # Drop if column name ends in _y
 #
