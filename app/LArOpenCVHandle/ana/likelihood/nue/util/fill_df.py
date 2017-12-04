@@ -35,9 +35,10 @@ def initialize_rst(VTX_DF,ST_DF):
 
     comb_df.set_index(RSE,inplace=True)
     ana_rest_df.set_index(RSE,inplace=True)
+    ana_rest_df = ana_rest_df.add_prefix('locv_')
 
-    comb_df = comb_df.join(ana_res_df,how='outer',lsuffix='',rsuffix='_y')
-    drop_y(nufilter_df)
+    comb_df = comb_df.join(ana_rest_df,how='outer',lsuffix='',rsuffix='_y')
+    drop_y(comb_df)
 
     comb_df.reset_index(inplace=True)
     return comb_df

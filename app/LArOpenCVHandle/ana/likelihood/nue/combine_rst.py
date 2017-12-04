@@ -17,8 +17,7 @@ sys.path.insert(0,BASE_PATH)
 
 VTX_DF  = str(sys.argv[1])
 ST_DF   = str(sys.argv[2])
-TRUE_DF = str(sys.argv[3])
-OUTDIR  = str(sys.argv[4])
+OUTDIR  = str(sys.argv[3])
 
 num = int(os.path.basename(VTX_DF).split(".")[0].split("_")[-1])
 
