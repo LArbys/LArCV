@@ -14,10 +14,9 @@ RSERV = list(rserv)
 #
 # Drop if column name ends in _y
 #
-def drop_y(df):
-    to_drop = [x for x in df if x.endswith('_y')]
+def drop_q(df):
+    to_drop = [x for x in df if x.endswith('_q')]
     df.drop(to_drop, axis=1, inplace=True)
-        
 
 #
 # Define, given value, how to get prob. from PDF
