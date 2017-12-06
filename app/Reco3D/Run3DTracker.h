@@ -108,7 +108,8 @@ namespace larcv {
         std::vector<TVector3> MCVertices;
         TVector3 MCvertex;
         TVector3 RecoVertex;
-
+	TVector3 _RecoVertex;
+	
         bool GoodVertex;
         bool _missingTrack;
         bool _nothingReconstructed;

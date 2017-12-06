@@ -52,7 +52,7 @@ namespace larcv {
     Run3DTracker::Run3DTracker(const std::string name)
     : ProcessBase(name),
     _foutll("larlite_reco3D.root"),
-    _spline_file("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root"),
+    _spline_file(""),
     _recoTree(nullptr)
     {}
 
@@ -115,7 +115,7 @@ namespace larcv {
         _recoTree->Branch("possiblyCrossing",&_possiblyCrossing);
         _recoTree->Branch("branchingTracks",&_branchingTracks);
         _recoTree->Branch("jumpingTracks",&_jumpingTracks);
-        _recoTree->Branch("RecoVertex",&RecoVertex);
+        _recoTree->Branch("RecoVertex",&_RecoVertex);
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
         _recoTree->Branch("closestWall",&_closestWall);
@@ -326,7 +326,6 @@ namespace larcv {
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
                 tracker.ReconstructVertex();
-                tracker.tellMe("vertex reconstructed",0);
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
 
@@ -381,6 +380,8 @@ namespace larcv {
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
 
+		_RecoVertex = vertex_v.at(ivertex);
+		
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
                 tracker.DrawVertex();
