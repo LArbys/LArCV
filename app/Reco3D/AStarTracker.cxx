@@ -2066,7 +2066,7 @@ namespace larcv {
             while((newTrack.back()-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()){
                 if(iNode == 1)dpoint=3;else dpoint=2;
                 vertexNeighbour = _3DTrack[iNode-1]+(_3DTrack[iNode]-_3DTrack[iNode-1])*2*(iterNeighbour/((_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()));
-                if(vertexNeighbour!=newTrack.back())newTrack.push_back(vertexNeighbour);
+                if(vertexNeighbour!=newTrack.back() && (vertexNeighbour-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag())newTrack.push_back(vertexNeighbour);
                 iterNeighbour++;
             }
             if(newTrack.back()!=_3DTrack[iNode])newTrack.push_back(_3DTrack[iNode]);

@@ -308,7 +308,7 @@ namespace larcv {
         std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
         ass_vertex_to_track_vv.resize(vertex_v.size());
 
-        //vertex_v = MCVertices;
+        vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         int TrackID = 0;
 
