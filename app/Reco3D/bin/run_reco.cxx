@@ -30,7 +30,9 @@ int main(int nargs, char** argv){
     larcv::Run3DTracker *algo = (larcv::Run3DTracker*)proc.process_ptr(algo_id);
     algo->SetSplineLocation("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root");
     algo->SetLLOutName("larlite_reco3D.root");
+    std::cout << "spline and larlite out file should be set" << std::endl;
     proc.initialize();
+    std::cout << "proc.initialize() done" << std::endl;
     proc.batch_process(0);
     std::cout << "RUN 3D RECO : about to finalize" << std::endl;
     proc.finalize();

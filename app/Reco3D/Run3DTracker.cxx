@@ -52,7 +52,7 @@ namespace larcv {
     Run3DTracker::Run3DTracker(const std::string name)
     : ProcessBase(name),
     _foutll("larlite_reco3D.root"),
-    _spline_file(""),
+    _spline_file("/Users/hourlier/Documents/PostDocMIT/Research/MicroBooNE/dllee_unified/LArCV/app/Reco3D/Proton_Muon_Range_dEdx_LAr_TSplines.root"),
     _recoTree(nullptr)
     {}
 
@@ -308,7 +308,7 @@ namespace larcv {
         std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
         ass_vertex_to_track_vv.resize(vertex_v.size());
 
-        vertex_v = MCVertices;
+        //vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         int TrackID = 0;
 
@@ -326,6 +326,7 @@ namespace larcv {
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
                 tracker.ReconstructVertex();
+                tracker.tellMe("vertex reconstructed",0);
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
 
