@@ -2063,10 +2063,13 @@ namespace larcv {
         newTrack.push_back(_3DTrack[0]);
         for(size_t iNode=1;iNode<_3DTrack.size();iNode++){
             iterNeighbour=0;
-            while((newTrack.back()-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()){
+            bool goOn = true;
+            while((newTrack.back()-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag() && goOn){
                 if(iNode == 1)dpoint=3;else dpoint=2;
                 vertexNeighbour = _3DTrack[iNode-1]+(_3DTrack[iNode]-_3DTrack[iNode-1])*2*(iterNeighbour/((_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()));
-                if(vertexNeighbour!=newTrack.back() && (vertexNeighbour-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag())newTrack.push_back(vertexNeighbour);
+                if(vertexNeighbour!=newTrack.back() && (vertexNeighbour-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()) goOn=true;
+                else goOn = false;
+                if(goOn) newTrack.push_back(vertexNeighbour);
                 iterNeighbour++;
             }
             if(newTrack.back()!=_3DTrack[iNode])newTrack.push_back(_3DTrack[iNode]);
