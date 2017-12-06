@@ -46,8 +46,6 @@ def initialize_rst(VTX_DF,ST_DF):
     comb_df = comb_df.append(ana_rest_df,ignore_index=True)
     
     print "now... comb_df.index.size=",comb_df.index.size
-    
-    comb_df.reset_index(inplace=True)
 
     return comb_df
 
@@ -192,7 +190,7 @@ def initialize_df(input_file,data=False):
     if data==True:
         df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
     else:
-        df_v = [vertex_df,angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
+        df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df,vertex_df]
 
     comb_df = pd.concat(df_v,axis=1)
     
