@@ -61,6 +61,13 @@ namespace larcv {
     std::vector<double> _E_proton_v;
     std::vector<double> _Length_v;
     std::vector<double> _Avg_Ion_v;
+    std::vector<double> _vertexPhi_v;
+    std::vector<double> _vertexTheta_v;
+    std::vector<double> _closestWall_v;
+    std::vector<double> _Ion_5cm_v;
+    std::vector<double> _Ion_10cm_v;
+    std::vector<double> _Ion_tot_v;
+    std::vector<double> _IondivLength_v;
     std::vector<std::vector<double> > _Angle_v;
     std::vector<int> _Reco_goodness_v;
     std::vector<larlite::event_track> _EventRecoVertices;

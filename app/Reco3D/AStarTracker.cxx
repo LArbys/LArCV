@@ -2690,7 +2690,7 @@ namespace larcv {
 
 	      auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
 
-	      double sceptX = pt_X - sceOffset[0] + 0.7;
+	      double sceptX = pt_X + sceOffset[0] - 0.7;
 	      double sceptY = pt_Y - sceOffset[1];
 	      double sceptZ = pt_Z - sceOffset[2];
 		

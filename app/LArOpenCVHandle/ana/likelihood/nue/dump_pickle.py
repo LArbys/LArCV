@@ -21,11 +21,35 @@ num = int(os.path.basename(ANAFILE).split(".")[0].split("_")[-1])
 
 from util.fill_df import *
 
-print "--> initialize"
-all_df = initialize_df(ANAFILE)
+print "--> initialize_truth(...)"
+truth_df = pd.DataFrame()
+truth_df = initialize_truth(ANAFILE)
 
-all_df.to_pickle(os.path.join(OUTDIR,"ana_all_df_%d.pkl" % num))
-del all_df
+vertex_df = pd.DataFrame()
+
+try:
+    print "--> initialize_df(...)"
+    vertex_df = initialize_df(ANAFILE)
+    vertex_df.to_pickle(os.path.join(OUTDIR,"ana_vertex_df_%d.pkl" % num))
+
+    print "--> initialize_r(...)"    
+    comb_df = pd.DataFrame()
+    comb_df = initialize_r(truth_df,vertex_df)
+    comb_df.to_pickle(os.path.join(OUTDIR,"ana_comb_df_%d.pkl" % num))
+
+    del vertex_df
+    gc.collect()
+
+    del comb_df
+    gc.collect()
+
+except IOError:
+    print "...no vertex found in file"
+    truth_df.to_pickle(os.path.join(OUTDIR,"ana_comb_df_%d.pkl" % num))
+
+truth_df.to_pickle(os.path.join(OUTDIR,"ana_truth_df_%d.pkl" % num))
+
+del truth_df
 gc.collect()
 
 print "---> done"

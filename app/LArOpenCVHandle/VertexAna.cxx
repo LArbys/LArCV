@@ -294,6 +294,7 @@ namespace larcv {
     LARCV_DEBUG() << "Got " << vtx_counts << " vertices" << std::endl;
     for (int vtx_idx = 0; vtx_idx < vtx_counts; ++vtx_idx) {
       ClearVertex();
+      LARCV_DEBUG() << "@vtx_idx=" << vtx_idx <<std::endl;
       _vtxid += 1;
 
       auto pgraph = ev_pgraph->PGraphArray().at(vtx_idx);
@@ -309,6 +310,9 @@ namespace larcv {
       if (roid != _roid) _vtxid = 0;
 
       _roid  = roid;
+
+      LARCV_DEBUG() << "_vtxid = " << _vtxid << std::endl;
+      LARCV_DEBUG() << "_roid  = " << _roid  << std::endl;
 
       _npar = pgraph.ClusterIndexArray().size();
 

@@ -41,13 +41,15 @@ namespace larcv {
     _select_signal     = cfg.get<bool>("SelectSignal");
     _select_background = cfg.get<bool>("SelectBackground");
 
-    _roi_producer_name = cfg.get<std::string>("ROIProducer");
+    _true_roi_producer_name = cfg.get<std::string>("TrueROIProducer");
+    _reco_roi_producer_name = cfg.get<std::string>("RecoROIProducer");
 
     _event_tree = new TTree("NuFilterTree","");
     _event_tree->Branch("run"      , &_run      , "run/i");
     _event_tree->Branch("subrun"   , &_subrun   , "subrun/i");
     _event_tree->Branch("event"    , &_event    , "event/i");
     _event_tree->Branch("entry"    , &_entry    , "entry/i");
+    _event_tree->Branch("number_croi"  , &_number_croi   , "number_croi/i");
     _event_tree->Branch("selected1L1P" , &_selected , "selected1L1P/i");
   }
 
@@ -225,13 +227,16 @@ namespace larcv {
     _subrun = rse_prod->subrun();
     _event  = rse_prod->event();
     _entry  = mgr.current_entry();
-    
-    if(_roi_producer_name.empty()) {
+
+    auto ev_reco_roi = (EventROI*) mgr.get_data(kProductROI, _reco_roi_producer_name);
+    _number_croi = (uint)ev_reco_roi->ROIArray().size();
+
+    if(_true_roi_producer_name.empty()) {
       _event_tree->Fill();
       return true;
     }
 
-    auto ev_roi = (EventROI*) mgr.get_data(kProductROI, _roi_producer_name);
+    auto ev_roi = (EventROI*) mgr.get_data(kProductROI, _true_roi_producer_name);
 
     
     bool signal_selected = MCSelect(ev_roi);

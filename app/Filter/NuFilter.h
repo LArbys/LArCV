@@ -46,7 +46,8 @@ namespace larcv {
     
     bool MCSelect(const EventROI* ev_roi);
     
-    std::string _roi_producer_name;
+    std::string _true_roi_producer_name;
+    std::string _reco_roi_producer_name;
     std::string _rse_producer;
 
     int _nu_pdg;
@@ -80,10 +81,12 @@ namespace larcv {
     
     TTree* _event_tree;
     
+
     uint _run;
     uint _subrun;
     uint _event; 
     uint _entry;
+    uint _number_croi;
     uint _selected;
   };
 
