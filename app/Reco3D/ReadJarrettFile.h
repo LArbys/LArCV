@@ -113,8 +113,7 @@ namespace larcv {
         std::vector<std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;
-
-
+	
         TVector3 MCvertex;
         TVector3 RecoVertex;
 	TVector3 RecoVertex_SCE;
