@@ -282,6 +282,7 @@ namespace larcv {
         // loop over found vertices
         //auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
         std::vector<TVector3> vertex_v;
+	std::vector<TVector3> vertex_sce_v;
         std::vector<larcv::ImageMeta> Full_meta_v(3);
         std::vector<larcv::Image2D> Tagged_Image(3);
         std::vector<larcv::Image2D> Full_image_v(3);
@@ -304,6 +305,7 @@ namespace larcv {
         std::cout << run << " " << subrun << " " << event <<  std::endl;
         //if(!(subrun == 107 && event == 96242)){_storage.set_id(run,subrun,event);_storage.next_event(true); return true;}
 
+	
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {// comment when running on EXTBNB
 
 	  auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
@@ -314,24 +316,17 @@ namespace larcv {
 
 	  auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
 
-	  double sceptX = pt_X - sceOffset[0] + 0.7;
+	  double sceptX = pt_X + sceOffset[0] - 0.7;
 	  double sceptY = pt_Y - sceOffset[1];
 	  double sceptZ = pt_Z - sceOffset[2];
 	  
-            //if(_isMC && !IsGoodVertex(run,subrun,event,pgraph_id)){continue;}
-            //if(!IsGoodVertex(run,subrun,event,pgraph_id)){ continue;}
-
 	  TVector3 vertex(pt_X,pt_Y,pt_Z);
 	  TVector3 vertex_SCE(sceptX,sceptY,sceptZ);
 	  vertex_v.push_back(vertex);
+	  vertex_sce_v.push_back(vertex_SCE);
 	  
-	  RecoVertex     = vertex;
-	  RecoVertex_SCE = vertex_SCE;
-
         }
 
-        //vertex_v = GetJarretVertex(run, subrun, event);// for BNBEXT
-        //vertex_v = MCVertices;
         NvertexSubmitted+=vertex_v.size();
         int TrackID = 0;
 
@@ -391,7 +386,10 @@ namespace larcv {
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
 
-                GoodVertex = false;
+		RecoVertex     = vertex_v.at(ivertex);
+		RecoVertex_SCE = vertex_sce_v.at(ivertex);
+
+		GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
                 if(GoodVertex)NgoodReco++;
 
