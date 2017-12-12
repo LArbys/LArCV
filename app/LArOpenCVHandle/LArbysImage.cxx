@@ -37,6 +37,7 @@ namespace larcv {
     _channel_producer     = cfg.get<std::string>("ChStatusImageProducer","");
     _roi_producer         = cfg.get<std::string>("ROIProducer","");
     _output_producer      = cfg.get<std::string>("OutputImageProducer","");
+
     auto tags_datatype    = cfg.get<size_t>("CosmicTagDataType");
     _tags_datatype = (ProductType_t) tags_datatype;
     
@@ -64,6 +65,14 @@ namespace larcv {
 
     _vertex_algo_vertex_offset = cfg.get<size_t>("VertexAlgoVertexOffset",0);
     _par_algo_par_offset       = cfg.get<size_t>("ParticleAlgoParticleOffset",0);
+
+    _store_shower_image = cfg.get<bool>("StoreShowerImage",false);
+    if(_store_shower_image) {
+      _shower_pixel_prod = cfg.get<std::string>("ShowerPixelProducer");
+      assert(!_shower_pixel_prod.empty());
+    }
+
+    return;
   }
   
   void LArbysImage::initialize()
@@ -148,7 +157,7 @@ namespace larcv {
   
   bool LArbysImage::process(IOManager& mgr)
   {
-    LARCV_DEBUG() << "Process index " << mgr.current_entry() << std::endl;
+    LARCV_DEBUG() << "Procoss index " << mgr.current_entry() << std::endl;
     uint run,subrun,event,entry;
     get_rsee(mgr,_rse_producer,run,subrun,event,entry);
     
@@ -277,6 +286,13 @@ namespace larcv {
 	std::vector<larcv::Image2D> crop_stopmu_image_v;
 	std::vector<larcv::Image2D> crop_chstat_image_v;
 
+	crop_adc_image_v.reserve(3);
+	crop_track_image_v.reserve(3);
+	crop_shower_image_v.reserve(3);
+	crop_thrumu_image_v.reserve(3);
+	crop_stopmu_image_v.reserve(3);
+	crop_chstat_image_v.reserve(3);
+
 	for(size_t plane=0; plane<bb_v.size(); ++plane) {
 
 	  const auto& bb           = bb_v[plane];
@@ -340,9 +356,32 @@ namespace larcv {
 				       crop_chstat_image_v);
 	
 	status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
+
       } // end loop over ROI
     } // end image fed to reco
 
+
+    if(_store_shower_image) {
+      auto event_shr_pixel = (EventPixel2D*)mgr.get_data(kProductPixel2D,_shower_pixel_prod);
+      const auto& shower_image_v = get_image2d(mgr,_shower_producer);
+
+      for(size_t plane=0; plane<3; ++plane) {
+	const auto& shr_img2d = shower_image_v[plane];
+	const auto& shr_meta = shr_img2d.meta();
+	event_shr_pixel->SetMeta(plane,shr_meta);
+
+	for(size_t row=0; row<shr_img2d.meta().rows(); ++row) {
+	  for(size_t col=0; col<shr_img2d.meta().cols(); ++col) {
+	    if (shr_img2d.pixel(row,col)<10) continue;
+	    Pixel2D px(col,row);
+	    px.Intensity(shr_img2d.pixel(row,col));
+	    event_shr_pixel->Emplace(plane,std::move(px));
+	  } // end col
+	} // end row
+      } // end plane
+
+    } // end store shower image
+    
     LARCV_DEBUG() << "return " << status << std::endl;
     LARCV_DEBUG() << std::endl;
     return status;
