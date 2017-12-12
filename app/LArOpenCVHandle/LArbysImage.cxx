@@ -362,14 +362,16 @@ namespace larcv {
 
 
     if(_store_shower_image) {
+      LARCV_DEBUG() << "Storing shower image..." << std::endl;
       auto event_shr_pixel = (EventPixel2D*)mgr.get_data(kProductPixel2D,_shower_pixel_prod);
       const auto& shower_image_v = get_image2d(mgr,_shower_producer);
 
       for(size_t plane=0; plane<3; ++plane) {
+	LARCV_DEBUG() << "... @plane=" << plane << std::endl;
 	const auto& shr_img2d = shower_image_v[plane];
 	const auto& shr_meta = shr_img2d.meta();
 	event_shr_pixel->SetMeta(plane,shr_meta);
-
+	LARCV_DEBUG() << "... rows=" << shr_img2d.meta().rows() << " cols=" << shr_img2d.meta().cols() << std::endl;
 	for(size_t row=0; row<shr_img2d.meta().rows(); ++row) {
 	  for(size_t col=0; col<shr_img2d.meta().cols(); ++col) {
 	    if (shr_img2d.pixel(row,col)<10) continue;
