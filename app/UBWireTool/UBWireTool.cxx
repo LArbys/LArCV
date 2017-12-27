@@ -672,7 +672,12 @@ namespace larcv {
 	// inside image
 	img_coords[p+1] = meta.col( wire );
     }//end of plane loop
-    
+
+    // there is a corner where the V plane wire number causes an error
+    if ( pos3d[1]<-116.3 && pos3d[2]<1.0 && img_coords[1+1]==-1 ) {
+      img_coords[1+1] = 0;
+    }
+      
     return img_coords;
   }
   
