@@ -643,7 +643,7 @@ namespace larcv {
     // Columns
     Double_t xyz[3] = { pos3d[0], pos3d[1], pos3d[2] };
     // there is a corner where the V plane wire number causes an error
-    if ( (pos3d[1]>-117.0 && pos3d[1]<-116.3) && pos3d[2]<2.0 ) {
+    if ( (pos3d[1]>-117.0 && pos3d[1]<-116.0) && pos3d[2]<2.0 ) {
       std::cout << __PRETTY_FUNCTION__ << ": v-plane corner hack (" << xyz[0] << "," << xyz[1] << "," << xyz[2] << ")" << std::endl;
       xyz[1] = -116.0;
     }
