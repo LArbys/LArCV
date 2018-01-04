@@ -37,7 +37,7 @@ namespace larcv {
     static void getMissingWireAndPlane( const int plane1, const int wireid1, const int plane2, const int wireid2, 
       int& otherplane, int& otherwire, std::vector<float>& intersection, int& crosses );
     
-    static std::vector<int> getProjectedImagePixel( const std::vector<float>& pos3d, const larcv::ImageMeta& meta, const int nplanes, const float fracborderpix=0.5 );
+    static std::vector<int> getProjectedImagePixel( const std::vector<float>& pos3d, const larcv::ImageMeta& meta, const int nplanes, const float fracborderpix=1.5 );
 
     static const larcv::WireData& getWireData(int plane);
 
