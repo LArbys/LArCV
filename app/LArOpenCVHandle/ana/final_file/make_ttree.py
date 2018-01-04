@@ -67,7 +67,8 @@ for index,row in LL_sort_df.iterrows():
         print "invalid LL... skip!"
         continue
 
-    rd.reco_selected[0] = 1
+    if row['LL_dist'] > 0:
+        rd.reco_selected[0] = 1
 
     rd.LL_dist[0] = row['LL_dist']
     rd.LLc_e[0]   = row['L_ec_e']
