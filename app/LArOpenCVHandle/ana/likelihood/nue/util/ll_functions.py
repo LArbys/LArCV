@@ -360,6 +360,10 @@ def LL_elec(row):
     eLL = np.max([row['L_ep_p0'],row['L_ep_p1']])
     return eLL    
 
+def LL_proton(row):
+    pLL = np.min([row['L_ep_p0'],row['L_ep_p1']])
+    return pLL    
+
 def LL_truth_particle(df,lepton_spec_m,proton_spec_m):
     var_slice   = proton_spectrum_m.keys() + ['par_protonid','par_leptonid']
 
@@ -383,7 +387,9 @@ def LL_reco_particle(df,lepton_spec_m,proton_spec_m):
 
     df['reco_e_id'] = res.str[0]
     df['reco_p_id'] = res.str[1]
+
     df['LLe'] = df.apply(LL_elec,axis=1)
+    df['LLp'] = df.apply(LL_proton,axis=1)
     
     return df
 
