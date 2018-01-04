@@ -166,15 +166,15 @@ def LL_reco(row,sig_spectrum_m,bkg_spectrum_m,istype):
 # LL file rw 
 #
 def read_nue_pdfs(fin):
-    print "Reading PDFs..."
+    print "Reading PDFs @fin=%s"%fin
     tf_in = ROOT.TFile(fin,"READ")
     tf_in.cd()
     
     keys_v = [key.GetName() for key in tf_in.GetListOfKeys()]
     
-    lep_spec_m = {}
-    pro_spec_m = {}
-    cos_spec_m = {}
+    lepton_spec_m = {}
+    proton_spec_m = {}
+    cosmic_spec_m = {}
     
     for key in keys_v:
         hist = tf_in.Get(key)
@@ -249,7 +249,35 @@ def read_nue_pdfs(fin):
 
     print "... asserted"
 
-    return (lep_spec_m,pro_spec_m,cos_spec_m)
+    return (lepton_spec_m,proton_spec_m,cosmic_spec_m)
+
+def read_line_file(fin):
+    print "Reading line @fin=%s"%fin
+    tf_in = ROOT.TFile(fin,"READ")
+    tf_in.cd()
+    
+    line = tf_in.Get("LL_line")
+    
+    res = [0.0,0.0]
+    res[0] = float(line.GetParameter(0))
+    res[1] = float(line.GetParameter(1))
+
+    tf_in.Close()
+
+    return res
+
+def write_line_file(line_param,DIR_OUT="."):
+    fout = os.path.join(DIR_OUT,"nue_line_file.root")
+    tf = ROOT.TFile(fout,"RECREATE")
+    tf.cd()
+
+    line = ROOT.TF1("LL_line","[0]*x+[1]",0,1)
+    line.SetParameter(0,float(line_param[0]))
+    line.SetParameter(1,float(line_param[1]))
+
+    line.Write()
+
+    tf.Close()
 
 def write_nue_pdfs(lepton_spec_m,proton_spec_m,cosmic_spec_m,DIR_OUT="."):
 
@@ -369,6 +397,22 @@ def LL_reco_nue(df,lepton_spec_m,proton_spec_m,cosmic_spec_m):
     return df
 
 
+def pt_distance(pt,a,b,c):
+    ret = float(0.0)
+    ret = a*pt[0]+b*pt[1]+c
+    ret /= np.sqrt(a*a+b*b)
+    return ret
+
+def LL_reco_line(df,line):
+
+    a = -1.0 * line[0]
+    b =  1.0
+    c = -1.0 * line[1]
+
+    df['LL_dist']  = np.array([pt_distance(pt,a,b,c) for pt in df[['L_ec_e','L_pc_p']].values])
+    
+    return df
+    
 
 ################################################################################
 ################################################################################

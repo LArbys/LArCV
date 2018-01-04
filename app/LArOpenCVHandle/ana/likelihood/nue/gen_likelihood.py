@@ -1,5 +1,10 @@
 import collections
 
+def define_LL_line():
+    p0 = -0.94999999999999996
+    p1 =  4.0999999999999996
+    return (p0,p1)
+
 def define_LL_vars():
     pdf_m = collections.OrderedDict()
 
@@ -156,6 +161,7 @@ if __name__ == '__main__':
 
     print "Define..."
     pdf_m = define_LL_vars()
+    line_param = define_LL_line()
     print "... defined"
 
     "Gen PDF..."
@@ -249,5 +255,7 @@ if __name__ == '__main__':
 
     print "Writing..."
     write_nue_pdfs(lepton_spec_m,proton_spec_m,cosmic_spec_m,DIR_OUT=OUT_DIR)
+    write_line_file(line_param,DIR_OUT=OUT_DIR)
     print "... wrote"
 
+    sys.exit(0)
