@@ -72,6 +72,7 @@ for index,row in LL_sort_df.iterrows():
     # fill common
     rd.num_croi[0]   = int(row['locv_number_croi']);
     rd.num_vertex[0] = int(row['locv_num_vertex']);
+    rd.vertex_id[0]  = int(row['vtxid']);
 
     if IS_MC == True:
         # fill MC

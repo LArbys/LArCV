@@ -17,6 +17,7 @@ class ROOTData:
 
         self.num_croi   = array( 'i', [ kINVALID_INT ] )
         self.num_vertex = array( 'i', [ kINVALID_INT ] )
+        self.vertex_id  = array( 'i', [ kINVALID_INT ] )
 
         #
         # is it selected
@@ -90,9 +91,10 @@ class ROOTData:
         self.run[0]        = kINVALID_INT
         self.subrun[0]     = kINVALID_INT
         self.event[0]      = kINVALID_INT
+   
         self.num_croi[0]   = kINVALID_INT
         self.num_vertex[0] = kINVALID_INT
-
+        self.vertex_id[0]  = kINVALID_INT
         
         self.reco_selected[0] = kINVALID_INT
 
@@ -163,6 +165,10 @@ class ROOTData:
         tree.Branch("run"   , self.run   , "run/I")
         tree.Branch("subrun", self.subrun, "subrun/I")
         tree.Branch("event" , self.event , "event/I")
+
+        tree.Branch("num_croi"  , self.num_croi,   "num_croi/I")
+        tree.Branch("num_vertex", self.num_vertex, "num_vertex/I")
+        tree.Branch("vertex_id" , self.vertex_id,  "vertex_id/I")
 
         # truth 
         tree.Branch("nu_pdg"      , self.nu_pdg      , "nu_pdg/I")
