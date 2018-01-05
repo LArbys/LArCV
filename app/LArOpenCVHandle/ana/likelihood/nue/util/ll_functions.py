@@ -425,7 +425,6 @@ def LL_reco_parameters(df):
     df['reco_LL_proton_energy']   = df.apply(reco_LL_proton_energy,axis=1)
     df['reco_LL_electron_energy'] = df.apply(reco_LL_electron_energy,axis=1)
     df['reco_LL_total_energy']    = df.apply(reco_LL_total_energy,axis=1)
-
     return df
     
 
@@ -704,6 +703,8 @@ def lepton_beam_angle(row):
 
     lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
     if len(lid_v) > 0: lid = lid_v[0]    
+
+    if lid < 0 : return res
 
     l_x = row['locv_daughterPx_v'][lid]
     l_y = row['locv_daughterPy_v'][lid]
