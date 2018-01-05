@@ -82,14 +82,15 @@ def prep_LL_vars(df,ismc=True):
 
         df['true_total_energy']   = df.apply(true_total_energy,axis=1)
         df['yplane_angle_p']      = df.apply(yplane_angle_p,axis=1)
+        df['opening_angle']       = df.apply(opening_angle,axis=1)
         df['proton_yplane_len']   = df.apply(proton_yplane_len,axis=1)
         df['proton_beam_angle']   = df.apply(proton_beam_angle,axis=1)
         df['lepton_beam_angle']   = df.apply(lepton_beam_angle,axis=1)
         df['proton_planar_angle'] = df.apply(proton_planar_angle,axis=1)
         df['lepton_planar_angle'] = df.apply(lepton_planar_angle,axis=1)
-        df['yplane_angle_p0']     = df.apply(yplane_angle_p0,axis=1)
-        df['yplane_angle_p1']     = df.apply(yplane_angle_p1,axis=1)
-        df['yplane_angle_p2']     = df.apply(yplane_angle_p2,axis=1)
+        # df['yplane_angle_p0']     = df.apply(yplane_angle_p0,axis=1)
+        # df['yplane_angle_p1']     = df.apply(yplane_angle_p1,axis=1)
+        # df['yplane_angle_p2']     = df.apply(yplane_angle_p2,axis=1)
 
 
     return df
@@ -418,6 +419,14 @@ def LL_reco_line(df,line):
     df['LL_dist']  = np.array([pt_distance(pt,a,b,c) for pt in df[['L_ec_e','L_pc_p']].values])
     
     return df
+
+def LL_reco_parameters(df):
+    
+    df['reco_LL_proton_energy']   = df.apply(reco_LL_proton_energy,axis=1)
+    df['reco_LL_electron_energy'] = df.apply(reco_LL_electron_energy,axis=1)
+    df['reco_LL_total_energy']    = df.apply(reco_LL_total_energy,axis=1)
+
+    return df
     
 
 ################################################################################
@@ -548,10 +557,21 @@ def true_total_energy(row):
 # LL True Variables
 #
 def yplane_angle_p(row):
+
     protonpdg = 2212
 
-    lid = np.where(row['locv_daughterPdg_v']!=protonpdg)[0][0]
-    pid = np.where(row['locv_daughterPdg_v']==protonpdg)[0][0]
+    res = float(-1.0)
+
+    lid = int(-1)
+    pid = int(-1)
+
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0: lid = lid_v[0]
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0: pid = pid_v[0]
+    
+    if lid < 0 or pid < 0: return res
 
     p_x = row['locv_daughterPx_v'][pid]
     p_z = row['locv_daughterPz_v'][pid]
@@ -563,8 +583,43 @@ def yplane_angle_p(row):
     cos /= np.sqrt(p_x*p_x + p_z*p_z)
     cos /= np.sqrt(l_x*l_x + l_z*l_z)
     
-    return np.arccos(cos)*180./np.pi
+    res = np.arccos(cos)*180./np.pi
 
+    return res
+
+
+def opening_angle(row):
+
+    protonpdg = 2212
+
+    res = float(-1.0)
+
+    lid = int(-1)
+    pid = int(-1)
+
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0: lid = lid_v[0]
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0: pid = pid_v[0]
+    
+    if lid < 0 or pid < 0: return res
+
+    p_x = row['locv_daughterPx_v'][pid]
+    p_y = row['locv_daughterPx_v'][pid]
+    p_z = row['locv_daughterPz_v'][pid]
+
+    l_x = row['locv_daughterPx_v'][lid]
+    l_y = row['locv_daughterPx_v'][lid]
+    l_z = row['locv_daughterPz_v'][lid]
+
+    cos = p_x*l_x + p_y*l_y + p_z*l_z
+    cos /= np.sqrt(p_x*p_x + p_y*p_y + p_z*p_z)
+    cos /= np.sqrt(l_x*l_x + l_y*l_y + l_z*l_z)
+    
+    res = np.arccos(cos)*180./np.pi
+
+    return res
 
 
 def yplane_angle_p0(row):
@@ -572,7 +627,6 @@ def yplane_angle_p0(row):
 
     lid = int(np.where(row['locv_daughterPdg_v']!=protonpdg)[0][0])
     pid = int(np.where(row['locv_daughterPdg_v']==protonpdg)[0][0])
-
 
     p_x =  float(row['locv_daughter2DEndX_vv'][0][pid])
     p_z =  float(row['locv_daughter2DEndY_vv'][0][pid])
@@ -644,8 +698,13 @@ def yplane_angle_p2(row):
 def lepton_beam_angle(row):
     protonpdg = 2212
 
-    lid = np.where(row['locv_daughterPdg_v']!=protonpdg)[0][0]
-    
+    res = float(-1.0)
+
+    lid = int(-1)
+
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0: lid = lid_v[0]    
+
     l_x = row['locv_daughterPx_v'][lid]
     l_y = row['locv_daughterPy_v'][lid]
     l_z = row['locv_daughterPz_v'][lid]
@@ -657,20 +716,36 @@ def lepton_beam_angle(row):
 def proton_beam_angle(row):
     protonpdg = 2212
 
-    pid = np.where(row['locv_daughterPdg_v']==protonpdg)[0][0]
+    res = float(-1.0)
+
+    pid = int(-1)
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0: pid = pid_v[0]
     
+    if pid < 0: return res
+
     p_x = row['locv_daughterPx_v'][pid]
     p_y = row['locv_daughterPy_v'][pid]
     p_z = row['locv_daughterPz_v'][pid]
 
     cos = p_z / np.sqrt(p_z*p_z + p_y*p_y)
+
+    res = np.arccos(cos)*180./np.pi
     
-    return np.arccos(cos)*180./np.pi
+    return res
 
 def lepton_planar_angle(row):
     protonpdg = 2212
+    
+    res = float(-1)
+    
+    lid = int(-1)
 
-    lid = np.where(row['locv_daughterPdg_v']!=protonpdg)[0][0]
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0 : lid = lid_v[0]
+
+    if lid<0 : return res
     
     l_x = row['locv_daughterPx_v'][lid]
     l_y = row['locv_daughterPy_v'][lid]
@@ -678,20 +753,31 @@ def lepton_planar_angle(row):
 
     cos = l_x / np.sqrt(l_z*l_z + l_x*l_x)
     
-    return np.arccos(cos)*180./np.pi
+    res = np.arccos(cos)*180./np.pi
+
+    return res
 
 def proton_planar_angle(row):
     protonpdg = 2212
 
-    pid = np.where(row['locv_daughterPdg_v']==protonpdg)[0][0]
+    res = float(-1)
+
+    pid = int(-1)
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0 : pid = pid_v[0]
     
+    if pid<0 : return res
+
     p_x = row['locv_daughterPx_v'][pid]
     p_y = row['locv_daughterPy_v'][pid]
     p_z = row['locv_daughterPz_v'][pid]
 
     cos = p_x / np.sqrt(p_z*p_z + p_x*p_x)
     
-    return np.arccos(cos)*180./np.pi
+    res = np.arccos(cos)*180./np.pi
+
+    return res
 
 def proton_yplane_len(row):
     dx = row['locv_proton_last_pt_x'] - row['locv_proton_1st_pt_x']
@@ -707,4 +793,48 @@ def gaus(x, *p):
 #
 # Fill variables
 #
+def reco_LL_electron_energy(row):
+    shrid  = row['reco_e_id']
 
+    shrE = float(-1.0)
+
+    eU = row['anashr_reco_energy_U_v'][shrid]
+    eV = row['anashr_reco_energy_V_v'][shrid]
+    eY = row['anashr_reco_energy_Y_v'][shrid]
+    
+    if eY>0: shrE = eY
+    else: shrE = (eU + eV) / 2.0
+    return shrE
+
+def reco_LL_proton_energy(row):
+    pgtrk_v   = row['pgtrk_trk_type_v']
+    pgtrk_vv  = row['pgtrk_trk_type_vv']
+    protonid  = row['reco_p_id']
+    trkid_v = np.where(pgtrk_v==protonid)[0]
+    
+    if trkid_v.size == 0: 
+        return float(-1)
+    
+    elif trkid_v.size == 1 : 
+        if pgtrk_vv[trkid_v[0]][protonid] == 0: 
+            return float(-1)
+        else:
+            return row['anatrk2_E_proton_v'][trkid_v[0]]
+    else:
+        stacked =  np.vstack(pgtrk_vv[trkid_v])[:,protonid]
+        maxid_trk = np.argmax(stacked)
+        if stacked[maxid_trk]==0: 
+            return float(-1)
+        else: 
+            return row['anatrk2_E_proton_v'][maxid_trk]
+
+def reco_LL_total_energy(row):
+    res = float(-1)
+
+    if row['reco_LL_proton_energy'] < 0 : return res
+    if row['reco_LL_electron_energy']<0 : return res
+
+    res  = row['reco_LL_proton_energy']
+    res += row['reco_LL_electron_energy']
+
+    return res

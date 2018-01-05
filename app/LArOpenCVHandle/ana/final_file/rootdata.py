@@ -21,7 +21,7 @@ class ROOTData:
         #
         # is it selected
         #
-        self.reco_selected = array( 'i', [ 0 ] )
+        self.reco_selected = array( 'i', [ kINVALID_INT ] )
         
         #
         # the LL
@@ -35,42 +35,55 @@ class ROOTData:
         #
         # MC truth
         #
-        self.true_X = array( 'f', [ kINVALID_FLOAT ] )
-        self.true_Y = array( 'f', [ kINVALID_FLOAT ] )
-        self.true_Z = array( 'f', [ kINVALID_FLOAT ] )
-        self.selected1L1P  = array( 'i', [ kINVALID_INT   ] )
-        self.scedr         = array( 'f', [ kINVALID_FLOAT ] )
-        self.nu_pdg        = array( 'i', [ kINVALID_INT   ] )
-        self.true_track_E  = array( 'f', [ kINVALID_FLOAT ] )
-        self.true_shower_E = array( 'f', [ kINVALID_FLOAT ] )
-        self.true_nu_E     = array( 'f', [ kINVALID_FLOAT ] )
+        self.selected1L1P   = array( 'i', [ kINVALID_INT   ] )
+        self.scedr          = array( 'f', [ kINVALID_FLOAT ] )
+        self.nu_pdg         = array( 'i', [ kINVALID_INT   ] )
+        self.inter_type     = array( 'i', [ kINVALID_INT   ] ) 
+        self.inter_mode     = array( 'i', [ kINVALID_INT   ] )
+        self.true_vertex    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+
+        self.true_proton_E    = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_electron_E  = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_total_E     = array( 'f', [ kINVALID_FLOAT ] )
+
+        self.true_proton_dR      = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.true_electron_dR    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+
+        self.true_proton_theta   = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_electron_theta = array( 'f', [ kINVALID_FLOAT ] )
+
+        self.true_proton_phi     = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_electron_phi   = array( 'f', [ kINVALID_FLOAT ] )
+
+        self.true_proton_ylen   = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_opening_angle = array( 'f', [ kINVALID_FLOAT ] )
+
+        self.true_nu_E = array( 'f', [ kINVALID_FLOAT ] )
 
         #
         # reco parameters
         #
-        
+
+        # truth
+        self.reco_mc_proton_E    = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_mc_electron_E  = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_mc_total_E     = array( 'f', [ kINVALID_FLOAT ] )
+
         # track 
-        self.reco_track_E_p  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_E_m  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_len  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_ion  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_dX   = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_dY   = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_dZ   = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_track_good = array( 'i', [ kINVALID_INT ] )
+        self.reco_proton_E    = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_len  = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_ion  = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_dR   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.reco_proton_good = array( 'i', [ kINVALID_INT ] )
 
         # shower
-        self.reco_shower_E     = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_shower_dEdx  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_shower_dX    = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_shower_dY    = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_shower_dZ    = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_electron_E     = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_electron_dEdx  = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_electron_dR    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
 
         # combined
-        self.reco_energy = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_X      = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_Y      = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_Z      = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_total_E = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_vertex  = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
 
     def reset(self):
 
@@ -80,44 +93,70 @@ class ROOTData:
         self.num_croi[0]   = kINVALID_INT
         self.num_vertex[0] = kINVALID_INT
 
-        self.reco_selected[0] = 0
+        
+        self.reco_selected[0] = kINVALID_INT
 
+        # LL
         self.LL_dist[0] = kINVALID_FLOAT
-        self.LLc_e[0] = kINVALID_FLOAT
-        self.LLc_p[0] = kINVALID_FLOAT
-        self.LLe_e[0] = kINVALID_FLOAT
-        self.LLe_p[0] = kINVALID_FLOAT
+        self.LLc_e[0]   = kINVALID_FLOAT
+        self.LLc_p[0]   = kINVALID_FLOAT
+        self.LLe_e[0]   = kINVALID_FLOAT
+        self.LLe_p[0]   = kINVALID_FLOAT
 
-        self.true_X[0]        = kINVALID_FLOAT
-        self.true_Y[0]        = kINVALID_FLOAT
-        self.true_Z[0]        = kINVALID_FLOAT
+        # mc
+        self.true_vertex[0]   = kINVALID_FLOAT
+        self.true_vertex[1]   = kINVALID_FLOAT
+        self.true_vertex[2]   = kINVALID_FLOAT
         self.selected1L1P[0]  = kINVALID_INT
         self.scedr[0]         = kINVALID_FLOAT
-        self.num_croi[0]      = kINVALID_INT
         self.nu_pdg[0]        = kINVALID_INT
         self.true_nu_E[0]     = kINVALID_FLOAT
-        self.true_track_E[0]  = kINVALID_FLOAT
-        self.true_shower_E[0] = kINVALID_FLOAT
 
-        self.reco_track_E_p[0]  = kINVALID_FLOAT
-        self.reco_track_E_m[0]  = kINVALID_FLOAT
-        self.reco_track_len[0]  = kINVALID_FLOAT
-        self.reco_track_ion[0]  = kINVALID_FLOAT
-        self.reco_track_dX[0]   = kINVALID_FLOAT
-        self.reco_track_dY[0]   = kINVALID_FLOAT
-        self.reco_track_dZ[0]   = kINVALID_FLOAT
-        self.reco_track_good[0] = kINVALID_INT
+        self.inter_type[0]     = kINVALID_INT
+        self.inter_mode[0]     = kINVALID_INT
+
+        self.true_proton_E[0]   = kINVALID_FLOAT
+        self.true_electron_E[0] = kINVALID_FLOAT
+
+        self.true_proton_dR[0]    = kINVALID_FLOAT
+        self.true_proton_dR[1]    = kINVALID_FLOAT
+        self.true_proton_dR[2]    = kINVALID_FLOAT
+        self.true_electron_dR[0]  = kINVALID_FLOAT
+        self.true_electron_dR[1]  = kINVALID_FLOAT
+        self.true_electron_dR[2]  = kINVALID_FLOAT
+
+        self.true_proton_theta[0]   = kINVALID_FLOAT
+        self.true_electron_theta[0] = kINVALID_FLOAT
+        self.true_electron_phi[0]   = kINVALID_FLOAT
+        self.true_proton_phi[0]     = kINVALID_FLOAT
+
+        self.true_opening_angle[0] = kINVALID_FLOAT 
+        self.true_proton_ylen[0]   = kINVALID_FLOAT
+
+        # reco
+
+        self.reco_mc_proton_E[0]   = kINVALID_FLOAT
+        self.reco_mc_electron_E[0] = kINVALID_FLOAT
+        self.reco_mc_total_E[0]    = kINVALID_FLOAT
+
+        self.reco_proton_E[0]    = kINVALID_FLOAT
+        self.reco_proton_len[0]  = kINVALID_FLOAT
+        self.reco_proton_ion[0]  = kINVALID_FLOAT
+        self.reco_proton_dR[0]   = kINVALID_FLOAT
+        self.reco_proton_dR[1]   = kINVALID_FLOAT
+        self.reco_proton_dR[2]   = kINVALID_FLOAT
+        self.reco_proton_good[0] = kINVALID_INT
         
-        self.reco_shower_E[0]     = kINVALID_FLOAT
-        self.reco_shower_dEdx[0]  = kINVALID_FLOAT
-        self.reco_shower_dX[0]    = kINVALID_FLOAT
-        self.reco_shower_dY[0]    = kINVALID_FLOAT
-        self.reco_shower_dZ[0]    = kINVALID_FLOAT
+        self.reco_electron_E[0]     = kINVALID_FLOAT
+        self.reco_electron_dEdx[0]  = kINVALID_FLOAT
+        self.reco_electron_dR[0]    = kINVALID_FLOAT
+        self.reco_electron_dR[1]    = kINVALID_FLOAT
+        self.reco_electron_dR[2]    = kINVALID_FLOAT
 
-        self.reco_energy[0] = kINVALID_FLOAT
-        self.reco_X[0]      = kINVALID_FLOAT
-        self.reco_Y[0]      = kINVALID_FLOAT
-        self.reco_Z[0]      = kINVALID_FLOAT
+        self.reco_total_E[0] = kINVALID_FLOAT
+        self.reco_vertex[0]  = kINVALID_FLOAT
+        self.reco_vertex[1]  = kINVALID_FLOAT
+        self.reco_vertex[2]  = kINVALID_FLOAT
     
     def init_tree(self,tree):
         
@@ -125,31 +164,57 @@ class ROOTData:
         tree.Branch("subrun", self.subrun, "subrun/I")
         tree.Branch("event" , self.event , "event/I")
 
+        # truth 
+        tree.Branch("nu_pdg"      , self.nu_pdg      , "nu_pdg/I")
+        tree.Branch("selected1L1P", self.selected1L1P, "selected1L1P/I")
+        tree.Branch("true_nu_E"   , self.true_nu_E   , "true_nu_E/F")
+        tree.Branch("true_vertex" , self.true_vertex , "true_vertex[3]/F")
+        tree.Branch("scedr"       , self.scedr       , "scedr/F")
+
+        tree.Branch("inter_type", self.inter_type, "inter_type/I")
+        tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
+
+        tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
+        tree.Branch("true_electron_E", self.true_electron_E, "true_electron_E/F")
+
+        tree.Branch("true_proton_dR"  , self.true_proton_dR  , "true_proton_dR[3]/F")
+        tree.Branch("true_electron_dR", self.true_electron_dR, "true_electron_dR[3]/F")
+
+        tree.Branch("true_proton_theta"  , self.true_proton_theta  , "true_proton_theta/F")
+        tree.Branch("true_electron_theta", self.true_electron_theta, "true_electron_theta/F")
+
+        tree.Branch("true_proton_phi"    , self.true_proton_phi    , "true_proton_phi/F")
+        tree.Branch("true_electron_phi"  , self.true_electron_phi  , "true_electron_phi/F")
+
+        tree.Branch("true_opening_angle", self.true_opening_angle, "true_opening_angle/F")
+        tree.Branch("true_proton_ylen"  , self.true_proton_ylen  , "true_proton_ylen/F")
+
+        # reco mc
+        tree.Branch("reco_mc_proton_E"  , self.reco_mc_proton_E  , "reco_mc_proton_E/F")
+        tree.Branch("reco_mc_electron_E", self.reco_mc_electron_E, "reco_mc_electron_E/F")
+        tree.Branch("reco_mc_total_E"   , self.reco_mc_total_E   , "reco_mc_total_E/F")
+
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
-        
-        #LL
+
+        # LL
         tree.Branch("LL_dist", self.LL_dist, "LL_dist/F")
         tree.Branch("LLc_e"  , self.LLc_e  , "LLc_e/F")
         tree.Branch("LLc_p"  , self.LLc_p  , "LLc_p/F")
         tree.Branch("LLe_e"  , self.LLe_e  , "LLe_e/F")
         tree.Branch("LLe_p"  , self.LLe_p  , "LLe_p/F")
 
-        #track
-        tree.Branch("reco_track_E_p" , self.reco_track_E_p  , "reco_track_E_p/F")
-        tree.Branch("reco_track_E_m" , self.reco_track_E_m  , "reco_track_E_m/F")
-        tree.Branch("reco_track_len" , self.reco_track_len  , "reco_track_len/F")
-        tree.Branch("reco_track_ion" , self.reco_track_ion  , "reco_track_ion/F")
-        tree.Branch("reco_track_good", self.reco_track_good , "reco_track_good/I")
+        # reco track
+        tree.Branch("reco_proton_E"   , self.reco_proton_E    , "reco_proton_E/F")
+        tree.Branch("reco_proton_len" , self.reco_proton_len  , "reco_proton_len/F")
+        tree.Branch("reco_proton_ion" , self.reco_proton_ion  , "reco_proton_ion/F")
+        tree.Branch("reco_proton_good", self.reco_proton_good , "reco_proton_good/I")
 
-        #shower
-        tree.Branch("reco_shower_E"   , self.reco_shower_E   , "reco_shower_E/F")
-        tree.Branch("reco_shower_dEdx", self.reco_shower_dEdx, "reco_shower_dEdx/F")
-        tree.Branch("reco_shower_dX"  , self.reco_shower_dX  , "reco_shower_dX/F")
-        tree.Branch("reco_shower_dY"  , self.reco_shower_dY  , "reco_shower_dY/F")
-        tree.Branch("reco_shower_dZ"  , self.reco_shower_dZ  , "reco_shower_dZ/F")
+        # reco shower
+        tree.Branch("reco_electron_E"   , self.reco_electron_E   , "reco_electron_E/F")
+        tree.Branch("reco_electron_dEdx", self.reco_electron_dEdx, "reco_electron_dEdx/F")
+        tree.Branch("reco_electron_dR"  , self.reco_electron_dR  , "reco_electron_dR[3]/F")
 
-        #combined
-        tree.Branch("reco_energy", self.reco_energy, "reco_energy/F")
-        tree.Branch("reco_X"     , self.reco_X     , "reco_X/F")
-        tree.Branch("reco_Y"     , self.reco_Y     , "reco_Y/F")
-        tree.Branch("reco_Z"     , self.reco_Z     , "reco_Z/F")
+        # reco combined
+        tree.Branch("reco_total_E", self.reco_total_E, "reco_total_E/F")
+        tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
+        

@@ -1,11 +1,12 @@
 import os, sys, gc
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 6:
     print
     print "INPUT_DF   = str(sys.argv[1])"
     print "PDF_FILE   = str(sys.argv[2])"
     print "LINE_FILE  = str(sys.argv[3])"
-    print "OUT_DIR    = str(sys.argv[4])"
+    print "IS_MC      = bool(sys.argv[4])"
+    print "OUT_DIR    = str(sys.argv[5])"
     print
     print "...bye"
     print
@@ -14,7 +15,8 @@ if len(sys.argv) != 5:
 INPUT_DF  = str(sys.argv[1])
 PDF_FILE  = str(sys.argv[2])
 LINE_FILE = str(sys.argv[3])
-OUT_DIR   = str(sys.argv[4])
+IS_MC     = bool(sys.argv[4])
+OUT_DIR   = str(sys.argv[5])
 
 num = int(os.path.basename(INPUT_DF).split(".")[0].split("_")[-1])
 
@@ -46,13 +48,14 @@ print "... read"
 print "Prep..."
 df_ll = prep_test_df(df,copy=True)
 df_ll = prep_two_par_df(df_ll,copy=False)
-df_ll = prep_LL_vars(df_ll,ismc=False)
+df_ll = prep_LL_vars(df_ll,ismc=IS_MC)
 print "...preped"
 
 print "LL..."
 df_ll = LL_reco_particle(df_ll,lepton_spec_m,proton_spec_m)
 df_ll = LL_reco_nue(df_ll,lepton_spec_m,proton_spec_m,cosmic_spec_m)
 df_ll = LL_reco_line(df_ll,line_param)
+df_ll = LL_reco_parameters(df_ll)
 print "...LLed"
 
 # write out
