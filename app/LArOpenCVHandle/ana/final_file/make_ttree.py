@@ -59,42 +59,26 @@ for index,row in LL_sort_df.iterrows():
 
     print "@id=%03d @(r,s,e)=(%d,%d,%d)"%(ix,row['run'],row['subrun'],row['event'])
 
-    if row['locv_num_vertex'] == 0:
-        tree.Fill()
-        print "no vertex... skip!"
-        continue
-        
-    if np.isnan(row['LL_dist']):
-        tree.Fill()
-        print "invalid LL... skip!"
-        continue
-
-    # fill common
-    rd.num_croi[0]   = int(row['locv_number_croi']);
-    rd.num_vertex[0] = int(row['locv_num_vertex']);
-    rd.vertex_id[0]  = int(row['vtxid']);
-
     if IS_MC == True:
         # fill MC
-        rd.true_vertex[0]  = float(row['locv_tx']);
-        rd.true_vertex[1]  = float(row['locv_ty']);
-        rd.true_vertex[2]  = float(row['locv_tz']);
+        rd.true_vertex[0]  = float(row['locv_parentX']);
+        rd.true_vertex[1]  = float(row['locv_parentY']);
+        rd.true_vertex[2]  = float(row['locv_parentZ']);
         rd.selected1L1P[0] = int(row['locv_selected1L1P']);
-        rd.scedr[0]        = float(row['locv_scedr']);
         rd.nu_pdg[0]       = int(row['locv_parentPDG']);
         rd.true_nu_E[0]    = int(row['locv_energyInit']); 
         
-        rd.inter_type[0] = int(row['anashr_mcinfoInteractionType']); 
-        rd.inter_mode[0] = int(row['anashr_mcinfoMode']); 
+        rd.inter_type[0] = int(row['anashr2_mcinfoInteractionType']); 
+        rd.inter_mode[0] = int(row['anashr2_mcinfoMode']); 
         
         rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
-        rd.true_electron_E[0] = float(row['anashr_mc_energy'])
+        rd.true_electron_E[0] = float(row['anashr2_mc_energy'])
     
         #rd.true_proton_dR[0] = ;
         
-        rd.true_electron_dR[0] = float(row['anashr_mc_dcosx']);
-        rd.true_electron_dR[1] = float(row['anashr_mc_dcosy']);
-        rd.true_electron_dR[2] = float(row['anashr_mc_dcosz']);
+        rd.true_electron_dR[0] = float(row['anashr2_mc_dcosx']);
+        rd.true_electron_dR[1] = float(row['anashr2_mc_dcosy']);
+        rd.true_electron_dR[2] = float(row['anashr2_mc_dcosz']);
         
         rd.true_proton_theta[0]   = float(row['proton_beam_angle']);
         rd.true_electron_theta[0] = float(row['lepton_beam_angle']);
@@ -105,6 +89,26 @@ for index,row in LL_sort_df.iterrows():
         rd.true_opening_angle[0] = float(row['opening_angle']);
         rd.true_proton_ylen[0]   = float(row['proton_yplane_len']);
         
+
+    # fill common
+    rd.num_croi[0]   = int(row['locv_number_croi']);
+    rd.num_vertex[0] = int(row['locv_num_vertex']);
+
+    if row['locv_num_vertex'] == 0:
+        tree.Fill()
+        print "no vertex... skip!"
+        continue
+        
+    if np.isnan(row['LL_dist']):
+        tree.Fill()
+        print "invalid LL... skip!"
+        continue
+
+    rd.vertex_id[0]  = int(row['vtxid']);
+
+    rd.scedr[0]      = float(row['locv_scedr']);
+
+    if IS_MC == True:
         rd.reco_mc_proton_E[0]   = float(row['reco_mc_track_energy']);
         rd.reco_mc_electron_E[0] = float(row['reco_mc_shower_energy']);
         rd.reco_mc_total_E[0]    = float(row['reco_mc_total_energy']);

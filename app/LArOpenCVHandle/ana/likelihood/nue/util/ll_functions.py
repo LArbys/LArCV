@@ -55,6 +55,23 @@ def prep_true_par_id(df,lepton):
 
     return df
 
+def prep_common_vars(df,ismc=True):
+    
+    res = pd.DataFrame()
+    res = df.copy()
+
+    if ismc == True:
+        res['true_total_energy']   = res.apply(true_total_energy,axis=1)
+        res['yplane_angle_p']      = res.apply(yplane_angle_p,axis=1)
+        res['opening_angle']       = res.apply(opening_angle,axis=1)
+        res['proton_yplane_len']   = res.apply(proton_yplane_len,axis=1)
+        res['proton_beam_angle']   = res.apply(proton_beam_angle,axis=1)
+        res['lepton_beam_angle']   = res.apply(lepton_beam_angle,axis=1)
+        res['proton_planar_angle'] = res.apply(proton_planar_angle,axis=1)
+        res['lepton_planar_angle'] = res.apply(lepton_planar_angle,axis=1)
+
+    return res
+
 def prep_LL_vars(df,ismc=True):
 
     lepton=3
@@ -71,26 +88,10 @@ def prep_LL_vars(df,ismc=True):
     df['p1_shr_phi']   = df.apply(shower_phi,axis=1)
     #df['p2_shr_open']  = df.apply(shower_opening,axis=1)
 
-
-    #
-    # mc stuff
-    #
     if ismc == True:
         df['reco_mc_shower_energy'] = df.apply(reco_mc_shower_energy,axis=1)
         df['reco_mc_track_energy']  = df.apply(reco_mc_track_energy,axis=1)
         df['reco_mc_total_energy']  = df.apply(reco_mc_total_energy,axis=1)
-
-        df['true_total_energy']   = df.apply(true_total_energy,axis=1)
-        df['yplane_angle_p']      = df.apply(yplane_angle_p,axis=1)
-        df['opening_angle']       = df.apply(opening_angle,axis=1)
-        df['proton_yplane_len']   = df.apply(proton_yplane_len,axis=1)
-        df['proton_beam_angle']   = df.apply(proton_beam_angle,axis=1)
-        df['lepton_beam_angle']   = df.apply(lepton_beam_angle,axis=1)
-        df['proton_planar_angle'] = df.apply(proton_planar_angle,axis=1)
-        df['lepton_planar_angle'] = df.apply(lepton_planar_angle,axis=1)
-        # df['yplane_angle_p0']     = df.apply(yplane_angle_p0,axis=1)
-        # df['yplane_angle_p1']     = df.apply(yplane_angle_p1,axis=1)
-        # df['yplane_angle_p2']     = df.apply(yplane_angle_p2,axis=1)
 
 
     return df

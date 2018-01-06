@@ -41,12 +41,13 @@ print "Reading in the line..."
 line_param = read_line_file(LINE_FILE)
 print "... read"
 
-print "Reading in file..."
+print "Reading in file... %s" % INPUT_DF
 df = pd.read_pickle(INPUT_DF)
 print "... read"
 
 print "Prep..."
-df_ll = prep_test_df(df,copy=True)
+df_co = prep_common_vars(df,ismc=IS_MC)
+df_ll = prep_test_df(df_co,copy=True)
 df_ll = prep_two_par_df(df_ll,copy=False)
 df_ll = prep_LL_vars(df_ll,ismc=IS_MC)
 print "...preped"
@@ -59,13 +60,13 @@ df_ll = LL_reco_parameters(df_ll)
 print "...LLed"
 
 # write out
-new_col_v = [col for col in list(df_ll.columns) if col not in list(df.columns)]
+new_col_v = [col for col in list(df_ll.columns) if col not in list(df_co.columns)]
 
-for new_col in new_col_v: df[new_col] = np.nan
+for new_col in new_col_v: df_co[new_col] = np.nan
 
-df.loc[df_ll.index,new_col_v] = df_ll[new_col_v]
+df_co.loc[df_ll.index,new_col_v] = df_ll[new_col_v]
 
 df_ll.to_pickle(os.path.join(OUT_DIR,"LL_comb_df_%d.pkl" % num))
-df.to_pickle(os.path.join(OUT_DIR,"rst_LL_comb_df_%d.pkl" % num))
+df_co.to_pickle(os.path.join(OUT_DIR,"rst_LL_comb_df_%d.pkl" % num))
 
 sys.exit(0)

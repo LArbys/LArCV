@@ -175,7 +175,6 @@ class ROOTData:
         tree.Branch("selected1L1P", self.selected1L1P, "selected1L1P/I")
         tree.Branch("true_nu_E"   , self.true_nu_E   , "true_nu_E/F")
         tree.Branch("true_vertex" , self.true_vertex , "true_vertex[3]/F")
-        tree.Branch("scedr"       , self.scedr       , "scedr/F")
 
         tree.Branch("inter_type", self.inter_type, "inter_type/I")
         tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
@@ -208,6 +207,8 @@ class ROOTData:
         tree.Branch("LLc_p"  , self.LLc_p  , "LLc_p/F")
         tree.Branch("LLe_e"  , self.LLe_e  , "LLe_e/F")
         tree.Branch("LLe_p"  , self.LLe_p  , "LLe_p/F")
+
+        tree.Branch("scedr"       , self.scedr       , "scedr/F")
 
         # reco track
         tree.Branch("reco_proton_E"   , self.reco_proton_E    , "reco_proton_E/F")
