@@ -92,12 +92,15 @@ for index,row in LL_sort_df.iterrows():
 
     # fill common
     rd.num_croi[0]   = int(row['locv_number_croi']);
-    rd.num_vertex[0] = int(row['locv_num_vertex']);
 
-    if row['locv_num_vertex'] == 0:
+    if row['locv_num_vertex'] == 0 or np.isnan(row['locv_num_vertex']):
+        rd.num_vertex[0] = int(0)
         tree.Fill()
         print "no vertex... skip!"
         continue
+
+
+    rd.num_vertex[0] = int(row['locv_num_vertex']);
         
     if np.isnan(row['LL_dist']):
         tree.Fill()
