@@ -17,7 +17,7 @@ def define_LL_vars():
     xlo= 0
     xhi= 500
     dx = 10
-    key='anashr_reco_length_v'
+    key='anashr1_reco_length_v'
     pdf_m[key] = ((xlo,xhi,dx),key)
     
     xlo= 0

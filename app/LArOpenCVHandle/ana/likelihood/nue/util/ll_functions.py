@@ -444,11 +444,11 @@ def reco_dedx(row):
     ret = [-1.0]*2
 
     for i in xrange(len(ret)):
-        if row['anashr_reco_dedx_Y_v'][i] > 0:
-            ret[i] = row['anashr_reco_dedx_Y_v'][i]
+        if row['anashr1_reco_dedx_Y_v'][i] > 0:
+            ret[i] = row['anashr1_reco_dedx_Y_v'][i]
         else:
-            ret[i]  = row['anashr_reco_dedx_U_v'][i]
-            ret[i] += row['anashr_reco_dedx_V_v'][i]
+            ret[i]  = row['anashr1_reco_dedx_U_v'][i]
+            ret[i] += row['anashr1_reco_dedx_V_v'][i]
             ret[i] /= 2.0
 
     return ret
@@ -457,8 +457,8 @@ def shower_theta(row):
     ret = [0.0]*2
         
     for i in xrange(len(ret)):
-        yy = row['anashr_reco_dcosy_v'][i]
-        zz = row['anashr_reco_dcosz_v'][i]
+        yy = row['anashr1_reco_dcosy_v'][i]
+        zz = row['anashr1_reco_dcosz_v'][i]
         
         ret[i] = np.arctan2(yy,zz)
 
@@ -468,8 +468,8 @@ def shower_phi(row):
     ret = [0.0]*2
     
     for i in xrange(len(ret)):
-        xx = row['anashr_reco_dcosx_v'][i]
-        zz = row['anashr_reco_dcosz_v'][i]
+        xx = row['anashr1_reco_dcosx_v'][i]
+        zz = row['anashr1_reco_dcosz_v'][i]
         
         ret[i] = np.arctan2(xx,zz)
 
@@ -478,13 +478,13 @@ def shower_phi(row):
 def shower_opening(row):
     ret = 0.0
 
-    xx0 = row['anashr_reco_dcosx_v'][0]
-    yy0 = row['anashr_reco_dcosy_v'][0]
-    zz0 = row['anashr_reco_dcosz_v'][0]
+    xx0 = row['anashr1_reco_dcosx_v'][0]
+    yy0 = row['anashr1_reco_dcosy_v'][0]
+    zz0 = row['anashr1_reco_dcosz_v'][0]
     
-    xx1 = row['anashr_reco_dcosx_v'][1]
-    yy1 = row['anashr_reco_dcosy_v'][1]
-    zz1 = row['anashr_reco_dcosz_v'][1]
+    xx1 = row['anashr1_reco_dcosx_v'][1]
+    yy1 = row['anashr1_reco_dcosy_v'][1]
+    zz1 = row['anashr1_reco_dcosz_v'][1]
     
     ret = xx0*xx1+yy0*yy1+zz0*zz1
     ret/= np.sqrt(xx0*xx0+yy0*yy0+zz0*zz0)
@@ -508,9 +508,9 @@ def reco_mc_shower_energy(row):
         shrid = np.argmax(row['mchshr_electronfrac_v'])
         
     if shrid != -1:
-        eU = row['anashr_reco_energy_U_v'][shrid]
-        eV = row['anashr_reco_energy_V_v'][shrid]
-        eY = row['anashr_reco_energy_Y_v'][shrid]
+        eU = row['anashr1_reco_energy_U_v'][shrid]
+        eV = row['anashr1_reco_energy_V_v'][shrid]
+        eY = row['anashr1_reco_energy_Y_v'][shrid]
         if eY>0: shrE = eY
         else: shrE = (eU + eV) / 2.0
     
@@ -547,7 +547,7 @@ def reco_mc_total_energy(row):
 def true_total_energy(row):
     totalE = float(-1)
     
-    totalE = row['locv_dep_sum_proton'] + row['anashr_mc_energy']
+    totalE = row['locv_dep_sum_proton'] + row['anashr2_mc_energy']
     
     return totalE
 
@@ -799,9 +799,9 @@ def reco_LL_electron_energy(row):
 
     shrE = float(-1.0)
 
-    eU = row['anashr_reco_energy_U_v'][shrid]
-    eV = row['anashr_reco_energy_V_v'][shrid]
-    eY = row['anashr_reco_energy_Y_v'][shrid]
+    eU = row['anashr1_reco_energy_U_v'][shrid]
+    eV = row['anashr1_reco_energy_V_v'][shrid]
+    eY = row['anashr1_reco_energy_Y_v'][shrid]
     
     if eY>0: shrE = eY
     else: shrE = (eU + eV) / 2.0

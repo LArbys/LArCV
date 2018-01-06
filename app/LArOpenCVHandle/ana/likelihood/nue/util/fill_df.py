@@ -9,48 +9,79 @@ def initialize_rst(VTX_DF,ST_DF):
     comb_df = pd.DataFrame()
     
     ana_vtx_df = pd.read_pickle(VTX_DF)
+    ana_st_df  = pd.read_pickle(ST_DF)
+
+    print "ana_vtx.index.size=",ana_vtx_df.index.size
+    print "ana_st_df.index.size=",ana_st_df.index.size
 
     if 'vtxid' not in ana_vtx_df.columns:
-        print "EMPTY DF ENCOUNTERED"
-        assert pd.read_pickle(ST_DF).index.size == 0
+        print "No vertex dataframe encountered"
+        
         ana_vtx_df.set_index(RSE,inplace=True)
         ana_vtx_df = ana_vtx_df.add_prefix('locv_')
         ana_vtx_df.reset_index(inplace=True)
-        return ana_vtx_df
+
+        # no mcinfo filled
+        if ana_st_df.index.size == 0:
+            return ana_vtx_df
+
+        # event mcinfo filled
+        ana_st_df.set_index(RSE,inplace=True)
+
+        assert ana_st_df.index.size == ana_vtx_df.index.size
+
+        comb_df = ana_vtx_df.join(ana_st_df,how='outer',lsuffix='',rsuffix='_q')
+        drop_q(comb_df)
+        comb_df.reset_index(inplace=True)
+        return comb_df
 
     ana_vtx_df.drop(['vtxid'],axis=1,inplace=True)
     ana_vtx_df.rename(columns={'cvtxid' : 'vtxid'},inplace=True)
 
     ana_locv_df = ana_vtx_df.query("num_vertex>0").copy()
     ana_rest_df = ana_vtx_df.drop(ana_locv_df.index).copy()
-     
+
+    ana_ll_df   = ana_st_df.query("vtxid>=0").copy()
+    ana_lest_df = ana_st_df.drop(ana_ll_df.index).copy()
+
     assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
+    assert ((ana_lest_df.index.size + ana_ll_df.index.size) == ana_st_df.index.size)
 
     ana_locv_df.set_index(RSEV,inplace=True)
     ana_locv_df = ana_locv_df.add_prefix('locv_')
 
-    ana_st_df = pd.read_pickle(ST_DF)
-
-    ana_st_df.set_index(RSEV,inplace=True)
+    ana_ll_df.set_index(RSEV,inplace=True)
     
     print "ana_locv_df.index.size=",ana_locv_df.index.size
-    print "ana_st_df.index.size=",ana_st_df.index.size
+    print "ana_ll_df.index.size=",ana_ll_df.index.size
 
-    df_v    = [ana_st_df,ana_locv_df]
+    df_v    = [ana_ll_df,ana_locv_df]
     comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
 
     comb_df.reset_index(inplace=True)
 
     comb_df.set_index(RSE,inplace=True)
+
     ana_rest_df.set_index(RSE,inplace=True)
+    ana_lest_df.set_index(RSE,inplace=True)
+
+    print "ana_rest_df.index.size=",ana_rest_df.index.size
+    print "ana_lest_df.index.size=",ana_lest_df.index.size
 
     cols = ana_rest_df.columns[~ana_rest_df.columns.str.contains('vtxid')]
     ana_rest_df.rename(columns = dict(zip(cols, 'locv_' + cols)), inplace=True)
+
+    ana_rest_lest_df = pd.concat([ana_rest_df, ana_lest_df],axis=1,join_axes=[ana_rest_df.index])
+
+    ana_rest_lest_df = ana_rest_lest_df.loc[:,~ana_rest_lest_df.columns.duplicated()]
     
     comb_df.reset_index(inplace=True)
-    ana_rest_df.reset_index(inplace=True)
-    
-    comb_df = comb_df.append(ana_rest_df,ignore_index=True)
+    ana_rest_lest_df.reset_index(inplace=True)
+
+    print "comb_df.index.size=",comb_df.index.size
+    print "ana_rest_lest_df.index.size=",ana_rest_lest_df.index.size
+
+    comb_df = comb_df.append(ana_rest_lest_df,ignore_index=True)
     
     print "now... comb_df.index.size=",comb_df.index.size
 
@@ -69,6 +100,10 @@ def initialize_st(SHR_ANA1,
     match_shr_df = None
     match_trk_df = None
 
+    # 
+    # exception @ is data
+    #
+
     isdata = False
     try:
         match_shr_df  = pd.DataFrame(rn.root2array(SHR_TRUTH,treename="ShowerTruthMatch"))
@@ -84,46 +119,82 @@ def initialize_st(SHR_ANA1,
         print "match_trk_df.index.size=",match_trk_df.index.size
 
     except IOError:
+        # it's data
         isdata = True
+
+    #
+    # exception @ no vertex found
+    #
 
     try:
         pgraph_trk_df = pd.DataFrame(rn.root2array(TRK_PGRPH,treename="TrackPGraphMatch"))
-        ana_shr_df    = pd.DataFrame(rn.root2array(SHR_ANA1))
+        ana_shr1_df   = pd.DataFrame(rn.root2array(SHR_ANA1,treename="ShowerQuality_DL"))
+        ana_shr2_df   = pd.DataFrame(rn.root2array(SHR_ANA1,treename="EventMCINFO_DL"))
         ana_trk1_df   = pd.DataFrame(rn.root2array(TRK_ANA1))
         ana_trk2_df   = pd.DataFrame(rn.root2array(TRK_ANA2))
 
-        ana_shr_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
+        ana_shr1_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
         ana_trk2_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
 
         pgraph_trk_df.set_index(RSEV,inplace=True)
-        ana_shr_df.set_index(RSEV,inplace=True)
+        ana_shr1_df.set_index(RSEV,inplace=True)
+        ana_shr2_df.set_index(RSE,inplace=True)
         ana_trk1_df.set_index(RSEV,inplace=True)
         ana_trk2_df.set_index(RSEV,inplace=True)
     
         pgraph_trk_df = pgraph_trk_df.add_prefix("pgtrk_")
-        ana_shr_df    = ana_shr_df.add_prefix("anashr_")
+        ana_shr1_df   = ana_shr1_df.add_prefix("anashr1_")
+        ana_shr2_df   = ana_shr2_df.add_prefix("anashr2_")
         ana_trk1_df   = ana_trk1_df.add_prefix("anatrk1_")
         ana_trk2_df   = ana_trk2_df.add_prefix("anatrk2_")
 
         print "pgraph_trk_df.index.size=",pgraph_trk_df.index.size
-        print "ana_shr_df.index.size=",ana_shr_df.index.size
+        print "ana_shr1_df.index.size=",ana_shr1_df.index.size
+        print "ana_shr2_df.index.size=",ana_shr2_df.index.size
         print "ana_trk1_df.index.size=",ana_trk1_df.index.size
         print "ana_trk2_df.index.size=",ana_trk2_df.index.size
 
         df_v = []
 
         if isdata==False:
-            df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df,match_shr_df,match_trk_df]
+            df_v = [ana_shr1_df,
+                    ana_trk1_df,
+                    ana_trk2_df,
+                    pgraph_trk_df,
+                    match_shr_df,
+                    match_trk_df]
         else:
-            df_v = [ana_shr_df,ana_trk1_df,ana_trk2_df,pgraph_trk_df]
+            df_v = [ana_shr1_df,
+                    ana_trk1_df,
+                    ana_trk2_df,
+                    pgraph_trk_df]
 
         comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
+        comb_df.reset_index(inplace=True)
+        
+        if isdata==False:
+            comb_df.set_index(RSE,inplace=True)
+            comb_df = comb_df.join(ana_shr2_df,how='outer',lsuffix='',rsuffix='_q')
+            drop_q(comb_df)
+
         comb_df.reset_index(inplace=True)
         return comb_df
 
     except IOError:
-        return pd.DataFrame()
+        # no vertex found
 
+        # it's data return empty
+        if isdata==True:
+            return pd.DataFrame()
+
+        # MC info should still be filled...
+        ana_shr2_df = pd.DataFrame(rn.root2array(SHR_ANA1,treename="EventMCINFO_DL"))
+        ana_shr2_df.set_index(RSE,inplace=True)
+        ana_shr2_df = ana_shr2_df.add_prefix("anashr2_")
+        ana_shr2_df.reset_index(inplace=True)
+        return ana_shr2_df
+
+    raise Exception
 
 def initialize_truth(input_file,data=False):
     print "Loading event TTrees..."
