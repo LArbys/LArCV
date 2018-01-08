@@ -34,15 +34,21 @@ print "... read"
 
 LL_sort_df = pd.DataFrame()
 
-empty_file = False
+no_vertex = False
+no_ll = False
 
 print "Check if no vertex..."
-if "LL_dist" not in LL_df.columns:
-    print "no vertex found!"
-    LL_sort_df = LL_df.copy()
-    empty_file = True
+if "locv_num_vertex" not in LL_df.columns:
+    print "No vertex found in file!"
+    LL_sort_df = LL_df.groupby(RSE).head(1).copy()
+    no_vertex = True
     print "... handled"
-    
+
+elif "LL_dist" not in LL_df.columns:
+    print "Vertex exists but none valid in file!"
+    LL_sort_df = LL_df.groupby(RSE).head(1).copy()
+    no_ll = True
+    print "... handled"
 else:
     print "Maximizing @ LL_dist..."
     LL_sort_df = LL_df.sort_values(["LL_dist"],ascending=False).groupby(RSE).head(1).copy()
@@ -108,12 +114,12 @@ for index,row in LL_sort_df.iterrows():
     # fill common
     rd.num_croi[0]   = int(row['locv_number_croi']);
 
-    if empty_file == True:
+    if no_vertex == True:
         rd.num_vertex[0] = int(0)
         tree.Fill()
         print "empty file... skip!"
         continue
-
+        
     if row['locv_num_vertex'] == 0 or np.isnan(row['locv_num_vertex']):
         rd.num_vertex[0] = int(0)
         tree.Fill()
@@ -121,7 +127,12 @@ for index,row in LL_sort_df.iterrows():
         continue
 
     rd.num_vertex[0] = int(row['locv_num_vertex']);
-        
+
+    if no_ll == True:
+        tree.Fill()
+        print "no LL vertex in file... skip!"
+        continue
+
     if np.isnan(row['LL_dist']):
         tree.Fill()
         print "invalid LL... skip!"
