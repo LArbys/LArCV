@@ -5,7 +5,7 @@ if len(sys.argv) != 6:
     print "INPUT_DF   = str(sys.argv[1])"
     print "PDF_FILE   = str(sys.argv[2])"
     print "LINE_FILE  = str(sys.argv[3])"
-    print "IS_MC      = bool(sys.argv[4])"
+    print "IS_MC      = bool(int(sys.argv[4]))"
     print "OUT_DIR    = str(sys.argv[5])"
     print
     print "...bye"
@@ -15,9 +15,10 @@ if len(sys.argv) != 6:
 INPUT_DF  = str(sys.argv[1])
 PDF_FILE  = str(sys.argv[2])
 LINE_FILE = str(sys.argv[3])
-IS_MC     = bool(sys.argv[4])
+IS_MC     = bool(int(sys.argv[4]))
 OUT_DIR   = str(sys.argv[5])
 
+print "IS_MC=",IS_MC
 num = int(os.path.basename(INPUT_DF).split(".")[0].split("_")[-1])
 
 import ROOT

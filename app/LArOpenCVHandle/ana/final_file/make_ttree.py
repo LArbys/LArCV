@@ -3,13 +3,13 @@ import os,sys,gc
 if len(sys.argv) != 4:
     print 
     print "LL_PKL = str(sys.argv[1])"
-    print "IS_MC  = bool(sys.argv[2])"
+    print "IS_MC  = bool(int(sys.argv[2]))"
     print "OUTDIR = str(sys.argv[3])" 
     print 
     sys.exit(1)
 
 LL_PKL   = str(sys.argv[1])
-IS_MC    = bool(sys.argv[2])
+IS_MC    = bool(int(sys.argv[2]))
 OUTDIR   = str(sys.argv[3]) 
 NUM      = int(os.path.basename(LL_PKL).split(".")[0].split("_")[-1])
 
