@@ -32,10 +32,24 @@ print "Reading LL..."
 LL_df = pd.read_pickle(LL_PKL)
 print "... read"
 
-print "Maximizing @ LL_dist..."
-LL_sort_df = LL_df.sort_values(["LL_dist"],ascending=False).groupby(RSE).head(1).copy()
-LL_sort_df.sort_values(by=RSE,inplace=True)
-print "... maximized"
+LL_sort_df = pd.DataFrame()
+
+empty_file = False
+
+print "Check if no vertex..."
+if "LL_dist" not in LL_df.columns:
+    print "no vertex found!"
+    LL_sort_df = LL_df.copy()
+    empty_file = True
+    print "... handled"
+    
+else:
+    print "Maximizing @ LL_dist..."
+    LL_sort_df = LL_df.sort_values(["LL_dist"],ascending=False).groupby(RSE).head(1).copy()
+    LL_sort_df.sort_values(by=RSE,inplace=True)
+    print "... maximized"
+    
+print "... checked"
 
 del LL_df
 gc.collect()
@@ -94,12 +108,17 @@ for index,row in LL_sort_df.iterrows():
     # fill common
     rd.num_croi[0]   = int(row['locv_number_croi']);
 
+    if empty_file == True:
+        rd.num_vertex[0] = int(0)
+        tree.Fill()
+        print "empty file... skip!"
+        continue
+
     if row['locv_num_vertex'] == 0 or np.isnan(row['locv_num_vertex']):
         rd.num_vertex[0] = int(0)
         tree.Fill()
         print "no vertex... skip!"
         continue
-
 
     rd.num_vertex[0] = int(row['locv_num_vertex']);
         

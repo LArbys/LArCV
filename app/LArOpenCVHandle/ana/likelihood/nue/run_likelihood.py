@@ -46,6 +46,15 @@ print "Reading in file... %s" % INPUT_DF
 df = pd.read_pickle(INPUT_DF)
 print "... read"
 
+print "Check if empty..."
+if "locv_num_vertex" not in df.columns:
+    print "no vertex found in file!"
+    df.to_pickle(os.path.join(OUT_DIR,"LL_comb_df_%d.pkl" % num))
+    df.to_pickle(os.path.join(OUT_DIR,"rst_LL_comb_df_%d.pkl" % num))
+    print "bye!"
+    sys.exit(0)
+print "... checked"
+
 print "Prep..."
 df_co = prep_common_vars(df,ismc=IS_MC)
 df_ll = prep_test_df(df_co,copy=True)
