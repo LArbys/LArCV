@@ -25,9 +25,9 @@ namespace larcv {
     void SetParticleType(const std::vector<std::pair<int,int> >& vec)
     { _par_v = vec; }
     
-    bool FillParticles(const std::vector<size_t>& cid_v,
-		       EventPixel2D* ictor_v,EventPixel2D* iimg_v,
-		       EventPixel2D* octor_v,EventPixel2D* oimg_v);
+    void FillParticles(const std::vector<size_t>& cid_v,
+		       EventPixel2D* ictor_v, EventPixel2D* iimg_v,
+		       EventPixel2D* octor_v, EventPixel2D* oimg_v);
 
   private:
     

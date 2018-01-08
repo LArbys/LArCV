@@ -113,6 +113,7 @@ for entry in xrange(proc_iom.get_n_entries()):
     print "process entry=",entry
     proc.process_entry(entry)
     print "...next!"
+    break
 
 proc.finalize()
 my_iom.finalize()

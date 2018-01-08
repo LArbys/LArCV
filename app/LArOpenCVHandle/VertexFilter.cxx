@@ -34,8 +34,8 @@ namespace larcv {
     _in_super_img_prod  = cfg.get<std::string>("InputSuperImgProducer","");
 
     // Output contour and image
-    _out_ctor_prod = cfg.get<std::string>("OutputSuperCtorProducer","");
-    _out_img_prod  = cfg.get<std::string>("OutputSuperImgProducer","");
+    _out_ctor_prod = cfg.get<std::string>("OutputCtorProducer","");
+    _out_img_prod  = cfg.get<std::string>("OutputImgProducer","");
 
     // Output super contour and super image
     _out_super_ctor_prod = cfg.get<std::string>("OutputSuperCtorProducer","");
@@ -209,6 +209,8 @@ namespace larcv {
       }
 
       out_pg_v->Emplace(std::move(pg_new));
+
+      LARCV_DEBUG() << "ci_old_v sz=" << ci_old_v.size() << std::endl;
       
       std::vector<size_t> cid_v;
 
@@ -219,48 +221,69 @@ namespace larcv {
 	cid_v[1] = ci_old_v.back();
       }
 
-      //
-      if (set_pixel)
+      // NOTE SETTING SHAPE NOT HANDLED
+      if (set_pixel) {
+	LARCV_DEBUG() << "storing pixels..."<< std::endl;
 	FillParticles(ci_old_v,
 		      in_ctor_v,in_img_v,
 		      out_ctor_v,out_img_v);
+	LARCV_DEBUG() << "...done!"<< std::endl;
+      }
 
-      if (set_spixel)
+      if (set_spixel) {
+	LARCV_DEBUG() << "storing super pixels..." << std::endl;
 	FillParticles(ci_old_v,
 		      in_super_ctor_v,in_super_img_v,
 		      out_super_ctor_v,out_super_img_v);
+	LARCV_DEBUG() << "...done!"<< std::endl;
+      }
 	 
-      //
-
       LARCV_DEBUG() << "end this pgraph" << std::endl;
       
       assert (!out_pg_v->PGraphArray().empty());
+      
+      if(set_pixel) {
+	assert (!out_ctor_v->Pixel2DClusterArray().empty());
+	assert (!out_img_v->Pixel2DClusterArray().empty());
+
+      }
+
+      if(set_spixel) {
+	assert (!out_super_ctor_v->Pixel2DClusterArray().empty());
+	assert (!out_super_img_v->Pixel2DClusterArray().empty());
+      }
       
       _cvtxid = pgid;
       _fvtxid = out_pg_v->PGraphArray().size() - 1;
       _tree->Fill();
     } // end pgraph
 
+    
+    LARCV_DEBUG() << "... writing " << out_ctor_v->Pixel2DClusterArray().size() << " out_ctor_v planes" << std::endl;
+    LARCV_DEBUG() << "... writing " << out_img_v->Pixel2DClusterArray().size() << " out_img_v planes" << std::endl;
+
+    LARCV_DEBUG() << "... writing " << out_super_ctor_v->Pixel2DClusterArray().size() << " out_super_ctor_v planes" << std::endl;
+    LARCV_DEBUG() << "... writing " << out_super_img_v->Pixel2DClusterArray().size() << " out_super_img_v planes" << std::endl;
+
     LARCV_DEBUG() << "end" << std::endl;
     clear();
     return true;
   }
   
-  bool VertexFilter::FillParticles(const std::vector<size_t>& cid_v,
+  void VertexFilter::FillParticles(const std::vector<size_t>& cid_v,
 				   EventPixel2D* ictor_v,EventPixel2D* iimg_v,
 				   EventPixel2D* octor_v,EventPixel2D* oimg_v) {
 
+    LARCV_DEBUG() << "start" << std::endl;
     auto const& ctor_m      = ictor_v->Pixel2DClusterArray();
     auto const& ctor_meta_m = ictor_v->ClusterMetaArray();
       
-    LARCV_DEBUG() << "px ctor producer=" <<   _in_ctor_prod << std::endl;
     LARCV_DEBUG() << "ctor_m sz=     " << ctor_m.size() << std::endl;
     LARCV_DEBUG() << "ctor_meta_m sz=" << ctor_meta_m.size() << std::endl;
 	
     auto const& pcluster_m      = iimg_v->Pixel2DClusterArray();
     auto const& pcluster_meta_m = iimg_v->ClusterMetaArray();
-	
-    LARCV_DEBUG() << "px img producer=" <<   _in_img_prod << std::endl;
+
     LARCV_DEBUG() << "pcluster_m sz=     " << pcluster_m.size() << std::endl;
     LARCV_DEBUG() << "pcluster_meta_m sz=" << pcluster_meta_m.size() << std::endl;
 	
@@ -301,6 +324,7 @@ namespace larcv {
       auto const& ctor_meta_v = (*iter_ctor_meta).second;
 
       for (auto cidx : cid_v) {
+	LARCV_DEBUG() << "@cidx=" << cidx << std::endl;
 	auto const& pcluster      = pcluster_v.at(cidx);
 	auto const& pcluster_meta = pcluster_meta_v.at(cidx);
 
@@ -314,7 +338,7 @@ namespace larcv {
       LARCV_DEBUG() << "end this plane" << std::endl;
     } // end plane
 
-    return true;
+    LARCV_DEBUG() << "end" << std::endl;
   }
 
   void VertexFilter::finalize() {
