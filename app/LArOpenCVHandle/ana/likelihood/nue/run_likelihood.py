@@ -85,7 +85,7 @@ if __name__ == "__main__":
     
     # write out
     new_col_v = [col for col in list(df_ll.columns) if col not in list(df_co.columns)]
-    
+
     for new_col in new_col_v: df_co[new_col] = np.nan
     
     df_co.loc[df_ll.index,new_col_v] = df_ll[new_col_v]
