@@ -74,9 +74,9 @@ for index,row in LL_sort_df.iterrows():
     ix += 1
     rd.reset()
 
-    rd.run[0]    = row['run']
-    rd.subrun[0] = row['subrun']
-    rd.event[0]  = row['event']
+    rd.run[0]    = int(row['run'])
+    rd.subrun[0] = int(row['subrun'])
+    rd.event[0]  = int(row['event'])
 
     print "@id=%03d @(r,s,e)=(%d,%d,%d)"%(ix,row['run'],row['subrun'],row['event'])
 
