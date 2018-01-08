@@ -1,11 +1,10 @@
 import os, sys, gc
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 4:
     print 
-    print "SSFILE     = str(sys.argv[1])"
-    print "PGRFILE    = str(sys.argv[2])"
-    print "FINAL_FILE = str(sys.argv[3])"
-    print "OUTDIR     = str(sys.argv[4])" 
+    print "PGRFILE    = str(sys.argv[1])"
+    print "FINAL_FILE = str(sys.argv[2])"
+    print "OUTDIR     = str(sys.argv[3])" 
     print 
     sys.exit(1)
 
@@ -21,13 +20,12 @@ sys.path.insert(0,BASE_PATH)
 print 
 print "--> initialize"
 print
-SSFILE     = str(sys.argv[1])
-PGRFILE    = str(sys.argv[2])
-FINAL_FILE = str(sys.argv[3])
+PGRFILE    = str(sys.argv[1])
+FINAL_FILE = str(sys.argv[2])
 
 num = int(os.path.basename(PGRFILE).split(".")[0].split("_")[-1])
 
-OUTDIR  = str(sys.argv[4])
+OUTDIR  = str(sys.argv[3])
 OUTFILE = os.path.basename(PGRFILE).split(".")[0].split("_")
 OUTFILE = "_".join(OUTFILE[:-1]) + "_filter_" + OUTFILE[-1]
 
@@ -46,7 +44,6 @@ from larcv import larcv
 proc = larcv.ProcessDriver('ProcessDriver')
 proc.configure(os.path.join(BASE_PATH,"filter.cfg"))
 flist_v = ROOT.std.vector("std::string")()
-flist_v.push_back(ROOT.std.string(SSFILE))
 flist_v.push_back(ROOT.std.string(PGRFILE))
 proc.override_input_file(flist_v)
 proc.override_output_file(ROOT.std.string(os.path.join(OUTDIR,OUTFILE + ".root")))
@@ -54,7 +51,7 @@ proc.override_ana_file(ROOT.std.string(os.path.join(OUTDIR,OUTFILE.replace("out"
 proc.initialize()
 proc_iom = proc.io()
 my_iom = larcv.IOManager()
-my_iom.add_in_file(SSFILE)
+my_iom.add_in_file(PGRFILE)
 my_iom.initialize()
 
 vertex_filter_id = proc.process_id("VertexFilter")
@@ -71,10 +68,10 @@ for entry in xrange(proc_iom.get_n_entries()):
 
     print "@entry=%s @proc_iom=%s @my_ion=%s"%(entry,proc_iom.current_entry(),my_iom.current_entry())
 
-    ev_img = my_iom.get_data(larcv.kProductImage2D,"wire")
-    run    = int(ev_img.run())
-    subrun = int(ev_img.subrun())
-    event  = int(ev_img.event())
+    ev_pgraph = my_iom.get_data(larcv.kProductPGraph,"test")
+    run    = int(ev_pgraph.run())
+    subrun = int(ev_pgraph.subrun())
+    event  = int(ev_pgraph.event())
 
     print "@(rse)=(",run,",",subrun,",",event,")"
     row = final_df.query("run==@run&subrun==@subrun&event==@event")
