@@ -34,6 +34,7 @@ print "... read"
 
 print "Maximizing @ LL_dist..."
 LL_sort_df = LL_df.sort_values(["LL_dist"],ascending=False).groupby(RSE).head(1).copy()
+LL_sort_df.sort_values(by=RSE,inplace=True)
 print "... maximized"
 
 del LL_df
