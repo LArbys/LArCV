@@ -132,14 +132,14 @@ namespace larcv {
 
 	float pixel_type = 0.0;
 
-	if (yy >= nrows) {
+	if (yy >= nrows or yy < 0) {
 	  LARCV_WARNING() << "3D location outside of image! Skip this plane" << std::endl;
 	  LARCV_WARNING() << "(rx,ry,rz)=(" << reco_x << "," << reco_y << "," << reco_z << ")" << std::endl;
 	  LARCV_WARNING() << "(x,y)=(" << xx << "," << yy << ")" << std::endl;
 	  continue;
 	}
 	
-	if (xx >= ncols) {
+	if (xx >= ncols or xx < 0) {
 	  LARCV_WARNING() << "3D location outside of image! Skip this plane" << std::endl;
 	  LARCV_WARNING() << "(rx,ry,rz)=(" << reco_x << "," << reco_y << "," << reco_z << ")" << std::endl;
 	  LARCV_WARNING() << "(x,y)=(" << xx << "," << yy << ")" << std::endl;
