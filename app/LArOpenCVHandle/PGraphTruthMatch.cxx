@@ -123,12 +123,29 @@ namespace larcv {
 		  plane,
 		  xpixel, ypixel);
 
+	// Projection outside the image can happen
+
 	int xx = (int) (xpixel+0.5);
 	int yy = (int) (ypixel+0.5);
 
 	yy = nrows - yy - 1;
 
 	float pixel_type = 0.0;
+
+	if (yy >= nrows) {
+	  LARCV_WARNING() << "3D location outside of image! Skip this plane" << std::endl;
+	  LARCV_WARNING() << "(rx,ry,rz)=(" << reco_x << "," << reco_y << "," << reco_z << ")" << std::endl;
+	  LARCV_WARNING() << "(x,y)=(" << xx << "," << yy << ")" << std::endl;
+	  continue;
+	}
+	
+	if (xx >= ncols) {
+	  LARCV_WARNING() << "3D location outside of image! Skip this plane" << std::endl;
+	  LARCV_WARNING() << "(rx,ry,rz)=(" << reco_x << "," << reco_y << "," << reco_z << ")" << std::endl;
+	  LARCV_WARNING() << "(x,y)=(" << xx << "," << yy << ")" << std::endl;
+	  continue;
+	}
+
 	pixel_type += plane_img.pixel(yy,xx);
 
 	// check a ``box" around this projected location
