@@ -17,6 +17,8 @@ import os
 ##    INPUT4 = pickle containing nu background LL histograms       ##
 ## --------------------------------------------------------------- ##
 
+# vic -- output directory INPUT5
+
 #sce = larutil.SpaceChargeMicroBooNE()
 
 # --- Some functions for internal analysis use -------------------- #
@@ -120,8 +122,8 @@ VtxTree.AddFriend(dqdxTree)
 
 # --- Perform some alignment checks to be sure the ana files match up -- #
 
-fileTag1 = int(os.path.split(argv[1])[1].lstrip('reco3d_ana_').rstrip('.root'))
-fileTag2 = int(os.path.split(argv[2])[1].lstrip('vertexana_larcv_').rstrip('.root'))
+fileTag1 = int(os.path.split(argv[1])[1].lstrip('tracker_anaout_').rstrip('.root'))
+fileTag2 = int(os.path.split(argv[2])[1].lstrip('vertexana_').rstrip('.root'))
 
 if fileTag1 != fileTag2:
     print "file tags don't match up... ( %i vs %i )this isn't critical but you may have mismatched files. Proceeding to explicit alignment checks..." %(fileTag1,fileTag2)
@@ -187,6 +189,7 @@ with open(argv[4],'rb') as handle: LLPdfs_nusep = pickle.load(handle)    # Load 
 
 # --- Create output ROOT file and initialize variables ----------------- #
 outFileName = 'FinalVertexVariables_%i.root'%(fileTag1)
+outFileName = os.path.join(sys.argv[5],outFileName)
 outFile = TFile(outFileName,'RECREATE')
 outTree = TTree('NuMuVertexVariables','Final Vertex Variable Tree')
 
@@ -253,19 +256,24 @@ for ev in TrkTree:
     event          = ev.event
     vtxid          = ev.vtx_id
     IDvtx          = tuple((run,subrun,event,vtxid))
-    vtxX           = ev.RecoVertex.X()
-    vtxY           = ev.RecoVertex.Y()
-    vtxZ           = ev.RecoVertex.Z()
+    # vtxX           = ev.RecoVertex.X()
+    # vtxY           = ev.RecoVertex.Y()
+    # vtxZ           = ev.RecoVertex.Z()
+    vtxX           = ev.vtx_x
+    vtxY           = ev.vtx_y
+    vtxZ           = ev.vtx_z
     vtxPhi_v       = ev.vertexPhi
     vtxTheta_v     = ev.vertexTheta
     length_v       = ev.Length_v
     dqdx_v         = ev.Avg_Ion_v
-    iondlen_v      = ev._IondivLength_v
+    #iondlen_v      = ev._IondivLength_v
+    iondlen_v      = ev.IondivLength_v
     VertexType     = Vtx2DInfo[IDvtx][0] 
     NothingRecod   = ev.nothingReconstructed
     InFiducial     = VtxInFid(vtxX,vtxY,vtxZ)
     NumTracks      = len(length_v)
-    Num5cmTracks   = ev.NtracksReco
+    #Num5cmTracks   = ev.NtracksReco
+    Num5cmTracks   = ev.Nreco
     EifP_v         = ev.E_proton_v
     EifMu_v        = ev.E_muon_v
     PassAllChecks  = ev.GoodVertex

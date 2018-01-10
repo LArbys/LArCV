@@ -196,6 +196,78 @@ def initialize_st(SHR_ANA1,
 
     raise Exception
 
+def initialize_rt(VERTEX_PKL,NUMU_LL_ROOT):
+    
+    comb_df = pd.DataFrame()
+
+    ana_vtx_df  = pd.read_pickle(VERTEX_PKL)
+    ana_numu_df = pd.DataFrame(rn.root2array(NUMU_LL_ROOT,treename="NuMuVertexVariables"))
+    
+    print "ana_vtx_df.index.size=",ana_vtx_df.index.size
+    print "ana_numu_df.index.size=",ana_numu_df.index.size
+    print
+    if 'vtxid' not in ana_vtx_df.columns:
+        print "No vertex dataframe encountered"
+        
+        ana_vtx_df.set_index(RSE,inplace=True)
+        ana_vtx_df = ana_vtx_df.add_prefix('locv_')
+        ana_vtx_df.reset_index(inplace=True)
+
+        return ana_vtx_df
+
+    ana_vtx_df.drop(['vtxid'],axis=1,inplace=True)
+    ana_vtx_df.rename(columns={'cvtxid' : 'vtxid'},inplace=True)
+
+    ana_locv_df = ana_vtx_df.query("num_vertex>0").copy()
+    ana_rest_df = ana_vtx_df.drop(ana_locv_df.index).copy()
+
+    assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
+    assert ana_locv_df.index.size == ana_numu_df.index.size
+
+    ana_locv_df.set_index(RSEV,inplace=True)
+    ana_locv_df = ana_locv_df.add_prefix('locv_')
+
+    ana_numu_df.rename(columns={ "_run"   : "run",
+                                 "_subrun": "subrun",
+                                 "_event" : "event",
+                                 '_vtxid' : 'vtxid'},inplace=True)
+
+
+    ana_numu_df.set_index(RSEV,inplace=True)
+    ana_numu_df = ana_numu_df.add_prefix('numu_')
+
+    print "ana_locv_df.index.size=",ana_locv_df.index.size
+    print "ana_numu_df.index.size=",ana_numu_df.index.size
+    print
+
+    df_v    = [ana_numu_df,ana_locv_df]
+    comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
+
+    comb_df.reset_index(inplace=True)
+
+    comb_df.set_index(RSE,inplace=True)
+    ana_rest_df.set_index(RSE,inplace=True)
+
+    print "ana_rest_df.index.size=",ana_rest_df.index.size
+    print
+
+    cols = ana_rest_df.columns[~ana_rest_df.columns.str.contains('vtxid')]
+    ana_rest_df.rename(columns = dict(zip(cols, 'locv_' + cols)), inplace=True)
+    
+    comb_df.reset_index(inplace=True)
+    ana_rest_df.reset_index(inplace=True)
+
+    print "comb_df.index.size=",comb_df.index.size
+    print "ana_rest_df.index.size=",ana_rest_df.index.size
+
+    comb_df = comb_df.append(ana_rest_df,ignore_index=True)
+    
+    print "now... comb_df.index.size=",comb_df.index.size
+
+    return comb_df
+    
+    
+
 def initialize_truth(input_file,data=False):
     print "Loading event TTrees..."
     nufilter_df     = pd.DataFrame(rn.root2array(input_file,treename="NuFilterTree"))
