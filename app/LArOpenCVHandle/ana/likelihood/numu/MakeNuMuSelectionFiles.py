@@ -6,6 +6,7 @@ import pickle
 from math import sin,cos,sqrt,log,pi,acos
 from sys import argv
 from array import array
+import os
 
 ## When you call this program it must have the following format... ##
 ## python MakeNuMuSelectionFiles.py INPUT1 INPUT2 INPUT3 INPUT4    ##
@@ -119,8 +120,8 @@ VtxTree.AddFriend(dqdxTree)
 
 # --- Perform some alignment checks to be sure the ana files match up -- #
 
-fileTag1 = int(argv[1].lstrip('reco3d_ana_').rstrip('.root'))
-fileTag2 = int(argv[2].lstrip('vertexana_larcv_').rstrip('.root'))
+fileTag1 = int(os.path.split(argv[1])[1].lstrip('reco3d_ana_').rstrip('.root'))
+fileTag2 = int(os.path.split(argv[2])[1].lstrip('vertexana_larcv_').rstrip('.root'))
 
 if fileTag1 != fileTag2:
     print "file tags don't match up... ( %i vs %i )this isn't critical but you may have mismatched files. Proceeding to explicit alignment checks..." %(fileTag1,fileTag2)
