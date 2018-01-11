@@ -64,13 +64,12 @@ class NumuHandler(Handler):
         self.rd.reset()
         
         row = self.df.query("run==@run&subrun==@subrun&event==@event")
+        if row.index.size == 0: return False
         row = row.iloc[0]
 
         self.rd.run[0]    = int(row['run'])
         self.rd.subrun[0] = int(row['subrun'])
         self.rd.event[0]  = int(row['event'])
-
-        print "@(r,s,e)=(%d,%d,%d)"%(row['run'],row['subrun'],row['event'])
         
         if ismc == True:
             # fill MC
@@ -80,6 +79,9 @@ class NumuHandler(Handler):
             self.rd.selected1L1P[0] = int(row['locv_selected1L1P']);
             self.rd.nu_pdg[0]       = int(row['locv_parentPDG']);
             self.rd.true_nu_E[0]    = int(row['locv_energyInit']); 
+
+            self.rd.inter_type[0] = int(row['anashr2_mcinfoInteractionType']); 
+            self.rd.inter_mode[0] = int(row['anashr2_mcinfoMode']); 
             
             self.rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
             

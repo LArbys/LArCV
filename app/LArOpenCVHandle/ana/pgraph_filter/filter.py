@@ -1,10 +1,11 @@
 import os, sys, gc
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     print 
     print "PGRFILE    = str(sys.argv[1])"
     print "FINAL_FILE = str(sys.argv[2])"
-    print "OUTDIR     = str(sys.argv[3])" 
+    print "TREE       = str(sys.artv[3])"
+    print "OUTDIR     = str(sys.argv[4])" 
     print 
     sys.exit(1)
 
@@ -22,19 +23,20 @@ print "--> initialize"
 print
 PGRFILE    = str(sys.argv[1])
 FINAL_FILE = str(sys.argv[2])
+TREE       = str(sys.argv[3])
 
 num = int(os.path.basename(PGRFILE).split(".")[0].split("_")[-1])
 
-OUTDIR  = str(sys.argv[3])
+OUTDIR  = str(sys.argv[4])
 OUTFILE = os.path.basename(PGRFILE).split(".")[0].split("_")
-OUTFILE = "_".join(OUTFILE[:-1]) + "_filter_" + OUTFILE[-1]
+OUTFILE = "_".join(OUTFILE[:-1]) + "_filter_"+ TREE + "_"  + OUTFILE[-1]
 
 print
 print "--> load final file"
 print 
 branches = ["run","subrun","event","vertex_id","num_vertex"]
 final_df = pd.DataFrame(rn.root2array(FINAL_FILE,
-                                      treename="nue_ana_tree",
+                                      treename=TREE,
                                       branches=branches))
 
 print

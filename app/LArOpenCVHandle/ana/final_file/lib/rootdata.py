@@ -230,6 +230,8 @@ class ROOTData:
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
         tree.Branch("scedr"        , self.scedr        , "scedr/F")
 
+        tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
+
         # LL
         tree.Branch("LL_dist", self.LL_dist, "LL_dist/F")
         tree.Branch("LLc_e"  , self.LLc_e  , "LLc_e/F")
@@ -250,7 +252,6 @@ class ROOTData:
 
         # reco combined
         tree.Branch("reco_total_E", self.reco_total_E, "reco_total_E/F")
-        tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
         
     def init_numu_tree(self,tree):
         
@@ -266,6 +267,11 @@ class ROOTData:
         tree.Branch("selected1L1P", self.selected1L1P, "selected1L1P/I")
         tree.Branch("true_nu_E"   , self.true_nu_E   , "true_nu_E/F")
         tree.Branch("true_vertex" , self.true_vertex , "true_vertex[3]/F")
+
+        tree.Branch("inter_type", self.inter_type, "inter_type/I")
+        tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
+
+        tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
 
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
         tree.Branch("scedr"        , self.scedr        , "scedr/F")

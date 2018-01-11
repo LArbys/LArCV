@@ -65,7 +65,7 @@ class NueHandler(Handler):
         self.rd.reset()
 
         row = self.df.query("run==@run&subrun==@subrun&event==@event")
-        
+        if row.index.size == 0: return False
         row = row.iloc[0]
 
         self.rd.run[0]    = int(row['run'])
@@ -137,7 +137,6 @@ class NueHandler(Handler):
             return True
             
         self.rd.vertex_id[0]  = int(row['vtxid']);
-
         self.rd.scedr[0]      = float(row['locv_scedr']);
 
         if ismc == True:
@@ -150,6 +149,10 @@ class NueHandler(Handler):
             self.rd.reco_selected[0] = int(1)
         else:
             self.rd.reco_selected[0] = int(0)
+
+        self.rd.reco_vertex[0] = float(row['locv_x'])
+        self.rd.reco_vertex[1] = float(row['locv_y'])
+        self.rd.reco_vertex[2] = float(row['locv_z'])
         
         self.rd.LL_dist[0] = float(row['LL_dist']);
         self.rd.LLc_e[0]   = float(row['L_ec_e']);
@@ -158,20 +161,9 @@ class NueHandler(Handler):
         self.rd.LLe_p[0]   = float(row['LLp']);
         
         # fill reco
-        self.rd.reco_proton_E[0]     = float(row['reco_LL_proton_energy'])
-        #self.reco_proton_len[0]  = ;
-        #self.reco_proton_ion[0]  = ;
-        #self.reco_proton_good[0] = ;
-        
-        self.rd.reco_electron_E[0]     = float(row['reco_LL_electron_energy']);
-        #self.reco_electron_dEdx[0] = ;
-        #self.reco_electron_dR[0]   = ;
-        
-        self.rd.reco_total_E[0] = float(row['reco_LL_total_energy']);
-        
-        self.rd.reco_vertex[0] = float(row['locv_x'])
-        self.rd.reco_vertex[1] = float(row['locv_y'])
-        self.rd.reco_vertex[2] = float(row['locv_z'])
+        self.rd.reco_proton_E[0]   = float(row['reco_LL_proton_energy'])
+        self.rd.reco_electron_E[0] = float(row['reco_LL_electron_energy']);
+        self.rd.reco_total_E[0]    = float(row['reco_LL_total_energy']);
 
         self.tree.Fill()
         self.rd.reset()
