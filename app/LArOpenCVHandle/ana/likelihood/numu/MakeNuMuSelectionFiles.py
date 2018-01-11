@@ -154,7 +154,7 @@ for ev in TrkTree:
 
 RSEV2 = []
 for x in range(LenList[1]):
-    if RSE2[x] == RSE2[x-1]:
+    if RSE2[x] == RSE2[x-1] and x != 0:
         rescaled+=1
         y = tuple((RSE2[x][0],RSE2[x][1],RSE2[x][2],rescaled))
         RSEV2.append(y)
