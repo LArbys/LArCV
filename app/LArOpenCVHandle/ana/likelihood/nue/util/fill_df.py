@@ -200,14 +200,15 @@ def add_to_rst(RST_PKL,NUMU_LL_ROOT):
     comb_df = pd.DataFrame()
 
     ana_rst_df  = pd.read_pickle(RST_PKL)
+    if 'vtxid' not in ana_rst_df.columns:
+        print "No vertex dataframe encountered"
+        return ana_rst_df
+
     ana_numu_df = pd.DataFrame(rn.root2array(NUMU_LL_ROOT,treename="NuMuVertexVariables"))
     
     print "ana_rst_df.index.size=",ana_rst_df.index.size
     print "ana_numu_df.index.size=",ana_numu_df.index.size
     print
-    if 'vtxid' not in ana_rst_df.columns:
-        print "No vertex dataframe encountered"
-        return ana_rst_df
 
     ana_vtx_df = ana_rst_df.query("locv_num_vertex>0").copy()
     ana_rest_df = ana_rst_df.drop(ana_vtx_df.index).copy()

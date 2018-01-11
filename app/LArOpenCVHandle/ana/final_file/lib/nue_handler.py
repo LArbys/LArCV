@@ -58,6 +58,9 @@ class NueHandler(Handler):
         del LL_df
         del LL_sort_df
 
+        # ensure the rse is int64
+        self.df[RSE] = self.df[RSE].astype(np.int64)
+
         gc.collect()
 
         

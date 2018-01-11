@@ -4,7 +4,7 @@ if len(sys.argv) != 5:
     print 
     print "PGRFILE    = str(sys.argv[1])"
     print "FINAL_FILE = str(sys.argv[2])"
-    print "TREE       = str(sys.artv[3])"
+    print "TREE       = str(sys.argv[3])"
     print "OUTDIR     = str(sys.argv[4])" 
     print 
     sys.exit(1)

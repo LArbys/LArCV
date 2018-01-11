@@ -58,6 +58,9 @@ class NumuHandler(Handler):
         del LL_df
         del LL_sort_df
 
+        # ensure the rse is int64
+        self.df[RSE] = self.df[RSE].astype(np.int64)
+
         gc.collect()
 
     def fill(self,run,subrun,event,ismc):
