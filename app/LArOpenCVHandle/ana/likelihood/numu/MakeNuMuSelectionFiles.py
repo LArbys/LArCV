@@ -6,7 +6,7 @@ import pickle
 from math import sin,cos,sqrt,log,pi,acos
 from sys import argv
 from array import array
-import os
+import os,sys
 
 ## When you call this program it must have the following format... ##
 ## python MakeNuMuSelectionFiles.py INPUT1 INPUT2 INPUT3 INPUT4    ##

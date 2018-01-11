@@ -86,6 +86,20 @@ class ROOTData:
         self.reco_total_E = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_vertex  = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
 
+
+        #
+        # numu related
+        #
+        self.CosmicLL      = array( 'f', [ kINVALID_FLOAT ])
+        self.NuBkgLL       = array( 'f', [ kINVALID_FLOAT ])
+        self.PassCuts      = array( 'i', [ kINVALID_INT   ])
+        self.VtxAlgo       = array( 'i', [ kINVALID_INT   ])
+        self.NTracks       = array( 'i', [ kINVALID_INT   ])
+        self.N5cmTracks    = array( 'i', [ kINVALID_INT   ])
+        self.InFiducial    = array( 'i', [ kINVALID_INT   ])
+        self.Good3DReco    = array( 'i', [ kINVALID_INT   ])
+        self.AnythingRecod = array( 'i', [ kINVALID_INT   ])
+
     def reset(self):
 
         self.run[0]        = kINVALID_INT
@@ -159,8 +173,22 @@ class ROOTData:
         self.reco_vertex[0]  = kINVALID_FLOAT
         self.reco_vertex[1]  = kINVALID_FLOAT
         self.reco_vertex[2]  = kINVALID_FLOAT
+
+        #
+        # numu related
+        #
     
-    def init_tree(self,tree):
+        self.CosmicLL[0]      = kINVALID_FLOAT
+        self.NuBkgLL[0]       = kINVALID_FLOAT
+        self.PassCuts[0]      = kINVALID_INT
+        self.VtxAlgo[0]       = kINVALID_INT
+        self.NTracks[0]       = kINVALID_INT
+        self.N5cmTracks[0]    = kINVALID_INT
+        self.InFiducial[0]    = kINVALID_INT
+        self.Good3DReco[0]    = kINVALID_INT
+        self.AnythingRecod[0] = kINVALID_INT
+
+    def init_nue_tree(self,tree):
         
         tree.Branch("run"   , self.run   , "run/I")
         tree.Branch("subrun", self.subrun, "subrun/I")
@@ -182,8 +210,8 @@ class ROOTData:
         tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
         tree.Branch("true_electron_E", self.true_electron_E, "true_electron_E/F")
 
-        tree.Branch("true_proton_dR"  , self.true_proton_dR  , "true_proton_dR[3]/F")
-        tree.Branch("true_electron_dR", self.true_electron_dR, "true_electron_dR[3]/F")
+        # tree.Branch("true_proton_dR"  , self.true_proton_dR  , "true_proton_dR[3]/F")
+        # tree.Branch("true_electron_dR", self.true_electron_dR, "true_electron_dR[3]/F")
 
         tree.Branch("true_proton_theta"  , self.true_proton_theta  , "true_proton_theta/F")
         tree.Branch("true_electron_theta", self.true_electron_theta, "true_electron_theta/F")
@@ -200,6 +228,7 @@ class ROOTData:
         tree.Branch("reco_mc_total_E"   , self.reco_mc_total_E   , "reco_mc_total_E/F")
 
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
+        tree.Branch("scedr"        , self.scedr        , "scedr/F")
 
         # LL
         tree.Branch("LL_dist", self.LL_dist, "LL_dist/F")
@@ -207,8 +236,6 @@ class ROOTData:
         tree.Branch("LLc_p"  , self.LLc_p  , "LLc_p/F")
         tree.Branch("LLe_e"  , self.LLe_e  , "LLe_e/F")
         tree.Branch("LLe_p"  , self.LLe_p  , "LLe_p/F")
-
-        tree.Branch("scedr"       , self.scedr       , "scedr/F")
 
         # reco track
         tree.Branch("reco_proton_E"   , self.reco_proton_E    , "reco_proton_E/F")
@@ -225,3 +252,34 @@ class ROOTData:
         tree.Branch("reco_total_E", self.reco_total_E, "reco_total_E/F")
         tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
         
+    def init_numu_tree(self,tree):
+        
+        tree.Branch("run"   , self.run   , "run/I")
+        tree.Branch("subrun", self.subrun, "subrun/I")
+        tree.Branch("event" , self.event , "event/I")
+
+        tree.Branch("num_croi"  , self.num_croi,   "num_croi/I")
+        tree.Branch("num_vertex", self.num_vertex, "num_vertex/I")
+        tree.Branch("vertex_id" , self.vertex_id,  "vertex_id/I")
+
+        tree.Branch("nu_pdg"      , self.nu_pdg      , "nu_pdg/I")
+        tree.Branch("selected1L1P", self.selected1L1P, "selected1L1P/I")
+        tree.Branch("true_nu_E"   , self.true_nu_E   , "true_nu_E/F")
+        tree.Branch("true_vertex" , self.true_vertex , "true_vertex[3]/F")
+
+        tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
+        tree.Branch("scedr"        , self.scedr        , "scedr/F")
+
+        tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
+
+        tree.Branch("CosmicLL"     , self.CosmicLL     , "CosmicLL/F")
+        tree.Branch("NuBkgLL"      , self.NuBkgLL      , "NuBkgLL/F")
+        tree.Branch("PassCuts"     , self.PassCuts     , "PassCuts/I")
+        tree.Branch("VtxAlgo"      , self.VtxAlgo      , "VtxAlgo/I")
+        tree.Branch("NTracks"      , self.NTracks      , "NTracks/I")
+        tree.Branch("N5cmTracks"   , self.N5cmTracks   , "N5cmTracks/I")
+        tree.Branch("InFiducial"   , self.InFiducial   , "InFiducial/I")
+        tree.Branch("Good3DReco"   , self.Good3DReco   , "Good3DReco/I")
+        tree.Branch("AnythingRecod", self.AnythingRecod, "AnythingRecod/I")
+
+

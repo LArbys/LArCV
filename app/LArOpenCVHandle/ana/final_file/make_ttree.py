@@ -1,184 +1,68 @@
 import os,sys,gc
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 6:
     print 
-    print "LL_PKL = str(sys.argv[1])"
-    print "IS_MC  = bool(int(sys.argv[2]))"
-    print "OUTDIR = str(sys.argv[3])" 
+    print "NUE_LL_PKL  = str(sys.argv[1])"
+    print "NUMU_LL_PKL = str(sys.argv[2])"
+    print "VTX_OUT     = str(sys.argv[3])"
+    print "IS_MC       = bool(int(sys.argv[4]))"
+    print "OUTDIR      = str(sys.argv[5])" 
     print 
     sys.exit(1)
 
-LL_PKL   = str(sys.argv[1])
-IS_MC    = bool(int(sys.argv[2]))
-OUTDIR   = str(sys.argv[3]) 
-NUM      = int(os.path.basename(LL_PKL).split(".")[0].split("_")[-1])
-
-RSE = ['run','subrun','event']
+NUE_LL_PKL  = str(sys.argv[1])
+NUMU_LL_PKL = str(sys.argv[2])
+VTX_OUT     = str(sys.argv[3])
+IS_MC       = bool(int(sys.argv[4]))
+OUTDIR      = str(sys.argv[5]) 
+NUM         = int(os.path.basename(NUE_LL_PKL).split(".")[0].split("_")[-1])
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
 sys.path.insert(0,BASE_PATH)
 
 import ROOT
-import numpy as np
-import root_numpy as rn
-import pandas as pd
-from rootdata import ROOTData
+from lib.nue_handler import NueHandler
+from lib.numu_handler import NumuHandler
 
-#
-# read LL
-#
-print "Reading LL..."
-LL_df = pd.read_pickle(LL_PKL)
-print "... read"
-
-LL_sort_df = pd.DataFrame()
-
-no_vertex = False
-no_ll = False
-
-print "Check if no vertex..."
-if "locv_num_vertex" not in LL_df.columns:
-    print "No vertex found in file!"
-    LL_sort_df = LL_df.groupby(RSE).head(1).copy()
-    no_vertex = True
-    print "... handled"
-
-elif "LL_dist" not in LL_df.columns:
-    print "Vertex exists but none valid in file!"
-    LL_sort_df = LL_df.groupby(RSE).head(1).copy()
-    no_ll = True
-    print "... handled"
-else:
-    print "Maximizing @ LL_dist..."
-    LL_sort_df = LL_df.sort_values(["LL_dist"],ascending=False).groupby(RSE).head(1).copy()
-    LL_sort_df.sort_values(by=RSE,inplace=True)
-    print "... maximized"
-    
-print "... checked"
-
-del LL_df
-gc.collect()
-
-FOUT = os.path.join(OUTDIR,"nue_analysis_%d.root" % NUM)
+FOUT = os.path.join(OUTDIR,"dllee_analysis_%d.root" % NUM)
 tf = ROOT.TFile.Open(FOUT,"RECREATE")
-print "OPEN %s"%FOUT
 tf.cd()
+print "OPEN %s"%FOUT
 
-rd = ROOTData()
-tree = ROOT.TTree("nue_ana_tree","")
-rd.init_tree(tree)
+nue_tree  = ROOT.TTree("nue_ana_tree","")
+numu_tree = ROOT.TTree("numu_ana_tree","")
 
-ix=-1
-for index,row in LL_sort_df.iterrows():
-    ix += 1
-    rd.reset()
+print "nue  tree @",nue_tree
+print "numu tree @",numu_tree
 
-    rd.run[0]    = int(row['run'])
-    rd.subrun[0] = int(row['subrun'])
-    rd.event[0]  = int(row['event'])
+nue_handler  = NueHandler(nue_tree)
+numu_handler = NumuHandler(numu_tree)
 
-    print "@id=%03d @(r,s,e)=(%d,%d,%d)"%(ix,row['run'],row['subrun'],row['event'])
+nue_handler.reshape(NUE_LL_PKL)
+numu_handler.reshape(NUMU_LL_PKL)
 
-    if IS_MC == True:
-        # fill MC
-        rd.true_vertex[0]  = float(row['locv_parentX']);
-        rd.true_vertex[1]  = float(row['locv_parentY']);
-        rd.true_vertex[2]  = float(row['locv_parentZ']);
-        rd.selected1L1P[0] = int(row['locv_selected1L1P']);
-        rd.nu_pdg[0]       = int(row['locv_parentPDG']);
-        rd.true_nu_E[0]    = int(row['locv_energyInit']); 
-        
-        rd.inter_type[0] = int(row['anashr2_mcinfoInteractionType']); 
-        rd.inter_mode[0] = int(row['anashr2_mcinfoMode']); 
-        
-        rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
-        rd.true_electron_E[0] = float(row['anashr2_mc_energy'])
+prod = "pgraph_test"
+vtx_chain = ROOT.TChain(prod+"_tree")
+vtx_chain.AddFile(VTX_OUT)
+nentries = int(vtx_chain.GetEntries())
+vtx_chain.GetEntry(0)
+exec('br = vtx_chain.%s_branch' % prod)
+
+for entry in xrange(nentries):
+    vtx_chain.GetEntry(entry)
+    run    = int(br.run())
+    subrun = int(br.subrun())
+    event  = int(br.event())
+
+    print "@entry=%d (r,s,e)=(%d,%d,%d)" % (entry,run,subrun,event)
+
+    nue_fill  = nue_handler.fill(run,subrun,event,IS_MC)
+    numu_fill = numu_handler.fill(run,subrun,event,IS_MC)
     
-        #rd.true_proton_dR[0] = ;
-        
-        rd.true_electron_dR[0] = float(row['anashr2_mc_dcosx']);
-        rd.true_electron_dR[1] = float(row['anashr2_mc_dcosy']);
-        rd.true_electron_dR[2] = float(row['anashr2_mc_dcosz']);
-        
-        rd.true_proton_theta[0]   = float(row['proton_beam_angle']);
-        rd.true_electron_theta[0] = float(row['lepton_beam_angle']);
+    if nue_fill  == False: raise Exception
+    if numu_fill == False: raise Exception
 
-        rd.true_proton_phi[0]   = float(row['proton_planar_angle']);
-        rd.true_electron_phi[0] = float(row['lepton_planar_angle']);
-        
-        rd.true_opening_angle[0] = float(row['opening_angle']);
-        rd.true_proton_ylen[0]   = float(row['proton_yplane_len']);
-        
-
-    # fill common
-    rd.num_croi[0]   = int(row['locv_number_croi']);
-
-    if no_vertex == True:
-        rd.num_vertex[0] = int(0)
-        tree.Fill()
-        print "empty file... skip!"
-        continue
-        
-    if row['locv_num_vertex'] == 0 or np.isnan(row['locv_num_vertex']):
-        rd.num_vertex[0] = int(0)
-        tree.Fill()
-        print "no vertex... skip!"
-        continue
-
-    rd.num_vertex[0] = int(row['locv_num_vertex']);
-
-    if no_ll == True:
-        tree.Fill()
-        print "no LL vertex in file... skip!"
-        continue
-
-    if np.isnan(row['LL_dist']):
-        tree.Fill()
-        print "invalid LL... skip!"
-        continue
-
-    rd.vertex_id[0]  = int(row['vtxid']);
-
-    rd.scedr[0]      = float(row['locv_scedr']);
-
-    if IS_MC == True:
-        rd.reco_mc_proton_E[0]   = float(row['reco_mc_track_energy']);
-        rd.reco_mc_electron_E[0] = float(row['reco_mc_shower_energy']);
-        rd.reco_mc_total_E[0]    = float(row['reco_mc_total_energy']);
-
-    # fill LL
-    if row['LL_dist'] > 0:
-        rd.reco_selected[0] = int(1)
-    else:
-        rd.reco_selected[0] = int(0)
-        
-    rd.LL_dist[0] = float(row['LL_dist']);
-    rd.LLc_e[0]   = float(row['L_ec_e']);
-    rd.LLc_p[0]   = float(row['L_pc_p']);
-    rd.LLe_e[0]   = float(row['LLe']);
-    rd.LLe_p[0]   = float(row['LLp']);
-
-    # fill reco
-    rd.reco_proton_E[0]     = float(row['reco_LL_proton_energy'])
-    #self.reco_proton_len[0]  = ;
-    #self.reco_proton_ion[0]  = ;
-    #self.reco_proton_good[0] = ;
-
-    rd.reco_electron_E[0]     = float(row['reco_LL_electron_energy']);
-    #self.reco_electron_dEdx[0] = ;
-    #self.reco_electron_dR[0]   = ;
-
-    rd.reco_total_E[0] = float(row['reco_LL_total_energy']);
-
-    rd.reco_vertex[0] = float(row['locv_x'])
-    rd.reco_vertex[1] = float(row['locv_y'])
-    rd.reco_vertex[2] = float(row['locv_z'])
-
-    tree.Fill()
-
-tree.Write()
+nue_tree.Write()
+numu_tree.Write()
 tf.Close()
-
-
-
