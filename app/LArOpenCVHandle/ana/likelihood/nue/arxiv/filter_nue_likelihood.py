@@ -1,4 +1,3 @@
-#https://open.spotify.com/track/7DcWaEjsO3PTAODV2fKeSn
 import os, sys, gc
 
 if len(sys.argv) != 5:

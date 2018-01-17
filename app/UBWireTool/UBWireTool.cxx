@@ -5,6 +5,7 @@
 #include <sstream>
 #include <exception>
 #include <set>
+#include <math.h>
 
 #include "LArUtil/Geometry.h"
 #include "LArUtil/LArProperties.h"
@@ -641,25 +642,33 @@ namespace larcv {
 
     // Columns
     Double_t xyz[3] = { pos3d[0], pos3d[1], pos3d[2] };
+    // there is a corner where the V plane wire number causes an error
+    if ( (pos3d[1]>-117.0 && pos3d[1]<-116.0) && pos3d[2]<2.0 ) {
+      std::cout << __PRETTY_FUNCTION__ << ": v-plane corner hack (" << xyz[0] << "," << xyz[1] << "," << xyz[2] << ")" << std::endl;
+      xyz[1] = -116.0;
+    }
     
     for (int p=0; p<nplanes; p++) {
       float wire = larutil::Geometry::GetME()->WireCoordinate( xyz, p );
       // round wire
-      if ( wire+0.5>=(int)wire+1.0 )
-	wire = (int)wire+1.0;
+      //wire = std::roundf(wire);
 
       // get image coordinates
       if ( wire<meta.min_x() ) {
-	if ( wire>meta.min_x()-col_border )
+	if ( wire>meta.min_x()-col_border ) {
+	  std::cout << __PRETTY_FUNCTION__ << " plane=" << p << " wire=" << wire << "<" << meta.min_x()-col_border << std::endl;	  	  
 	  // within lower border
 	  img_coords[p+1] = 0;
+	}
 	else
 	  img_coords[p+1] = -1;
       }
       else if ( wire>=meta.max_x() ) {
-	if ( wire<meta.max_x()+col_border )
+	if ( wire<meta.max_x()+col_border ) {
+	  std::cout << __PRETTY_FUNCTION__ << " plane=" << p << " wire=" << wire << ">" << meta.max_x()+col_border << std::endl;		  
 	  // within border
 	  img_coords[p+1] = meta.cols()-1;
+	}
 	else
 	  // outside border
 	  img_coords[p+1] = -1;
@@ -668,6 +677,11 @@ namespace larcv {
 	// inside image
 	img_coords[p+1] = meta.col( wire );
     }//end of plane loop
+
+    // there is a corner where the V plane wire number causes an error
+    if ( pos3d[1]<-116.3 && pos3d[2]<2.0 && img_coords[1+1]==-1 ) {
+      img_coords[1+1] = 0;
+    }
     
     return img_coords;
   }
