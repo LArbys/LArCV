@@ -209,13 +209,15 @@ _passCuts   = array('i',[0])
 _cosmicLL   = array('f',[0])
 _nubkgLL    = array('f',[0])
 _good3DReco = array('i',[0])
-_phi_v      = ROOT.vector('double')()
-_theta_v    = ROOT.vector('double')()
-_length_v   = ROOT.vector('double')()
-_dqdx_v     = ROOT.vector('double')()
-_iondlen_v  = ROOT.vector('double')()
-_EifP_v     = ROOT.vector('double')()
-_EifMu_v    = ROOT.vector('double')()
+_phi_v         = ROOT.vector('double')()
+_theta_v       = ROOT.vector('double')()
+_length_v      = ROOT.vector('double')()
+_dqdx_v        = ROOT.vector('double')()
+_trunc_dqdx1_v = ROOT.vector('double')()
+_trunc_dqdx3_v = ROOT.vector('double')()
+_iondlen_v     = ROOT.vector('double')()
+_EifP_v        = ROOT.vector('double')()
+_EifMu_v       = ROOT.vector('double')()
 
 outTree.Branch('run'           , _run         , '_run/I'        ) 
 outTree.Branch('subrun'        , _subrun      , '_subrun/I'     )
@@ -233,13 +235,15 @@ outTree.Branch('N5cmTracks'    , _n5tracks    , '_n5tracks/I'   )
 outTree.Branch('PassCuts'      , _passCuts    , '_passCuts/I'   )
 outTree.Branch('CosmicLL'      , _cosmicLL    , '_cosmiLL/F'    )
 outTree.Branch('NuBkgLL'       , _nubkgLL     , '_nubkgLL/F'    )
-outTree.Branch('PhiReco_v'     , _phi_v       )
-outTree.Branch('ThetaReco_v'   , _theta_v     )
-outTree.Branch('TrackLength_v' , _length_v    )
-outTree.Branch('dQdx_v'        , _dqdx_v      )
-outTree.Branch('IonPerLen_v'   , _iondlen_v   )
-outTree.Branch('Edep_ifP_v'    , _EifP_v      )
-outTree.Branch('Edep_ifMu_v'   , _EifMu_v     )
+outTree.Branch('PhiReco_v'     , _phi_v         )
+outTree.Branch('ThetaReco_v'   , _theta_v       )
+outTree.Branch('TrackLength_v' , _length_v      )
+outTree.Branch('dQdx_v'        , _dqdx_v        )
+outTree.Branch('Trunc_dQdx1_v' , _trunc_dqdx1_v )
+outTree.Branch('Trunc_dQdx3_v' , _trunc_dqdx3_v ) 
+outTree.Branch('IonPerLen_v'   , _iondlen_v     )
+outTree.Branch('Edep_ifP_v'    , _EifP_v        )
+outTree.Branch('Edep_ifMu_v'   , _EifMu_v       )
 
 Vtx2DInfo = {}
 for i,ev in enumerate(VtxTree):
@@ -266,7 +270,8 @@ for ev in TrkTree:
     vtxTheta_v     = ev.vertexTheta
     length_v       = ev.Length_v
     dqdx_v         = ev.Avg_Ion_v
-    #iondlen_v      = ev._IondivLength_v
+    trunc_dqdx1_v  = ev.Truncated_dQdX1_v
+    trunc_dqdx3_v  = ev.Truncated_dQdX3_v
     iondlen_v      = ev.IondivLength_v
     VertexType     = Vtx2DInfo[IDvtx][0] 
     NothingRecod   = ev.nothingReconstructed
@@ -341,15 +346,19 @@ for ev in TrkTree:
     _theta_v.clear()
     _length_v.clear()
     _dqdx_v.clear()
+    _trunc_dqdx1_v.clear()
+    _trunc_dqdx3_v.clear()
     _EifP_v.clear()
     _EifMu_v.clear()
-    for i in vtxPhi_v:    _phi_v.push_back(i)
-    for i in vtxTheta_v:  _theta_v.push_back(i)
-    for i in length_v:    _length_v.push_back(i) 
-    for i in dqdx_v:      _dqdx_v.push_back(i) 
-    for i in iondlen_v:   _iondlen_v.push_back(i)
-    for i in EifP_v:      _EifP_v.push_back(i)
-    for i in EifMu_v:     _EifMu_v.push_back(i)
+    for i in vtxPhi_v:      _phi_v.push_back(i)
+    for i in vtxTheta_v:    _theta_v.push_back(i)
+    for i in length_v:      _length_v.push_back(i) 
+    for i in dqdx_v:        _dqdx_v.push_back(i) 
+    for i in trunc_dqdx1_v: _trunc_dqdx1_v.push_back(i)
+    for i in trunc_dqdx3_v: _trunc_dqdx3_v.push_back(i)
+    for i in iondlen_v:     _iondlen_v.push_back(i)
+    for i in EifP_v:        _EifP_v.push_back(i)
+    for i in EifMu_v:       _EifMu_v.push_back(i)
     
     outTree.Fill()
 

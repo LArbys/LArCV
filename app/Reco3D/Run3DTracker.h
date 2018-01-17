@@ -100,6 +100,8 @@ namespace larcv {
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
         std::vector<double> _Ion_tot_v;
+	std::vector<double> _Trunc_dQdX1_v;
+	std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
         std::vector<std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
