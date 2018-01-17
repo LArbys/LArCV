@@ -135,7 +135,7 @@ namespace larcv {
         void ImprovedCluster();
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
-        void MaskVertex(double shellMask = -1);
+        void MaskVertex();
         void MaskTrack();
         void CleanUpVertex();
         void DiagnoseVertex();
@@ -213,7 +213,7 @@ namespace larcv {
 
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
-        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);ShaveTracks();}
+        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative()*/;ShaveTracks();}
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
