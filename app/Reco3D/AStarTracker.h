@@ -196,6 +196,7 @@ namespace larcv {
 
         std::vector<double>  GetAverageIonization(double distAvg = -1);
         std::vector<double>  GetTotalIonization(double distAvg = -1);
+        std::vector<double>  ComputeTruncateddQdX(double);
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 
@@ -329,6 +330,8 @@ namespace larcv {
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         std::vector<std::vector<double> > _vertex_dQdX_v;
+        std::vector<double> TruncateddQdXperPlane_v;
+        std::vector<std::vector<double> > RawdQdXperPlane_v;
         TGraph2D *gDetector;
         TGraph2D *gWorld;
 
