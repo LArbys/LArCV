@@ -117,6 +117,9 @@ namespace larcv {
     std::vector<larcv::Image2D> _stopmu_image_v;
     ROI _current_roi;
 
+    bool _store_shower_image;
+    std::string _shower_pixel_prod;
+
   };
 
   /**

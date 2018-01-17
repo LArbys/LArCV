@@ -1,4 +1,22 @@
 import os,sys
+
+if len(sys.argv) != 6: 
+    print "hi...."
+    print "WIRE_FILE   = str(sys.argv[1])"
+    print "PGRAPH_FILE = str(sys.argv[2])"
+    print "ENTRY       = int(sys.argv[3])"
+    print "VTXID       = int(sys.argv[4])"
+    print "OUT_DIR     = str(sys.argv[5])"
+    print
+    print "....bye"
+    sys.exit(1)
+    
+WIRE_FILE   = str(sys.argv[1])
+PGRAPH_FILE = str(sys.argv[2])
+ENTRY       = int(sys.argv[3])
+VTXID       = int(sys.argv[4])
+OUT_DIR     = str(sys.argv[5])
+
 from larcv import larcv
 import numpy as np
 
@@ -10,29 +28,23 @@ import ROOT
 from ROOT import geo2d
 pygeo = geo2d.PyDraw()
 
-FILE1  = str(sys.argv[1])
-FILE2  = str(sys.argv[2])
-ENTRY  = int(sys.argv[3])
-VTXID  = int(sys.argv[4])
-ROID   = int(sys.argv[5])
-NAME   = str(sys.argv[6])
-
 iom = larcv.IOManager()
-iom.add_in_file(FILE1)
-iom.add_in_file(FILE2)
+iom.set_verbosity(2)
+iom.add_in_file(WIRE_FILE)
+iom.add_in_file(PGRAPH_FILE)
 iom.initialize()
 iom.read_entry(ENTRY)
 
 ev_img    = iom.get_data(larcv.kProductImage2D,"wire")
-ev_pgraph = iom.get_data(larcv.kProductPGraph,"test")
-ev_ctor   = iom.get_data(larcv.kProductPixel2D,"test_ctor")
+ev_pgraph = iom.get_data(larcv.kProductPGraph,"nue")
+ev_ctor   = iom.get_data(larcv.kProductPixel2D,"nue_ctor")
 
 print "@run=",ev_img.run(),"subrun=",ev_img.subrun(),"event=",ev_img.event()
 
 print "GOT:",ev_img.Image2DArray().size(),"images"
 print "GOT:",ev_pgraph.PGraphArray().size(),"vertices"
+print "GOT:",ev_ctor.Pixel2DClusterArray().size(),"particle clusters"
 
-print "ev_pgraph sz=",ev_pgraph.PGraphArray().size()
 pgraph = ev_pgraph.PGraphArray().at(VTXID)
 parray = pgraph.ParticleArray()
 
@@ -110,21 +122,21 @@ for plane in xrange(3):
     SS = "{}_{}_{} Plane={}".format(ev_img.run(),ev_img.subrun(),ev_img.event(),plane)
     ax.set_title(SS,fontweight='bold',fontsize=50)        
 
-    this_num = os.path.basename(FILE1).split(".")[0].split("_")[-1]
-    SS=os.path.join("img_dump",NAME,"{}_{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
-                                                                            ev_img.subrun(),
-                                                                            ev_img.event(),
-                                                                            this_num,
-                                                                            ENTRY,
-                                                                            VTXID,
-                                                                            ROID,
-                                                                            parid,
-                                                                            plane))
+    this_num = os.path.basename(WIRE_FILE).split(".")[0].split("_")[-1]
+    SS=os.path.join(OUT_DIR,"{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
+                                                                 ev_img.subrun(),
+                                                                 ev_img.event(),
+                                                                 this_num,
+                                                                 ENTRY,
+                                                                 VTXID,
+                                                                 parid,
+                                                                 plane))
     
-
+    
     plt.savefig(SS)
     plt.clf()
     plt.cla()
     plt.close()
 
         
+sys.exit(1)
