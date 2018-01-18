@@ -168,7 +168,17 @@ class NueHandler(Handler):
         self.rd.reco_electron_E[0] = float(row['reco_LL_electron_energy']);
         self.rd.reco_total_E[0]    = float(row['reco_LL_total_energy']);
 
+        # fill PID
+        self.inferred[0]      = int(1)
+        self.plane[0]         = int(row['anapid_plane'])
+        self.eminus_score[0]  = float(row['anapid_eminus_score'])
+        self.gamma_score[0]   = float(row['anapid_gamma_score'])
+        self.muon_score[0]    = float(row['anapid_muon_score'])
+        self.pion_score[0]    = float(row['anapid_pion_score'])
+        self.proton_score[0]  = float(row['anapid_proton_score'])
+
         self.tree.Fill()
         self.rd.reset()
+
         return True
 

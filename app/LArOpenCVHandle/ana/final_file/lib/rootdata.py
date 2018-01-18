@@ -99,6 +99,17 @@ class ROOTData:
         self.InFiducial    = array( 'i', [ kINVALID_INT   ])
         self.Good3DReco    = array( 'i', [ kINVALID_INT   ])
         self.AnythingRecod = array( 'i', [ kINVALID_INT   ])
+        
+        #
+        # pid related
+        # 
+        self.inferred[0]     = array( 'i', [ kINVALID_INT   ])
+        self.plane[0]        = array( 'i', [ kINVALID_INT   ])
+        self.eminus_score[0] = array( 'f', [ kINVALID_FLOAT ])
+        self.gamma_score[0]  = array( 'f', [ kINVALID_FLOAT ])
+        self.muon_score[0]   = array( 'f', [ kINVALID_FLOAT ])
+        self.pion_score[0]   = array( 'f', [ kINVALID_FLOAT ])
+        self.proton_score[0] = array( 'f', [ kINVALID_FLOAT ])
 
     def reset(self):
 
@@ -187,6 +198,19 @@ class ROOTData:
         self.InFiducial[0]    = kINVALID_INT
         self.Good3DReco[0]    = kINVALID_INT
         self.AnythingRecod[0] = kINVALID_INT
+        
+        
+        #
+        # PID related
+        #
+        self.inferred[0]     = kINVALID_INT;
+        self.plane[0]        = kINVALID_INT;
+        self.eminus_score[0] = kINVALID_FLOAT;
+        self.gamma_score[0]  = kINVALID_FLOAT;
+        self.muon_score[0]   = kINVALID_FLOAT;
+        self.pion_score[0]   = kINVALID_FLOAT;
+        self.proton_score[0] = kINVALID_FLOAT;
+        
 
     def init_nue_tree(self,tree):
         
@@ -253,6 +277,16 @@ class ROOTData:
         # reco combined
         tree.Branch("reco_total_E", self.reco_total_E, "reco_total_E/F")
         
+        # reco PID
+        tree.Branch("pid_inferred", self.inferred    , "pid_inferred/I")
+        tree.Branch("pid_plane"   , self.plane       , "pid_plane/I") 
+        tree.Branch("eminus_score", self.eminus_score, "eminus_score/F")
+        tree.Branch("gamma_score" , self.gamma_score , "gamma_score/F")
+        tree.Branch("muon_score"  , self.muon_score  , "muon_score/F")
+        tree.Branch("pion_score"  , self.pion_score  , "pion_score/F")
+        tree.Branch("proton_score", self.proton_score, "proton_score/F")
+
+
     def init_numu_tree(self,tree):
         
         tree.Branch("run"   , self.run   , "run/I")
@@ -288,4 +322,10 @@ class ROOTData:
         tree.Branch("Good3DReco"   , self.Good3DReco   , "Good3DReco/I")
         tree.Branch("AnythingRecod", self.AnythingRecod, "AnythingRecod/I")
 
-
+        tree.Branch("pid_inferred", self.inferred    , "pid_inferred/I")
+        tree.Branch("pid_plane"   , self.plane       , "pid_plane/I") 
+        tree.Branch("eminus_score", self.eminus_score, "eminus_score/F")
+        tree.Branch("gamma_score" , self.gamma_score , "gamma_score/F")
+        tree.Branch("muon_score"  , self.muon_score  , "muon_score/F")
+        tree.Branch("pion_score"  , self.pion_score  , "pion_score/F")
+        tree.Branch("proton_score", self.proton_score, "proton_score/F")
