@@ -70,17 +70,21 @@ class ROOTData:
         self.reco_mc_electron_E  = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_mc_total_E     = array( 'f', [ kINVALID_FLOAT ] )
 
-        # track 
-        self.reco_proton_E    = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_proton_len  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_proton_ion  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_proton_dR   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
-        self.reco_proton_good = array( 'i', [ kINVALID_INT ] )
 
-        # shower
+        # proton and electron
+        self.reco_electron_id  = array( 'i', [ kINVALID_INT   ] )
+        self.reco_proton_E     = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_theta = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_phi   = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_dEdx  = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_proton_len   = array( 'f', [ kINVALID_FLOAT ] )
+
+        self.reco_electron_id    = array( 'i', [ kINVALID_INT]    )
         self.reco_electron_E     = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_electron_theta = array( 'f', [ kINVALID_FLOAT ] )
+        self.reco_electron_phi   = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_electron_dEdx  = array( 'f', [ kINVALID_FLOAT ] )
-        self.reco_electron_dR    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.reco_electron_len   = array( 'f', [ kINVALID_FLOAT ] )
 
         # combined
         self.reco_total_E = array( 'f', [ kINVALID_FLOAT ] )
@@ -187,20 +191,20 @@ class ROOTData:
         self.reco_mc_proton_E[0]   = kINVALID_FLOAT
         self.reco_mc_electron_E[0] = kINVALID_FLOAT
         self.reco_mc_total_E[0]    = kINVALID_FLOAT
-
-        self.reco_proton_E[0]    = kINVALID_FLOAT
-        self.reco_proton_len[0]  = kINVALID_FLOAT
-        self.reco_proton_ion[0]  = kINVALID_FLOAT
-        self.reco_proton_dR[0]   = kINVALID_FLOAT
-        self.reco_proton_dR[1]   = kINVALID_FLOAT
-        self.reco_proton_dR[2]   = kINVALID_FLOAT
-        self.reco_proton_good[0] = kINVALID_INT
         
+        self.reco_proton_id[0]    = kINVALID_INT
+        self.reco_proton_E[0]     = kINVALID_FLOAT
+        self.reco_proton_theta[0] = kINVALID_FLOAT
+        self.reco_proton_phi[0]   = kINVALID_FLOAT
+        self.reco_proton_dEdx[0]  = kINVALID_FLOAT
+        self.reco_proton_len[0]   = kINVALID_FLOAT
+
+        self.reco_electron_id[0]    = kINVALID_INT
         self.reco_electron_E[0]     = kINVALID_FLOAT
+        self.reco_electron_theta[0] = kINVALID_FLOAT
+        self.reco_electron_phi[0]   = kINVALID_FLOAT
         self.reco_electron_dEdx[0]  = kINVALID_FLOAT
-        self.reco_electron_dR[0]    = kINVALID_FLOAT
-        self.reco_electron_dR[1]    = kINVALID_FLOAT
-        self.reco_electron_dR[2]    = kINVALID_FLOAT
+        self.reco_electron_len[0]   = kINVALID_FLOAT
 
         self.reco_total_E[0] = kINVALID_FLOAT
         self.reco_vertex[0]  = kINVALID_FLOAT
@@ -306,15 +310,19 @@ class ROOTData:
         tree.Branch("LLe_p"  , self.LLe_p  , "LLe_p/F")
 
         # reco track
-        tree.Branch("reco_proton_E"   , self.reco_proton_E    , "reco_proton_E/F")
-        tree.Branch("reco_proton_len" , self.reco_proton_len  , "reco_proton_len/F")
-        tree.Branch("reco_proton_ion" , self.reco_proton_ion  , "reco_proton_ion/F")
-        tree.Branch("reco_proton_good", self.reco_proton_good , "reco_proton_good/I")
+        tree.Branch("reco_proton_id"    , self.reco_proton_id   , "reco_proton_id/I")
+        tree.Branch("reco_proton_E"     , self.reco_proton_E    , "reco_proton_E/F")
+        tree.Branch("reco_proton_theta" , self.reco_proton_theta, "reco_proton_theta/F")
+        tree.Branch("reco_proton_phi"   , self.reco_proton_phi  , "reco_proton_phi/F")
+        tree.Branch("reco_proton_dEdx"  , self.reco_proton_dEdx , "reco_proton_dEdx/F")
+        tree.Branch("reco_proton_len"   , self.reco_proton_len  , "reco_proton_len/F")
 
-        # reco shower
-        tree.Branch("reco_electron_E"   , self.reco_electron_E   , "reco_electron_E/F")
-        tree.Branch("reco_electron_dEdx", self.reco_electron_dEdx, "reco_electron_dEdx/F")
-        tree.Branch("reco_electron_dR"  , self.reco_electron_dR  , "reco_electron_dR[3]/F")
+        tree.Branch("reco_electron_id"    , self.reco_electron_id   , "reco_electron_id/I")
+        tree.Branch("reco_electron_E"     , self.reco_electron_E    , "reco_electron_E/F")
+        tree.Branch("reco_electron_theta" , self.reco_electron_theta, "reco_electron_theta/F")
+        tree.Branch("reco_electron_phi"   , self.reco_electron_phi  , "reco_electron_phi/F")
+        tree.Branch("reco_electron_dEdx"  , self.reco_electron_dEdx , "reco_electron_dEdx/F")
+        tree.Branch("reco_electron_len"   , self.reco_electron_len  , "reco_electron_len/F")
 
         # reco combined
         tree.Branch("reco_total_E", self.reco_total_E, "reco_total_E/F")

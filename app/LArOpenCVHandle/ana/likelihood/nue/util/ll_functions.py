@@ -423,9 +423,22 @@ def LL_reco_line(df,line):
 
 def LL_reco_parameters(df):
     
-    df['reco_LL_proton_energy']   = df.apply(reco_LL_proton_energy,axis=1)
+    df['reco_LL_proton_id']     = df.apply(reco_LL_proton_id,axis=1)
+    df['reco_LL_proton_energy'] = df.apply(reco_LL_proton_energy,axis=1)
+    df['reco_LL_proton_theta']  = df.apply(reco_LL_proton_theta,axis=1)
+    df['reco_LL_proton_phi']    = df.apply(reco_LL_proton_phi,axis=1)
+    df['reco_LL_proton_dEdx']   = df.apply(reco_LL_proton_dEdx,axis=1)
+    df['reco_LL_proton_len']    = df.apply(reco_LL_proton_len,axis=1)
+
+    df['reco_LL_electron_id']     = df.apply(reco_LL_electron_id,axis=1)
     df['reco_LL_electron_energy'] = df.apply(reco_LL_electron_energy,axis=1)
+    df['reco_LL_electron_theta']  = df.apply(reco_LL_electron_theta,axis=1)
+    df['reco_LL_electron_phi']    = df.apply(reco_LL_electron_phi,axis=1)
+    df['reco_LL_electron_dEdx']   = df.apply(reco_LL_electron_dEdx,axis=1)
+    df['reco_LL_electron_len']    = df.apply(reco_LL_electron_len,axis=1)
+
     df['reco_LL_total_energy']    = df.apply(reco_LL_total_energy,axis=1)
+
     return df
     
 
@@ -787,10 +800,63 @@ def gaus(x, *p):
 
 
 #
-# Fill variables
+# proton
 #
+def reco_LL_proton_id(row):
+    pgtrk_v   = row['pgtrk_trk_type_v']
+    pgtrk_vv  = row['pgtrk_trk_type_vv']
+    protonid  = row['reco_p_id']
+    trkid_v = np.where(pgtrk_v==protonid)[0]
+
+    if trkid_v.size == 0: 
+        return int(-1)
+    
+    elif trkid_v.size == 1 : 
+        if pgtrk_vv[trkid_v[0]][protonid] == 0: 
+            return int(-1)
+        else:
+            return int(trkid_v[0])
+    else:
+        stacked   = np.vstack(pgtrk_vv[trkid_v])[:,protonid]
+        maxid_trk = np.argmax(stacked)
+        if stacked[maxid_trk]==0: 
+            return int(-1)
+        else: 
+            return int(maxid_trk)
+
+def reco_LL_proton_energy(row):
+    res = float(-1)    
+    pid = int(row['reco_LL_proton_id'])
+    if pid < 0: return res
+    return float(row['anatrk2_E_proton_v'][pid])
+
+def reco_LL_proton_theta (row):
+    protonid  = int(row['reco_p_id'])
+    return float(row['p1_shr_theta'][protonid])
+
+def reco_LL_proton_phi (row):
+    protonid  = int(row['reco_p_id'])
+    return float(row['p1_shr_phi'][protonid])
+
+def reco_LL_proton_dedx (row):
+    protonid  = int(row['reco_p_id'])
+    return float(row['p0_shr_dedx'][protonid])
+
+def reco_LL_proton_len (row):
+    res = float(-1)    
+    pid = int(row['reco_LL_proton_id'])
+    if pid < 0: return res
+    return float(row['anatrk2_Length_v'][pid])
+
+#
+# electron
+#
+def reco_LL_electron_id(row):
+    shrid  = int(row['reco_e_id'])
+    return shrid
+
 def reco_LL_electron_energy(row):
-    shrid  = row['reco_e_id']
+    shrid  = int(row['reco_LL_electron_id'])
 
     shrE = float(-1.0)
 
@@ -802,33 +868,32 @@ def reco_LL_electron_energy(row):
     else: shrE = (eU + eV) / 2.0
     return shrE
 
-def reco_LL_proton_energy(row):
-    pgtrk_v   = row['pgtrk_trk_type_v']
-    pgtrk_vv  = row['pgtrk_trk_type_vv']
-    protonid  = row['reco_p_id']
-    trkid_v = np.where(pgtrk_v==protonid)[0]
-    
-    if trkid_v.size == 0: 
-        return float(-1)
-    
-    elif trkid_v.size == 1 : 
-        if pgtrk_vv[trkid_v[0]][protonid] == 0: 
-            return float(-1)
-        else:
-            return row['anatrk2_E_proton_v'][trkid_v[0]]
-    else:
-        stacked =  np.vstack(pgtrk_vv[trkid_v])[:,protonid]
-        maxid_trk = np.argmax(stacked)
-        if stacked[maxid_trk]==0: 
-            return float(-1)
-        else: 
-            return row['anatrk2_E_proton_v'][maxid_trk]
+def reco_LL_electron_theta(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p1_shr_theta'][electronid])
 
+def reco_LL_electron_phi(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p1_shr_phi'][electronid])
+
+def reco_LL_electron_dedx(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p0_shr_dedx'][electronid])
+
+def reco_LL_electron_len(row):
+    res = float(-1)    
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['anashr1_reco_length_v'][electronid])
+
+
+#
+# combined
+#
 def reco_LL_total_energy(row):
     res = float(-1)
 
-    if row['reco_LL_proton_energy'] < 0 : return res
-    if row['reco_LL_electron_energy']<0 : return res
+    if row['reco_LL_proton_energy']  < 0: return res
+    if row['reco_LL_electron_energy']< 0: return res
 
     res  = row['reco_LL_proton_energy']
     res += row['reco_LL_electron_energy']

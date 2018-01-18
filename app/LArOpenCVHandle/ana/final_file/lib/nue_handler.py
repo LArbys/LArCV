@@ -164,18 +164,30 @@ class NueHandler(Handler):
         self.rd.LLe_p[0]   = float(row['LLp']);
         
         # fill reco
-        self.rd.reco_proton_E[0]   = float(row['reco_LL_proton_energy'])
-        self.rd.reco_electron_E[0] = float(row['reco_LL_electron_energy']);
+        self.rd.reco_proton_id[0]    = int(row['reco_LL_proton_id'])
+        self.rd.reco_proton_E[0]     = float(row['reco_LL_proton_energy'])
+        self.rd.reco_proton_theta[0] = float(row['reco_LL_proton_theta'])
+        self.rd.reco_proton_phi[0]   = float(row['reco_LL_proton_phi'])
+        self.rd.reco_proton_dEdx[0]  = float(row['reco_LL_proton_dEdx'])
+        self.rd.reco_proton_len[0]   = float(row['reco_LL_proton_len'])
+
+        self.rd.reco_electron_id[0]    = int(row['reco_LL_electron_id'])
+        self.rd.reco_electron_E[0]     = float(row['reco_LL_electron_energy']);
+        self.rd.reco_electron_theta[0] = float(row['reco_LL_electron_theta'])
+        self.rd.reco_electron_phi[0]   = float(row['reco_LL_electron_phi'])
+        self.rd.reco_electron_dEdx[0]  = float(row['reco_LL_electron_dEdx'])
+        self.rd.reco_electron_len[0]   = float(row['reco_LL_electron_len'])
+
         self.rd.reco_total_E[0]    = float(row['reco_LL_total_energy']);
 
         # fill PID
-        self.inferred[0]      = int(1)
-        self.plane[0]         = int(row['anapid_plane'])
-        self.eminus_score[0]  = float(row['anapid_eminus_score'])
-        self.gamma_score[0]   = float(row['anapid_gamma_score'])
-        self.muon_score[0]    = float(row['anapid_muon_score'])
-        self.pion_score[0]    = float(row['anapid_pion_score'])
-        self.proton_score[0]  = float(row['anapid_proton_score'])
+        self.rd.inferred[0]      = int(1)
+        self.rd.plane[0]         = int(row['anapid_plane'])
+        self.rd.eminus_score[0]  = float(row['anapid_eminus_score'])
+        self.rd.gamma_score[0]   = float(row['anapid_gamma_score'])
+        self.rd.muon_score[0]    = float(row['anapid_muon_score'])
+        self.rd.pion_score[0]    = float(row['anapid_pion_score'])
+        self.rd.proton_score[0]  = float(row['anapid_proton_score'])
 
         self.tree.Fill()
         self.rd.reset()
