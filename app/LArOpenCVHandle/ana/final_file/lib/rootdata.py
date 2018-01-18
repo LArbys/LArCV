@@ -99,7 +99,27 @@ class ROOTData:
         self.InFiducial    = array( 'i', [ kINVALID_INT   ])
         self.Good3DReco    = array( 'i', [ kINVALID_INT   ])
         self.AnythingRecod = array( 'i', [ kINVALID_INT   ])
-        
+
+        self.Muon_id          = array( 'i', [ kINVALID_INT   ])
+        self.Muon_PhiReco     = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_ThetaReco   = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_TrackLength = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_dQdx        = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_Trunc_dQdx1 = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_Trunc_dQdx3 = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_IonPerLen   = array( 'i', [ kINVALID_FLOAT ])
+        self.Muon_Edep        = array( 'i', [ kINVALID_FLOAT ])
+
+        self.Proton_id          = array( 'i', [ kINVALID_INT   ])
+        self.Proton_PhiReco     = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_ThetaReco   = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_TrackLength = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_dQdx        = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_Trunc_dQdx1 = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_Trunc_dQdx3 = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_IonPerLen   = array( 'i', [ kINVALID_FLOAT ])
+        self.Proton_Edep        = array( 'i', [ kINVALID_FLOAT ])
+
         #
         # pid related
         # 
@@ -110,6 +130,8 @@ class ROOTData:
         self.muon_score[0]   = array( 'f', [ kINVALID_FLOAT ])
         self.pion_score[0]   = array( 'f', [ kINVALID_FLOAT ])
         self.proton_score[0] = array( 'f', [ kINVALID_FLOAT ])
+
+
 
     def reset(self):
 
@@ -198,6 +220,26 @@ class ROOTData:
         self.InFiducial[0]    = kINVALID_INT
         self.Good3DReco[0]    = kINVALID_INT
         self.AnythingRecod[0] = kINVALID_INT
+        
+        self.Muon_id[0]          = kINVALID_INT;
+        self.Muon_PhiReco[0]     = kINVALID_FLOAT;
+        self.Muon_ThetaReco[0]   = kINVALID_FLOAT;
+        self.Muon_TrackLength[0] = kINVALID_FLOAT;
+        self.Muon_dQdx[0]        = kINVALID_FLOAT;
+        self.Muon_Trunc_dQdx1[0] = kINVALID_FLOAT;
+        self.Muon_Trunc_dQdx3[0] = kINVALID_FLOAT;
+        self.Muon_IonPerLen[0]   = kINVALID_FLOAT;
+        self.Muon_Edep[0]        = kINVALID_FLOAT;        
+
+        self.Proton_id[0]          = kINVALID_INT;
+        self.Proton_PhiReco[0]     = kINVALID_FLOAT;
+        self.Proton_ThetaReco[0]   = kINVALID_FLOAT;
+        self.Proton_TrackLength[0] = kINVALID_FLOAT;
+        self.Proton_dQdx[0]        = kINVALID_FLOAT;
+        self.Proton_Trunc_dQdx1[0] = kINVALID_FLOAT;
+        self.Proton_Trunc_dQdx3[0] = kINVALID_FLOAT;
+        self.Proton_IonPerLen[0]   = kINVALID_FLOAT;
+        self.Proton_Edep[0]        = kINVALID_FLOAT;
         
         
         #
@@ -321,6 +363,26 @@ class ROOTData:
         tree.Branch("InFiducial"   , self.InFiducial   , "InFiducial/I")
         tree.Branch("Good3DReco"   , self.Good3DReco   , "Good3DReco/I")
         tree.Branch("AnythingRecod", self.AnythingRecod, "AnythingRecod/I")
+
+        tree.Branch("Muon_id"          , self.Muon_id          , "Muon_id/I")
+        tree.Branch("Muon_PhiReco"     , self.Muon_PhiReco     , "Muon_PhiReco/F")
+        tree.Branch("Muon_ThetaReco"   , self.Muon_ThetaReco   , "Muon_ThetaReco/F")
+        tree.Branch("Muon_TrackLength" , self.Muon_TrackLength , "Muon_TrackLength/F")
+        tree.Branch("Muon_dQdx"        , self.Muon_dQdx        , "Muon_dQdx/F")
+        tree.Branch("Muon_Trunc_dQdx1" , self.Muon_Trunc_dQdx1 , "Muon_Trunc_dQdx1/F")
+        tree.Branch("Muon_Trunc_dQdx3" , self.Muon_Trunc_dQdx3 , "Muon_Trunc_dQdx3/F")
+        tree.Branch("Muon_IonPerLen"   , self.Muon_IonPerLen   , "Muon_IonPerLen/F")
+        tree.Branch("Muon_E"           , self.Muon_Edep        , "Muon_E/F")
+
+        tree.Branch("Proton_id"          , self.Proton_id          , "Proton_id/I")
+        tree.Branch("Proton_PhiReco"     , self.Proton_PhiReco     , "Proton_PhiReco/F")
+        tree.Branch("Proton_ThetaReco"   , self.Proton_ThetaReco   , "Proton_ThetaReco/F")
+        tree.Branch("Proton_TrackLength" , self.Proton_TrackLength , "Proton_TrackLength/F")
+        tree.Branch("Proton_dQdx"        , self.Proton_dQdx        , "Proton_dQdx/F")
+        tree.Branch("Proton_Trunc_dQdx1" , self.Proton_Trunc_dQdx1 , "Proton_Trunc_dQdx1/F")
+        tree.Branch("Proton_Trunc_dQdx3" , self.Proton_Trunc_dQdx3 , "Proton_Trunc_dQdx3/F")
+        tree.Branch("Proton_IonPerLen"   , self.Proton_IonPerLen   , "Proton_IonPerLen/F")
+        tree.Branch("Proton_E"           , self.Proton_Edep        , "Proton_E/F")
 
         tree.Branch("pid_inferred", self.inferred    , "pid_inferred/I")
         tree.Branch("pid_plane"   , self.plane       , "pid_plane/I") 

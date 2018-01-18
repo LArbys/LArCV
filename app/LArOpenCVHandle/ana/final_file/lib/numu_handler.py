@@ -142,6 +142,28 @@ class NumuHandler(Handler):
         self.rd.Good3DReco[0]    = int(row["numu_Good3DReco"])
         self.rd.AnythingRecod[0] = int(row["numu_AnythingRecod"])
 
+        # fill the cheap pid
+        self.Muon_id[0]          = int(row["numu_Muon_id"])
+        self.Muon_PhiReco[0]     = float(row["numu_Muon_PhiReco"])
+        self.Muon_ThetaReco[0]   = float(row["numu_Muon_ThetaReco"])
+        self.Muon_TrackLength[0] = float(row["numu_Muon_TrackLength"])
+        self.Muon_dQdx[0]        = float(row["numu_Muon_dQdx"])
+        self.Muon_Trunc_dQdx1[0] = float(row["numu_Muon_Trunc_dQdx1"])
+        self.Muon_Trunc_dQdx3[0] = float(row["numu_Muon_Trunc_dQdx3"])
+        self.Muon_IonPerLen[0]   = float(row["numu_Muon_IonPerLen"])
+        self.Muon_Edep[0]        = float(row["numu_Muon_Edep"])
+
+        self.Proton_id[0]          = int(row["numu_Proton_id"])
+        self.Proton_PhiReco[0]     = float(row["numu_Proton_PhiReco"])
+        self.Proton_ThetaReco[0]   = float(row["numu_Proton_ThetaReco"])
+        self.Proton_TrackLength[0] = float(row["numu_Proton_TrackLength"])
+        self.Proton_dQdx[0]        = float(row["numu_Proton_dQdx"])
+        self.Proton_Trunc_dQdx1[0] = float(row["numu_Proton_Trunc_dQdx1"])
+        self.Proton_Trunc_dQdx3[0] = float(row["numu_Proton_Trunc_dQdx3"])
+        self.Proton_IonPerLen[0]   = float(row["numu_Proton_IonPerLen"])
+        self.Proton_Edep[0]        = float(row["numu_Proton_Edep"])
+
+
         # fill the pid
         self.inferred[0]      = int(1)
         self.plane[0]         = int(row['anapid_plane'])

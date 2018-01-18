@@ -219,6 +219,26 @@ _iondlen_v     = ROOT.vector('double')()
 _EifP_v        = ROOT.vector('double')()
 _EifMu_v       = ROOT.vector('double')()
 
+_muon_id          = array('i',[-1])
+_muon_phi         = array('f',[-1])
+_muon_theta       = array('f',[-1])
+_muon_length      = array('f',[-1])
+_muon_dqdx        = array('f',[-1])
+_muon_trunc_dqdx1 = array('f',[-1])
+_muon_trunc_dqdx3 = array('f',[-1])
+_muon_iondlen     = array('f',[-1])
+_muon_E           = array('f',[-1])
+
+_proton_id          = array('i',[-1])
+_proton_phi         = array('f',[-1])
+_proton_theta       = array('f',[-1])
+_proton_length      = array('f',[-1])
+_proton_dqdx        = array('f',[-1])
+_proton_trunc_dqdx1 = array('f',[-1])
+_proton_trunc_dqdx3 = array('f',[-1])
+_proton_iondlen     = array('f',[-1])
+_proton_E           = array('f',[-1])
+
 outTree.Branch('run'           , _run         , '_run/I'        ) 
 outTree.Branch('subrun'        , _subrun      , '_subrun/I'     )
 outTree.Branch('event'         , _event       , '_event/I'      )
@@ -244,6 +264,28 @@ outTree.Branch('Trunc_dQdx3_v' , _trunc_dqdx3_v )
 outTree.Branch('IonPerLen_v'   , _iondlen_v     )
 outTree.Branch('Edep_ifP_v'    , _EifP_v        )
 outTree.Branch('Edep_ifMu_v'   , _EifMu_v       )
+
+outTree.Branch("Muon_id"          , _muon_id          )
+outTree.Branch('Muon_PhiReco'     , _muon_phi         )
+outTree.Branch('Muon_ThetaReco'   , _muon_theta       )
+outTree.Branch('Muon_TrackLength' , _muon_length      )
+outTree.Branch('Muon_dQdx'        , _muon_dqdx        )
+outTree.Branch('Muon_Trunc_dQdx1' , _muon_trunc_dqdx1 )
+outTree.Branch('Muon_Trunc_dQdx3' , _muon_trunc_dqdx3 ) 
+outTree.Branch('Muon_IonPerLen'   , _muon_iondlen     )
+outTree.Branch('Muon_Edep'        , _muon_E           )
+
+outTree.Branch("Proton_id"          , _proton_id          )
+outTree.Branch('Proton_PhiReco'     , _proton_phi         )
+outTree.Branch('Proton_ThetaReco'   , _proton_theta       )
+outTree.Branch('Proton_TrackLength' , _proton_length      )
+outTree.Branch('Proton_dQdx'        , _proton_dqdx        )
+outTree.Branch('Proton_Trunc_dQdx1' , _proton_trunc_dqdx1 )
+outTree.Branch('Proton_Trunc_dQdx3' , _proton_trunc_dqdx3 ) 
+outTree.Branch('Proton_IonPerLen'   , _proton_iondlen     )
+outTree.Branch('Proton_Edep'        , _proton_E           )
+
+
 
 Vtx2DInfo = {}
 for i,ev in enumerate(VtxTree):
@@ -310,7 +352,34 @@ for ev in TrkTree:
         wallDist = min([dist0,dist1])
         eta      = ComputeEta(ion0,ion1)
         ionplen  = ComputeEta(iondlen0,iondlen1)
-
+        
+        #
+        # muon and proton selection
+        #
+        mid = np.argmax(length_v)
+        pid = np.argmin(length_v)
+        
+        _muon_id[0]          = int(mid)
+        _muon_phi[0]         = float(vtxPhi_v[mid])
+        _muon_theta[0]       = float(vtxTheta_v[mid])
+        _muon_length[0]      = float(length_v[mid])
+        _muon_dqdx[0]        = float(dqdx_v[mid])
+        _muon_trunc_dqdx1[0] = float(trunc_dqdx1_v.at(mid))
+        _muon_trunc_dqdx3[0] = float(trunc_dqdx3_v.at(mid))
+        _muon_iondlen[0]     = float(iondlen_v[mid])
+        _muon_E[0]           = float(EifMu_v.at[mid])
+        
+        _proton_id[0]          = int(pid)
+        _proton_phi[0]         = float(vtxPhi_v[pid])
+        _proton_theta[0]       = float(vtxTheta_v[pid])
+        _proton_length[0]      = float(length_v[pid])
+        _proton_dqdx[0]        = float(dqdx_v[pid])
+        _proton_trunc_dqdx1[0] = float(trunc_dqdx1_v.at(pid))
+        _proton_trunc_dqdx3[0] = float(trunc_dqdx3_v.at(pid))
+        _proton_iondlen[0]     = float(iondlen_v[pid])
+        _proton_E[0]           = float(EifP_v.at[pid])
+        #
+        
         processVars = [openAng,wallDist,eta,ionplen,[theta0,theta1],[phi0,phi1],shfrac]
         skipVars    = [3,6] #Will skip these variable indices when calculating LL, 3,6 currently ignored due to MC/data diffs
         cosmicLL = 0
