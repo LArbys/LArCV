@@ -123,13 +123,13 @@ class ROOTData:
         #
         # pid related
         # 
-        self.inferred[0]     = array( 'i', [ kINVALID_INT   ])
-        self.plane[0]        = array( 'i', [ kINVALID_INT   ])
-        self.eminus_score[0] = array( 'f', [ kINVALID_FLOAT ])
-        self.gamma_score[0]  = array( 'f', [ kINVALID_FLOAT ])
-        self.muon_score[0]   = array( 'f', [ kINVALID_FLOAT ])
-        self.pion_score[0]   = array( 'f', [ kINVALID_FLOAT ])
-        self.proton_score[0] = array( 'f', [ kINVALID_FLOAT ])
+        self.inferred     = array( 'i', [ kINVALID_INT   ])
+        self.plane        = array( 'i', [ kINVALID_INT   ])
+        self.eminus_score = array( 'f', [ kINVALID_FLOAT ])
+        self.gamma_score  = array( 'f', [ kINVALID_FLOAT ])
+        self.muon_score   = array( 'f', [ kINVALID_FLOAT ])
+        self.pion_score   = array( 'f', [ kINVALID_FLOAT ])
+        self.proton_score = array( 'f', [ kINVALID_FLOAT ])
 
 
 
