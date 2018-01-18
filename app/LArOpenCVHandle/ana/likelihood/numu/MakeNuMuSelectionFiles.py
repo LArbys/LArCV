@@ -240,6 +240,28 @@ _proton_trunc_dqdx3 = array('f',[-1])
 _proton_iondlen     = array('f',[-1])
 _proton_E           = array('f',[-1])
 
+def clear_vertex():
+    _muon_id[0]          = kINVALID_INT
+    _muon_phi[0]         = kINVALID_FLOAT
+    _muon_theta[0]       = kINVALID_FLOAT
+    _muon_length[0]      = kINVALID_FLOAT
+    _muon_dqdx[0]        = kINVALID_FLOAT
+    _muon_trunc_dqdx1[0] = kINVALID_FLOAT
+    _muon_trunc_dqdx3[0] = kINVALID_FLOAT
+    _muon_iondlen[0]     = kINVALID_FLOAT
+    _muon_E[0]           = kINVALID_FLOAT
+    
+    _proton_id[0]          = kINVALID_INT
+    _proton_phi[0]         = kINVALID_FLOAT
+    _proton_theta[0]       = kINVALID_FLOAT
+    _proton_length[0]      = kINVALID_FLOAT
+    _proton_dqdx[0]        = kINVALID_FLOAT
+    _proton_trunc_dqdx1[0] = kINVALID_FLOAT
+    _proton_trunc_dqdx3[0] = kINVALID_FLOAT
+    _proton_iondlen[0]     = kINVALID_FLOAT
+    _proton_E[0]           = kINVALID_FLOAT
+    
+
 outTree.Branch('run'           , _run         , '_run/I'        ) 
 outTree.Branch('subrun'        , _subrun      , '_subrun/I'     )
 outTree.Branch('event'         , _event       , '_event/I'      )
@@ -429,6 +451,7 @@ for ev in TrkTree:
     for i in EifMu_v:       _EifMu_v.push_back(i)
     
     outTree.Fill()
+    clear_vertex()
 
 outTree.Write()
 outFile.Close()
