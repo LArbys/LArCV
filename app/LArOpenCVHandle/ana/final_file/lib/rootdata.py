@@ -72,7 +72,7 @@ class ROOTData:
 
 
         # proton and electron
-        self.reco_electron_id  = array( 'i', [ kINVALID_INT   ] )
+        self.reco_protin_id    = array( 'i', [ kINVALID_INT   ] )
         self.reco_proton_E     = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_proton_theta = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_proton_phi   = array( 'f', [ kINVALID_FLOAT ] )
