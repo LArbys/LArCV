@@ -82,6 +82,8 @@ namespace larcv {
     _recoTree->Branch("Ion_10cm_v",&_Ion_10cm_v);
     _recoTree->Branch("Ion_tot_v",&_Ion_tot_v);
     _recoTree->Branch("IondivLength_v",&_IondivLength_v);
+    _recoTree->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v);
+    _recoTree->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v);
     _recoTree->Branch("Angle_v"    , &_Angle_v);
     _recoTree->Branch("vertexPhi",&_vertexPhi_v);
     _recoTree->Branch("vertexTheta",&_vertexTheta_v);
@@ -309,6 +311,8 @@ namespace larcv {
       _Ion_5cm_v     = tracker.GetTotalIonization(5);
       _Ion_10cm_v    = tracker.GetTotalIonization(10);
       _Ion_tot_v     = tracker.GetTotalIonization();
+      _Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
+      _Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
       _vertexPhi_v   = tracker.GetVertexPhi();
       _vertexTheta_v = tracker.GetVertexTheta();      
 
