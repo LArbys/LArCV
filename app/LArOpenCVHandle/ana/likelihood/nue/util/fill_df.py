@@ -262,7 +262,6 @@ def initialize_stp(SHR_ANA1,
 
         print "pgraph_trk_df.index.size=",pgraph_trk_df.index.size
         print "ana_shr1_df.index.size=",ana_shr1_df.index.size
-        print "ana_shr2_df.index.size=",ana_shr2_df.index.size
         print "ana_trk1_df.index.size=",ana_trk1_df.index.size
         print "ana_trk2_df.index.size=",ana_trk2_df.index.size
         print "ana_pid_df.index.size=",ana_pid_df.index.size
@@ -276,7 +275,7 @@ def initialize_stp(SHR_ANA1,
                     ana_pid_df,
                     pgraph_trk_df,
                     match_shr_df,
-                    match_trk_df,]
+                    match_trk_df]
         else:
             df_v = [ana_shr1_df,
                     ana_trk1_df,

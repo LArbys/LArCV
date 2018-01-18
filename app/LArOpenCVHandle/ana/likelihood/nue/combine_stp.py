@@ -35,16 +35,16 @@ from util.fill_df import *
 
 print "--> initialize_st(...)"
 
-st_df = initialize_stp(SHR_ANA1,
-                       SHR_TRUTH,
-                       TRK_ANA1,
-                       TRK_ANA2,
-                       TRK_TRUTH,
-                       TRK_PGRPH,
-                       PID_ANA)
+stp_df = initialize_stp(SHR_ANA1,
+                        SHR_TRUTH,
+                        TRK_ANA1,
+                        TRK_ANA2,
+                        TRK_TRUTH,
+                        TRK_PGRPH,
+                        PID_ANA)
 
-st_df.to_pickle(os.path.join(OUTDIR,"st_comb_df_%d.pkl" % num))
-del st_df
+stp_df.to_pickle(os.path.join(OUTDIR,"stp_comb_df_%d.pkl" % num))
+del stp_df
 gc.collect()
 
 print "---> done"
