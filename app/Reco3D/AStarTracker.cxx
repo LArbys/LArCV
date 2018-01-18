@@ -586,9 +586,9 @@ namespace larcv {
         }//iNode
     }
     //______________________________________________________
-    void AStarTracker::MaskVertex(double shellMask){
+    void AStarTracker::MaskVertex(){
         tellMe("MaskVertex()",0);
-        if(shellMask==-1)shellMask = 1;
+        double shellMask = 4;
         double MaskedValue = 0;
         if(_vertexTracks.size() == 0)return;
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
@@ -618,24 +618,17 @@ namespace larcv {
                             TVector3 pC((icol+0.5),(irow+0.5),0);
                             double alpha = ((B-A).Dot(pC-A))/(pow((B-A).Mag(),2));
 
-
-                            if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() > 8){
-                                double newShellMask=std::max(4.0,shellMask);
-                                if(alpha  >= -0.1 && alpha <= 1.1){
-                                    if(GetDist2line(A,B,pC) < newShellMask){
-                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
-                                    }
+                            if(alpha  >= -0.1 && alpha <= 1.1){
+                                if(GetDist2line(A,B,pC) < shellMask){
+                                    hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
                                 }
-                                if((pC-A).Mag() < 0.75*newShellMask || (pC-B).Mag() < 0.75*newShellMask){
+                            }
+                            if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 2){
+                                if((pC-A).Mag() < 0.75*shellMask || (pC-B).Mag() < 0.75*shellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
                                 }
                             }
                             else{
-                                if(alpha  >= -0.1 && alpha <= 1.1){
-                                    if(GetDist2line(A,B,pC) < shellMask){
-                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
-                                    }
-                                }
                                 if((pC-A).Mag() < 1.5*shellMask || (pC-B).Mag() < 1.5*shellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
                                 }
@@ -669,10 +662,8 @@ namespace larcv {
         tellMe("ConstructTrack()",0);
         //double trackMinLength = 1.5;
         ImprovedCluster();
-        ComputeLength();
         end_pt = GetFurtherFromVertex();
         SortAndOrderPoints();
-        ComputeLength();
         RegularizeTrack();
         ComputeLength();
         if(_Length3D > 0){
@@ -680,8 +671,11 @@ namespace larcv {
             _3DTrack.push_back(end_pt);
             _vertexEndPoints.push_back(end_pt);
             _vertexTracks.push_back(_3DTrack);
-            //ComputeLength();
+            ComputeLength();
             //ComputeNewdQdX();
+	    if (_DrawOutputs){
+	      hLength->Fill(_Length3D);
+	    }
             _track++;
             //DrawTrack();
         }
@@ -807,7 +801,7 @@ namespace larcv {
         if(_vertexTracks.size() == 0){_nothingReconstructed = true; return;} // if no track reconstructed, probably wrong vertex
         CropFullImage2boundsIntegrated(_vertexEndPoints);
         //ShaveTracks();
-        MaskVertex(4);
+        MaskVertex();
 
         ComputeClosestWall();
 	ComputeClosestWall_SCE();
@@ -993,7 +987,6 @@ namespace larcv {
         TRandom3 ran;
         ran.SetSeed(0);
         double x,y,z;
-
         int Ncrop=0;
         //double rmax = 1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
         double rmax = 2+4*exp(-list3D.size()/3.);
@@ -1009,25 +1002,16 @@ namespace larcv {
             TVector3 newCandidate;
             for(size_t i = 0;i<10000;i++){
                 double coord2D[3][3];// for each plane : x,y and ADC value;
-                double r = ran.Uniform(0.1,rmax);
+                double r = ran.Uniform(0,rmax);
                 ran.Sphere(x,y,z,r);
                 newCandidate.SetXYZ(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
                 if(!CheckEndPointsInVolume(newCandidate)) continue; // point out of detector volume
 
                 bool TooClose = false;
 
-
-
                 if(list3D.size() >= 1){// point too close to already found point
-                    if((newCandidate-start_pt).Mag() <= (list3D.back()-start_pt).Mag())TooClose = true;
-
                     for(size_t i = 0;i<list3D.size()-1;i++){
                         if((newCandidate-list3D[i]).Mag() < 0.5) TooClose=true;
-                    }
-                }
-                for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
-                    for(size_t i = 1;i<_vertexTracks[itrack].size();i++){
-                        if((newCandidate-_vertexTracks[itrack][i]).Mag() < 3) TooClose=true;
                     }
                 }
 
@@ -1074,7 +1058,6 @@ namespace larcv {
                     if(pointSummedADC > MaxsummedADC){
                         MaxsummedADC = pointSummedADC;
                         list3D.push_back(newCandidate);
-                        //for(size_t iPlane=0;iPlane<3;iPlane++){hit_image_v[iPlane].set_pixel(coord2D[iPlane][1],coord2D[iPlane][0],0);}
                         foundNewPoint = true;
                     }
                 }
@@ -1102,24 +1085,14 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::SortAndOrderPoints(){
-        tellMe("SortAndOrderPoints()",0);
         // try and get a "track"
         //(1) find point further away from the vertex
         //(2) for each point, look for closest point, which stays the closest to the "current point -> end point line"
         //(3) add this point to the track
         //(4) start again
         PreSortAndOrderPoints();
-
-        /*TVector3 FurtherFromVertex = GetFurtherFromVertex();
-        std::vector<TVector3> newTrack;
-        newTrack.push_back(start_pt);
-        for(size_t iNode=0;iNode<_3DTrack.size();iNode++){
-            if((_3DTrack[iNode]-FurtherFromVertex).Mag() < (newTrack.back()-FurtherFromVertex).Mag()){newTrack.push_back(_3DTrack[iNode]);}
-        }
-        _3DTrack = newTrack;*/
-
         TVector3 FurtherFromVertex;
-         double dist2vertex = 0;
+        double dist2vertex = 0;
         for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
             if( (_3DTrack[iNode]-start_pt).Mag() > dist2vertex){dist2vertex = (_3DTrack[iNode]-start_pt).Mag(); FurtherFromVertex = _3DTrack[iNode];}
         }
@@ -1338,19 +1311,18 @@ namespace larcv {
         }
         _vertex_dQdX_v.push_back(track_dQdX_v);
     }
-  
-    //_____________________________________________________
-  std::vector<double> AStarTracker::ComputeTruncateddQdX(double nDevs=1){
+    //______________________________________________________
+    std::vector<double> AStarTracker::ComputeTruncateddQdX(double nDevs=1){
         tellMe("ComputeTruncateddQdX()",0);
         if(_3DTrack.size() == 0){
-	  tellMe("ERROR no track found",0);
-	}
+            tellMe("ERROR no track found",0);
+        }
 
         double circRad   = 2;
-	double searchCut = 20;
-	
+        double searchCut = 20;
+
         if(TruncateddQdXperPlane_v.size()!=0) TruncateddQdXperPlane_v.clear();
-	if(RawdQdXperPlane_v.size()!=0)       RawdQdXperPlane_v.clear();
+        if(RawdQdXperPlane_v.size()!=0)       RawdQdXperPlane_v.clear();
 
         CropFullImage2boundsIntegrated(_3DTrack);
 
@@ -1362,60 +1334,59 @@ namespace larcv {
                 double x_proj,y_proj;
                 ProjectTo3D(hit_image_v[iPlane].meta(), _3DTrack[iNode].X(), _3DTrack[iNode].Y(), _3DTrack[iNode].Z(), 0 , iPlane, x_proj , y_proj);
 
-		short  Npx = 0;
-	        double dQdx_per_plane_point = 0;
-		
+                short  Npx = 0;
+                double dQdx_per_plane_point = 0;
+
                 for(size_t irow = 0; irow<hit_image_v[iPlane].meta().rows(); irow++){
                     for(size_t icol=0; icol<hit_image_v[iPlane].meta().cols(); icol++){
-		        if( std::abs(irow-y_proj) > searchCut || std::abs(icol-x_proj) > searchCut ) continue;
+                        if( std::abs(irow-y_proj) > searchCut || std::abs(icol-x_proj) > searchCut ) continue;
 
-		        if( sqrt( pow(irow+0.5-y_proj,2)+pow(icol+0.5-x_proj,2) ) < circRad && hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue && hit_image_v[iPlane].pixel(irow,icol)!=0 ){
-                                Npx++;
-                                dQdx_per_plane_point += hit_image_v[iPlane].pixel(irow,icol);
+                        if( sqrt( pow(irow+0.5-y_proj,2)+pow(icol+0.5-x_proj,2) ) < circRad && hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue && hit_image_v[iPlane].pixel(irow,icol)!=0 ){
+                            Npx++;
+                            dQdx_per_plane_point += hit_image_v[iPlane].pixel(irow,icol);
                         }
                     }
                 }
-		
+
                 if( Npx!=0 ) RawdQdXOnePlane_v.push_back(dQdx_per_plane_point/Npx);
-		  else       RawdQdXOnePlane_v.push_back(dQdx_per_plane_point);
-	    }
+                else       RawdQdXOnePlane_v.push_back(dQdx_per_plane_point);
+            }
 
-	    RawdQdXperPlane_v.push_back(RawdQdXOnePlane_v);
-	}
+            RawdQdXperPlane_v.push_back(RawdQdXOnePlane_v);
+        }
 
-	for (size_t iPlane = 0; iPlane < 3; iPlane++){
-	  double RawdQdXMedian;
-	  double RawdQdXMean = 0;
-	  double RawdQdXRMS;
-	  double TruncateddQdX = 0;
-	  double NumTruncated  = 0;
-	  std::vector<double> sortDummy = RawdQdXperPlane_v[iPlane];
-	  size_t numPts = sortDummy.size();
+        for (size_t iPlane = 0; iPlane < 3; iPlane++){
+            double RawdQdXMedian;
+            double RawdQdXMean = 0;
+            double RawdQdXRMS;
+            double TruncateddQdX = 0;
+            double NumTruncated  = 0;
+            std::vector<double> sortDummy = RawdQdXperPlane_v[iPlane];
+            size_t numPts = sortDummy.size();
 
-	  std::sort(sortDummy.begin(),sortDummy.end());
+            std::sort(sortDummy.begin(),sortDummy.end());
 
-	  if(numPts % 2 == 0) RawdQdXMedian = (sortDummy[numPts/2 -1] + sortDummy[numPts/2 + 1]) / 2.0 ;
-	    else RawdQdXMedian = sortDummy[numPts/2];
-	  
-	  for (size_t pt = 0; pt < sortDummy.size(); pt++) { RawdQdXMean += sortDummy[pt] / numPts; }
+            if(numPts % 2 == 0) RawdQdXMedian = (sortDummy[numPts/2 -1] + sortDummy[numPts/2 + 1]) / 2.0 ;
+            else RawdQdXMedian = sortDummy[numPts/2];
 
-	  for (size_t pt = 0; pt < sortDummy.size(); pt++) { RawdQdXRMS  += 1/numPts * pow( sortDummy[pt] - RawdQdXMean , 2); }
-	  RawdQdXRMS = sqrt(RawdQdXRMS);
+            for (size_t pt = 0; pt < sortDummy.size(); pt++) { RawdQdXMean += sortDummy[pt] / numPts; }
 
-	  for (size_t pt = 0; pt < sortDummy.size(); pt++) { 
-	    if (std::abs( sortDummy[pt] - RawdQdXMedian ) < nDevs*RawdQdXRMS ) {
-	      TruncateddQdX += sortDummy[pt];
-	      NumTruncated++;
-	    }
-	  }
-	  TruncateddQdXperPlane_v.push_back(TruncateddQdX / NumTruncated);
-	
-	}
-
-	return TruncateddQdXperPlane_v;
-	
+            for (size_t pt = 0; pt < sortDummy.size(); pt++) { RawdQdXRMS  += 1/numPts * pow( sortDummy[pt] - RawdQdXMean , 2); }
+            RawdQdXRMS = sqrt(RawdQdXRMS);
+            
+            for (size_t pt = 0; pt < sortDummy.size(); pt++) { 
+                if (std::abs( sortDummy[pt] - RawdQdXMedian ) < nDevs*RawdQdXRMS ) {
+                    TruncateddQdX += sortDummy[pt];
+                    NumTruncated++;
+                }
+            }
+            TruncateddQdXperPlane_v.push_back(TruncateddQdX / NumTruncated);
+            
+        }
+        
+        return TruncateddQdXperPlane_v;
+        
     }
- 
     //______________________________________________________
     bool AStarTracker::IsGoodVertex(){
         if(_tooShortDeadWire || _tooShortFaintTrack || _tooManyTracksAtVertex || _missingTrack || _nothingReconstructed || _branchingTracks || _jumpingTracks)return false;
@@ -1651,9 +1622,7 @@ namespace larcv {
         TH2D *hTagImage[3];
         TGraph *gStartNend[3];
         TGraph *gStart[3];
-        //TGraph *gAverage[3];
-        TGraph *gSphere[3];
-        for(size_t iPlane=0;iPlane<3;iPlane++){gSphere[iPlane]=new TGraph();}
+        TGraph *gAverage[3];
         double x_pixel_st, y_pixel_st;
         //if(_tooShortFaintTrack_v.size() != _vertexTracks.size())DiagnoseVertex();
 
@@ -1669,7 +1638,7 @@ namespace larcv {
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
-        /*for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack][0] == start_pt){
                 NtracksAtVertex++;
                 TVector3 AvPt;
@@ -1691,20 +1660,7 @@ namespace larcv {
                 ProjectTo3D(hit_image_v[iPlane].meta(),AvPt_v[iPt].X(),AvPt_v[iPt].Y(),AvPt_v[iPt].Z(),0,iPlane,x_proj,y_proj);
                 gAverage[iPlane]->SetPoint(iPt,x_proj*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_proj*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
             }
-        }*/
-
-        double x,y,z;
-        TRandom3 *ranVal = new TRandom3();
-        ranVal->SetSeed(0);
-        for(size_t i=0;i<100;i++){
-            ranVal->Sphere(x,y,z,10);
-            TVector3 newPoint(start_pt.X()+x,start_pt.Y()+y,start_pt.Z()+z);
-            for(size_t iPlane=0;iPlane<3;iPlane++){
-                ProjectTo3D(hit_image_v[iPlane].meta(),newPoint.X(),newPoint.Y(),newPoint.Z(),0,iPlane,x_pixel_st, y_pixel_st);
-                gSphere[iPlane]->SetPoint(i,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-            }
         }
-
         for(size_t iPlane=0;iPlane<3;iPlane++){
             hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
                                       Form("hImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
@@ -1740,14 +1696,14 @@ namespace larcv {
             double x,y,z;
             TRandom3 *ran = new TRandom3();
             ran->SetSeed(0);
-            /*for(size_t i=0;i<500;i++){
+            for(size_t i=0;i<500;i++){
                 ran->Sphere(x,y,z,3);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
                 thisTrackEndPoint.push_back(newPoint);
-            }*/
+            }
 
-            /*if(_tooShortDeadWire_v.size()!=0){
+            if(_tooShortDeadWire_v.size()!=0){
                 if(_tooShortDeadWire_v[itrack]){
                     int Niter = 100;
                     for(size_t i=0;i<Niter;i++){
@@ -1760,7 +1716,7 @@ namespace larcv {
                         }
                     }
                 }
-            }*/
+            }
 
             trackEndPoints_v.push_back(thisTrackEndPoint);
 
@@ -1770,7 +1726,7 @@ namespace larcv {
             gStartNend[iPlane] = new TGraph();
             ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel_st,y_pixel_st);
             gStart[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
-            for(size_t iend = 1;iend<_vertexEndPoints.size();iend++){
+            for(size_t iend = 0;iend<_vertexEndPoints.size();iend++){
                 ProjectTo3D(hit_image_v[iPlane].meta(),_vertexEndPoints[iend].X(),_vertexEndPoints[iend].Y(),_vertexEndPoints[iend].Z(),0,iPlane,x_pixel_st,y_pixel_st);
                 gStartNend[iPlane]->SetPoint(iend,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
             }
@@ -1810,11 +1766,6 @@ namespace larcv {
             c->cd(2)->cd(iPlane+1);
             hImageMasked[iPlane]->Draw("colz");
             if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
-
-            gStart[iPlane]->Draw("same P");
-            gSphere[iPlane]->SetMarkerColor(3);
-            gSphere[iPlane]->SetMarkerStyle(7);
-            gSphere[iPlane]->Draw("same P");
 
             if(trackEndPoints_v.size()!=0){
                 for(size_t itrack = 0;itrack<trackEndPoints_v.size();itrack++){
@@ -1856,17 +1807,20 @@ namespace larcv {
             gStartNend[iPlane]->SetMarkerColor(1);
             gStartNend[iPlane]->SetMarkerStyle(20);
             gStartNend[iPlane]->Draw("same P");
-            gStart[iPlane]->SetMarkerStyle(7);
+            gStart[iPlane]->SetMarkerStyle(20);
             gStart[iPlane]->SetMarkerColor(2);
-            /*if(_possibleCosmic){
+            if(_possibleCosmic){
                 gStart[iPlane]->SetMarkerColor(3);
                 gStart[iPlane]->SetMarkerSize(2);
-            }*/
-            /*if(!_possibleCosmic && _possiblyCrossing){
+            }
+            if(!_possibleCosmic && _possiblyCrossing){
                 gStart[iPlane]->SetMarkerColor(4);
                 gStart[iPlane]->SetMarkerSize(3);
-            }*/
-
+            }
+            gStart[iPlane]->Draw("same P");
+            gAverage[iPlane]->SetMarkerColor(3);
+            gAverage[iPlane]->SetMarkerStyle(20);
+            gAverage[iPlane]->Draw("same P");
         }
 
 
@@ -1888,7 +1842,7 @@ namespace larcv {
             hImage[iPlane]->Delete();
             hTagImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
-            gSphere[iPlane]->Delete();
+            gAverage[iPlane]->Delete();
         }
         std::vector<double> ionPerTrack = GetAverageIonization();
         double ionMax = 0;
@@ -1998,59 +1952,20 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::RegularizeTrack(){
-        tellMe("RegularizeTrack()",0);
+        tellMe("RegularizeTrack()",1);
         std::vector<TVector3> newTrack;
         TVector3 newPoint;
-        tellMe("0",0);
-        ComputeLength();
-        if(_Length3D < 3)return;
 
-        if(newTrack.size()!=0)newTrack.clear();
-        TVector3 AvgPt(0,0,0);
-        int Npts = 0;
-        double shellSize = 9;
-        for(size_t iNode=1;iNode<_3DTrack.size();iNode++){
-
-            if((_3DTrack[iNode]-_3DTrack[0]).Mag() < shellSize || (_3DTrack[iNode]-_3DTrack[0]).Mag()> shellSize+1)continue;
-            AvgPt+=_3DTrack[iNode];
-            Npts++;
+        if(_3DTrack.size() > 2){
+        for(size_t iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
+            if((_3DTrack[iPoint+1]-_3DTrack[iPoint]).Mag()>5)continue;
+            newPoint = (_3DTrack[iPoint+1]+_3DTrack[iPoint])*0.5;
+            newTrack.push_back(newPoint);
         }
-        AvgPt*=1./Npts;
-        newTrack.push_back(_3DTrack[0]);
-        for(size_t iNode=1;iNode<_3DTrack.size();iNode++){
-            if((_3DTrack[iNode]-_3DTrack[0]).Mag() < 7 && std::abs((AvgPt-_3DTrack[0]).Angle(_3DTrack[iNode]-_3DTrack[0])*180./TMath::Pi()) > 15.)continue;
-            newTrack.push_back(_3DTrack[iNode]);
+        _3DTrack = newTrack;
         }
-        _3DTrack=newTrack;
 
 
-        /*if(_3DTrack.size() > 2){
-            newTrack.push_back(_3DTrack[0]);
-            for(size_t iPoint = 0;iPoint<_3DTrack.size()-1;iPoint++){
-                //newPoint = (_3DTrack[iPoint+1]+_3DTrack[iPoint])*0.5;
-                newPoint = _3DTrack[iPoint+1];
-                if((_3DTrack[iPoint+1]-_3DTrack[iPoint]).Mag()>5)newPoint = _3DTrack[iPoint+1];
-                newTrack.push_back(newPoint);
-            }
-            newTrack.push_back(_3DTrack.back());
-            _3DTrack = newTrack;
-        }*/
-        /*tellMe("0.5",0);
-        ComputeLength();
-        tellMe(Form("points here : %zu",_3DTrack.size()),0);
-
-        for(size_t iNode = 0;iNode<_3DTrack.size()-1;iNode++){
-            for(size_t jNode = 1;jNode<iNode;jNode++){
-                if((_3DTrack[_3DTrack.size()-iNode]-_3DTrack[0]).Mag() < (_3DTrack[jNode]-_3DTrack[0]).Mag())
-            }
-
-        }*/
-
-        tellMe("1",0);
-        ComputeLength();
-        tellMe(Form("points here : %zu",_3DTrack.size()),0);
-
-        if(_3DTrack.size() <=3 )return;
         if(newTrack.size() != 0)newTrack.clear();
         double dist;
         double distMin;
@@ -2070,115 +1985,71 @@ namespace larcv {
             }
             if(distMin > 20) break;
 
+	    if (_DrawOutputs) {
+	      hDist2point->Fill(distMin);
+	    }
             newTrack.push_back(newPoint);
         }
         _3DTrack=newTrack;
-        tellMe("2",0);
-        ComputeLength();
-        tellMe(Form("number of points here : %zu", _3DTrack.size()),0);
         // make sure I don't have a point that "goes back" w.r.t. the previously selected point and the next one in the _3Dtrack
-        if(_3DTrack.size() <=3 )return;
-        if(newTrack.size()!=0)newTrack.clear();
+        newTrack.clear();
         newTrack.push_back(_3DTrack[0]);
         for(size_t iNode = 1;iNode < _3DTrack.size()-1;iNode++){
             double angle = (_3DTrack[iNode]-newTrack.back()).Dot( (_3DTrack[iNode+1]-newTrack.back()) )/( (_3DTrack[iNode]-newTrack.back()).Mag() * (_3DTrack[iNode+1]-newTrack.back()).Mag() );
             if(angle > -0.5) newTrack.push_back(_3DTrack[iNode]);
         }
-        if(newTrack.size()>1){
-            _3DTrack = newTrack;
-        }
-        tellMe("3",0);
-        ComputeLength();
-        if(_3DTrack.size() <=3 )return;
+        _3DTrack = newTrack;
 
         // remove strange things arount the vertex point
-        //if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
-        //if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
+        if((start_pt-_3DTrack[0]).Mag() >= (start_pt-_3DTrack[1]).Mag())_3DTrack[0] = _3DTrack[1];
+        if((start_pt-_3DTrack[_3DTrack.size()-1]).Mag() >= (start_pt-_3DTrack[_3DTrack.size()-2]).Mag())_3DTrack[_3DTrack.size()-1] = _3DTrack[_3DTrack.size()-2];
         // remove "useless" points that are parts of straight portions and too close to previous points
+        std::vector<TVector3> newPoints;
         int oldNumPoints = _3DTrack.size();
-        if(_3DTrack.size() > 2){
-            std::vector<TVector3> newPoints;
-
-            bool removedPoint = true;
-            int iteration = 0;
-            double distMax = 0.5;
-            double distLastPoint = 1;
-            tellMe(Form("old number of points : %d" , oldNumPoints),0);
-
-            while(removedPoint == true && iteration<100){
-                removedPoint =false;
-                iteration++;
-                newPoints.clear();
-                newPoints.push_back(_3DTrack[0]);
-                for(size_t iNode = 1;iNode<_3DTrack.size()-1;iNode++){
-                    double dist2line = GetDist2line(newPoints[newPoints.size()-1],_3DTrack[iNode+1],_3DTrack[iNode]);
-                    double dist2point = (_3DTrack[iNode]-newPoints[newPoints.size()-1]).Mag();
-                    if(dist2line < distMax && dist2point < distLastPoint){
-                        removedPoint = true;
-                        continue;
-                    }
-                    else newPoints.push_back(_3DTrack[iNode]);
+        bool removedPoint = true;
+        int iteration = 0;
+        double distMax = 0.5;
+        double distLastPoint = 1;
+        while(removedPoint == true && iteration<100){
+            removedPoint =false;
+            iteration++;
+            newPoints.clear();
+            newPoints.push_back(_3DTrack[0]);
+            for(size_t iNode = 1;iNode<_3DTrack.size()-1;iNode++){
+                double dist2line = GetDist2line(newPoints[newPoints.size()-1],_3DTrack[iNode+1],_3DTrack[iNode]);
+                double dist2point = (_3DTrack[iNode]-newPoints[newPoints.size()-1]).Mag();
+                if(dist2line < distMax && dist2point < distLastPoint){
+                    removedPoint = true;
+                    continue;
                 }
-                newPoints.push_back(_3DTrack[_3DTrack.size()-1]);
-                _3DTrack = newPoints;
-                if(_3DTrack[0]!=start_pt){
-                    std::vector<TVector3>::iterator it;
-                    it = _3DTrack.begin();
-                    _3DTrack.insert (it,start_pt);
-                }
-                //if(_3DTrack.back() != end_pt){_3DTrack.push_back(end_pt);}
+                else newPoints.push_back(_3DTrack[iNode]);
             }
+            newPoints.push_back(_3DTrack[_3DTrack.size()-1]);
+            _3DTrack = newPoints;
+            if(_3DTrack[0]!=start_pt){
+                std::vector<TVector3>::iterator it;
+                it = _3DTrack.begin();
+                _3DTrack.insert (it,start_pt);
+            }
+            //if(_3DTrack.back() != end_pt){_3DTrack.push_back(end_pt);}
         }
         // add points every cm between start_pt and _3DTrack[1];
-        tellMe("4",0);
-        ComputeLength();
-        if(_3DTrack.size() <=3 )return;
+
         //DumpTrack();
         TVector3 vertexNeighbour = start_pt;
         int iterNeighbour = 0;
-        double dpoint = 2;
-        if(newTrack.size()!=0)newTrack.clear();
-        newTrack.push_back(_3DTrack[0]);
-        for(size_t iNode=1;iNode<_3DTrack.size();iNode++){
-            iterNeighbour=0;
-            bool goOn = true;
-            while((newTrack.back()-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag() && goOn){
-                if(iNode == 1)dpoint=3;else dpoint=2;
-                vertexNeighbour = _3DTrack[iNode-1]+(_3DTrack[iNode]-_3DTrack[iNode-1])*2*(iterNeighbour/((_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()));
-                if(vertexNeighbour!=newTrack.back() && (vertexNeighbour-_3DTrack[iNode-1]).Mag() < (_3DTrack[iNode]-_3DTrack[iNode-1]).Mag()) goOn=true;
-                else goOn = false;
-                if(goOn) newTrack.push_back(vertexNeighbour);
-                iterNeighbour++;
-            }
-            if(newTrack.back()!=_3DTrack[iNode])newTrack.push_back(_3DTrack[iNode]);
-        }
-        _3DTrack = newTrack;
-        tellMe("5",0);
-        ComputeLength();
-        /*while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<100){
-            iterNeighbour++;
-            vertexNeighbour = start_pt+(_3DTrack[1]-start_pt)*3*(iterNeighbour/(_3DTrack[1]-start_pt).Mag());
-            vertexNeighbour_v.push_back(vertexNeighbour);
-        }
-        if(vertexNeighbour_v.size()!=0){
-            std::vector<TVector3>::iterator it;
-            it = _3DTrack.begin();
-            _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
-        }*/
-        //DumpTrack();
-        /*TVector3 vertexNeighbour = start_pt;
-        iterNeighbour = 0;
         std::vector<TVector3> vertexNeighbour_v;
-        while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<100){
+        while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<10){
             iterNeighbour++;
-            vertexNeighbour = start_pt+(_3DTrack[1]-start_pt)*3*(iterNeighbour/(_3DTrack[1]-start_pt).Mag());
+            vertexNeighbour = start_pt+(_3DTrack[1]-start_pt)*(iterNeighbour/(_3DTrack[1]-start_pt).Mag());
             vertexNeighbour_v.push_back(vertexNeighbour);
         }
         if(vertexNeighbour_v.size()!=0){
             std::vector<TVector3>::iterator it;
-            it = _3DTrack.begin();
-            _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
-        }*/
+        it = _3DTrack.begin();
+        _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
+        }
+        //DumpTrack();
 
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
     }
@@ -2186,7 +2057,7 @@ namespace larcv {
     void AStarTracker::ComputeLength(){
         tellMe("ComputeLength()",0);
         _Length3D = 0;
-        if(_3DTrack.size()>=2){
+        if(_3DTrack.size()>2){
             for(size_t iNode = 0;iNode<_3DTrack.size()-1;iNode++){
                 _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
             }
@@ -2704,9 +2575,8 @@ namespace larcv {
         if(_closestWall.size()     != _vertexTracks.size()) ComputeClosestWall();
         return _closestWall;
     }
-    //______________________________________________________
+  
     std::vector<double> AStarTracker::GetClosestWall_SCE(){
-        tellMe("GetClosestWall_SCE",0);
   	if(_closestWall_SCE.size() != _vertexTracks.size()) ComputeClosestWall_SCE();
 	return _closestWall_SCE;
     }
@@ -2744,7 +2614,6 @@ namespace larcv {
     }
   
     void AStarTracker::ComputeClosestWall_SCE(){
-        tellMe("ComputeClosestWall_SCE()",0);
         if(_closestWall_SCE.size() ==_vertexTracks.size()) return;
         if(_closestWall_SCE.size()!=0)_closestWall_SCE.clear();
 
@@ -2771,7 +2640,7 @@ namespace larcv {
 
 	      auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
 
-	      double sceptX = pt_X + sceOffset[0] - 0.7;
+	      double sceptX = pt_X - sceOffset[0] + 0.7;
 	      double sceptY = pt_Y - sceOffset[1];
 	      double sceptZ = pt_Z - sceOffset[2];
 		

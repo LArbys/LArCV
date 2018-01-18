@@ -135,7 +135,7 @@ namespace larcv {
         void ImprovedCluster();
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
-        void MaskVertex(double shellMask = -1);
+        void MaskVertex();
         void MaskTrack();
         void CleanUpVertex();
         void DiagnoseVertex();
@@ -196,7 +196,7 @@ namespace larcv {
 
         std::vector<double>  GetAverageIonization(double distAvg = -1);
         std::vector<double>  GetTotalIonization(double distAvg = -1);
-	std::vector<double>  ComputeTruncateddQdX(double);
+        std::vector<double>  ComputeTruncateddQdX(double);
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 
@@ -206,13 +206,15 @@ namespace larcv {
 
         larlite::event_track GetReconstructedVertexTracks(){return _vertexLarliteTracks;}
 
+
+
         std::vector<std::pair<double,double> > GetTimeBounds(){return time_bounds;}
         std::vector<std::pair<double,double> > GetWireBounds(){return wire_bounds;}
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
 
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
-        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);ShaveTracks();}
+        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative()*/;ShaveTracks();}
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
@@ -328,8 +330,8 @@ namespace larcv {
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         std::vector<std::vector<double> > _vertex_dQdX_v;
-	std::vector<double> TruncateddQdXperPlane_v;
-	std::vector<std::vector<double> > RawdQdXperPlane_v;
+        std::vector<double> TruncateddQdXperPlane_v;
+        std::vector<std::vector<double> > RawdQdXperPlane_v;
         TGraph2D *gDetector;
         TGraph2D *gWorld;
 

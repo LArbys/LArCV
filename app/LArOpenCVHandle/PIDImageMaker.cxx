@@ -2,6 +2,7 @@
 #define __PIDIMAGEMAKER_CXX__
 
 #include "PIDImageMaker.h"
+#include "fstream"
 
 namespace larcv {
 
@@ -13,12 +14,15 @@ namespace larcv {
     
   void PIDImageMaker::configure(const PSet& cfg)
   {
+    //input
     _roi_input_producer     = cfg.get<std::string>("ROIInputProducer");
-    _p0_roi_output_producer = cfg.get<std::string>("P0ROIOutputProducer");
-    _p1_roi_output_producer = cfg.get<std::string>("P1ROIOutputProducer");
     _pgraph_producer        = cfg.get<std::string>("RecoPGraphProducer");
     _pixel2d_ctor_producer  = cfg.get<std::string>("Pixel2DContourProducer");
     _pixel2d_img_producer   = cfg.get<std::string>("Pixel2DImageProducer");
+    
+    //output
+    _p0_roi_output_producer = cfg.get<std::string>("P0ROIOutputProducer");
+    _p1_roi_output_producer = cfg.get<std::string>("P1ROIOutputProducer");
     _p0_image_producer      = cfg.get<std::string>("P0OutImageProducer");
     _p1_image_producer      = cfg.get<std::string>("P1OutImageProducer");
     _multi_image_producer   = cfg.get<std::string>("MultiOutImageProducer");
@@ -28,6 +32,7 @@ namespace larcv {
       
     _nevents = 0;
     _nevents_passing_nueLL = 0;
+    
   }
 
   void PIDImageMaker::initialize()
@@ -64,8 +69,8 @@ namespace larcv {
     
     
     
-    if(pgraph_v.size()>1)
-      std::cout<<"size of pgraph_v"<<pgraph_v.size()<<std::endl;
+    //if(pgraph_v.size()>1)
+      //LARCV_DEBUG()<<"size of pgraph_v"<<pgraph_v.size()<<std::endl;
     //ROI croi = event_pgraph->ParticleArray();
     	
     //auto ev_ctor_meta_array = event_ctor_pixel2d->MetaArray();
@@ -82,8 +87,10 @@ namespace larcv {
     p1_img_v.clear();
     std::vector<Image2D> p01_img_v;
     p01_img_v.clear();
-
-    if (ev_pcluster_array.size() == 3) {
+    
+    // checking how many planes have reco pgrapgh
+    //if (ev_pcluster_array.size() ==3) {
+    if (ev_pcluster_array.size() > 0 ) {
     
       ROI proi;
       event_p0_roi->clear();
@@ -102,7 +109,7 @@ namespace larcv {
     
     /*else{
       //LARCV_CRITICAL()<<"No pixel2d clusters found. "<<std::endl;
-      std::cout<<"run"<<run
+      LARCV_DEBUG()<<"run"<<run
 	       <<"subrun"<<subrun
 	       <<"event"<<event
 	       <<"pixel2dclusterarraysize"<<ev_pcluster_array.size()<<std::endl;
@@ -120,8 +127,8 @@ namespace larcv {
 
   void PIDImageMaker::finalize()
   {
-    std::cout<<"================>>>>>>total events : "<<_nevents<<std::endl;
-    std::cout<<"========>>>>>>passing NueLL events : "<<_nevents_passing_nueLL<<std::endl;
+    LARCV_DEBUG()<<"================>>>>>>total events : "<<_nevents<<std::endl;
+    LARCV_DEBUG()<<"========>>>>>>passing NueLL events : "<<_nevents_passing_nueLL<<std::endl;
   }
 
   void PIDImageMaker::SPIDRecoImgFiller(std::map<larcv::PlaneID_t, 
@@ -148,6 +155,7 @@ namespace larcv {
             
       for (size_t pid = 0; pid < 2; ++pid ){
 	auto pcluster = pcluster_v[pid];
+	//LARCV_DEBUG()<<"pid is "<<pid<<" with size of "<<pcluster.size()<<std::endl;
 	Image2D img(_outimage_dim.first,_outimage_dim.second);
 	if (!pcluster.size()) {
 	  img.resize(_outimage_dim.first,_outimage_dim.second, 0.0);
@@ -176,7 +184,7 @@ namespace larcv {
 			  pixel.Y() - pcluster.min_y(),
 			  pixel.Intensity());
 	    
-	    //if(plane==2)std::cout<<pixel.X() - pcluster.min_x()<<", "<<pixel.Y() - pcluster.min_y()<<", "<<pixel.Intensity()<<std::endl;
+	    //if(plane==2)LARCV_DEBUG()<<pixel.X() - pcluster.min_x()<<", "<<pixel.Y() - pcluster.min_y()<<", "<<pixel.Intensity()<<std::endl;
 	  }
 	}
 	if (pid == 0 ) p0_img_v.emplace_back(std::move(img));
@@ -185,8 +193,7 @@ namespace larcv {
     }
   }
 
-  void PIDImageMaker::MPIDRecoImgFiller(std::map<larcv::PlaneID_t, 
-					std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
+  void PIDImageMaker::MPIDRecoImgFiller(std::map<larcv::PlaneID_t, std::vector<larcv::Pixel2DCluster>> ev_pcluster_array,
 					std::vector<larcv::Image2D>& p01_img_v){
     
     _nevents_passing_nueLL++;
@@ -195,7 +202,6 @@ namespace larcv {
       
       auto pcluster_v = ev_pcluster_array[plane];
       //IF there are not exaxtly 2 particles reconstructed
-
       // Here needs upates!
       if ( pcluster_v.size()!=2  || !(pcluster_v[0].size() * pcluster_v[1].size())) {
 	//Need improve
@@ -221,6 +227,7 @@ namespace larcv {
       LARCV_DEBUG()<<"created pixel 2d image size is "<<img.size()<<std::endl;
       for (size_t pid = 0; pid < 2; ++pid ){
 	auto pcluster = pcluster_v[pid];
+	//LARCV_DEBUG()<<"In MPID pid is "<<pid<<" with size of "<<pcluster.size()<<std::endl;
 	for (auto pixel: pcluster) {
 	  //LARCV_DEBUG()<<"raw x "<<pixel.X()<<" raw y "<<pixel.Y()<<std::endl;
 	  //LARCV_DEBUG()<<"cal x "<<pixel.X() - pcluster.min_x()<<"cal y "<<pixel.Y() - pcluster.min_y()<<std::endl;
@@ -237,7 +244,7 @@ namespace larcv {
       }
       p01_img_v.emplace_back(std::move(img));
     }
-    //std::cout<<"p01_img_v has size of "<<p01_img_v.size()<<std::endl;
+    //LARCV_DEBUG()<<"p01_img_v has size of "<<p01_img_v.size()<<std::endl;
   }
   
   void PIDImageMaker::VoidImgFiller(std::vector<larcv::Image2D>& p0_img_v,
@@ -260,6 +267,6 @@ namespace larcv {
     }
     
   }
-  
+
 }
 #endif
