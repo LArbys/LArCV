@@ -241,25 +241,25 @@ _proton_iondlen     = array('f',[-1])
 _proton_E           = array('f',[-1])
 
 def clear_vertex():
-    _muon_id[0]          = kINVALID_INT
-    _muon_phi[0]         = kINVALID_FLOAT
-    _muon_theta[0]       = kINVALID_FLOAT
-    _muon_length[0]      = kINVALID_FLOAT
-    _muon_dqdx[0]        = kINVALID_FLOAT
-    _muon_trunc_dqdx1[0] = kINVALID_FLOAT
-    _muon_trunc_dqdx3[0] = kINVALID_FLOAT
-    _muon_iondlen[0]     = kINVALID_FLOAT
-    _muon_E[0]           = kINVALID_FLOAT
+    _muon_id[0]          = int(-1)
+    _muon_phi[0]         = float(-1)
+    _muon_theta[0]       = float(-1)
+    _muon_length[0]      = float(-1)
+    _muon_dqdx[0]        = float(-1)
+    _muon_trunc_dqdx1[0] = float(-1)
+    _muon_trunc_dqdx3[0] = float(-1)
+    _muon_iondlen[0]     = float(-1)
+    _muon_E[0]           = float(-1)
     
-    _proton_id[0]          = kINVALID_INT
-    _proton_phi[0]         = kINVALID_FLOAT
-    _proton_theta[0]       = kINVALID_FLOAT
-    _proton_length[0]      = kINVALID_FLOAT
-    _proton_dqdx[0]        = kINVALID_FLOAT
-    _proton_trunc_dqdx1[0] = kINVALID_FLOAT
-    _proton_trunc_dqdx3[0] = kINVALID_FLOAT
-    _proton_iondlen[0]     = kINVALID_FLOAT
-    _proton_E[0]           = kINVALID_FLOAT
+    _proton_id[0]          = int(-1)
+    _proton_phi[0]         = float(-1)
+    _proton_theta[0]       = float(-1)
+    _proton_length[0]      = float(-1)
+    _proton_dqdx[0]        = float(-1)
+    _proton_trunc_dqdx1[0] = float(-1)
+    _proton_trunc_dqdx3[0] = float(-1)
+    _proton_iondlen[0]     = float(-1)
+    _proton_E[0]           = float(-1)
     
 
 outTree.Branch('run'           , _run         , '_run/I'        ) 
