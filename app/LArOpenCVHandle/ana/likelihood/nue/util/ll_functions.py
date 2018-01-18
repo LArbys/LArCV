@@ -838,7 +838,7 @@ def reco_LL_proton_phi (row):
     protonid  = int(row['reco_p_id'])
     return float(row['p1_shr_phi'][protonid])
 
-def reco_LL_proton_dedx (row):
+def reco_LL_proton_dEdx (row):
     protonid  = int(row['reco_p_id'])
     return float(row['p0_shr_dedx'][protonid])
 
@@ -876,7 +876,7 @@ def reco_LL_electron_phi(row):
     electronid  = int(row['reco_LL_electron_id'])
     return float(row['p1_shr_phi'][electronid])
 
-def reco_LL_electron_dedx(row):
+def reco_LL_electron_dEdx(row):
     electronid  = int(row['reco_LL_electron_id'])
     return float(row['p0_shr_dedx'][electronid])
 
