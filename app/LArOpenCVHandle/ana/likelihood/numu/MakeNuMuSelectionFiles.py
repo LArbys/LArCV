@@ -366,7 +366,7 @@ for ev in TrkTree:
         _muon_trunc_dqdx1[0] = float(trunc_dqdx1_v.at(mid))
         _muon_trunc_dqdx3[0] = float(trunc_dqdx3_v.at(mid))
         _muon_iondlen[0]     = float(iondlen_v[mid])
-        _muon_E[0]           = float(EifMu_v.at[mid])
+        _muon_E[0]           = float(EifMu_v.at(mid))
         
         _proton_id[0]          = int(pid)
         _proton_phi[0]         = float(vtxPhi_v[pid])
@@ -376,7 +376,7 @@ for ev in TrkTree:
         _proton_trunc_dqdx1[0] = float(trunc_dqdx1_v.at(pid))
         _proton_trunc_dqdx3[0] = float(trunc_dqdx3_v.at(pid))
         _proton_iondlen[0]     = float(iondlen_v[pid])
-        _proton_E[0]           = float(EifP_v.at[pid])
+        _proton_E[0]           = float(EifP_v.at(pid))
         #
         
         processVars = [openAng,wallDist,eta,ionplen,[theta0,theta1],[phi0,phi1],shfrac]
