@@ -1,6 +1,7 @@
 import ROOT
 from ROOT import TFile,TTree
 from larlite import larutil
+import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 from math import sin,cos,sqrt,log,pi,acos
