@@ -31,12 +31,18 @@ namespace larcv {
   
   cv::Mat
   LArbysImageMaker::ExtractMat(const Image2D& image) {
-    std::vector<cv::Mat> mat_v;
     std::vector<Image2D> image_v(1,image);
     auto img_data_v = ExtractImage(image_v);
     return std::get<0>(img_data_v.front());
   }
   
+  std::tuple<cv::Mat,larocv::ImageMeta>
+  LArbysImageMaker::ExtractImage(const Image2D& image) {
+    std::vector<Image2D> image_v(1,image);
+    auto img_data_v = ExtractImage(image_v);
+    return img_data_v.front();
+  }
+
   std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
   LArbysImageMaker::ExtractImage(const std::vector<Image2D>& image_v) {
 

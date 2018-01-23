@@ -70,3 +70,4 @@ def typecode2np(typecode):
         return "np.int32"
     else:
         return "aho"
+

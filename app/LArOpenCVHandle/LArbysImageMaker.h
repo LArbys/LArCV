@@ -35,6 +35,9 @@ namespace larcv {
 
     cv::Mat
       ExtractMat(const Image2D& image);
+
+    std::tuple<cv::Mat,larocv::ImageMeta>
+      ExtractImage(const Image2D& image);
     
     std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
       ExtractImage(const std::vector<Image2D>& image_v);

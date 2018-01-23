@@ -15,7 +15,9 @@ VVFLOAT  = "ROOT.std.vector(\"std::vector<float>\")()"
 VVINT    = "ROOT.std.vector(\"std::vector<int>\")()"
 
 class ROOTData:
-    def __init__(self,df):
+    def __init__(self,df,ISMC=1):
+
+        self.ismc = int(ISMC)
 
         self.vmem_v  = []
         self.vvmem_v = []
@@ -51,7 +53,11 @@ class ROOTData:
                     exec(SS)
                     self.vvmem_v.append(column)
                 else:
-                    raise Exception("Unhandled shape")
+                    if self.ismc == 1:
+                        raise Exception("Unhandled shape: column=%s df.shape[0]=%s" % (column,str(df.shape[0])))
+                    else:
+                        pass
+                        
                     
             # set scalar variables
             else:
@@ -72,9 +78,17 @@ class ROOTData:
         for smem,stype in zip(self.smem_v,self.stype_v):
             value = row[smem]
             if np.isnan(value): continue
-            SS = "self.%s[0] = %s(%s)"
-            SS = SS % (smem, typecode2py(stype), value)
-            exec(SS)
+            if np.isinf(value): continue
+            SS = "self.%s[0] = %s(row[\"%s\"])"
+            SS = SS % (smem, typecode2py(stype), smem)
+            try:
+                exec(SS)
+            except OverflowError:
+                print SS
+                if stype=='i':
+                    SS = "self.%s[0] = np.int32(row[\"%s\"])"
+                    SS = SS % (smem, smem)
+                    exec(SS)
         
         for vmem in self.vmem_v:
             value = row[vmem]

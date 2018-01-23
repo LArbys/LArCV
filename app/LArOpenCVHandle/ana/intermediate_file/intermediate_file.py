@@ -10,7 +10,8 @@ sys.path.insert(0,BASE_PATH)
 def main(argv):
     
     PKLFILE = str(argv[1])
-    OUTDIR  = str(argv[2])
+    ISMC    = int(argv[2])
+    OUTDIR  = str(argv[3])
     
     df = pd.read_pickle(PKLFILE)
 
@@ -25,7 +26,7 @@ def main(argv):
     tree = ROOT.TTree("vertex_tree","")
     
     from lib.rootdata import ROOTData
-    rd = ROOTData(df)
+    rd = ROOTData(df,ISMC)
     
     rd.init_tree(tree)
     
@@ -40,10 +41,11 @@ def main(argv):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print
         print "PKLFILE = str(sys.argv[1])"
-        print "OUTDIR  = str(sys.argv[2])"
+        print "ISMC    = int(sys.argv[2])"
+        print "OUTDIR  = str(sys.argv[3])"
         print
         sys.exit(1)
     
