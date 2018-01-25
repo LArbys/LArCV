@@ -35,14 +35,16 @@ class ROOTData:
                 assert type(df.iloc[0][column]) in [np.ndarray,list,float]
                 
                 shape = -1
+
                 for ir in xrange(df.shape[0]):
                     if ir>self.irange: break
                     try: 
-                        shape = np.maximum(shape,np.vstack(df.iloc[ir][column]).shape[1])
+                        stack = np.vstack(df.iloc[ir][column])
+                        shape = np.maximum(shape,stack.shape[1])
                     except (ValueError,TypeError):
                         continue
 
-
+                        
                 SS = "self.%s = %s"                
                 if shape==1:
                     SS = SS % (column, VFLOAT)
@@ -54,8 +56,12 @@ class ROOTData:
                     self.vvmem_v.append(column)
                 else:
                     if self.ismc == 1:
-                        raise Exception("Unhandled shape: column=%s df.shape[0]=%s" % (column,str(df.shape[0])))
+                        print "MC exception @column=%s (setting vv)" % column
+                        SS = SS % (column, VVFLOAT)
+                        exec(SS)
+                        self.vvmem_v.append(column)
                     else:
+                        print "non MC exception @column=%s (passing)" % column
                         pass
                         
                     
