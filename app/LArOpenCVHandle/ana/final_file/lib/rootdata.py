@@ -44,6 +44,7 @@ class ROOTData:
         self.true_vertex    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
 
         self.true_proton_E    = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_lepton_E    = array( 'f', [ kINVALID_FLOAT ] )
         self.true_electron_E  = array( 'f', [ kINVALID_FLOAT ] )
         self.true_total_E     = array( 'f', [ kINVALID_FLOAT ] )
 
@@ -169,6 +170,7 @@ class ROOTData:
         self.inter_mode[0]     = kINVALID_INT
 
         self.true_proton_E[0]   = kINVALID_FLOAT
+        self.true_lepton_E[0]   = kINVALID_FLOAT
         self.true_electron_E[0] = kINVALID_FLOAT
 
         self.true_proton_dR[0]    = kINVALID_FLOAT
@@ -279,6 +281,7 @@ class ROOTData:
 
         tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
         tree.Branch("true_electron_E", self.true_electron_E, "true_electron_E/F")
+        tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
 
         # tree.Branch("true_proton_dR"  , self.true_proton_dR  , "true_proton_dR[3]/F")
         # tree.Branch("true_electron_dR", self.true_electron_dR, "true_electron_dR[3]/F")
@@ -356,7 +359,8 @@ class ROOTData:
         tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
 
         tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
-
+        tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
+        
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
         tree.Branch("scedr"        , self.scedr        , "scedr/F")
 
