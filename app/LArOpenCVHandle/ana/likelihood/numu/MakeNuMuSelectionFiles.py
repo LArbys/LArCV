@@ -210,6 +210,9 @@ _passCuts   = array('i',[0])
 _cosmicLL   = array('f',[0])
 _nubkgLL    = array('f',[0])
 _good3DReco = array('i',[0])
+_eta        = array('f',[0])
+_wallDist   = array('f',[0])
+_openAng    = array('f',[0])
 _phi_v         = ROOT.vector('double')()
 _theta_v       = ROOT.vector('double')()
 _length_v      = ROOT.vector('double')()
@@ -278,6 +281,9 @@ outTree.Branch('N5cmTracks'    , _n5tracks    , '_n5tracks/I'   )
 outTree.Branch('PassCuts'      , _passCuts    , '_passCuts/I'   )
 outTree.Branch('CosmicLL'      , _cosmicLL    , '_cosmiLL/F'    )
 outTree.Branch('NuBkgLL'       , _nubkgLL     , '_nubkgLL/F'    )
+outTree.Branch('WallDist'      , _wallDist    , '_wallDist/F'   )
+outTree.Branch('eta'           , _eta         , '_eta/F'        )
+outTree.Branch('openAng'       , _openAng     , '_openAng/F'    )
 outTree.Branch('PhiReco_v'     , _phi_v         )
 outTree.Branch('ThetaReco_v'   , _theta_v       )
 outTree.Branch('TrackLength_v' , _length_v      )
@@ -369,7 +375,6 @@ for ev in TrkTree:
         dist0     = ev.closestWall[0]
         dist1     = ev.closestWall[1] 
         shfrac    = (Vtx2DInfo[IDvtx][1][0]+Vtx2DInfo[IDvtx][1][1]) if isinstance(Vtx2DInfo[IDvtx][1],list) else -1
-
         wallDist = min([dist0,dist1])
         eta      = ComputeEta(ion0,ion1)
         ionplen  = ComputeEta(iondlen0,iondlen1)
@@ -430,6 +435,9 @@ for ev in TrkTree:
     _passCuts[0]   = passCuts
     _cosmicLL[0]   = cosmicLL if passCuts == True else -9999
     _nubkgLL[0]    = nusepLL if passCuts == True else -9999
+    _eta[0]        = eta if passCuts == True else -9999
+    _wallDist[0]   = wallDist if passCuts == True else -9999
+    _openAng[0]    = openAng if passCuts == True else -9999
     _good3DReco[0] = PassAllChecks
     
     _phi_v.clear()
