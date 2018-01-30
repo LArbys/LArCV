@@ -87,6 +87,7 @@ class NumuHandler(Handler):
             self.rd.inter_mode[0] = int(row['anashr2_mcinfoMode']); 
             
             self.rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
+            self.rd.true_lepton_E[0]   = float(row['locv_dep_sum_lepton'])
             
         # fill common
         self.rd.num_croi[0]   = int(row['locv_number_croi']);
