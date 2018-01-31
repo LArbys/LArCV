@@ -10,17 +10,16 @@ from array import array
 import os,sys
 
 ## When you call this program it must have the following format... ##
-## python MakeNuMuSelectionFiles.py INPUT1 INPUT2 INPUT3 INPUT4    ##
+## python MakeNuMuSelectionFiles.py INPUT1 INPUT2....              ##
 ## with ...                                                        ##
 ##    INPUT1 = 3D Track Reco ROOT file                             ##
 ##    INPUT2 = Vertex reconstruction ana ROOT file                 ##
 ##    INPUT3 = pickle containing numu cosmic LL histograms         ##
 ##    INPUT4 = pickle containing nu background LL histograms       ##
+##    INPUT5 = Output directory                                    ##
 ## --------------------------------------------------------------- ##
 
-# vic -- output directory INPUT5
-
-#sce = larutil.SpaceChargeMicroBooNE()
+sce = larutil.SpaceChargeMicroBooNE()
 
 # --- Some functions for internal analysis use -------------------- #
 def Compute3DAngle(theta0,theta1,phi0,phi1):
@@ -73,8 +72,7 @@ def ComputeVarProb2D(LLpdf,value1,value2):
                 
 def VtxInFid(vtxX,vtxY,vtxZ,edgeCut=10):
 
-#    sceOffsets = sce.GetPosOffsets(vtxX,vtxY,vtxZ)
-    sceOffsets = [0,0,0]
+    sceOffsets = sce.GetPosOffsets(vtxX,vtxY,vtxZ)
     
     xmin =  0      + edgeCut 
     xmax =  256.25 - edgeCut
@@ -329,9 +327,6 @@ for ev in TrkTree:
     event          = ev.event
     vtxid          = ev.vtx_id
     IDvtx          = tuple((run,subrun,event,vtxid))
-    # vtxX           = ev.RecoVertex.X()
-    # vtxY           = ev.RecoVertex.Y()
-    # vtxZ           = ev.RecoVertex.Z()
     vtxX           = ev.vtx_x
     vtxY           = ev.vtx_y
     vtxZ           = ev.vtx_z
@@ -405,21 +400,21 @@ for ev in TrkTree:
         _proton_iondlen[0]     = float(iondlen_v[pid])
         _proton_E[0]           = float(EifP_v.at(pid))
         #
-        
-        processVars = [openAng,wallDist,eta,ionplen,[theta0,theta1],[phi0,phi1],shfrac]
-        skipVars    = [3,6] #Will skip these variable indices when calculating LL, 3,6 currently ignored due to MC/data diffs
-        cosmicLL = 0
-        nusepLL  = 0
-        for i,y in enumerate(processVars):
-            if i in skipVars: continue
-            if isinstance(y,list):
-                cosmicLL+= ComputeVarProb2D(LLPdfs[i],y[0],y[1])
-                nusepLL += ComputeVarProb2D(LLPdfs_nusep[i],y[0],y[1])
-            else:
-                cosmicLL+= ComputeVarProb(LLPdfs[i],y)
-                nusepLL += ComputeVarProb(LLPdfs_nusep[i],y)
 
-    
+       processDict = {'openAng':openAng,'wallDist':wallDist,'eta':eta,'ionplen':ionplen,'theta':[theta0,theta1],'phi':[phi0,phi1]}
+       skipVars    = ['ionplen'] #Will skip these variables when calculating LL, ignored due to data/MC diffs                                                                
+       cosmicLL = 0
+       nusepLL  = 0
+       for y in processDict.keys():
+          if y in skipVars: continue
+          processVal = processDict[y]
+          if isinstance(processVal,list):
+              cosmicLL += ComputeVarProb2D(LLPdfs[y],processVal[0],processVal[1])
+              nusepLL  += ComputeVarProb2D(LLPdfs_nusep[y],processVal[0],processVal[1])
+          else:
+              cosmicLL += ComputeVarProb(LLPdfs[y],processVal)
+              nusepLL  += ComputeVarProb(LLPdfs_nusep[y],processVal) 
+            
     _run[0]        = run
     _subrun[0]     = subrun
     _event[0]      = event
