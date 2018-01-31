@@ -32,7 +32,11 @@ class ROOTData:
 
             # set vector variables
             if rtype == "x": 
-                assert type(df.iloc[0][column]) in [np.ndarray,list,float]
+                type_ = type(df.iloc[0][column])
+
+                if (type_ not in [np.ndarray, list, float]):
+                    print "SKIP @ column=%s" % column
+                    continue
                 
                 shape = -1
 
