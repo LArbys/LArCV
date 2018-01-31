@@ -19,7 +19,7 @@ import os,sys
 ##    INPUT5 = Output directory                                    ##
 ## --------------------------------------------------------------- ##
 
-sce = larutil.SpaceChargeMicroBooNE()
+#sce = larutil.SpaceChargeMicroBooNE()
 
 # --- Some functions for internal analysis use -------------------- #
 def Compute3DAngle(theta0,theta1,phi0,phi1):
@@ -72,7 +72,8 @@ def ComputeVarProb2D(LLpdf,value1,value2):
                 
 def VtxInFid(vtxX,vtxY,vtxZ,edgeCut=10):
 
-    sceOffsets = sce.GetPosOffsets(vtxX,vtxY,vtxZ)
+    #sceOffsets = sce.GetPosOffsets(vtxX,vtxY,vtxZ)
+    sceOffsets = [0,0,0]
     
     xmin =  0      + edgeCut 
     xmax =  256.25 - edgeCut
@@ -81,7 +82,8 @@ def VtxInFid(vtxX,vtxY,vtxZ,edgeCut=10):
     zmin =  0      + edgeCut
     zmax =  1036.8 - edgeCut
 
-    sceX = vtxX + sceOffsets[0] - 0.7
+#    sceX = vtxX + sceOffsets[0] - 0.7
+    sceX = vtxX + sceOffsets[0]
     sceY = vtxY - sceOffsets[1]
     sceZ = vtxZ - sceOffsets[2]
     
