@@ -23,7 +23,9 @@ class ROOTData:
         # is it selected
         #
         self.reco_selected = array( 'i', [ kINVALID_INT ] )
-        
+        self.reco_close    = array( 'i', [ kINVALID_INT ] )
+        self.reco_on_nu    = array( 'i', [ kINVALID_INT ] )
+
         #
         # the LL
         #
@@ -149,6 +151,8 @@ class ROOTData:
         self.vertex_id[0]  = kINVALID_INT
         
         self.reco_selected[0] = kINVALID_INT
+        self.reco_close[0] = kINVALID_INT
+        self.reco_on_nu[0] = kINVALID_INT
 
         # LL
         self.LL_dist[0] = kINVALID_FLOAT
@@ -301,6 +305,8 @@ class ROOTData:
         tree.Branch("reco_mc_total_E"   , self.reco_mc_total_E   , "reco_mc_total_E/F")
 
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
+        tree.Branch("reco_close"   , self.reco_close   , "reco_close/I")
+        tree.Branch("reco_on_nu"   , self.reco_on_nu   , "reco_on_nu/I")
         tree.Branch("scedr"        , self.scedr        , "scedr/F")
 
         tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
@@ -362,6 +368,8 @@ class ROOTData:
         tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
         
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
+        tree.Branch("reco_close"   , self.reco_close   , "reco_close/I")
+        tree.Branch("reco_on_nu"   , self.reco_on_nu   , "reco_on_nu/I")
         tree.Branch("scedr"        , self.scedr        , "scedr/F")
 
         tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")

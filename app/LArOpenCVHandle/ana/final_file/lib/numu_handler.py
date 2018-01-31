@@ -123,6 +123,17 @@ class NumuHandler(Handler):
         self.rd.vertex_id[0] = int(row['vtxid']);
         self.rd.scedr[0]     = float(row['locv_scedr']);
 
+        if self.rd.scedr[0] < 5:
+            self.rd.reco_close[0] = int(1)
+        else:
+            self.rd.reco_close[0] = int(0)
+        
+        if int(row['locv_vtx_on_nu']) >= 2:
+            self.rd.reco_on_nu[0] = int(1)
+        else:
+            self.rd.reco_on_nu[0] = int(0)
+            
+
         # fill LL
         if row['numu_CosmicLL'] > 0:
             self.rd.reco_selected[0] = int(1)
