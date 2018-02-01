@@ -170,15 +170,15 @@ for plane in xrange(3):
     SS = "{}_{}_{} Plane={}".format(ev_img.run(),ev_img.subrun(),ev_img.event(),plane)
     ax.set_title(SS,fontweight='bold',fontsize=50)        
 
-    this_num = os.path.basename(WIRE_FILE).split(".")[0].split("_")[-1]
-    SS=os.path.join(OUTDIR,"{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
-                                                                ev_img.subrun(),
-                                                                ev_img.event(),
-                                                                this_num,
-                                                                ENTRY,
-                                                                VTXID,
-                                                                parid,
-                                                                plane))
+    this_num = os.path.basename(PGRAPH_FILE).split(".")[0].split("_")[-1]
+    SS=os.path.join(OUTDIR,"{}_{}_{}_{}_{}_{}_{}_{}_IMG.png".format(ev_img.run(),
+                                                                    ev_img.subrun(),
+                                                                    ev_img.event(),
+                                                                    this_num,
+                                                                    ENTRY,
+                                                                    VTXID,
+                                                                    parid,
+                                                                    plane))
     
     
     plt.savefig(SS)
@@ -187,4 +187,4 @@ for plane in xrange(3):
     plt.close()
 
         
-sys.exit(1)
+sys.exit(0)
