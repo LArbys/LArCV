@@ -41,7 +41,7 @@ SSNET_DIR      = os.path.join(STAGE1_DIR,"%03d/%02d/%03d/%02d/"%(rundiv100,runmo
 VERTEXOUT_DIR  = os.path.join(STAGE2_DIR,"%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100))
 
 
-WIRE_FILE = os.path.join(SSNET_DIR,"snetout-larcv-%s.root" % fname)
+WIRE_FILE = os.path.join(SSNET_DIR,"ssnetout-larcv-%s.root" % fname)
 if os.path.exists(WIRE_FILE) == False:
     print
     print "Could _not_ find SSNET file!!!"
