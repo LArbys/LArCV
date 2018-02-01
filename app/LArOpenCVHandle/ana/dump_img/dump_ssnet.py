@@ -35,12 +35,15 @@ row = df.query("run==@RUN&subrun==@SUBRUN&event==@EVENT").iloc[0]
 ENTRY = int(row['entry'])
 fname = str(row['fname'])
 
-runmod100    = RUN%100
-rundiv100    = RUN/100
-subrunmod100 = SUBRUN%100
-subrundiv100 = SUBRUN/100
+_RUN    = int(fname.split("_")[3:])
+_SUBRUN = int(fname.split("_")[6:])
 
-jobtag         = 10000*RUN + SUBRUN
+runmod100    = _RUN%100
+rundiv100    = _RUN/100
+subrunmod100 = _SUBRUN%100
+subrundiv100 = _SUBRUN/100
+
+jobtag         = 10000*_RUN + _SUBRUN
 SSNET_DIR      = os.path.join(STAGE1_DIR,"%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100))
 VERTEXOUT_DIR  = os.path.join(STAGE2_DIR,"%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100))
 
