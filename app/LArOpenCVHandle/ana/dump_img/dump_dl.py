@@ -27,10 +27,9 @@ import pandas as pd
 
 df = pd.read_pickle(PKL_FILE);
 
-row = df.query("run==@RUN&subrun==@SUBRUN&event==@EVENT")
+row = df.query("run==@RUN&subrun==@SUBRUN&event==@EVENT").iloc[0]
 ENTRY = int(row['entry'])
 fname = str(row['fname'])
-
 
 runmod100    = RUN%100
 rundiv100    = RUN/100
