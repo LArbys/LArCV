@@ -46,13 +46,16 @@ WIRE_FILE = os.path.join(SSNET_DIR,"snetout-larcv-%s.root" % fname)
 if os.path.exists(WIRE_FILE) == False:
     print
     print "Could _not_ find SSNET file!!!"
+    print WIRE_FILE
     print
+    
     sys.exit(1)
 
 PGRAPH_FILE = os.path.join(VERTEXOUT_DIR,"vertexout_%05d.root" % jobtag)
-if os.path.exists(PGRAPh_FILE) == False:
+if os.path.exists(PGRAPH_FILE) == False:
     print
     print "Could _not_ find PGRAPH file!!!"
+    print PGRAPH_FILE
     print
     sys.exit(1)
 
