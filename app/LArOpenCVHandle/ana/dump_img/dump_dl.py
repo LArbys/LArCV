@@ -37,7 +37,7 @@ rundiv100    = RUN/100
 subrunmod100 = SUBRUN%100
 subrundiv100 = SUBRUN/100
 
-jobtag         = 10000*run + subrun
+jobtag         = 10000*RUN + SUBRUN
 SSNET_DIR      = os.path.join(STAGE1_DIR,"%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100))
 VERTEXOUT_DIR  = os.path.join(STAGE2_DIR,"%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100))
 
