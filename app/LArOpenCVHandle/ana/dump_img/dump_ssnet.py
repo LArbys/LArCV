@@ -196,7 +196,7 @@ for plane in xrange(3):
     SS = "{}_{}_{} Plane={}".format(ev_img.run(),ev_img.subrun(),ev_img.event(),plane)
     ax.set_title(SS,fontweight='bold',fontsize=50)        
 
-    this_num = os.path.basename(FILE1).split(".")[0].split("_")[-1]
+    this_num = os.path.basename(PGRAPH_FILE).split(".")[0].split("_")[-1]
     SS=os.path.join(OUTDIR,"{}_{}_{}_{}_{}_{}_{}_{}_SSNET.png".format(ev_img.run(),
                                                                       ev_img.subrun(),
                                                                       ev_img.event(),
