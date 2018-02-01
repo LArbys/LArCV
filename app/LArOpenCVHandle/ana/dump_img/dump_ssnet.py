@@ -1,5 +1,9 @@
 import os,sys
 
+print "-----------------------"
+print "| DL SSNET IMG DUMPER |"
+print "-----------------------"
+
 if len(sys.argv) != 9: 
     print ""
     print "PKL_FILE     = str(sys.argv[1])"
@@ -58,6 +62,12 @@ if os.path.exists(PGRAPH_FILE) == False:
     print
     sys.exit(1)
 
+BASE_PATH = os.path.realpath(__file__)
+BASE_PATH = os.path.dirname(BASE_PATH)
+sys.path.insert(0,BASE_PATH)
+
+from util.dutil import segment_image
+
 from larcv import larcv
 import numpy as np
 
@@ -69,8 +79,33 @@ import ROOT
 from ROOT import geo2d
 pygeo = geo2d.PyDraw()
 
+mycmap = matplotlib.cm.get_cmap('jet')
+mycmap.set_under('w')
+mycmap.set_over('b')
+
+#
+# ssnet image readout
+#
+proc = larcv.ProcessDriver('ProcessDriver') 
+proc.configure(os.path.join(BASE_PATH,"cfg","ssnet_config.cfg"))
+
+flist_v = ROOT.std.vector("std::string")()
+flist_v.push_back(WIRE_FILE)
+flist_v.push_back(PGRAPH_FILE)
+proc.override_input_file(flist_v)
+proc.initialize()
+
+ext_id   = proc.process_id("LArbysImageExtract")
+print "GOT: LArbysImageExtract @ ",ext_id
+ext_proc = proc.process_ptr(ext_id)   
+print "reading ssnet..."
+proc.process_entry(ENTRY)
+print "...read"
+
+#
+# vertex readout
+#
 iom = larcv.IOManager()
-iom.set_verbosity(2)
 iom.add_in_file(WIRE_FILE)
 iom.add_in_file(PGRAPH_FILE)
 iom.initialize()
@@ -84,30 +119,19 @@ print "@run=",ev_img.run(),"subrun=",ev_img.subrun(),"event=",ev_img.event()
 
 print "GOT:",ev_img.Image2DArray().size(),"images"
 print "GOT:",ev_pgraph.PGraphArray().size(),"vertices"
-print "GOT:",ev_ctor.Pixel2DClusterArray().size(),"particle clusters"
 
+print "ev_pgraph sz=",ev_pgraph.PGraphArray().size()
 pgraph = ev_pgraph.PGraphArray().at(VTXID)
+
 parray = pgraph.ParticleArray()
+pgroi  = parray.front()
+meta_v = pgroi.BB()
 
-print larcv.load_cvutil()
-img_v = [ev_img.at(i).crop(parray.front().BB(i)) for i in xrange(3)]
+X = pgroi.X()
+Y = pgroi.Y()
+Z = pgroi.Z()
 
-lim = larcv.LArbysImageMaker()
-lim._charge_max = 255
-lim._charge_min = 0
-lim._charge_to_gray_scale = 1
-
-img_v = [lim.ExtractMat(img) for img in img_v]
-img_v = [pygeo.image(img) for img in img_v]
-img_v = [img.T[::-1,:].copy() for img in img_v]
-
-X = pgraph.ParticleArray().front().X()
-Y = pgraph.ParticleArray().front().Y()
-Z = pgraph.ParticleArray().front().Z()
-
-meta_v = pgraph.ParticleArray().front().BB()
-
-colors=['magenta','white','yellow']
+colors = ['magenta','white','yellow']
 ctor_v = []
 
 for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
@@ -117,21 +141,30 @@ for parid,id_ in enumerate(np.array(pgraph.ClusterIndexArray())):
     for plane in xrange(3):
         pix2d_v = ev_ctor.Pixel2DClusterArray(plane).at(id_)
         pix2d_v = [[pix2d_v[ii].X(),pix2d_v[ii].Y()] for ii in xrange(pix2d_v.size())]
-        
         if len(pix2d_v)!=0: pix2d_v.append(pix2d_v[0])
-            
         pix2d_vv[plane] = np.array(pix2d_v)
 
     ctor_v.append(pix2d_vv)
-        
-for plane in xrange(3):
 
+#
+# fill images
+#
+print "fill images..."
+ext_proc.FillcvMat(pgroi)
+print "...filled"
+
+print "pythonize image..."
+img_v = segment_image(ext_proc,pygeo,1)
+print "...pythonized"
+
+for plane in xrange(3):
+    
     xpixel = ROOT.Double()
     ypixel = ROOT.Double()
 
     SS="Plane {}".format(plane)
     fig,ax=plt.subplots(figsize=(20,22))
-    ax.imshow(img_v[plane],cmap='jet',vmin=0,vmax=255,interpolation='none')
+    ax.imshow(img_v[plane],cmap=mycmap,vmin=0,vmax=255,interpolation='none')
 
     larcv.Project3D(meta_v[plane],X,Y,Z,0.0,plane,xpixel,ypixel)
 
@@ -157,27 +190,26 @@ for plane in xrange(3):
 
     
     if xmin != 1e9:
-        ax.set_xlim(xmin-25,xmax+25)
-        ax.set_ylim(ymin-25,ymax+25)
+        ax.set_xlim(xmin-50,xmax+50)
+        ax.set_ylim(ymin-50,ymax+50)
 
     SS = "{}_{}_{} Plane={}".format(ev_img.run(),ev_img.subrun(),ev_img.event(),plane)
     ax.set_title(SS,fontweight='bold',fontsize=50)        
 
-    this_num = os.path.basename(WIRE_FILE).split(".")[0].split("_")[-1]
-    SS=os.path.join(OUTDIR,"{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
-                                                                ev_img.subrun(),
-                                                                ev_img.event(),
-                                                                this_num,
-                                                                ENTRY,
-                                                                VTXID,
-                                                                parid,
-                                                                plane))
+    this_num = os.path.basename(FILE1).split(".")[0].split("_")[-1]
+    SS=os.path.join(OUTDIR,"{}_{}_{}_{}_{}_{}_{}_{}_SSNET.png".format(ev_img.run(),
+                                                                      ev_img.subrun(),
+                                                                      ev_img.event(),
+                                                                      this_num,
+                                                                      ENTRY,
+                                                                      VTXID,
+                                                                      parid,
+                                                                      plane))
     
-    
+
     plt.savefig(SS)
     plt.clf()
     plt.cla()
     plt.close()
 
-        
-sys.exit(1)
+sys.exit(0)
