@@ -143,7 +143,6 @@ for plane in xrange(3):
 
     larcv.Project3D(meta_v[plane],X,Y,Z,0.0,plane,xpixel,ypixel)
 
-    #ax.plot(xpixel,meta_v[plane].rows()-ypixel,'*',color='yellow',markersize=30)
     ax.plot(xpixel,ypixel,"*",color='yellow',markersize=30)
 
     xmin =  1e9
