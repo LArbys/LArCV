@@ -138,11 +138,13 @@ for plane in xrange(3):
 
     SS="Plane {}".format(plane)
     fig,ax=plt.subplots(figsize=(20,22))
-    ax.imshow(img_v[plane],cmap='jet',vmin=0,vmax=255,interpolation='none')
+    img = img_v[plane]
+    ax.imshow(img[::-1,:],cmap='jet',vmin=0,vmax=255,interpolation='none')
 
     larcv.Project3D(meta_v[plane],X,Y,Z,0.0,plane,xpixel,ypixel)
 
-    ax.plot(xpixel,meta_v[plane].rows()-ypixel,'*',color='yellow',markersize=30)
+    #ax.plot(xpixel,meta_v[plane].rows()-ypixel,'*',color='yellow',markersize=30)
+    ax.plot(xpixel,ypixel,"*",color='yellow',markersize=30)
 
     xmin =  1e9
     xmax = -1e9
@@ -154,13 +156,16 @@ for plane in xrange(3):
 
         ctor=ctor[plane]
         if ctor.size==0: continue
-        ax.plot(ctor[:,0],ctor[:,1],'-',lw=5,color=colors[ix],alpha=1.0)
+        xdata = ctor[:,0]
+        ydata = ctor[:,1]
+        ydata = meta_v[plane].rows() - ydata
+        ax.plot(xdata,ydata,'-',lw=5,color=colors[ix],alpha=1.0)
         
-        if ctor[:,0].min() < xmin : xmin = ctor[:,0].min()
-        if ctor[:,0].max() > xmax : xmax = ctor[:,0].max()
+        if xdata.min() < xmin : xmin = xdata.min()
+        if xdata.max() > xmax : xmax = xdata.max()
 
-        if ctor[:,1].min() < ymin : ymin = ctor[:,1].min()
-        if ctor[:,1].max() > ymax : ymax = ctor[:,1].max()
+        if ydata.min() < ymin : ymin = ydata.min()
+        if ydata.max() > ymax : ymax = ydata.max()
 
     
     if xmin != 1e9:
