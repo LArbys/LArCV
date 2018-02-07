@@ -350,8 +350,6 @@ for ev in TrkTree:
     PassAllChecks  = ev.GoodVertex
     
     passCuts = True
-    if VertexType != 3:
-        passCuts = False
     if NothingRecod == 1:
         passCuts = False 
     if InFiducial == False:
