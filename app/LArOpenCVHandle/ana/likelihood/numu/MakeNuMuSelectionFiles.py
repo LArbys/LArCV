@@ -344,7 +344,7 @@ for ev in TrkTree:
     InFiducial     = VtxInFid(vtxX,vtxY,vtxZ)
     NumTracks      = len(length_v)
     #Num5cmTracks   = ev.NtracksReco
-    Num5cmTracks   = len(length_v)
+    Num5cmTracks   = sum(1 for x in length_v if x > 5)
     EifP_v         = ev.E_proton_v
     EifMu_v        = ev.E_muon_v
     PassAllChecks  = ev.GoodVertex
