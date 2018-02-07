@@ -39,7 +39,7 @@ class ROOTData:
         # MC truth
         #
         self.selected1L1P   = array( 'i', [ kINVALID_INT   ] )
-        self.scedr          = array( 'f', [ kINVALID_FLOAT ] )
+        self.scedr          = array( 'f', [ -1.0*kINVALID_FLOAT ] )
         self.nu_pdg         = array( 'i', [ kINVALID_INT   ] )
         self.inter_type     = array( 'i', [ kINVALID_INT   ] ) 
         self.inter_mode     = array( 'i', [ kINVALID_INT   ] )
@@ -168,7 +168,7 @@ class ROOTData:
         self.true_vertex[1]   = kINVALID_FLOAT
         self.true_vertex[2]   = kINVALID_FLOAT
         self.selected1L1P[0]  = kINVALID_INT
-        self.scedr[0]         = kINVALID_FLOAT
+        self.scedr[0]         = -1.0*kINVALID_FLOAT
         self.nu_pdg[0]        = kINVALID_INT
         self.true_nu_E[0]     = kINVALID_FLOAT
 

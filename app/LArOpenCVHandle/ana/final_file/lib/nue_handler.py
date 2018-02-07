@@ -138,17 +138,19 @@ class NueHandler(Handler):
             return True
             
         self.rd.vertex_id[0]  = int(row['vtxid']);
-        self.rd.scedr[0]      = float(row['locv_scedr']);
 
-        if self.rd.scedr[0] < 5:
-            self.rd.reco_close[0] = int(1)
-        else:
-            self.rd.reco_close[0] = int(0)
+        if ismc == True:
+            self.rd.scedr[0] = float(row['locv_scedr']);
+
+            if self.rd.scedr[0] < 5:
+                self.rd.reco_close[0] = int(1)
+            else:
+                self.rd.reco_close[0] = int(0)
         
-        if int(row['locv_vtx_on_nu']) >= 2:
-            self.rd.reco_on_nu[0] = int(1)
-        else:
-            self.rd.reco_on_nu[0] = int(0)
+            if int(row['locv_vtx_on_nu']) >= 2:
+                self.rd.reco_on_nu[0] = int(1)
+            else:
+                self.rd.reco_on_nu[0] = int(0)
 
         if ismc == True:
             self.rd.reco_mc_proton_E[0]   = float(row['reco_mc_track_energy']);
