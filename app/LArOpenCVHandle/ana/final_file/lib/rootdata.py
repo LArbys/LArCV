@@ -50,14 +50,16 @@ class ROOTData:
         self.true_electron_E  = array( 'f', [ kINVALID_FLOAT ] )
         self.true_total_E     = array( 'f', [ kINVALID_FLOAT ] )
 
-        self.true_proton_dR      = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
-        self.true_electron_dR    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.true_proton_dR    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.true_electron_dR  = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
 
         self.true_proton_theta   = array( 'f', [ kINVALID_FLOAT ] )
         self.true_electron_theta = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_muon_theta     = array( 'f', [ kINVALID_FLOAT ] )
 
-        self.true_proton_phi     = array( 'f', [ kINVALID_FLOAT ] )
-        self.true_electron_phi   = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_proton_phi   = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_electron_phi = array( 'f', [ kINVALID_FLOAT ] )
+        self.true_muon_phi     = array( 'f', [ kINVALID_FLOAT ] )
 
         self.true_proton_ylen   = array( 'f', [ kINVALID_FLOAT ] )
         self.true_opening_angle = array( 'f', [ kINVALID_FLOAT ] )
@@ -185,9 +187,13 @@ class ROOTData:
         self.true_electron_dR[2]  = kINVALID_FLOAT
 
         self.true_proton_theta[0]   = kINVALID_FLOAT
+        self.true_proton_phi[0]     = kINVALID_FLOAT
+
         self.true_electron_theta[0] = kINVALID_FLOAT
         self.true_electron_phi[0]   = kINVALID_FLOAT
-        self.true_proton_phi[0]     = kINVALID_FLOAT
+
+        self.true_muon_theta[0] = kINVALID_FLOAT
+        self.true_muon_phi[0]   = kINVALID_FLOAT
 
         self.true_opening_angle[0] = kINVALID_FLOAT 
         self.true_proton_ylen[0]   = kINVALID_FLOAT
@@ -287,9 +293,6 @@ class ROOTData:
         tree.Branch("true_electron_E", self.true_electron_E, "true_electron_E/F")
         tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
 
-        # tree.Branch("true_proton_dR"  , self.true_proton_dR  , "true_proton_dR[3]/F")
-        # tree.Branch("true_electron_dR", self.true_electron_dR, "true_electron_dR[3]/F")
-
         tree.Branch("true_proton_theta"  , self.true_proton_theta  , "true_proton_theta/F")
         tree.Branch("true_electron_theta", self.true_electron_theta, "true_electron_theta/F")
 
@@ -364,9 +367,15 @@ class ROOTData:
         tree.Branch("inter_type", self.inter_type, "inter_type/I")
         tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
 
-        tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
-        tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
+        tree.Branch("true_proton_E" , self.true_proton_E , "true_proton_E/F")
+        tree.Branch("true_lepton_E" , self.true_lepton_E , "true_lepton_E/F")
         
+        tree.Branch("true_proton_theta" , self.true_proton_theta , "true_proton_theta/F")
+        tree.Branch("true_muon_theta"   , self.true_muon_theta   , "true_muon_theta/F")
+
+        tree.Branch("true_proton_phi" , self.true_proton_phi , "true_proton_phi/F")
+        tree.Branch("true_muon_phi"   , self.true_muon_phi   , "true_muon_phi/F")
+
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
         tree.Branch("reco_close"   , self.reco_close   , "reco_close/I")
         tree.Branch("reco_on_nu"   , self.reco_on_nu   , "reco_on_nu/I")
