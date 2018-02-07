@@ -1,8 +1,8 @@
 import collections
 
 def define_LL_line():
-    p0 = -0.94999999999999996
-    p1 =  4.0999999999999996
+    p0 = -0.93125
+    p1 =  4.44999
     return (p0,p1)
 
 def define_LL_vars():
@@ -32,20 +32,17 @@ def define_LL_vars():
     key="locv_width_max_v"
     pdf_m[key] = ((xlo,xhi,dx),key)
     
-    
     xlo= 0
     xhi= 60000
     dx = 2000
     key="locv_qsum_min_v"
     pdf_m[key] = ((xlo,xhi,dx),key)
     
-    
     xlo= 0
     xhi= 60000
     dx = 2000
     key="locv_qsum_max_v"
     pdf_m[key] = ((xlo,xhi,dx),key)
-    
     
     xlo= 0
     xhi= 20
@@ -64,7 +61,6 @@ def define_LL_vars():
     dx = 0.1
     key="locv_shower_frac_min_v"
     pdf_m[key] = ((xlo,xhi,dx),key)
-    
     
     xlo= -3.14
     xhi= 3.14
@@ -157,7 +153,7 @@ if __name__ == '__main__':
     proton_spec_m = {}
     cosmic_spec_m = {}
     
-    DRAW = True
+    DRAW = False
 
     print "Define..."
     pdf_m = define_LL_vars()
