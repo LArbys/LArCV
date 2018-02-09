@@ -133,12 +133,11 @@ class ROOTData:
         # pid related
         # 
         self.inferred     = array( 'i', [ kINVALID_INT   ])
-        self.plane        = array( 'i', [ kINVALID_INT   ])
-        self.eminus_score = array( 'f', [ kINVALID_FLOAT ])
-        self.gamma_score  = array( 'f', [ kINVALID_FLOAT ])
-        self.muon_score   = array( 'f', [ kINVALID_FLOAT ])
-        self.pion_score   = array( 'f', [ kINVALID_FLOAT ])
-        self.proton_score = array( 'f', [ kINVALID_FLOAT ])
+        self.eminus_score = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.gamma_score  = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.muon_score   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.pion_score   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.proton_score = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
 
 
 
@@ -262,12 +261,12 @@ class ROOTData:
         # PID related
         #
         self.inferred[0]     = kINVALID_INT;
-        self.plane[0]        = kINVALID_INT;
-        self.eminus_score[0] = kINVALID_FLOAT;
-        self.gamma_score[0]  = kINVALID_FLOAT;
-        self.muon_score[0]   = kINVALID_FLOAT;
-        self.pion_score[0]   = kINVALID_FLOAT;
-        self.proton_score[0] = kINVALID_FLOAT;
+        for pl in xrange(3):
+            self.eminus_score[pl] = kINVALID_FLOAT;
+            self.gamma_score[pl]  = kINVALID_FLOAT;
+            self.muon_score[pl]   = kINVALID_FLOAT;
+            self.pion_score[pl]   = kINVALID_FLOAT;
+            self.proton_score[pl] = kINVALID_FLOAT;
         
 
     def init_nue_tree(self,tree):
@@ -341,12 +340,11 @@ class ROOTData:
         
         # reco PID
         tree.Branch("pid_inferred", self.inferred    , "pid_inferred/I")
-        tree.Branch("pid_plane"   , self.plane       , "pid_plane/I") 
-        tree.Branch("eminus_score", self.eminus_score, "eminus_score/F")
-        tree.Branch("gamma_score" , self.gamma_score , "gamma_score/F")
-        tree.Branch("muon_score"  , self.muon_score  , "muon_score/F")
-        tree.Branch("pion_score"  , self.pion_score  , "pion_score/F")
-        tree.Branch("proton_score", self.proton_score, "proton_score/F")
+        tree.Branch("eminus_score", self.eminus_score, "eminus_score[3]/F")
+        tree.Branch("gamma_score" , self.gamma_score , "gamma_score[3]/F")
+        tree.Branch("muon_score"  , self.muon_score  , "muon_score[3]/F")
+        tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
+        tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
 
 
     def init_numu_tree(self,tree):
@@ -414,9 +412,8 @@ class ROOTData:
         tree.Branch("Proton_E"           , self.Proton_Edep        , "Proton_E/F")
 
         tree.Branch("pid_inferred", self.inferred    , "pid_inferred/I")
-        tree.Branch("pid_plane"   , self.plane       , "pid_plane/I") 
-        tree.Branch("eminus_score", self.eminus_score, "eminus_score/F")
-        tree.Branch("gamma_score" , self.gamma_score , "gamma_score/F")
-        tree.Branch("muon_score"  , self.muon_score  , "muon_score/F")
-        tree.Branch("pion_score"  , self.pion_score  , "pion_score/F")
-        tree.Branch("proton_score", self.proton_score, "proton_score/F")
+        tree.Branch("eminus_score", self.eminus_score, "eminus_score[3]/F")
+        tree.Branch("gamma_score" , self.gamma_score , "gamma_score[3]/F")
+        tree.Branch("muon_score"  , self.muon_score  , "muon_score[3]/F")
+        tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
+        tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")

@@ -184,13 +184,12 @@ class NumuHandler(Handler):
         self.rd.Proton_Edep[0]        = float(row["numu_Proton_Edep"])
 
         # fill the pid
-        self.rd.inferred[0]      = int(1)
-        self.rd.plane[0]         = int(row['anapid_plane'])
-        self.rd.eminus_score[0]  = float(row['anapid_eminus_score'])
-        self.rd.gamma_score[0]   = float(row['anapid_gamma_score'])
-        self.rd.muon_score[0]    = float(row['anapid_muon_score'])
-        self.rd.pion_score[0]    = float(row['anapid_pion_score'])
-        self.rd.proton_score[0]  = float(row['anapid_proton_score'])
+        for pl in xrange(3):
+            self.rd.eminus_score[pl]  = float(row['anapid_eminus_score'][pl])
+            self.rd.gamma_score[pl]   = float(row['anapid_gamma_score'][pl])
+            self.rd.muon_score[pl]    = float(row['anapid_muon_score'][pl])
+            self.rd.pion_score[pl]    = float(row['anapid_pion_score'][pl])
+            self.rd.proton_score[pl]  = float(row['anapid_proton_score'][pl])
 
         self.tree.Fill()
         self.rd.reset()
