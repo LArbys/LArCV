@@ -2,26 +2,36 @@ import os,sys, tempfile
 
 if len(sys.argv) != 9:
     print
-    print "PKL        = str(sys.argv[1])"
-    print "RUN        = str(sys.argv[2])"
-    print "SUBRUN     = str(sys.argv[3])"
-    print "EVENT      = str(sys.argv[4])"
-    print "SSNET_DIR  = str(sys.argv[5])"
-    print "VTX_DIR    = str(sys.argv[6])"
-    print "ST_DIR     = str(sys.argv[7])"
-    print "OUTPUT_DIR = str(sys.argv[8])"
+    print "PKL       = str(sys.argv[1])"
+    print "RUN       = str(sys.argv[2])"
+    print "SUBRUN    = str(sys.argv[3])"
+    print "EVENT     = str(sys.argv[4])"
+    print "SSNET_DIR = str(sys.argv[5])"
+    print "VTX_DIR   = str(sys.argv[6])"
+    print "ST_DIR    = str(sys.argv[7])"
+    print "OUT_DIR   = str(sys.argv[8])"
     print
     sys.exit(1)
     
     
-PKL        = str(sys.argv[1])
-RUN        = str(sys.argv[2])
-SUBRUN     = str(sys.argv[3])
-EVENT      = str(sys.argv[4])
-SSNET_DIR  = str(sys.argv[5])
-VTX_DIR    = str(sys.argv[6])
-ST_DIR     = str(sys.argv[7])
-OUTPUT_DIR = str(sys.argv[8])
+PKL       = str(sys.argv[1])
+RUN       = str(sys.argv[2])
+SUBRUN    = str(sys.argv[3])
+EVENT     = str(sys.argv[4])
+SSNET_DIR = str(sys.argv[5])
+VTX_DIR   = str(sys.argv[6])
+ST_DIR    = str(sys.argv[7])
+OUT_DIR   = str(sys.argv[8])
+
+
+print "PKL        = %s" % PKL
+print "RUN        = %s" % RUN
+print "SUBRUN     = %s" % SUBRUN
+print "EVENT      = %s" % EVENT
+print "SSNET_DIR  = %s" % SSNET_DIR
+print "VTX_DIR    = %s" % VTX_DIR
+print "ST_DIR     = %s" % ST_DIR
+print "OUT_DIR    = %s" % OUT_DIR
 
 BINARY = "/usr/local/share/dllee_unified/LArCV/app/LArOpenCVHandle/ana/entry_copy/entry_copy"
 
@@ -58,13 +68,12 @@ OPFLASH_FILE = os.path.join(SSNET_DIR,INDIR,"opreco-%s.root" % FNAME)
 
 infile_v  = [SSNET_FILE, PGRAPH_FILE, SHOWER_FILE, TRACK_FILE, OPFLASH_FILE]
 outfile_v = []
-
 for infile in infile_v:
 
     if infile != "":
         outfile = os.path.basename(infile).split(".")
         outfile = outfile[0] + "_filter_%d.root" % ENTRY
-        outfile = os.path.join(OUTPUT_DIR,outfile)
+        outfile = os.path.join(OUT_DIR,outfile)
     else:
         outfile = ""
 
