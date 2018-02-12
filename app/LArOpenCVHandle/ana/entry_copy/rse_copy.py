@@ -66,13 +66,15 @@ SHOWER_FILE  = os.path.join(ST_DIR,INDIR,"shower_reco_out_%05d.root" % JOBTAG)
 TRACK_FILE   = os.path.join(ST_DIR,INDIR,"tracker_reco_%05d.root" % JOBTAG)
 OPFLASH_FILE = os.path.join(SSNET_DIR,INDIR,"opreco-%s.root" % FNAME)
 
+name_v    = ["ssnet",    "pgraph"   , "shower"   , "track"   , "op"        ]
 infile_v  = [SSNET_FILE, PGRAPH_FILE, SHOWER_FILE, TRACK_FILE, OPFLASH_FILE]
 outfile_v = []
-for infile in infile_v:
+
+for infile,name in zip(infile_v,name):
 
     if infile != "":
-        outfile = os.path.basename(infile).split(".")
-        outfile = outfile[0] + "_filter_%d.root" % ENTRY
+        outfile = name + "_Run%06d-SubRun%06d-Event%06d.root"
+        outfile = outfile % (int(RUN),int(SUBRUN),int(EVENT))
         outfile = os.path.join(OUT_DIR,outfile)
     else:
         outfile = ""
