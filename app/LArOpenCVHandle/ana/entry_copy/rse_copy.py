@@ -63,7 +63,7 @@ for infile in infile_v:
 
     if infile != "":
         outfile = os.path.basename(infile).split(".")
-        outfile = outfile[0] + "_filter_%d.root" % ENTRY_V[0]
+        outfile = outfile[0] + "_filter_%d.root" % ENTRY
         outfile = os.path.join(OUTPUT_DIR,outfile)
     else:
         outfile = ""
@@ -73,6 +73,7 @@ for infile in infile_v:
 
 temp = tempfile.NamedTemporaryFile()
 SS = ""
+ENTRY_V = [ENTRY]
 for entry in ENTRY_V:
     SS += "%d" % int(entry)
     SS += " ";
