@@ -1,15 +1,10 @@
 CC=g++
 CFLAGS=-g
 INCFLAGS =-I.
-INCFLAGS+=-I$(shell larcv-config --incdir)
-INCFLAGS+=-I$(OPENCV_INCDIR)
 INCFLAGS+=$(shell root-config --cflags)
 
-
 LDFLAGS=-L.
-LDFLAGS+=$(shell larcv-config --libs)
 LDFLAGS+=$(shell root-config --libs)
-
 
 SOURCES=entry_copy.cxx
 OBJECTS=$(SOURCES:.cxx=.o)

@@ -22,12 +22,12 @@ int main(int argc, const char** argv) {
   std::string entryfile = argv[3];
 
   std::ifstream ifs;
+
   ifs.open(entryfile, std::ifstream::in);
 
   std::string line;
   std::getline(ifs, line);
   std::istringstream iss(line);
-  std::cout << "GOT line=" << line << std::endl;
 
   std::vector<std::string> sentry_v;
   
@@ -39,6 +39,8 @@ int main(int argc, const char** argv) {
   entry_v.reserve(sentry_v.size());
   for (const auto& sentry : sentry_v)
     entry_v.emplace_back(std::stoi(sentry));
+
+  ifs.close();
 
   auto tf = TFile::Open(infile.c_str(),"READ");
   std::set<std::string> key_v;
