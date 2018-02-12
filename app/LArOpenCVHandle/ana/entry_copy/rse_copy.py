@@ -70,7 +70,7 @@ name_v    = ["ssnet",    "pgraph"   , "shower"   , "track"   , "op"        ]
 infile_v  = [SSNET_FILE, PGRAPH_FILE, SHOWER_FILE, TRACK_FILE, OPFLASH_FILE]
 outfile_v = []
 
-for infile,name in zip(infile_v,name):
+for infile,name in zip(infile_v,name_v):
 
     if infile != "":
         outfile = name + "_Run%06d-SubRun%06d-Event%06d.root"
