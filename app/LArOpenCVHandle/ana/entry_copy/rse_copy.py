@@ -36,8 +36,8 @@ row = df.query("run==@RUN&subrun==@SUBRUN&event==@EVENT").iloc[0]
 ENTRY = int(row['entry'])
 FNAME = str(row['fname'])
 
-_RUN    = int(fname.split("-")[0][3:])
-_SUBRUN = int(fname.split("-")[-1][6:])
+_RUN    = int(FNAME.split("-")[0][3:])
+_SUBRUN = int(FNAME.split("-")[-1][6:])
 
 runmod100    = _RUN%100
 rundiv100    = _RUN/100
