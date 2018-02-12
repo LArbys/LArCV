@@ -55,7 +55,7 @@ subrunmod100 = _SUBRUN%100
 subrundiv100 = _SUBRUN/100
 
 JOBTAG = 10000*_RUN + _SUBRUN
-INDIR  = "/%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100)
+INDIR  = "%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100)
 
 #
 # get the input files
