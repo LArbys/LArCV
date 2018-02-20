@@ -1,5 +1,5 @@
-#ifndef __SSNETPIXELANA_H__
-#define __SSNETPIXELANA_H__
+#ifndef __SSNETTRUTHANA_H__
+#define __SSNETTRUTHANA_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
@@ -7,16 +7,16 @@
 
 namespace larcv {
 
-  class SSNetPixelAna : public ProcessBase {
+  class SSNetTruthAna : public ProcessBase {
 
   public:
 
    
     /// Default constructor
-    SSNetPixelAna(const std::string name="SSNetPixelAna");
+    SSNetTruthAna(const std::string name="SSNetTruthAna");
     
     /// Default destructor
-    ~SSNetPixelAna(){}
+    ~SSNetTruthAna(){}
 
     void configure(const PSet&);
 
@@ -86,17 +86,17 @@ namespace larcv {
   };
 
   /**
-     \class larcv::SSNetPixelAnaFactory
-     \brief A concrete factory class for larcv::SSNetPixelAna
+     \class larcv::SSNetTruthAnaFactory
+     \brief A concrete factory class for larcv::SSNetTruthAna
   */
-  class SSNetPixelAnaProcessFactory : public ProcessFactoryBase {
+  class SSNetTruthAnaProcessFactory : public ProcessFactoryBase {
   public:
     /// ctor
-    SSNetPixelAnaProcessFactory() { ProcessFactory::get().add_factory("SSNetPixelAna",this); }
+    SSNetTruthAnaProcessFactory() { ProcessFactory::get().add_factory("SSNetTruthAna",this); }
     /// dtor
-    ~SSNetPixelAnaProcessFactory() {}
+    ~SSNetTruthAnaProcessFactory() {}
     /// creation method
-    ProcessBase* create(const std::string instance_name) { return new SSNetPixelAna(instance_name); }
+    ProcessBase* create(const std::string instance_name) { return new SSNetTruthAna(instance_name); }
   };
 
 }

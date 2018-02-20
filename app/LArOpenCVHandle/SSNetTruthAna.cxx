@@ -1,7 +1,7 @@
-#ifndef __SSNETPIXELANA_CXX__
-#define __SSNETPIXELANA_CXX__
+#ifndef __SSNETTRUTHANA_CXX__
+#define __SSNETTRUTHANA_CXX__
 
-#include "SSNetPixelAna.h"
+#include "SSNetTruthAna.h"
 #include "LArbysImageMaker.h"
 #include "DataFormat/EventROI.h"
 #include "LArbysUtils.h"
@@ -13,14 +13,14 @@
 
 namespace larcv {
   
-  static SSNetPixelAnaProcessFactory __global_SSNetPixelAnaProcessFactory__;
+  static SSNetTruthAnaProcessFactory __global_SSNetTruthAnaProcessFactory__;
   
-  SSNetPixelAna::SSNetPixelAna(const std::string name) :
+  SSNetTruthAna::SSNetTruthAna(const std::string name) :
     ProcessBase(name),
     _tree(nullptr)
   {}
     
-  void SSNetPixelAna::configure(const PSet& cfg)
+  void SSNetTruthAna::configure(const PSet& cfg)
   {
     _ev_img2d_prod   = cfg.get<std::string>("EventImage2DProducer");
     _ev_trk2d_prod   = cfg.get<std::string>("TrackImage2DProducer");
@@ -31,7 +31,7 @@ namespace larcv {
     _crop_radius     = cfg.get<size_t>("CropRadius");
   }
   
-  void SSNetPixelAna::initialize()
+  void SSNetTruthAna::initialize()
   {
     
     _tree = new TTree("EventCosmicPixelTree","");
@@ -76,10 +76,10 @@ namespace larcv {
     _tree->Branch("shr_ratiopixelavg",&_shr_ratiopixelavg,"_shr_ratiopixelavg/F");
     
     _tree->Branch("n_valid_planes",&_n_valid_planes,"_n_valid_planes/F");
-
+    
   }
-
-  bool SSNetPixelAna::process(IOManager& mgr)
+  
+  bool SSNetTruthAna::process(IOManager& mgr)
   {
     auto const ev_img2d  = (EventImage2D*)(mgr.get_data(kProductImage2D,_ev_img2d_prod));
     if (!ev_img2d) throw larbys("Invalid event image producer provided");
@@ -98,8 +98,7 @@ namespace larcv {
     }
 
     auto const ev_true_roi = (EventROI*)(mgr.get_data(kProductROI,_true_roi_prod));
-    if (!ev_true_roi) throw larbys("Invalid True ROI producer provided!");
-    
+
     const auto& roi = ev_roi->ROIArray().front();
           
     _run    = (int) ev_img2d->run();
@@ -114,7 +113,7 @@ namespace larcv {
 
     for(auto& v : trk_pixel_v) v = 0;
     for(auto& v : shr_pixel_v) v = 0;
-    
+
     const auto& nu_roi = ev_true_roi->ROIArray().front();
 
     LARCV_DEBUG() << "PDG: " << nu_roi.PdgCode() << std::endl;
@@ -147,7 +146,6 @@ namespace larcv {
     } catch(const std::exception& e) {
       throw larbys("Could not find nearest wire");
     }
-
 
     float n_valid_planes = 0;
     for (size_t plane=0; plane<3; ++plane) {
@@ -295,7 +293,7 @@ namespace larcv {
     return true;
   }
 
-  void SSNetPixelAna::finalize()
+  void SSNetTruthAna::finalize()
   {
     if(has_ana_file()) {
       _tree->Write();
