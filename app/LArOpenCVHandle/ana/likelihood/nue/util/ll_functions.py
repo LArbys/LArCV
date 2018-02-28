@@ -98,7 +98,6 @@ def prep_LL_vars(df,ismc=True):
         df['reco_mc_track_energy']  = df.apply(reco_mc_track_energy,axis=1)
         df['reco_mc_total_energy']  = df.apply(reco_mc_total_energy,axis=1)
 
-
     return df
 
 #
@@ -514,9 +513,9 @@ def shower_mean_pixel_dist(row):
         val_Y = row['locv_mean_pixel_dist_Y_v'][i]
         val_V = row['locv_mean_pixel_dist_V_v'][i]
         
-        if val_Y>0:
+        if val_Y>=0:
             ret[i] = val_Y
-        elif val_V>0:
+        elif val_V>=0:
             ret[i] = val_V
         else:
             raise Exception("ll function shower_mean_pixel_dist")
@@ -530,9 +529,9 @@ def shower_width(row):
         val_Y = row['locv_width_Y_v'][i]
         val_V = row['locv_width_V_v'][i]
         
-        if val_Y > 0:
+        if val_Y>=0:
             ret[i] = val_Y
-        elif val_V > 0:
+        elif val_V>=0:
             ret[i] = val_V
         else:
             raise Exception("ll function shower_width")
@@ -546,9 +545,9 @@ def shower_area(row):
         val_Y = row['locv_area_Y_v'][i]
         val_V = row['locv_area_V_v'][i]
         
-        if val_Y>0:
+        if val_Y>=0:
             ret[i] = val_Y
-        elif val_V>0:
+        elif val_V>=0:
             ret[i] = val_V
         else:
             raise Exception("ll function shower_area")
@@ -562,9 +561,9 @@ def shower_qsum(row):
         val_Y = row['locv_qsum_Y_v'][i]
         val_V = row['locv_qsum_V_v'][i]
         
-        if val_Y>0:
+        if val_Y>=0:
             ret[i] = val_Y
-        elif val_V>0:
+        elif val_V>=0:
             ret[i] = val_V
         else:
             raise Exception("ll function shower_qsum")
@@ -578,9 +577,9 @@ def shower_shower_frac(row):
         val_Y = row['locv_shower_frac_Y_v'][i]
         val_V = row['locv_shower_frac_V_v'][i]
         
-        if val_Y>0:
+        if val_Y>=0:
             ret[i] = val_Y
-        elif val_V>0:
+        elif val_V>=0:
             ret[i] = val_V
         else:
             raise Exception("ll function shower_shower_frac")
@@ -936,39 +935,39 @@ def reco_LL_proton_energy(row):
     return float(row['anatrk2_E_proton_v'][pid])
 
 def reco_LL_proton_dEdx(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p00_shr_dedx'][protonid])
 
 def reco_LL_proton_theta(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p01_shr_theta'][protonid])
 
 def reco_LL_proton_phi(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p02_shr_phi'][protonid])
 
 def reco_LL_proton_length(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p03_shr_length'][protonid])
 
 def reco_LL_proton_mean_pixel_dist(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p04_shr_mean_pixel_dist'][protonid])
 
 def reco_LL_proton_width(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p05_shr_width'][protonid])
 
 def reco_LL_proton_area(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p06_shr_area'][protonid])
 
 def reco_LL_proton_qsum(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p07_shr_qsum'][protonid])
 
 def reco_LL_proton_shower_frac(row):
-    protonid  = int(row['reco_LL_proton_id'])
+    protonid  = int(row['reco_p_id'])
     return float(row['p08_shr_shower_frac'][protonid])
 
 #
