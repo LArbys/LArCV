@@ -9,7 +9,8 @@ if len(sys.argv) != 9:
     print "SSNET_DIR = str(sys.argv[5])"
     print "VTX_DIR   = str(sys.argv[6])"
     print "ST_DIR    = str(sys.argv[7])"
-    print "OUT_DIR   = str(sys.argv[8])"
+    print "IS_MC     = str(sys.argv[8])"
+    print "OUT_DIR   = str(sys.argv[9])"
     print
     sys.exit(1)
     
@@ -21,7 +22,8 @@ EVENT     = str(sys.argv[4])
 SSNET_DIR = str(sys.argv[5])
 VTX_DIR   = str(sys.argv[6])
 ST_DIR    = str(sys.argv[7])
-OUT_DIR   = str(sys.argv[8])
+IS_MC     = int(str(sys.argv[8]))
+OUT_DIR   = str(sys.argv[9])
 
 
 print "PKL        = %s" % PKL
@@ -65,9 +67,14 @@ PGRAPH_FILE  = os.path.join(VTX_DIR,INDIR,"vertexout_%05d.root" % JOBTAG)
 SHOWER_FILE  = os.path.join(ST_DIR,INDIR,"shower_reco_out_%05d.root" % JOBTAG)
 TRACK_FILE   = os.path.join(ST_DIR,INDIR,"tracker_reco_%05d.root" % JOBTAG)
 OPFLASH_FILE = os.path.join(SSNET_DIR,INDIR,"opreco-%s.root" % FNAME)
+MCINFO_FILE  = os.path.join(SSNET_DIR,INDIR,"mcinfo-%s.root" % FNAME)
 
-name_v    = ["ssnet",    "pgraph"   , "shower"   , "track"   , "op"        ]
-infile_v  = [SSNET_FILE, PGRAPH_FILE, SHOWER_FILE, TRACK_FILE, OPFLASH_FILE]
+if IS_MC == 0:
+    name_v    = ["ssnet",    "pgraph"   , "shower"   , "track"   , "op"        ]
+    infile_v  = [SSNET_FILE, PGRAPH_FILE, SHOWER_FILE, TRACK_FILE, OPFLASH_FILE]
+else:
+    name_v    = ["ssnet",    "pgraph"   , "shower"   , "track"   , "op"        , "mcinfo"   ]
+    infile_v  = [SSNET_FILE, PGRAPH_FILE, SHOWER_FILE, TRACK_FILE, OPFLASH_FILE, MCINFO_FILE]
 outfile_v = []
 
 for infile,name in zip(infile_v,name_v):
