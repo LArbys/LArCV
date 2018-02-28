@@ -89,8 +89,8 @@ class NueHandler(Handler):
             self.rd.inter_type[0] = int(row['anashr2_mcinfoInteractionType']); 
             self.rd.inter_mode[0] = int(row['anashr2_mcinfoMode']); 
             
-            self.rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
-            self.rd.true_electron_E[0] = float(row['anashr2_mc_energy'])
+            self.rd.true_proton_E[0] = float(row['locv_dep_sum_proton'])
+            self.rd.true_lepton_E[0] = float(row['anashr2_mc_energy'])
             
             self.rd.true_proton_P[0]   = float(row['proton_momentum_X'])
             self.rd.true_lepton_P[0]   = float(row['lepton_momentum_X'])
