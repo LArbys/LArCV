@@ -16,6 +16,7 @@ namespace larcv {
   {
 
     _pi_thresh_min = cfg.get<float>("MinPIThreshold");
+    _use_abs_value = cfg.get<bool>("UseAbsValue",false);
     _mask_value = cfg.get<float>("MaskValue");
     _output_producer = cfg.get<std::string>("OutputProducer","");
     _reference_image_producer = cfg.get<std::string>("ReferenceProducer");
@@ -94,9 +95,18 @@ namespace larcv {
 
       auto const& ref_vector = ref_image.as_vector();
 
-      for(size_t px_idx = 0; px_idx < ref_vector.size(); ++px_idx)
+      if(_use_abs_value) {
+	
+	for(size_t px_idx = 0; px_idx < ref_vector.size(); ++px_idx)
 
-	if(ref_vector[px_idx] < _pi_thresh_min) tar_image.set_pixel(px_idx,_mask_value);
+	  if( std::fabs(ref_vector[px_idx]) < _pi_thresh_min) tar_image.set_pixel(px_idx,_mask_value);
+
+      } else {
+
+	for(size_t px_idx = 0; px_idx < ref_vector.size(); ++px_idx)
+
+	  if(ref_vector[px_idx] < _pi_thresh_min) tar_image.set_pixel(px_idx,_mask_value);
+      }
 
     }
 

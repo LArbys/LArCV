@@ -187,7 +187,9 @@ print "Files seem to be 100% kosher, proceeding with analysis"
 
 with open(argv[3],'rb') as handle: LLPdfs = pickle.load(handle)          # Load LL histograms for 1mu1p cosmic differentiation
 with open(argv[4],'rb') as handle: LLPdfs_nusep = pickle.load(handle)    # Load LL histograms for 1mu1p nu background differentiation
-
+with open('3DLLPdfs_CCpi0_vs_cosmic_HIGHSTAT.pickle','rb') as handle: LLPdfs_findpi = pickle.load(handle) 
+    
+    
 # --- Create output ROOT file and initialize variables ----------------- #
 outFileName = 'FinalVertexVariables_%i.root'%(fileTag1)
 outFileName = os.path.join(sys.argv[5],outFileName)
@@ -209,6 +211,7 @@ _n5tracks   = array('i',[0])
 _passCuts   = array('i',[0])
 _cosmicLL   = array('f',[0])
 _nubkgLL    = array('f',[0])
+_ccpi0LL    = array('f',[0])
 _good3DReco = array('i',[0])
 _eta        = array('f',[0])
 _wallDist   = array('f',[0])
@@ -281,6 +284,7 @@ outTree.Branch('N5cmTracks'    , _n5tracks    , '_n5tracks/I'   )
 outTree.Branch('PassCuts'      , _passCuts    , '_passCuts/I'   )
 outTree.Branch('CosmicLL'      , _cosmicLL    , '_cosmiLL/F'    )
 outTree.Branch('NuBkgLL'       , _nubkgLL     , '_nubkgLL/F'    )
+outTree.Branch('CCpi0LL'       , _ccpi0LL     , '_ccpi0LL/F'    )
 outTree.Branch('WallDist'      , _wallDist    , '_wallDist/F'   )
 outTree.Branch('eta'           , _eta         , '_eta/F'        )
 outTree.Branch('openAng'       , _openAng     , '_openAng/F'    )
@@ -377,8 +381,8 @@ for ev in TrkTree:
         #
         # muon and proton selection
         #
-        mid = np.argmax(length_v)
-        pid = np.argmin(length_v)
+        mid = np.argmax(dqdx_v)
+        pid = np.argmin(dqdx_v)
         
         _muon_id[0]          = int(mid)
         _muon_phi[0]         = float(vtxPhi_v[mid])
@@ -405,15 +409,18 @@ for ev in TrkTree:
         skipVars    = ['ionplen'] #Will skip these variables when calculating LL, ignored due to data/MC diffs                                                                
         cosmicLL = 0
         nusepLL  = 0
+        ccpi0LL  = 0
         for y in processDict.keys():
            if y in skipVars: continue
            processVal = processDict[y]
            if isinstance(processVal,list):
                cosmicLL += ComputeVarProb2D(LLPdfs[y],processVal[0],processVal[1])
                nusepLL  += ComputeVarProb2D(LLPdfs_nusep[y],processVal[0],processVal[1])
+               ccpi0LL  += ComputeVarProb2D(LLPdfs_findpi[y],processVal[0],processVal[1])
            else:
                cosmicLL += ComputeVarProb(LLPdfs[y],processVal)
                nusepLL  += ComputeVarProb(LLPdfs_nusep[y],processVal) 
+               ccpi0LL  += ComputeVarProb(LLPdfs_findpi[y],processVal)
             
     _run[0]        = run
     _subrun[0]     = subrun
@@ -430,6 +437,7 @@ for ev in TrkTree:
     _passCuts[0]   = passCuts
     _cosmicLL[0]   = cosmicLL if passCuts == True else -9999
     _nubkgLL[0]    = nusepLL if passCuts == True else -9999
+    _ccpi0LL[0]    = ccpi0LL if passCuts == True else -9999
     _eta[0]        = eta if passCuts == True else -9999
     _wallDist[0]   = wallDist if passCuts == True else -9999
     _openAng[0]    = openAng if passCuts == True else -9999

@@ -139,7 +139,7 @@ namespace larcv {
       throw larbys();
     }
 
-    if(_num_processed >= _num_output_max) {
+    if(_num_processed > _num_output_max) {
       LARCV_CRITICAL() << "No more output entry to be made!" << std::endl;
       return false;
     }
@@ -153,8 +153,8 @@ namespace larcv {
       if(_in1_driver.process_entry()) break;
     }
 
-    if(_num_in2 >= _num_input_max) return false;
-    if(_num_in1 >= _num_input_max) return false;
+    if(_num_in2 > _num_input_max) return false;
+    if(_num_in1 > _num_input_max) return false;
 
     LARCV_INFO() << "Processing InputStream1 entry " << _num_in2
 		 << " ... InputStream2 entry " << _num_in1 << std::endl;
