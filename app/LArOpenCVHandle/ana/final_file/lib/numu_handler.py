@@ -157,6 +157,7 @@ class NumuHandler(Handler):
         
         self.rd.CosmicLL[0]      = float(row["numu_CosmicLL"])
         self.rd.NuBkgLL[0]       = float(row["numu_NuBkgLL"])
+        self.rd.CCpi0LL[0]       = float(row["numu_CCpi0LL"])
         self.rd.PassCuts[0]      = int(row["numu_PassCuts"])
         self.rd.VtxAlgo[0]       = int(row["numu_VtxAlgo"])
         self.rd.NTracks[0]       = int(row["numu_NTracks"])
