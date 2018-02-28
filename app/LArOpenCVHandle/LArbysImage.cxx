@@ -109,32 +109,39 @@ namespace larcv {
 
   }
 
-  void LArbysImage::get_rsee(IOManager& mgr,std::string producer,uint& run, uint& subrun, uint& event, uint& entry) {
+  void LArbysImage::get_rsee(IOManager& mgr,std::string producer,int& run, int& subrun, int& event, int& entry) {
+
     auto ev_image = (EventImage2D*)(mgr.get_data(kProductImage2D,producer));
-    run    = (uint) ev_image->run();
-    subrun = (uint) ev_image->subrun();
-    event  = (uint) ev_image->event();
-    entry  = (uint) mgr.current_entry();
+    
+    size_t local_run    = ev_image->run();
+    size_t local_subrun = ev_image->subrun();
+    size_t local_event  = ev_image->event();
+    size_t local_entry  = mgr.current_entry();
 
-    if (run == kINVALID_UINT)  {
-      LARCV_CRITICAL() << "Invalid run number @ entry " << entry << " from " << producer << " producer" << std::endl;
+    if (local_run == kINVALID_SIZE)  {
+      LARCV_CRITICAL() << "Invalid run number @ entry " << local_entry << " from " << producer << " producer" << std::endl;
       throw larbys();
     }
 
-    if (subrun == kINVALID_UINT)  {
-      LARCV_CRITICAL() << "Invalid subrun number @ entry " << entry << " from " << producer << " producer" << std::endl;
+    if (local_subrun == kINVALID_SIZE)  {
+      LARCV_CRITICAL() << "Invalid subrun number @ entry " << local_entry << " from " << producer << " producer" << std::endl;
       throw larbys();
     }
 
-    if (event == kINVALID_UINT)  {
-      LARCV_CRITICAL() << "Invalid event number @ entry " << entry << " from " << producer << " producer" << std::endl;
+    if (local_event == kINVALID_SIZE)  {
+      LARCV_CRITICAL() << "Invalid event number @ entry " << local_entry << " from " << producer << " producer" << std::endl;
       throw larbys();
     }
 
-    if (entry == kINVALID_UINT)  {
-      LARCV_CRITICAL() << "Invalid entry number @ entry "  << entry << " from " << producer << " producer" << std::endl;
+    if (local_entry == kINVALID_SIZE)  {
+      LARCV_CRITICAL() << "Invalid entry number @ entry "  << local_entry << " from " << producer << " producer" << std::endl;
       throw larbys();
     }
+
+    run    = (int) local_run;
+    subrun = (int) local_subrun;
+    event  = (int) local_event;
+    entry  = (int) local_entry;
     
   }
   
@@ -157,8 +164,8 @@ namespace larcv {
   
   bool LArbysImage::process(IOManager& mgr)
   {
-    LARCV_DEBUG() << "Procoss index " << mgr.current_entry() << std::endl;
-    uint run,subrun,event,entry;
+    LARCV_DEBUG() << "Process index " << mgr.current_entry() << std::endl;
+    int run, subrun, event, entry;
     get_rsee(mgr,_rse_producer,run,subrun,event,entry);
     
     _alg_mgr.SetRSEE(run,subrun,event,entry);

@@ -42,7 +42,7 @@ namespace larcv {
     const std::vector<larcv::Image2D>& get_image2d(IOManager& mgr, std::string producer);
 
     void get_rsee(IOManager& mgr, std::string producer,
-		  uint& run, uint& subrun, uint& event, uint& entry);
+		  int& run, int& subrun, int& event, int& entry);
             
     
     bool Reconstruct(const std::vector<larcv::Image2D>& adc_image_v,
@@ -83,7 +83,9 @@ namespace larcv {
     std::string _roi_producer;
     std::string _track_producer;
     std::string _shower_producer;
+
     ProductType_t _tags_datatype;
+
     std::string _thrumu_producer;
     std::string _stopmu_producer;
     std::string _channel_producer;
@@ -115,6 +117,7 @@ namespace larcv {
     std::vector<larcv::Image2D> _empty_image_v;
     std::vector<larcv::Image2D> _thrumu_image_v;
     std::vector<larcv::Image2D> _stopmu_image_v;
+
     ROI _current_roi;
 
     bool _store_shower_image;

@@ -70,14 +70,14 @@ namespace larcv {
     short _interaction_type;
     float _length_2d;
 
-    uint _nprimary;
-    uint _ntotal;
+    int _nprimary;
+    int _ntotal;
 
-    uint _nproton;
-    uint _nlepton;
-    uint _nshower;
-    uint _nmeson;
-    uint _nneutron;
+    int _nproton;
+    int _nlepton;
+    int _nshower;
+    int _nmeson;
+    int _nneutron;
 
     int _hi_lep_pdg;
     double _hi_lep_e;
@@ -101,8 +101,8 @@ namespace larcv {
     geo2d::Vector<float> _dir;   //2d dir
 
     std::vector<int>   _daughter_pdg_v;
-    std::vector<uint>   _daughter_trackid_v;
-    std::vector<uint>   _daughter_parenttrackid_v;
+    std::vector<int>   _daughter_trackid_v;
+    std::vector<int>   _daughter_parenttrackid_v;
 
     std::vector<double> _daughter_energyinit_v;
     std::vector<double> _daughter_energydep_v;

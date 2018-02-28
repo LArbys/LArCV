@@ -53,14 +53,14 @@ namespace larcv {
     _mc_tree->Branch("vtx2d_w",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t",&_vtx_2d_t_v);
 
-    _mc_tree->Branch("nprimary", &_nprimary,"nprimary/i");
-    _mc_tree->Branch("ntotal", &_ntotal,"ntotal/i");
+    _mc_tree->Branch("nprimary", &_nprimary,"nprimary/I");
+    _mc_tree->Branch("ntotal", &_ntotal,"ntotal/I");
 
-    _mc_tree->Branch("nproton", &_nproton,"nproton/i");
-    _mc_tree->Branch("nlepton", &_nlepton,"nlepton/i");
-    _mc_tree->Branch("nmeson", &_nmeson,"nmeson/i");
-    _mc_tree->Branch("nshower", &_nshower,"nshower/i");
-    _mc_tree->Branch("nneutron", &_nneutron,"nneutron/i");
+    _mc_tree->Branch("nproton", &_nproton,"nproton/I");
+    _mc_tree->Branch("nlepton", &_nlepton,"nlepton/I");
+    _mc_tree->Branch("nmeson", &_nmeson,"nmeson/I");
+    _mc_tree->Branch("nshower", &_nshower,"nshower/I");
+    _mc_tree->Branch("nneutron", &_nneutron,"nneutron/I");
 
     _mc_tree->Branch("hi_lep_pdg",&_hi_lep_pdg,"hi_lep_pdg/I");
 
@@ -169,7 +169,7 @@ namespace larcv {
       _interaction_type = roi.NuInteractionType();
 
       // Get 2D projections from 3D
-      for (uint plane = 0 ; plane<3;++plane){
+      for (int plane = 0 ; plane<3;++plane){
         const auto& img  = ev_image2d->Image2DArray()[plane];
         const auto& meta = img.meta();
         double x_pixel, y_pixel;
@@ -328,8 +328,8 @@ namespace larcv {
       int pdgcode = roi.PdgCode();
 
       _daughter_pdg_v.push_back((int) roi.PdgCode());
-      _daughter_trackid_v.push_back((uint) roi.TrackID());
-      _daughter_parenttrackid_v.push_back((uint) roi.ParentTrackID());
+      _daughter_trackid_v.push_back((int) roi.TrackID());
+      _daughter_parenttrackid_v.push_back((int) roi.ParentTrackID());
       _daughter_energyinit_v.push_back(roi.EnergyInit());
       _daughter_energydep_v.push_back(roi.EnergyDeposit());
 
