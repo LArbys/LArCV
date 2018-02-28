@@ -95,12 +95,15 @@ class NueHandler(Handler):
             self.rd.true_electron_dR[0] = float(row['anashr2_mc_dcosx']);
             self.rd.true_electron_dR[1] = float(row['anashr2_mc_dcosy']);
             self.rd.true_electron_dR[2] = float(row['anashr2_mc_dcosz']);
-            
-            self.rd.true_proton_theta[0]   = float(row['proton_beam_angle']);
-            self.rd.true_electron_theta[0] = float(row['lepton_beam_angle']);
-            
-            self.rd.true_proton_phi[0]   = float(row['proton_planar_angle']);
-            self.rd.true_electron_phi[0] = float(row['lepton_planar_angle']);
+
+            self.rd.true_proton_P[0]   = float(row['proton_momentum_X'])
+            self.rd.true_lepton_P[0]   = float(row['lepton_momentum_X'])
+
+            self.rd.true_proton_P[1]   = float(row['proton_momentum_Y'])
+            self.rd.true_lepton_P[1]   = float(row['lepton_momentum_Y'])
+
+            self.rd.true_proton_P[2]   = float(row['proton_momentum_Z'])
+            self.rd.true_lepton_P[2]   = float(row['lepton_momentum_Z'])            
             
             self.rd.true_opening_angle[0] = float(row['opening_angle']);
             self.rd.true_proton_ylen[0]   = float(row['proton_yplane_len']);
@@ -179,14 +182,24 @@ class NueHandler(Handler):
         self.rd.reco_proton_theta[0] = float(row['reco_LL_proton_theta'])
         self.rd.reco_proton_phi[0]   = float(row['reco_LL_proton_phi'])
         self.rd.reco_proton_dEdx[0]  = float(row['reco_LL_proton_dEdx'])
-        self.rd.reco_proton_len[0]   = float(row['reco_LL_proton_len'])
+        self.rd.reco_proton_length[0]= float(row['reco_LL_proton_length'])
+        self.rd.reco_proton_mean_pixel_dist[0] = float(row['reco_proton_mean_pixel_dist'])
+        self.rd.reco_proton_width[0]       = float(row['reco_proton_width'])
+        self.rd.reco_proton_area[0]        = float(row['reco_proton_area'])
+        self.rd.reco_proton_qsum[0]        = float(row['reco_proton_qsum'])
+        self.rd.reco_proton_shower_frac[0] = float(row['reco_proton_shower_frac'])
 
-        self.rd.reco_electron_id[0]    = int(row['reco_LL_electron_id'])
-        self.rd.reco_electron_E[0]     = float(row['reco_LL_electron_energy']);
-        self.rd.reco_electron_theta[0] = float(row['reco_LL_electron_theta'])
-        self.rd.reco_electron_phi[0]   = float(row['reco_LL_electron_phi'])
-        self.rd.reco_electron_dEdx[0]  = float(row['reco_LL_electron_dEdx'])
-        self.rd.reco_electron_len[0]   = float(row['reco_LL_electron_len'])
+        self.rd.reco_electron_id[0]     = int(row['reco_LL_electron_id'])
+        self.rd.reco_electron_E[0]      = float(row['reco_LL_electron_energy']);
+        self.rd.reco_electron_theta[0]  = float(row['reco_LL_electron_theta'])
+        self.rd.reco_electron_phi[0]    = float(row['reco_LL_electron_phi'])
+        self.rd.reco_electron_dEdx[0]   = float(row['reco_LL_electron_dEdx'])
+        self.rd.reco_electron_length[0] = float(row['reco_LL_electron_length'])
+        self.rd.reco_electron_mean_pixel_dist[0] = float(row['reco_electron_mean_pixel_dist'])
+        self.rd.reco_electron_width[0]       = float(row['reco_electron_width'])
+        self.rd.reco_electron_area[0]        = float(row['reco_electron_area'])
+        self.rd.reco_electron_qsum[0]        = float(row['reco_electron_qsum'])
+        self.rd.reco_electron_shower_frac[0] = float(row['reco_electron_shower_frac'])
 
         self.rd.reco_total_E[0]    = float(row['reco_LL_total_energy']);
 
