@@ -83,10 +83,15 @@ def prep_LL_vars(df,ismc=True):
     # 
     # reco per particle
     #
-    df['p0_shr_dedx']  = df.apply(reco_dedx,axis=1)
-    df['p1_shr_theta'] = df.apply(shower_theta,axis=1)
-    df['p1_shr_phi']   = df.apply(shower_phi,axis=1)
-    #df['p2_shr_open']  = df.apply(shower_opening,axis=1)
+    df['p00_shr_dedx']            = df.apply(shower_reco_dedx,axis=1)
+    df['p01_shr_theta']           = df.apply(shower_theta,axis=1)
+    df['p02_shr_phi']             = df.apply(shower_phi,axis=1)
+    df['p03_shr_length']          = df.apply(shower_length,axis=1)
+    df['p04_shr_mean_pixel_dist'] = df.apply(shower_mean_pixel_dist,axis=1)
+    df['p05_shr_width']           = df.apply(shower_width,axis=1)
+    df['p06_shr_area']            = df.apply(shower_area,axis=1)
+    df['p07_shr_qsum']            = df.apply(shower_qsum,axis=1)
+    df['p08_shr_shower_frac']     = df.apply(shower_shower_frac,axis=1)
 
     if ismc == True:
         df['reco_mc_shower_energy'] = df.apply(reco_mc_shower_energy,axis=1)
@@ -428,14 +433,25 @@ def LL_reco_parameters(df):
     df['reco_LL_proton_theta']  = df.apply(reco_LL_proton_theta,axis=1)
     df['reco_LL_proton_phi']    = df.apply(reco_LL_proton_phi,axis=1)
     df['reco_LL_proton_dEdx']   = df.apply(reco_LL_proton_dEdx,axis=1)
-    df['reco_LL_proton_len']    = df.apply(reco_LL_proton_len,axis=1)
+    df['reco_LL_proton_length'] = df.apply(reco_LL_proton_length,axis=1)
+    df['reco_LL_proton_mean_pixel_dist'] = df.apply(reco_LL_proton_mean_pixel_dist,axis=1)
+    df['reco_LL_proton_width']       = df.apply(reco_LL_proton_width,axis=1)
+    df['reco_LL_proton_area']        = df.apply(reco_LL_proton_area,axis=1)
+    df['reco_LL_proton_qsum']        = df.apply(reco_LL_proton_qsum,axis=1)
+    df['reco_LL_proton_shower_frac'] = df.apply(reco_LL_proton_shower_frac,axis=1)
+                
 
     df['reco_LL_electron_id']     = df.apply(reco_LL_electron_id,axis=1)
     df['reco_LL_electron_energy'] = df.apply(reco_LL_electron_energy,axis=1)
     df['reco_LL_electron_theta']  = df.apply(reco_LL_electron_theta,axis=1)
     df['reco_LL_electron_phi']    = df.apply(reco_LL_electron_phi,axis=1)
     df['reco_LL_electron_dEdx']   = df.apply(reco_LL_electron_dEdx,axis=1)
-    df['reco_LL_electron_len']    = df.apply(reco_LL_electron_len,axis=1)
+    df['reco_LL_electron_length'] = df.apply(reco_LL_electron_length,axis=1)
+    df['reco_LL_electron_mean_pixel_dist'] = df.apply(reco_LL_electron_mean_pixel_dist,axis=1)
+    df['reco_LL_electron_width']       = df.apply(reco_LL_electron_width,axis=1)
+    df['reco_LL_electron_area']        = df.apply(reco_LL_electron_area,axis=1)
+    df['reco_LL_electron_qsum']        = df.apply(reco_LL_electron_qsum,axis=1)
+    df['reco_LL_electron_shower_frac'] = df.apply(reco_LL_electron_shower_frac,axis=1)
 
     df['reco_LL_total_energy']    = df.apply(reco_LL_total_energy,axis=1)
 
@@ -448,7 +464,7 @@ def LL_reco_parameters(df):
 #
 # LL Reco Variables
 #
-def reco_dedx(row):
+def shower_reco_dedx(row):
     ret = [-1.0]*2
     
     for i in xrange(len(ret)):
@@ -483,6 +499,95 @@ def shower_phi(row):
 
     return ret
     
+def shower_length(row):
+    ret = [0.0]*2
+    
+    for i in xrange(len(ret)):
+        ret[i] = row['anashr1_reco_length_v'][i]
+        
+    return ret
+
+def shower_mean_pixel_dist(row):
+    ret = [0.0]*2
+    
+    for i in xrange(len(ret)):
+        val_Y = row['locv_mean_pixel_dist_Y_v'][i]
+        val_V = row['locv_mean_pixel_dist_V_v'][i]
+        
+        if val_Y>0:
+            ret[i] = val_Y
+        elif val_V>0:
+            ret[i] = val_V
+        else:
+            raise Exception("ll function shower_mean_pixel_dist")
+        
+    return ret
+
+def shower_width(row):
+    ret = [0.0]*2
+    
+    for i in xrange(len(ret)):
+        val_Y = row['locv_width_Y_v'][i]
+        val_V = row['locv_width_V_v'][i]
+        
+        if val_Y > 0:
+            ret[i] = val_Y
+        elif val_V > 0:
+            ret[i] = val_V
+        else:
+            raise Exception("ll function shower_width")
+        
+    return ret
+
+def shower_area(row):
+    ret = [0.0]*2
+    
+    for i in xrange(len(ret)):
+        val_Y = row['locv_area_Y_v'][i]
+        val_V = row['locv_area_V_v'][i]
+        
+        if val_Y>0:
+            ret[i] = val_Y
+        elif val_V>0:
+            ret[i] = val_V
+        else:
+            raise Exception("ll function shower_area")
+
+    return ret
+
+def shower_qsum(row):
+    ret = [0.0]*2
+    
+    for i in xrange(len(ret)):
+        val_Y = row['locv_qsum_Y_v'][i]
+        val_V = row['locv_qsum_V_v'][i]
+        
+        if val_Y>0:
+            ret[i] = val_Y
+        elif val_V>0:
+            ret[i] = val_V
+        else:
+            raise Exception("ll function shower_qsum")
+
+    return ret
+
+def shower_shower_frac(row):
+    ret = [0.0]*2
+    
+    for i in xrange(len(ret)):
+        val_Y = row['locv_shower_frac_Y_v'][i]
+        val_V = row['locv_shower_frac_V_v'][i]
+        
+        if val_Y>0:
+            ret[i] = val_Y
+        elif val_V>0:
+            ret[i] = val_V
+        else:
+            raise Exception("ll function shower_shower_frac")
+
+    return ret
+
+
 def shower_opening(row):
     ret = 0.0
 
@@ -830,23 +935,41 @@ def reco_LL_proton_energy(row):
     if pid < 0: return res
     return float(row['anatrk2_E_proton_v'][pid])
 
-def reco_LL_proton_theta (row):
-    protonid  = int(row['reco_p_id'])
-    return float(row['p1_shr_theta'][protonid])
+def reco_LL_proton_dEdx(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p00_shr_dedx'][protonid])
 
-def reco_LL_proton_phi (row):
-    protonid  = int(row['reco_p_id'])
-    return float(row['p1_shr_phi'][protonid])
+def reco_LL_proton_theta(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p01_shr_theta'][protonid])
 
-def reco_LL_proton_dEdx (row):
-    protonid  = int(row['reco_p_id'])
-    return float(row['p0_shr_dedx'][protonid])
+def reco_LL_proton_phi(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p02_shr_phi'][protonid])
 
-def reco_LL_proton_len (row):
-    res = float(-1)    
-    pid = int(row['reco_LL_proton_id'])
-    if pid < 0: return res
-    return float(row['anatrk2_Length_v'][pid])
+def reco_LL_proton_length(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p03_shr_length'][protonid])
+
+def reco_LL_proton_mean_pixel_dist(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p04_shr_mean_pixel_dist'][protonid])
+
+def reco_LL_proton_width(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p05_shr_width'][protonid])
+
+def reco_LL_proton_area(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p06_shr_area'][protonid])
+
+def reco_LL_proton_qsum(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p07_shr_qsum'][protonid])
+
+def reco_LL_proton_shower_frac(row):
+    protonid  = int(row['reco_LL_proton_id'])
+    return float(row['p08_shr_shower_frac'][protonid])
 
 #
 # electron
@@ -868,22 +991,43 @@ def reco_LL_electron_energy(row):
     else: shrE = (eU + eV) / 2.0
     return shrE
 
-def reco_LL_electron_theta(row):
-    electronid  = int(row['reco_LL_electron_id'])
-    return float(row['p1_shr_theta'][electronid])
-
-def reco_LL_electron_phi(row):
-    electronid  = int(row['reco_LL_electron_id'])
-    return float(row['p1_shr_phi'][electronid])
 
 def reco_LL_electron_dEdx(row):
     electronid  = int(row['reco_LL_electron_id'])
-    return float(row['p0_shr_dedx'][electronid])
+    return float(row['p00_shr_dedx'][electronid])
 
-def reco_LL_electron_len(row):
-    res = float(-1)    
+def reco_LL_electron_theta(row):
     electronid  = int(row['reco_LL_electron_id'])
-    return float(row['anashr1_reco_length_v'][electronid])
+    return float(row['p01_shr_theta'][electronid])
+
+def reco_LL_electron_phi(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p02_shr_phi'][electronid])
+
+def reco_LL_electron_length(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p03_shr_length'][electronid])
+
+def reco_LL_electron_mean_pixel_dist(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p04_shr_mean_pixel_dist'][electronid])
+
+def reco_LL_electron_width(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p05_shr_width'][electronid])
+
+def reco_LL_electron_area(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p06_shr_area'][electronid])
+
+def reco_LL_electron_qsum(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p07_shr_qsum'][electronid])
+
+def reco_LL_electron_shower_frac(row):
+    electronid  = int(row['reco_LL_electron_id'])
+    return float(row['p08_shr_shower_frac'][electronid])
+
 
 
 #
