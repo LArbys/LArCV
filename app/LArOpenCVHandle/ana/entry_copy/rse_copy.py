@@ -1,6 +1,6 @@
 import os,sys, tempfile
 
-if len(sys.argv) != 9:
+if len(sys.argv) != 10:
     print
     print "PKL       = str(sys.argv[1])"
     print "RUN       = str(sys.argv[2])"
