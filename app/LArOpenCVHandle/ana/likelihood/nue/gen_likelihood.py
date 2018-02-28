@@ -1,79 +1,67 @@
 import collections
 
 def define_LL_line():
-    p0 = -0.93125
-    p1 =  4.44999
+    p0 = -0.9
+    p1 =  2.5
     return (p0,p1)
 
 def define_LL_vars():
     pdf_m = collections.OrderedDict()
 
     xlo= 0
-    xhi= 20
-    dx = 0.5
-    key="locv_mean_pixel_dist_v"
+    xhi= 10
+    dx = 0.2
+    key="p00_shr_dedx"
     pdf_m[key] = ((xlo,xhi,dx),key)
-    
+
+    xlo= -3.14
+    xhi= 3.14
+    dx = 3.14/25.0
+    key="p01_shr_theta"
+    pdf_m[key] = ((xlo,xhi,dx),key)
+
+    xlo= -3.14
+    xhi= 3.14
+    dx = 3.14/25.0
+    key="p02_shr_phi"
+    pdf_m[key] = ((xlo,xhi,dx),key)
+
     xlo= 0
     xhi= 500
     dx = 10
-    key='anashr1_reco_length_v'
+    key='p03_shr_length'
     pdf_m[key] = ((xlo,xhi,dx),key)
-    
+
+    xlo= 0
+    xhi= 10
+    dx = 0.2
+    key="p04_shr_mean_pixel_dist"
+    pdf_m[key] = ((xlo,xhi,dx),key)
+
+    xlo= 0
+    xhi= 60
+    dx = 1
+    key="p05_shr_width"
+    pdf_m[key] = ((xlo,xhi,dx),key)
+
     xlo= 0
     xhi= 1000
     dx = 20
-    key="locv_area_max_v"
+    key="p06_shr_area"
     pdf_m[key] = ((xlo,xhi,dx),key)
     
     xlo= 0
-    xhi= 60
-    dx = 2
-    key="locv_width_max_v"
-    pdf_m[key] = ((xlo,xhi,dx),key)
-    
-    xlo= 0
-    xhi= 60000
+    xhi= 80000
     dx = 2000
-    key="locv_qsum_min_v"
-    pdf_m[key] = ((xlo,xhi,dx),key)
-    
-    xlo= 0
-    xhi= 60000
-    dx = 2000
-    key="locv_qsum_max_v"
-    pdf_m[key] = ((xlo,xhi,dx),key)
-    
-    xlo= 0
-    xhi= 20
-    dx = 0.25
-    key="p0_shr_dedx"
+    key="p07_shr_qsum"
     pdf_m[key] = ((xlo,xhi,dx),key)
     
     xlo= 0
     xhi= 1.0
-    dx = 0.1
-    key="locv_track_frac_max_v"
+    dx = 0.05
+    key="p08_shr_shower_frac"
     pdf_m[key] = ((xlo,xhi,dx),key)
     
-    xlo= 0
-    xhi= 1.0
-    dx = 0.1
-    key="locv_shower_frac_min_v"
-    pdf_m[key] = ((xlo,xhi,dx),key)
-    
-    xlo= -3.14
-    xhi= 3.14
-    dx = 2*3.14/40.0
-    key="p1_shr_theta"
-    pdf_m[key] = ((xlo,xhi,dx),key)
-    
-    xlo= -3.14
-    xhi= 3.14
-    dx = 2*3.14/40.0
-    key="p1_shr_phi"
-    pdf_m[key] = ((xlo,xhi,dx),key)
-
     return pdf_m
 
 if __name__ == '__main__':
