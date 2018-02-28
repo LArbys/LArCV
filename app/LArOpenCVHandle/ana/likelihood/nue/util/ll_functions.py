@@ -70,6 +70,15 @@ def prep_common_vars(df,ismc=True):
         res['proton_planar_angle'] = res.apply(proton_planar_angle,axis=1)
         res['lepton_planar_angle'] = res.apply(lepton_planar_angle,axis=1)
 
+        res['proton_momentum_X'] = res.apply(proton_momentum_X,axis=1)
+        res['proton_momentum_Y'] = res.apply(proton_momentum_Y,axis=1)
+        res['proton_momentum_Z'] = res.apply(proton_momentum_Z,axis=1)
+
+        res['lepton_momentum_X'] = res.apply(lepton_momentum_X,axis=1)
+        res['lepton_momentum_Y'] = res.apply(lepton_momentum_Y,axis=1)
+        res['lepton_momentum_Z'] = res.apply(lepton_momentum_Z,axis=1)
+
+
     return res
 
 def prep_LL_vars(df,ismc=True):
@@ -826,6 +835,55 @@ def lepton_beam_angle(row):
     
     return np.arccos(cos)*180./np.pi
 
+def lepton_momentum_X(row):
+    protonpdg = 2212
+
+    res = float(-1.0)
+
+    lid = int(-1)
+
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0: lid = lid_v[0]    
+
+    if lid < 0 : return res
+
+    res = row['locv_daughterPx_v'][lid]
+
+    return  res
+
+def lepton_momentum_Y(row):
+    protonpdg = 2212
+
+    res = float(-1.0)
+
+    lid = int(-1)
+
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0: lid = lid_v[0]    
+
+    if lid < 0 : return res
+
+    res = row['locv_daughterPy_v'][lid]
+
+    return  res
+
+
+def lepton_momentum_Z(row):
+    protonpdg = 2212
+
+    res = float(-1.0)
+
+    lid = int(-1)
+
+    lid_v = np.where(row['locv_daughterPdg_v']!=protonpdg)[0]
+    if len(lid_v) > 0: lid = lid_v[0]    
+
+    if lid < 0 : return res
+
+    res = row['locv_daughterPz_v'][lid]
+
+    return  res
+
 def proton_beam_angle(row):
     protonpdg = 2212
 
@@ -896,6 +954,56 @@ def proton_yplane_len(row):
     dx = row['locv_proton_last_pt_x'] - row['locv_proton_1st_pt_x']
     dz = row['locv_proton_last_pt_z'] - row['locv_proton_1st_pt_z']
     return np.sqrt(dx*dx+dz*dz)
+
+def proton_momentum_X(row):
+    protonpdg = 2212
+
+    res = float(-1)
+
+    pid = int(-1)
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0 : pid = pid_v[0]
+    
+    if pid<0 : return res
+
+    res = row['locv_daughterPx_v'][pid]
+
+    return res
+
+def proton_momentum_Y(row):
+    protonpdg = 2212
+
+    res = float(-1)
+
+    pid = int(-1)
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0 : pid = pid_v[0]
+    
+    if pid<0 : return res
+
+    res = row['locv_daughterPy_v'][pid]
+
+    return res
+
+
+def proton_momentum_Z(row):
+    protonpdg = 2212
+
+    res = float(-1)
+
+    pid = int(-1)
+
+    pid_v = np.where(row['locv_daughterPdg_v']==protonpdg)[0]
+    if len(pid_v) > 0 : pid = pid_v[0]
+    
+    if pid<0 : return res
+
+    res = row['locv_daughterPz_v'][pid]
+
+    return res
+
 
 
 def gaus(x, *p):

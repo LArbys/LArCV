@@ -194,7 +194,7 @@ class ROOTData:
         # reco
 
         self.reco_mc_proton_E[0]   = kINVALID_FLOAT
-        self.reco_mc_electron_E[0] = kINVALID_FLOAT
+        self.reco_mc_lepton_E[0] = kINVALID_FLOAT
         self.reco_mc_total_E[0]    = kINVALID_FLOAT
         
         self.reco_proton_id[0]    = kINVALID_INT
@@ -304,7 +304,7 @@ class ROOTData:
 
         # reco mc
         tree.Branch("reco_mc_proton_E"  , self.reco_mc_proton_E  , "reco_mc_proton_E/F")
-        tree.Branch("reco_mc_electron_E", self.reco_mc_electron_E, "reco_mc_electron_E/F")
+        tree.Branch("reco_mc_lepton_E"  , self.reco_mc_lepton_E  , "reco_mc_lepton_E/F")
         tree.Branch("reco_mc_total_E"   , self.reco_mc_total_E   , "reco_mc_total_E/F")
 
         tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")

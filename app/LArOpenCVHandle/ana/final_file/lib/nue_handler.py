@@ -156,9 +156,9 @@ class NueHandler(Handler):
                 self.rd.reco_on_nu[0] = int(0)
 
         if ismc == True:
-            self.rd.reco_mc_proton_E[0]   = float(row['reco_mc_track_energy']);
-            self.rd.reco_mc_electron_E[0] = float(row['reco_mc_shower_energy']);
-            self.rd.reco_mc_total_E[0]    = float(row['reco_mc_total_energy']);
+            self.rd.reco_mc_proton_E[0]  = float(row['reco_mc_track_energy']);
+            self.rd.reco_mc_lepton_E[0]  = float(row['reco_mc_shower_energy']);
+            self.rd.reco_mc_total_E[0]   = float(row['reco_mc_total_energy']);
 
         # fill LL
         if row['LL_dist'] > 0:
