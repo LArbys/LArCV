@@ -63,23 +63,25 @@ namespace larcv {
     event_tpc_image->Move(_tpc_image_v);
     
     // Retrieve PMT Image
-    LARCV_INFO() << "Reading-in PMT Image2D " << _pmt_image_producer << std::endl;
-    auto event_pmt_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_pmt_image_producer));
+    if(!_pmt_image_producer.empty()) {
+      LARCV_INFO() << "Reading-in PMT Image2D " << _pmt_image_producer << std::endl;
+      auto event_pmt_image = (EventImage2D*)(mgr.get_data(kProductImage2D,_pmt_image_producer));
 
-    if(!event_pmt_image || event_pmt_image->Image2DArray().empty()) return false;
+      if(!event_pmt_image || event_pmt_image->Image2DArray().empty()) return false;
 
-    LARCV_INFO() << "Copying PMT Image2D " << _pmt_image_producer << std::endl;
-    std::vector<larcv::Image2D> tmp_v;
-    event_pmt_image->Move(tmp_v);
-    if(tmp_v.size())
-      _pmt_image = std::move(tmp_v[0]);
+      LARCV_INFO() << "Copying PMT Image2D " << _pmt_image_producer << std::endl;
+      std::vector<larcv::Image2D> tmp_v;
+      event_pmt_image->Move(tmp_v);
+      if(tmp_v.size())
+       _pmt_image = std::move(tmp_v[0]);
+    }
     
     //Retrieve the ROI
     if(!_roi_producer.empty()) {
       LARCV_INFO() << "Reading-in ROI " << _roi_producer << std::endl;
       auto event_roi = (EventROI*)(mgr.get_data(kProductROI,_roi_producer));
       if(event_roi and !event_roi->ROIArray().empty())
-	_roi_v = event_roi->ROIArray();
+	      _roi_v = event_roi->ROIArray();
     }
 
     //Retrieve the segmenation image if exists
