@@ -9,9 +9,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#ifndef __CINT__
+//#ifndef __CINT__
 #pragma link C++ class larcv::ThreadDatumFiller+;
-#endif
+//#endif
 #pragma link C++ class larcv::DatumFillerBase+;
 #pragma link C++ class larcv::SegFiller+;
 #pragma link C++ class larcv::SimpleFiller+;
