@@ -92,10 +92,6 @@ class NueHandler(Handler):
             self.rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
             self.rd.true_electron_E[0] = float(row['anashr2_mc_energy'])
             
-            self.rd.true_electron_dR[0] = float(row['anashr2_mc_dcosx']);
-            self.rd.true_electron_dR[1] = float(row['anashr2_mc_dcosy']);
-            self.rd.true_electron_dR[2] = float(row['anashr2_mc_dcosz']);
-
             self.rd.true_proton_P[0]   = float(row['proton_momentum_X'])
             self.rd.true_lepton_P[0]   = float(row['lepton_momentum_X'])
 
