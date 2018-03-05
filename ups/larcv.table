@@ -15,7 +15,7 @@ Qualifiers = "e15:prof"
     fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
 
   Action = GetProducts
-    setupRequired( root v6_10_08b -q +e15:+nu:+prof )
+    setupRequired( root v6_12_04e -q +e15:+prof )
 
 Flavor     = ANY
 Qualifiers = "e15:debug"
@@ -29,7 +29,7 @@ Qualifiers = "e15:debug"
     fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
 
   Action = GetProducts
-    setupRequired( root v6_10_08b -q +e15:+nu:+debug )
+    setupRequired( root v6_12_04e -q +e15:+debug )
 
 Flavor     = ANY
 Qualifiers = "e15:opt"
@@ -43,7 +43,7 @@ Qualifiers = "e15:opt"
     fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
 
   Action = GetProducts
-    setupRequired( root v6_10_08b -q +e15:+nu:+opt )
+    setupRequired( root v6_12_04e -q +e15:+opt )
 
 Flavor     = ANY
 Qualifiers = "e14:prof"
