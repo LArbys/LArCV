@@ -204,6 +204,7 @@ namespace larcv {
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
         std::vector< std::vector<double> >  GetTotalPixADC();
+	std::vector< std::vector<double> >  GetTotalPixADC(float tkLen);
 
         larlite::event_track GetReconstructedVertexTracks(){return _vertexLarliteTracks;}
 
