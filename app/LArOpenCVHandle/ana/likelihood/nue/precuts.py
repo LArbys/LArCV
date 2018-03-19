@@ -25,11 +25,11 @@ OUT_DIR    = str(sys.argv[6])
 
 import pandas as pd
 import root_numpy as rn
-from util.ll_functions import LL_reco_parameters
+from util.ll_functions import prep_two_par_df, prep_LL_vars, LL_reco_parameters
 from util.precut_functions import *
 
-print "Reading=",INPUT_DF
 input_df = pd.read_pickle(INPUT_DF)
+print "Reading input_df=",INPUT_DF,"sz=",input_df.index.size,"RSE=",len(input_df.groupby(RSE))
 vertex_df = input_df.query("locv_num_vertex>0").copy()
 
 cosmic_df = pd.DataFrame()
@@ -57,7 +57,7 @@ print "vertex_df sz=",vertex_df.index.size,"RSE=",len(vertex_df.groupby(RSE))
 
 comb_df = vertex_df.copy()
 
-for name,df in zip(name_v,df_v):
+for name,df in zip(name_v,comb_v):
     print "@name=",name,"_df sz=",df.index.size,"RSE=",len(df.groupby(RSE))
     print "comb_df sz=",comb_df.index.size
 
@@ -71,6 +71,8 @@ for name,df in zip(name_v,df_v):
 
 
 print "Preparing precuts"
+comb_df = prep_two_par_df(comb_df)
+comb_df = prep_LL_vars(comb_df)
 comb_df = prepare_precuts(comb_df)
 
 print "Reading precuts=",PRECUT_TXT
@@ -93,10 +95,13 @@ print "Precutting"
 comb_df.query(SS,inplace=True)
 
 print "Setting particle ID"
-comb_df = set_ssnet_particle_reco_id(df)
+comb_df = set_ssnet_particle_reco_id(comb_df)
 
 print "Preparing parameters"
-comb_df = LL_reco_parameters(df)
+comb_df = LL_reco_parameters(comb_df)
+
+print "Setting track ID"
+comb_df = set_proton_track_id(comb_df)
 
 print "Pickle output"
 comb_df.to_pickle(os.path.join(OUT_DIR,OUT_PREFIX + ".pkl"))

@@ -4,7 +4,6 @@ def set_ssnet_particle_reco_id(df):
     df['reco_e_id'] = df.apply(lambda x : np.argmax(x['p08_shr_shower_frac']),axis=1)
     df['reco_p_id'] = df.apply(lambda x : np.argmin(x['p08_shr_shower_frac']),axis=1)
     return df
-    
 
 def xing(row):
     default=-0.000001
@@ -178,6 +177,10 @@ def prepare_precuts(df):
     df['two_pt_p2']   = df.apply(xing_plane,args=(2,),axis=1)
     return df
 
+
+def set_proton_track_id(df):
+    df['reco_proton_trackid'] = df.apply(reco_proton_track_id,axis=1)
+    return df
 
 def reco_proton_track_id(row):
     pgtrk_v   = row['pgtrk_trk_type_v']
