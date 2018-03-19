@@ -380,8 +380,8 @@ for ev in TrkTree:
         #
         # muon and proton selection
         #
-        mid = np.argmax(dqdx_v)
-        pid = np.argmin(dqdx_v)
+        mid = np.argmin(dqdx_v)
+        pid = np.argmax(dqdx_v)
         
         _muon_id[0]          = int(mid)
         _muon_phi[0]         = float(vtxPhi_v[mid])

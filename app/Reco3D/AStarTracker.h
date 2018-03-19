@@ -124,7 +124,7 @@ namespace larcv {
         void MakeTrack();
         void ComputeLength();
         void ComputeClosestWall();
-	void ComputeClosestWall_SCE();
+       void ComputeClosestWall_SCE();
         void ComputedQdX();
         void ComputeNewdQdX();
         void Reconstruct();
@@ -163,7 +163,7 @@ namespace larcv {
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
         std::vector<double> GetClosestWall();
-	std::vector<double> GetClosestWall_SCE();
+       std::vector<double> GetClosestWall_SCE();
         std::vector< std::vector<double> > GetVertexAngle(double dAverage);
         std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
@@ -203,6 +203,8 @@ namespace larcv {
         std::vector< std::vector<int> >    _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
+        std::vector< std::vector<double> >  GetTotalPixADC();
+	std::vector< std::vector<double> >  GetTotalPixADC(float tkLen);
 
         larlite::event_track GetReconstructedVertexTracks(){return _vertexLarliteTracks;}
 

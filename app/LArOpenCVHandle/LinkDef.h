@@ -39,6 +39,8 @@
 
 #pragma link C++ class larcv::PGraphTruthMatch+;
 
+#pragma link C++ class larcv::LArbysLoader+;
+
 #endif
 
 

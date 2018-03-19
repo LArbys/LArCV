@@ -16,7 +16,7 @@ include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
 # Add your program below with a space after the previous one.                                                                                                         
 # This makefile compiles all binaries specified below.                                                                                                                
-PROGRAMS = run_reco StoppingPower test3DTrack
+PROGRAMS = run_reco StoppingPower test3DTrack testMichels
 
 all:            $(PROGRAMS)
 

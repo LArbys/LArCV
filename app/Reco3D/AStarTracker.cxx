@@ -739,7 +739,7 @@ namespace larcv {
         _vertexLength = GetVertexLength();
         DiagnoseVertex();
         MakeVertexTrack();
-        if (_DrawOutputs) DrawVertex();
+        //if (_DrawOutputs) DrawVertex();
         //std::cout << "vertex drawn" << std::endl;
     }
     //______________________________________________________
@@ -2533,7 +2533,7 @@ namespace larcv {
     }
     //______________________________________________________
     std::vector<double> AStarTracker::GetTotalIonization(double distAvg){
-        tellMe("GetTotalIonization()",0);
+        tellMe(Form("GetTotalIonization(%.1f)",distAvg),0);
         larlite::geo::View_t views[3] = {larlite::geo::kU,larlite::geo::kV,larlite::geo::kZ};
         if(_vertex_dQdX_v.size()!=_vertexTracks.size()){_vertex_dQdX_v.clear();ComputeNewdQdX();}
         std::vector<double> IonizatioPerTrack(_vertexTracks.size(),0);
@@ -2558,6 +2558,205 @@ namespace larcv {
         return IonizatioPerTrack;
     }
     //______________________________________________________
+    std::vector< std::vector<double> >  AStarTracker::GetTotalPixADC(){
+        tellMe("GetTotalPixADC()",0);
+
+        double shellMask = 7;
+        double MaskedValue = 0;
+        std::vector< std::vector<double> > totalADC(_vertexTracks.size() );
+        if(_vertexTracks.size() == 0) return totalADC;
+
+        for(size_t itrack = 0;itrack < _vertexTracks.size();itrack++){
+            std::vector<double> ADCvalue(3,0);
+            hit_image_v = CropFullImage2bounds(_vertexTracks);
+	    
+            for(size_t iPlane=0; iPlane<3;iPlane++){
+                double x_proj,y_proj;
+                ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][0].X(),_vertexTracks[itrack][0].Y(),_vertexTracks[itrack][0].Z(),0,iPlane,x_proj,y_proj);
+                TVector3 strPt(x_proj,y_proj,0);
+                ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack].back().X(),_vertexTracks[itrack].back().Y(),_vertexTracks[itrack].back().Z(),0,iPlane,x_proj,y_proj);
+                TVector3 ndPt(x_proj,y_proj,0);
+
+                for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+
+                    if(!(irow > strPt.Y()-20 && irow<strPt.Y()+20) && !(irow > ndPt.Y()-20 && irow < ndPt.Y()+20))continue;
+
+                    for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                        if(!(icol > strPt.X()-20 && icol<strPt.X()+20) && !(icol > ndPt.X()-20 && icol < ndPt.X()+20))continue;
+                        if(hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue || hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+                        TVector3 pC((icol+0.5),(irow+0.5),0);
+                        if((pC-strPt).Mag() < shellMask || (pC-ndPt).Mag() < shellMask){
+                            ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+                            hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+                        }
+                    }
+                }
+                if(_vertexTracks[itrack].size() < 3)continue;
+                for(size_t iNode = 1;iNode < _vertexTracks[itrack].size()-1;iNode++){
+                    for(size_t iPlane = 0; iPlane<3; iPlane++){
+
+                        ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
+                        TVector3 A(x_proj,y_proj,0);
+                        ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode+1].X(),_vertexTracks[itrack][iNode+1].Y(),_vertexTracks[itrack][iNode+1].Z(),0,iPlane,x_proj,y_proj);
+                        TVector3 B(x_proj,y_proj,0);
+
+                        for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                            if(irow < std::min(A.Y()-20, B.Y()-20))continue;
+                            if(irow > std::max(A.Y()+20, B.Y()+20))continue;
+                            for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                                if(icol < std::min(A.X()-20, B.X()-20))continue;
+                                if(icol > std::max(A.X()+20, B.X()+20))continue;
+                                if(hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue || hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+                                double alphaCol = ((icol+0.5)-A.X())/(B.X()-A.X());
+                                double alphaRow = ((irow+0.5)-A.Y())/(B.Y()-A.Y());
+                                TVector3 pC((icol+0.5),(irow+0.5),0);
+                                double alpha = ((B-A).Dot(pC-A))/(pow((B-A).Mag(),2));
+
+                                if(alpha  >= -0.1 && alpha <= 1.1){
+                                    if(GetDist2line(A,B,pC) < shellMask){
+                                        ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+                                    }
+                                }
+                                if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 2){
+                                    if((pC-A).Mag() < shellMask || (pC-B).Mag() < shellMask){
+                                        ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+                                    }
+                                }
+                                else{
+                                    if((pC-A).Mag() < shellMask || (pC-B).Mag() < shellMask){
+                                        ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+                                        hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+                                    }
+                                }
+                                
+                            }//icol
+                        }
+                    }
+                }
+            }
+            
+            totalADC[itrack] = ADCvalue;
+        }
+        
+        return totalADC;
+    }
+    //______________________________________________________
+
+    //______________________________________________________
+    std::vector< std::vector<double> >  AStarTracker::GetTotalPixADC(float tkLen){
+      tellMe("GetTotalPixADC()",0);
+
+      double shellMask = 5;
+      double MaskedValue = 0;
+      std::vector< std::vector<double> > totalADC(_vertexTracks.size() );
+      if(_vertexTracks.size() == 0) return totalADC;
+
+      for(size_t itrack = 0;itrack < _vertexTracks.size();itrack++){
+	std::vector<double> ADCvalue(3,0);
+	hit_image_v = CropFullImage2bounds(_vertexTracks);
+
+	for(size_t iPlane = 0; iPlane<3; iPlane++) {
+	  
+	  for(size_t iNode = 0; iNode < _vertexTracks[itrack].size(); iNode++) {
+
+	    if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < tkLen) continue;
+	    
+	    double x_proj,y_proj;
+	    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
+	    TVector3 strPt(x_proj,y_proj,0);
+
+	    for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+	      if(!(irow > strPt.Y()-20 && irow<strPt.Y()+20)) continue;
+	      for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){ 
+		if(!(icol > strPt.X()-20 && icol<strPt.X()+20)) continue;
+		
+		TVector3 thisPt((icol+0.5),(irow+0.5),0);
+		
+		if ((thisPt - strPt).Mag() < shellMask)
+		  hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+	      }
+	    }
+	  }
+	}
+      
+	    
+      for(size_t iPlane=0; iPlane<3;iPlane++){
+	double x_proj,y_proj;
+	ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][0].X(),_vertexTracks[itrack][0].Y(),_vertexTracks[itrack][0].Z(),0,iPlane,x_proj,y_proj);
+	TVector3 strPt(x_proj,y_proj,0);
+	ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack].back().X(),_vertexTracks[itrack].back().Y(),_vertexTracks[itrack].back().Z(),0,iPlane,x_proj,y_proj);
+	TVector3 ndPt(x_proj,y_proj,0);
+
+	for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+	  
+	  if(!(irow > strPt.Y()-20 && irow<strPt.Y()+20) && !(irow > ndPt.Y()-20 && irow < ndPt.Y()+20))continue;
+
+	  for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+	    if(!(icol > strPt.X()-20 && icol<strPt.X()+20) && !(icol > ndPt.X()-20 && icol < ndPt.X()+20))continue;
+	    if(hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue || hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+	    TVector3 pC((icol+0.5),(irow+0.5),0);
+	    if((pC-strPt).Mag() < shellMask || (pC-ndPt).Mag() < shellMask){
+	      ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+	      hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+	    }
+	  }
+	}
+		
+	if(_vertexTracks[itrack].size() < 3)continue;
+
+	
+	for(size_t iNode = 1;iNode < _vertexTracks[itrack].size()-1;iNode++){
+	  for(size_t iPlane = 0; iPlane<3; iPlane++){
+
+	    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
+	    TVector3 A(x_proj,y_proj,0);
+	    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode+1].X(),_vertexTracks[itrack][iNode+1].Y(),_vertexTracks[itrack][iNode+1].Z(),0,iPlane,x_proj,y_proj);
+	    TVector3 B(x_proj,y_proj,0);
+
+	    for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
+	      if(irow < std::min(A.Y()-20, B.Y()-20))continue;
+	      if(irow > std::max(A.Y()+20, B.Y()+20))continue;
+	      for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+		if(icol < std::min(A.X()-20, B.X()-20))continue;
+		if(icol > std::max(A.X()+20, B.X()+20))continue;
+		if(hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue || hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
+		double alphaCol = ((icol+0.5)-A.X())/(B.X()-A.X());
+		double alphaRow = ((irow+0.5)-A.Y())/(B.Y()-A.Y());
+		TVector3 pC((icol+0.5),(irow+0.5),0);
+		double alpha = ((B-A).Dot(pC-A))/(pow((B-A).Mag(),2));
+		
+		if(alpha  >= -0.1 && alpha <= 1.1){
+		  if(GetDist2line(A,B,pC) < shellMask){
+		    ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+		    hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+		  }
+		}
+		if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 2){
+		  if((pC-A).Mag() < shellMask || (pC-B).Mag() < shellMask){
+		    ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+		    hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+		  }
+		}
+		else{
+		  if((pC-A).Mag() < shellMask || (pC-B).Mag() < shellMask){
+		    ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
+		    hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+		  }
+		}       
+	      }//icol
+	    }
+	  }
+	}
+      }
+      
+      totalADC[itrack] = ADCvalue;
+      }
+      return totalADC;
+    }
+    //______________________________________________________
+
     std::vector<double> AStarTracker::GetVertexLength(){
         tellMe("GetVertexLength()",0);
         if(_vertexLength.size()==_vertexTracks.size())return _vertexLength;
