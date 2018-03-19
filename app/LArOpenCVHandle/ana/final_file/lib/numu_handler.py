@@ -88,12 +88,15 @@ class NumuHandler(Handler):
             
             self.rd.true_proton_E[0]   = float(row['locv_dep_sum_proton'])
             self.rd.true_lepton_E[0]   = float(row['locv_dep_sum_lepton'])
-            
-            self.rd.true_proton_theta[0]   = float(row['proton_beam_angle']);
-            self.rd.true_muon_theta[0] = float(row['lepton_beam_angle']);
-            
-            self.rd.true_proton_phi[0]   = float(row['proton_planar_angle']);
-            self.rd.true_muon_phi[0] = float(row['lepton_planar_angle']);
+
+            self.rd.true_proton_P[0]   = float(row['proton_momentum_X'])
+            self.rd.true_lepton_P[0]   = float(row['lepton_momentum_X'])
+
+            self.rd.true_proton_P[1]   = float(row['proton_momentum_Y'])
+            self.rd.true_lepton_P[1]   = float(row['lepton_momentum_Y'])
+
+            self.rd.true_proton_P[2]   = float(row['proton_momentum_Z'])
+            self.rd.true_lepton_P[2]   = float(row['lepton_momentum_Z'])
 
 
         # fill common
@@ -154,6 +157,7 @@ class NumuHandler(Handler):
         
         self.rd.CosmicLL[0]      = float(row["numu_CosmicLL"])
         self.rd.NuBkgLL[0]       = float(row["numu_NuBkgLL"])
+        self.rd.CCpi0LL[0]       = float(row["numu_CCpi0LL"])
         self.rd.PassCuts[0]      = int(row["numu_PassCuts"])
         self.rd.VtxAlgo[0]       = int(row["numu_VtxAlgo"])
         self.rd.NTracks[0]       = int(row["numu_NTracks"])

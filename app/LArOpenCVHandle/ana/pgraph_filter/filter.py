@@ -88,11 +88,13 @@ for entry in xrange(proc_iom.get_n_entries()):
     # no vertex, skip
     if num_vertex == 0: 
         print "... no vertex next!"
+        proc.process_entry(entry)
         continue
 
     # was vertex but none with valid LL_dist
     if pgraph_id < 0: 
         print "... vertex there but invalid LL next!"
+        proc.process_entry(entry)
         continue
     
     if pgraph_id >= num_vertex:

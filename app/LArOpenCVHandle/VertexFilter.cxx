@@ -120,10 +120,10 @@ namespace larcv {
     }
 
 
-    _run    = (uint) in_pg_v->run();
-    _subrun = (uint) in_pg_v->subrun();
-    _event  = (uint) in_pg_v->event();
-    _entry  = (uint) mgr.current_entry();
+    _run    = (int) in_pg_v->run();
+    _subrun = (int) in_pg_v->subrun();
+    _event  = (int) in_pg_v->event();
+    _entry  = (int) mgr.current_entry();
     
     //
     // nothing to do
@@ -131,6 +131,7 @@ namespace larcv {
     if (_idx_v.empty()) {
       LARCV_DEBUG() << "empty index vector" << std::endl;
       LARCV_DEBUG() << "return" << std::endl;
+      clear();
       return true;
     }
 

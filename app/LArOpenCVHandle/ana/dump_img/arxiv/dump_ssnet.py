@@ -21,8 +21,10 @@ FILE1  = str(sys.argv[1])
 FILE2  = str(sys.argv[2])
 ENTRY  = int(sys.argv[3])
 VTXID  = int(sys.argv[4])
-ROID   = int(sys.argv[5])
-NAME   = str(sys.argv[6])
+#ROID   = int(sys.argv[5])
+ROID   = 1;
+NAME   = str(sys.argv[5])
+
 
 mycmap = matplotlib.cm.get_cmap('jet')
 mycmap.set_under('w')
@@ -125,7 +127,7 @@ for plane in xrange(3):
 
         ctor=ctor[plane]
         if ctor.size==0: continue
-        ax.plot(ctor[:,0],ctor[:,1],'-',lw=5,color=colors[ix],alpha=1.0)
+        #ax.plot(ctor[:,0],ctor[:,1],'-',lw=5,color=colors[ix],alpha=1.0)
         
         if ctor[:,0].min() < xmin : xmin = ctor[:,0].min()
         if ctor[:,0].max() > xmax : xmax = ctor[:,0].max()

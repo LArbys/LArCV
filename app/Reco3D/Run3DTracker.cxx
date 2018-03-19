@@ -105,6 +105,7 @@ namespace larcv {
 	_recoTree->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v);
 	_recoTree->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v);
         _recoTree->Branch("IondivLength_v",&_IondivLength_v);
+        _recoTree->Branch("TotalADCvalues_v",&_TotalADCvalues_v);
         _recoTree->Branch("Angle_v",&_Angle_v);
         _recoTree->Branch("Reco_goodness_v",&_Reco_goodness_v);
         _recoTree->Branch("GoodVertex",&GoodVertex);
@@ -320,6 +321,7 @@ namespace larcv {
                 NtracksReco = 0;
                 if(_trk_id_v.size()!=0)_trk_id_v.clear();
                 if(_IondivLength_v.size()!=0)_IondivLength_v.clear();
+                if(_TotalADCvalues_v.size()!=0)_TotalADCvalues_v.clear();
 
                 double xyz[3] = {vertex_v[ivertex].X(),vertex_v[ivertex].Y(),vertex_v[ivertex].Z()};
                 ev_vertex->push_back(larlite::vertex(xyz,ivertex));
@@ -362,11 +364,12 @@ namespace larcv {
                 _Ion_5cm_v     = tracker.GetTotalIonization(5);
                 _Ion_10cm_v    = tracker.GetTotalIonization(10);
                 _Ion_tot_v     = tracker.GetTotalIonization();
-		_Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
-		_Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
+                _Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
+                _Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
                 for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
                     _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
                 }
+                _TotalADCvalues_v = tracker.GetTotalPixADC();
 
                 _Angle_v   = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
                 _vertexPhi   = tracker.GetVertexPhi();
@@ -388,7 +391,7 @@ namespace larcv {
 		
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                tracker.DrawVertex();
+                //tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();

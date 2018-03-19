@@ -187,12 +187,11 @@ print "Files seem to be 100% kosher, proceeding with analysis"
 
 with open(argv[3],'rb') as handle: LLPdfs = pickle.load(handle)          # Load LL histograms for 1mu1p cosmic differentiation
 with open(argv[4],'rb') as handle: LLPdfs_nusep = pickle.load(handle)    # Load LL histograms for 1mu1p nu background differentiation
-with open('3DLLPdfs_CCpi0_vs_cosmic_HIGHSTAT.pickle','rb') as handle: LLPdfs_findpi = pickle.load(handle) 
-    
+with open(argv[5],'rb') as handle: LLPdfs_findpi = pickle.load(handle)   # Load LL histograms for 1mu1p pi0 background differentiation
     
 # --- Create output ROOT file and initialize variables ----------------- #
 outFileName = 'FinalVertexVariables_%i.root'%(fileTag1)
-outFileName = os.path.join(sys.argv[5],outFileName)
+outFileName = os.path.join(sys.argv[6],outFileName)
 outFile = TFile(outFileName,'RECREATE')
 outTree = TTree('NuMuVertexVariables','Final Vertex Variable Tree')
 
@@ -381,8 +380,8 @@ for ev in TrkTree:
         #
         # muon and proton selection
         #
-        mid = np.argmax(dqdx_v)
-        pid = np.argmin(dqdx_v)
+        mid = np.argmin(dqdx_v)
+        pid = np.argmax(dqdx_v)
         
         _muon_id[0]          = int(mid)
         _muon_phi[0]         = float(vtxPhi_v[mid])
