@@ -430,6 +430,57 @@ def initialize_rt(VERTEX_PKL,NUMU_LL_ROOT):
     print "now... comb_df.index.size=",comb_df.index.size
 
     return comb_df
+
+
+def initialize_rt_LL(VERTEX_PKL,NUMU_LL_ROOT):
+    
+    comb_df = pd.DataFrame()
+
+    ana_vtx_df  = pd.read_pickle(VERTEX_PKL)
+    ana_numu_df = pd.DataFrame(rn.root2array(NUMU_LL_ROOT,treename="NuMuVertexVariables"))
+    
+    print "ana_vtx_df.index.size=",ana_vtx_df.index.size
+    print "ana_numu_df.index.size=",ana_numu_df.index.size
+    print
+    if 'vtxid' not in ana_vtx_df.columns:
+        print "No vertex dataframe encountered"
+        return ana_vtx_df
+
+    ana_locv_df = ana_vtx_df.query("locv_num_vertex>0").copy()
+    ana_rest_df = ana_vtx_df.drop(ana_locv_df.index).copy()
+
+    assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
+    assert ana_locv_df.index.size == ana_numu_df.index.size
+
+    ana_locv_df.set_index(RSEV,inplace=True)
+
+    ana_numu_df.rename(columns={ "_run"   : "run",
+                                 "_subrun": "subrun",
+                                 "_event" : "event",
+                                 '_vtxid' : 'vtxid'},inplace=True)
+
+
+    ana_numu_df.set_index(RSEV,inplace=True)
+    ana_numu_df = ana_numu_df.add_prefix('numu_')
+
+    print "ana_locv_df.index.size=",ana_locv_df.index.size
+    print "ana_numu_df.index.size=",ana_numu_df.index.size
+    print
+
+    df_v    = [ana_numu_df,ana_locv_df]
+    comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
+
+    comb_df.reset_index(inplace=True)
+    ana_rest_df.reset_index(inplace=True)
+
+    print "comb_df.index.size=",comb_df.index.size
+    print "ana_rest_df.index.size=",ana_rest_df.index.size
+
+    comb_df = comb_df.append(ana_rest_df,ignore_index=True)
+    
+    print "now... comb_df.index.size=",comb_df.index.size
+
+    return comb_df
     
     
 

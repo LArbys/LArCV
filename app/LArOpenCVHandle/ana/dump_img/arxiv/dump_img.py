@@ -36,8 +36,8 @@ iom.initialize()
 iom.read_entry(ENTRY)
 
 ev_img    = iom.get_data(larcv.kProductImage2D,"wire")
-ev_pgraph = iom.get_data(larcv.kProductPGraph,"nue")
-ev_ctor   = iom.get_data(larcv.kProductPixel2D,"nue_ctor")
+ev_pgraph = iom.get_data(larcv.kProductPGraph,"test")
+ev_ctor   = iom.get_data(larcv.kProductPixel2D,"test_ctor")
 
 print "@run=",ev_img.run(),"subrun=",ev_img.subrun(),"event=",ev_img.event()
 
