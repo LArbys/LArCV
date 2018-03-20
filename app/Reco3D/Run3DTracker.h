@@ -103,6 +103,12 @@ namespace larcv {
         std::vector<double> _Trunc_dQdX1_v;
         std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
+	std::vector<std::vector<double>> _trackQ3_v;
+	std::vector<std::vector<double>> _trackQ5_v;
+	std::vector<std::vector<double>> _trackQ10_v;
+	std::vector<std::vector<double>> _trackQ20_v;
+	std::vector<std::vector<double>> _trackQ30_v;
+	std::vector<std::vector<double>> _trackQ50_v;
         std::vector< std::vector<double> > _TotalADCvalues_v;
         std::vector< std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;

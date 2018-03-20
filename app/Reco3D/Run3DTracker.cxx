@@ -94,6 +94,13 @@ namespace larcv {
 
         _recoTree->Branch("trk_id_v", &_trk_id_v);
         _recoTree->Branch("NtracksReco",&NtracksReco);
+
+	_recoTree->Branch("trackQ3_v",&_trackQ3_v);
+	_recoTree->Branch("trackQ5_v",&_trackQ5_v);
+	_recoTree->Branch("trackQ10_v",&_trackQ10_v);
+	_recoTree->Branch("trackQ20_v",&_trackQ20_v);
+	_recoTree->Branch("trackQ30_v",&_trackQ30_v);
+	_recoTree->Branch("trackQ50_v",&_trackQ50_v);
 	
         _recoTree->Branch("E_muon_v",&_E_muon_v);
         _recoTree->Branch("E_proton_v",&_E_proton_v);
@@ -360,6 +367,13 @@ namespace larcv {
                 _Length_v    = tracker.GetVertexLength();
                 _closestWall = tracker.GetClosestWall();
 
+		_trackQ3_v     = tracker.GetTotalPixADC(3.);
+		_trackQ5_v     = tracker.GetTotalPixADC(5.);
+		_trackQ10_v    = tracker.GetTotalPixADC(10.);
+		_trackQ20_v    = tracker.GetTotalPixADC(20.);
+		_trackQ30_v    = tracker.GetTotalPixADC(30.);
+		_trackQ50_v    = tracker.GetTotalPixADC(50.);
+		
                 _Avg_Ion_v     = tracker.GetAverageIonization();
                 _Ion_5cm_v     = tracker.GetTotalIonization(5);
                 _Ion_10cm_v    = tracker.GetTotalIonization(10);
@@ -641,7 +655,13 @@ namespace larcv {
         _possiblyCrossing = -1.0*kINVALID_INT;
         _branchingTracks = -1.0*kINVALID_INT;
         _jumpingTracks = -1.0*kINVALID_INT;
-        
+	_trackQ50_v.clear();
+	_trackQ30_v.clear();
+	_trackQ20_v.clear();
+	_trackQ10_v.clear();
+	_trackQ5_v.clear();
+	_trackQ3_v.clear();
+	
     }
     
 }
