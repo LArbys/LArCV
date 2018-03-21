@@ -1,6 +1,6 @@
 import os,sys,gc
 
-if len(sys.argv) != 6:
+if len(sys.argv) != 7:
     print 
     print "NUE_LL_PKL  = str(sys.argv[1])"
     print "NUMU_LL_PKL = str(sys.argv[2])"
@@ -26,7 +26,7 @@ sys.path.insert(0,BASE_PATH)
 import ROOT
 from lib.nue_handler import NueHandler
 from lib.numu_handler import NumuHandler
-from lib.andy_handler import andy_handler
+from lib.andy_handler import AndyHandler
 
 FOUT = os.path.join(OUTDIR,"dllee_analysis_%d.root" % NUM)
 tf = ROOT.TFile.Open(FOUT,"RECREATE")

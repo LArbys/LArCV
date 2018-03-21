@@ -176,7 +176,7 @@ class ROOTData:
         self.MCTruth_particles_Mother     = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
         self.MCTruth_particles_StatusCode = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
         self.MCTruth_particles_NDaughters = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
-        MCTruth_particles_Daughters       = array( 'i', [ kINVALID_INT ]*self.MaxParticles*self.MaxParticles)
+        self.MCTruth_particles_Daughters  = array( 'i', [ kINVALID_INT ]*self.MaxParticles*self.MaxParticles)
         self.MCTruth_particles_Gvx        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
         self.MCTruth_particles_Gvy        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
         self.MCTruth_particles_Gvz        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
@@ -399,7 +399,7 @@ class ROOTData:
 
         self.MCTruth_NParticles[0] = kINVALID_INT
 
-        for pnum in len(self.MaxParticles):
+        for pnum in xrange(self.MaxParticles):
             self.MCTruth_particles_TrackId[pnum] = kINVALID_INT
             self.MCTruth_particles_PdgCode[pnum] = kINVALID_INT
             self.MCTruth_particles_Mother[pnum] = kINVALID_INT
@@ -418,8 +418,8 @@ class ROOTData:
             self.MCTruth_particles_poly[pnum] = kINVALID_DOUBLE
             self.MCTruth_particles_polz[pnum] = kINVALID_DOUBLE
 
-        for pnum in len(self.MaxParticles*self.MaxParticles):
-            MCTruth_particles_Daughters[pnum] = kINVALID_INT
+        for pnum in xrange(self.MaxParticles*self.MaxParticles):
+            self.MCTruth_particles_Daughters[pnum] = kINVALID_INT
 
         self.MCTruth_neutrino_CCNC[0] = kINVALID_INT
         self.MCTruth_neutrino_mode[0] = kINVALID_INT
@@ -629,7 +629,7 @@ class ROOTData:
         tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
         tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
 
-    def init_andy_tree(tree):
+    def init_andy_tree(self,tree):
 
         tree.Branch("run"   , self.run   , "run/I")
         tree.Branch("subrun", self.subrun, "subrun/I")
@@ -656,7 +656,7 @@ class ROOTData:
         tree.Branch("MCFlux_vz",       self.MCFlux_vz        , "MCFlux_vz/D");
         
         tree.Branch("MCTruth_NParticles",           self.MCTruth_NParticles,"MCTruth_NParticles/I");
-        tree.Branch("MCTruth_particles_TrackId",    self.MCTruth_particles_TrackId, ".MCTruth_particles_TrackId[50]/I");
+        tree.Branch("MCTruth_particles_TrackId",    self.MCTruth_particles_TrackId, "MCTruth_particles_TrackId[50]/I");
         tree.Branch("MCTruth_particles_PdgCode",    self.MCTruth_particles_PdgCode, "MCTruth_particles_PdgCode[50]/I");
         tree.Branch("MCTruth_particles_Mother",     self.MCTruth_particles_Mother, "MCTruth_particles_Mother[50]/I");
         tree.Branch("MCTruth_particles_StatusCode", self.MCTruth_particles_StatusCode, "MCTruth_particles_StatusCode[50]/I");

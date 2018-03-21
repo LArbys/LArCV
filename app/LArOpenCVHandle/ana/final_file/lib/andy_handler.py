@@ -66,7 +66,7 @@ class AndyHandler(Handler):
 
         self.rd.MCTruth_NParticles[0] = int(row['MCTruth_NParticles'])
 
-        for pnum1 in len(int(row['MCTruth_NParticles']):
+        for pnum1 in xrange(int(row['MCTruth_NParticles'])):
             self.rd.MCTruth_particles_TrackId[pnum1]    = int(row['MCTruth_particles_TrackId'][pnum1])
             self.rd.MCTruth_particles_PdgCode[pnum1]    = int(row['MCTruth_particles_PdgCode'][pnum1])
             self.rd.MCTruth_particles_Mother[pnum1]     = int(row['MCTruth_particles_Mother'][pnum1])
@@ -85,7 +85,7 @@ class AndyHandler(Handler):
             self.rd.MCTruth_particles_poly[pnum1]       = float(row['MCTruth_particles_poly'][pnum1])
             self.rd.MCTruth_particles_polz[pnum1]       = float(row['MCTruth_particles_polz'][pnum1])
             
-            for pnum2 in len(int(row['MCTruth_particles_NDaughters'][pnum1])):
+            for pnum2 in xrange(int(row['MCTruth_particles_NDaughters'][pnum1])):
                 self.rd.MCTruth_particles_Daughters[pnum1*self.rd.MaxParticles + pnum2] = int(row['MCTruth_particles_NDaughters'][pnum1][pnum2])
         
         self.rd.MCTruth_neutrino_CCNC[0] = int(row['MCTruth_neutrino_CCNC'])
