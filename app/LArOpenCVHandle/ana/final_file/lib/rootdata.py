@@ -141,8 +141,108 @@ class ROOTData:
         self.muon_score   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
         self.pion_score   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
         self.proton_score = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        
+        
+        #
+        # andy related
+        #
 
+        self.MaxParticles = int(50)
 
+        self.MCFlux_NuPosX = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_NuPosY = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_NuPosZ = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_NuMomX = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_NuMomY = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_NuMomZ = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_NuMomE = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_ntype = array( 'i', [ kINVALID_INT ])
+        self.MCFlux_ptype = array( 'i', [ kINVALID_INT ])
+        self.MCFlux_nimpwt = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_dk2gen = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_nenergyn = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_tpx = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_tpy = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_tpz = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_tptype = array( 'i', [ kINVALID_INT ])
+        self.MCFlux_vx = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_vy = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCFlux_vz = array( 'd', [ kINVALID_DOUBLE ])
+
+        self.MCTruth_NParticles = array( 'i', [ kINVALID_INT ])
+
+        self.MCTruth_particles_TrackId    = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
+        self.MCTruth_particles_PdgCode    = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
+        self.MCTruth_particles_Mother     = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
+        self.MCTruth_particles_StatusCode = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
+        self.MCTruth_particles_NDaughters = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
+        MCTruth_particles_Daughters       = array( 'i', [ kINVALID_INT ]*self.MaxParticles*self.MaxParticles)
+        self.MCTruth_particles_Gvx        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_Gvy        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_Gvz        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_Gvt        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_px0        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_py0        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_pz0        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_e0         = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_Rescatter  = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
+        self.MCTruth_particles_polx       = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_poly       = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+        self.MCTruth_particles_polz       = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
+
+        self.MCTruth_neutrino_CCNC            = array( 'i', [ kINVALID_INT ])
+        self.MCTruth_neutrino_mode            = array( 'i', [ kINVALID_INT ])
+        self.MCTruth_neutrino_interactionType = array( 'i', [ kINVALID_INT ])
+        self.MCTruth_neutrino_target          = array( 'i', [ kINVALID_INT ])
+        self.MCTruth_neutrino_nucleon         = array( 'i', [ kINVALID_INT ])
+        self.MCTruth_neutrino_quark           = array( 'i', [ kINVALID_INT ])
+        self.MCTruth_neutrino_W               = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCTruth_neutrino_X               = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCTruth_neutrino_Y               = array( 'd', [ kINVALID_DOUBLE ])
+        self.MCTruth_neutrino_Q2              = array( 'd', [ kINVALID_DOUBLE ])
+
+        self.GTruth_ProbePDG   = array( 'i', [ kINVALID_INT ])
+        self.GTruth_IsSeaQuark = array( 'i', [ kINVALID_INT ])
+        self.GTruth_tgtPDG     = array( 'i', [ kINVALID_INT ])
+
+        self.GTruth_weight      = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_probability = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_Xsec        = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_fDiffXsec   = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_vertexX     = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_vertexY     = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_vertexZ     = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_vertexT     = array( 'd', [ kINVALID_DOUBLE ])
+
+        self.GTruth_Gscatter   = array( 'i', [ kINVALID_INT ])
+        self.GTruth_Gint       = array( 'i', [ kINVALID_INT ])
+        self.GTruth_ResNum     = array( 'i', [ kINVALID_INT ])
+        self.GTruth_NumPiPlus  = array( 'i', [ kINVALID_INT ])
+        self.GTruth_NumPi0     = array( 'i', [ kINVALID_INT ])
+        self.GTruth_NumPiMinus = array( 'i', [ kINVALID_INT ])
+        self.GTruth_NumProton  = array( 'i', [ kINVALID_INT ])
+        self.GTruth_NumNeutron = array( 'i', [ kINVALID_INT ])
+        self.GTruth_IsCharm    = array( 'i', [ kINVALID_INT ])
+
+        self.GTruth_gX  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_gY  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_gZ  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_gT  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_gW  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_gQ2 = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_gq2 = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_ProbeP4x  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_ProbeP4y  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_ProbeP4z  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_ProbeP4E  = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_HitNucP4x = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_HitNucP4y = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_HitNucP4z = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_HitNucP4E = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_FShadSystP4x = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_FShadSystP4y = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_FShadSystP4z = array( 'd', [ kINVALID_DOUBLE ])
+        self.GTruth_FShadSystP4E = array( 'd', [ kINVALID_DOUBLE ])
 
     def reset(self):
 
@@ -272,6 +372,108 @@ class ROOTData:
             self.muon_score[pl]   = kINVALID_FLOAT;
             self.pion_score[pl]   = kINVALID_FLOAT;
             self.proton_score[pl] = kINVALID_FLOAT;
+
+
+        #
+        # andy related
+        #
+        self.MCFlux_NuPosX[0]   = kINVALID_DOUBLE
+        self.MCFlux_NuPosY[0]   = kINVALID_DOUBLE
+        self.MCFlux_NuPosZ[0]   = kINVALID_DOUBLE
+        self.MCFlux_NuMomX[0]   = kINVALID_DOUBLE
+        self.MCFlux_NuMomY[0]   = kINVALID_DOUBLE
+        self.MCFlux_NuMomZ[0]   = kINVALID_DOUBLE
+        self.MCFlux_NuMomE[0]   = kINVALID_DOUBLE
+        self.MCFlux_ntype[0]    = kINVALID_INT
+        self.MCFlux_ptype[0]    = kINVALID_INT
+        self.MCFlux_nimpwt[0]   = kINVALID_DOUBLE
+        self.MCFlux_dk2gen[0]   = kINVALID_DOUBLE
+        self.MCFlux_nenergyn[0] = kINVALID_DOUBLE
+        self.MCFlux_tpx[0]      = kINVALID_DOUBLE
+        self.MCFlux_tpy[0]      = kINVALID_DOUBLE
+        self.MCFlux_tpz[0]      = kINVALID_DOUBLE
+        self.MCFlux_tptype[0]   = kINVALID_INT
+        self.MCFlux_vx[0]       = kINVALID_DOUBLE
+        self.MCFlux_vy[0]       = kINVALID_DOUBLE
+        self.MCFlux_vz[0]       = kINVALID_DOUBLE
+
+        self.MCTruth_NParticles[0] = kINVALID_INT
+
+        for pnum in len(self.MaxParticles):
+            self.MCTruth_particles_TrackId[pnum] = kINVALID_INT
+            self.MCTruth_particles_PdgCode[pnum] = kINVALID_INT
+            self.MCTruth_particles_Mother[pnum] = kINVALID_INT
+            self.MCTruth_particles_StatusCode[pnum] = kINVALID_INT
+            self.MCTruth_particles_NDaughters[pnum] = kINVALID_INT
+            self.MCTruth_particles_Gvx[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_Gvy[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_Gvz[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_Gvt[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_px0[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_py0[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_pz0[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_e0[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_Rescatter[pnum] = kINVALID_INT
+            self.MCTruth_particles_polx[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_poly[pnum] = kINVALID_DOUBLE
+            self.MCTruth_particles_polz[pnum] = kINVALID_DOUBLE
+
+        for pnum in len(self.MaxParticles*self.MaxParticles):
+            MCTruth_particles_Daughters[pnum] = kINVALID_INT
+
+        self.MCTruth_neutrino_CCNC[0] = kINVALID_INT
+        self.MCTruth_neutrino_mode[0] = kINVALID_INT
+        self.MCTruth_neutrino_interactionType[0] = kINVALID_INT
+        self.MCTruth_neutrino_target[0] = kINVALID_INT
+        self.MCTruth_neutrino_nucleon[0] = kINVALID_INT
+        self.MCTruth_neutrino_quark[0] = kINVALID_INT
+        self.MCTruth_neutrino_W[0] =  kINVALID_DOUBLE
+        self.MCTruth_neutrino_X[0] =  kINVALID_DOUBLE
+        self.MCTruth_neutrino_Y[0] =  kINVALID_DOUBLE
+        self.MCTruth_neutrino_Q2[0] = kINVALID_DOUBLE
+
+        self.GTruth_ProbePDG[0]  = kINVALID_INT
+        self.GTruth_IsSeaQuark[0]= kINVALID_INT
+        self.GTruth_tgtPDG[0]    = kINVALID_INT
+
+        self.GTruth_weight[0]      = kINVALID_DOUBLE
+        self.GTruth_probability[0] = kINVALID_DOUBLE
+        self.GTruth_Xsec[0]        = kINVALID_DOUBLE
+        self.GTruth_fDiffXsec[0]   = kINVALID_DOUBLE
+        self.GTruth_vertexX[0]     = kINVALID_DOUBLE
+        self.GTruth_vertexY[0]     = kINVALID_DOUBLE
+        self.GTruth_vertexZ[0]     = kINVALID_DOUBLE
+        self.GTruth_vertexT[0]     = kINVALID_DOUBLE
+
+        self.GTruth_Gscatter[0]   = kINVALID_INT
+        self.GTruth_Gint[0]       = kINVALID_INT
+        self.GTruth_ResNum[0]     = kINVALID_INT
+        self.GTruth_NumPiPlus[0]  = kINVALID_INT
+        self.GTruth_NumPi0[0]     = kINVALID_INT
+        self.GTruth_NumPiMinus[0] = kINVALID_INT
+        self.GTruth_NumProton[0]  = kINVALID_INT
+        self.GTruth_NumNeutron[0] = kINVALID_INT
+        self.GTruth_IsCharm[0]    = kINVALID_INT
+
+        self.GTruth_gX[0]  = kINVALID_DOUBLE
+        self.GTruth_gY[0]  = kINVALID_DOUBLE
+        self.GTruth_gZ[0]  = kINVALID_DOUBLE
+        self.GTruth_gT[0]  = kINVALID_DOUBLE
+        self.GTruth_gW[0]  = kINVALID_DOUBLE
+        self.GTruth_gQ2[0] = kINVALID_DOUBLE
+        self.GTruth_gq2[0] = kINVALID_DOUBLE
+        self.GTruth_ProbeP4x[0]  = kINVALID_DOUBLE
+        self.GTruth_ProbeP4y[0]  = kINVALID_DOUBLE
+        self.GTruth_ProbeP4z[0]  = kINVALID_DOUBLE
+        self.GTruth_ProbeP4E[0]  = kINVALID_DOUBLE
+        self.GTruth_HitNucP4x[0] = kINVALID_DOUBLE
+        self.GTruth_HitNucP4y[0] = kINVALID_DOUBLE
+        self.GTruth_HitNucP4z[0] = kINVALID_DOUBLE
+        self.GTruth_HitNucP4E[0] = kINVALID_DOUBLE
+        self.GTruth_FShadSystP4x[0] = kINVALID_DOUBLE
+        self.GTruth_FShadSystP4y[0] = kINVALID_DOUBLE
+        self.GTruth_FShadSystP4z[0] = kINVALID_DOUBLE
+        self.GTruth_FShadSystP4E[0] = kINVALID_DOUBLE
         
 
     def init_nue_tree(self,tree):
@@ -426,3 +628,101 @@ class ROOTData:
         tree.Branch("muon_score"  , self.muon_score  , "muon_score[3]/F")
         tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
         tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
+
+    def init_andy_tree(tree):
+
+        tree.Branch("run"   , self.run   , "run/I")
+        tree.Branch("subrun", self.subrun, "subrun/I")
+        tree.Branch("event" , self.event , "event/I")
+        
+        tree.Branch("MCFlux_NuPosX",   self.MCFlux_NuPosX    , "MCFlux_NuPosX/D");
+        tree.Branch("MCFlux_NuPosY",   self.MCFlux_NuPosY    , "MCFlux_NuPosY/D");
+        tree.Branch("MCFlux_NuPosZ",   self.MCFlux_NuPosZ    , "MCFlux_NuPosZ/D");
+        tree.Branch("MCFlux_NuMomX",   self.MCFlux_NuMomX    , "MCFlux_NuMomX/D");
+        tree.Branch("MCFlux_NuMomY",   self.MCFlux_NuMomY    , "MCFlux_NuMomY/D");
+        tree.Branch("MCFlux_NuMomZ",   self.MCFlux_NuMomZ    , "MCFlux_NuMomZ/D");
+        tree.Branch("MCFlux_NuMomE",   self.MCFlux_NuMomE    , "MCFlux_NuMomE/D");
+        tree.Branch("MCFlux_ntype",    self.MCFlux_ntype     , "MCFlux_ntype/I");
+        tree.Branch("MCFlux_ptype",    self.MCFlux_ptype     , "MCFlux_ptype/I");
+        tree.Branch("MCFlux_nimpwt",   self.MCFlux_nimpwt    , "MCFlux_nimpwt/D");
+        tree.Branch("MCFlux_dk2gen",   self.MCFlux_dk2gen    , "MCFlux_dk2gen/D");
+        tree.Branch("MCFlux_nenergyn", self.MCFlux_nenergyn  , "MCFlux_nenergyn/D");
+        tree.Branch("MCFlux_tpx",      self.MCFlux_tpx       , "MCFlux_tpx/D");
+        tree.Branch("MCFlux_tpy",      self.MCFlux_tpy       , "MCFlux_tpy/D");
+        tree.Branch("MCFlux_tpz",      self.MCFlux_tpz       , "MCFlux_tpz/D");
+        tree.Branch("MCFlux_tptype",   self.MCFlux_tptype    , "MCFlux_tptype/I");
+        tree.Branch("MCFlux_vx",       self.MCFlux_vx        , "MCFlux_vx/D");
+        tree.Branch("MCFlux_vy",       self.MCFlux_vy        , "MCFlux_vy/D");
+        tree.Branch("MCFlux_vz",       self.MCFlux_vz        , "MCFlux_vz/D");
+        
+        tree.Branch("MCTruth_NParticles",           self.MCTruth_NParticles,"MCTruth_NParticles/I");
+        tree.Branch("MCTruth_particles_TrackId",    self.MCTruth_particles_TrackId, ".MCTruth_particles_TrackId[50]/I");
+        tree.Branch("MCTruth_particles_PdgCode",    self.MCTruth_particles_PdgCode, "MCTruth_particles_PdgCode[50]/I");
+        tree.Branch("MCTruth_particles_Mother",     self.MCTruth_particles_Mother, "MCTruth_particles_Mother[50]/I");
+        tree.Branch("MCTruth_particles_StatusCode", self.MCTruth_particles_StatusCode, "MCTruth_particles_StatusCode[50]/I");
+        tree.Branch("MCTruth_particles_NDaughters", self.MCTruth_particles_NDaughters, "MCTruth_particles_NDaughters[50]/I");
+        tree.Branch("MCTruth_particles_Daughters",  self.MCTruth_particles_Daughters, "MCTruth_particles_Daughters[50][50]/I");
+        tree.Branch("MCTruth_particles_Gvx",        self.MCTruth_particles_Gvx, "MCTruth_particles_Gvx[50]/D");
+        tree.Branch("MCTruth_particles_Gvy",        self.MCTruth_particles_Gvy, "MCTruth_particles_Gvy[50]/D");
+        tree.Branch("MCTruth_particles_Gvz",        self.MCTruth_particles_Gvz, "MCTruth_particles_Gvz[50]/D");
+        tree.Branch("MCTruth_particles_Gvt",        self.MCTruth_particles_Gvt, "MCTruth_particles_Gvt[50]/D");
+        tree.Branch("MCTruth_particles_px0",        self.MCTruth_particles_px0, "MCTruth_particles_px0[50]/D");
+        tree.Branch("MCTruth_particles_py0",        self.MCTruth_particles_py0, "MCTruth_particles_py0[50]/D");
+        tree.Branch("MCTruth_particles_pz0",        self.MCTruth_particles_pz0, "MCTruth_particles_pz0[50]/D");
+        tree.Branch("MCTruth_particles_e0",         self.MCTruth_particles_e0, "MCTruth_particles_e0[50]/D");
+        tree.Branch("MCTruth_particles_Rescatter",  self.MCTruth_particles_Rescatter, "MCTruth_particles_Rescatter[50]/I");
+        tree.Branch("MCTruth_particles_polx",       self.MCTruth_particles_polx, "MCTruth_particles_polx[50]/D");
+        tree.Branch("MCTruth_particles_poly",       self.MCTruth_particles_poly, "MCTruth_particles_poly[50]/D");
+        tree.Branch("MCTruth_particles_polz",       self.MCTruth_particles_polz, "MCTruth_particles_polz[50]/D");
+    
+        tree.Branch("MCTruth_neutrino_CCNC",            self.MCTruth_neutrino_CCNC, "MCTruth_neutrino_CCNC/I");
+        tree.Branch("MCTruth_neutrino_mode",            self.MCTruth_neutrino_mode, "MCTruth_neutrino_mode/I");
+        tree.Branch("MCTruth_neutrino_interactionType", self.MCTruth_neutrino_interactionType, "MCTruth_neutrino_interactionType/I");
+        tree.Branch("MCTruth_neutrino_target",          self.MCTruth_neutrino_target, "MCTruth_neutrino_target/I");         
+        tree.Branch("MCTruth_neutrino_nucleon",         self.MCTruth_neutrino_nucleon, "MCTruth_neutrino_nucleon/I");        
+        tree.Branch("MCTruth_neutrino_quark",           self.MCTruth_neutrino_quark, "MCTruth_neutrino_quark/I");          
+        tree.Branch("MCTruth_neutrino_W",               self.MCTruth_neutrino_W, "MCTruth_neutrino_W/D");              
+        tree.Branch("MCTruth_neutrino_X",               self.MCTruth_neutrino_X, "MCTruth_neutrino_X/D");              
+        tree.Branch("MCTruth_neutrino_Y",               self.MCTruth_neutrino_Y, "MCTruth_neutrino_Y/D");              
+        tree.Branch("MCTruth_neutrino_Q2",              self.MCTruth_neutrino_Q2, "MCTruth_neutrino_Q2/D");             
+        
+        tree.Branch("GTruth_ProbePDG"    , self.GTruth_ProbePDG, "GTruth_ProbePDG/I");                  
+        tree.Branch("GTruth_IsSeaQuark"  , self.GTruth_IsSeaQuark, "GTruth_IsSeaQuark/I");                
+        tree.Branch("GTruth_tgtPDG"      , self.GTruth_tgtPDG, "GTruth_tgtPDG/I");                    
+        tree.Branch("GTruth_weight"      , self.GTruth_weight, "GTruth_weight/D");                    
+        tree.Branch("GTruth_probability" , self.GTruth_probability, "GTruth_probability/D");               
+        tree.Branch("GTruth_Xsec"        , self.GTruth_Xsec, "GTruth_Xsec/D");                      
+        tree.Branch("GTruth_fDiffXsec"   , self.GTruth_fDiffXsec, "GTruth_fDiffXsec/D");                 
+        tree.Branch("GTruth_vertexX"     , self.GTruth_vertexX, "GTruth_vertexX/D");                   
+        tree.Branch("GTruth_vertexY"     , self.GTruth_vertexY, "GTruth_vertexY/D");                   
+        tree.Branch("GTruth_vertexZ"     , self.GTruth_vertexZ, "GTruth_vertexZ/D");                   
+        tree.Branch("GTruth_vertexT"     , self.GTruth_vertexT, "GTruth_vertexT/D");                   
+        tree.Branch("GTruth_Gscatter"    , self.GTruth_Gscatter, "GTruth_Gscatter/I");                  
+        tree.Branch("GTruth_Gint"        , self.GTruth_Gint, "GTruth_Gint/I");                      
+        tree.Branch("GTruth_ResNum"      , self.GTruth_ResNum, "GTruth_ResNum/I");                    
+        tree.Branch("GTruth_NumPiPlus"   , self.GTruth_NumPiPlus, "GTruth_NumPiPlus/I");                 
+        tree.Branch("GTruth_NumPi0"      , self.GTruth_NumPi0, "GTruth_NumPi0/I");                    
+        tree.Branch("GTruth_NumPiMinus"  , self.GTruth_NumPiMinus, "GTruth_NumPiMinus/I");                
+        tree.Branch("GTruth_NumProton"   , self.GTruth_NumProton, "GTruth_NumProton/I");                 
+        tree.Branch("GTruth_NumNeutron"  , self.GTruth_NumNeutron, "GTruth_NumNeutron/I");                
+        tree.Branch("GTruth_IsCharm"     , self.GTruth_IsCharm, "GTruth_IsCharm/I");                   
+        tree.Branch("GTruth_gX" , self.GTruth_gX  , "GTruth_gX/D");                        
+        tree.Branch("GTruth_gY" , self.GTruth_gY  , "GTruth_gY/D");                        
+        tree.Branch("GTruth_gZ" , self.GTruth_gZ  , "GTruth_gZ/D");                        
+        tree.Branch("GTruth_gT" , self.GTruth_gT  , "GTruth_gT/D");                        
+        tree.Branch("GTruth_gW" , self.GTruth_gW  , "GTruth_gW/D");                        
+        tree.Branch("GTruth_gQ2", self.GTruth_gQ2 , "GTruth_gQ2/D");                       
+        tree.Branch("GTruth_gq2", self.GTruth_gq2 , "GTruth_gq2/D");                       
+        tree.Branch("GTruth_ProbePDG" , self.GTruth_ProbePDG  , "GTruth_ProbePDG/I");                  
+        tree.Branch("GTruth_ProbeP4x" , self.GTruth_ProbeP4x  , "GTruth_ProbeP4x/D");                  
+        tree.Branch("GTruth_ProbeP4y" , self.GTruth_ProbeP4y  , "GTruth_ProbeP4y/D");                  
+        tree.Branch("GTruth_ProbeP4z" , self.GTruth_ProbeP4z  , "GTruth_ProbeP4z/D");                  
+        tree.Branch("GTruth_ProbeP4E" , self.GTruth_ProbeP4E  , "GTruth_ProbeP4E/D");                  
+        tree.Branch("GTruth_HitNucP4x", self.GTruth_HitNucP4x , "GTruth_HitNucP4x/D");                 
+        tree.Branch("GTruth_HitNucP4y", self.GTruth_HitNucP4y , "GTruth_HitNucP4y/D");                 
+        tree.Branch("GTruth_HitNucP4z", self.GTruth_HitNucP4z , "GTruth_HitNucP4z/D");                 
+        tree.Branch("GTruth_HitNucP4E", self.GTruth_HitNucP4E , "GTruth_HitNucP4E/D");                 
+        tree.Branch("GTruth_FShadSystP4x", self.GTruth_FShadSystP4x, "GTruth_FShadSystP4x/D");              
+        tree.Branch("GTruth_FShadSystP4y", self.GTruth_FShadSystP4y, "GTruth_FShadSystP4y/D");              
+        tree.Branch("GTruth_FShadSystP4z", self.GTruth_FShadSystP4z, "GTruth_FShadSystP4z/D");              
+        tree.Branch("GTruth_FShadSystP4E", self.GTruth_FShadSystP4E, "GTruth_FShadSystP4E/D");
