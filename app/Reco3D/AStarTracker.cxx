@@ -2581,7 +2581,7 @@ namespace larcv {
 
                     if(!(irow > strPt.Y()-20 && irow<strPt.Y()+20) && !(irow > ndPt.Y()-20 && irow < ndPt.Y()+20))continue;
 
-                    for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
+		    for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
                         if(!(icol > strPt.X()-20 && icol<strPt.X()+20) && !(icol > ndPt.X()-20 && icol < ndPt.X()+20))continue;
                         if(hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue || hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
                         TVector3 pC((icol+0.5),(irow+0.5),0);
@@ -2653,63 +2653,16 @@ namespace larcv {
       std::vector< std::vector<double> > totalADC(_vertexTracks.size() );
       if(_vertexTracks.size() == 0) return totalADC;
 
-      for(size_t itrack = 0;itrack < _vertexTracks.size();itrack++){
+
+      for(size_t itrack= 0; itrack < _vertexTracks.size(); itrack++){
 	std::vector<double> ADCvalue(3,0);
-	hit_image_v = CropFullImage2bounds(_vertexTracks);
-
-	for(size_t iPlane = 0; iPlane<3; iPlane++) {
+	for(size_t iNode = 0;iNode < _vertexTracks[itrack].size()-1;iNode++){
 	  
-	  for(size_t iNode = 0; iNode < _vertexTracks[itrack].size(); iNode++) {
-
-	    if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < tkLen) continue;
-	    
-	    double x_proj,y_proj;
-	    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
-	    TVector3 strPt(x_proj,y_proj,0);
-
-	    for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
-	      if(!(irow > strPt.Y()-20 && irow<strPt.Y()+20)) continue;
-	      for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){ 
-		if(!(icol > strPt.X()-20 && icol<strPt.X()+20)) continue;
-		
-		TVector3 thisPt((icol+0.5),(irow+0.5),0);
-		
-		if ((thisPt - strPt).Mag() < shellMask)
-		  hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
-	      }
-	    }
-	  }
-	}
-      
-	    
-      for(size_t iPlane=0; iPlane<3;iPlane++){
-	double x_proj,y_proj;
-	ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][0].X(),_vertexTracks[itrack][0].Y(),_vertexTracks[itrack][0].Z(),0,iPlane,x_proj,y_proj);
-	TVector3 strPt(x_proj,y_proj,0);
-	ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack].back().X(),_vertexTracks[itrack].back().Y(),_vertexTracks[itrack].back().Z(),0,iPlane,x_proj,y_proj);
-	TVector3 ndPt(x_proj,y_proj,0);
-
-	for(size_t irow = 0;irow<hit_image_v[iPlane].meta().rows();irow++){
-	  
-	  if(!(irow > strPt.Y()-20 && irow<strPt.Y()+20) && !(irow > ndPt.Y()-20 && irow < ndPt.Y()+20))continue;
-
-	  for(size_t icol = 0;icol<hit_image_v[iPlane].meta().cols();icol++){
-	    if(!(icol > strPt.X()-20 && icol<strPt.X()+20) && !(icol > ndPt.X()-20 && icol < ndPt.X()+20))continue;
-	    if(hit_image_v[iPlane].pixel(irow,icol) == _deadWireValue || hit_image_v[iPlane].pixel(irow,icol) == 0)continue;
-	    TVector3 pC((icol+0.5),(irow+0.5),0);
-	    if((pC-strPt).Mag() < shellMask || (pC-ndPt).Mag() < shellMask){
-	      ADCvalue[iPlane]+=hit_image_v[iPlane].pixel(irow,icol);
-	      hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
-	    }
-	  }
-	}
-		
-	if(_vertexTracks[itrack].size() < 3)continue;
-
+	  if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() > tkLen) continue;
 	
-	for(size_t iNode = 1;iNode < _vertexTracks[itrack].size()-1;iNode++){
 	  for(size_t iPlane = 0; iPlane<3; iPlane++){
 
+	    double x_proj,y_proj;
 	    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode].X(),_vertexTracks[itrack][iNode].Y(),_vertexTracks[itrack][iNode].Z(),0,iPlane,x_proj,y_proj);
 	    TVector3 A(x_proj,y_proj,0);
 	    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[itrack][iNode+1].X(),_vertexTracks[itrack][iNode+1].Y(),_vertexTracks[itrack][iNode+1].Z(),0,iPlane,x_proj,y_proj);
@@ -2749,8 +2702,6 @@ namespace larcv {
 	    }
 	  }
 	}
-      }
-      
       totalADC[itrack] = ADCvalue;
       }
       return totalADC;
