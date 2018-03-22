@@ -41,7 +41,7 @@ class AndyHandler(Handler):
         
         if ismc == False: 
             self.tree.Fill()
-            self.rd.Reset()
+            self.rd.reset()
             return True
         
         self.rd.MCFlux_NuPosX[0]   = float(row['MCFlux_NuPosX'])
