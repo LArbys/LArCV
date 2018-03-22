@@ -19,8 +19,47 @@ class NuePrecutHandler(Handler):
 
     def reshape(self,inputfile) :
         
+        print "Reading..."
+        LL_df = pd.read_pickle(inputfile)
+        print "...read"
+
+        LL_sort_df = pd.DataFrame()
         
+        no_vertex = False
+        no_ll = False
+        
+        print "Check if no vertex..."
+        if "locv_num_vertex" not in LL_df.columns:
+            print "No vertex found in file!"
+            LL_sort_df = LL_df.groupby(RSE).head(1).copy()
+            no_vertex = True
+            print "... handled"
+
+        elif "chi2" not in LL_df.columns:
+            print "Vertex exists but none valid in file!"
+            LL_sort_df = LL_df.groupby(RSE).head(1).copy()
+            no_ll = True
+            print "... handled"
+        else:
+            print "Minimizing @ chi2..."
+            LL_sort_df = LL_df.sort_values(["chi2"],ascending=True).groupby(RSE).head(1).copy()
+            LL_sort_df.sort_values(by=RSE,inplace=True)
+            print "... maximized"
+    
+        print "... checked"
+        
+        self.df = LL_sort_df.copy()
+        self.no_vertex = no_vertex
+        self.no_ll = no_ll
+
+        del LL_df
+        del LL_sort_df
+
+        # ensure the rse is int64
+        self.df[RSE] = self.df[RSE].astype(np.int64)
+
         gc.collect()
+
 
         
     def fill(self,run,subrun,event,ismc):
@@ -89,13 +128,13 @@ class NuePrecutHandler(Handler):
             print "no LL vertex in file... skip!"
             return True
             
-        if np.isnan(row['LL_dist']):
+        if np.isnan(row['chi2']):
             self.tree.Fill()
             self.rd.reset()
             print "invalid LL... skip!"
             return True
             
-        self.rd.vertex_id[0]  = int(row['vtxid']);
+        self.rd.vertex_id[0] = int(row['vtxid']);
 
         if ismc == True:
             self.rd.scedr[0] = float(row['locv_scedr']);
@@ -125,11 +164,7 @@ class NuePrecutHandler(Handler):
         self.rd.reco_vertex[1] = float(row['locv_y'])
         self.rd.reco_vertex[2] = float(row['locv_z'])
         
-        self.rd.LL_dist[0] = float(row['LL_dist']);
-        self.rd.LLc_e[0]   = float(row['L_ec_e']);
-        self.rd.LLc_p[0]   = float(row['L_pc_p']);
-        self.rd.LLe_e[0]   = float(row['LLe']);
-        self.rd.LLe_p[0]   = float(row['LLp']);
+        self.rd.reco_chi2[0] = float(row['chi2']);
         
         # fill reco
         self.rd.reco_proton_id[0]    = int(row['reco_LL_proton_id'])

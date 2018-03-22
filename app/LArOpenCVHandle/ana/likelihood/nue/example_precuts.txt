@@ -6,3 +6,5 @@ p07_shr_qsum.str[0]>2000
 p07_shr_qsum.str[1]>2000
 two_pt<0.8
 locv_hull_area_overlap_max<0.4
+chi2<3.0
+chi2>=0.0

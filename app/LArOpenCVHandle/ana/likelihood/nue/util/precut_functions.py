@@ -12,9 +12,13 @@ def perform_precuts(INPUT_DF,
 
     print "Reading input"
     input_df = pd.read_pickle(INPUT_DF)
+
     print "Read input_df=",INPUT_DF,"sz=",input_df.index.size,"RSE=",len(input_df.groupby(RSE))
-    vertex_df = input_df.query("locv_num_vertex>0").copy()
-    
+    vertex_df  = input_df.query("locv_num_vertex>0").copy()
+
+    event_df = input_df.groupby(RSE).nth(0)
+    event_df['precut_passed'] = int(0)
+
     cosmic_df = pd.DataFrame()
     flash_df  = pd.DataFrame()
     dedx_df   = pd.DataFrame()
@@ -23,6 +27,7 @@ def perform_precuts(INPUT_DF,
     comb_v = []
 
     if len(COSMIC_ROOT)>0:
+
         print "Reading=",COSMIC_ROOT
         cosmic_df= pd.DataFrame(rn.root2array(COSMIC_ROOT))
         
@@ -59,13 +64,26 @@ def perform_precuts(INPUT_DF,
     
         comb_df.reset_index(inplace=True)
         df.reset_index(inplace=True)
+    
+    print "Preparing 2 particle data frame"
+    comb_df = prep_two_par_df(comb_df)
+    
+    print "Preparing LL variables"
+    comb_df = prep_LL_vars(comb_df,bool(IS_MC))
 
+    print "Setting particle ID from SSNET"
+    comb_df = set_ssnet_particle_reco_id(comb_df)
+    
+    print "Preparing reco parameters"
+    comb_df = LL_reco_parameters(comb_df)
+
+    print "Setting proton & electron track ID"
+    comb_df = set_proton_track_id(comb_df)
+    comb_df = set_electron_track_id(comb_df)
 
     print "Preparing precuts"
-    comb_df = prep_two_par_df(comb_df)
-    comb_df = prep_LL_vars(comb_df,bool(IS_MC))
     comb_df = prepare_precuts(comb_df)
-
+    
     print "Reading precuts=",PRECUT_TXT
     
     cuts = ""
@@ -86,15 +104,13 @@ def perform_precuts(INPUT_DF,
     print "Precutting"
     comb_df.query(SS,inplace=True)
     
-    print "Setting particle ID"
-    comb_df = set_ssnet_particle_reco_id(comb_df)
+    comb_df['precut_passed'] = int(1)
+
+    comb_df.set_index(RSE,inplace=True)
+
+    comb_df = pd.concat((event_df,comb_df))
     
-    print "Preparing parameters"
-    comb_df = LL_reco_parameters(comb_df)
-    
-    print "Setting track ID"
-    comb_df = set_proton_track_id(comb_df)
-    comb_df = set_electron_track_id(comb_df)
+    comb_df.reset_index(inplace=True)
 
     return comb_df
 
@@ -295,6 +311,7 @@ def prepare_precuts(df):
     df['two_pt_p0']   = df.apply(xing_plane,args=(0,),axis=1)
     df['two_pt_p1']   = df.apply(xing_plane,args=(1,),axis=1)
     df['two_pt_p2']   = df.apply(xing_plane,args=(2,),axis=1)
+    df['chi2']        = df.apply(get_1e1p_chi2,axis=1)
     return df
 
 
