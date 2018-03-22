@@ -40,7 +40,7 @@ class AndyHandler(Handler):
         print "@(r,s,e)=(%d,%d,%d)"%(row['run'],row['subrun'],row['event'])
         
         if ismc == False: 
-            self.Tree.Fill()
+            self.tree.Fill()
             self.rd.Reset()
             return True
         
