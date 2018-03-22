@@ -9,7 +9,7 @@ def main(argv):
     OUTDIR = str(argv[1])
     num = int(os.path.basename(argv[2]).split(".")[0].split("_")[-1])
 
-    SS = "hadd -f %s " % os.path.join(OUTDIR,"dllee_vertex_%d.root " % num)
+    SS = "hadd -f -k %s " % os.path.join(OUTDIR,"dllee_vertex_%d.root " % num)
     for file_ in argv[2:]:
         SS += file_
         SS += " "
