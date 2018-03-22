@@ -1,4 +1,102 @@
 from common import *
+import pandas as pd
+import root_numpy as rn
+from util.ll_functions import prep_two_par_df, prep_LL_vars, LL_reco_parameters
+
+def perform_precuts(INPUT_DF,
+                    COSMIC_ROOT,
+                    FLASH_ROOT,
+                    DEDX_ROOT,
+                    PRECUT_TXT,
+                    IS_MC):
+
+    print "Reading input"
+    input_df = pd.read_pickle(INPUT_DF)
+    print "Read input_df=",INPUT_DF,"sz=",input_df.index.size,"RSE=",len(input_df.groupby(RSE))
+    vertex_df = input_df.query("locv_num_vertex>0").copy()
+    
+    cosmic_df = pd.DataFrame()
+    flash_df  = pd.DataFrame()
+    dedx_df   = pd.DataFrame()
+
+    name_v = []
+    comb_v = []
+
+    if len(COSMIC_ROOT)>0:
+        print "Reading=",COSMIC_ROOT
+        cosmic_df= pd.DataFrame(rn.root2array(COSMIC_ROOT))
+        
+        name_v.append("Cosmic")
+        comb_v.append(cosmic_df)
+
+    if len(FLASH_ROOT)>0:
+        print "Reading=",FLASH_ROOT
+        flash_df = pd.DataFrame(rn.root2array(FLASH_ROOT))
+
+        name_v.append("Flash")
+        comb_v.append(flash_df)
+
+    if len(DEDX_ROOT)>0:
+        print "Reading=",DEDX_ROOT
+        dedx_df = pd.DataFrame(rn.root2array(DEDX_ROOT))
+        
+        name_v.append("dEdx")
+        comb_v.append(dedx_df)
+
+    print "Combining..."
+    print "vertex_df sz=",vertex_df.index.size,"RSE=",len(vertex_df.groupby(RSE))
+
+    comb_df = vertex_df.copy()
+    
+    for name,df in zip(name_v,comb_v):
+        print "@name=",name,"_df sz=",df.index.size,"RSE=",len(df.groupby(RSE))
+        print "comb_df sz=",comb_df.index.size
+        
+        comb_df.set_index(RSEV,inplace=True)
+        df.set_index(RSEV,inplace=True)
+        
+        comb_df = comb_df.join(df)
+    
+        comb_df.reset_index(inplace=True)
+        df.reset_index(inplace=True)
+
+
+    print "Preparing precuts"
+    comb_df = prep_two_par_df(comb_df)
+    comb_df = prep_LL_vars(comb_df,bool(IS_MC))
+    comb_df = prepare_precuts(comb_df)
+
+    print "Reading precuts=",PRECUT_TXT
+    
+    cuts = ""
+    with open(PRECUT_TXT,'r') as f:
+        cuts = f.read().split("\n")
+        
+    if cuts[-1]=="": 
+        cuts = cuts[:-1]
+
+    SS = ""
+    for ix,cut in enumerate(cuts): 
+        SS+= "(" + cut + ")"
+        if ix != len(cuts)-1:
+            SS+= " and "
+    
+    print "SS=",SS
+
+    print "Precutting"
+    comb_df.query(SS,inplace=True)
+    
+    print "Setting particle ID"
+    comb_df = set_ssnet_particle_reco_id(comb_df)
+    
+    print "Preparing parameters"
+    comb_df = LL_reco_parameters(comb_df)
+    
+    print "Setting track ID"
+    comb_df = set_proton_track_id(comb_df)
+    comb_df = set_electron_track_id(comb_df)
+
+    return comb_df
 
 def set_ssnet_particle_reco_id(df):
     df['reco_e_id'] = df.apply(lambda x : np.argmax(x['p08_shr_shower_frac']),axis=1)
@@ -120,10 +218,32 @@ def cos2(row,plane):
     
     return list(res)
 
+def get_1e1p_chi2(row):
+    tid = int(row['reco_proton_trackid'])
+    eid = int(row['reco_e_id'])
+
+    ret = float(-1.0)
+    
+    if type(row['proton_shower_pair_vv']) is float: return ret
+    
+    if row['proton_shower_pair_vv'].size==0: return ret
+    
+    stack = np.vstack(row['proton_shower_pair_vv'])
+    
+    slice_ = ((stack[:,0]==tid) & (stack[:,1]==eid))
+    idx_v = np.where(slice_)[0]
+    
+    if idx_v.size==0: return ret
+    
+    idx = idx_v[0]
+    
+    ret = float(row['proton_shower_chi2_1e1p_v'][idx])
+    
+    return ret
 
 
 def get_1e1p_hypope(row):
-    tid = int(row['TEST_trackid'])
+    tid = int(row['reco_proton_trackid'])
     eid = int(row['reco_e_id'])
 
     ret_v = [-1.0]*32
@@ -142,7 +262,7 @@ def get_1e1p_hypope(row):
     return ret_v
 
 def get_1e1p_datape(row):
-    tid = int(row['TEST_trackid'])
+    tid = int(row['reco_proton_trackid'])
     eid = int(row['reco_e_id'])
 
     ret_v = [-1.0]*32
@@ -182,6 +302,10 @@ def set_proton_track_id(df):
     df['reco_proton_trackid'] = df.apply(reco_proton_track_id,axis=1)
     return df
 
+def set_electron_track_id(df):
+    df['reco_electron_trackid'] = df.apply(reco_electron_track_id,axis=1)
+    return df
+
 def reco_proton_track_id(row):
     pgtrk_v   = row['pgtrk_trk_type_v']
     pgtrk_vv  = row['pgtrk_trk_type_vv']
@@ -203,9 +327,36 @@ def reco_proton_track_id(row):
             return int(-1)
         else: 
             return int(maxid_trk)
+
+def reco_electron_track_id(row):
+    pgtrk_v   = row['pgtrk_trk_type_v']
+    pgtrk_vv  = row['pgtrk_trk_type_vv']
+    eleid  = row['reco_e_id']
+    trkid_v = np.where(pgtrk_v==eleid)[0]
+
+    if trkid_v.size == 0: 
+        return int(-1)
+    
+    elif trkid_v.size == 1 : 
+        if pgtrk_vv[trkid_v[0]][eleid] == 0: 
+            return int(-1)
+        else:
+            return int(trkid_v[0])
+    else:
+        stacked   = np.vstack(pgtrk_vv[trkid_v])[:,eleid]
+        maxid_trk = np.argmax(stacked)
+        if stacked[maxid_trk]==0: 
+            return int(-1)
+        else: 
+            return int(maxid_trk)
         
 def reco_proton_track_param(row,param):
     res = -1.0
     if row['reco_proton_trackid']<0: return res
     return row[param][row['reco_proton_trackid']]
+
+def reco_electron_track_param(row,param):
+    res = -1.0
+    if row['reco_electron_trackid']<0: return res
+    return row[param][row['reco_electron_trackid']]
     
