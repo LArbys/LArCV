@@ -86,7 +86,7 @@ class AndyHandler(Handler):
             self.rd.MCTruth_particles_polz[pnum1]       = float(row['MCTruth_particles_polz'][pnum1])
             
             for pnum2 in xrange(int(row['MCTruth_particles_NDaughters'][pnum1])):
-                self.rd.MCTruth_particles_Daughters[pnum1*self.rd.MaxParticles + pnum2] = int(row['MCTruth_particles_NDaughters'][pnum1][pnum2])
+                self.rd.MCTruth_particles_Daughters[pnum1*self.rd.MaxDaughters + pnum2] = int(row['MCTruth_particles_NDaughters'][pnum1][pnum2])
         
         self.rd.MCTruth_neutrino_CCNC[0] = int(row['MCTruth_neutrino_CCNC'])
         self.rd.MCTruth_neutrino_mode[0] = int(row['MCTruth_neutrino_mode'])

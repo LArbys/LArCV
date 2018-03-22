@@ -148,6 +148,7 @@ class ROOTData:
         #
 
         self.MaxParticles = int(50)
+        self.MaxDaughters = int(100)
 
         self.MCFlux_NuPosX = array( 'd', [ kINVALID_DOUBLE ])
         self.MCFlux_NuPosY = array( 'd', [ kINVALID_DOUBLE ])
@@ -176,7 +177,7 @@ class ROOTData:
         self.MCTruth_particles_Mother     = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
         self.MCTruth_particles_StatusCode = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
         self.MCTruth_particles_NDaughters = array( 'i', [ kINVALID_INT ]*self.MaxParticles)
-        self.MCTruth_particles_Daughters  = array( 'i', [ kINVALID_INT ]*self.MaxParticles*self.MaxParticles)
+        self.MCTruth_particles_Daughters  = array( 'i', [ kINVALID_INT ]*self.MaxParticles*self.MaxDaughters)
         self.MCTruth_particles_Gvx        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
         self.MCTruth_particles_Gvy        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
         self.MCTruth_particles_Gvz        = array( 'd', [ kINVALID_DOUBLE ]*self.MaxParticles)
@@ -418,7 +419,7 @@ class ROOTData:
             self.MCTruth_particles_poly[pnum] = kINVALID_DOUBLE
             self.MCTruth_particles_polz[pnum] = kINVALID_DOUBLE
 
-        for pnum in xrange(self.MaxParticles*self.MaxParticles):
+        for pnum in xrange(self.MaxParticles*self.MaxDaughters):
             self.MCTruth_particles_Daughters[pnum] = kINVALID_INT
 
         self.MCTruth_neutrino_CCNC[0] = kINVALID_INT
@@ -661,7 +662,7 @@ class ROOTData:
         tree.Branch("MCTruth_particles_Mother",     self.MCTruth_particles_Mother, "MCTruth_particles_Mother[50]/I");
         tree.Branch("MCTruth_particles_StatusCode", self.MCTruth_particles_StatusCode, "MCTruth_particles_StatusCode[50]/I");
         tree.Branch("MCTruth_particles_NDaughters", self.MCTruth_particles_NDaughters, "MCTruth_particles_NDaughters[50]/I");
-        tree.Branch("MCTruth_particles_Daughters",  self.MCTruth_particles_Daughters, "MCTruth_particles_Daughters[50][50]/I");
+        tree.Branch("MCTruth_particles_Daughters",  self.MCTruth_particles_Daughters, "MCTruth_particles_Daughters[50][100]/I");
         tree.Branch("MCTruth_particles_Gvx",        self.MCTruth_particles_Gvx, "MCTruth_particles_Gvx[50]/D");
         tree.Branch("MCTruth_particles_Gvy",        self.MCTruth_particles_Gvy, "MCTruth_particles_Gvy[50]/D");
         tree.Branch("MCTruth_particles_Gvz",        self.MCTruth_particles_Gvz, "MCTruth_particles_Gvz[50]/D");
