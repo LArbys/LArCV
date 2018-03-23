@@ -32,6 +32,9 @@ import pandas as pd
 from util.precut_functions import perform_precuts
 
 print "START"
+
+NUM = int(os.path.basename(INPUT_DF).split(".").split("_")[-1])
+
 comb_df = perform_precuts(INPUT_DF,
                           COSMIC_ROOT,
                           FLASH_ROOT,
@@ -41,6 +44,6 @@ comb_df = perform_precuts(INPUT_DF,
 print "END"
 
 print "Pickle output"
-comb_df.to_pickle(os.path.join(OUT_DIR,OUT_PREFIX + ".pkl"))
+comb_df.to_pickle(os.path.join(OUT_DIR,OUT_PREFIX + "_%d.pkl" % NUM))
 
 sys.exit(0)
