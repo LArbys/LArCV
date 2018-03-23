@@ -28,7 +28,7 @@ def perform_precuts(INPUT_DF,
     name_v = []
     comb_v = []
 
-    if len(COSMIC_ROOT)>0:
+    if COSMIC_ROOT != str("\"\""):
 
         print "Reading=",COSMIC_ROOT
         cosmic_df= pd.DataFrame(rn.root2array(COSMIC_ROOT))
@@ -36,23 +36,27 @@ def perform_precuts(INPUT_DF,
         name_v.append("Cosmic")
         comb_v.append(cosmic_df)
     else: 
+        print "NO COSMIC ROOT"
         return pd.DataFrame()
     
-    if len(FLASH_ROOT)>0:
+    if FLASH_ROOT != str("\"\""):
         print "Reading=",FLASH_ROOT
         flash_df = pd.DataFrame(rn.root2array(FLASH_ROOT))
 
         name_v.append("Flash")
         comb_v.append(flash_df)
     else:
+        print "NO FLASH ROOT"
         return pd.DataFrame()
 
-    if len(DEDX_ROOT)>0:
+    if DEDX_ROOT != str("\"\""):
         print "Reading=",DEDX_ROOT
         dedx_df = pd.DataFrame(rn.root2array(DEDX_ROOT))
         
         name_v.append("dEdx")
         comb_v.append(dedx_df)
+    else:
+        print "SKIP DEDX"
 
     print "Combining..."
     print "vertex_df sz=",vertex_df.index.size,"RSE=",len(vertex_df.groupby(RSE))
