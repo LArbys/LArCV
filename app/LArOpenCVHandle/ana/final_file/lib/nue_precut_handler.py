@@ -125,10 +125,10 @@ class NuePrecutHandler(Handler):
         if self.no_ll == True:
             self.tree.Fill()
             self.rd.reset()
-            print "no LL vertex in file... skip!"
+            print "vertex exists but none valid in file... skip!"
             return True
             
-        if row['passed_precuts']==0:
+        if row['precut_passed']==0:
             self.tree.Fill()
             self.rd.reset()
             print "failed precuts... skip!"
