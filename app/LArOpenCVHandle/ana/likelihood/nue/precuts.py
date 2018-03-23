@@ -33,7 +33,7 @@ from util.precut_functions import perform_precuts
 
 print "START"
 
-NUM = int(os.path.basename(INPUT_DF).split(".").split("_")[-1])
+NUM = int(os.path.basename(INPUT_DF).split(".")[0].split("_")[-1])
 
 comb_df = perform_precuts(INPUT_DF,
                           COSMIC_ROOT,
