@@ -13,6 +13,8 @@ def perform_precuts(INPUT_DF,
     print "Reading input"
     input_df = pd.read_pickle(INPUT_DF)
 
+    input_df['precut_passed'] = int(-1)
+
     print "Read input_df=",INPUT_DF,"sz=",input_df.index.size,"RSE=",len(input_df.groupby(RSE))
     vertex_df  = input_df.query("locv_num_vertex>0").copy()
 
@@ -104,12 +106,14 @@ def perform_precuts(INPUT_DF,
     print "Precutting"
     comb_df.query(SS,inplace=True)
     
-    comb_df['precut_passed'] = int(1)
+    if comb_df.index.size>0:
+        comb_df['precut_passed'] = int(1)
+        comb_df['valid'] = int(1)
+        comb_df.set_index(RSE,inplace=True)
+        comb_df = pd.concat((event_df,comb_df))
+    else:
+        comb_df = event_df.copy()
 
-    comb_df.set_index(RSE,inplace=True)
-
-    comb_df = pd.concat((event_df,comb_df))
-    
     comb_df.reset_index(inplace=True)
 
     return comb_df
