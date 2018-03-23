@@ -129,6 +129,7 @@ class NuePrecutHandler(Handler):
             return True
             
         if row['precut_passed']==0:
+            self.rd.reco_selected[0] = int(0)
             self.tree.Fill()
             self.rd.reset()
             print "failed precuts... skip!"
@@ -154,17 +155,14 @@ class NuePrecutHandler(Handler):
             self.rd.reco_mc_lepton_E[0]  = float(row['reco_mc_shower_energy']);
             self.rd.reco_mc_total_E[0]   = float(row['reco_mc_total_energy']);
 
-        # fill LL
-        if row['LL_dist'] > 0:
-            self.rd.reco_selected[0] = int(1)
-        else:
-            self.rd.reco_selected[0] = int(0)
+
+        self.rd.reco_selected[0] = int(1)
 
         self.rd.reco_vertex[0] = float(row['locv_x'])
         self.rd.reco_vertex[1] = float(row['locv_y'])
         self.rd.reco_vertex[2] = float(row['locv_z'])
         
-        self.rd.reco_chi2[0] = float(row['chi2']);
+        self.rd.chi2[0] = float(row['chi2']);
         
         # fill reco
         self.rd.reco_proton_id[0]    = int(row['reco_LL_proton_id'])
