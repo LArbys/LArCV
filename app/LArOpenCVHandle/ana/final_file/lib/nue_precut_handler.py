@@ -35,7 +35,7 @@ class NuePrecutHandler(Handler):
             no_vertex = True
             print "... handled"
 
-        elif "chi2" not in LL_df.columns:
+        elif "valid" not in LL_df.columns:
             print "Vertex exists but none valid in file!"
             LL_sort_df = LL_df.groupby(RSE).head(1).copy()
             no_ll = True
@@ -128,10 +128,10 @@ class NuePrecutHandler(Handler):
             print "no LL vertex in file... skip!"
             return True
             
-        if np.isnan(row['chi2']):
+        if row['passed_precuts']==0:
             self.tree.Fill()
             self.rd.reset()
-            print "invalid LL... skip!"
+            print "failed precuts... skip!"
             return True
             
         self.rd.vertex_id[0] = int(row['vtxid']);

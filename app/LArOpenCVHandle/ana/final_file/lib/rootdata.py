@@ -35,6 +35,12 @@ class ROOTData:
         self.LLe_e   = array( 'f', [ kINVALID_FLOAT ] )
         self.LLe_p   = array( 'f', [ kINVALID_FLOAT ] )
 
+
+        #
+        # the flash
+        #
+        self.chi2 = array( 'f', [ kINVALID_FLOAT] )
+
         #
         # MC truth
         #
@@ -66,7 +72,6 @@ class ROOTData:
         self.reco_mc_proton_E  = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_mc_lepton_E  = array( 'f', [ kINVALID_FLOAT ] )
         self.reco_mc_total_E   = array( 'f', [ kINVALID_FLOAT ] )
-
 
         # proton and electron
         self.reco_proton_id     = array( 'i', [ kINVALID_INT   ] )
@@ -265,6 +270,9 @@ class ROOTData:
         self.LLc_p[0]   = kINVALID_FLOAT
         self.LLe_e[0]   = kINVALID_FLOAT
         self.LLe_p[0]   = kINVALID_FLOAT
+
+        # chi2
+        self.chi2[0] = kINVALID_FLOAT
 
         # mc
         self.true_vertex[0]   = kINVALID_FLOAT
@@ -523,6 +531,9 @@ class ROOTData:
         tree.Branch("LLc_p"  , self.LLc_p  , "LLc_p/F")
         tree.Branch("LLe_e"  , self.LLe_e  , "LLe_e/F")
         tree.Branch("LLe_p"  , self.LLe_p  , "LLe_p/F")
+        
+        # chi2
+        tree.Branch("flash_chi2", self.chi2, "flash_chi2/F")
 
         # reco track
         tree.Branch("reco_proton_id"      , self.reco_proton_id   , "reco_proton_id/I")
