@@ -15,7 +15,7 @@ class NuePrecutHandler(Handler):
         self.no_ll = False
         self.tree = tree
         self.rd = ROOTData()
-        self.rd.init_nue_tree(self.tree)
+        self.rd.init_nue_precut_tree(self.tree)
 
     def reshape(self,inputfile) :
         

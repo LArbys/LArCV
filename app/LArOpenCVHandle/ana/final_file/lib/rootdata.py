@@ -485,6 +485,86 @@ class ROOTData:
         self.GTruth_FShadSystP4E[0] = kINVALID_DOUBLE
         
 
+    def init_nue_precut_tree(self,tree):
+
+        tree.Branch("run"   , self.run   , "run/I")
+        tree.Branch("subrun", self.subrun, "subrun/I")
+        tree.Branch("event" , self.event , "event/I")
+
+        tree.Branch("num_croi"  , self.num_croi,   "num_croi/I")
+        tree.Branch("num_vertex", self.num_vertex, "num_vertex/I")
+        tree.Branch("vertex_id" , self.vertex_id,  "vertex_id/I")
+
+        # truth 
+        tree.Branch("nu_pdg"    , self.nu_pdg    , "nu_pdg/I")
+        tree.Branch("inter_type", self.inter_type, "inter_type/I")
+        tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
+
+        tree.Branch("true_nu_E"      , self.true_nu_E      , "true_nu_E/F")
+        tree.Branch("true_vertex"    , self.true_vertex    , "true_vertex[3]/F")
+        tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
+        tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
+
+        tree.Branch("true_proton_P" , self.true_proton_P , "true_proton_P[3]/F")
+        tree.Branch("true_lepton_P" , self.true_lepton_P , "true_lepton_P[3]/F")
+
+        tree.Branch("true_opening_angle", self.true_opening_angle, "true_opening_angle/F")
+        tree.Branch("true_proton_ylen"  , self.true_proton_ylen  , "true_proton_ylen/F")
+
+        tree.Branch("selected1L1P", self.selected1L1P, "selected1L1P/I")
+
+        # reco mc
+        tree.Branch("reco_mc_proton_E"  , self.reco_mc_proton_E  , "reco_mc_proton_E/F")
+        tree.Branch("reco_mc_lepton_E"  , self.reco_mc_lepton_E  , "reco_mc_lepton_E/F")
+        tree.Branch("reco_mc_total_E"   , self.reco_mc_total_E   , "reco_mc_total_E/F")
+
+        tree.Branch("reco_selected", self.reco_selected, "reco_selected/I")
+        tree.Branch("reco_close"   , self.reco_close   , "reco_close/I")
+        tree.Branch("reco_on_nu"   , self.reco_on_nu   , "reco_on_nu/I")
+        tree.Branch("scedr"        , self.scedr        , "scedr/F")
+
+        tree.Branch("reco_vertex" , self.reco_vertex , "reco_vertex[3]/F")
+
+        # chi2
+        tree.Branch("flash_chi2", self.chi2, "flash_chi2/F")
+
+        # reco track
+        tree.Branch("reco_proton_id"      , self.reco_proton_id   , "reco_proton_id/I")
+        tree.Branch("reco_proton_E"       , self.reco_proton_E    , "reco_proton_E/F")
+        tree.Branch("reco_proton_theta"   , self.reco_proton_theta, "reco_proton_theta/F")
+        tree.Branch("reco_proton_phi"     , self.reco_proton_phi  , "reco_proton_phi/F")
+        tree.Branch("reco_proton_dEdx"    , self.reco_proton_dEdx , "reco_proton_dEdx/F")
+        tree.Branch("reco_proton_length"  , self.reco_proton_length  , "reco_proton_length/F")
+        tree.Branch("reco_proton_mean_pixel_dist",self.reco_proton_mean_pixel_dist, "reco_proton_mean_pixel_dist/F")
+        tree.Branch("reco_proton_width"      , self.reco_proton_width, "reco_proton_width/F")
+        tree.Branch("reco_proton_area"       , self.reco_proton_area, "reco_proton_area/F")
+        tree.Branch("reco_proton_qsum"       , self.reco_proton_qsum, "reco_proton_qsum/F")
+        tree.Branch("reco_proton_shower_frac", self.reco_proton_shower_frac, "reco_proton_shower_frac/F")
+
+        tree.Branch("reco_electron_id"     , self.reco_electron_id   , "reco_electron_id/I")
+        tree.Branch("reco_electron_E"      , self.reco_electron_E    , "reco_electron_E/F")
+        tree.Branch("reco_electron_theta"  , self.reco_electron_theta, "reco_electron_theta/F")
+        tree.Branch("reco_electron_phi"    , self.reco_electron_phi  , "reco_electron_phi/F")
+        tree.Branch("reco_electron_dEdx"   , self.reco_electron_dEdx , "reco_electron_dEdx/F")
+        tree.Branch("reco_electron_length" , self.reco_electron_length  , "reco_electron_length/F")
+        tree.Branch("reco_electron_mean_pixel_dist" , self.reco_electron_mean_pixel_dist, "reco_electron_mean_pixel_dist/F")
+        tree.Branch("reco_electron_width"      , self.reco_electron_width, "reco_electron_width/F")
+        tree.Branch("reco_electron_area"       , self.reco_electron_area, "reco_electron_area/F")
+        tree.Branch("reco_electron_qsum"       , self.reco_electron_qsum, "reco_electron_qsum/F")
+        tree.Branch("reco_electron_shower_frac", self.reco_electron_shower_frac, "reco_electron_shower_frac/F")
+
+        # reco combined
+        tree.Branch("reco_total_E", self.reco_total_E, "reco_total_E/F")
+        
+        # reco PID
+        tree.Branch("pid_inferred", self.inferred    , "pid_inferred/I")
+        tree.Branch("eminus_score", self.eminus_score, "eminus_score[3]/F")
+        tree.Branch("gamma_score" , self.gamma_score , "gamma_score[3]/F")
+        tree.Branch("muon_score"  , self.muon_score  , "muon_score[3]/F")
+        tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
+        tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
+
+
     def init_nue_tree(self,tree):
         
         tree.Branch("run"   , self.run   , "run/I")
@@ -531,9 +611,7 @@ class ROOTData:
         tree.Branch("LLc_p"  , self.LLc_p  , "LLc_p/F")
         tree.Branch("LLe_e"  , self.LLe_e  , "LLe_e/F")
         tree.Branch("LLe_p"  , self.LLe_p  , "LLe_p/F")
-        
-        # chi2
-        tree.Branch("flash_chi2", self.chi2, "flash_chi2/F")
+
 
         # reco track
         tree.Branch("reco_proton_id"      , self.reco_proton_id   , "reco_proton_id/I")
