@@ -16,6 +16,13 @@ def perform_precuts(INPUT_DF,
     input_df['precut_passed'] = int(-1)
 
     print "Read input_df=",INPUT_DF,"sz=",input_df.index.size,"RSE=",len(input_df.groupby(RSE))
+    
+    if "locv_num_vertex" not in input_df.columns:
+        event_df = input_df.groupby(RSE).nth(0)
+        event_df['precut_passed'] = int(0)
+        event_df.reset_index(inplace=True)
+        return event_df
+        
     vertex_df  = input_df.query("locv_num_vertex>0").copy()
 
     event_df = input_df.groupby(RSE).nth(0)
