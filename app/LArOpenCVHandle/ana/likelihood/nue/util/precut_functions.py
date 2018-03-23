@@ -35,13 +35,17 @@ def perform_precuts(INPUT_DF,
         
         name_v.append("Cosmic")
         comb_v.append(cosmic_df)
-
+    else: 
+        return pd.DataFrame()
+    
     if len(FLASH_ROOT)>0:
         print "Reading=",FLASH_ROOT
         flash_df = pd.DataFrame(rn.root2array(FLASH_ROOT))
 
         name_v.append("Flash")
         comb_v.append(flash_df)
+    else:
+        return pd.DataFrame()
 
     if len(DEDX_ROOT)>0:
         print "Reading=",DEDX_ROOT
