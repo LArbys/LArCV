@@ -78,6 +78,10 @@ def perform_precuts(INPUT_DF,
     print "Preparing 2 particle data frame"
     comb_df = prep_two_par_df(comb_df)
     
+    if comb_df.index.empty == True:
+        comb_df = event_df.copy()
+        return comb_df
+
     print "Preparing LL variables"
     comb_df = prep_LL_vars(comb_df,bool(IS_MC))
 

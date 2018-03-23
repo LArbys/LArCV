@@ -66,7 +66,13 @@ class AndyHandler(Handler):
 
         self.rd.MCTruth_NParticles[0] = int(row['MCTruth_NParticles'])
 
-        for pnum1 in xrange(int(row['MCTruth_NParticles'])):
+        range1_ = self.rd.MCTruth_NParticles[0];
+        if range1_ > self.rd.MaxParticles:
+            print "WARNING: truncated nparticles from",range1_
+            range1_ = self.rd.MaxParticles
+            print "to",range1_
+
+        for pnum1 in xrange(int(range1_)):
             self.rd.MCTruth_particles_TrackId[pnum1]    = int(row['MCTruth_particles_TrackId'][pnum1])
             self.rd.MCTruth_particles_PdgCode[pnum1]    = int(row['MCTruth_particles_PdgCode'][pnum1])
             self.rd.MCTruth_particles_Mother[pnum1]     = int(row['MCTruth_particles_Mother'][pnum1])
@@ -85,7 +91,14 @@ class AndyHandler(Handler):
             self.rd.MCTruth_particles_poly[pnum1]       = float(row['MCTruth_particles_poly'][pnum1])
             self.rd.MCTruth_particles_polz[pnum1]       = float(row['MCTruth_particles_polz'][pnum1])
             
-            for pnum2 in xrange(int(row['MCTruth_particles_NDaughters'][pnum1])):
+            range2_ = self.rd.MCTruth_particles_NDaughters[pnum1]
+            if range2_ > self.rd.MaxDaughters:
+                print "WARNING: truncated ndaughters from",range2_
+                range2_ = self.rd.MaxDaughters
+                print "to",range2_
+
+
+            for pnum2 in xrange(int(range2_)):
                 self.rd.MCTruth_particles_Daughters[pnum1*self.rd.MaxDaughters + pnum2] = int(row['MCTruth_particles_NDaughters'][pnum1][pnum2])
         
         self.rd.MCTruth_neutrino_CCNC[0] = int(row['MCTruth_neutrino_CCNC'])
