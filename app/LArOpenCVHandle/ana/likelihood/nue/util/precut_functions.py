@@ -80,6 +80,7 @@ def perform_precuts(INPUT_DF,
     
     if comb_df.index.empty == True:
         comb_df = event_df.copy()
+        comb_df.reset_index(inplace=True)
         return comb_df
 
     print "Preparing LL variables"
