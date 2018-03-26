@@ -1,3 +1,7 @@
+print "--------------"
+print "|  DUMP HADD |"
+print "--------------"
+
 import sys, os
 
 if len(sys.argv) != 3:
@@ -17,7 +21,7 @@ OUTFILE = INFILE2.split(".")[0]+"_hadd.root"
 
 print "OUTFILE=%s" % OUTFILE
 
-SS = "hadd %s %s %s"
+SS = "hadd -f %s %s %s"
 SS = SS % (OUTFILE,INFILE1,INFILE2)
 
 print SS
