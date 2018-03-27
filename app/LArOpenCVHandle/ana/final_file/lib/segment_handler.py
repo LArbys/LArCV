@@ -43,7 +43,7 @@ class SegmentHandler(Handler):
             return True
 
         self.rd.nu_pdg[0] = int(row['parentPDG'])
-        self.rd.inter_type[0] = int(row['interactionMode'])
+        self.rd.inter_type[0] = int(row['ineractionMode'])
         self.rd.inter_mode[0] = int(row['interactionType'])
         self.rd.selected1L1P[0] = int(row['selected1L1P'])
 
