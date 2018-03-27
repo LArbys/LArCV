@@ -13,8 +13,6 @@ class AndyHandler(Handler):
     def __init__(self,tree):
         super(AndyHandler,self).__init__("AndyHandler")
         self.df = pd.DataFrame()
-        self.no_vertex = False
-        self.no_ll = False
         self.tree = tree
         self.rd = ROOTData()
         self.rd.init_andy_tree(self.tree)

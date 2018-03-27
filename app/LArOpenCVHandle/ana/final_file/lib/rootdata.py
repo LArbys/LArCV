@@ -44,12 +44,13 @@ class ROOTData:
         #
         # MC truth
         #
-        self.selected1L1P   = array( 'i', [ kINVALID_INT   ] )
-        self.scedr          = array( 'f', [ -1.0*kINVALID_FLOAT ] )
-        self.nu_pdg         = array( 'i', [ kINVALID_INT   ] )
-        self.inter_type     = array( 'i', [ kINVALID_INT   ] ) 
-        self.inter_mode     = array( 'i', [ kINVALID_INT   ] )
-        self.true_vertex    = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.selected1L1P    = array( 'i', [ kINVALID_INT   ] )
+        self.scedr           = array( 'f', [ -1.0*kINVALID_FLOAT ] )
+        self.nu_pdg          = array( 'i', [ kINVALID_INT   ] )
+        self.inter_type      = array( 'i', [ kINVALID_INT   ] ) 
+        self.inter_mode      = array( 'i', [ kINVALID_INT   ] )
+        self.true_vertex     = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
+        self.true_vertex_sce = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ] )
 
         self.true_proton_E    = array( 'f', [ kINVALID_FLOAT ] )
         self.true_lepton_E    = array( 'f', [ kINVALID_FLOAT ] )
@@ -278,6 +279,11 @@ class ROOTData:
         self.true_vertex[0]   = kINVALID_FLOAT
         self.true_vertex[1]   = kINVALID_FLOAT
         self.true_vertex[2]   = kINVALID_FLOAT
+
+        self.true_vertex_sce[0]   = kINVALID_FLOAT
+        self.true_vertex_sce[1]   = kINVALID_FLOAT
+        self.true_vertex_sce[2]   = kINVALID_FLOAT
+
         self.selected1L1P[0]  = kINVALID_INT
         self.scedr[0]         = -1.0*kINVALID_FLOAT
         self.nu_pdg[0]        = kINVALID_INT
@@ -816,3 +822,25 @@ class ROOTData:
         tree.Branch("GTruth_FShadSystP4y", self.GTruth_FShadSystP4y, "GTruth_FShadSystP4y/D");              
         tree.Branch("GTruth_FShadSystP4z", self.GTruth_FShadSystP4z, "GTruth_FShadSystP4z/D");              
         tree.Branch("GTruth_FShadSystP4E", self.GTruth_FShadSystP4E, "GTruth_FShadSystP4E/D");
+
+    def init_segment_tree(self,tree):
+
+        tree.Branch("run"   , self.run   , "run/I")
+        tree.Branch("subrun", self.subrun, "subrun/I")
+        tree.Branch("event" , self.event , "event/I")
+
+        tree.Branch("nu_pdg"    , self.nu_pdg    , "nu_pdg/I")
+        tree.Branch("inter_type", self.inter_type, "inter_type/I")
+        tree.Branch("inter_mode", self.inter_mode, "inter_mode/I")
+
+        tree.Branch("true_nu_E"      , self.true_nu_E      , "true_nu_E/F")
+        tree.Branch("true_vertex"    , self.true_vertex    , "true_vertex[3]/F")
+        tree.Branch("true_vertex_sce", self.true_vertex_sce, "true_vertex_sce[3]/F")
+        tree.Branch("true_proton_E"  , self.true_proton_E  , "true_proton_E/F")
+        tree.Branch("true_lepton_E"  , self.true_lepton_E  , "true_lepton_E/F")
+
+        tree.Branch("true_proton_P" , self.true_proton_P , "true_proton_P[3]/F")
+        tree.Branch("true_lepton_P" , self.true_lepton_P , "true_lepton_P[3]/F")
+
+        tree.Branch("selected1L1P", self.selected1L1P, "selected1L1P/I")
+
