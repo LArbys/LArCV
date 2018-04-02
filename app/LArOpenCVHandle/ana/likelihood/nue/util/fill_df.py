@@ -202,7 +202,8 @@ def initialize_stp(SHR_ANA1,
                    TRK_ANA2,
                    TRK_TRUTH,
                    TRK_PGRPH,
-                   PID_ANA):
+                   PID_ANA,
+                   PID_ANA2):
 
     comb_df = pd.DataFrame()
     
@@ -242,6 +243,7 @@ def initialize_stp(SHR_ANA1,
         ana_trk1_df   = pd.DataFrame(rn.root2array(TRK_ANA1))
         ana_trk2_df   = pd.DataFrame(rn.root2array(TRK_ANA2))
         ana_pid_df    = pd.DataFrame(rn.root2array(PID_ANA))
+        ana_pid2_df   = pd.DataFrame(rn.root2array(PID_ANA2))
 
         ana_shr1_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
         ana_trk2_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
@@ -252,6 +254,7 @@ def initialize_stp(SHR_ANA1,
         ana_trk1_df.set_index(RSEV,inplace=True)
         ana_trk2_df.set_index(RSEV,inplace=True)
         ana_pid_df.set_index(RSEV,inplace=True)
+        ana_pid2_df.set_index(RSEV,inplace=True)
     
         pgraph_trk_df = pgraph_trk_df.add_prefix("pgtrk_")
         ana_shr1_df   = ana_shr1_df.add_prefix("anashr1_")
@@ -259,12 +262,14 @@ def initialize_stp(SHR_ANA1,
         ana_trk1_df   = ana_trk1_df.add_prefix("anatrk1_")
         ana_trk2_df   = ana_trk2_df.add_prefix("anatrk2_")
         ana_pid_df    = ana_pid_df.add_prefix("anapid_")
+        ana_pid2_df   = ana_pid2_df.add_prefix("anapid2_")
 
         print "pgraph_trk_df.index.size=",pgraph_trk_df.index.size
         print "ana_shr1_df.index.size=",ana_shr1_df.index.size
         print "ana_trk1_df.index.size=",ana_trk1_df.index.size
         print "ana_trk2_df.index.size=",ana_trk2_df.index.size
         print "ana_pid_df.index.size=",ana_pid_df.index.size
+        print "ana_pid2_df.index.size=",ana_pid2_df.index.size
 
         df_v = []
 
@@ -273,6 +278,7 @@ def initialize_stp(SHR_ANA1,
                     ana_trk1_df,
                     ana_trk2_df,
                     ana_pid_df,
+                    ana_pid2_df,
                     pgraph_trk_df,
                     match_shr_df,
                     match_trk_df]
@@ -281,6 +287,7 @@ def initialize_stp(SHR_ANA1,
                     ana_trk1_df,
                     ana_trk2_df,
                     ana_pid_df,
+                    ana_pid2_df,
                     pgraph_trk_df]
 
         comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])

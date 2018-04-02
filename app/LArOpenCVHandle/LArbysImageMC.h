@@ -37,7 +37,6 @@ namespace larcv {
 
   protected:
 
-    uint _enum;
     std::string _producer_roi;
     std::string _producer_image2d;
     bool _neutrino_present;
@@ -57,7 +56,7 @@ namespace larcv {
 
     double _energy_deposit;
     double _energy_init;
-    int eee;
+
     double _parent_x;
     double _parent_y;
     double _parent_z;
@@ -66,8 +65,8 @@ namespace larcv {
     double _parent_py;
     double _parent_pz;
 
-    short _current_type;
-    short _interaction_type;
+    int _current_type;
+    int _interaction_type;
     float _length_2d;
 
     int _nprimary;

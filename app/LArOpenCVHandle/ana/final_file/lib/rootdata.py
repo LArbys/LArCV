@@ -147,8 +147,15 @@ class ROOTData:
         self.muon_score   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
         self.pion_score   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
         self.proton_score = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+
+        self.eminus_score_vtx = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.gamma_score_vtx  = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.muon_score_vtx   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.pion_score_vtx   = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+        self.proton_score_vtx = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
         
-        
+        self.nue_perceptron = array( 'f', [ kINVALID_FLOAT, kINVALID_FLOAT, kINVALID_FLOAT ])
+
         #
         # andy related
         #
@@ -388,6 +395,14 @@ class ROOTData:
             self.pion_score[pl]   = kINVALID_FLOAT;
             self.proton_score[pl] = kINVALID_FLOAT;
 
+            self.eminus_score_vtx[pl] = kINVALID_FLOAT;
+            self.gamma_score_vtx[pl]  = kINVALID_FLOAT;
+            self.muon_score_vtx[pl]   = kINVALID_FLOAT;
+            self.pion_score_vtx[pl]   = kINVALID_FLOAT;
+            self.proton_score_vtx[pl] = kINVALID_FLOAT;
+
+            self.nue_perceptron[pl] = kINVALID_FLOAT
+
 
         #
         # andy related
@@ -570,6 +585,13 @@ class ROOTData:
         tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
         tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
 
+        tree.Branch("eminus_score_vtx", self.eminus_score_vtx, "eminus_score_vtx[3]/F")
+        tree.Branch("gamma_score_vtx" , self.gamma_score_vtx , "gamma_score_vtx[3]/F")
+        tree.Branch("muon_score_vtx"  , self.muon_score_vtx  , "muon_score_vtx[3]/F")
+        tree.Branch("pion_score_vtx"  , self.pion_score_vtx  , "pion_score_vtx[3]/F")
+        tree.Branch("proton_score_vtx", self.proton_score_vtx, "proton_score_vtx[3]/F")
+
+        tree.Branch("nue_perceptron", self.nue_perceptron, "nue_perceptron[3]/F")
 
     def init_nue_tree(self,tree):
         
@@ -655,6 +677,15 @@ class ROOTData:
         tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
         tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
 
+        tree.Branch("eminus_score_vtx", self.eminus_score_vtx, "eminus_score_vtx[3]/F")
+        tree.Branch("gamma_score_vtx" , self.gamma_score_vtx , "gamma_score_vtx[3]/F")
+        tree.Branch("muon_score_vtx"  , self.muon_score_vtx  , "muon_score_vtx[3]/F")
+        tree.Branch("pion_score_vtx"  , self.pion_score_vtx  , "pion_score_vtx[3]/F")
+        tree.Branch("proton_score_vtx", self.proton_score_vtx, "proton_score_vtx[3]/F")
+
+        tree.Branch("nue_perceptron", self.nue_perceptron, "nue_perceptron[3]/F")
+
+
 
     def init_numu_tree(self,tree):
         
@@ -724,6 +755,15 @@ class ROOTData:
         tree.Branch("muon_score"  , self.muon_score  , "muon_score[3]/F")
         tree.Branch("pion_score"  , self.pion_score  , "pion_score[3]/F")
         tree.Branch("proton_score", self.proton_score, "proton_score[3]/F")
+
+        tree.Branch("eminus_score_vtx", self.eminus_score_vtx, "eminus_score_vtx[3]/F")
+        tree.Branch("gamma_score_vtx" , self.gamma_score_vtx , "gamma_score_vtx[3]/F")
+        tree.Branch("muon_score_vtx"  , self.muon_score_vtx  , "muon_score_vtx[3]/F")
+        tree.Branch("pion_score_vtx"  , self.pion_score_vtx  , "pion_score_vtx[3]/F")
+        tree.Branch("proton_score_vtx", self.proton_score_vtx, "proton_score_vtx[3]/F")
+
+        tree.Branch("nue_perceptron", self.nue_perceptron, "nue_perceptron[3]/F")
+
 
     def init_andy_tree(self,tree):
 

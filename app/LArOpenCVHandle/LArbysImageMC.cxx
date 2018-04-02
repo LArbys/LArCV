@@ -47,8 +47,8 @@ namespace larcv {
     _mc_tree->Branch("parentPy",&_parent_py,"parentPy/D");
     _mc_tree->Branch("parentPz",&_parent_pz,"parentpz/D");
 
-    _mc_tree->Branch("currentType",&_current_type,"currentType/S");
-    _mc_tree->Branch("interactionType",&_current_type,"InteractionType/S");
+    _mc_tree->Branch("currentType",&_current_type,"currentType/I");
+    _mc_tree->Branch("interactionType",&_current_type,"InteractionType/I");
 
     _mc_tree->Branch("vtx2d_w",&_vtx_2d_w_v);
     _mc_tree->Branch("vtx2d_t",&_vtx_2d_t_v);

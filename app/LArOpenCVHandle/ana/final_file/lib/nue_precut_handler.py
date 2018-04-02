@@ -201,6 +201,14 @@ class NuePrecutHandler(Handler):
             self.rd.pion_score[pl]    = float(row['anapid_pion_score'][pl])
             self.rd.proton_score[pl]  = float(row['anapid_proton_score'][pl])
 
+            self.rd.eminus_score_vtx[pl]  = float(row['anapid_eminus_score_vtx'][pl])
+            self.rd.gamma_score_vtx[pl]   = float(row['anapid_gamma_score_vtx'][pl])
+            self.rd.muon_score_vtx[pl]    = float(row['anapid_muon_score_vtx'][pl])
+            self.rd.pion_score_vtx[pl]    = float(row['anapid_pion_score_vtx'][pl])
+            self.rd.proton_score_vtx[pl]  = float(row['anapid_proton_score_vtx'][pl])
+
+            self.rd.nue_perceptron[pl] = float(row['anapid2_perceptron'][pl])
+
         self.tree.Fill()
         self.rd.reset()
 
