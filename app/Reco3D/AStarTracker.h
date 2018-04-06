@@ -63,7 +63,7 @@ namespace larcv {
             //_speedOffset=-2;
             _speedOffset=0;
             _verbose = 0;
-            _ADCthreshold = 15;
+            _ADCthreshold = 10;
             //_RecoverValue = 16.01;
             _compressionFactor_t = 6;
             _compressionFactor_w = 1;

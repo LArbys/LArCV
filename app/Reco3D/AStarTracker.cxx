@@ -1778,6 +1778,8 @@ namespace larcv {
                     c->cd(2)->cd(iPlane+1);
                     gTrackEndPoint->SetMarkerStyle(7);
                     if(_possiblyCrossing_v.at(itrack) == true) gTrackEndPoint->SetMarkerColor(2);
+                    if(_tooShortFaintTrack_v.at(itrack) == true) gTrackEndPoint->SetMarkerColor(3);
+                    if(_tooShortDeadWire_v.at(itrack) == true) gTrackEndPoint->SetMarkerColor(4);
                     gTrackEndPoint->Draw("same P");
                 }
             }
@@ -1826,7 +1828,7 @@ namespace larcv {
 
 
         std::string label_tag = "";
-        c->SaveAs(Form("%s/%s.root",_outdir.c_str(),c->GetName()));
+        //c->SaveAs(Form("%s/%s.root",_outdir.c_str(),c->GetName()));
         if(_nothingReconstructed){label_tag+="_nothing_reconstructed";}
         if(_missingTrack){label_tag+="_onlyOneTrack";}
         if(_tooShortDeadWire){label_tag+="_EndPointInDeadRegion";}
@@ -3121,7 +3123,7 @@ namespace larcv {
             for(size_t icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
                 int summedVal = 0;
                 for(size_t irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
-                    if(original_full_image_v[iPlane].pixel(irow,icol) > 10)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
+                    if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
                     original_full_image_v[iPlane].paint_col(icol,_deadWireValue);
@@ -3150,7 +3152,7 @@ namespace larcv {
 
             for(size_t icol = 0;icol<newImage.meta().cols();icol++){
                 for(size_t irow = 0;irow<newImage.meta().rows();irow++){
-                    if(newImage.pixel(irow, icol) > 10){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
+                    if(newImage.pixel(irow, icol) > _ADCthreshold){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
                     else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);}
                 }
             }
@@ -3158,7 +3160,7 @@ namespace larcv {
 
             for(size_t icol = 0;icol<newTaggedImage.meta().cols();icol++){
                 for(size_t irow = 0;irow<newTaggedImage.meta().rows();irow++){
-                    if(newTaggedImage.pixel(irow, icol) > 10){invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,newTaggedImage.pixel(irow, icol));}
+                    if(newTaggedImage.pixel(irow, icol) > _ADCthreshold){invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,newTaggedImage.pixel(irow, icol));}
                     else{invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,0);}
                 }
             }
@@ -3169,7 +3171,7 @@ namespace larcv {
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             for(size_t icol = 0;icol<data_images[iPlane].meta().cols();icol++){
                 for(size_t irow = 0;irow<data_images[iPlane].meta().rows();irow++){
-                    if(CroppedTaggedPix_v[iPlane].pixel(irow, icol) > 10){data_images[iPlane].set_pixel(irow,icol,0);}
+                    if(CroppedTaggedPix_v[iPlane].pixel(irow, icol) > _ADCthreshold){data_images[iPlane].set_pixel(irow,icol,0);}
                 }
             }
         }
