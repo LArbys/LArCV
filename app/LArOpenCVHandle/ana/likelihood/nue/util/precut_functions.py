@@ -189,12 +189,12 @@ def in_fiducial(row):
     Z = float(row['anatrk1_vtx_z'])
     
     XX = 10.0
-    YY = 20.0
+    YY = 10.0
     ZZ = 10.0
     
     if (Z<ZZ        or Z>(1036-ZZ)): return 0
     if (X<XX        or X>(256-XX)):  return 0
-    if (Y<(-111+YY) or Y>(111-YY)):  return 0
+    if (Y<(-117+YY) or Y>(117-YY)):  return 0
 
     return 1
 
