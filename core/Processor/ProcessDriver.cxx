@@ -2,6 +2,8 @@
 #define PROCESSDRIVER_CXX
 #include <sstream>
 #include <iomanip>
+#include <random>
+#include <algorithm>
 #include "ProcessDriver.h"
 #include "ProcessFactory.h"
 #include "Base/LArCVBaseUtilFunc.h"
@@ -243,10 +245,12 @@ namespace larcv {
 
     // Prepare ttree entry index array to follow in execution (randomize if specified
     LARCV_INFO() << "Preparing access index vector" << std::endl;
+    unsigned int seed = 0;
     if(nentries) {
       _access_entry_v.resize(nentries);
       for(size_t i=0; i<_access_entry_v.size(); ++i) _access_entry_v[i] = i;
-      if(_random_access) std::random_shuffle(_access_entry_v.begin(),_access_entry_v.end());
+      if(_random_access) std::shuffle(_access_entry_v.begin(),_access_entry_v.end(),
+				      std::default_random_engine(seed));
     }
 
     _current_entry = 0;
