@@ -69,25 +69,24 @@ namespace larcv {
       float depeng;
     };
 
-    uint _n_fail_nupdg;
-    uint _n_fail_ccqe;
-    uint _n_fail_nuE;
-    uint _n_fail_lepton_dep;
-    uint _n_fail_proton_dep;
-    uint _n_pass;
-    uint _n_calls;
-    uint _n_fail_unknowns;
-    uint _n_fail_inter;
+    int _n_fail_nupdg;
+    int _n_fail_ccqe;
+    int _n_fail_nuE;
+    int _n_fail_lepton_dep;
+    int _n_fail_proton_dep;
+    int _n_pass;
+    int _n_calls;
+    int _n_fail_unknowns;
+    int _n_fail_inter;
     
     TTree* _event_tree;
-    
 
-    uint _run;
-    uint _subrun;
-    uint _event; 
-    uint _entry;
-    uint _number_croi;
-    uint _selected;
+    int _run;
+    int _subrun;
+    int _event; 
+    int _entry;
+    int _number_croi;
+    int _selected;
   };
 
   /**

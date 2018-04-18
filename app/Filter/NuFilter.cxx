@@ -45,12 +45,12 @@ namespace larcv {
     _reco_roi_producer_name = cfg.get<std::string>("RecoROIProducer");
 
     _event_tree = new TTree("NuFilterTree","");
-    _event_tree->Branch("run"      , &_run      , "run/i");
-    _event_tree->Branch("subrun"   , &_subrun   , "subrun/i");
-    _event_tree->Branch("event"    , &_event    , "event/i");
-    _event_tree->Branch("entry"    , &_entry    , "entry/i");
-    _event_tree->Branch("number_croi"  , &_number_croi   , "number_croi/i");
-    _event_tree->Branch("selected1L1P" , &_selected , "selected1L1P/i");
+    _event_tree->Branch("run"      , &_run      , "run/I");
+    _event_tree->Branch("subrun"   , &_subrun   , "subrun/I");
+    _event_tree->Branch("event"    , &_event    , "event/I");
+    _event_tree->Branch("entry"    , &_entry    , "entry/I");
+    _event_tree->Branch("number_croi"  , &_number_croi   , "number_croi/I");
+    _event_tree->Branch("selected1L1P" , &_selected , "selected1L1P/I");
   }
 
   //from rui an.
@@ -63,10 +63,10 @@ namespace larcv {
     bool vis_one_proton_b = false;
     bool vis_no_unknowns_b = false;
     
-    uint nlepton  = 0;
-    uint nproton  = 0;
+    int nlepton  = 0;
+    int nproton  = 0;
     
-    uint unknown_ctr = 0.0;
+    int unknown_ctr = 0.0;
     
     // Get neutrino ROI
     const auto& roi = ev_roi->at(0);
@@ -216,11 +216,11 @@ namespace larcv {
   {
 
     LARCV_DEBUG() << "start" << std::endl;
-    _run      = kINVALID_UINT;
-    _subrun   = kINVALID_UINT;
-    _event    = kINVALID_UINT;
-    _entry    = kINVALID_UINT;
-    _selected = kINVALID_UINT;
+    _run      = kINVALID_INT;
+    _subrun   = kINVALID_INT;
+    _event    = kINVALID_INT;
+    _entry    = kINVALID_INT;
+    _selected = kINVALID_INT;
 
     auto rse_prod = (EventImage2D*) mgr.get_data(kProductImage2D,_rse_producer);
     _run    = rse_prod->run();
@@ -229,7 +229,7 @@ namespace larcv {
     _entry  = mgr.current_entry();
 
     auto ev_reco_roi = (EventROI*) mgr.get_data(kProductROI, _reco_roi_producer_name);
-    _number_croi = (uint)ev_reco_roi->ROIArray().size();
+    _number_croi = (int)ev_reco_roi->ROIArray().size();
 
     if(_true_roi_producer_name.empty()) {
       _event_tree->Fill();
@@ -241,7 +241,7 @@ namespace larcv {
     
     bool signal_selected = MCSelect(ev_roi);
     LARCV_DEBUG() << "selected: " << signal_selected << std::endl;
-    _selected = (uint) signal_selected;
+    _selected = (int) signal_selected;
     
     // if atleast 1 of config selection is false, then test against signal selected
     if ( !_select_signal or !_select_background) {

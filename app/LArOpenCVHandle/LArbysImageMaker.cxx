@@ -37,11 +37,13 @@ namespace larcv {
   }
   
   std::tuple<cv::Mat,larocv::ImageMeta>
-  LArbysImageMaker::ExtractImage(const Image2D& image) {
-    std::vector<Image2D> image_v(1,image);
+  LArbysImageMaker::ExtractImage(const Image2D& image,size_t plane) {
+    std::vector<Image2D> image_v(plane+1);
+    image_v[plane] = image;
     auto img_data_v = ExtractImage(image_v);
-    return img_data_v.front();
+    return img_data_v[plane];
   }
+
 
   std::vector<std::tuple<cv::Mat,larocv::ImageMeta> >
   LArbysImageMaker::ExtractImage(const std::vector<Image2D>& image_v) {
