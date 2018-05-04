@@ -83,7 +83,12 @@ temp.write(SS)
 temp.flush()
 
 infile_v  = [PREFIX_FILE]
-outfile_v = [os.path.join(OUT_DIR,os.path.basename(PREFIX_FILE).split(".")[0] + "_filter.root")]
+
+outfile  = os.path.basename(PREFIX_FILE).split(".")[0]
+outfile += "_%s_%s_%s.root"
+outfile  = outfile % (RUN,SUBRUN,EVENT)
+
+outfile_v = [os.path.join(OUT_DIR,outfile)]
 
 SS = "%s %s %s %s"
 for infile,outfile in zip(infile_v,outfile_v):
