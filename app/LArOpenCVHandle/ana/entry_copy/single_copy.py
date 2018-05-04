@@ -22,7 +22,7 @@ EVENT      = str(sys.argv[4])
 STAGE1_DIR = str(sys.argv[5])
 STAGE2_DIR = str(sys.argv[6])
 PREFIX     = str(sys.argv[7])
-STAGE      = str(sys.argv[8])
+STAGE      = int(sys.argv[8])
 OUT_DIR    = str(sys.argv[9])
 
 
@@ -33,7 +33,7 @@ print "EVENT      = %s" % EVENT
 print "STAGE1_DIR = %s" % STAGE1_DIR
 print "STAGE2_DIR = %s" % STAGE2_DIR
 print "PREFIX     = %s" % PREFIX
-print "STAGE      = %s" % STAGE
+print "STAGE      = %d" % STAGE
 print "OUT_DIR    = %s" % OUT_DIR
 
 BINARY = "/usr/local/share/dllee_unified/LArCV/app/LArOpenCVHandle/ana/entry_copy/entry_copy"
@@ -64,9 +64,9 @@ INDIR  = "%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100)
 # get the input files
 #
 PREFIX_FILE = ""
-if STAGE == "1":
+if STAGE == int(1):
     PREFIX_FILE = os.path.join(STAGE1_DIR,INDIR,"%s-%s.root" % (PREFIX,FNAME))
-if STAGE == "2":
+if STAGE == int(2):
     PREFIX_FILE = os.path.join(STAGE2_DIR,INDIR,"%s_%s.root" % (PREFIX,JOBTAG))
 else:
     raise Exception
