@@ -20,9 +20,9 @@ namespace larcv {
 
   public:
   LArbysImageMaker() :
-    _charge_max(500),
-      _charge_min(0.1),
-      _charge_to_gray_scale(2)
+    _charge_max(255),
+      _charge_min(0),
+      _charge_to_gray_scale(1)
 	{}
     
     ~LArbysImageMaker(){}
