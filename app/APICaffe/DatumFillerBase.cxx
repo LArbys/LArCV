@@ -11,6 +11,7 @@ namespace larcv {
     , _image_producer_id  (kINVALID_PRODUCER)
     , _label_producer_id  (kINVALID_PRODUCER)
     , _weight_producer_id (kINVALID_PRODUCER)
+    , _multiplicity_producer_id (kINVALID_PRODUCER)
   {}
 
   const std::string& 
@@ -22,6 +23,8 @@ namespace larcv {
       return _label_producer;
     case kFillerWeightData:
       return _weight_producer;
+    case kFillerMultiplicityData:
+      return _multiplicity_producer;
     }
     return _weight_producer;
   }
@@ -43,6 +46,8 @@ namespace larcv {
       return _label_data;
     case kFillerWeightData:
       return _weight_data;
+    case kFillerMultiplicityData:
+      return _multiplicity_data;
     }
     return _weight_data;
   }
@@ -57,15 +62,18 @@ namespace larcv {
       return _entry_label_data;
     case kFillerWeightData:
       return _entry_weight_data;
+    case kFillerMultiplicityData:
+      return _entry_multiplicity_data;
     }
     return _entry_weight_data;
   }
   
   void DatumFillerBase::configure(const PSet& cfg)
   {
-    _image_producer  = cfg.get<std::string>("ImageProducer");
-    _label_producer  = cfg.get<std::string>("LabelProducer");
-    _weight_producer = cfg.get<std::string>("WeightProducer","");
+    _image_producer        = cfg.get<std::string>("ImageProducer");
+    _label_producer        = cfg.get<std::string>("LabelProducer");
+    _weight_producer       = cfg.get<std::string>("WeightProducer","");
+    _multiplicity_producer = cfg.get<std::string>("MultiplicityProducer","");
     this->child_configure(cfg);
   }
 
@@ -78,9 +86,10 @@ namespace larcv {
     _current_entry = kINVALID_SIZE;
     _entry_image_size   = _entry_label_size = kINVALID_SIZE;
     _entry_weight_size  = 0;
-    _image_producer_id  = kINVALID_PRODUCER;
-    _label_producer_id  = kINVALID_PRODUCER;
-    _weight_producer_id = kINVALID_PRODUCER;
+    _image_producer_id        = kINVALID_PRODUCER;
+    _label_producer_id        = kINVALID_PRODUCER;
+    _weight_producer_id       = kINVALID_PRODUCER;
+    _multiplicity_producer_id = kINVALID_PRODUCER;
     this->child_initialize();
   }
 
@@ -88,12 +97,14 @@ namespace larcv {
     if(_entry_image_size != kINVALID_SIZE) {
       _image_data.resize(_nentries * _entry_image_size);
       _label_data.resize(_nentries * _entry_label_size);
+      _multiplicity_data.resize(_nentries * _entry_multiplicity_size);
       if(!_weight_producer.empty()) 
 	_weight_data.resize(_nentries * _entry_weight_size);
     }
-    for( auto& v : _image_data  ) v=0.;
-    for( auto& v : _label_data  ) v=0.;
-    for( auto& v : _weight_data ) v=0.;
+    for( auto& v : _image_data         ) v=0.;
+    for( auto& v : _label_data         ) v=0.;
+    for( auto& v : _multiplicity_data  ) v=0.;
+    for( auto& v : _weight_data        ) v=0.;
     _current_entry = 0;
     _meta_data.clear();
     this->child_batch_begin();
@@ -122,22 +133,34 @@ namespace larcv {
         throw larbys();
       }
       LARCV_INFO() << std::endl;
+      
+      _multiplicity_producer_id = mgr.producer_id(_multiplicity_product_type,_multiplicity_producer);
+      if(_multiplicity_producer_id == kINVALID_PRODUCER) {
+        LARCV_CRITICAL() << "Multiplicity producer " << _multiplicity_producer << " not valid!" << std::endl;
+        throw larbys();
+      }
+      LARCV_INFO() << std::endl;
+
+
       if(!_weight_producer.empty())
 	_weight_producer_id = mgr.producer_id(_weight_product_type,_weight_producer);
     }
     LARCV_INFO() << std::endl;
-    auto const image_data = mgr.get_data(_image_producer_id);
-    auto const label_data = mgr.get_data(_label_producer_id);
+    auto const image_data        = mgr.get_data(_image_producer_id);
+    auto const label_data        = mgr.get_data(_label_producer_id);
+    auto const multiplicity_data = mgr.get_data(_multiplicity_producer_id);
     LARCV_INFO() << std::endl;
     if(_entry_image_size==kINVALID_SIZE || _nentries == 1) {
 
-      _entry_image_size = compute_image_size(image_data);
-      _entry_label_size = compute_label_size(label_data);
+      _entry_image_size        = compute_image_size(image_data);
+      _entry_label_size        = compute_label_size(label_data);
+      _entry_multiplicity_size = compute_multiplicity_size(multiplicity_data);
 
-      LARCV_INFO() << "Recomputed image size: " << _entry_image_size << std::endl;
-      LARCV_INFO() << "Recomputed label size: " << _entry_label_size << std::endl;
+      LARCV_INFO() << "Recomputed image size: "        << _entry_image_size << std::endl;
+      LARCV_INFO() << "Recomputed label size: "        << _entry_label_size << std::endl;
+      LARCV_INFO() << "Recomputed multiplicity size: " << _entry_multiplicity_size << std::endl;
 
-      if( _entry_image_size == kINVALID_SIZE || _entry_label_size == kINVALID_SIZE ) {
+      if( _entry_image_size == kINVALID_SIZE || _entry_label_size == kINVALID_SIZE ||_entry_multiplicity_size == kINVALID_SIZE) {
         LARCV_CRITICAL() << "Rows/Cols/NumChannels not set!" << std::endl;
         throw larbys();
       }
@@ -147,8 +170,9 @@ namespace larcv {
 	_weight_data.resize (_entry_weight_size * _nentries, 0.);
       }
 
-      _image_data.resize  (_entry_image_size  * _nentries, 0.);
-      _label_data.resize  (_entry_label_size  * _nentries, 0.);
+      _image_data.resize         (_entry_image_size         * _nentries, 0.);
+      _label_data.resize         (_entry_label_size         * _nentries, 0.);
+      _multiplicity_data.resize  (_entry_multiplicity_size  * _nentries, 0.);
     }
 
     EventBase* weight_data=nullptr;
@@ -156,11 +180,12 @@ namespace larcv {
       weight_data = mgr.get_data(_weight_producer_id);
 
     _entry_meta_data.clear();
-    this->fill_entry_data(image_data,label_data,weight_data);
-
-    auto const& entry_image_data  = entry_data(kFillerImageData);
-    auto const& entry_label_data  = entry_data(kFillerLabelData);
-    auto const& entry_weight_data = entry_data(kFillerWeightData);
+    this->fill_entry_data(image_data,label_data,weight_data,multiplicity_data);
+    
+    auto const& entry_image_data        = entry_data(kFillerImageData);
+    auto const& entry_label_data        = entry_data(kFillerLabelData);
+    auto const& entry_weight_data       = entry_data(kFillerWeightData);
+    auto const& entry_multiplicity_data = entry_data(kFillerMultiplicityData);
 
     if(entry_image_data.size() != _entry_image_size) {
       LARCV_CRITICAL() << "(run,subrun,event) = ("
@@ -176,6 +201,14 @@ namespace larcv {
       throw larbys();
     }
 
+    if(entry_multiplicity_data.size() != _entry_multiplicity_size) {
+      LARCV_CRITICAL() << "(run,subrun,event) = ("
+      << multiplicity_data->run() << "," << multiplicity_data->subrun() << "," << multiplicity_data->event() << ")"
+      << "Entry multiplicity size should be " << _entry_multiplicity_size << " but found " << entry_multiplicity_data.size() << std::endl;
+      throw larbys();
+    }
+
+
     if(entry_weight_data.size() != _entry_weight_size) {
       LARCV_CRITICAL() << "(run,subrun,event) = ("
       << weight_data->run() << "," << weight_data->subrun() << "," << weight_data->event() << ")"
@@ -190,6 +223,10 @@ namespace larcv {
     const size_t current_label_index_start = _current_entry * _entry_label_size;
     for(size_t i = 0; i<_entry_label_size; ++i)
       _label_data[current_label_index_start + i] = entry_label_data[i];
+
+    const size_t current_multiplicity_index_start = _current_entry * _entry_multiplicity_size;
+    for(size_t i = 0; i<_entry_multiplicity_size; ++i)
+      _multiplicity_data[current_multiplicity_index_start + i] = entry_multiplicity_data[i];
 
     const size_t current_weight_index_start = _current_entry * _entry_weight_size;
     for(size_t i = 0; i<_entry_weight_size; ++i)

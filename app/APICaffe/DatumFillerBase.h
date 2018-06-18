@@ -31,7 +31,8 @@ namespace larcv {
     enum FillerDataType_t {
       kFillerImageData,
       kFillerLabelData,
-      kFillerWeightData
+      kFillerWeightData,
+      kFillerMultiplicityData
     };
   public:
     
@@ -67,6 +68,8 @@ namespace larcv {
 
     size_t entry_weight_size() const { return _entry_weight_size; }
 
+    size_t entry_multiplicity_size() const { return _entry_multiplicity_size; }
+
     virtual void child_configure(const PSet&) = 0;
 
     virtual void child_initialize()  {}
@@ -81,11 +84,14 @@ namespace larcv {
 
     virtual void fill_entry_data (const larcv::EventBase* image, 
 				  const larcv::EventBase* label,
-				  const larcv::EventBase* weight) = 0;
+				  const larcv::EventBase* weight,
+				  const larcv::EventBase* multiplicity) = 0;
 
     virtual size_t compute_image_size(const larcv::EventBase* image) = 0;
 
-    virtual size_t compute_label_size(const larcv::EventBase* image) = 0;
+    virtual size_t compute_label_size(const larcv::EventBase* label) = 0;
+
+    virtual size_t compute_multiplicity_size(const larcv::EventBase* multiplicity) = 0;
 
     const std::vector<float>& entry_data(FillerDataType_t dtype = kFillerImageData) const;
 
@@ -95,9 +101,11 @@ namespace larcv {
     std::vector<float> _entry_image_data;
     std::vector<float> _entry_label_data;
     std::vector<float> _entry_weight_data;
+    std::vector<float> _entry_multiplicity_data;
     ProductType_t _image_product_type;
     ProductType_t _label_product_type;
     ProductType_t _weight_product_type;
+    ProductType_t _multiplicity_product_type;
     std::vector<larcv::ImageMeta>  _entry_meta_data;
 
   private:
@@ -111,17 +119,21 @@ namespace larcv {
     std::string _image_producer;
     std::string _label_producer;
     std::string _weight_producer;
+    std::string _multiplicity_producer;
     ProducerID_t _image_producer_id;
     ProducerID_t _label_producer_id;
     ProducerID_t _weight_producer_id;
+    ProducerID_t _multiplicity_producer_id;
     std::vector<float> _image_data;
     std::vector<float> _label_data;
     std::vector<float> _weight_data;
+    std::vector<float> _multiplicity_data;
     std::vector<std::vector<larcv::ImageMeta> > _meta_data;
     size_t _current_entry;
     size_t _entry_image_size;
     size_t _entry_label_size;
     size_t _entry_weight_size;
+    size_t _entry_multiplicity_size;
   };
 
 }

@@ -52,12 +52,15 @@ namespace larcv {
 
     void fill_entry_data(const EventBase* image_data, 
 			 const EventBase* label_data,
-			 const EventBase* weight_data);
+			 const EventBase* weight_data,
+			 const EventBase* multiplicity_data);
 
     size_t compute_image_size(const EventBase* image_data);
 
     size_t compute_label_size(const EventBase* label_data);
-
+	
+    size_t compute_multiplicity_size(const EventBase* multiplicity_data);
+    
   private:
 
     void assert_dimension(const std::vector<larcv::Image2D>&);
