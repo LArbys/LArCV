@@ -23,9 +23,10 @@ namespace larcv {
 
   void MultiClassFiller::child_configure(const PSet& cfg)
   {
-    _slice_v        = cfg.get<std::vector<size_t> >("Channels",_slice_v);
-    _mirror_image   = cfg.get<bool>("EnableMirror",false);
-    _crop_image     = cfg.get<bool>("EnableCrop",false);
+    _slice_v          = cfg.get<std::vector<size_t> >("Channels",_slice_v);
+    _mirror_image     = cfg.get<bool>("EnableMirror",false);
+    _transpose_image  = cfg.get<bool>("EnableTranspose",false);
+    _crop_image       = cfg.get<bool>("EnableCrop",false);
     if(_crop_image)
       _cropper.configure(cfg);
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
@@ -57,6 +58,8 @@ namespace larcv {
   {
     _mirrored.clear();
     _mirrored.reserve(entries());
+    _transposed.clear();
+    _transposed.reserve(entries());
   }
 
   void MultiClassFiller::child_batch_end()   
@@ -77,8 +80,12 @@ namespace larcv {
 
       size_t mirror_ctr=0;
       for(auto const& v : _mirrored) if(v) ++mirror_ctr;
-        LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
+      LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
 
+      size_t transpose_ctr=0;
+      for(auto const& v : _transposed) if(v) ++transpose_ctr;
+      LARCV_INFO() << transpose_ctr << " / " << _transposed.size() << " images are transposed!" << std::endl;
+	
     }
   }
 
@@ -156,11 +163,13 @@ namespace larcv {
     // Define caffe idx to Image2D idx (assuming no crop)
     _caffe_idx_to_img_idx.resize(_rows*_cols,0);
     _mirror_caffe_idx_to_img_idx.resize(_rows*_cols,0);
+    _transpose_caffe_idx_to_img_idx.resize(_rows*_cols,0);
     size_t caffe_idx = 0;
     for(size_t row=0; row<_rows; ++row) {
       for(size_t col=0; col<_cols; ++col) {
-        _caffe_idx_to_img_idx[caffe_idx] = col*_rows + row;
-        _mirror_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + row;
+        _caffe_idx_to_img_idx[caffe_idx]           = col*_rows + row;
+        _mirror_caffe_idx_to_img_idx[caffe_idx]    = (_cols-col-1)*_rows + row;
+        _transpose_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + (_rows-row-1);
         ++caffe_idx;
       }
     }
@@ -233,15 +242,25 @@ namespace larcv {
       _entry_image_data.resize(entry_image_size(),0.);
     for(auto& v : _entry_image_data) v = 0.;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device rd_mirror;
+    std::random_device rd_transpose;
+    std::mt19937 gen_mirror(rd_mirror());
+    std::mt19937 gen_transpose(rd_transpose());
     std::uniform_int_distribution<> irand(0,1);
     bool mirror_image = false;
-    if(_mirror_image && irand(gen)) {
+    bool transpose_image = false;
+    
+    if(_mirror_image && irand(gen_mirror) && !(irand(gen_transpose))) {
       _mirrored.push_back(true);
       mirror_image = true;
     }
     else { _mirrored.push_back(false); }
+    
+    if(_transpose_image && !(irand(gen_mirror)) && irand(gen_transpose)) {
+      _transposed.push_back(true);
+      transpose_image = true;
+    }
+    else { _transposed.push_back(false); }
 
     for(size_t ch=0;ch<_num_channels;++ch) {
 
@@ -260,13 +279,11 @@ namespace larcv {
 
         for(size_t row=0; row<_rows; ++row) {
           for(size_t col=0; col<_cols; ++col) {
-          
             if(mirror_image)
-
-              _entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
-
-            else
-
+	      _entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
+	    else if (transpose_image)
+	      _entry_image_data[output_idx] = input_image[_transpose_caffe_idx_to_img_idx[caffe_idx]];
+	    else
               _entry_image_data[output_idx] = input_image[_caffe_idx_to_img_idx[caffe_idx]];
 
             ++output_idx;
@@ -307,7 +324,7 @@ namespace larcv {
 
       LARCV_DEBUG()<<"Before"<<std::endl;
       LARCV_DEBUG()<<multiplicity_tmp.size()<<std::endl;
-      for (auto const & blah: multiplicity_tmp) LARCV_DEBUG()<<" "<< blah;
+      for (auto const & each: multiplicity_tmp) LARCV_DEBUG()<<" "<< each;
       LARCV_DEBUG()<<std::endl;
 
       //LARCV_DEBUG()<<"before, _entry_label_data[caffe_class] is        "<<_entry_label_data<<std::endl;
@@ -316,7 +333,7 @@ namespace larcv {
       multiplicity_tmp[caffe_class] += 1;
 
       LARCV_DEBUG()<<"After"<<std::endl;
-      for (auto const & blah: multiplicity_tmp) LARCV_DEBUG()<<" "<< blah;
+      for (auto const & each: multiplicity_tmp) LARCV_DEBUG()<<" "<< each;
       LARCV_DEBUG()<<std::endl;
 
       //LARCV_DEBUG()<<"after, _entry_label_data[caffe_class] is        "<<_entry_label_data<<std::endl;

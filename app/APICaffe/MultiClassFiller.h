@@ -46,6 +46,8 @@ namespace larcv {
 
     const std::vector<bool>& mirrored() const { return _mirrored; }
 
+    const std::vector<bool>& transposed() const { return _transposed; }
+
     const std::vector<int> dim(bool image=true) const;
 
   protected:
@@ -72,11 +74,14 @@ namespace larcv {
     size_t _max_ch;
     std::vector<size_t> _caffe_idx_to_img_idx;
     std::vector<size_t> _mirror_caffe_idx_to_img_idx;
+    std::vector<size_t> _transpose_caffe_idx_to_img_idx;
     std::vector<size_t> _roitype_to_class;
     std::vector<bool>   _mirrored;
+    std::vector<bool>   _transposed;
     bool _mirror_image;
     bool _crop_image;
-
+    bool _transpose_image;
+    
     RandomCropper _cropper;
 
   };
