@@ -641,6 +641,7 @@ namespace larcv {
                 }//iPlane
             }//iNode
         }//itrack
+        tellMe("MaskVertex Done!",0);
     }
     //______________________________________________________
     void AStarTracker::ReconstructVertex(){
@@ -670,6 +671,7 @@ namespace larcv {
             std::cout << "add track" << std::endl;
             _3DTrack.push_back(end_pt);
             _vertexEndPoints.push_back(end_pt);
+            FillInTrack();
             _vertexTracks.push_back(_3DTrack);
             ComputeLength();
             //ComputeNewdQdX();
@@ -804,7 +806,9 @@ namespace larcv {
         MaskVertex();
 
         ComputeClosestWall();
-	ComputeClosestWall_SCE();
+        tellMe("ComputeClosestWall Done!",0);
+        //ComputeClosestWall_SCE();
+        tellMe("ComputeClosestWallSCE Done!",0);
 	
         if(_jumpingTracks_v.size()      != 0) _jumpingTracks_v.clear();
         if(_possiblyCrossing_v.size()   != 0) _possiblyCrossing_v.clear();
@@ -1631,6 +1635,7 @@ namespace larcv {
         //EnhanceDerivative();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
+        c->SetFillColor(1);
         c->Divide(1,2);
         c->cd(1)->Divide(3,1);
         c->cd(2)->Divide(3,1);
@@ -1761,9 +1766,25 @@ namespace larcv {
                 }
             }
             c->cd(1)->cd(iPlane+1);
+            c->cd(1)->cd(iPlane+1)->SetFrameFillColor(1);
+            c->cd(1)->cd(iPlane+1)->SetFrameLineColor(0);
+            hImage[iPlane]->GetXaxis()->SetLabelColor(0);
+            hImage[iPlane]->GetXaxis()->SetAxisColor(0);
+            hImage[iPlane]->GetXaxis()->SetTitleColor(0);
+            hImage[iPlane]->GetYaxis()->SetLabelColor(0);
+            hImage[iPlane]->GetYaxis()->SetAxisColor(0);
+            hImage[iPlane]->GetYaxis()->SetTitleColor(0);
             hImage[iPlane]->Draw("colz");
 
             c->cd(2)->cd(iPlane+1);
+            c->cd(2)->cd(iPlane+1)->SetFrameFillColor(1);
+            c->cd(2)->cd(iPlane+1)->SetFrameLineColor(0);
+            hImageMasked[iPlane]->GetXaxis()->SetLabelColor(0);
+            hImageMasked[iPlane]->GetXaxis()->SetAxisColor(0);
+            hImageMasked[iPlane]->GetXaxis()->SetTitleColor(0);
+            hImageMasked[iPlane]->GetYaxis()->SetLabelColor(0);
+            hImageMasked[iPlane]->GetYaxis()->SetAxisColor(0);
+            hImageMasked[iPlane]->GetYaxis()->SetTitleColor(0);
             hImageMasked[iPlane]->Draw("colz");
             if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
 
@@ -1795,8 +1816,14 @@ namespace larcv {
                 }
                 c->cd(2)->cd(iPlane+1);
                 gTrack[iPlane]->SetMarkerStyle(7);
-                gTrack[iPlane]->SetLineColor(i+1);
-                gTrack[iPlane]->SetMarkerColor(i+1);
+                if(i==0){
+                    gTrack[iPlane]->SetLineColor(i);
+                    gTrack[iPlane]->SetMarkerColor(i);
+                }
+                else{
+                    gTrack[iPlane]->SetLineColor(i+1);
+                    gTrack[iPlane]->SetMarkerColor(i+1);
+                }
                 gTrack[iPlane]->Draw("same LP");
                 c->cd(1)->cd(iPlane+1);
                 gTrack[iPlane]->Draw("same LP");
@@ -1806,7 +1833,7 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(2)->cd(iPlane+1);
-            gStartNend[iPlane]->SetMarkerColor(1);
+            gStartNend[iPlane]->SetMarkerColor(0);
             gStartNend[iPlane]->SetMarkerStyle(20);
             gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
@@ -1837,7 +1864,7 @@ namespace larcv {
         if(_tooShortFaintTrack){label_tag+="_TooShortFaintTrack";}
         if(_jumpingTracks){label_tag+="_JumpTrack";}
         if(IsGoodVertex()){label_tag+="_OKtracks";}
-        if(NumberRecoveries!=0){label_tag+="_recovered";}
+        if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}
         c->SaveAs(Form("%s/%s_%s.png",_outdir.c_str(),c->GetName(),label_tag.c_str()));
 
         for(size_t iPlane = 0;iPlane<3;iPlane++){
@@ -3287,6 +3314,28 @@ namespace larcv {
             NumberRecoveries++;
             ReconstructVertex();
         }
+    }
+    //-------------------------------------------------------
+    void AStarTracker::FillInTrack(){
+        std::vector<TVector3> newTrack;
+        if(newTrack.size() != 0)newTrack.clear();
+        //if(_3DTrack.back()!= end_pt)_3DTrack.push_back(end_pt);
+        for(size_t ipoint=0;ipoint<_3DTrack.size()-1;ipoint++){
+            newTrack.push_back(_3DTrack[ipoint]);
+            TVector3 vertexNeighbour = _3DTrack[ipoint];
+            int iterNeighbour = 1;
+            while((vertexNeighbour-_3DTrack[ipoint]).Mag() < (_3DTrack[ipoint+1]-_3DTrack[ipoint]).Mag() && iterNeighbour<1e6){
+                vertexNeighbour = _3DTrack[ipoint]+0.3*(_3DTrack[ipoint+1]-_3DTrack[ipoint])*(iterNeighbour/(_3DTrack[ipoint+1]-_3DTrack[ipoint]).Mag());
+                if((vertexNeighbour-_3DTrack[ipoint]).Mag() < (_3DTrack[ipoint+1]-_3DTrack[ipoint]).Mag()){
+                    iterNeighbour++;
+                    newTrack.push_back(vertexNeighbour);
+                }
+                else iterNeighbour = 1e7;
+            }
+        }
+        newTrack.push_back(_3DTrack.back());
+
+        _3DTrack = newTrack;
     }
     //-------------------------------------------------------
 

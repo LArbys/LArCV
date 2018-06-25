@@ -144,6 +144,7 @@ namespace larcv {
         void RecoverFromFail();
         void EnhanceDerivative();
         void DumpTrack();
+        void FillInTrack();
 
         bool initialize();
         bool finalize();
