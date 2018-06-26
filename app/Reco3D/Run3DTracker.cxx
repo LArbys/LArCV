@@ -95,13 +95,13 @@ namespace larcv {
         _recoTree->Branch("trk_id_v", &_trk_id_v);
         _recoTree->Branch("NtracksReco",&NtracksReco);
 
-	_recoTree->Branch("trackQ3_v",&_trackQ3_v);
-	_recoTree->Branch("trackQ5_v",&_trackQ5_v);
-	_recoTree->Branch("trackQ10_v",&_trackQ10_v);
-	_recoTree->Branch("trackQ20_v",&_trackQ20_v);
-	_recoTree->Branch("trackQ30_v",&_trackQ30_v);
-	_recoTree->Branch("trackQ50_v",&_trackQ50_v);
-	
+        _recoTree->Branch("trackQ3_v",&_trackQ3_v);
+        _recoTree->Branch("trackQ5_v",&_trackQ5_v);
+        _recoTree->Branch("trackQ10_v",&_trackQ10_v);
+        _recoTree->Branch("trackQ20_v",&_trackQ20_v);
+        _recoTree->Branch("trackQ30_v",&_trackQ30_v);
+        _recoTree->Branch("trackQ50_v",&_trackQ50_v);
+
         _recoTree->Branch("E_muon_v",&_E_muon_v);
         _recoTree->Branch("E_proton_v",&_E_proton_v);
         _recoTree->Branch("Length_v",&_Length_v);
@@ -109,12 +109,13 @@ namespace larcv {
         _recoTree->Branch("Ion_5cm_v",&_Ion_5cm_v);
         _recoTree->Branch("Ion_10cm_v",&_Ion_10cm_v);
         _recoTree->Branch("Ion_tot_v",&_Ion_tot_v);
-	_recoTree->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v);
-	_recoTree->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v);
+        _recoTree->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v);
+        _recoTree->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v);
         _recoTree->Branch("IondivLength_v",&_IondivLength_v);
         _recoTree->Branch("TotalADCvalues_v",&_TotalADCvalues_v);
         _recoTree->Branch("Angle_v",&_Angle_v);
         _recoTree->Branch("Reco_goodness_v",&_Reco_goodness_v);
+        _recoTree->Branch("track_Goodness_v",&_track_Goodness_v);
         _recoTree->Branch("GoodVertex",&GoodVertex);
         _recoTree->Branch("missingTrack",&_missingTrack);
         _recoTree->Branch("nothingReconstructed",&_nothingReconstructed);
@@ -293,12 +294,12 @@ namespace larcv {
 
                         auto const& pix_v      = (*iter_pix).second;
                         auto const& pix_meta_v = (*iter_pix_meta).second;
-                        
+
                         auto const& pix      = pix_v.at(cidx);
                         auto const& pix_meta = pix_meta_v.at(cidx);
-                        
+
                         auto& plane_img = Full_image_v.at(plane);
-                        
+
                         for(const auto& px : pix) {
                             auto posx = pix_meta.pos_x(px.Y());
                             auto posy = pix_meta.pos_y(px.X());
@@ -367,13 +368,13 @@ namespace larcv {
                 _Length_v    = tracker.GetVertexLength();
                 _closestWall = tracker.GetClosestWall();
 
-		_trackQ3_v     = tracker.GetTotalPixADC(3.);
-		_trackQ5_v     = tracker.GetTotalPixADC(5.);
-		_trackQ10_v    = tracker.GetTotalPixADC(10.);
-		_trackQ20_v    = tracker.GetTotalPixADC(20.);
-		_trackQ30_v    = tracker.GetTotalPixADC(30.);
-		_trackQ50_v    = tracker.GetTotalPixADC(50.);
-		
+                _trackQ3_v     = tracker.GetTotalPixADC(3.);
+                _trackQ5_v     = tracker.GetTotalPixADC(5.);
+                _trackQ10_v    = tracker.GetTotalPixADC(10.);
+                _trackQ20_v    = tracker.GetTotalPixADC(20.);
+                _trackQ30_v    = tracker.GetTotalPixADC(30.);
+                _trackQ50_v    = tracker.GetTotalPixADC(50.);
+
                 _Avg_Ion_v     = tracker.GetAverageIonization();
                 _Ion_5cm_v     = tracker.GetTotalIonization(5);
                 _Ion_10cm_v    = tracker.GetTotalIonization(10);
@@ -389,6 +390,8 @@ namespace larcv {
                 _vertexPhi   = tracker.GetVertexPhi();
                 _vertexTheta = tracker.GetVertexTheta();
                 _Reco_goodness_v = tracker.GetRecoGoodness();
+                _track_Goodness_v = tracker.GetVtxQuality();
+
 
                 assert (_Reco_goodness_v.size() == 9);
                 _missingTrack          = _Reco_goodness_v.at(0);
@@ -401,11 +404,11 @@ namespace larcv {
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
 
-		_RecoVertex = vertex_v.at(ivertex);
-		
+                _RecoVertex = vertex_v.at(ivertex);
+
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                //tracker.DrawVertex();
+                //if(!_nothingReconstructed)tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
@@ -461,7 +464,7 @@ namespace larcv {
 
         std::cout << "E nu th   : " << NeutrinoEnergyTh << " MeV" << std::endl;
         std::cout << "E nu Reco : " << Epreco+Emreco << " MeV" << std::endl;
-        std::cout << "relative Enu diff: " << 100*((Epreco+Emreco)-NeutrinoEnergyTh)/NeutrinoEnergyTh << " %" << std::endl;
+        std::cout << "relative Enu diff: " << 100*((Epreco+Emreco+146)-NeutrinoEnergyTh)/NeutrinoEnergyTh << " %" << std::endl;
         std::cout << "relative Enu_p+m diff: " << 100*((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t) << " %" << std::endl;
     }
 
@@ -469,7 +472,7 @@ namespace larcv {
     {
         tracker.finalize();
         std::cout << "finalized tracker" << std::endl;
-        
+
         if(has_ana_file()) {
             ana_file().cd();
             _recoTree->Write();
@@ -477,7 +480,7 @@ namespace larcv {
         _storage.close();
 
     }
-    
+
     void Run3DTracker::SetSplineLocation(const std::string& fpath) {
         LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
         tracker.SetSplineFile(fpath);
@@ -535,7 +538,7 @@ namespace larcv {
                 _ElectronStartPoint_X = mc_roi_v[iMC].X();
                 _ElectronStartPoint_Y = mc_roi_v[iMC].Y();
                 _ElectronStartPoint_Z = mc_roi_v[iMC].Z();
-                
+
                 _ElectronEndPoint_X = mc_roi_v[iMC].EndPosition().X();
                 _ElectronEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
                 _ElectronEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
@@ -592,7 +595,7 @@ namespace larcv {
         } // end rois
         return;
     } // end mc
-    
+
     void Run3DTracker::ClearEvent() {
         _run    = kINVALID_INT;
         _subrun = kINVALID_INT;
@@ -627,13 +630,13 @@ namespace larcv {
         _Ep_t = -1.0*kINVALID_DOUBLE;
         _Em_t = -1.0*kINVALID_DOUBLE;
         _Ee_t = -1.0*kINVALID_DOUBLE;
-
+        
         MCvertex.SetXYZ(-1,-1,-1);
         if(MCVertices.size()!=0)MCVertices.clear();
-
+        
         ClearVertex();
     }
-
+    
     void Run3DTracker::ClearVertex() {
         _vtx_id = -1.0 * kINVALID_INT;
         _vtx_x  = -1.0 * kINVALID_FLOAT;
@@ -655,13 +658,13 @@ namespace larcv {
         _possiblyCrossing = -1.0*kINVALID_INT;
         _branchingTracks = -1.0*kINVALID_INT;
         _jumpingTracks = -1.0*kINVALID_INT;
-	_trackQ50_v.clear();
-	_trackQ30_v.clear();
-	_trackQ20_v.clear();
-	_trackQ10_v.clear();
-	_trackQ5_v.clear();
-	_trackQ3_v.clear();
-	
+        _trackQ50_v.clear();
+        _trackQ30_v.clear();
+        _trackQ20_v.clear();
+        _trackQ10_v.clear();
+        _trackQ5_v.clear();
+        _trackQ3_v.clear();
+        
     }
     
 }

@@ -112,6 +112,7 @@ namespace larcv {
         std::vector< std::vector<double> > _TotalADCvalues_v;
         std::vector< std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
+        std::vector<bool>  _track_Goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;
 
         std::vector<TVector3> MCVertices;
