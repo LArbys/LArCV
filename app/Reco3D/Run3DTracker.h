@@ -103,12 +103,12 @@ namespace larcv {
         std::vector<double> _Trunc_dQdX1_v;
         std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
-	std::vector<std::vector<double>> _trackQ3_v;
-	std::vector<std::vector<double>> _trackQ5_v;
-	std::vector<std::vector<double>> _trackQ10_v;
-	std::vector<std::vector<double>> _trackQ20_v;
-	std::vector<std::vector<double>> _trackQ30_v;
-	std::vector<std::vector<double>> _trackQ50_v;
+        std::vector<std::vector<double>> _trackQ3_v;
+        std::vector<std::vector<double>> _trackQ5_v;
+        std::vector<std::vector<double>> _trackQ10_v;
+        std::vector<std::vector<double>> _trackQ20_v;
+        std::vector<std::vector<double>> _trackQ30_v;
+        std::vector<std::vector<double>> _trackQ50_v;
         std::vector< std::vector<double> > _TotalADCvalues_v;
         std::vector< std::vector<double> > _Angle_v;
         std::vector<bool>   _Reco_goodness_v;
@@ -118,8 +118,8 @@ namespace larcv {
         std::vector<TVector3> MCVertices;
         TVector3 MCvertex;
         TVector3 RecoVertex;
-	TVector3 _RecoVertex;
-	
+        TVector3 _RecoVertex;
+
         bool GoodVertex;
         bool _missingTrack;
         bool _nothingReconstructed;
@@ -164,7 +164,7 @@ namespace larcv {
         double _MuonEndPoint_Y;
         double _ProtonEndPoint_Y;
         double _ElectronEndPoint_Y;
-        
+
         double _MuonEndPoint_Z;
         double _ProtonEndPoint_Z;
         double _ElectronEndPoint_Z;
