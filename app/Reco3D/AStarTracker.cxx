@@ -3366,17 +3366,16 @@ namespace larcv {
                             if(notContiguous)continue;
                             //hImage[iPlane]->SetBinContent(icol+1,irow+1,_deadWireValue+100);
 			    
-			    // Hey Adrien -- we cannot let irow == 0 --vic
-			    if (irow == 0) {
-			      std::cout << "START: WARNING" << std::endl;
+			    try {
+			      original_full_image_v[iPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,icol,recoveredvalue);
+			    } catch (const larcv::larbys& what) {
+			      std::cout << "WARNING" << std::endl;
 			      std::cout << std::endl;
-			      std::cout << "Hey Adrien -- we cannot let irow == 0 -- vic" << std::endl;
+			      std::cout << "BUG IDENTIFIED" << std::endl;
 			      std::cout << std::endl;
-			      std::cout << "END: WARNING" << std::endl;
-			      continue;
+			      std::cout << "WARNING" << std::endl;
 			    }
-
-                            original_full_image_v[iPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,icol,recoveredvalue);
+			    
                         }
                     }
                 }//end of the loop adding non-zero pixels for dead region failures
