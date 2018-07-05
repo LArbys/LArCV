@@ -3312,9 +3312,29 @@ namespace larcv {
                 for(auto irow = (y_pixel_old-20);irow < (y_pixel_old+20);irow++){
                     for(int imargin=0;imargin<5;imargin++){
                         //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old-imargin) <= recoveredvalue)
+		      try {
                         original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old-imargin,recoveredvalue);
-                        //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old+imargin) <= recoveredvalue)
+		      } catch (const larcv::larbys& what) {
+			std::cout << "WARNING" << std::endl;
+			std::cout << std::endl;
+			std::cout << "BUG IDENTIFIED" << std::endl;
+			std::cout << std::endl;
+			std::cout << "WARNING" << std::endl;
+			continue;
+		      }
+
+			    
+		      //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old+imargin) <= recoveredvalue)
+		      try {
                         original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old+imargin,recoveredvalue);
+		      } catch (const larcv::larbys& what) {
+			std::cout << "WARNING" << std::endl;
+			std::cout << std::endl;
+			std::cout << "BUG IDENTIFIED" << std::endl;
+			std::cout << std::endl;
+			std::cout << "WARNING" << std::endl;
+			continue;
+		      }
                     }
                 }
             }
@@ -3374,6 +3394,7 @@ namespace larcv {
 			      std::cout << "BUG IDENTIFIED" << std::endl;
 			      std::cout << std::endl;
 			      std::cout << "WARNING" << std::endl;
+			      continue;
 			    }
 			    
                         }
