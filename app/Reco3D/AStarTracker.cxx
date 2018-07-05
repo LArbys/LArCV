@@ -677,9 +677,9 @@ namespace larcv {
             _vertexTracks.push_back(_3DTrack);
             ComputeLength();
             //ComputeNewdQdX();
-	    if (_DrawOutputs){
-	      hLength->Fill(_Length3D);
-	    }
+	    //if (_DrawOutputs){
+	    //  hLength->Fill(_Length3D);
+	   // }
             _track++;
             //DrawTrack();
         }
@@ -1298,10 +1298,10 @@ namespace larcv {
             }
             if(NplanesOK!=0){dQdxtot*=3/NplanesOK;}
             nodedQdxtot.push_back(dQdxtot);
-            if (_DrawOutputs) {
-                hdQdx->Fill(dQdxtot/_Length3D);
-                hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
-            }
+            //if (_DrawOutputs) {
+            //    hdQdx->Fill(dQdxtot/_Length3D);
+            //    hLengthdQdX->Fill(ComputeLength(iNode),dQdxtot);
+           // }
         }
         _vertexQDQX.push_back(nodedQdxtot);
     }
@@ -3290,7 +3290,7 @@ namespace larcv {
         bool recoverFromDead = true;
         int NpointAveragedOn = 0;
 
-        if(( recoverFromFaint && _tooShortFaintTrack) || (recoverFromDead && _tooShortDeadWire)){DrawVertex();}
+        //if(( recoverFromFaint && _tooShortFaintTrack) || (recoverFromDead && _tooShortDeadWire)){DrawVertex();}
 
 
 
