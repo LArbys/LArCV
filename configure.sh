@@ -27,7 +27,7 @@ else
     if [[ -z `command -v rootcint` ]]; then
 	echo
 	echo Looks like you do not have ROOT installed.
-	echo You cannot use LArLite w/o ROOT!
+	echo You cannot use LArCV w/o ROOT!
 	echo Aborting.
 	echo
 	return 1;

@@ -109,6 +109,10 @@ namespace larcv {
     return res;
   }
 
+  size_t SegFiller::compute_multiplicity_size(const EventBase* multiplicity_data){
+    return 1;
+  }
+
   size_t SegFiller::compute_label_size(const EventBase* label_data)
   { 
     if(entry_image_size() != kINVALID_SIZE) return entry_image_size();
@@ -197,7 +201,8 @@ namespace larcv {
 
   void SegFiller::fill_entry_data( const EventBase* image_data, 
 				   const EventBase* label_data,
-				   const EventBase* weight_data)
+				   const EventBase* weight_data,
+				   const EventBase* multiplicity_data)
   {
     LARCV_DEBUG() << "Start" << std::endl;
     auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();

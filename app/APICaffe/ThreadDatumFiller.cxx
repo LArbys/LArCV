@@ -230,6 +230,20 @@ namespace larcv {
     return _filler->data(DatumFillerBase::kFillerLabelData);
   }
 
+
+  const std::vector<float>& ThreadDatumFiller::multiplicities() const
+  {
+    if (!_processing) {
+      LARCV_CRITICAL() << "Multiplicities is not available before start processing!" << std::endl;
+      throw larbys();
+    }
+    if (thread_running()) {
+      LARCV_CRITICAL() << "Thread is currently running (cannot retrieve data)" << std::endl;
+      throw larbys();
+    }
+    return _filler->data(DatumFillerBase::kFillerMultiplicityData);
+  }
+  
   const std::vector<float>& ThreadDatumFiller::weights() const
   {
     if (!_processing) {
@@ -242,7 +256,7 @@ namespace larcv {
     }
     return _filler->data(DatumFillerBase::kFillerWeightData);
   }
-
+  
   const std::vector<std::vector<larcv::ImageMeta> >& ThreadDatumFiller::meta() const
   {
     if (!_processing) {

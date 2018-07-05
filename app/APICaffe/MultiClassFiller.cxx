@@ -16,15 +16,17 @@ namespace larcv {
     , _slice_v()
     , _max_ch(0)
   { 
-    _image_product_type = kProductImage2D;
-    _label_product_type = kProductROI;
+    _image_product_type        = kProductImage2D;
+    _label_product_type        = kProductROI;
+    _multiplicity_product_type = kProductROI;
   }
 
   void MultiClassFiller::child_configure(const PSet& cfg)
   {
-    _slice_v = cfg.get<std::vector<size_t> >("Channels",_slice_v);
-    _mirror_image = cfg.get<bool>("EnableMirror",false);
-    _crop_image     = cfg.get<bool>("EnableCrop",false);
+    _slice_v          = cfg.get<std::vector<size_t> >("Channels",_slice_v);
+    _mirror_image     = cfg.get<bool>("EnableMirror",false);
+    _transpose_image  = cfg.get<bool>("EnableTranspose",false);
+    _crop_image       = cfg.get<bool>("EnableCrop",false);
     if(_crop_image)
       _cropper.configure(cfg);
     auto type_to_class = cfg.get<std::vector<unsigned short> >("ClassTypeList");
@@ -49,12 +51,15 @@ namespace larcv {
   { 
     _entry_image_data.clear(); 
     _entry_label_data.clear();
+    _entry_multiplicity_data.clear();
   }
 
   void MultiClassFiller::child_batch_begin() 
   {
     _mirrored.clear();
     _mirrored.reserve(entries());
+    _transposed.clear();
+    _transposed.reserve(entries());
   }
 
   void MultiClassFiller::child_batch_end()   
@@ -75,8 +80,12 @@ namespace larcv {
 
       size_t mirror_ctr=0;
       for(auto const& v : _mirrored) if(v) ++mirror_ctr;
-        LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
+      LARCV_INFO() << mirror_ctr << " / " << _mirrored.size() << " images are mirrored!" << std::endl;
 
+      size_t transpose_ctr=0;
+      for(auto const& v : _transposed) if(v) ++transpose_ctr;
+      LARCV_INFO() << transpose_ctr << " / " << _transposed.size() << " images are transposed!" << std::endl;
+	
     }
   }
 
@@ -101,6 +110,10 @@ namespace larcv {
     res[2] = _rows;
     res[3] = _cols;
     return res;
+  }
+
+  size_t MultiClassFiller::compute_multiplicity_size(const EventBase* multiplicity_data){
+    return 25;
   }
 
   size_t MultiClassFiller::compute_label_size(const EventBase* label_data)
@@ -150,11 +163,13 @@ namespace larcv {
     // Define caffe idx to Image2D idx (assuming no crop)
     _caffe_idx_to_img_idx.resize(_rows*_cols,0);
     _mirror_caffe_idx_to_img_idx.resize(_rows*_cols,0);
+    _transpose_caffe_idx_to_img_idx.resize(_rows*_cols,0);
     size_t caffe_idx = 0;
     for(size_t row=0; row<_rows; ++row) {
       for(size_t col=0; col<_cols; ++col) {
-        _caffe_idx_to_img_idx[caffe_idx] = col*_rows + row;
-        _mirror_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + row;
+        _caffe_idx_to_img_idx[caffe_idx]           = col*_rows + row;
+        _mirror_caffe_idx_to_img_idx[caffe_idx]    = (_cols-col-1)*_rows + row;
+        _transpose_caffe_idx_to_img_idx[caffe_idx] = (_cols-col-1)*_rows + (_rows-row-1);
         ++caffe_idx;
       }
     }
@@ -212,7 +227,8 @@ namespace larcv {
 
   void MultiClassFiller::fill_entry_data( const EventBase* image_data, 
 					  const EventBase* label_data,
-					  const EventBase* weight_data)
+					  const EventBase* weight_data,
+					  const EventBase* multiplicity_data)
   {
     if(weight_data) {
       LARCV_CRITICAL() << "MultiClassFiller cannot use weight data!" << std::endl;
@@ -226,15 +242,25 @@ namespace larcv {
       _entry_image_data.resize(entry_image_size(),0.);
     for(auto& v : _entry_image_data) v = 0.;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    std::random_device rd_mirror;
+    std::random_device rd_transpose;
+    std::mt19937 gen_mirror(rd_mirror());
+    std::mt19937 gen_transpose(rd_transpose());
     std::uniform_int_distribution<> irand(0,1);
     bool mirror_image = false;
-    if(_mirror_image && irand(gen)) {
+    bool transpose_image = false;
+    
+    if(_mirror_image && irand(gen_mirror) && !(irand(gen_transpose))) {
       _mirrored.push_back(true);
       mirror_image = true;
     }
     else { _mirrored.push_back(false); }
+    
+    if(_transpose_image && !(irand(gen_mirror)) && irand(gen_transpose)) {
+      _transposed.push_back(true);
+      transpose_image = true;
+    }
+    else { _transposed.push_back(false); }
 
     for(size_t ch=0;ch<_num_channels;++ch) {
 
@@ -253,13 +279,11 @@ namespace larcv {
 
         for(size_t row=0; row<_rows; ++row) {
           for(size_t col=0; col<_cols; ++col) {
-          
             if(mirror_image)
-
-              _entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
-
-            else
-
+	      _entry_image_data[output_idx] = input_image[_mirror_caffe_idx_to_img_idx[caffe_idx]];
+	    else if (transpose_image)
+	      _entry_image_data[output_idx] = input_image[_transpose_caffe_idx_to_img_idx[caffe_idx]];
+	    else
               _entry_image_data[output_idx] = input_image[_caffe_idx_to_img_idx[caffe_idx]];
 
             ++output_idx;
@@ -268,10 +292,20 @@ namespace larcv {
       }
     }
 
-    // labels
+    // labels and multiplicity
     _entry_label_data.resize(entry_label_size(),0);
     for(auto& v : _entry_label_data) v = 0;
+
+
+    std::vector<size_t> multiplicity_tmp;
+    multiplicity_tmp.resize(5,0);
+    for(auto& v : multiplicity_tmp) v = 0;
+    
+    _entry_multiplicity_data.resize(entry_multiplicity_size(),0);
+    for(auto& v : _entry_multiplicity_data) v = 0;
+
     auto const& roi_v = ((EventROI*)label_data)->ROIArray();
+    
     for(auto const& roi : roi_v) {
       //if(roi.MCSTIndex() != kINVALID_USHORT) continue;
       if(roi.TrackID() != roi.ParentTrackID()) continue;
@@ -279,16 +313,42 @@ namespace larcv {
       if(roi_type == kROIUnknown) roi_type = PDG2ROIType(roi.PdgCode());
       auto const& caffe_class = _roitype_to_class.at(roi_type);
       if(caffe_class == kINVALID_SIZE) {
-	LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;
-	for(size_t roi_index=0; roi_index<roi_v.size(); ++roi_index)
-	  LARCV_CRITICAL() << "Dumping ROI " << roi_index << std::endl << roi_v[roi_index].dump() << std::endl;
-	throw larbys();
+	//LARCV_CRITICAL() << "ROIType_t " << roi_type << " is not among those defined for final set of class!" << std::endl;
+	//for(size_t roi_index=0; roi_index<roi_v.size(); ++roi_index)
+	//LARCV_CRITICAL() << "Dumping ROI " << roi_index << std::endl << roi_v[roi_index].dump() << std::endl;
+	//throw larbys();
       }
+      LARCV_DEBUG()<<"roi_type is "<<roi_type<<std::endl;
+      LARCV_DEBUG()<<"caffee_class is "<<caffe_class<<std::endl;
+      LARCV_DEBUG()<<"PDG is "<<roi.PdgCode()<<std::endl;
+
+      LARCV_DEBUG()<<"Before"<<std::endl;
+      LARCV_DEBUG()<<multiplicity_tmp.size()<<std::endl;
+      for (auto const & each: multiplicity_tmp) LARCV_DEBUG()<<" "<< each;
+      LARCV_DEBUG()<<std::endl;
+
+      //LARCV_DEBUG()<<"before, _entry_label_data[caffe_class] is        "<<_entry_label_data<<std::endl;
+      //LARCV_DEBUG()<<"before, multiplicity_tmp[caffe_class] is "<<multiplicity_tmp<<std::endl;
       _entry_label_data[caffe_class] = 1;
+      multiplicity_tmp[caffe_class] += 1;
+
+      LARCV_DEBUG()<<"After"<<std::endl;
+      for (auto const & each: multiplicity_tmp) LARCV_DEBUG()<<" "<< each;
+      LARCV_DEBUG()<<std::endl;
+
+      //LARCV_DEBUG()<<"after, _entry_label_data[caffe_class] is        "<<_entry_label_data<<std::endl;
+      //LARCV_DEBUG()<<"after, multiplicity_tmp[caffe_class] is "<<multiplicity_tmp<<std::endl;
+      
       LARCV_INFO() << "Setting ROI type " << roi_type 
 		   << " with PDG code " << roi.PdgCode()
 		   << " (caffe class " << caffe_class << ")" << std::endl;
     }
+    
+    for (int idx=0; idx<5; idx++){
+      int idy = idx*5 + multiplicity_tmp[idx];
+      _entry_multiplicity_data[idy] = 1;
+    }
+    LARCV_DEBUG()<<"================"<<std::endl;
   }
   
 }

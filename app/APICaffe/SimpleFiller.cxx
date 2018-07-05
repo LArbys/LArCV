@@ -101,6 +101,9 @@ namespace larcv {
   size_t SimpleFiller::compute_label_size(const EventBase* label_data)
   { return 1; }
 
+  size_t SimpleFiller::compute_multiplicity_size(const EventBase* multiplicity_data)
+  { return 1; }
+
   size_t SimpleFiller::compute_image_size(const EventBase* image_data)
   {
     auto const& image_v = ((EventImage2D*)image_data)->Image2DArray();
@@ -200,7 +203,8 @@ namespace larcv {
 
   void SimpleFiller::fill_entry_data( const EventBase* image_data, 
 				      const EventBase* label_data,
-				      const EventBase* weight_data)
+				      const EventBase* weight_data,
+				      const EventBase* multiplicity_data)
   {
     if(weight_data) {
       LARCV_CRITICAL() << "SimpleFiller cannot use weight data!" << std::endl;

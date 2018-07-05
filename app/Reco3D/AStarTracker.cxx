@@ -652,6 +652,9 @@ namespace larcv {
         //ShaveTracks();
         SetTrackInfo(_run, _subrun, _event, _track);
         ConstructVertex();
+        tellMe("Construct vertex done",0);
+        if(_tooShortDeadWire)RecoverFromFail();
+        std::cout << "Recovered if failed" << std::endl;
 
         //gDetector->Write();
         //gWorld->Write();
@@ -670,6 +673,7 @@ namespace larcv {
             std::cout << "add track" << std::endl;
             _3DTrack.push_back(end_pt);
             _vertexEndPoints.push_back(end_pt);
+            FillInTrack();
             _vertexTracks.push_back(_3DTrack);
             ComputeLength();
             //ComputeNewdQdX();
@@ -804,18 +808,20 @@ namespace larcv {
         MaskVertex();
 
         ComputeClosestWall();
-	ComputeClosestWall_SCE();
+        //ComputeClosestWall_SCE();
 	
         if(_jumpingTracks_v.size()      != 0) _jumpingTracks_v.clear();
         if(_possiblyCrossing_v.size()   != 0) _possiblyCrossing_v.clear();
         if(_tooShortDeadWire_v.size()   != 0) _tooShortDeadWire_v.clear();
         if(_tooShortFaintTrack_v.size() != 0) _tooShortFaintTrack_v.clear();
+        if(_goodTrack_v.size()          != 0) _goodTrack_v.clear();
 
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
             _jumpingTracks      = false;
             _tooShortDeadWire   = false;
             _tooShortFaintTrack = false;
             _possiblyCrossing   = false;
+
 
             if(_vertexLength[itrack] > 5) DiagnoseTrack(itrack);
 
@@ -824,6 +830,10 @@ namespace larcv {
             _tooShortDeadWire_v.push_back(  _tooShortDeadWire  );
             _tooShortFaintTrack_v.push_back(_tooShortFaintTrack);
 
+            bool GoodTrack      = false;
+            if(!(_tooShortDeadWire || _tooShortFaintTrack || _branchingTracks || _jumpingTracks))GoodTrack = true;
+            _goodTrack_v.push_back(GoodTrack);
+
         }
 
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
@@ -831,6 +841,7 @@ namespace larcv {
             if(_possiblyCrossing_v[itrack]   == true) _possiblyCrossing   = true;
             if(_tooShortDeadWire_v[itrack]   == true) _tooShortDeadWire   = true;
             if(_tooShortFaintTrack_v[itrack] == true) _tooShortFaintTrack = true;
+
         }
 
         // Find if tracks are back to back at the vertex point
@@ -988,30 +999,65 @@ namespace larcv {
         ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
-        //double rmax = 1+0.75*_vertexTracks.size()+4*exp(-list3D.size()/3.);
-        double rmax = 2+4*exp(-list3D.size()/3.);
+        double rmax = 6;
+
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
         while(foundNewPoint && terminate == false){
-            //if(list3D.size() > 3){_3DTrack = list3D;MaskTrack();}
+            rmax = 2+4*exp(-1.*((lastNode-start_pt).Mag())/5.);//reduces the search range as the track size increases
             foundNewPoint = false;
             iter++;
             int Ndead = 0;
             double MaxsummedADC = 0;
             TVector3 newCandidate;
+            std::vector<TVector3> thisList;
+            thisList.push_back(lastNode);
+
+            //for this iteration, throw points and look for possible candidates
+            // find points on a small sphere around the last found point
             for(size_t i = 0;i<10000;i++){
-                double coord2D[3][3];// for each plane : x,y and ADC value;
                 double r = ran.Uniform(0,rmax);
                 ran.Sphere(x,y,z,r);
                 newCandidate.SetXYZ(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
                 if(!CheckEndPointsInVolume(newCandidate)) continue; // point out of detector volume
+                thisList.push_back(newCandidate);
+            }
 
+            //if we have a nicely defined track, find point in a larger cone after the last found point
+            if(list3D.size() > 2 && (lastNode-start_pt).Mag() > 5){
+                TVector3 AvPt(0,0,0);
+                int NpointAveragedOn = 0;
+                //try and find the track direction on the last few cm
+                for(size_t iNode=0;iNode<list3D.size();iNode++){
+                    if( (list3D[iNode]-lastNode).Mag() < 10 ){
+                        AvPt+=(list3D[iNode]-lastNode);
+                        NpointAveragedOn++;
+                    }
+                }
+                if(NpointAveragedOn!=0){AvPt*=1./NpointAveragedOn;}
+                AvPt+=lastNode;
+
+                for(size_t i = 0;i<10000;i++){
+                    double r = ran.Uniform(0,2*rmax);
+                    ran.Sphere(x,y,z,r);
+                    newCandidate.SetXYZ(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
+                    if(!CheckEndPointsInVolume(newCandidate)) continue; // point out of detector volume
+                    if((lastNode-AvPt).Angle(newCandidate-lastNode) > 30*TMath::Pi()/180.)continue;
+                    thisList.push_back(newCandidate);
+                }
+            }
+
+            // decide which point we keep
+            for(size_t i = 0;i<thisList.size();i++){
+                newCandidate = thisList[i];
+
+                double coord2D[3][3];// for each plane : x,y and ADC value;
                 bool TooClose = false;
 
                 if(list3D.size() >= 1){// point too close to already found point
                     for(size_t i = 0;i<list3D.size()-1;i++){
-                        if((newCandidate-list3D[i]).Mag() < 0.5) TooClose=true;
+                        if((newCandidate-list3D[i]).Mag() < 0.3) TooClose=true;
                     }
                 }
 
@@ -1061,17 +1107,18 @@ namespace larcv {
                         foundNewPoint = true;
                     }
                 }
-
-
             }
+
+            //decide what is the starting point for the next iteration
             double dist = 0;
             if(_3DTrack.size() > 0){
                 for(size_t i = 0;i<list3D.size();i++){
                     if((_3DTrack[0]-list3D[i]).Mag() > dist){lastNode = list3D[i];dist = (_3DTrack[0]-list3D[i]).Mag();}
                 }
             }
-            _3DTrack = list3D;
         }
+
+        _3DTrack = list3D;
     }
     //______________________________________________________
     void AStarTracker::PreSortAndOrderPoints(){
@@ -1631,6 +1678,7 @@ namespace larcv {
         //EnhanceDerivative();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
+        c->SetFillColor(1);
         c->Divide(1,2);
         c->cd(1)->Divide(3,1);
         c->cd(2)->Divide(3,1);
@@ -1673,14 +1721,13 @@ namespace larcv {
             for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                 for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
-                    if(NumberRecoveries>0 && hImage[iPlane]->GetBinContent(icol+1,irow+1) == 0)hImage[iPlane]->SetBinContent(icol+1,irow+1,1);
                 }
             }
         }
         std::vector< std::vector<TVector3> > trackEndPoints_v;
         std::vector<TVector3> thisTrackEndPoint;
         MaskVertex();
-        ShaveTracks();
+        //ShaveTracks();
 
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
             if(thisTrackEndPoint.size()!=0)thisTrackEndPoint.clear();
@@ -1761,9 +1808,25 @@ namespace larcv {
                 }
             }
             c->cd(1)->cd(iPlane+1);
+            c->cd(1)->cd(iPlane+1)->SetFrameFillColor(1);
+            c->cd(1)->cd(iPlane+1)->SetFrameLineColor(0);
+            hImage[iPlane]->GetXaxis()->SetLabelColor(0);
+            hImage[iPlane]->GetXaxis()->SetAxisColor(0);
+            hImage[iPlane]->GetXaxis()->SetTitleColor(0);
+            hImage[iPlane]->GetYaxis()->SetLabelColor(0);
+            hImage[iPlane]->GetYaxis()->SetAxisColor(0);
+            hImage[iPlane]->GetYaxis()->SetTitleColor(0);
             hImage[iPlane]->Draw("colz");
 
             c->cd(2)->cd(iPlane+1);
+            c->cd(2)->cd(iPlane+1)->SetFrameFillColor(1);
+            c->cd(2)->cd(iPlane+1)->SetFrameLineColor(0);
+            hImageMasked[iPlane]->GetXaxis()->SetLabelColor(0);
+            hImageMasked[iPlane]->GetXaxis()->SetAxisColor(0);
+            hImageMasked[iPlane]->GetXaxis()->SetTitleColor(0);
+            hImageMasked[iPlane]->GetYaxis()->SetLabelColor(0);
+            hImageMasked[iPlane]->GetYaxis()->SetAxisColor(0);
+            hImageMasked[iPlane]->GetYaxis()->SetTitleColor(0);
             hImageMasked[iPlane]->Draw("colz");
             if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
 
@@ -1795,8 +1858,14 @@ namespace larcv {
                 }
                 c->cd(2)->cd(iPlane+1);
                 gTrack[iPlane]->SetMarkerStyle(7);
-                gTrack[iPlane]->SetLineColor(i+1);
-                gTrack[iPlane]->SetMarkerColor(i+1);
+                if(i==0){
+                    gTrack[iPlane]->SetLineColor(i);
+                    gTrack[iPlane]->SetMarkerColor(i);
+                }
+                else{
+                    gTrack[iPlane]->SetLineColor(i+1);
+                    gTrack[iPlane]->SetMarkerColor(i+1);
+                }
                 gTrack[iPlane]->Draw("same LP");
                 c->cd(1)->cd(iPlane+1);
                 gTrack[iPlane]->Draw("same LP");
@@ -1806,7 +1875,7 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(2)->cd(iPlane+1);
-            gStartNend[iPlane]->SetMarkerColor(1);
+            gStartNend[iPlane]->SetMarkerColor(0);
             gStartNend[iPlane]->SetMarkerStyle(20);
             gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
@@ -1837,8 +1906,9 @@ namespace larcv {
         if(_tooShortFaintTrack){label_tag+="_TooShortFaintTrack";}
         if(_jumpingTracks){label_tag+="_JumpTrack";}
         if(IsGoodVertex()){label_tag+="_OKtracks";}
-        if(NumberRecoveries!=0){label_tag+="_recovered";}
+        if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}
         c->SaveAs(Form("%s/%s_%s.png",_outdir.c_str(),c->GetName(),label_tag.c_str()));
+        c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
 
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
@@ -3206,87 +3276,132 @@ namespace larcv {
         return recoGoodness_v;
     }
     //-------------------------------------------------------
+    std::vector<bool> AStarTracker::GetVtxQuality(){
+        if(_goodTrack_v.size()!=_vertexTracks.size())DiagnoseVertex();
+        return _goodTrack_v;
+    }
+    //-------------------------------------------------------
     void AStarTracker::RecoverFromFail(){
         tellMe("RecoverFromFail()",0);
         TRandom3 *ran = new TRandom3();
         double x,y,z;
-        double recoveredvalue = _deadWireValue+0.01;
+        double recoveredvalue = _deadWireValue+100;
         bool recoverFromFaint = false;
-        bool recoverFromDead = false;
+        bool recoverFromDead = true;
+        int NpointAveragedOn = 0;
 
         if(( recoverFromFaint && _tooShortFaintTrack) || (recoverFromDead && _tooShortDeadWire)){DrawVertex();}
 
 
 
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
-            // faint tracks
-                if(recoverFromFaint && _tooShortFaintTrack_v[itrack]){
-                    TVector3 oldEndPoint;
-                    std::cout << "plane failed : " << failedPlane << std::endl;
-                    double x_pixel_old,y_pixel_old;
-                    oldEndPoint = _vertexTracks[itrack].back();
+            TVector3 newPoint;
+            int NaveragePts = 0;
+            TVector3 AveragePoint;
+            TVector3 oldEndPoint = _vertexTracks[itrack].back();
 
-                    ProjectTo3D(original_full_image_v[failedPlane].meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,failedPlane,x_pixel_old,y_pixel_old);
-                    //for(size_t irow = 0;irow<original_full_image_v[failedPlane].meta().rows();irow++){
-                    for(auto irow = (y_pixel_old-20);irow < (y_pixel_old+20);irow++){
-                        for(int imargin=0;imargin<5;imargin++){
-                            //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old-imargin) <= recoveredvalue)
-                            original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old-imargin,recoveredvalue);
-                            //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old+imargin) <= recoveredvalue)
-                            original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old+imargin,recoveredvalue);
-                        }
+            // faint tracks
+            if(recoverFromFaint && _tooShortFaintTrack_v[itrack]){
+                TVector3 oldEndPoint;
+                std::cout << "plane failed : " << failedPlane << std::endl;
+                double x_pixel_old,y_pixel_old;
+                oldEndPoint = _vertexTracks[itrack].back();
+
+                ProjectTo3D(original_full_image_v[failedPlane].meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,failedPlane,x_pixel_old,y_pixel_old);
+                //for(size_t irow = 0;irow<original_full_image_v[failedPlane].meta().rows();irow++){
+                for(auto irow = (y_pixel_old-20);irow < (y_pixel_old+20);irow++){
+                    for(int imargin=0;imargin<5;imargin++){
+                        //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old-imargin) <= recoveredvalue)
+                        original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old-imargin,recoveredvalue);
+                        //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old+imargin) <= recoveredvalue)
+                        original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old+imargin,recoveredvalue);
                     }
+                }
             }
+            // end of faint track recovery
 
             // dead wires
-            if(recoverFromDead && _tooShortDeadWire_v[itrack]){
 
-                TVector3 newPoint;
-                int NaveragePts = 0;
-                TVector3 AveragePoint;
-                TVector3 oldEndPoint = _vertexTracks[itrack].back();
-                for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
-                    if((_vertexTracks[itrack][iNode]-oldEndPoint).Mag() < 100){NaveragePts++;AveragePoint+=_vertexTracks[itrack][iNode];}
-                }
-                if(NaveragePts!=0){AveragePoint*=1./NaveragePts;}
-
-                int Niter = 500;
-                double x_pixel,y_pixel;
-                for(size_t i=0;i<Niter;i++){
-                    double r = 4+(20./Niter)*i;
-                    for(size_t j=0;j<Niter;j++){
-                        ran->Sphere(x,y,z,r);
-                        newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
-                        if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
-                        double values[3];
-                        for(size_t iPlane = 0;iPlane<3;iPlane++){
-                            ProjectTo3D(original_full_image_v[iPlane].meta(),newPoint.X(),newPoint.Y(),newPoint.Z(),0,iPlane,x_pixel,y_pixel);
-                            values[iPlane] = original_full_image_v[iPlane].pixel(original_full_image_v[iPlane].meta().rows()-y_pixel,x_pixel);
-
-
-                        }
-                        if(   values[0] > _deadWireValue || values[1] > _deadWireValue || values[2] > _deadWireValue
-                           //|| (values[0] > _deadWireValue && values[2] > _deadWireValue)
-                           //|| (values[1] > _deadWireValue && values[2] > _deadWireValue)
-                           ){
-                            for(size_t iPlane = 0;iPlane<3;iPlane++){
-                                ProjectTo3D(original_full_image_v[iPlane].meta(),newPoint.X(),newPoint.Y(),newPoint.Z(),0,iPlane,x_pixel,y_pixel);
-                                original_full_image_v[iPlane].set_pixel(original_full_image_v[iPlane].meta().rows()-y_pixel,x_pixel,original_full_image_v[iPlane].pixel(original_full_image_v[iPlane].meta().rows()-y_pixel,x_pixel)+recoveredvalue);
-                            }
-                        }
+            if(recoverFromDead && _tooShortDeadWire_v[itrack]){//adding non-zero pixels for dead region failures
+                //start by finding the direction towards the end of the track for each individual plane
+                TVector3 AvPt;
+                NpointAveragedOn = 0;
+                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
+                    if( (_vertexTracks[itrack][iNode]-oldEndPoint).Mag() < 20 ){
+                        AvPt+=(_vertexTracks[itrack][iNode]-oldEndPoint);
+                        NpointAveragedOn++;
                     }
                 }
+                if(NpointAveragedOn!=0){AvPt*=1./NpointAveragedOn;}
+                AvPt+=oldEndPoint;
+
+                //add 1 to dead wire pixels that are along the line
+                for(int iPlane=0;iPlane<3;iPlane++){
+                    std::cout << "plane " << iPlane << std::endl;
+                    double x_px_avg(0),y_px_avg(0);
+                    double x_px_end(0),y_px_end(0);
+                    ProjectTo3D(original_full_image_v[iPlane].meta(),AvPt.X()       ,AvPt.Y()       ,AvPt.Z()       ,0,iPlane,x_px_avg,y_px_avg);
+                    ProjectTo3D(original_full_image_v[iPlane].meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,iPlane,x_px_end,y_px_end);
+
+                    TVector3 A(x_px_avg,y_px_avg,0);
+                    TVector3 B(x_px_end,y_px_end,0);
+
+                    for(size_t icol=0;icol<original_full_image_v[iPlane].meta().cols()-1;icol++){//==x_pixel
+                        for(size_t irow=0;irow<original_full_image_v[iPlane].meta().rows()-1;irow++){//==y_pixel
+
+                            if(original_full_image_v[iPlane].pixel(irow,icol) != _deadWireValue)continue;
+                            TVector3 C(icol,irow,0);
+
+                            if((C-B).Mag()>10000)continue;
+                            double cosangle = cos((B-A).Angle(C-B));
+                            if( cosangle < 1-exp(-((C-B).Mag())/5.))continue;
+                            bool notContiguous = false;
+                            for(int j=0;j<std::abs(icol-x_px_end)-1;j++){
+                                if(original_full_image_v[iPlane].pixel(irow,icol-((icol-x_px_end)/(std::abs(icol-x_px_end)))*j) !=_deadWireValue
+                                   && original_full_image_v[iPlane].pixel(irow,icol-((icol-x_px_end)/(std::abs(icol-x_px_end)))*j) !=recoveredvalue){
+                                    notContiguous = true;
+                                    continue;
+                                }
+                            }
+                            if(notContiguous)continue;
+                            //hImage[iPlane]->SetBinContent(icol+1,irow+1,_deadWireValue+100);
+                            original_full_image_v[iPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,icol,recoveredvalue);
+                        }
+                    }
+                }//end of the loop adding non-zero pixels for dead region failures
             }
-
-
+            // end of dead wire recovery
         }
 
 
 
         if(((_tooShortFaintTrack && recoverFromFaint) || (recoverFromDead && _tooShortDeadWire)) && NumberRecoveries < 10){
             NumberRecoveries++;
+            std::cout << "Recovered " << NumberRecoveries << " times" << std::endl;
             ReconstructVertex();
         }
+    }
+    //-------------------------------------------------------
+    void AStarTracker::FillInTrack(){
+        std::vector<TVector3> newTrack;
+        if(newTrack.size() != 0)newTrack.clear();
+        //if(_3DTrack.back()!= end_pt)_3DTrack.push_back(end_pt);
+        for(size_t ipoint=0;ipoint<_3DTrack.size()-1;ipoint++){
+            newTrack.push_back(_3DTrack[ipoint]);
+            TVector3 vertexNeighbour = _3DTrack[ipoint];
+            int iterNeighbour = 1;
+            while((vertexNeighbour-_3DTrack[ipoint]).Mag() < (_3DTrack[ipoint+1]-_3DTrack[ipoint]).Mag() && iterNeighbour<1e6){
+                vertexNeighbour = _3DTrack[ipoint]+0.3*(_3DTrack[ipoint+1]-_3DTrack[ipoint])*(iterNeighbour/(_3DTrack[ipoint+1]-_3DTrack[ipoint]).Mag());
+                if((vertexNeighbour-_3DTrack[ipoint]).Mag() < (_3DTrack[ipoint+1]-_3DTrack[ipoint]).Mag()){
+                    iterNeighbour++;
+                    newTrack.push_back(vertexNeighbour);
+                }
+                else iterNeighbour = 1e7;
+            }
+        }
+        newTrack.push_back(_3DTrack.back());
+
+        _3DTrack = newTrack;
     }
     //-------------------------------------------------------
 

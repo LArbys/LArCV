@@ -144,6 +144,7 @@ namespace larcv {
         void RecoverFromFail();
         void EnhanceDerivative();
         void DumpTrack();
+        void FillInTrack();
 
         bool initialize();
         bool finalize();
@@ -167,6 +168,7 @@ namespace larcv {
         std::vector< std::vector<double> > GetVertexAngle(double dAverage);
         std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
+        std::vector<bool> GetVtxQuality();
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
@@ -273,6 +275,7 @@ namespace larcv {
         std::vector<bool> _possiblyCrossing_v;
         std::vector<bool> _branchingTracks_v;
         std::vector<bool> _jumpingTracks_v;
+        std::vector<bool> _goodTrack_v;
 
         TH1D *hdQdx;
         TH1D *hLength;
