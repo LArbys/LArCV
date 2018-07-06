@@ -3292,29 +3292,27 @@ namespace larcv {
 
         if(( recoverFromFaint && _tooShortFaintTrack) || (recoverFromDead && _tooShortDeadWire)){DrawVertex();}
 
-
-
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
             TVector3 newPoint;
             int NaveragePts = 0;
             TVector3 AveragePoint;
-            TVector3 oldEndPoint = _vertexTracks[itrack].back();
+            TVector3 oldEndPoint = _vertexTracks.at(itrack).back();
 
             // faint tracks
-            if(recoverFromFaint && _tooShortFaintTrack_v[itrack]){
+            if(recoverFromFaint && _tooShortFaintTrack_v.at(itrack)){
                 TVector3 oldEndPoint;
                 std::cout << "plane failed : " << failedPlane << std::endl;
                 double x_pixel_old,y_pixel_old;
-                oldEndPoint = _vertexTracks[itrack].back();
+                oldEndPoint = _vertexTracks.at(itrack).back();
 
-                ProjectTo3D(original_full_image_v[failedPlane].meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,failedPlane,x_pixel_old,y_pixel_old);
-                //for(size_t irow = 0;irow<original_full_image_v[failedPlane].meta().rows();irow++){
+                ProjectTo3D(original_full_image_v.at(failedPlane).meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,failedPlane,x_pixel_old,y_pixel_old);
+                //for(size_t irow = 0;irow<original_full_image_v.at(failedPlane).meta().rows();irow++){
                 for(auto irow = (y_pixel_old-20);irow < (y_pixel_old+20);irow++){
                     for(int imargin=0;imargin<5;imargin++){
-                        //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old-imargin) <= recoveredvalue)
+                        //if( original_full_image_v.at(failedPlane).pixel(    irow,x_pixel_old-imargin) <= recoveredvalue)
 		      try {
-                        original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old-imargin,recoveredvalue);
-		      } catch (const larcv::larbys& what) {
+                        original_full_image_v.at(failedPlane).set_pixel(original_full_image_v.at(failedPlane).meta().rows()-irow,x_pixel_old-imargin,recoveredvalue);
+		      } catch (...) {
 			std::cout << "WARNING" << std::endl;
 			std::cout << std::endl;
 			std::cout << "BUG IDENTIFIED" << std::endl;
@@ -3324,10 +3322,10 @@ namespace larcv {
 		      }
 
 			    
-		      //if( original_full_image_v[failedPlane].pixel(    irow,x_pixel_old+imargin) <= recoveredvalue)
+		      //if( original_full_image_v.at(failedPlane).pixel(    irow,x_pixel_old+imargin) <= recoveredvalue)
 		      try {
-                        original_full_image_v[failedPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,x_pixel_old+imargin,recoveredvalue);
-		      } catch (const larcv::larbys& what) {
+                        original_full_image_v.at(failedPlane).set_pixel(original_full_image_v.at(failedPlane).meta().rows()-irow,x_pixel_old+imargin,recoveredvalue);
+		      } catch (...) {
 			std::cout << "WARNING" << std::endl;
 			std::cout << std::endl;
 			std::cout << "BUG IDENTIFIED" << std::endl;
@@ -3342,13 +3340,13 @@ namespace larcv {
 
             // dead wires
 
-            if(recoverFromDead && _tooShortDeadWire_v[itrack]){//adding non-zero pixels for dead region failures
+            if(recoverFromDead && _tooShortDeadWire_v.at(itrack)){//adding non-zero pixels for dead region failures
                 //start by finding the direction towards the end of the track for each individual plane
                 TVector3 AvPt;
                 NpointAveragedOn = 0;
-                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
-                    if( (_vertexTracks[itrack][iNode]-oldEndPoint).Mag() < 20 ){
-                        AvPt+=(_vertexTracks[itrack][iNode]-oldEndPoint);
+                for(size_t iNode=1;iNode<_vertexTracks.at(itrack).size();iNode++){
+                    if( (_vertexTracks.at(itrack).at(iNode)-oldEndPoint).Mag() < 20 ){
+                        AvPt+=(_vertexTracks.at(itrack).at(iNode)-oldEndPoint);
                         NpointAveragedOn++;
                     }
                 }
@@ -3387,8 +3385,8 @@ namespace larcv {
                             //hImage[iPlane]->SetBinContent(icol+1,irow+1,_deadWireValue+100);
 			    
 			    try {
-			      original_full_image_v[iPlane].set_pixel(original_full_image_v[failedPlane].meta().rows()-irow,icol,recoveredvalue);
-			    } catch (const larcv::larbys& what) {
+			      original_full_image_v[iPlane].set_pixel(original_full_image_v.at(failedPlane).meta().rows()-irow,icol,recoveredvalue);
+			    } catch (...) {
 			      std::cout << "WARNING" << std::endl;
 			      std::cout << std::endl;
 			      std::cout << "BUG IDENTIFIED" << std::endl;
