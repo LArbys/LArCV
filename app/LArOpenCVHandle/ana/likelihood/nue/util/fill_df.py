@@ -1,3 +1,5 @@
+from larlitecv import larlitecv
+
 import numpy as np
 import pandas as pd
 import ROOT
@@ -372,7 +374,7 @@ def initialize_stpn(SHR_ANA1,
                     TRK_ANA2,
                     TRK_TRUTH,
                     TRK_PGRPH,
-                    PID_ANA,
+                    PID_ANA1,
                     PID_ANA2,
                     NUEID_ANA,
                     FLASH_ANA,
@@ -411,15 +413,35 @@ def initialize_stpn(SHR_ANA1,
     #
 
     try:
+        print "LOADING TTREES"
+	print "@TRK_PGRPH=",TRK_PGRPH
         pgraph_trk_df = pd.DataFrame(rn.root2array(TRK_PGRPH,treename="TrackPGraphMatch"))
+        
+        print "@SHR_ANA1",SHR_ANA1
         ana_shr1_df   = pd.DataFrame(rn.root2array(SHR_ANA1,treename="ShowerQuality_DL"))
+
+        print "@SHR_ANA1",SHR_ANA1
         ana_shr2_df   = pd.DataFrame(rn.root2array(SHR_ANA1,treename="EventMCINFO_DL"))
+
+        print "@TRK_ANA1",TRK_ANA1
         ana_trk1_df   = pd.DataFrame(rn.root2array(TRK_ANA1,treename="TrackRecoAna"))
+
+        print "@TRK_ANA2",TRK_ANA2
         ana_trk2_df   = pd.DataFrame(rn.root2array(TRK_ANA2,treename="_recoTree"))
+
+        print "@PID_ANA1",PID_ANA1
         ana_pid1_df   = pd.DataFrame(rn.root2array(PID_ANA1,treename="multipid_tree"))
+
+	print "@PID_ANA2",PID_ANA2
         ana_pid2_df   = pd.DataFrame(rn.root2array(PID_ANA2,treename="multiplicity_tree"))
+    
+        print "@NUEID_ANA",NUEID_ANA
         ana_nueid_df  = pd.DataFrame(rn.root2array(NUEID_ANA,treename="SelNueID"))
+
+        print "@FLASH_ANA",FLASH_ANA
         ana_flash_df  = pd.DataFrame(rn.root2array(FLASH_ANA,treename="ffmatch"))
+
+        print "@DEDX_ANA",DEDX_ANA
         ana_dedx_df   = pd.DataFrame(rn.root2array(DEDX_ANA,treename="trackdir"))
         
         ana_shr1_df.rename(columns={'vtx_id': 'vtxid'}, inplace=True)
