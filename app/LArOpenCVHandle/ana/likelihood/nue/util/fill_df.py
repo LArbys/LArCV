@@ -511,17 +511,16 @@ def initialize_stpn(SHR_ANA1,
 
     raise Exception
 
-def initialize_stpn(SHR_ANA1,
-                    SHR_TRUTH,
-                    TRK_ANA1,
-                    TRK_ANA2,
-                    TRK_TRUTH,
-                    TRK_PGRPH,
-                    PID_ANA,
-                    PID_ANA2,
-                    NUEID_ANA,
-                    DEDX_ANA):
-
+def initialize_stpn_no_flash(SHR_ANA1,
+                             SHR_TRUTH,
+                             TRK_ANA1,
+                             TRK_ANA2,
+                             TRK_TRUTH,
+                             TRK_PGRPH,
+                             PID_ANA,
+                             PID_ANA2,
+                             NUEID_ANA,
+                             DEDX_ANA):
 
     comb_df = pd.DataFrame()
     
