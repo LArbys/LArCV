@@ -2823,6 +2823,7 @@ namespace larcv {
 
         double minApproach = 1e9;
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            minApproach = 1e9;
             for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
                 if( std::abs(_vertexTracks[itrack][iNode].X()-Xmindet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].X()-Xmindet);
                 if( std::abs(_vertexTracks[itrack][iNode].X()-Xmaxdet) < minApproach) minApproach = std::abs(_vertexTracks[itrack][iNode].X()-Xmaxdet);
