@@ -124,7 +124,7 @@ namespace larcv {
         void MakeTrack();
         void ComputeLength();
         void ComputeClosestWall();
-       void ComputeClosestWall_SCE();
+        void ComputeClosestWall_SCE();
         void ComputedQdX();
         void ComputeNewdQdX();
         void Reconstruct();
@@ -164,7 +164,7 @@ namespace larcv {
         double GetLength(){return _Length3D;}
         std::vector<double> GetVertexLength();
         std::vector<double> GetClosestWall();
-       std::vector<double> GetClosestWall_SCE();
+        std::vector<double> GetClosestWall_SCE();
         std::vector< std::vector<double> > GetVertexAngle(double dAverage);
         std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
@@ -172,7 +172,6 @@ namespace larcv {
         double GetEnergy(std::string partType, double Length);
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
-        double CorrectIonization(double ion);
         double X2Tick(double x, size_t plane) const;   // X[cm] to TPC tick (waveform index) conversion
         double Tick2X(double tick, size_t plane)const; // TPC tick (waveform index) to X[cm] conversion
         double GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack);
@@ -196,8 +195,10 @@ namespace larcv {
         }
         std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
-        std::vector<double>  GetAverageIonization(double distAvg = -1);
-        std::vector<double>  GetTotalIonization(double distAvg = -1);
+        std::vector<double>  GetAverageIonization(double distAvg = -1);// average pixel intensity over reconstructed points
+        std::vector<double>  GetAverageIonization_Yplane(double distAvg = -1);// average Y plane pixel intensity over reconstructed points
+        std::vector<double>  GetTotalIonization_Yplane(double distAvg);// total Y plane plane pixel intensity over reconstructed points
+        std::vector<double>  GetTotalIonization(double distAvg = -1);// total pixel intensity over reconstructed points
         std::vector<double>  ComputeTruncateddQdX(double);
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
@@ -206,7 +207,7 @@ namespace larcv {
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
         std::vector< std::vector<double> >  GetTotalPixADC();
-	std::vector< std::vector<double> >  GetTotalPixADC(float tkLen);
+        std::vector< std::vector<double> >  GetTotalPixADC(float tkLen);
 
         larlite::event_track GetReconstructedVertexTracks(){return _vertexLarliteTracks;}
 
@@ -224,9 +225,9 @@ namespace larcv {
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
         TSpline3* GetProtonT2dEdx(){return sProtonT2dEdx;}
         TSpline3* GetMuonT2dEdx(){return sMuonT2dEdx;}
-	
+
     protected:
-        
+
         std::string _track_producer;
         std::string _chstatus_producer;
         std::string _mctrack_producer;
@@ -331,7 +332,7 @@ namespace larcv {
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
-	std::vector<double> _closestWall_SCE;
+        std::vector<double> _closestWall_SCE;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         std::vector<std::vector<double> > _vertex_dQdX_v;
@@ -348,7 +349,7 @@ namespace larcv {
         TCanvas *c2;
 
     private:
-	//	larutil::SpaceChargeMicroBooNE _sce;
+        //	larutil::SpaceChargeMicroBooNE _sce;
     };
 }
 #endif
