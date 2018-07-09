@@ -2737,8 +2737,6 @@ namespace larcv {
         return totalADC;
     }
     //______________________________________________________
-
-    //______________________________________________________
     std::vector< std::vector<double> >  AStarTracker::GetTotalPixADC(float tkLen){
         tellMe("GetTotalPixADC()",0);
 

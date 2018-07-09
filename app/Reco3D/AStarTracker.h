@@ -197,7 +197,7 @@ namespace larcv {
 
         std::vector<double>  GetAverageIonization(double distAvg = -1);// average pixel intensity over reconstructed points
         std::vector<double>  GetAverageIonization_Yplane(double distAvg = -1);// average Y plane pixel intensity over reconstructed points
-        std::vector<double>  GetTotalIonization_Yplane(double distAvg);// total Y plane plane pixel intensity over reconstructed points
+        std::vector<double>  GetTotalIonization_Yplane(double distAvg = -1);// total Y plane plane pixel intensity over reconstructed points
         std::vector<double>  GetTotalIonization(double distAvg = -1);// total pixel intensity over reconstructed points
         std::vector<double>  ComputeTruncateddQdX(double);
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}

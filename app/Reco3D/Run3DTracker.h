@@ -94,12 +94,18 @@ namespace larcv {
         std::vector<double> _E_proton_v;
         std::vector<double> _Length_v;
         std::vector<double> _Avg_Ion_v;
+        std::vector<double> _Avg_IonY_v;
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
         std::vector<double> _Ion_tot_v;
+
+        std::vector<double> _IonY_5cm_v;
+        std::vector<double> _IonY_10cm_v;
+        std::vector<double> _IonY_tot_v;
+
         std::vector<double> _Trunc_dQdX1_v;
         std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
