@@ -2108,7 +2108,7 @@ namespace larcv {
         // add points every cm between start_pt and _3DTrack[1];
 
         //DumpTrack();
-        TVector3 vertexNeighbour = start_pt;
+        /*TVector3 vertexNeighbour = start_pt;
         int iterNeighbour = 0;
         std::vector<TVector3> vertexNeighbour_v;
         while((vertexNeighbour-start_pt).Mag() < (_3DTrack[1]-start_pt).Mag() && iterNeighbour<10){
@@ -2120,7 +2120,7 @@ namespace larcv {
             std::vector<TVector3>::iterator it;
             it = _3DTrack.begin();
             _3DTrack.insert(it+1,vertexNeighbour_v.begin(),vertexNeighbour_v.end());
-        }
+        }*/
         //DumpTrack();
 
         tellMe(Form("old number of points : %d and new one : %zu" , oldNumPoints,_3DTrack.size()),1);
