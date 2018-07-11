@@ -2927,6 +2927,10 @@ namespace larcv {
             }
         }
 
+        if(vertexAngles_v.size()!=0){vertexAngles_v.clear();}
+        if(_vertexPhi.size()!=0){_vertexPhi.clear();}
+        if(_vertexTheta.size()!=0){_vertexTheta.clear();}
+
         if(AvPt_v.size() < 2){
             if(thisTrackAngles.size()!=0)thisTrackAngles.clear();
             if(vertexAngles_v.size() !=0)vertexAngles_v.clear();
@@ -2934,10 +2938,6 @@ namespace larcv {
             vertexAngles_v.push_back(thisTrackAngles);
             return vertexAngles_v;
         }
-
-        if(vertexAngles_v.size()!=0){vertexAngles_v.clear();}
-        if(_vertexPhi.size()!=0){_vertexPhi.clear();}
-        if(_vertexTheta.size()!=0){_vertexTheta.clear();}
 
         for(size_t iPt = 0;iPt<AvPt_v.size();iPt++){
             if(thisTrackAngles.size()!=0)thisTrackAngles.clear();
