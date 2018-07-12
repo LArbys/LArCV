@@ -1908,7 +1908,7 @@ namespace larcv {
         if(IsGoodVertex()){label_tag+="_OKtracks";}
         if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}
         c->SaveAs(Form("%s/%s_%s.png",_outdir.c_str(),c->GetName(),label_tag.c_str()));
-        c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
+        //c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
 
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
