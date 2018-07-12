@@ -34,7 +34,7 @@ proc.override_input_file(flist)
 
 proc.override_ana_file(ROOT.std.string(os.path.join(OUTPUT_DIR,"tracker_anaout_%d.root" % num)))
 
-alg_id = proc.process_id("ReadNueFile")
+alg_id = proc.process_id("Run3DTracker")
 alg    = proc.process_ptr(alg_id)
 print "GOT: ",alg,"@ id=",alg_id
 
