@@ -1132,7 +1132,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::SortAndOrderPoints(){
-        // try and get a "track"
+        //try and get a "track"
         //(1) find point further away from the vertex
         //(2) for each point, look for closest point, which stays the closest to the "current point -> end point line"
         //(3) add this point to the track
