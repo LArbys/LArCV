@@ -673,7 +673,7 @@ namespace larcv {
             std::cout << "add track" << std::endl;
             _3DTrack.push_back(end_pt);
             _vertexEndPoints.push_back(end_pt);
-            FillInTrack();
+            //FillInTrack();
             _vertexTracks.push_back(_3DTrack);
             ComputeLength();
             //ComputeNewdQdX();
