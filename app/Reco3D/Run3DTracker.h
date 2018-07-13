@@ -53,6 +53,7 @@ namespace larcv {
         void FillMC(const std::vector<ROI>& mc_roi_v);
         void ClearEvent();
         void ClearVertex();
+        void SetOutDir(std::string s){out_dir = s;}
 
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
@@ -181,6 +182,7 @@ namespace larcv {
         std::string _true_roi_producer;
         std::string _spline_file;
         std::string _foutll;
+        std::string out_dir;
         bool _mask_shower;
     };
 

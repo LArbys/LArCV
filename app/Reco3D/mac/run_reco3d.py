@@ -13,6 +13,8 @@ import ROOT, sys
 from ROOT import std
 from larcv import larcv
 
+ROOT.gROOT.SetBatch(True)
+
 CONFIG_FILE = str(sys.argv[1])
 IMG_FILE    = str(sys.argv[2])
 PGRAPH_FILE = str(sys.argv[3])
@@ -40,6 +42,7 @@ print "GOT: ",alg,"@ id=",alg_id
 
 SPLINE_PATH = os.path.join(BASE_PATH,"..","Proton_Muon_Range_dEdx_LAr_TSplines.root")
 alg.SetSplineLocation(SPLINE_PATH)
+alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLOutName(ROOT.std.string(os.path.join(OUTPUT_DIR,"tracker_reco_%d.root" % num)))
 
 proc.initialize()

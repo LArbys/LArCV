@@ -71,7 +71,7 @@ namespace larcv {
         LARCV_INFO() << "[Run3DTracker]" << std::endl;
         assert(!_spline_file.empty());
         tracker.SetDrawOutputs(false);
-        tracker.SetOutputDir("png");
+        tracker.SetOutputDir(out_dir);
         tracker.SetSplineFile(_spline_file);
         tracker.initialize();
         tracker.SetVerbose(0);
@@ -418,7 +418,7 @@ namespace larcv {
 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                //if(!_nothingReconstructed)tracker.DrawVertex();
+                if(!_nothingReconstructed)tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
