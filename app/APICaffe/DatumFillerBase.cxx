@@ -2,7 +2,9 @@
 #define __DATUMFILLERBASE_CXX__
 
 #include "DatumFillerBase.h"
+#include "DataFormat/EventImage2D.h"
 #include <sstream>
+
 namespace larcv {
 
   DatumFillerBase::DatumFillerBase(const std::string name)
@@ -86,6 +88,7 @@ namespace larcv {
     _current_entry = kINVALID_SIZE;
     _entry_image_size   = _entry_label_size = kINVALID_SIZE;
     _entry_weight_size  = 0;
+    _entry_multiplicity_size  = 0;
     _image_producer_id        = kINVALID_PRODUCER;
     _label_producer_id        = kINVALID_PRODUCER;
     _weight_producer_id       = kINVALID_PRODUCER;
@@ -97,9 +100,10 @@ namespace larcv {
     if(_entry_image_size != kINVALID_SIZE) {
       _image_data.resize(_nentries * _entry_image_size);
       _label_data.resize(_nentries * _entry_label_size);
-      _multiplicity_data.resize(_nentries * _entry_multiplicity_size);
       if(!_weight_producer.empty()) 
 	_weight_data.resize(_nentries * _entry_weight_size);
+      if(!_multiplicity_producer.empty())
+	_multiplicity_data.resize(_nentries * _entry_multiplicity_size);
     }
     for( auto& v : _image_data         ) v=0.;
     for( auto& v : _label_data         ) v=0.;
@@ -134,45 +138,56 @@ namespace larcv {
       }
       LARCV_INFO() << std::endl;
       
-      _multiplicity_producer_id = mgr.producer_id(_multiplicity_product_type,_multiplicity_producer);
-      if(_multiplicity_producer_id == kINVALID_PRODUCER) {
-        LARCV_CRITICAL() << "Multiplicity producer " << _multiplicity_producer << " not valid!" << std::endl;
-        throw larbys();
+      if(!_multiplicity_producer.empty()) {
+	_multiplicity_producer_id = mgr.producer_id(_multiplicity_product_type,_multiplicity_producer);
+	if(_multiplicity_producer_id == kINVALID_PRODUCER) {
+	  LARCV_CRITICAL() << "Multiplicity producer " << _multiplicity_producer << " not valid!" << std::endl;
+	  throw larbys();
+	}
+	LARCV_INFO() << std::endl;
       }
-      LARCV_INFO() << std::endl;
 
-
-      if(!_weight_producer.empty())
+      if(!_weight_producer.empty()) {
 	_weight_producer_id = mgr.producer_id(_weight_product_type,_weight_producer);
+	if(_weight_producer_id == kINVALID_PRODUCER) {
+	  LARCV_CRITICAL() << "Weight producer " << _weight_producer << " not valid!" << std::endl;
+	  throw larbys();
+	}
+	LARCV_INFO() << std::endl;
+      }
     }
     LARCV_INFO() << std::endl;
     auto const image_data        = mgr.get_data(_image_producer_id);
     auto const label_data        = mgr.get_data(_label_producer_id);
-    auto const multiplicity_data = mgr.get_data(_multiplicity_producer_id);
+    const larcv::EventImage2D* multiplicity_data = NULL;
     LARCV_INFO() << std::endl;
     if(_entry_image_size==kINVALID_SIZE || _nentries == 1) {
 
       _entry_image_size        = compute_image_size(image_data);
       _entry_label_size        = compute_label_size(label_data);
-      _entry_multiplicity_size = compute_multiplicity_size(multiplicity_data);
 
       LARCV_INFO() << "Recomputed image size: "        << _entry_image_size << std::endl;
       LARCV_INFO() << "Recomputed label size: "        << _entry_label_size << std::endl;
       LARCV_INFO() << "Recomputed multiplicity size: " << _entry_multiplicity_size << std::endl;
 
-      if( _entry_image_size == kINVALID_SIZE || _entry_label_size == kINVALID_SIZE ||_entry_multiplicity_size == kINVALID_SIZE) {
+      if( _entry_image_size == kINVALID_SIZE || _entry_label_size == kINVALID_SIZE) {
         LARCV_CRITICAL() << "Rows/Cols/NumChannels not set!" << std::endl;
         throw larbys();
       }
+
+      _image_data.resize         (_entry_image_size         * _nentries, 0.);
+      _label_data.resize         (_entry_label_size         * _nentries, 0.);
 
       if(_weight_producer_id != kINVALID_PRODUCER) {
 	_entry_weight_size = _entry_image_size;
 	_weight_data.resize (_entry_weight_size * _nentries, 0.);
       }
+      if(_multiplicity_producer_id!=kINVALID_PRODUCER) {
+	multiplicity_data = (larcv::EventImage2D*)mgr.get_data(_multiplicity_producer_id);
+	_entry_multiplicity_size = compute_multiplicity_size(multiplicity_data);
+	_multiplicity_data.resize  (_entry_multiplicity_size  * _nentries, 0.);
+      }
 
-      _image_data.resize         (_entry_image_size         * _nentries, 0.);
-      _label_data.resize         (_entry_label_size         * _nentries, 0.);
-      _multiplicity_data.resize  (_entry_multiplicity_size  * _nentries, 0.);
     }
 
     EventBase* weight_data=nullptr;
