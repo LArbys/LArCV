@@ -30,6 +30,8 @@ namespace larcv {
     ypixel = (((parent_x/larpro->DriftVelocity() + parent_t/1000.)*2+3200)-meta.br().y)/y_compression;
   }  
   
+#ifdef LARCV_OPENCV
+
   std::vector<std::vector<cv::Point_<int> > > TrackToPixels(const std::vector<TVector3>& xyz_v,
 							      const std::vector<ImageMeta>& meta_v) {
 
@@ -64,6 +66,7 @@ namespace larcv {
     return res_vv;
   }
 
+#endif // if LARCV_OPENCV
 
 }
 
