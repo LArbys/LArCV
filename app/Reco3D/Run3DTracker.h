@@ -53,6 +53,7 @@ namespace larcv {
         void FillMC(const std::vector<ROI>& mc_roi_v);
         void ClearEvent();
         void ClearVertex();
+        void SetOutDir(std::string s){out_dir = s;}
 
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
@@ -94,12 +95,18 @@ namespace larcv {
         std::vector<double> _E_proton_v;
         std::vector<double> _Length_v;
         std::vector<double> _Avg_Ion_v;
+        std::vector<double> _Avg_IonY_v;
         std::vector<double> _vertexPhi;
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
         std::vector<double> _Ion_tot_v;
+
+        std::vector<double> _IonY_5cm_v;
+        std::vector<double> _IonY_10cm_v;
+        std::vector<double> _IonY_tot_v;
+
         std::vector<double> _Trunc_dQdX1_v;
         std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
@@ -175,6 +182,7 @@ namespace larcv {
         std::string _true_roi_producer;
         std::string _spline_file;
         std::string _foutll;
+        std::string out_dir;
         bool _mask_shower;
     };
 

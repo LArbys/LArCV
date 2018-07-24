@@ -71,7 +71,7 @@ namespace larcv {
         LARCV_INFO() << "[Run3DTracker]" << std::endl;
         assert(!_spline_file.empty());
         tracker.SetDrawOutputs(false);
-        tracker.SetOutputDir("png");
+        tracker.SetOutputDir(out_dir);
         tracker.SetSplineFile(_spline_file);
         tracker.initialize();
         tracker.SetVerbose(0);
@@ -106,9 +106,13 @@ namespace larcv {
         _recoTree->Branch("E_proton_v",&_E_proton_v);
         _recoTree->Branch("Length_v",&_Length_v);
         _recoTree->Branch("Avg_Ion_v",&_Avg_Ion_v);
+        _recoTree->Branch("Avg_IonY_v",&_Avg_IonY_v);
         _recoTree->Branch("Ion_5cm_v",&_Ion_5cm_v);
         _recoTree->Branch("Ion_10cm_v",&_Ion_10cm_v);
         _recoTree->Branch("Ion_tot_v",&_Ion_tot_v);
+        _recoTree->Branch("IonY_5cm_v",&_IonY_5cm_v);
+        _recoTree->Branch("IonY_10cm_v",&_IonY_10cm_v);
+        _recoTree->Branch("IonY_tot_v",&_IonY_tot_v);
         _recoTree->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v);
         _recoTree->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v);
         _recoTree->Branch("IondivLength_v",&_IondivLength_v);
@@ -379,6 +383,12 @@ namespace larcv {
                 _Ion_5cm_v     = tracker.GetTotalIonization(5);
                 _Ion_10cm_v    = tracker.GetTotalIonization(10);
                 _Ion_tot_v     = tracker.GetTotalIonization();
+
+                _Avg_IonY_v     = tracker.GetAverageIonization_Yplane();
+                _IonY_5cm_v     = tracker.GetTotalIonization_Yplane(5);
+                _IonY_10cm_v    = tracker.GetTotalIonization_Yplane(10);
+                _IonY_tot_v     = tracker.GetTotalIonization_Yplane();
+
                 _Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
                 _Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
                 for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
@@ -408,7 +418,7 @@ namespace larcv {
 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                //if(!_nothingReconstructed)tracker.DrawVertex();
+                if(!_nothingReconstructed)tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
