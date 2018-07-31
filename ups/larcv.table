@@ -46,6 +46,48 @@ Qualifiers = "c2:opt"
     setupRequired( root v6_12_06a -q +c2:+opt )
 
 Flavor     = ANY
+Qualifiers = "e17:prof"
+
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e17.prof )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e17.prof )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
+
+  Action = GetProducts
+    setupRequired( root v6_12_06a -q +e17:+prof )
+
+Flavor     = ANY
+Qualifiers = "e17:debug"
+
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e17.debug )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e17.debug )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
+
+  Action = GetProducts
+    setupRequired( root v6_12_06a -q +e17:+debug )
+
+Flavor     = ANY
+Qualifiers = "e17:opt"
+
+  Action = GetFQDir
+    if ( printenv CET_SUBDIR > /dev/null )
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/${CET_SUBDIR}.e17.opt )
+    else()
+      envSet( ${UPS_PROD_NAME_UC}_FQ_DIR, ${${UPS_PROD_NAME_UC}_DIR}/`get-directory-name subdir`.e17.opt )
+    endif ( printenv CET_SUBDIR > /dev/null )
+    fileTest( ${${UPS_PROD_NAME_UC}_FQ_DIR}, -d, "${${UPS_PROD_NAME_UC}_FQ_DIR} directory not found: SETUP ABORTED")
+
+  Action = GetProducts
+    setupRequired( root v6_12_06a -q +e17:+opt )
+
+Flavor     = ANY
 Qualifiers = "e15:prof"
 
   Action = GetFQDir
