@@ -341,6 +341,7 @@ namespace larcv {
                 auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
+                tracker.SetVertexID((int)(ivertex));
                 tracker.ReconstructVertex();
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
