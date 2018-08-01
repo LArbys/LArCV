@@ -1915,6 +1915,8 @@ namespace larcv {
             hTagImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
             gAverage[iPlane]->Delete();
+            hImageMasked[iPlane]->Delete();
+            gStartNend[iPlane]->Delete();
         }
         std::vector<double> ionPerTrack = GetAverageIonization();
         double ionMax = 0;
