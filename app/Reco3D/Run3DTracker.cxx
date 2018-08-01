@@ -418,7 +418,7 @@ namespace larcv {
 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                if(!_nothingReconstructed)tracker.DrawVertex();
+                //if(!_nothingReconstructed)tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
@@ -676,6 +676,6 @@ namespace larcv {
         _trackQ3_v.clear();
         
     }
-    
+
 }
 #endif
