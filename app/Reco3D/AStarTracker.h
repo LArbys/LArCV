@@ -114,6 +114,7 @@ namespace larcv {
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
         void FeedTrack(std::vector<TVector3> newTrack);
         void FeedLarliteVertexTracks(larlite::event_track recoedVertexTracks){_vertexLarliteTracks = recoedVertexTracks;Get3DtracksFromLarlite();}
+        void FeedVtxGoodness(std::vector<bool> goodTracks_v);
         void WorldInitialization();
         void Get3DtracksFromLarlite();
 

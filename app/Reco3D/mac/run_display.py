@@ -1,14 +1,23 @@
 import os,sys
 
-if len(sys.argv) != 6:
-    print 
-    print "CONFIG_FILE     = str(sys.argv[1])"
-    print "IMG_FILE        = str(sys.argv[2])"
-    print "PGRAPH_FILE     = str(sys.argv[3])"
-    print "LARLITE_IN_FILE = str(sys.argv[4])"
-    print "OUTPUT_DIR      = str(sys.argv[5])"
+if len(sys.argv) < 5:
+    print
+    print "IMG_FILE        = str(sys.argv[1])"
+    print "LARLITE_IN_FILE = str(sys.argv[2])"
+    print "ROOT_ANAFILE    = str(sys.argv[3])"
+    print "OUTPUT_DIR      = str(sys.argv[4])"
     print
     sys.exit(1)
+
+if len(sys.argv) < 6:
+    print
+    print "IMG_FILE        = str(sys.argv[1])"
+    print "LARLITE_IN_FILE = str(sys.argv[2])"
+    print "ROOT_ANAFILE    = str(sys.argv[3])"
+    print "OUTPUT_DIR      = str(sys.argv[4])"
+    print "EVENT_FILE      = str(sys.argv[5])"
+    print
+    print "since no event list (run, subrun, event, vertex) has been provided, all available vertices will be printed"
 
 import ROOT, sys
 from ROOT import std
@@ -16,13 +25,18 @@ from larcv import larcv
 
 ROOT.gROOT.SetBatch(True)
 
-CONFIG_FILE     = str(sys.argv[1])
-IMG_FILE        = str(sys.argv[2])
-PGRAPH_FILE     = str(sys.argv[3])
-LARLITE_IN_FILE = str(sys.argv[4])
-OUTPUT_DIR      = str(sys.argv[5])
+CONFIG_FILE     = "cfg/tracker_display.cfg" #str(sys.argv[1])
+IMG_FILE        = str(sys.argv[1])
+LARLITE_IN_FILE = str(sys.argv[2])
+ROOT_ANAFILE    = str(sys.argv[3])
+OUTPUT_DIR      = str(sys.argv[4])
+EVENT_FILE      = ""
 
-num = int(os.path.basename(PGRAPH_FILE).split(".")[0].split("_")[-1])
+if len(sys.argv) == 6:
+    EVENT_FILE = str(sys.argv[5])
+
+
+num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
@@ -33,10 +47,10 @@ proc = larcv.ProcessDriver('ProcessDriver')
 proc.configure(CONFIG_FILE)
 flist=ROOT.std.vector('std::string')()
 flist.push_back(ROOT.std.string(IMG_FILE))
-flist.push_back(ROOT.std.string(PGRAPH_FILE))
+#flist.push_back(ROOT.std.string(IMG_FILE))
 proc.override_input_file(flist)
 
-proc.override_ana_file(ROOT.std.string(os.path.join(OUTPUT_DIR,"tracker_anaout_%d.root" % num)))
+#proc.override_ana_file(ROOT.std.string(os.path.join(OUTPUT_DIR,"tracker_anaout_%d.root" % num)))
 
 alg_id = proc.process_id("TrackerEventDisplay")
 alg    = proc.process_ptr(alg_id)
@@ -46,6 +60,8 @@ SPLINE_PATH = os.path.join(BASE_PATH,"..","Proton_Muon_Range_dEdx_LAr_TSplines.r
 alg.SetSplineLocation(SPLINE_PATH)
 alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
+alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
+alg.SetEventList(ROOT.std.string(EVENT_FILE))
 
 proc.initialize()
 proc.batch_process()

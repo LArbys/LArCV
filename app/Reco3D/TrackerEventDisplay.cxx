@@ -44,6 +44,7 @@
 #include "DataFormat/EventPixel2D.h"
 
 #include <cassert>
+#include <fstream>
 
 namespace larcv {
 
@@ -51,11 +52,9 @@ namespace larcv {
 
     TrackerEventDisplay::TrackerEventDisplay(const std::string name)
     : ProcessBase(name),
-    _spline_file("Proton_Muon_Range_dEdx_LAr_TSplines.root")
-    {}
+    _spline_file("Proton_Muon_Range_dEdx_LAr_TSplines.root"){}
 
-    void TrackerEventDisplay::configure(const PSet& cfg)
-    {
+    void TrackerEventDisplay::configure(const PSet& cfg){
         _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
         _img2d_producer            = cfg.get<std::string>("Image2DProducer");
         _par_pix_producer          = cfg.get<std::string>("ParPixelProducer");
@@ -64,8 +63,7 @@ namespace larcv {
 
     }
 
-    void TrackerEventDisplay::initialize()
-    {
+    void TrackerEventDisplay::initialize(){
         LARCV_INFO() << "[TrackerEventDisplay]" << std::endl;
         assert(!_spline_file.empty());
         tracker.SetDrawOutputs(false);
@@ -79,6 +77,7 @@ namespace larcv {
         std::cout << filename << std::endl;
 
         if (_finll.empty()) throw larbys("specify larlite file input name");
+        if (_fana.empty())  throw larbys("specify root ana file input name");
 
         _storage.set_io_mode(larlite::storage_manager::kREAD);
         _storage.add_in_filename(_finll);
@@ -88,11 +87,36 @@ namespace larcv {
             throw larbys("die");
         }
 
+        TFile *fINana = TFile::Open(Form("%s",_fana.c_str()),"READ");
+        if(!(fINana->IsOpen())){
+            LARCV_CRITICAL() << "ERROR, root ana file could not open" << std::endl;
+            throw larbys("die");
+        }
+        _recoTree = nullptr;
+        _recoTree = (TTree*)fINana->Get("_recoTree");
+        if(_recoTree==0){
+            LARCV_CRITICAL() << "ERROR, could not access _recoTree" << std::endl;
+            throw larbys("die");
+        }
+        _track_Goodness_v = 0;
+        _Length_v = 0;
+        _Reco_goodness_v = 0;
+        _recoTree->SetBranchAddress("run",&_run_tree);
+        _recoTree->SetBranchAddress("subrun",&_subrun_tree);
+        _recoTree->SetBranchAddress("event",&_event_tree);
+        _recoTree->SetBranchAddress("vtx_id",&_vtx_id_tree);
+        _recoTree->SetBranchAddress("track_Goodness_v",&_track_Goodness_v);
+        _recoTree->SetBranchAddress("Length_v",&_Length_v);
+        _recoTree->SetBranchAddress("Reco_goodness_v",&_Reco_goodness_v);
+
+
+        CreateSelectedList();
+        MapTree();
+
     }
 
-    bool TrackerEventDisplay::process(IOManager& mgr)
-    {
-        ClearEvent();
+    bool TrackerEventDisplay::process(IOManager& mgr){
+        //ClearEvent();
         std::cout << std::endl;
         std::cout << "============================================" << std::endl;
         std::cout << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
@@ -101,10 +125,10 @@ namespace larcv {
 
         TVector3 vertex(-1,-1,-1);
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer);
-        _run    = (int) ev_pgraph_v->run();
-        _subrun = (int) ev_pgraph_v->subrun();
-        _event  = (int) ev_pgraph_v->event();
+        auto ev_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
+        _run    = (int) ev_img_v->run();
+        _subrun = (int) ev_img_v->subrun();
+        _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
 
         _storage.next_event();
@@ -113,7 +137,7 @@ namespace larcv {
         auto ev_ass    = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco");
 
 
-        if(ev_pgraph_v->PGraphArray().size()==0){std::cout << "ev_pgraph_v->PGraphArray().size()==0" << std::endl;return true;}
+        if(ev_img_v->Image2DArray().size()==0){std::cout << "ev_img_v->Image2DArray().size()==0" << std::endl;return true;}
         if(ev_track->size()==0){std::cout << "ev_track->size()==0" << std::endl;return true;}
 
         if((int)(_storage.run_id()) != _run){std::cout << "run# larlite and larcv don't match" << std::endl;return true;}
@@ -121,14 +145,9 @@ namespace larcv {
         if((int)(_storage.event_id()) != _event){std::cout << "event# larlite and larcv don't match" << std::endl;return true;}
 
 
-        auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
+
         //auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
         //auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
-
-        EventPixel2D* ev_pix_v = nullptr;
-        if (!_par_pix_producer.empty())
-            ev_pix_v = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
-
 
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
         //auto ev_ctor_v     = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_ctor");
@@ -145,12 +164,12 @@ namespace larcv {
         //
         // Fill MC if exists
         //
-        EventROI* ev_partroi_v = nullptr;
+        /*EventROI* ev_partroi_v = nullptr;
         if (!_true_roi_producer.empty()) ev_partroi_v = (EventROI*) mgr.get_data(kProductROI,_true_roi_producer);
         if (ev_partroi_v) {
             const auto& mc_roi_v = ev_partroi_v->ROIArray();
             FillMC(mc_roi_v);
-        }
+        }*/
 
 
         // loop over found vertices
@@ -190,7 +209,26 @@ namespace larcv {
 
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
             larlite::event_track TracksAtVertex;
+            _vtx_id = vertex_index;
             std::cout << "vertex #" << vertex_index << std::endl;
+            int treeEntry = SearchMap();
+            if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
+
+            _recoTree->GetEntry(treeEntry);
+
+            bool GoodReco = true;
+            int N5cm = 0;
+            std::cout  << "==> "<< _Length_v->size() << ",  " << _track_Goodness_v->size() << std::endl;
+            for(int i = 0;i<_Length_v->size();i++){
+                if(_Length_v->at(i) > 5 && _track_Goodness_v->at(i) != 1)GoodReco =false;
+                if(_Length_v->at(i) > 5)N5cm++;
+            }
+            if(N5cm != 2)GoodReco=false;
+            if(_Length_v->size() == 0)GoodReco=false;
+            //if(!GoodReco)continue;
+
+            tracker.FeedVtxGoodness((*_Reco_goodness_v));
+
             tracker.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z()));
             tracker.SetVertexID(ev_vertex->at(vertex_index).ID());
 
@@ -245,8 +283,7 @@ namespace larcv {
         std::cout << "relative Enu_p+m diff: " << 100*((Epreco+Emreco)-(Ep_t+Em_t))/(Ep_t+Em_t) << " %" << std::endl;
     }
 
-    void TrackerEventDisplay::finalize()
-    {
+    void TrackerEventDisplay::finalize(){
         tracker.finalize();
         std::cout << "finalized tracker" << std::endl;
 
@@ -261,179 +298,70 @@ namespace larcv {
         LARCV_DEBUG() << "end" << std::endl;
     }
 
-    void TrackerEventDisplay::FillMC(const std::vector<ROI>& mc_roi_v) {
-        bool found_muon = false;
-        bool found_proton = false;
-        bool found_electron = false;
-
-        std::vector<TVector3> MuonVertices;
-        std::vector<TVector3> ProtonVertices;
-        std::vector<TVector3> ElectronVertices;
-        std::vector<TVector3> MuonEndPoint;
-        std::vector<TVector3> ProtonEndPoint;
-        std::vector<TVector3> ElectronEndPoint;
-
-        for(size_t iMC = 0;iMC<mc_roi_v.size();iMC++){
-            if(mc_roi_v[iMC].PdgCode() == 13){
-                if (found_muon) continue;
-                LARCV_INFO() << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                _MuonStartPoint_X = mc_roi_v[iMC].X();
-                _MuonStartPoint_Y = mc_roi_v[iMC].Y();
-                _MuonStartPoint_Z = mc_roi_v[iMC].Z();
-
-                _MuonEndPoint_X = mc_roi_v[iMC].EndPosition().X();
-                _MuonEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
-                _MuonEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
-                _Em_t = mc_roi_v[iMC].EnergyDeposit();
-                found_muon = true;
-            }
-            if(mc_roi_v[iMC].PdgCode() == 2212){
-                if (found_proton) continue;
-                LARCV_INFO() << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                _ProtonStartPoint_X = mc_roi_v[iMC].X();
-                _ProtonStartPoint_Y = mc_roi_v[iMC].Y();
-                _ProtonStartPoint_Z = mc_roi_v[iMC].Z();
-
-                _ProtonEndPoint_X = mc_roi_v[iMC].EndPosition().X();
-                _ProtonEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
-                _ProtonEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
-                _Ep_t = mc_roi_v[iMC].EnergyDeposit();
-                found_proton = true;
-            }
-            if(mc_roi_v[iMC].PdgCode() == 11){
-                if(found_electron) continue;
-                LARCV_INFO() << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                _ElectronStartPoint_X = mc_roi_v[iMC].X();
-                _ElectronStartPoint_Y = mc_roi_v[iMC].Y();
-                _ElectronStartPoint_Z = mc_roi_v[iMC].Z();
-
-                _ElectronEndPoint_X = mc_roi_v[iMC].EndPosition().X();
-                _ElectronEndPoint_Y = mc_roi_v[iMC].EndPosition().Y();
-                _ElectronEndPoint_Z = mc_roi_v[iMC].EndPosition().Z();
-                _Ee_t = mc_roi_v[iMC].EnergyDeposit();
-                found_electron = true;
-            }
-
-            // Adrien old version
-            if(mc_roi_v[iMC].PdgCode() == 14){
-                NeutrinoEnergyTh = mc_roi_v[iMC].EnergyDeposit();
-                //std::cout << "Neutrino : " << NeutrinoEnergyTh << " MeV" << std::endl;
-            }
-            if(mc_roi_v[iMC].PdgCode() == 13){
-                //std::cout << "muon.....@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                Em_t = mc_roi_v[iMC].EnergyDeposit();
-                MuonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
-                MuonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
-            }
-            if(mc_roi_v[iMC].PdgCode() == 2212){
-                if(mc_roi_v[iMC].EnergyDeposit() < 60) continue;
-                //std::cout << "proton...@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                Ep_t = mc_roi_v[iMC].EnergyDeposit();
-                ProtonVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
-                ProtonEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
-            }
-            if(mc_roi_v[iMC].PdgCode() == 11){
-                //std::cout << "electron.@" << mc_roi_v[iMC].X() << ", " << mc_roi_v[iMC].Y() << ", " << mc_roi_v[iMC].Z() << " ... " << mc_roi_v[iMC].EnergyDeposit() << " MeV" << std::endl;
-                ElectronVertices.push_back(TVector3(mc_roi_v[iMC].X(),mc_roi_v[iMC].Y(),mc_roi_v[iMC].Z()));
-                ElectronEndPoint.push_back(TVector3(mc_roi_v[iMC].EndPosition().X(), mc_roi_v[iMC].EndPosition().Y(), mc_roi_v[iMC].EndPosition().Z()));
-            }
-
-            bool isVertex = false;
-            bool isNumu = false;
-            bool isNue = false;
-            std::vector<int> goodMuon, goodElectron;
-            for(size_t iProton = 0;iProton<ProtonVertices.size();iProton++){
-                isVertex = false;
-                isNumu = false;
-                isNue = false;
-                for(size_t iMuon = 0;iMuon<MuonVertices.size();iMuon++){
-                    if(MuonVertices[iMuon] == ProtonVertices[iProton]){isVertex = true;isNumu = true;goodMuon.push_back(iMuon);}
-                }
-                for(size_t iElectron = 0;iElectron<ElectronVertices.size();iElectron++){
-                    if(ProtonVertices[iProton] == ElectronVertices[iProton]){isVertex = true;isNue = true;goodElectron.push_back(iElectron);}
-                }
-                if(isVertex && MCVertices.size()!=0 && ProtonVertices[iProton] == MCVertices[MCVertices.size()-1])continue;
-                if(isVertex){
-                    MCvertex = ProtonVertices[iProton];
-                    MCVertices.push_back(MCvertex);
-                }
-            }
-
-            // end Adrien
-        } // end rois
-        return;
-    } // end mc
-
-    void TrackerEventDisplay::ClearEvent() {
-        _run    = kINVALID_INT;
-        _subrun = kINVALID_INT;
-        _event  = kINVALID_INT;
-        _Nreco = 0;
-
-        _MuonStartPoint_X = -1.0*kINVALID_DOUBLE;
-        _ProtonStartPoint_X = -1.0*kINVALID_DOUBLE;
-        _ElectronStartPoint_X = -1.0*kINVALID_DOUBLE;
-
-        _MuonStartPoint_Y = -1.0*kINVALID_DOUBLE;
-        _ProtonStartPoint_Y = -1.0*kINVALID_DOUBLE;
-        _ElectronStartPoint_Y = -1.0*kINVALID_DOUBLE;
-
-        _MuonStartPoint_Z = -1.0*kINVALID_DOUBLE;
-        _ProtonStartPoint_Z = -1.0*kINVALID_DOUBLE;
-        _ElectronStartPoint_Z = -1.0*kINVALID_DOUBLE;
-
-
-        _MuonEndPoint_X = -1.0*kINVALID_DOUBLE;
-        _ProtonEndPoint_X = -1.0*kINVALID_DOUBLE;
-        _ElectronEndPoint_X = -1.0*kINVALID_DOUBLE;
-
-        _MuonEndPoint_Y = -1.0*kINVALID_DOUBLE;
-        _ProtonEndPoint_Y = -1.0*kINVALID_DOUBLE;
-        _ElectronEndPoint_Y = -1.0*kINVALID_DOUBLE;
-
-        _MuonEndPoint_Z = -1.0*kINVALID_DOUBLE;
-        _ProtonEndPoint_Z = -1.0*kINVALID_DOUBLE;
-        _ElectronEndPoint_Z = -1.0*kINVALID_DOUBLE;
-
-        _Ep_t = -1.0*kINVALID_DOUBLE;
-        _Em_t = -1.0*kINVALID_DOUBLE;
-        _Ee_t = -1.0*kINVALID_DOUBLE;
-        
-        MCvertex.SetXYZ(-1,-1,-1);
-        if(MCVertices.size()!=0)MCVertices.clear();
-        
-        ClearVertex();
+    void TrackerEventDisplay::MapTree(){
+        if(TreeMap.size() == 0)TreeMap.clear();
+        for(int i=0;i<_recoTree->GetEntries();i++){
+            _recoTree->GetEntry(i);
+            std::vector<int> entryInfo(4);
+            entryInfo[0] = _run_tree;
+            entryInfo[1] = _subrun_tree;
+            entryInfo[2] = _event_tree;
+            entryInfo[3] = _vtx_id_tree ;
+            TreeMap.push_back(entryInfo);
+        }
     }
-    
-    void TrackerEventDisplay::ClearVertex() {
-        _vtx_id = -1.0 * kINVALID_INT;
-        _vtx_x  = -1.0 * kINVALID_FLOAT;
-        _vtx_y  = -1.0 * kINVALID_FLOAT;
-        _vtx_z  = -1.0 * kINVALID_FLOAT;
-        _E_muon_v.clear();
-        _E_proton_v.clear();
-        _Length_v.clear();
-        _Avg_Ion_v.clear();
-        _Angle_v.clear();
-        _Reco_goodness_v.clear();
-        GoodVertex = -1.0*kINVALID_INT;
-        _missingTrack = -1.0*kINVALID_INT;
-        _nothingReconstructed = -1.0*kINVALID_INT;
-        _tooShortDeadWire = -1.0*kINVALID_INT;
-        _tooShortFaintTrack = -1.0*kINVALID_INT;
-        _tooManyTracksAtVertex = -1.0*kINVALID_INT;
-        _possibleCosmic = -1.0*kINVALID_INT;
-        _possiblyCrossing = -1.0*kINVALID_INT;
-        _branchingTracks = -1.0*kINVALID_INT;
-        _jumpingTracks = -1.0*kINVALID_INT;
-        _trackQ50_v.clear();
-        _trackQ30_v.clear();
-        _trackQ20_v.clear();
-        _trackQ10_v.clear();
-        _trackQ5_v.clear();
-        _trackQ3_v.clear();
-        
+
+    int  TrackerEventDisplay::SearchMap(){
+        int treeEntry=-1;
+        for(int i=0;i<TreeMap.size();i++){
+            if(_run != TreeMap[i][0])continue;
+            if(_subrun != TreeMap[i][1])continue;
+            if(_event  != TreeMap[i][2])continue;
+            if(_vtx_id != TreeMap[i][3])continue;
+            treeEntry=i;
+            break;
+        }
+        if(treeEntry==-1){
+            LARCV_CRITICAL() << "ERROR, could not find matching entry in _recoTree" << std::endl;
+            throw larbys("die");
+        }
+
+        if(SelectedList.size()==0)return treeEntry;
+        bool inList = false;
+        for(int i=0;i<SelectedList.size();i++){
+            if(_run != SelectedList[i][0])continue;
+            if(_subrun != SelectedList[i][1])continue;
+            if(_event  != SelectedList[i][2])continue;
+            if(_vtx_id != SelectedList[i][3])continue;
+            inList = true;
+            break;
+        }
+        if(inList) return treeEntry;
+        else return -1;
     }
-    
+
+    void TrackerEventDisplay::CreateSelectedList(){
+        if(SelectedList.size()!=0)SelectedList.clear();
+        if(eventListFile=="")return;
+        std::ifstream listFile(eventListFile);
+        if (!listFile) {
+            LARCV_CRITICAL() << "ERROR, could not open " << eventListFile << " will die now..." << std::endl;
+            throw larbys("die");
+        }
+        bool GoOn = true;
+        int thisRun, thisSubRun, thisEvent, thisVertex;
+        while(GoOn == true){
+            std::vector<int> eventInfo(4);
+            listFile >> thisRun >> thisSubRun >> thisEvent >> thisVertex;
+            eventInfo[0] = thisRun;
+            eventInfo[1] = thisSubRun;
+            eventInfo[2] = thisEvent;
+            eventInfo[3] = thisVertex;
+            if(listFile.eof()){GoOn=false;break;}
+            SelectedList.push_back(eventInfo);
+            std::cout << SelectedList.back()[0] << "\t" << SelectedList.back()[1] << "\t" << SelectedList.back()[2] << "\t" << SelectedList.back()[3] << std::endl;
+        }
+
+    }
 }
 #endif

@@ -50,14 +50,15 @@ namespace larcv {
         void SetSplineLocation(const std::string& fpath);
         void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
         void SetLLInName(const std::string& finll) { _finll = finll;}
-        void FillMC(const std::vector<ROI>& mc_roi_v);
-        void ClearEvent();
-        void ClearVertex();
+        void SetRootAnaFile(const std::string& anaFile){_fana = anaFile;}
         void SetOutDir(std::string s){out_dir = s;}
+        void SetEventList(std::string s){eventListFile = s;}
 
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
-        void ReadVertexFile(std::string filename);
+        void MapTree();
+        void CreateSelectedList();
+        int SearchMap();
         std::vector<TVector3> GetJarretVertex(int run, int subrun, int event);
 
         void finalize();
@@ -82,6 +83,10 @@ namespace larcv {
         int _entry;
         int _Nreco;
 
+        int _run_tree;
+        int _subrun_tree;
+        int _event_tree;
+        int _vtx_id_tree;
         int _vtx_id;
         int NvertexSubmitted;
         int NgoodReco;
@@ -89,10 +94,13 @@ namespace larcv {
         std::vector<std::string> checkEvents;
         std::string _filename;
 
+        TTree *_recoTree;
+        std::vector< std::vector<int> > TreeMap;
+        std::vector< std::vector<int> > SelectedList;
         std::vector<int>    _trk_id_v;
         std::vector<double> _E_muon_v;
         std::vector<double> _E_proton_v;
-        std::vector<double> _Length_v;
+        std::vector<double> *_Length_v;
         std::vector<double> _Avg_Ion_v;
         std::vector<double> _Avg_IonY_v;
         std::vector<double> _vertexPhi;
@@ -117,8 +125,8 @@ namespace larcv {
         std::vector<std::vector<double>> _trackQ50_v;
         std::vector< std::vector<double> > _TotalADCvalues_v;
         std::vector< std::vector<double> > _Angle_v;
-        std::vector<bool>   _Reco_goodness_v;
-        std::vector<bool>  _track_Goodness_v;
+        std::vector<bool>   *_Reco_goodness_v;
+        std::vector<bool>  *_track_Goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;
 
         std::vector<TVector3> MCVertices;
@@ -182,7 +190,9 @@ namespace larcv {
         std::string _spline_file;
         std::string _foutll;
         std::string _finll;
+        std::string _fana;
         std::string out_dir;
+        std::string eventListFile;
         bool _mask_shower;
     };
 

@@ -1868,9 +1868,9 @@ namespace larcv {
                     gTrack[iPlane]->SetLineColor(i+1);
                     gTrack[iPlane]->SetMarkerColor(i+1);
                 }
-                gTrack[iPlane]->Draw("same LP");
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
                 c->cd(1)->cd(iPlane+1);
-                gTrack[iPlane]->Draw("same LP");
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
             }
         }
 
@@ -1878,7 +1878,7 @@ namespace larcv {
             c->cd(2)->cd(iPlane+1);
             gStartNend[iPlane]->SetMarkerColor(0);
             gStartNend[iPlane]->SetMarkerStyle(20);
-            gStartNend[iPlane]->Draw("same P");
+            if(gStartNend[iPlane]->GetN()>0)gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
             gStart[iPlane]->SetMarkerColor(2);
             /*if(_possibleCosmic){
@@ -1889,10 +1889,10 @@ namespace larcv {
                 gStart[iPlane]->SetMarkerColor(4);
                 gStart[iPlane]->SetMarkerSize(3);
             }*/
-            gStart[iPlane]->Draw("same P");
+            if(gStart[iPlane]->GetN()>0)gStart[iPlane]->Draw("same P");
             gAverage[iPlane]->SetMarkerColor(3);
             gAverage[iPlane]->SetMarkerStyle(20);
-            gAverage[iPlane]->Draw("same P");
+            if(gAverage[iPlane]->GetN()>0)gAverage[iPlane]->Draw("same P");
         }
 
 
@@ -3469,6 +3469,21 @@ namespace larcv {
             }
             _vertexTracks.push_back(thisTrack);
         }
+    }
+    //-------------------------------------------------------
+    void AStarTracker::FeedVtxGoodness(std::vector<bool> goodTracks_v){
+
+        if(goodTracks_v.size() != 9)return;
+
+        _missingTrack          = goodTracks_v[0];
+        _nothingReconstructed  = goodTracks_v[1];
+        _tooShortDeadWire      = goodTracks_v[2];
+        _tooShortFaintTrack    = goodTracks_v[3];
+        _tooManyTracksAtVertex = goodTracks_v[4];
+        _possibleCosmic        = goodTracks_v[5];
+        _possiblyCrossing      = goodTracks_v[6];
+        _branchingTracks       = goodTracks_v[7];
+        _jumpingTracks         = goodTracks_v[8];
     }
     //-------------------------------------------------------
     
