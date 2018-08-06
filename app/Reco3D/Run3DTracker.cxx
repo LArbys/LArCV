@@ -341,6 +341,7 @@ namespace larcv {
                 auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
+                tracker.SetVertexID((int)(ivertex));
                 tracker.ReconstructVertex();
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
@@ -418,7 +419,7 @@ namespace larcv {
 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                if(!_nothingReconstructed)tracker.DrawVertex();
+                //if(!_nothingReconstructed)tracker.DrawVertex();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
@@ -676,6 +677,6 @@ namespace larcv {
         _trackQ3_v.clear();
         
     }
-    
+
 }
 #endif

@@ -1677,7 +1677,7 @@ namespace larcv {
         hit_image_v = CropFullImage2bounds(_vertexTracks);
         //EnhanceDerivative();
 
-        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),1800,1200);
         c->SetFillColor(1);
         c->Divide(1,2);
         c->cd(1)->Divide(3,1);
@@ -1710,8 +1710,8 @@ namespace larcv {
             }
         }
         for(size_t iPlane=0;iPlane<3;iPlane++){
-            hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                      Form("hImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+            hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                      Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1768,33 +1768,35 @@ namespace larcv {
             trackEndPoints_v.push_back(thisTrackEndPoint);
 
         }
+
         for(size_t iPlane=0;iPlane<3;iPlane++){
             gStart[iPlane] = new TGraph();
             gStartNend[iPlane] = new TGraph();
             ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel_st,y_pixel_st);
             gStart[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+
             for(size_t iend = 0;iend<_vertexEndPoints.size();iend++){
                 ProjectTo3D(hit_image_v[iPlane].meta(),_vertexEndPoints[iend].X(),_vertexEndPoints[iend].Y(),_vertexEndPoints[iend].Z(),0,iPlane,x_pixel_st,y_pixel_st);
                 gStartNend[iPlane]->SetPoint(iend,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
             }
 
-            hImageMasked[iPlane] = new TH2D(Form("hImageMasked_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                            Form("hImageMasked_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+
+            hImageMasked[iPlane] = new TH2D(Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                            Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                             hit_image_v[iPlane].meta().cols(),
                                             hit_image_v[iPlane].meta().tl().x,
                                             hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
                                             hit_image_v[iPlane].meta().rows(),
                                             hit_image_v[iPlane].meta().br().y,
                                             hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
-            hTagImage[iPlane] = new TH2D(Form("hTagImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                         Form("hTagImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+            hTagImage[iPlane] = new TH2D(Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                         Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                          hit_image_v[iPlane].meta().cols(),
                                          hit_image_v[iPlane].meta().tl().x,
                                          hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
                                          hit_image_v[iPlane].meta().rows(),
                                          hit_image_v[iPlane].meta().br().y,
                                          hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
-
 
             for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                 for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
@@ -1829,8 +1831,7 @@ namespace larcv {
             hImageMasked[iPlane]->GetYaxis()->SetTitleColor(0);
             hImageMasked[iPlane]->Draw("colz");
             if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
-
-            if(trackEndPoints_v.size()!=0){
+            /*if(trackEndPoints_v.size()!=0){
                 for(size_t itrack = 0;itrack<trackEndPoints_v.size();itrack++){
                     TGraph *gTrackEndPoint = new TGraph();
                     for(size_t iPoint = 0;iPoint<trackEndPoints_v[itrack].size();iPoint++){
@@ -1845,8 +1846,9 @@ namespace larcv {
                     if(_tooShortDeadWire_v.at(itrack) == true) gTrackEndPoint->SetMarkerColor(4);
                     gTrackEndPoint->Draw("same P");
                 }
-            }
+            }*/
         }
+
         for(size_t i=0;i<_vertexTracks.size();i++){
             TGraph *gTrack[3];
             double x_pixel, y_pixel;
@@ -1866,34 +1868,32 @@ namespace larcv {
                     gTrack[iPlane]->SetLineColor(i+1);
                     gTrack[iPlane]->SetMarkerColor(i+1);
                 }
-                gTrack[iPlane]->Draw("same LP");
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
                 c->cd(1)->cd(iPlane+1);
-                gTrack[iPlane]->Draw("same LP");
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
             }
         }
-
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(2)->cd(iPlane+1);
             gStartNend[iPlane]->SetMarkerColor(0);
             gStartNend[iPlane]->SetMarkerStyle(20);
-            gStartNend[iPlane]->Draw("same P");
+            if(gStartNend[iPlane]->GetN()>0)gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
             gStart[iPlane]->SetMarkerColor(2);
-            if(_possibleCosmic){
+            /*if(_possibleCosmic){
                 gStart[iPlane]->SetMarkerColor(3);
                 gStart[iPlane]->SetMarkerSize(2);
             }
             if(!_possibleCosmic && _possiblyCrossing){
                 gStart[iPlane]->SetMarkerColor(4);
                 gStart[iPlane]->SetMarkerSize(3);
-            }
-            gStart[iPlane]->Draw("same P");
+            }*/
+            if(gStart[iPlane]->GetN()>0)gStart[iPlane]->Draw("same P");
             gAverage[iPlane]->SetMarkerColor(3);
             gAverage[iPlane]->SetMarkerStyle(20);
-            gAverage[iPlane]->Draw("same P");
+            if(gAverage[iPlane]->GetN()>0)gAverage[iPlane]->Draw("same P");
         }
-
 
 
         std::string label_tag = "";
@@ -1915,18 +1915,24 @@ namespace larcv {
             hTagImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
             gAverage[iPlane]->Delete();
+            hImageMasked[iPlane]->Delete();
+            gStartNend[iPlane]->Delete();
         }
-        std::vector<double> ionPerTrack = GetAverageIonization();
+
+
+        /*std::vector<double> ionPerTrack = GetAverageIonization();
         double ionMax = 0;
         double ionMin = 1e9;
         size_t trackIonMax = 0;
-        size_t trackIonMin = 0;
+        size_t trackIonMin = 0;*/
 
-        for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
+        /*for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
             if(ionPerTrack[itrack] > ionMax){ionMax=ionPerTrack[itrack];trackIonMax=itrack;}
             if(ionPerTrack[itrack] < ionMin){ionMin=ionPerTrack[itrack];trackIonMin=itrack;}
         }
-        std::cout << "best guess : " << std::endl;
+        tellMe("I'm Also here 2",0);*/
+
+        /*std::cout << "best guess : " << std::endl;
         std::cout << "track " << trackIonMax << " is the proton" << std::endl;
         std::cout << "track " << trackIonMin << " is the muon" << std::endl;
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
@@ -1935,7 +1941,7 @@ namespace larcv {
                 tellMe(Form("if muon....: %.1f MeV",sMuonRange2T->Eval(_vertexLength[itrack])));
                 tellMe(Form("if proton..: %.1f MeV",sProtonRange2T->Eval(_vertexLength[itrack])));
             }
-        }
+        }*/
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
@@ -1960,8 +1966,8 @@ namespace larcv {
         TGraph *gStart[3];
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
-            hImage[iPlane] = new TH2D(Form("hImage_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),
-                                      Form("hImage_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+            hImage[iPlane] = new TH2D(Form("hImage_%d_%d_%d_%d_%d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                      Form("hImage_%d_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -2001,7 +2007,7 @@ namespace larcv {
 
         }
 
-        TCanvas *c = new TCanvas(Form("ROI_%d_%d_%d_%d",_run,_subrun,_event,_track),Form("ROI_%d_%d_%d_%d",_run,_subrun,_event,_track),450,150);
+        TCanvas *c = new TCanvas(Form("ROI_%d_%d_%d_%d_%d",_run,_subrun,_event,_vtxID,_track),Form("ROI_%d_%d_%d_%d_%d",_run,_subrun,_event,_vtxID,_track),450,150);
         c->Divide(3,1);
         for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(iPlane+1);
@@ -3452,6 +3458,32 @@ namespace larcv {
         newTrack.push_back(_3DTrack.back());
         
         _3DTrack = newTrack;
+    }
+    //-------------------------------------------------------
+    void AStarTracker::Get3DtracksFromLarlite(){
+        if(_vertexTracks.size()!=0)_vertexTracks.clear();
+        for(size_t itrack = 0; itrack<_vertexLarliteTracks.size();itrack++){
+            std::vector<TVector3> thisTrack(_vertexLarliteTracks[itrack].NumberTrajectoryPoints());
+            for(size_t iNode=0;iNode<_vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
+                thisTrack[iNode]=_vertexLarliteTracks[itrack].LocationAtPoint(iNode);
+            }
+            _vertexTracks.push_back(thisTrack);
+        }
+    }
+    //-------------------------------------------------------
+    void AStarTracker::FeedVtxGoodness(std::vector<bool> goodTracks_v){
+
+        if(goodTracks_v.size() != 9)return;
+
+        _missingTrack          = goodTracks_v[0];
+        _nothingReconstructed  = goodTracks_v[1];
+        _tooShortDeadWire      = goodTracks_v[2];
+        _tooShortFaintTrack    = goodTracks_v[3];
+        _tooManyTracksAtVertex = goodTracks_v[4];
+        _possibleCosmic        = goodTracks_v[5];
+        _possiblyCrossing      = goodTracks_v[6];
+        _branchingTracks       = goodTracks_v[7];
+        _jumpingTracks         = goodTracks_v[8];
     }
     //-------------------------------------------------------
     

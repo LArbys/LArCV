@@ -18,5 +18,6 @@
 #pragma link C++ class larcv::ReadJarrettFile+;
 #pragma link C++ class larcv::ReadNueFile+;
 #pragma link C++ class larcv::Run3DTracker+;
+#pragma link C++ class larcv::TrackerEventDisplay+;
 
 #endif
