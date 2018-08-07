@@ -893,21 +893,21 @@ def initialize_df(input_file,data=False):
 
     print "Loading vertex TTrees..."
     vertex_df = pd.DataFrame(rn.root2array(input_file,treename='VertexTree'))
-    # angle_df  = pd.DataFrame(rn.root2array(input_file,treename='AngleAnalysis'))
-    # shape_df  = pd.DataFrame(rn.root2array(input_file,treename='ShapeAnalysis'))
+    angle_df  = pd.DataFrame(rn.root2array(input_file,treename='AngleAnalysis'))
+    shape_df  = pd.DataFrame(rn.root2array(input_file,treename='ShapeAnalysis'))
     gap_df    = pd.DataFrame(rn.root2array(input_file,treename="GapAnalysis"))
-    # match_df  = pd.DataFrame(rn.root2array(input_file,treename="MatchAnalysis"))
-    # dqds_df   = pd.DataFrame(rn.root2array(input_file,treename="dQdSAnalysis"))
-    # cosmic_df = pd.DataFrame(rn.root2array(input_file,treename="CosmicAnalysis"))
+    match_df  = pd.DataFrame(rn.root2array(input_file,treename="MatchAnalysis"))
+    dqds_df   = pd.DataFrame(rn.root2array(input_file,treename="dQdSAnalysis"))
+    cosmic_df = pd.DataFrame(rn.root2array(input_file,treename="CosmicAnalysis"))
 
     print "Reindex..."
     vertex_df.set_index(rserv,inplace=True)
-    # angle_df.set_index(rserv,inplace=True) 
-    # shape_df.set_index(rserv,inplace=True) 
+    angle_df.set_index(rserv,inplace=True) 
+    shape_df.set_index(rserv,inplace=True) 
     gap_df.set_index(rserv,inplace=True)   
-    # match_df.set_index(rserv,inplace=True) 
-    # dqds_df.set_index(rserv,inplace=True) 
-    # cosmic_df.set_index(rserv,inplace=True) 
+    match_df.set_index(rserv,inplace=True) 
+    dqds_df.set_index(rserv,inplace=True) 
+    cosmic_df.set_index(rserv,inplace=True) 
 
     #
     # Combine DataFrames
@@ -918,11 +918,9 @@ def initialize_df(input_file,data=False):
     df_v = []
     
     if data==True:
-        df_v = [gap_df]
-        #df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
+        df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df]
     else:
-        df_v = [gap_df,vertex_df]
-        #df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df,vertex_df]
+        df_v = [angle_df,shape_df,gap_df,angle_df,match_df,dqds_df,cosmic_df,vertex_df]
 
     comb_df = pd.concat(df_v,axis=1)
     
