@@ -119,8 +119,7 @@ def GetPhiT(El,Ep,Thl,Thp,Phl,Php):
     PptM = sqrt(Ppt[0]**2+Ppt[1]**2)
 
     if PltM == 0 or PptM == 0:
-        print "hmmm??"
-        return 20000
+        return 9999
     
     phit = acos(-1.0*(Plt[0]*Ppt[0]+Plt[1]*Ppt[1])/(PltM*PptM))
     
@@ -161,8 +160,7 @@ def alphaT(El,Ep,Thl,Thp,Phl,Php):
     PtMag = sqrt(Pt[0]**2 + Pt[1]**2)
 
     if PltM == 0 or PptM == 0:
-        print "hmmm??"
-        return 20000
+        return 9999
     
     alphat = acos(-1.0*(Plt[0]*Pt[0]+Plt[1]*Pt[1])/(PtMag*PltM))
 
@@ -197,19 +195,6 @@ def ECal(KEp,KEmu):
     EnuCal = KEp+KEmu+B+Mmu+(Mn-Mp)
 
     return EnuCal
-
-def ECalPi(KEpi,KEmu):
-
-    Mn  = 939.5654
-    Mmu = 105.6584
-    Mp  = 938.2721
-    Mpi = 139.57
-    B   = 40
-    
-    EnuCal = KEpi+KEmu+B+Mpi+Mmu+(Mn-Mp)
-
-    return EnuCal
-    
 
 def Q2(Enu,Emu,theta):
     # Feed in MeV, which is what is usually in the trees
@@ -329,7 +314,8 @@ for x in range(len(RSEV1)):
         quit(1)
 
 print "Files seem to be 100% kosher, proceeding with analysis"
-print "Vic approves of kosher files, be like Vic"
+print ""
+print "...Vic approves of kosher files, be like Vic! :D"
 # ---------------------------------------------------------------------- #
 # ---------------------------------------------------------------------- #
     
@@ -577,6 +563,7 @@ for ev in TrkTree:
     _ntracks[0]      = NumTracks
     _n5tracks[0]     = Num5cmTracks
     _passCuts[0]     = passCuts
+    _good3DReco[0]   = Good3DReco
     _cosmicLL[0]     = cosmicLL if passCuts else -9999
     _nubkgLL[0]      = nusepLL if passCuts else -9999
     _eta[0]          = eta if passCuts else -9999
@@ -588,7 +575,7 @@ for ev in TrkTree:
     _pT[0]           = pT if passCuts else -9999
     _bjX[0]          = x if passCuts else -9999
     _sph[0]          = sph if passCuts else -9999
-    _good3DReco[0]   = Good3DReco
+
     
     _phi_v.clear()
     _theta_v.clear()
