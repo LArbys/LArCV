@@ -116,14 +116,31 @@ namespace larcv {
     //
     // Count the number of points @ each side
     //
-    assert(ev_top_pts->Pixel2DArray().size());
 
-    _n_top_pts     = (int) ev_top_pts->Pixel2DArray(0).size();
-    _n_bot_pts     = (int) ev_bot_pts->Pixel2DArray(0).size();
-    _n_up_pts      = (int) ev_up_pts->Pixel2DArray(0).size();
-    _n_down_pts    = (int) ev_down_pts->Pixel2DArray(0).size();
-    _n_anode_pts   = (int) ev_anode_pts->Pixel2DArray(0).size();
-    _n_cathode_pts = (int) ev_cathode_pts->Pixel2DArray(0).size();
+    _n_top_pts     = 0;
+    _n_bot_pts     = 0;
+    _n_up_pts      = 0;
+    _n_down_pts    = 0;
+    _n_anode_pts   = 0;
+    _n_cathode_pts = 0;
+
+    if(!ev_top_pts->Pixel2DArray().empty())
+      _n_top_pts     = (int) ev_top_pts->Pixel2DArray(0).size();
+
+    if(!ev_bot_pts->Pixel2DArray().empty())
+      _n_bot_pts     = (int) ev_bot_pts->Pixel2DArray(0).size();
+
+    if(!ev_up_pts->Pixel2DArray().empty())
+      _n_up_pts      = (int) ev_up_pts->Pixel2DArray(0).size();
+    
+    if(!ev_down_pts->Pixel2DArray().empty())
+      _n_down_pts    = (int) ev_down_pts->Pixel2DArray(0).size();
+
+    if(!ev_anode_pts->Pixel2DArray().empty())
+      _n_anode_pts   = (int) ev_anode_pts->Pixel2DArray(0).size();
+    
+    if (!ev_cathode_pts->Pixel2DArray().empty())
+      _n_cathode_pts = (int) ev_cathode_pts->Pixel2DArray(0).size();
     
     // 
     // Count the number of stopmu
