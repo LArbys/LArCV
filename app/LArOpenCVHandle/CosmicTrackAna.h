@@ -43,6 +43,8 @@ namespace larcv {
 
 
   private:
+
+    std::string _croi_prod;
     std::string _thrumu_px_prod;
     std::string _stopmu_px_prod;
     std::string _top_px_prod;
@@ -58,6 +60,8 @@ namespace larcv {
     int _subrun;
     int _event;
     int _entry;
+
+    int _n_croi;
 
     int _n_thru_mu_trk;
     int _n_thru_mu_pix_p0;

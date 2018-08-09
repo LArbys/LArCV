@@ -3,6 +3,7 @@
 
 #include "CosmicTrackAna.h"
 #include "DataFormat/EventPixel2D.h"
+#include "DataFormat/EventROI.h"
 #include <cassert>
 
 namespace larcv {
@@ -15,6 +16,11 @@ namespace larcv {
     
   void CosmicTrackAna::configure(const PSet& cfg)
   {
+    //
+    // cROI Producer
+    //
+    _croi_prod = cfg.get<std::string>("ROIProducer");
+    
     //
     // ThruMu and StopMu producers (Pixel2D)
     //
@@ -39,7 +45,7 @@ namespace larcv {
   {
     
     //
-    // RSEE
+    // RSE
     //
 
     _tree = new TTree("EventCosmicTrackTree","");
@@ -48,6 +54,8 @@ namespace larcv {
     _tree->Branch("event",&_event,"event/I");
     _tree->Branch("entry",&_entry,"entry/I");
     
+    _tree->Branch("n_croi", &_n_croi,"n_croi/I");
+
     //
     // ThruMu & StopMu
     //
@@ -83,6 +91,9 @@ namespace larcv {
     
     clear();
 
+    auto const ev_croi = (EventROI*)(mgr.get_data(kProductROI,_croi_prod));
+    if(!ev_croi) throw larbys("Invalid cROI producer specified!");
+
     auto const ev_thrumu = (EventPixel2D*)(mgr.get_data(kProductPixel2D,_thrumu_px_prod));
     if (!ev_thrumu) throw larbys("Invalid ThruMu producer provided!");
     
@@ -111,6 +122,11 @@ namespace larcv {
     _subrun = (int) ev_thrumu->subrun();
     _event  = (int) ev_thrumu->event();
     _entry  = (int) mgr.current_entry();
+
+    //
+    // Store the number of cROI
+    //
+    _n_croi =(int)ev_croi->ROIArray().size();
 
 
     //
@@ -206,29 +222,31 @@ namespace larcv {
 
   void CosmicTrackAna::clear()  {
 
-    _run=kINVALID_INT;
-    _subrun=kINVALID_INT;
-    _event=kINVALID_INT;
-    _entry=kINVALID_INT;
+    _run=-1.0*kINVALID_INT;
+    _subrun=-1.0*kINVALID_INT;
+    _event=-1.0*kINVALID_INT;
+    _entry=-1.0*kINVALID_INT;
 
-    _n_thru_mu_trk=kINVALID_INT;
-    _n_thru_mu_pix_p0=kINVALID_INT;
-    _n_thru_mu_pix_p1=kINVALID_INT;
-    _n_thru_mu_pix_p2=kINVALID_INT;
-    _avg_thru_mu_pix=kINVALID_INT;
+    _n_thru_mu_trk=-1.0*kINVALID_INT;
+    _n_thru_mu_pix_p0=-1.0*kINVALID_INT;
+    _n_thru_mu_pix_p1=-1.0*kINVALID_INT;
+    _n_thru_mu_pix_p2=-1.0*kINVALID_INT;
+    _avg_thru_mu_pix=-1.0*kINVALID_INT;
 
-    _n_stop_mu_trk=kINVALID_INT;
-    _n_stop_mu_pix_p0=kINVALID_INT;
-    _n_stop_mu_pix_p1=kINVALID_INT;
-    _n_stop_mu_pix_p2=kINVALID_INT;
-    _avg_stop_mu_pix=kINVALID_INT;
+    _n_stop_mu_trk=-1.0*kINVALID_INT;
+    _n_stop_mu_pix_p0=-1.0*kINVALID_INT;
+    _n_stop_mu_pix_p1=-1.0*kINVALID_INT;
+    _n_stop_mu_pix_p2=-1.0*kINVALID_INT;
+    _avg_stop_mu_pix=-1.0*kINVALID_INT;
 
-    _n_top_pts=kINVALID_INT;
-    _n_bot_pts=kINVALID_INT;
-    _n_up_pts=kINVALID_INT;
-    _n_down_pts=kINVALID_INT;
-    _n_anode_pts=kINVALID_INT;
-    _n_cathode_pts=kINVALID_INT;
+    _n_top_pts=-1.0*kINVALID_INT;
+    _n_bot_pts=-1.0*kINVALID_INT;
+    _n_up_pts=-1.0*kINVALID_INT;
+    _n_down_pts=-1.0*kINVALID_INT;
+    _n_anode_pts=-1.0*kINVALID_INT;
+    _n_cathode_pts=-1.0*kINVALID_INT;
+
+    _n_croi=-1.0*kINVALID_INT;
 
   }
 
