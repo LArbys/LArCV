@@ -90,21 +90,17 @@ namespace larcv {
         void SetDrawOutputs(bool d){_DrawOutputs = d;}
         void SetCompressionFactors(int compress_w, int compress_t){_compressionFactor_w = compress_w; _compressionFactor_t = compress_t;}
 
-        void ReadProtonTrackFile();
+        //void ReadProtonTrackFile();
         void ReadSplineFile();
         void SetSplineFile(const std::string& fpath);
         void SetOutputDir(std::string outdir){_outdir=outdir;}
         void SetTrackInfo(int run, int subrun, int event, int track){_run = run; _subrun = subrun; _event = event; _track = track;}
         void tellMe(std::string s, int verboseMin);
-        void CreateDataImage(std::vector<larlite::wire> wire_v);
         void ResetRecoveries(){NumberRecoveries = 0;}
         void SetTimeAndWireBounds();
-        void SetTimeAndWireBoundsProtonsErez();
         void SetTimeAndWireBounds(TVector3 pointStart, TVector3 pointEnd);
         void SetTimeAndWireBounds(std::vector<TVector3> points);
         void SetTimeAndWireBounds(std::vector<TVector3> points, std::vector<larcv::ImageMeta> meta);
-        void SetEndPoints(TVector3 vertex, TVector3 endpoint){start_pt = vertex; end_pt = endpoint;}
-        void SetEndPoint(TVector3 endpoint){end_pt = CheckEndPoints(endpoint);}
         void SetImages(          std::vector<larcv::Image2D> images        ){hit_image_v           = images;}
         void SetOriginalImage(   std::vector<larcv::Image2D> originalimage ){original_full_image_v = originalimage;}
         void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
@@ -115,15 +111,10 @@ namespace larcv {
         void FeedTrack(std::vector<TVector3> newTrack);
         void FeedLarliteVertexTracks(larlite::event_track recoedVertexTracks){_vertexLarliteTracks = recoedVertexTracks;Get3DtracksFromLarlite();}
         void FeedVtxGoodness(std::vector<bool> goodTracks_v);
-        void WorldInitialization();
         void Get3DtracksFromLarlite();
 
-        void DrawTrack();
         void DrawVertex();
         void RegularizeTrack();
-        void DrawROI();
-        void TellMeRecoedPath();
-        void Make3DpointList();
         void MakeVertexTrack();
         void MakeTrack();
         void ComputeLength();
@@ -131,12 +122,10 @@ namespace larcv {
         void ComputeClosestWall_SCE();
         void ComputedQdX();
         void ComputeNewdQdX();
-        void Reconstruct();
         void ReconstructVertex();
         void ConstructTrack();
         void ConstructVertex();
-        void ReconstructEvent();
-        void ImprovedCluster();
+        void FindCluster();
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
         void MaskVertex();
@@ -146,7 +135,6 @@ namespace larcv {
         void DiagnoseTrack(size_t itrack);
         void ShaveTracks();
         void RecoverFromFail();
-        void EnhanceDerivative();
         void DumpTrack();
         void FillInTrack();
 
@@ -154,10 +142,8 @@ namespace larcv {
         bool finalize();
         bool ArePointsEqual(TVector3 A, TVector3 B);
         bool CheckEndPointsInVolume(TVector3 point);
-        bool IsGoodTrack();
         bool IsGoodVertex();
         bool IsInSegment(TVector3 A, TVector3 B, TVector3 C);
-        bool CheckEndPoints(std::vector< std::pair<int,int> > endPix);
         bool IsTrackIn(std::vector<TVector3> trackA, std::vector<TVector3> trackB);
 
         int  GetCompressionFactorTime(){return _compressionFactor_t;}
@@ -180,8 +166,6 @@ namespace larcv {
         double Tick2X(double tick, size_t plane)const; // TPC tick (waveform index) to X[cm] conversion
         double GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack);
 
-        TVector3        CheckEndPoints(TVector3 point);
-        TVector3        CheckEndPoints(TVector3 point,std::vector< std::pair<int,int> > endPix);
         TVector3        GetFurtherFromVertex();
 
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
@@ -189,14 +173,6 @@ namespace larcv {
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
         std::vector<TVector3>   OrderList(std::vector<TVector3> list);
         std::vector<TVector3>   FitBrokenLine();
-        std::vector<TVector3>   Reconstruct(int run, int subrun,int event,int track,std::vector<larcv::Image2D> images,TVector3 vertex, TVector3 endPoint){
-            SetTrackInfo(run, subrun, event, track);
-            SetImages(images);
-            SetEndPoints(vertex, endPoint);
-            Reconstruct();
-            RegularizeTrack();
-            return GetTrack();
-        }
         std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
         std::vector<double>  GetAverageIonization(double distAvg = -1);// average pixel intensity over reconstructed points
@@ -207,7 +183,6 @@ namespace larcv {
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 
-        std::vector< std::vector<int> >    _SelectableTracks;
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
         std::vector< std::vector<double> >  GetTotalPixADC();
@@ -237,6 +212,7 @@ namespace larcv {
         std::string _mctrack_producer;
         std::string _wire_producer;
         std::string _hit_producer;
+        std::string _spline_file;
 
         int _run;
         int _subrun;
@@ -252,12 +228,6 @@ namespace larcv {
         int failedPlane;
         int NumberRecoveries;
 
-        //int _kTooShortDeadWire;
-        //int _ktooShortThinTrack;
-        //int _kMissingTrack;
-        //int _kGoodEnd;
-
-        std::string _spline_file;
 
         double _ADCthreshold;
         double _speedOffset;
@@ -283,23 +253,6 @@ namespace larcv {
         std::vector<bool> _jumpingTracks_v;
         std::vector<bool> _goodTrack_v;
 
-        TH1D *hdQdx;
-        TH1D *hLength;
-        TH1D *hdQdxEntries;
-        TH1D *hDistance2MC;
-        TH1D *hDistance2MCX;
-        TH1D *hDistance2MCY;
-        TH1D *hDistance2MCZ;
-        TH1D *hDistance2Hit;
-        TH1D *hDistanceMC2Hit;
-        TH2D *hdQdX2D;
-        //TH2D *hdQdX2DNorm;
-        TH2D *hAngleLengthGeneral;
-        TH2D *hLengthdQdX;
-        TH1D *hDist2point;
-
-        //std::vector<int> _endPointsStatus;
-
         std::vector< std::vector<double> > _dQdx;
         std::vector< std::vector<double> > _vertexQDQX;
 
@@ -308,8 +261,6 @@ namespace larcv {
         std::vector<TVector3> _vertexEndPoints;
         std::vector<TVector3> _eventVertices;
         std::vector<std::vector<TVector3> > _vertexTracks;
-
-        std::vector<larcv::AStar3DNode> RecoedPath;
 
         std::vector<larcv::Image2D> hit_image_v;
         std::vector<larcv::Image2D> original_full_image_v;
@@ -330,8 +281,6 @@ namespace larcv {
         TSpline3 *sProtonRange2T;
         TSpline3 *sProtonT2dEdx;
 
-        TGraph   *gdQdXperPlane[3];
-
         std::vector<double> track_dQdX_v;
         std::vector<double> _vertexLength;
         std::vector<double> _vertexPhi;
@@ -343,15 +292,9 @@ namespace larcv {
         std::vector<std::vector<double> > _vertex_dQdX_v;
         std::vector<double> TruncateddQdXperPlane_v;
         std::vector<std::vector<double> > RawdQdXperPlane_v;
-        TGraph2D *gDetector;
-        TGraph2D *gWorld;
-
-        TFile *fEventOutput;
 
         larlite::track _thisLarliteTrack;
         larlite::event_track _vertexLarliteTracks;
-
-        TCanvas *c2;
 
     private:
         //	larutil::SpaceChargeMicroBooNE _sce;
