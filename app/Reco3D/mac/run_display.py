@@ -18,6 +18,7 @@ if len(sys.argv) < 6:
     print "EVENT_FILE      = str(sys.argv[5])"
     print
     print "since no event list (run, subrun, event, vertex) has been provided, all available vertices will be printed"
+    print
 
 import ROOT, sys
 from ROOT import std
@@ -47,10 +48,7 @@ proc = larcv.ProcessDriver('ProcessDriver')
 proc.configure(CONFIG_FILE)
 flist=ROOT.std.vector('std::string')()
 flist.push_back(ROOT.std.string(IMG_FILE))
-#flist.push_back(ROOT.std.string(IMG_FILE))
 proc.override_input_file(flist)
-
-#proc.override_ana_file(ROOT.std.string(os.path.join(OUTPUT_DIR,"tracker_anaout_%d.root" % num)))
 
 alg_id = proc.process_id("TrackerEventDisplay")
 alg    = proc.process_ptr(alg_id)
@@ -62,6 +60,7 @@ alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
 alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
 alg.SetEventList(ROOT.std.string(EVENT_FILE))
+
 
 proc.initialize()
 proc.batch_process()

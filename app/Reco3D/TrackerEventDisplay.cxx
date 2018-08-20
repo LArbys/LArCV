@@ -32,8 +32,8 @@
 //#include "LArCV/core/DataFormat/ChStatus.h"
 #include "AStarUtils.h"
 
-#include "AStar3DAlgo.h"
-#include "AStar3DAlgoProton.h"
+//#include "AStar3DAlgo.h"
+//#include "AStar3DAlgoProton.h"
 
 //#include "SCE/SpaceChargeMicroBooNE.h"
 #include "AStarTracker.h"

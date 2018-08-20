@@ -34,8 +34,8 @@
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 //#include "larcv/app/LArOpenCVHandle/LArbysUtils.h"
-#include "AStar3DAlgo.h"
-#include "AStar3DAlgoProton.h"
+//#include "AStar3DAlgo.h"
+//#include "AStar3DAlgoProton.h"
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
@@ -126,10 +126,10 @@ namespace larcv {
         void ConstructTrack();
         void ConstructVertex();
         void FindCluster();
+        void OrderPointsFromVertex();
         void PreSortAndOrderPoints();
         void SortAndOrderPoints();
         void MaskVertex();
-        void MaskTrack();
         void CleanUpVertex();
         void DiagnoseVertex();
         void DiagnoseTrack(size_t itrack);
@@ -137,6 +137,9 @@ namespace larcv {
         void RecoverFromFail();
         void DumpTrack();
         void FillInTrack();
+        void ComputeBezierTrack();
+        void AssignBezierWeights();
+
 
         bool initialize();
         bool finalize();
@@ -166,7 +169,9 @@ namespace larcv {
         double Tick2X(double tick, size_t plane)const; // TPC tick (waveform index) to X[cm] conversion
         double GetDist2track(TVector3 thisPoint, std::vector<TVector3> thisTrack);
 
-        TVector3        GetFurtherFromVertex();
+        TVector3 GetFurtherFromVertex();
+        TVector3 FindBezier(double t);
+        TVector3 FindBezierWeights(double t);
 
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, double dR);
         std::vector<TVector3>   GetOpenSet(TVector3 newPoint, int BoxSize, double dR);
@@ -179,7 +184,6 @@ namespace larcv {
         std::vector<double>  GetAverageIonization_Yplane(double distAvg = -1);// average Y plane pixel intensity over reconstructed points
         std::vector<double>  GetTotalIonization_Yplane(double distAvg = -1);// total Y plane plane pixel intensity over reconstructed points
         std::vector<double>  GetTotalIonization(double distAvg = -1);// total pixel intensity over reconstructed points
-        std::vector<double>  ComputeTruncateddQdX(double);
         std::vector<double>  GetVertexPhi(){return _vertexPhi;}
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 
@@ -198,7 +202,7 @@ namespace larcv {
 
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
-        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative()*/;ShaveTracks();}
+        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative();*/ShaveTracks();}
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
@@ -287,11 +291,10 @@ namespace larcv {
         std::vector<double> _vertexTheta;
         std::vector<double> _closestWall;
         std::vector<double> _closestWall_SCE;
+        std::vector<double> BezierWeights;
         std::vector<std::vector<double> > dQdXperPlane_v;
         std::vector<std::vector<TGraph*> > eventdQdXgraphs;
         std::vector<std::vector<double> > _vertex_dQdX_v;
-        std::vector<double> TruncateddQdXperPlane_v;
-        std::vector<std::vector<double> > RawdQdXperPlane_v;
 
         larlite::track _thisLarliteTrack;
         larlite::event_track _vertexLarliteTracks;

@@ -107,8 +107,6 @@ namespace larcv {
         std::vector<double> _IonY_10cm_v;
         std::vector<double> _IonY_tot_v;
 
-        std::vector<double> _Trunc_dQdX1_v;
-        std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
         std::vector<std::vector<double>> _trackQ3_v;
         std::vector<std::vector<double>> _trackQ5_v;
