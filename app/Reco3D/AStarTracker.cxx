@@ -439,7 +439,7 @@ namespace larcv {
         SortAndOrderPoints();
         //OrderPointsFromVertex();
         RegularizeTrack();
-        //ComputeBezierTrack();
+        ComputeBezierTrack();
         ComputeLength();
         if(_Length3D > 0){
             std::cout << "add track" << std::endl;
