@@ -436,9 +436,9 @@ namespace larcv {
         //double trackMinLength = 1.5;
         FindCluster();
         end_pt = GetFurtherFromVertex();
+        OrderPointsFromVertex();
         SortAndOrderPoints();
-        //OrderPointsFromVertex();
-        RegularizeTrack();
+        //RegularizeTrack();
         ComputeBezierTrack();
         ComputeLength();
         if(_Length3D > 0){
