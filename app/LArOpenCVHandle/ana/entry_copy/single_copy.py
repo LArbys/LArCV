@@ -1,3 +1,4 @@
+from larlitecv import larlitecv
 import os,sys, tempfile
 
 if len(sys.argv) != 10:
@@ -66,7 +67,7 @@ INDIR  = "%03d/%02d/%03d/%02d/"%(rundiv100,runmod100,subrundiv100,subrunmod100)
 PREFIX_FILE = ""
 if STAGE == int(1):
     PREFIX_FILE = os.path.join(STAGE1_DIR,INDIR,"%s-%s.root" % (PREFIX,FNAME))
-if STAGE == int(2):
+elif STAGE == int(2):
     PREFIX_FILE = os.path.join(STAGE2_DIR,INDIR,"%s_%s.root" % (PREFIX,JOBTAG))
 else:
     raise Exception
