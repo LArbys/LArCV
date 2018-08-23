@@ -438,8 +438,8 @@ namespace larcv {
         end_pt = GetFurtherFromVertex();
         OrderPointsFromVertex();
         SortAndOrderPoints();
-        //RegularizeTrack();
-        ComputeBezierTrack();
+        RegularizeTrack();
+        //ComputeBezierTrack();
         ComputeLength();
         if(_Length3D > 0){
             std::cout << "add track" << std::endl;
