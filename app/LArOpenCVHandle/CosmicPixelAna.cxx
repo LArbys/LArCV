@@ -233,7 +233,7 @@ namespace larcv {
       auto crop_stopmu = stopmu_img2d.crop(bb);
       
       auto crop_cosmic_img = crop_thrumu;
-      crop_cosmic_img += crop_stopmu;
+      // crop_cosmic_img += crop_stopmu;
 
       crop_cosmic_img.eltwise(crop_img2d);
       
