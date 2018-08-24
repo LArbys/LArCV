@@ -162,13 +162,7 @@ def initialize_nueid(SHR_ANA1,
 
         comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
         comb_df.reset_index(inplace=True)
-        
-        if isdata==False:
-            comb_df.set_index(RSE,inplace=True)
-            comb_df = comb_df.join(ana_shr2_df,how='outer',lsuffix='',rsuffix='_q')
-            drop_q(comb_df)
 
-        comb_df.reset_index(inplace=True)
         return comb_df
 
     except IOError:
@@ -231,7 +225,10 @@ def initialize_df(input_file,data=False):
 
     print "Reindex..."
     vertex_df.set_index(rserv,inplace=True)
-    
+    shape_df.set_index(rserv,inplace=True)
+    match_df.set_index(rserv,inplace=True)
+    shower_df.set_index(rserv,inplace=True)
+ 
     #
     # Combine DataFrames
     #

@@ -40,3 +40,5 @@ proc.override_output_file(os.path.join(OUTDIR,PGRFILE))
 proc.initialize()
 proc.batch_process()
 proc.finalize()
+
+sys.exit(0)
