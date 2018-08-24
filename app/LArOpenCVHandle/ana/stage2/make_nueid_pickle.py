@@ -41,7 +41,7 @@ nueid_df = initialize_nueid(SHR_ANA1,
                             NUEID_ANA,
                             FLASH_ANA)
 
-nueid_df.to_pickle(os.path.join(OUTDIR,"nueid_comb_df_%d.pkl" % num))
+nueid_df.to_pickle(os.path.join(OUTDIR,"nueid_comb_df_%s.pkl" % NUM))
 del nueid_df
 gc.collect()
 
