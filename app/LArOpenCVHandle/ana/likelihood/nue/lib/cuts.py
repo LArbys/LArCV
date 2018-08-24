@@ -1,4 +1,19 @@
 from cut_functions import *
+import pandas as pd
+
+# 
+# Cut application
+#
+
+def apply_cuts(COMB_DF) :
+
+    comb_df = pd.read_pickle(COMB_DF)
+    
+    print "Applying cuts"
+    
+    print "Done"
+
+    return out_df
 
 #
 # Boxed cuts

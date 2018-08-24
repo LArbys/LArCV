@@ -4,15 +4,15 @@ import ROOT
 import root_numpy as rn
 from common import *
 
-def initialize_rst(VTX_DF,ST_DF):
+def initialize_rst(VTX_DF,NUE_DF):
 
     comb_df = pd.DataFrame()
     
     ana_vtx_df = pd.read_pickle(VTX_DF)
-    ana_st_df  = pd.read_pickle(ST_DF)
+    ana_nue_df  = pd.read_pickle(NUE_DF)
 
     print "ana_vtx.index.size=",ana_vtx_df.index.size
-    print "ana_st_df.index.size=",ana_st_df.index.size
+    print "ana_nue_df.index.size=",ana_nue_df.index.size
 
     if 'vtxid' not in ana_vtx_df.columns:
         print "No vertex dataframe encountered"
@@ -22,15 +22,15 @@ def initialize_rst(VTX_DF,ST_DF):
         ana_vtx_df.reset_index(inplace=True)
 
         # no mcinfo filled
-        if ana_st_df.index.size == 0:
+        if ana_nue_df.index.size == 0:
             return ana_vtx_df
 
-        # event mcinfo filled
-        ana_st_df.set_index(RSE,inplace=True)
+        # data frame is filled
+        ana_nue_df.set_index(RSE,inplace=True)
 
-        assert ana_st_df.index.size == ana_vtx_df.index.size
+        assert ana_nue_df.index.size == ana_vtx_df.index.size
 
-        comb_df = ana_vtx_df.join(ana_st_df,how='outer',lsuffix='',rsuffix='_q')
+        comb_df = ana_vtx_df.join(ana_nue_df,how='outer',lsuffix='',rsuffix='_q')
         drop_q(comb_df)
         comb_df.reset_index(inplace=True)
         return comb_df
@@ -41,11 +41,7 @@ def initialize_rst(VTX_DF,ST_DF):
     ana_locv_df = ana_vtx_df.query("num_vertex>0").copy()
     ana_rest_df = ana_vtx_df.drop(ana_locv_df.index).copy()
 
-    ana_ll_df   = ana_st_df.query("vtxid>=0").copy()
-    ana_lest_df = ana_st_df.drop(ana_ll_df.index).copy()
-
     assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
-    assert ((ana_lest_df.index.size + ana_ll_df.index.size) == ana_st_df.index.size)
 
     ana_locv_df.set_index(RSEV,inplace=True)
     ana_locv_df = ana_locv_df.add_prefix('locv_')
@@ -54,34 +50,27 @@ def initialize_rst(VTX_DF,ST_DF):
     
     print "ana_locv_df.index.size=",ana_locv_df.index.size
     print "ana_ll_df.index.size=",ana_ll_df.index.size
+    assert (ana_locv_df.index.size == ana_nue_df.index.size)
 
     df_v    = [ana_ll_df,ana_locv_df]
     comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
 
     comb_df.reset_index(inplace=True)
-
-    comb_df.set_index(RSE,inplace=True)
-
     ana_rest_df.set_index(RSE,inplace=True)
-    ana_lest_df.set_index(RSE,inplace=True)
 
     print "ana_rest_df.index.size=",ana_rest_df.index.size
-    print "ana_lest_df.index.size=",ana_lest_df.index.size
 
     cols = ana_rest_df.columns[~ana_rest_df.columns.str.contains('vtxid')]
     ana_rest_df.rename(columns = dict(zip(cols, 'locv_' + cols)), inplace=True)
 
-    ana_rest_lest_df = pd.concat([ana_rest_df, ana_lest_df],axis=1,join_axes=[ana_rest_df.index])
+    ana_rest_df = ana_rest_df.loc[:,~ana_rest_df.columns.duplicated()]
 
-    ana_rest_lest_df = ana_rest_lest_df.loc[:,~ana_rest_lest_df.columns.duplicated()]
-    
-    comb_df.reset_index(inplace=True)
     ana_rest_lest_df.reset_index(inplace=True)
 
     print "comb_df.index.size=",comb_df.index.size
-    print "ana_rest_lest_df.index.size=",ana_rest_lest_df.index.size
+    print "ana_rest_df.index.size=",ana_rest_df.index.size
 
-    comb_df = comb_df.append(ana_rest_lest_df,ignore_index=True)
+    comb_df = comb_df.append(ana_rest_df,ignore_index=True)
     
     print "now... comb_df.index.size=",comb_df.index.size
 
