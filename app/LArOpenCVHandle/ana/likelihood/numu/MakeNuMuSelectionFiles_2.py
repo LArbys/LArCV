@@ -595,6 +595,6 @@ for ev in TrkTree:
 
 outTree.Write()
 outFile.Close()
-       
+sys.exit(0)       
 
 
