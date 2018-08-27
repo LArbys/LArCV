@@ -1,7 +1,7 @@
-#ifndef __INTERWRITEOUT_CXX__
-#define __INTERWRITEOUT_CXX__
+#ifndef __INTERWRITEOUTLC_CXX__
+#define __INTERWRITEOUTLC_CXX__
 
-#include "InterWriteOut.h"
+#include "InterWriteOutLC.h"
 
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventImage2D.h"
@@ -9,13 +9,13 @@
 
 namespace larcv {
 
-  static InterWriteOutProcessFactory __global_InterWriteOutProcessFactory__;
+  static InterWriteOutLCProcessFactory __global_InterWriteOutLCProcessFactory__;
 
-  InterWriteOut::InterWriteOut(const std::string name)
+  InterWriteOutLC::InterWriteOutLC(const std::string name)
     : ProcessBase(name)
   {}
     
-  bool InterWriteOut::process(IOManager& mgr) {
+  bool InterWriteOutLC::process(IOManager& mgr) {
 
     larcv::EventPGraph* ev_inter_pgraph = nullptr;
     ev_inter_pgraph = (larcv::EventPGraph*)mgr.get_data(larcv::kProductPGraph,"inter_par");

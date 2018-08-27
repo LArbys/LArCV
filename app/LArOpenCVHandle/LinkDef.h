@@ -28,7 +28,7 @@
 #pragma link C++ class larcv::PIDImageMaker+;
 #pragma link C++ class larcv::PGraphTruthMatch+;
 #pragma link C++ class larcv::LArbysLoader+;
-#pragma link C++ class larcv::InterWriteOut+;
+#pragma link C++ class larcv::InterWriteOutLC+;
 
 #endif
 
