@@ -38,7 +38,7 @@ df.rename(columns={'potsummary_generator_branch.fRunNumber':'run',
                    'potsummary_generator_branch.totpot' : 'pot'},inplace=True)
 
 df['pot_fname'] = OUTNAME
-FOUT="pot_%s.root"%os.path.join(OUTDIR,OUTNAME)
+FOUT=os.path.join(OUTDIR,"%s.root"%OUTNAME)
 tf = ROOT.TFile.Open(FOUT,"RECREATE")
 print "OPEN %s"%FOUT
 tf.cd()
