@@ -24,7 +24,8 @@ from lib.cuts import apply_cuts
 
 cut_df = apply_cuts(COMB_DF)
 
-cut_df.to_pickle(os.path.join(OUTDIR,"comb_cut_df_%s.pkl" % NUM))
+out_file = os.path.join(OUTDIR,"comb_cut_df_%s.pkl" % NUM)
+cut_df.to_pickle(out_file)
 
 del cut_df
 gc.collect()

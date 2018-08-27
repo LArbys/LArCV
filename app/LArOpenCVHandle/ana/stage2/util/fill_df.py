@@ -46,13 +46,13 @@ def initialize_rst(VTX_DF,NUE_DF):
     ana_locv_df.set_index(RSEV,inplace=True)
     ana_locv_df = ana_locv_df.add_prefix('locv_')
 
-    ana_ll_df.set_index(RSEV,inplace=True)
+    ana_nue_df.set_index(RSEV,inplace=True)
     
     print "ana_locv_df.index.size=",ana_locv_df.index.size
-    print "ana_ll_df.index.size=",ana_ll_df.index.size
+    print "ana_nue_df.index.size=",ana_nue_df.index.size
     assert (ana_locv_df.index.size == ana_nue_df.index.size)
 
-    df_v    = [ana_ll_df,ana_locv_df]
+    df_v    = [ana_nue_df,ana_locv_df]
     comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
 
     comb_df.reset_index(inplace=True)
@@ -64,8 +64,6 @@ def initialize_rst(VTX_DF,NUE_DF):
     ana_rest_df.rename(columns = dict(zip(cols, 'locv_' + cols)), inplace=True)
 
     ana_rest_df = ana_rest_df.loc[:,~ana_rest_df.columns.duplicated()]
-
-    ana_rest_lest_df.reset_index(inplace=True)
 
     print "comb_df.index.size=",comb_df.index.size
     print "ana_rest_df.index.size=",ana_rest_df.index.size

@@ -10,6 +10,8 @@ def apply_cuts(COMB_DF) :
     comb_df = pd.read_pickle(COMB_DF)
     
     print "Applying cuts"
+
+    out_df = comb_df.copy()
     
     print "Done"
 
