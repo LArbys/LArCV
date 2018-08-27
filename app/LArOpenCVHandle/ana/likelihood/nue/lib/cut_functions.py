@@ -88,6 +88,9 @@ def define_ep(row):
     par1_len_v = np.array([row['nueid_par1_linelength_U'],row['nueid_par1_linelength_V'],row['nueid_par1_linelength_Y']])
     par2_len_v = np.array([row['nueid_par2_linelength_U'],row['nueid_par2_linelength_V'],row['nueid_par2_linelength_Y']])
     
+    if np.isnan(par1_v[0]) == True:
+	return ret_v 
+
     par1_idx_v = np.where(par1_v>0)[0]
     if par1_idx_v.size == 0: 
         return ret_v
