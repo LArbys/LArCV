@@ -25,8 +25,7 @@ OUTDIR  = str(sys.argv[4])
 from lib.cuts import apply_cuts
 drop_list = None
 if DROP == 1:
-drop_lis
-
+    drop_list = os.path.join(BASE_PATH,"txt","drop_list.txt")
 
 cut_df = apply_cuts(COMB_DF,drop_list=drop_list)
 

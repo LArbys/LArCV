@@ -1,26 +1,129 @@
 from cut_functions import *
 import pandas as pd
+from collections import OrderedDict
 
 # 
 # Cut application
 #
 
-def apply_cuts(COMB_DF) :
+def apply_cuts(COMB_DF,drop_list=None):
+    print "Applying cuts..."
 
     comb_df = pd.read_pickle(COMB_DF)
     
-    print "Applying cuts"
-
     out_df = comb_df.copy()
+
+    # clean data frame
+    out_df = drop_columns(out_df,drop_list)
     
-    print "Done"
+    # set electron v. proton
+    out_df = set_particle_id(out_df)
+    
+    # set particle
+    out_df = set_particle_energy(out_df)
+
+    # set cuts
+    out_df = set_cuts(out_df)
+
+    print "...done"
 
     return out_df
 
 #
+# Set particles
+#
+def set_particle_id(df):
+    odf = df.copy()
+
+    odf['rpid']  = odf.apply(define_ep,axis=1)
+    odf['pid']   = odf['rpid'].str[0].values
+    odf['eid']   = odf['rpid'].str[1].values
+    odf['pfrac'] = odf['rpid'].str[2].values
+    odf['efrac'] = odf['rpid'].str[3].values
+    
+    odf.drop(columns=['rpid'],
+             inplace=True,
+             errors='ignore')    
+    
+    return odf
+
+def set_particle_energy(df):
+    odf = df.copy()
+    
+    odf['reco_proton_energy']   = odf.apply(reco_proton_energy,axis=1)
+    odf['reco_electron_energy'] = odf.apply(reco_electron_energy,axis=1)
+    odf['reco_energy']          = odf.apply(reco_energy,axis=1)
+    odf['reco_ccqe_p']          = odf.apply(reco_ccqe_energy,axis=1)    
+    
+    return odf
+
+#
+# drop unused columns
+#
+
+def drop_columns(df,drop_list=None):
+    odf = df.copy()
+    
+    if drop_list == None:
+        return odf
+
+    drop_list_v = None
+    with open(drop_list,"r") as f:
+        drop_list_v = f.read()
+
+    drop_list_v = drop_list_v.split("\n")
+    drop_list_v = [d for d in drop_list_v if d!='']
+    
+    odf.drop(columns=drop_list_v,
+             inplace=True,
+             errors='ignore')
+
+    return odf
+
+#
+# Set Cuts
+#
+def set_cuts(df):
+    odf = df.copy()
+    
+    cut_v = OrderedDict()
+    cut_v["c01"] = c01
+    cut_v["c02"] = c02
+    cut_v["c22"] = c22
+    cut_v["c23"] = c23
+    cut_v["c24"] = c24
+    cut_v["c25"] = c25
+    cut_v["c26"] = c26
+    cut_v["c27"] = c27
+    cut_v["c28"] = c28
+    cut_v["c29"] = c29
+    cut_v["c30"] = c30
+    cut_v["c31"] = c31
+    cut_v["c32"] = c32
+    cut_v["c33"] = c33
+    cut_v["c34"] = c34
+    cut_v["c35"] = c35
+    cut_v["c36"] = c36
+    cut_v["c37"] = c37
+    cut_v["c38"] = c38
+    cut_v["c39"] = c39
+    cut_v["c40"] = c40
+    cut_v["c41"] = c41
+    cut_v["c42"] = c42
+    cut_v["c43"] = c43
+    cut_v["c44"] = c44
+    cut_v["c45"] = c45
+
+    for cname in cut_v.keys():
+        odf[cname] = odf.apply(cut_v[cname],axis=1)
+
+
+    return odf
+
+#
 # Boxed cuts
 #
-def c1(row):
+def c01(row):
     ret = 0
 
     two = (row['nueid_vtx_xing_U']==2 and 
@@ -33,7 +136,7 @@ def c1(row):
 
     return ret
 
-def c2(row):
+def c02(row):
     ret = 0
 
     cut = float(np.min(row['nueid_edge_cosmic_vtx_dist_v']))
@@ -200,8 +303,8 @@ def c28(row):
     if int(row['eid']) < 0: 
         return ret
     
-    p_E_cal = reco_energy2(row,"pid")
-    e_E_cal = reco_energy2(row,"eid")
+    p_E_cal = row['reco_proton_energy']
+    e_E_cal = row['reco_electron_energy']
 
     e_p_E_cal = p_E_cal + e_E_cal
     
