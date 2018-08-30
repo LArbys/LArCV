@@ -1,4 +1,5 @@
 from constants import *
+import numpy as np
 
 #
 #
@@ -80,7 +81,8 @@ def param_array(row,prefix):
     prefix = "_".join(ps[2:-1])
     SS = par_id + "_planes_v"
     par_planes_v = row[SS]
-
+    
+    res_v = []
     for ix in xrange(3):
         if par_planes_v[ix] == 0:
             continue
@@ -130,18 +132,19 @@ def pparam_array(row,pid,prefix):
     if par < 0:
         return res
 
-    par_id = "nueid_"+par
+    par_id = "nueid_par%d" % par
     ps = prefix.split("_")
     prefix = "_".join(ps[2:-1])
     SS = par_id + "_planes_v"
     par_planes_v = row[SS]
-
+    
+    res_v = []
     for ix in xrange(3):
         if par_planes_v[ix] == 0:
             continue
         alpha = PLANE_TO_ALPHA[ix]
         SS = par_id + "_" + prefix + "_" + alpha
-        val = row[val]
+        val = row[SS]
         res_v.append(val)
     
     return res_v
@@ -159,7 +162,7 @@ def max_pparam(row,pid,prefix):
     
     return res
 
-def min_pparam(row,prefix):
+def min_pparam(row,pid,prefix):
     res = float(-1)
     
     res_v = pparam_array(row,pid,prefix)
@@ -172,7 +175,7 @@ def min_pparam(row,prefix):
     
     return res
 
-def mean_pparam(row,prefix):
+def mean_pparam(row,pid,prefix):
     
     res = float(-1)
     

@@ -41,7 +41,8 @@ def set_particle_id(df):
     odf['pfrac'] = odf['rpid'].str[2].values
     odf['efrac'] = odf['rpid'].str[3].values
     
-    odf.drop(columns=['rpid'],
+    odf.drop(labels=['rpid'],
+             axis=1,
              inplace=True,
              errors='ignore')    
     
@@ -74,7 +75,8 @@ def drop_columns(df,drop_list=None):
     drop_list_v = drop_list_v.split("\n")
     drop_list_v = [d for d in drop_list_v if d!='']
     
-    odf.drop(columns=drop_list_v,
+    odf.drop(labels=drop_list_v,
+             axis=1,
              inplace=True,
              errors='ignore')
 
@@ -436,7 +438,7 @@ def c35(row):
     
     ret = 0
     
-    if int(ow['eid']) < 0: 
+    if int(row['eid']) < 0: 
         return ret
     
     emax = max_pparam(row,"eid","nueid_par1_linelength_U")
