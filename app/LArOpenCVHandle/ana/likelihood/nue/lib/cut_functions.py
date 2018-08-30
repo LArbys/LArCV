@@ -82,6 +82,10 @@ def bless_scedr(row):
 def define_ep(row):
     ret_v = [-1,-1,-1,-1]
     
+    # empty data frame
+    if 'nueid_par1_linefrac_U' not in row.keys():
+        return ret_v
+
     par1_v = np.array([row['nueid_par1_linefrac_U'],row['nueid_par1_linefrac_V'],row['nueid_par1_linefrac_Y']])
     par2_v = np.array([row['nueid_par2_linefrac_U'],row['nueid_par2_linefrac_V'],row['nueid_par2_linefrac_Y']])
     
