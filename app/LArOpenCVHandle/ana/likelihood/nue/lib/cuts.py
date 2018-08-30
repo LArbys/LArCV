@@ -13,6 +13,9 @@ def apply_cuts(COMB_DF,drop_list=None):
     
     out_df = comb_df.copy()
 
+    if 'nueid_vertex_x' not in out_df.columns:
+        return out_df
+
     # clean data frame
     out_df = drop_columns(out_df,drop_list)
     
