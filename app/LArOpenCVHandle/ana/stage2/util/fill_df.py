@@ -16,30 +16,34 @@ def initialize_rst(VTX_DF,NUE_DF):
 
     if 'vtxid' not in ana_vtx_df.columns:
         print "No vertex dataframe encountered"
-        
+
+        ana_vtx_df['run']     = ana_vtx_df['run'].astype(np.int32)
+        ana_vtx_df['subrun']  = ana_vtx_df['subrun'].astype(np.int32)
+        ana_vtx_df['event']   = ana_vtx_df['event'].astype(np.int32)
+
         ana_vtx_df.set_index(RSE,inplace=True)
         ana_vtx_df = ana_vtx_df.add_prefix('locv_')
         ana_vtx_df.reset_index(inplace=True)
 
-        # no mcinfo filled
-        if ana_nue_df.index.size == 0:
-            return ana_vtx_df
-
-        # data frame is filled
-        ana_nue_df.set_index(RSE,inplace=True)
-
-        assert ana_nue_df.index.size == ana_vtx_df.index.size
-
-        comb_df = ana_vtx_df.join(ana_nue_df,how='outer',lsuffix='',rsuffix='_q')
-        drop_q(comb_df)
-        comb_df.reset_index(inplace=True)
         return comb_df
+
+
+    ana_vtx_df['run']     = ana_vtx_df['run'].astype(np.int32)
+    ana_vtx_df['subrun']  = ana_vtx_df['subrun'].astype(np.int32)
+    ana_vtx_df['event']   = ana_vtx_df['event'].astype(np.int32)
+    
+    ana_nue_df['run']    = ana_nue_df['run'].astype(np.int32)
+    ana_nue_df['subrun'] = ana_nue_df['subrun'].astype(np.int32)
+    ana_nue_df['event']  = ana_nue_df['event'].astype(np.int32)
+    ana_nue_df['vtxid']  = ana_nue_df['vtxid'].astype(np.int32)
 
     ana_vtx_df.drop(['vtxid'],axis=1,inplace=True)
     ana_vtx_df.rename(columns={'cvtxid' : 'vtxid'},inplace=True)
 
     ana_locv_df = ana_vtx_df.query("num_vertex>0").copy()
     ana_rest_df = ana_vtx_df.drop(ana_locv_df.index).copy()
+
+    ana_locv_df['vtxid'] = ana_locv_df['vtxid'].astype(np.int32)
 
     assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
 
@@ -56,6 +60,7 @@ def initialize_rst(VTX_DF,NUE_DF):
     comb_df = pd.concat(df_v,axis=1,join_axes=[df_v[0].index])
 
     comb_df.reset_index(inplace=True)
+
     ana_rest_df.set_index(RSE,inplace=True)
 
     print "ana_rest_df.index.size=",ana_rest_df.index.size
@@ -67,6 +72,8 @@ def initialize_rst(VTX_DF,NUE_DF):
 
     print "comb_df.index.size=",comb_df.index.size
     print "ana_rest_df.index.size=",ana_rest_df.index.size
+
+    ana_rest_df.reset_index(inplace=True)
 
     comb_df = comb_df.append(ana_rest_df,ignore_index=True)
     
