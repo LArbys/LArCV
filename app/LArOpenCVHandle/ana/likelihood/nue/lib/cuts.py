@@ -6,13 +6,27 @@ from collections import OrderedDict
 # Cut application
 #
 
-def apply_cuts(COMB_DF,drop_list=None):
+def apply_cuts(COMB_CUT_DF,CUT_CFG)
     print "Applying cuts..."
-
-    comb_df = pd.read_pickle(COMB_DF)
+    
+    comb_df = pd.read_pickle(COMB_CUT_DF)
     
     out_df = comb_df.copy()
 
+    
+    
+    
+    
+    
+    return out_df
+
+def parse_cuts(COMB_DF,drop_list=None):
+    print "Building cuts..."
+    
+    comb_df = pd.read_pickle(COMB_DF)
+    
+    out_df = comb_df.copy()
+    
     if 'nueid_vertex_x' not in out_df.columns:
         return out_df
 
