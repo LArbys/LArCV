@@ -44,6 +44,7 @@ def initialize_rst(VTX_DF,NUE_DF):
     ana_rest_df = ana_vtx_df.drop(ana_locv_df.index).copy()
 
     ana_locv_df['vtxid'] = ana_locv_df['vtxid'].astype(np.int32)
+    ana_rest_df['vtxid'] = int(-1)
 
     assert ((ana_rest_df.index.size + ana_locv_df.index.size) == ana_vtx_df.index.size)
 

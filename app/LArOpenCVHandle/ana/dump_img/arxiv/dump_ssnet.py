@@ -1,3 +1,4 @@
+from larlitecv import larlitecv
 import os,sys
 
 BASE_PATH = os.path.realpath(__file__)
@@ -127,7 +128,7 @@ for plane in xrange(3):
 
         ctor=ctor[plane]
         if ctor.size==0: continue
-        #ax.plot(ctor[:,0],ctor[:,1],'-',lw=5,color=colors[ix],alpha=1.0)
+        ax.plot(ctor[:,0],ctor[:,1],'-',lw=5,color=colors[ix],alpha=1.0)
         
         if ctor[:,0].min() < xmin : xmin = ctor[:,0].min()
         if ctor[:,0].max() > xmax : xmax = ctor[:,0].max()
@@ -137,8 +138,8 @@ for plane in xrange(3):
 
     
     if xmin != 1e9:
-        ax.set_xlim(xmin-25,xmax+25)
-        ax.set_ylim(ymin-25,ymax+25)
+        ax.set_xlim(xmin-50,xmax+50)
+        ax.set_ylim(ymin-50,ymax+50)
 
     SS = "{}_{}_{} Plane={}".format(ev_img.run(),ev_img.subrun(),ev_img.event(),plane)
     ax.set_title(SS,fontweight='bold',fontsize=50)        

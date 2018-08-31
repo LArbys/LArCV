@@ -3,6 +3,61 @@ from common_functions import *
 #
 #
 #
+def determine_flash(row):
+
+    ret = 1e9
+
+    eid = int(row['eid'])
+    pid = int(row['pid'])
+
+    if eid < 1 or pid < 1:
+        return ret
+
+    eid -= 1
+    pid -= 1
+
+    proton_shower_idx_vv = np.vstack(row['flash_proton_shower_pair_vv'])
+
+    par_bool=((pid==proton_shower_idx_vv[:,0])&(eid==proton_shower_idx_vv[:,1]))
+    proton_shower_idx = np.where(par_bool)
+
+    if len(proton_shower_idx)==0:
+        return ret
+    
+    proton_shower_idx = int(proton_shower_idx[0])
+    
+    chi2_shape_1e1p_v = row['flash_proton_shower_chi2_shape_1e1p_v']
+
+    if proton_shower_idx >= chi2_shape_1e1p_v.size:
+        return ret
+
+    chi2_shape = chi2_shape_1e1p_v[proton_shower_idx]
+
+    ret = float(chi2_shape)
+
+    return ret
+#
+#
+#
+def read_config(cut_cfg):
+    ret = ""
+
+    data = None
+    with open(cut_cfg,'r') as f:
+        data = f.read()
+
+    if data is None:
+        return ret
+    
+    data_v = data.split("\n")
+    data_v = [d for d in data_v if d!='']
+    
+    ret = "&".join(data_v)
+        
+    return ret
+#
+#
+#
 def dqdx_plane(row,pid,plane):
     res = [0,[],[],0,0]
     
@@ -147,7 +202,6 @@ def define_ep(row):
 #
 #
 #
-
 def electron_func_PX_to_MEV(x):
     return (x - 1972.47) / 72.66
 

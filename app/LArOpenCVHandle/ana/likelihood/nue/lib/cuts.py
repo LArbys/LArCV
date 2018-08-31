@@ -6,17 +6,31 @@ from collections import OrderedDict
 # Cut application
 #
 
-def apply_cuts(COMB_CUT_DF,CUT_CFG)
+def apply_cuts(cut_df,CUT_CFG):
     print "Applying cuts..."
     
-    comb_df = pd.read_pickle(COMB_CUT_DF)
-    
-    out_df = comb_df.copy()
+    out_df = cut_df.copy()
 
+    out_df['passed_cuts'] = 0
+    out_df['selected'] = 0
     
+    cut_ss = read_config(CUT_CFG)
+
+    passed_index = out_df.query(cut_ss).index
+    out_df.loc[passed_index, 'passed_cuts'] = 1
     
-    
-    
+    out_df['flash_chi2'] = out_df.apply(determine_flash,axis=1)
+
+    passed_df = out_df.query("passed_cuts==1")
+
+    if passed_df.empty == True:
+        return out_df
+
+    flash_index = passed_df.sort_values(['flash_chi2'],ascending=True).groupby(RSE).head(1).index
+
+    out_df.loc[flash_index, 'selected'] = 1
+
+    print "...done!"    
     
     return out_df
 
