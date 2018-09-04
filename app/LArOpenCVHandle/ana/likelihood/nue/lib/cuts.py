@@ -13,7 +13,10 @@ def apply_cuts(cut_df,CUT_CFG):
 
     out_df['passed_cuts'] = 0
     out_df['selected'] = 0
-    
+
+    if 'nueid_vertex_x' not in out_df.columns:
+        return out_df
+        
     cut_ss = read_config(CUT_CFG)
 
     passed_index = out_df.query(cut_ss).index

@@ -25,7 +25,9 @@ def initialize_rst(VTX_DF,NUE_DF):
         ana_vtx_df = ana_vtx_df.add_prefix('locv_')
         ana_vtx_df.reset_index(inplace=True)
 
-        return comb_df
+        print "ana_vtx_df.shape=",ana_vtx_df.shape
+        
+        return ana_vtx_df 
 
 
     ana_vtx_df['run']     = ana_vtx_df['run'].astype(np.int32)
