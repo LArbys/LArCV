@@ -12,6 +12,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
+INCFLAGS += $(shell larlite-config --includes)
 
 ifdef GEO2D_BASEDIR
 INCFLAGS += $(shell geo2d-config --includes)
@@ -30,6 +31,7 @@ OSNAMEMODE      = $(OSNAME)
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
 LDFLAGS += $(shell larcv-config --libs)
+LDFLAGS += $(shell larlite-config --libs)
 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE

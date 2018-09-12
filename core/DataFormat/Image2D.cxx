@@ -418,5 +418,100 @@ namespace larcv {
 
     eltwise(rhs.as_vector(),false);
   }
+  
+  void Image2D::modifyMeta( const ImageMeta& newmeta ) {
+    // we do a copy and swap -- meta small enough where copy is ok
+    // also, the nrows*ncols must match the underlying data. we can change the coordinates though
+    if ( meta().rows()!=newmeta.rows() || meta().cols()!=newmeta.cols() ) {
+      char nope[500];
+      sprintf( nope, "Can only modify meta when number of rows and colums are the same. we can only change the coordinate system." );
+      throw larbys(nope);
+    }
+    ImageMeta m(newmeta);
+    std::swap(m,_meta);
+  }
 
+  void Image2D::copy_region( size_t dest_row_start, size_t dest_col_start, size_t src_row_start, size_t nrows, size_t src_col_start, size_t ncols, const larcv::Image2D& src ) {
+    
+    for (size_t c=0; c<ncols; c++) {
+      size_t dest_index = meta().index( dest_row_start, dest_col_start+c );
+      size_t src_index = src.meta().index( src_row_start, src_col_start+c );
+      memcpy( &_img[dest_index], &src.as_vector()[src_index], nrows*sizeof(float) ); // much, much faster
+    }
+    
+  }
+
+  void Image2D::copy_region(  const larcv::Image2D& src ) {
+    // we assume same pixel scale
+    
+    // we in bounds?
+    if ( meta().min_x() > src.meta().max_x()
+	 || meta().max_x() < src.meta().min_x()
+	 || meta().min_y() > src.meta().max_y()
+	 || meta().max_y() < src.meta().min_y() )
+      return; // no overlap, so no copy
+    
+    //size_t dest_row_start, size_t dest_col_start, size_t src_row_start, size_t nrows, size_t src_col_start, size_t ncols;
+    size_t src_col_start = 0;
+    size_t des_col_start = 0;
+    if ( meta().min_x() > src.meta().min_x() )
+      src_col_start = src.meta().col( meta().min_x() );
+    else
+      des_col_start = meta().col( src.meta().min_x() );
+    
+    size_t src_row_start = 0;
+    size_t des_row_start = 0;
+    if ( meta().min_y() > src.meta().min_y() )
+      src_row_start = src.meta().row( meta().min_y() );
+    else
+      des_row_start = meta().row( src.meta().min_y() );
+    
+    size_t src_col_end = src.meta().cols()-1;
+    size_t des_col_end = meta().cols()-1;
+    if ( meta().max_x() < src.meta().max_x() )
+      src_col_end = src.meta().col( meta().max_x() );
+    else
+      des_col_end = meta().col( src.meta().max_x() );
+
+    size_t src_row_end = src.meta().rows()-1;
+    size_t des_row_end = meta().rows()-1;
+    if ( meta().max_y() < src.meta().max_y() )
+      src_row_end = src.meta().row( meta().max_y() );
+    else
+      des_row_end = meta().row( src.meta().max_y() );
+
+    size_t src_nrows = src_row_end - src_row_start + 1;
+    size_t src_ncols = src_col_end - src_col_start + 1;
+    size_t des_nrows = des_row_end - des_row_start + 1;
+    size_t des_ncols = des_col_end - des_col_start + 1;
+
+    size_t nrows = ( src_nrows > des_nrows ) ? des_nrows : src_nrows;
+    size_t ncols = ( src_ncols > des_ncols ) ? des_ncols : src_ncols;
+
+    // std::cout << "copy_region. "
+    // 	      << " src start (r,c)=(" << src_row_start << "," << src_col_start << ") "
+    // 	      << " det start (r,c)=(" << des_row_start << "," << des_col_start << ") "
+    // 	      << " : "
+    // 	      << " src end (r,c)=(" << src_row_end << "," << src_col_end << ") "
+    // 	      << " det end (r,c)=(" << des_row_end << "," << des_col_end << ") "
+    // 	      << " ncols=" << ncols
+    // 	      << " nrows=" << nrows
+    // 	      << std::endl;
+    
+    // for (size_t r=0; r<nrows; r++) {
+    //   for (size_t c=0; c<ncols; c++) {
+    // 	set_pixel( des_row_start+r, des_col_start+c, src.pixel(src_row_start+r,src_col_start+c) );
+    //   }
+    // }
+
+    // use memcpy: this is nearly 100 times faster than above loop!
+    // rows are the contiguous dimension
+    for (size_t c=0; c<ncols; c++) {
+      size_t des_index = meta().index( des_row_start, des_col_start+c );
+      size_t src_index = src.meta().index( src_row_start, src_col_start+c );
+      memcpy( &_img[des_index], &src.as_vector()[src_index], nrows*sizeof(float) ); // faster?
+    }
+    
+  }
+  
 }

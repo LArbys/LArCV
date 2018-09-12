@@ -67,6 +67,12 @@ namespace larcv {
     EventBase* get_data(const ProductType_t type, const std::string& producer);
     EventBase* get_data(const ProducerID_t id);
 
+    // we provide the option to not automatically clear the write container
+    //   after saving an entry. this can help reduce the number of allocs
+    //   by allowing us to overwrite values, rather create an entirely new image.
+    //   useful if we are creating a large number of images every event
+    void donot_clear_product( const ProductType_t type, const std::string& producer );
+
     //
     // Some template class getter for auto-cast
     //
@@ -130,6 +136,7 @@ namespace larcv {
     std::vector<larcv::ProductType_t> _read_only_type;
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
+    std::vector<bool> _clear_id_bool;    
   };
 
 }

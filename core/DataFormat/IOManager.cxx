@@ -169,6 +169,9 @@ namespace larcv {
     _out_tree_index = 0;
     _prepared = true;
 
+    // clead id: flag to prevent clearing product upon writing to disk
+    _clear_id_bool.resize(_product_ctr,true);    
+
     return true;
   }
 
@@ -434,7 +437,8 @@ namespace larcv {
 	if(!t) break;
 	LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
 	t->Fill();
-	p->clear();
+	if ( _clear_id_bool[i] )
+	  p->clear();
       }
 
     }else{
@@ -442,7 +446,8 @@ namespace larcv {
       for(size_t i=0; i<_store_only_bool.size(); ++i) {
 	auto const& p = _product_ptr_v[i];
 	if(!_store_only_bool[i]) {
-	  p->clear();
+	  if ( _clear_id_bool[i] )
+	    p->clear();
 	  continue;
 	}
 	if(!p->valid()) {
@@ -457,7 +462,8 @@ namespace larcv {
 	auto& p = _product_ptr_v[i];
 	LARCV_DEBUG() << "Saving " << t->GetName() << " entry " << t->GetEntries() << std::endl;
 	t->Fill();
-	p->clear();
+	if ( _clear_id_bool[i] )
+	  p->clear();
       }
     }
 
@@ -471,9 +477,12 @@ namespace larcv {
 
   void IOManager::clear_entry()
   {
+    int pid = -1;
     for(auto& p : _product_ptr_v) {
+      pid++;
       if(!p) break;
-      p->clear();
+      if ( _clear_id_bool[pid] )
+	p->clear();
     }
     if(_set_event_id.valid()) {
       LARCV_DEBUG() << "Set _last_event_id to externally set values:"
@@ -675,7 +684,17 @@ namespace larcv {
     _in_file_v.clear();
     _in_dir_v.clear();
     for(auto& m : _key_list) m.clear();
+    _clear_id_bool.clear();
+    _clear_id_bool.resize(1000,true);    
   }
+
+  void IOManager::donot_clear_product( const ProductType_t type, const std::string& producer ) {
+    // We do not clear the product upon writing
+    // Warning!! user must manager this now!!
+    ProducerID_t pid = producer_id( type, producer );
+    _clear_id_bool[pid] = false;
+  }
+  
 
 }
 #endif
