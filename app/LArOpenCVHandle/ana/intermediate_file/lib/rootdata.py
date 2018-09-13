@@ -15,9 +15,7 @@ VVFLOAT  = "ROOT.std.vector(\"std::vector<float>\")()"
 VVINT    = "ROOT.std.vector(\"std::vector<int>\")()"
 
 class ROOTData:
-    def __init__(self,df,ISMC=1):
-
-        self.ismc = int(ISMC)
+    def __init__(self,df):
 
         self.vmem_v  = []
         self.vvmem_v = []
@@ -59,15 +57,10 @@ class ROOTData:
                     exec(SS)
                     self.vvmem_v.append(column)
                 else:
-                    if self.ismc == 1:
-                        print "MC exception @column=%s (setting vv)" % column
-                        SS = SS % (column, VVFLOAT)
-                        exec(SS)
-                        self.vvmem_v.append(column)
-                    else:
-                        print "non MC exception @column=%s (passing)" % column
-                        pass
-                        
+                    print "exception @column=%s (passing)" % column
+                    sys.exit(1)
+
+                
                     
             # set scalar variables
             else:

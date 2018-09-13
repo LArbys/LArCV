@@ -271,6 +271,27 @@ def multi_pparam_v(row,pid,prefix):
     
     return [res_v[idx_v[0]],res_v[idx_v[1]]]
 
+
+def multi_pparam_max(row,pid,prefix):
+    ret = -1
+    par = int(row[pid])
+    if par<0: 
+        return ret
+    
+    ret = multi_pparam_v(row,pid,prefix)[0]
+    return ret
+
+
+def multi_pparam_min(row,pid,prefix):
+    ret = -1
+    par = int(row[pid])
+    if par<0: 
+        return ret
+    
+    ret = multi_pparam_v(row,pid,prefix)[1]
+    return ret
+
+
 def multi_pparam_ratio(row,pid,prefix1,prefix2):
     res_v = []
 
@@ -306,4 +327,33 @@ def multi_pparam_ratio(row,pid,prefix1,prefix2):
     
     return [res_v[idx_v[0]],res_v[idx_v[1]]]
 
+def multi_pparam_ratio_max(row,pid,prefix1,prefix2):
+    res = -1
+    par = int(row[pid])
 
+    if par<0: 
+        return res
+        
+    res = multi_pparam_ratio(row,pid,prefix1,prefix2)[0]
+    return res
+
+def multi_pparam_ratio_min(row,pid,prefix1,prefix2):
+    res = -1
+    par = int(row[pid])
+
+    if par<0: 
+        return res
+        
+    res = multi_pparam_ratio(row,pid,prefix1,prefix2)[1]
+    return res
+
+def bless_scedr(row):
+
+    dx = row['parentSCEX'] - row['nueid_vertex_x']
+    dy = row['parentSCEY'] - row['nueid_vertex_y']
+    dz = row['parentSCEZ'] - row['nueid_vertex_z']
+
+    dr = dx*dx+dy*dy+dz*dz
+    dr = np.sqrt(dr)
+    return dr
+    

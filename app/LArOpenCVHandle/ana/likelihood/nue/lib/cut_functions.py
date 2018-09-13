@@ -76,13 +76,58 @@ def dqdx_plane(row,pid,plane):
     maxx  = np.max(dx_v)
     dx_v  = maxx - dx_v
     
-    nzero = dqdx_v>0
+    nzero  = dqdx_v>0
     dqdx_v = dqdx_v[nzero]
     dx_v   = dx_v[nzero]
     
     res = [1,list(dqdx_v),list(dx_v),maxx]
     
     return res
+
+
+def dqdx_plane_median(row,pid,plane):
+    ret = -1
+    
+    par_id = int(row[pid])
+    if par_id < 1:
+        return ret
+    
+    dqdx_v = dqdx_plane(row,pid,plane)
+    
+    if dqdx_v[0] <= 0:
+        return ret
+    
+    dqdx_med = float(np.median(dqdx_v[1]))
+    
+    if dqdx_med != dqdx_med:
+        return ret
+    
+    if np.isinf(dqdx_med) == True:
+        return ret
+    
+    dqdx_med /= float(72.66)
+
+    ret = dqdx_med
+    
+    return ret
+
+def dqdx_plane_best(row,pid,plane1,plane2):
+    ret = -1
+
+    par_id = int(row[pid])
+    if par_id < 1:
+        return ret
+    
+    dqdx1 = dqdx_plane_median(row,pid,plane1)
+    dqdx2 = dqdx_plane_median(row,pid,plane2)
+    
+    if dqdx1 > 0:
+        ret = dqdx1
+    else:
+        ret = dqdx2
+    
+    return ret
+
 
 def tdqdx_study(row,pid,dmax):
     ret_v = [float(-1),float(-1)]
@@ -317,6 +362,41 @@ def CCQE_p(ii):
 
     return ret
 
+
+def CCQE_predicted_lepton(CCQE,Cose):
+
+    ret = np.nan
+
+    Mn = 939.56
+    Mp = 938.27
+    Me = 0.511
+    B  = 40
+
+    # Solve F = 0.5 * (2*A*x - H) / (A - x - D*sqrt(x^2-G^2)) for x
+    # https://www.nevis.columbia.edu/~vgenty/public/fop.png
+
+    A = Mn-B
+    C = Me*Me-Mp*Mp
+    H = A*A+C
+    D = Cose
+    G = Me*Me
+    F = CCQE
+    
+    top1 =  4 * A**2 * D**2 * F**4 - 4 * A**2 * D**2 * F**2 * G**2
+    top2 = -8 * A * D**2 * F**3 * G**2 + 4 * A * D**2 * F**3 * H
+    top3 =  4 * D**4 * F**4 * G**2 - 4 * D**2 * F**4 * G**2
+    top4 =  D**2 * F**2 * H**2
+    top5 =  2 * A**2 * F + 2 * A * F**2 + A * H + F * H
+    
+    bot1 =  A**2 + 2 * A * F - D**2 * F**2 + F**2
+    
+    top = np.sqrt(top1+top2+top3+top4) + top5
+    bot = 2*bot1
+    
+    ret = top / bot
+    
+    return ret
+
 def reco_ccqe_energy(row):
 
     ret = float(-1)
@@ -395,8 +475,18 @@ def angle(row,p):
     if dy2 < -1e3: return res
     
     cos  = dx1*dx2 + dy1*dy2
-    cos /= np.sqrt(dx1*dx1 + dy1*dy1)
-    cos /= np.sqrt(dx2*dx2 + dy2*dy2)
+    bot1 = np.sqrt(dx1*dx1 + dy1*dy1)
+    bot2 = np.sqrt(dx2*dx2 + dy2*dy2)
+
+    if bot1==0 or bot2==0: 
+        return res
+
+    cos /= bot1
+    cos /= bot2
+    
+    if cos < -1 or cos > 1:
+        return res
+
     cos  = np.arccos(cos)
     cos *= 180/3.14
 
@@ -404,6 +494,67 @@ def angle(row,p):
     
     return res
 
+def angle3d(row,pid):
+    res = float(-1)
+
+    dx1 = float(row["nueid_par1_dx1"])
+    dx2 = float(row["nueid_par2_dx1"])
+    
+    dy1 = float(row["nueid_par1_dy1"])
+    dy2 = float(row["nueid_par2_dy1"])
+    
+    dz1 = float(row["nueid_par1_dz1"])
+    dz2 = float(row["nueid_par2_dz1"])
+
+    cos  = dx1*dx2 + dy1*dy2 + dz1*dz2
+    bot1 = np.sqrt(dx1*dx1 + dy1*dy1 + dz1*dz1)
+    bot2 = np.sqrt(dx2*dx2 + dy2*dy2 + dz2*dz2)
+    
+    if bot1==0 or bot2==0: 
+        return res
+    
+    cos /= bot1
+    cos /= bot2
+    
+    if cos<-1 or cos>1:
+        return res
+    
+    cos  = np.arccos(cos)
+    cos *= 180/3.14
+
+    res = float(cos)
+
+    return res
+
 def zfunc0_test(x):
     return -0.8*np.exp(x-0.25)+1.05
 
+
+def CCQE_EVIS(row,pid):
+
+    ret = float(0)
+    
+    if int(row['pid']) < 0: 
+        return ret
+
+    if int(row['eid']) < 0: 
+        return ret
+    
+    p_E_cal = row['reco_proton_energy']
+    e_E_cal = row['reco_electron_energy']
+
+    e_p_E_cal = p_E_cal + e_E_cal 
+    
+    p_angle = pparam(row,"pid","nueid_par1_dz1")
+    
+    p_v = [p_angle, p_E_cal]
+    
+    CCQE_e = CCQE_p(p_v)
+
+    E_vis  = float(e_p_E_cal+0.511+40)
+    
+    dE = (CCQE_e - E_vis) / E_vis
+
+    ret = dE
+
+    return ret
