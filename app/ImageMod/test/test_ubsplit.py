@@ -1,3 +1,4 @@
+import sys
 import ROOT as rt
 from larcv import larcv
 
@@ -11,8 +12,8 @@ io.initialize()
 # -------------------------------------
 # UBSplitDetector
 
-scfg="""Verbosity: 0
-InputProducer: \"Labels\"
+scfg="""Verbosity: 2
+InputProducer: \"wire\"
 OutputBBox2DProducer: \"detsplit\"
 CropInModule: true
 OutputCroppedProducer: \"detsplit\"
@@ -34,8 +35,9 @@ fcfg.close()
 
 cfg = larcv.CreatePSetFromFile( "ubsplit.cfg", "UBSplitDetector" )
 algo = larcv.UBSplitDetector()
-algo.configure(cfg)
 algo.initialize()
+algo.configure(cfg)
+algo.set_verbosity(2)
 
 # -------------------------------------
 
@@ -53,7 +55,7 @@ for n in range(nentries):
 
     detsplit = io.get_data( larcv.kProductImage2D, "detsplit" )
 
-    if False:
+    if True:
         # visualize
         h_v = {}
         for i in range(0,detsplit.Image2DArray().size()):

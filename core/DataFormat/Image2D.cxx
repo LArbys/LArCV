@@ -461,10 +461,10 @@ namespace larcv {
     
     size_t src_row_start = 0;
     size_t des_row_start = 0;
-    if ( meta().min_y() > src.meta().min_y() )
-      src_row_start = src.meta().row( meta().min_y() );
+    if ( meta().max_y() < src.meta().max_y() )
+      src_row_start = src.meta().row( meta().max_y() );
     else
-      des_row_start = meta().row( src.meta().min_y() );
+      des_row_start = meta().row( src.meta().max_y() );
     
     size_t src_col_end = src.meta().cols()-1;
     size_t des_col_end = meta().cols()-1;
@@ -475,10 +475,16 @@ namespace larcv {
 
     size_t src_row_end = src.meta().rows()-1;
     size_t des_row_end = meta().rows()-1;
-    if ( meta().max_y() < src.meta().max_y() )
-      src_row_end = src.meta().row( meta().max_y() );
-    else
-      des_row_end = meta().row( src.meta().max_y() );
+    if ( meta().min_y() > src.meta().min_y() ) {
+      src_row_end = src.meta().row( meta().min_y() );
+    }
+    else if ( meta().min_y() < src.meta().min_y() ) {
+      des_row_end = meta().row( src.meta().min_y() );
+    }
+    else {
+      // equal and @min_y, nothing needed
+    }
+      
 
     size_t src_nrows = src_row_end - src_row_start + 1;
     size_t src_ncols = src_col_end - src_col_start + 1;
@@ -497,15 +503,8 @@ namespace larcv {
     // 	      << " ncols=" << ncols
     // 	      << " nrows=" << nrows
     // 	      << std::endl;
-    
-    // for (size_t r=0; r<nrows; r++) {
-    //   for (size_t c=0; c<ncols; c++) {
-    // 	set_pixel( des_row_start+r, des_col_start+c, src.pixel(src_row_start+r,src_col_start+c) );
-    //   }
-    // }
 
-    // use memcpy: this is nearly 100 times faster than above loop!
-    // rows are the contiguous dimension
+    // use memcpy for speed, rows are the contiguous dimension
     for (size_t c=0; c<ncols; c++) {
       size_t des_index = meta().index( des_row_start, des_col_start+c );
       size_t src_index = src.meta().index( src_row_start, src_col_start+c );
