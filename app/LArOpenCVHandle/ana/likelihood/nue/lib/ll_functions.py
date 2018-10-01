@@ -53,6 +53,16 @@ def apply_ll_vars(df,pdf_m,pid):
     
     return df
 
+def fill_empty_ll_vars(df,pdf_m):
+    
+    for name, item in pdf_m.items():
+        SS = str(name)
+        df[SS] = np.nan
+        SS = "LL"+SS
+        df[SS] = np.nan
+
+    return df
+
 def define_LLem_vars():
     pdf_m = collections.OrderedDict()
 
@@ -593,6 +603,9 @@ def apply_ll(COMB_DF, LLEP, LLPC):
 
     comb_df = pd.read_pickle(COMB_DF)
 
+    llem_sig_spec_m, llem_bkg_spec_m = read_nue_pdfs(LLEP)
+    llpc_sig_spec_m, llpc_bkg_spec_m = read_nue_pdfs(LLPC)
+
     out_df = comb_df.copy()
     
     input_size = out_df.index.size
@@ -608,18 +621,21 @@ def apply_ll(COMB_DF, LLEP, LLPC):
     df_precut = out_df.query(precut).copy()
     df_rest   = out_df.drop(df_precut.index).copy()
 
-    df_precut['passed_ll_precuts'] = int(1)
+    # no events passed the precuts
+    if df_precut.empty == True:
+        df_rest = fill_empty_ll_vars(df_rest,pdf_em_m)
+        df_rest = fill_empty_ll_vars(df_rest,pdf_pc_m)
 
-    assert (df_precut.index.size + df_rest.index.size) == out_df.index.size
-    
-    df_precut = apply_ll_vars(df_precut,pdf_em_m,"eid")
-    df_precut = apply_ll_vars(df_precut,pdf_pc_m,"pid")
-    
-    llem_sig_spec_m, llem_bkg_spec_m = read_nue_pdfs(LLEP)
-    llpc_sig_spec_m, llpc_bkg_spec_m = read_nue_pdfs(LLPC)
+    else:
+        df_precut['passed_ll_precuts'] = int(1)
 
-    df_precut = make_ll(df_precut,llem_sig_spec_m,llem_bkg_spec_m)
-    df_precut = make_ll(df_precut,llpc_sig_spec_m,llpc_bkg_spec_m)
+        assert (df_precut.index.size + df_rest.index.size) == out_df.index.size
+    
+        df_precut = apply_ll_vars(df_precut,pdf_em_m,"eid")
+        df_precut = apply_ll_vars(df_precut,pdf_pc_m,"pid")
+
+        df_precut = make_ll(df_precut,llem_sig_spec_m,llem_bkg_spec_m)
+        df_precut = make_ll(df_precut,llpc_sig_spec_m,llpc_bkg_spec_m)
 
     out_df = pd.concat([df_precut,df_rest],ignore_index=True)
 
