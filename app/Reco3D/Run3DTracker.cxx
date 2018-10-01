@@ -32,8 +32,8 @@
 //#include "LArCV/core/DataFormat/ChStatus.h"
 #include "AStarUtils.h"
 
-//#include "AStar3DAlgo.h"
-//#include "AStar3DAlgoProton.h"
+#include "AStar3DAlgo.h"
+#include "AStar3DAlgoProton.h"
 
 //#include "SCE/SpaceChargeMicroBooNE.h"
 #include "AStarTracker.h"
@@ -113,6 +113,8 @@ namespace larcv {
         _recoTree->Branch("IonY_5cm_v",&_IonY_5cm_v);
         _recoTree->Branch("IonY_10cm_v",&_IonY_10cm_v);
         _recoTree->Branch("IonY_tot_v",&_IonY_tot_v);
+        _recoTree->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v);
+        _recoTree->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v);
         _recoTree->Branch("IondivLength_v",&_IondivLength_v);
         _recoTree->Branch("TotalADCvalues_v",&_TotalADCvalues_v);
         _recoTree->Branch("Angle_v",&_Angle_v);
@@ -339,7 +341,6 @@ namespace larcv {
                 auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
-                tracker.SetVertexID((int)(ivertex));
                 tracker.ReconstructVertex();
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
@@ -388,6 +389,8 @@ namespace larcv {
                 _IonY_10cm_v    = tracker.GetTotalIonization_Yplane(10);
                 _IonY_tot_v     = tracker.GetTotalIonization_Yplane();
 
+                _Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
+                _Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
                 for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
                     _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
                 }
