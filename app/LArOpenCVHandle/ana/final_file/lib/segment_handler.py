@@ -16,19 +16,37 @@ class SegmentHandler(Handler):
         self.tree = tree
         self.rd = ROOTData()
         self.rd.init_segment_tree(self.tree)
+        self.ismc = True
+        return
 
     def reshape(self,inputfile) :
-        
-        if inputfile == "": 
+        print
+        print "--> @segment_handler"
+        if inputfile is None:
+            self.ismc = False
             return
 
         self.df = pd.DataFrame(rn.root2array(inputfile,treename="EventMCINFO_DL"))
+
+        print "--> done"
+        print
+        return
         
     def fill(self,run,subrun,event,ismc):
         self.rd.reset()
 
+        if self.ismc == False:
+            self.rd.run[0]    = int(run)
+            self.rd.subrun[0] = int(subrun)
+            self.rd.event[0]  = int(event)
+            self.tree.Fill()
+            self.rd.reset()
+            return True
+
         row = self.df.query("run==@run&subrun==@subrun&event==@event")
-        if row.index.size == 0: return False
+        if row.index.size == 0: 
+            return False
+
         row = row.iloc[0]
 
         self.rd.run[0]    = int(row['run'])
@@ -36,11 +54,6 @@ class SegmentHandler(Handler):
         self.rd.event[0]  = int(row['event'])
         
         print "@(r,s,e)=(%d,%d,%d)"%(row['run'],row['subrun'],row['event'])
-        
-        if ismc == False: 
-            self.tree.Fill()
-            self.rd.reset()
-            return True
 
         self.rd.nu_pdg[0] = int(row['parentPDG'])
         self.rd.inter_type[0] = int(row['ineractionMode'])

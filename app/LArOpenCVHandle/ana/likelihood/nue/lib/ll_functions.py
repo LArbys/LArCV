@@ -604,8 +604,11 @@ def apply_ll(COMB_DF, LLEP, LLPC):
     
     precut = "((c01==1)and(c02==1)and(c34==1)and(c36==1)and(c37==1)and(c44==1)and(c45==1))"
 
+    out_df['passed_ll_precuts'] = int(0)
     df_precut = out_df.query(precut).copy()
     df_rest   = out_df.drop(df_precut.index).copy()
+
+    df_precut['passed_ll_precuts'] = int(1)
 
     assert (df_precut.index.size + df_rest.index.size) == out_df.index.size
     
@@ -625,4 +628,119 @@ def apply_ll(COMB_DF, LLEP, LLPC):
     assert input_size == output_size
     
     return out_df
+
+def select_ll(in_df):
+    out_df = in_df.copy()
+
+    out_df['LLem_LL'] = np.nan
+    out_df['LLpc_LL'] = np.nan
+
+    nstep = int(10)
+    for i in xrange(0,nstep):
+        SS1_ = 'LLem_pass%02d' % i
+        SS2_ = 'LLpc_pass%02d' % i
+        out_df[SS1_] = 0
+        out_df[SS2_] = 0
+
+    out_df['ll_selected'] = 0
+
+    pass_df = out_df.query("passed_ll_precuts==1").copy()
+    fail_df = out_df.drop(pass_df.index).copy()
+
+    if pass_df.empty == True:
+        return out_df
+
+    pass_df['LLem_LL'] = pass_df.apply(LLem_LL,axis=1)
+    pass_df['LLpc_LL'] = pass_df.apply(LLpc_LL,axis=1)
+
+    pass_df['LLem_pass_v'] = pass_df.apply(LLem_cut,args=(nstep,),axis=1)
+    pass_df['LLpc_pass_v'] = pass_df.apply(LLpc_cut,args=(nstep,),axis=1)
+
+    for i in xrange(0,nstep):
+        SS1_ = 'LLem_pass%02d' % i
+        SS2_ = 'LLpc_pass%02d' % i
+        pass_df[SS1_] = pass_df['LLem_pass_v'].str[i].values
+        pass_df[SS2_] = pass_df['LLpc_pass_v'].str[i].values
+
+    pass_df.drop(["LLem_pass_v"],axis=1,inplace=True)
+    pass_df.drop(["LLpc_pass_v"],axis=1,inplace=True)
+
+    ll_index = pass_df.sort_values(['LLem_LL'],ascending=False).groupby(RSE).head(1).index
+
+    out_df = pd.concat([pass_df,fail_df],ignore_index=True)
+    
+    out_df.loc[ll_index, 'll_selected'] = 1
+    
+    return out_df
+    
+
+LLem_v = ["LLem%02d" % i for i in xrange(22)]
+def LLem_LL(row):
+    ret = np.nan
+    
+    if row['LLem00'] != row['LLem00']:
+        return ret
+
+    data_v = row[LLem_v].astype(np.float32)
+    ret = float(data_v.sum())
+    
+    return ret
+
+LLpc_v = ["LLpc%02d" % i for i in xrange(10)]
+def LLpc_LL(row):
+    ret = np.nan
+    
+    if row['LLpc00'] != row['LLpc00']:
+        return ret
+
+    data_v = row[LLpc_v].astype(np.float32)
+    ret = float(data_v.sum())
+    
+    return ret
+
+#
+# LLem discriminant
+#
+def LLemfunc(x,offset):
+    return 2*np.sqrt(x-120)-22+offset
+
+#
+# LLem scan
+#
+def LLem_cut(row,nstep):
+    ret_v = [0 for _ in xrange(nstep)]
+
+    LL = row['LLem_LL']
+
+    if LL != LL:
+        return ret_v
+
+    energy = float(row['reco_energy'])
+
+    if energy>400:
+        energy = 400
+    
+    for o in xrange(nstep):
+        if LL > LLemfunc(energy,o):
+            ret_v[o] = 1
+
+    return ret_v
+
+#
+# LLpc scan
+#
+def LLpc_cut(row,nstep):
+    ret_v = [0 for _ in xrange(nstep)]
+
+    LL = row['LLpc_LL']
+
+    if LL != LL:
+        return ret_v
+
+    for o in xrange(nstep):
+        if LL > o:
+            ret_v[o] = 1
+
+    return ret_v
+
 
