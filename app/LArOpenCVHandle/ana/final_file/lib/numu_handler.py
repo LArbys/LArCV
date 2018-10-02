@@ -34,7 +34,8 @@ class NumuHandler(Handler):
             df1 = pd.DataFrame(rn.root2array(ifile1))
         except IOError:
             print "Empty ttree in this file"
-            df_sort = df0.groupby(RSE).head(1).copy()
+            df = combine_vertex_numu(df0)
+            df_sort = df.groupby(RSE).head(1).copy()
             df_sort.sort_values(by=RSE,inplace=True)
             self.df = df_sort.copy()
             self.df[RSE] = self.df[RSE].astype(np.int64)

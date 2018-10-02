@@ -2,7 +2,7 @@ from common import *
 import pandas as pd
 import numpy as np
 
-def combine_vertex_numu(ana_vtx_df,ana_numu_df):
+def combine_vertex_numu(ana_vtx_df,ana_numu_df=pd.DataFrame()):
     print
     print "start @ combine_vertex_numu"
     comb_df = pd.DataFrame()
@@ -12,7 +12,8 @@ def combine_vertex_numu(ana_vtx_df,ana_numu_df):
     
     if 'vtxid' not in ana_vtx_df.columns:
         print "No vertex dataframe encountered"
-        
+        assert ana_numu_df.empty == True
+
         ana_vtx_df['run']    = ana_vtx_df['run'].astype(np.int32)
         ana_vtx_df['subrun'] = ana_vtx_df['subrun'].astype(np.int32)
         ana_vtx_df['event']  = ana_vtx_df['event'].astype(np.int32)
