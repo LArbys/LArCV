@@ -24,12 +24,25 @@ class NumuHandler(Handler):
         print "--> @numu_handler reshape"
         
         df = pd.DataFrame()
+        df_sort = pd.DataFrame()
         
         print "read @ifile0=",ifile0
         df0 = pd.read_pickle(ifile0)
 
         print "read @ifile1=",ifile1
-        df1 = pd.DataFrame(rn.root2array(ifile1))
+        try:
+            df1 = pd.DataFrame(rn.root2array(ifile1))
+        except IOError:
+            print "Empty ttree in this file"
+            df_sort = df0.groupby(RSE).head(1).copy()
+            df_sort.sort_values(by=RSE,inplace=True)
+            self.df = df_sort.copy()
+            self.df[RSE] = self.df[RSE].astype(np.int64)
+            self.no_vertex = True
+            del df
+            del df_sort
+            gc.collect()
+            return
 
         print "read @ifile2=",ifile2
         df2 = pd.DataFrame(rn.root2array(ifile2))
@@ -72,35 +85,17 @@ class NumuHandler(Handler):
 
         # join on the comb vertex df
         df = combine_vertex_numu(df0,df)
-        
-        no_vertex = False
-        no_pass = False
-        
-        df_sort = pd.DataFrame()
 
-        print "Check if no vertex..."
-        if "locv_num_vertex" not in df.columns:
-            print "No vertex found in file!"
-            df_sort = df.groupby(RSE).head(1).copy()
-            no_vertex = True
-            print "... handled"
-        else:
-            print "Maximizing @ CosmicLL..."
-            df_sort = df.sort_values(["numu_CosmicLL"],ascending=False).groupby(RSE).head(1).copy()
-            df_sort.sort_values(by=RSE,inplace=True)
-            print "... maximized"
-    
-        print "... checked"
+        print "Maximizing @ CosmicLL..."
+        df_sort = df.sort_values(["numu_CosmicLL"],ascending=False).groupby(RSE).head(1).copy()
+        df_sort.sort_values(by=RSE,inplace=True)
+        print "... maximized"
         
         self.df = df_sort.copy()
-        self.no_vertex = no_vertex
-        self.no_pass = no_pass
+        self.df[RSE] = self.df[RSE].astype(np.int64)
 
         del df
         del df_sort
-
-        # ensure the rse is int64
-        self.df[RSE] = self.df[RSE].astype(np.int64)
 
         gc.collect()
         print "--> done"
@@ -123,29 +118,18 @@ class NumuHandler(Handler):
         
         # fill common
         self.rd.num_croi[0]   = int(row['locv_number_croi']);
-            
+        self.rd.num_vertex[0] = int(0)
         if self.no_vertex == True:
-            self.rd.num_vertex[0] = int(0)
             self.tree.Fill()
-            self.rd.reset()
-            print "empty file... skip!"
+            print "--> empty file"
             return True
             
         if row['locv_num_vertex'] == 0 or np.isnan(row['locv_num_vertex']):
-            self.rd.num_vertex[0] = int(0)
             self.tree.Fill()
-            self.rd.reset()
-            print "no vertex... skip!"
+            print "--> no vertex"
             return True
 
         self.rd.num_vertex[0] = int(row['locv_num_vertex']);
-        
-        if self.no_pass == True:
-            self.tree.Fill()
-            self.rd.reset()
-            print "no pass vertex in file... skip!"
-            return True
-
         self.rd.vertex_id[0] = int(row['vtxid']);
 
         if ismc == True:
@@ -191,7 +175,6 @@ class NumuHandler(Handler):
         self.rd.Proton_Edep[0]        = float(row["numu_Proton_Edep"])
 
         self.tree.Fill()
-        self.rd.reset()
         return True
 
 

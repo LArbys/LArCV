@@ -14,19 +14,36 @@ class NueCutHandler(Handler):
         super(NueCutHandler,self).__init__("NueCutHandler")
         self.df = pd.DataFrame()
         self.no_vertex = False
-        self.no_pass = False
         self.tree = tree
         self.rd = ROOTData()
         self.rd.init_nue_cut_tree(self.tree)
 
     def reshape(self,inputfile,mcinfo) :
-
+        
         print
         print "--> @nue_cut_handler reshape"
 
+        df = pd.DataFrame()
+        df3 = pd.DataFrame()        
+        df_sort = pd.DataFrame()
+
         print "inputfile=",inputfile
-        df  = pd.read_pickle(inputfile)
-        df3 = pd.DataFrame()
+        df = pd.read_pickle(inputfile)
+
+        print "Check if no vertex"
+        if "locv_num_vertex" not in df.columns:
+            print "No vertex found in file"
+            df_sort = df.groupby(RSE).head(1).copy()
+            df_sort.sort_values(by=RSE,inplace=True)
+            self.df = df_sort.copy()
+            self.df[RSE] = self.df[RSE].astype(np.int64)
+            self.no_vertex = True
+            del df
+            del df3
+            del df_sort
+            gc.collect()
+            return
+
 
         # add in the MC information
         if mcinfo is not None:
@@ -42,31 +59,17 @@ class NueCutHandler(Handler):
 
             df["mcinfo_scedr"] = df.apply(bless_nue_scedr,axis=1)
 
-        df_sort = pd.DataFrame()
-
-        no_vertex = False
-        
-        print "Check if no vertex..."
-        if "locv_num_vertex" not in df.columns:
-            print "No vertex found in file!"
-            df_sort = df.groupby(RSE).head(1).copy()
-            no_vertex = True
-            print "... handled"
-        else:
-            print "Sort by selected ..."
-            df_sort = df.sort_values(["selected"],ascending=False).groupby(RSE).head(1).copy()
-            df_sort.sort_values(by=RSE,inplace=True)
-            print "... done"
+        print "Sort by selected ..."
+        df_sort = df.sort_values(["selected"],ascending=False).groupby(RSE).head(1).copy()
+        df_sort.sort_values(by=RSE,inplace=True)
+        print "... done"
     
         self.df = df_sort.copy()
-        self.no_vertex = no_vertex
+        self.df[RSE] = self.df[RSE].astype(np.int64)
 
         del df
         del df3
         del df_sort
-
-        # ensure the rse is int64
-        self.df[RSE] = self.df[RSE].astype(np.int64)
 
         gc.collect()
         print "--> done"
@@ -77,7 +80,9 @@ class NueCutHandler(Handler):
         self.rd.reset()
 
         row = self.df.query("run==@run&subrun==@subrun&event==@event")
-        if row.index.size == 0: return False
+        if row.index.size == 0: 
+            return False
+
         row = row.iloc[0]
 
         self.rd.run[0]    = int(row['run'])
@@ -88,19 +93,16 @@ class NueCutHandler(Handler):
         
         # fill common
         self.rd.num_croi[0] = int(row['locv_number_croi']);
+        self.rd.num_vertex[0] = int(0)
         
         if self.no_vertex == True:
-            self.rd.num_vertex[0] = int(0)
             self.tree.Fill()
-            self.rd.reset()
-            print "empty file... skip!"
+            print "--> empty file"
             return True        
 
         if row['locv_num_vertex'] == 0 or np.isnan(row['locv_num_vertex']):
-            self.rd.num_vertex[0] = int(0)
             self.tree.Fill()
-            self.rd.reset()
-            print "no vertex... skip!"
+            print "--> no vertex"
             return True        
 
         self.rd.num_vertex[0] = int(row['locv_num_vertex']);
@@ -142,7 +144,6 @@ class NueCutHandler(Handler):
         self.rd.reco_total_E[0]     = float(row['reco_energy']);
 
         self.tree.Fill()
-        self.rd.reset()
 
         return True
 
