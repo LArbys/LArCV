@@ -116,11 +116,6 @@ class NueCutHandler(Handler):
                 self.rd.reco_close[0] = int(1)
             else:
                 self.rd.reco_close[0] = int(0)
-        
-            if int(row['locv_vtx_on_nu']) >= 2:
-                self.rd.reco_vtx_on_nu[0] = int(1)
-            else:
-                self.rd.reco_vtx_on_nu[0] = int(0)
 
         self.rd.reco_passed_cuts[0] = int(0)
         if row['passed_cuts'] == 1:
