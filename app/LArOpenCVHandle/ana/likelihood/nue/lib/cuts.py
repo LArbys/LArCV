@@ -43,8 +43,20 @@ def parse_cuts(COMB_DF,drop_list=None):
     comb_df = pd.read_pickle(COMB_DF)
     
     out_df = comb_df.copy()
-    
+
+    # fill default values
+    out_df['pid']   = int(-1)
+    out_df['eid']   = int(-1)
+    out_df['pfrac'] = float(-1)
+    out_df['efrac'] = float(-1)
+    out_df['reco_proton_energy']   = float(-1)
+    out_df['reco_electron_energy'] = float(-1)
+    out_df['reco_energy']          = float(-1)
+    out_df['reco_ccqe_p']          = float(-1)
+
+    # handle no vertex in data frame (empty data frame)
     if 'nueid_vertex_x' not in out_df.columns:
+        out_df = set_cuts(out_df,doit=False)
         return out_df
 
     # clean data frame
@@ -57,7 +69,7 @@ def parse_cuts(COMB_DF,drop_list=None):
     out_df = set_particle_energy(out_df)
 
     # set cuts
-    out_df = set_cuts(out_df)
+    out_df = set_cuts(out_df,doit=True)
 
     print "...done"
 
@@ -119,9 +131,9 @@ def drop_columns(df,drop_list=None):
 #
 # Set Cuts
 #
-def set_cuts(df):
+def set_cuts(df,doit=True):
     odf = df.copy()
-    
+
     cut_v = OrderedDict()
     cut_v["c01"] = c01
     cut_v["c02"] = c02
@@ -150,9 +162,12 @@ def set_cuts(df):
     cut_v["c44"] = c44
     cut_v["c45"] = c45
 
-    for cname in cut_v.keys():
-        odf[cname] = odf.apply(cut_v[cname],axis=1)
-
+    if doit == True:
+        for cname in cut_v.keys():
+            odf[cname] = odf.apply(cut_v[cname],axis=1)
+    else:
+        for cname in cut_v.keys():
+            odf[cname] = int(0)
 
     return odf
 

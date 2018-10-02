@@ -623,6 +623,7 @@ def apply_ll(COMB_DF, LLEP, LLPC):
 
     # no events passed the precuts
     if df_precut.empty == True:
+        print "No vertices passed"
         df_rest = fill_empty_ll_vars(df_rest,pdf_em_m)
         df_rest = fill_empty_ll_vars(df_rest,pdf_pc_m)
 
