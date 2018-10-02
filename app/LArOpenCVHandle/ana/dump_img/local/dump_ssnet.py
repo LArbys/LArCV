@@ -1,6 +1,18 @@
-from larlitecv import larlitecv
 import os,sys
 
+if len(sys.argv) != 8: 
+    print 
+    print "SSNET_FILE   = str(sys.argv[1])"
+    print "PGRAPH_FILE  = str(sys.argv[2])"
+    print "ENTRY        = int(sys.argv[3])"
+    print "VTXID        = int(sys.argv[4])"
+    print "PGRAPH_PROD  = str(sys.argv[5])"
+    print "PIXEL_PROD   = str(sys.argv[6])"
+    print "OUT_DIR      = str(sys.argv[7])"
+    print
+    sys.exit(1)
+
+from larlitecv import larlitecv
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)
 sys.path.insert(0,BASE_PATH)
@@ -18,14 +30,13 @@ import ROOT
 from ROOT import geo2d
 pygeo = geo2d.PyDraw()
 
-FILE1  = str(sys.argv[1])
-FILE2  = str(sys.argv[2])
-ENTRY  = int(sys.argv[3])
-VTXID  = int(sys.argv[4])
-#ROID   = int(sys.argv[5])
-ROID   = 1;
-NAME   = str(sys.argv[5])
-
+SSNET_FILE   = str(sys.argv[1])
+PGRAPH_FILE  = str(sys.argv[2])
+ENTRY        = int(sys.argv[3])
+VTXID        = int(sys.argv[4])
+PGRAPH_PROD  = str(sys.argv[5])
+PIXEL_PROD   = str(sys.argv[6])
+OUT_DIR      = str(sys.argv[7])
 
 mycmap = matplotlib.cm.get_cmap('jet')
 mycmap.set_under('w')
@@ -60,8 +71,8 @@ iom.initialize()
 iom.read_entry(ENTRY)
 
 ev_img    = iom.get_data(larcv.kProductImage2D,"wire")
-ev_pgraph = iom.get_data(larcv.kProductPGraph,"test")
-ev_ctor   = iom.get_data(larcv.kProductPixel2D,"test_ctor")
+ev_pgraph = iom.get_data(larcv.kProductPGraph,PGRAPH_PROD)
+ev_ctor   = iom.get_data(larcv.kProductPixel2D,PIXEL_PROD)
 
 print "@run=",ev_img.run(),"subrun=",ev_img.subrun(),"event=",ev_img.event()
 
@@ -145,15 +156,14 @@ for plane in xrange(3):
     ax.set_title(SS,fontweight='bold',fontsize=50)        
 
     this_num = os.path.basename(FILE1).split(".")[0].split("_")[-1]
-    SS=os.path.join("ssnet_dump",NAME,"{}_{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
-                                                                              ev_img.subrun(),
-                                                                              ev_img.event(),
-                                                                              this_num,
-                                                                              ENTRY,
-                                                                              VTXID,
-                                                                              ROID,
-                                                                              parid,
-                                                                              plane))
+    SS=os.path.join(OUT_DIR,"{}_{}_{}_{}_{}_{}_{}_{}.png".format(ev_img.run(),
+                                                                 ev_img.subrun(),
+                                                                 ev_img.event(),
+                                                                 this_num,
+                                                                 ENTRY,
+                                                                 VTXID,
+                                                                 parid,
+                                                                 plane))
     
 
     plt.savefig(SS)

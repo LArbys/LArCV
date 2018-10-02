@@ -1,21 +1,24 @@
 import os,sys
 
-if len(sys.argv) != 6: 
-    print "hi...."
+if len(sys.argv) != 8: 
+    print 
     print "WIRE_FILE   = str(sys.argv[1])"
     print "PGRAPH_FILE = str(sys.argv[2])"
     print "ENTRY       = int(sys.argv[3])"
     print "VTXID       = int(sys.argv[4])"
-    print "OUT_DIR     = str(sys.argv[5])"
+    print "PGRAPH_PROD = str(sys.argv[5])"
+    print "PIXEL_PROD  = str(sys.argv[6])"
+    print "OUT_DIR     = str(sys.argv[7])"
     print
-    print "....bye"
     sys.exit(1)
     
 WIRE_FILE   = str(sys.argv[1])
 PGRAPH_FILE = str(sys.argv[2])
 ENTRY       = int(sys.argv[3])
 VTXID       = int(sys.argv[4])
-OUT_DIR     = str(sys.argv[5])
+PGRAPH_PROD = str(sys.argv[5])
+PIXEL_PROD  = str(sys.argv[6])
+OUT_DIR     = str(sys.argv[7])
 
 from larcv import larcv
 import numpy as np
@@ -36,8 +39,8 @@ iom.initialize()
 iom.read_entry(ENTRY)
 
 ev_img    = iom.get_data(larcv.kProductImage2D,"wire")
-ev_pgraph = iom.get_data(larcv.kProductPGraph,"test")
-ev_ctor   = iom.get_data(larcv.kProductPixel2D,"test_ctor")
+ev_pgraph = iom.get_data(larcv.kProductPGraph,PGRAPH_PROD)
+ev_ctor   = iom.get_data(larcv.kProductPixel2D,PIXEL_PROD)
 
 print "@run=",ev_img.run(),"subrun=",ev_img.subrun(),"event=",ev_img.event()
 
