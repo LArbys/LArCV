@@ -70,6 +70,9 @@ class AndyHandler(Handler):
             range1_ = self.rd.MaxParticles
             print "to",range1_
 
+            # Also update the NParticles variable
+            self.rd.MCTruth_NParticles[0] = range1_
+
         for pnum1 in xrange(int(range1_)):
             self.rd.MCTruth_particles_TrackId[pnum1]    = int(row['MCTruth_particles_TrackId'][pnum1])
             self.rd.MCTruth_particles_PdgCode[pnum1]    = int(row['MCTruth_particles_PdgCode'][pnum1])
@@ -94,6 +97,9 @@ class AndyHandler(Handler):
                 print "WARNING: truncated ndaughters from",range2_
                 range2_ = self.rd.MaxDaughters
                 print "to",range2_
+
+                # Also update the NDaughters variable for this particle
+                self.rd.MCtruth_particles_NDaughters[pnum1] = range2_
 
 
             for pnum2 in xrange(int(range2_)):
