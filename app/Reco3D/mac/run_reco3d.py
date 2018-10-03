@@ -19,8 +19,8 @@ ROOT.gROOT.SetBatch(True)
 CONFIG_FILE = str(sys.argv[1])
 IMG_FILE    = str(sys.argv[2])
 TAGGER_FILE = str(sys.argv[3])
-PGRAPH_FILE = str(sys.argv[3])
-OUTPUT_DIR  = str(sys.argv[4])
+PGRAPH_FILE = str(sys.argv[4])
+OUTPUT_DIR  = str(sys.argv[5])
 
 num = int(os.path.basename(PGRAPH_FILE).split(".")[0].split("_")[-1])
 
