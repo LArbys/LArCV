@@ -761,3 +761,59 @@ def LLpc_cut(row,nstep):
     return ret_v
 
 
+def dump_ll_pdfs(PDF_ROOT,OUTDIR):
+
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    
+    matplotlib.rcParams['font.size']=20
+    matplotlib.rcParams['font.family']='serif'
+
+    sig_spec_m, bkg_spec_m = read_nue_pdfs(PDF_ROOT)
+    
+    for name in sig_spec_m.keys():
+        
+        print "@name=",name
+
+        fig,ax  = plt.subplots(figsize=(10,6))
+
+        sig_spec = sig_spec_m[name]
+ 	bkg_spec = bkg_spec_m[name]
+        
+        xdata = list(sig_spec[0])
+
+        bins = []
+
+        if xdata[-1] < 1:
+            bins = xdata + [1]
+        else:
+            bins = xdata + [xdata[-1] + (xdata[-1] - xdata[-2])]
+
+        sig_data = sig_spec[1]
+        bkg_data = bkg_spec[1]
+        
+        xdata = np.array(xdata)
+        bins  = np.array(bins)
+
+        ax.hist(xdata,bins=bins,weights=sig_data,histtype='stepfilled',color='blue',lw=1,alpha=0.1)
+        ax.hist(xdata,bins=bins,weights=sig_data,histtype='step',color='blue',lw=2,label='Signal')
+        
+        ax.hist(xdata,bins=bins,weights=bkg_data,histtype='stepfilled',color='red',lw=1,alpha=0.1)
+        ax.hist(xdata,bins=bins,weights=bkg_data,histtype='step',color='red',lw=2,label='Background')
+        
+        ax.set_ylabel("Fraction",fontweight='bold',fontsize=20)
+        ax.set_xlabel(name,fontweight='bold',fontsize=20)
+        ax.legend(loc='best')
+        ax.grid(linestyle='--')
+        plt.gca().set_ylim(bottom=0)
+        plt.savefig(os.path.join(OUTDIR,name + ".png"))
+        plt.show()
+        plt.cla()
+        plt.clf()
+        plt.close()
+        del fig
+        del ax
+
+
+    return
