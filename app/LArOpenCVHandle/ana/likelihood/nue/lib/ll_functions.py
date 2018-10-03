@@ -594,7 +594,7 @@ def make_ll(df,sig_spec_m,bkg_spec_m):
     for col,sig,bkg in zip(cols,sig_res_v,bkg_res_v):
         col = "LL"+col
         LL = np.array([])
-        LL = sig / bkg
+        LL = np.log(sig / bkg)
         df[col] = LL.astype(np.float32)
 
     return df
