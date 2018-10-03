@@ -1,11 +1,12 @@
 import os,sys
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 6:
     print 
     print "CONFIG_FILE = str(sys.argv[1])"
     print "IMG_FILE    = str(sys.argv[2])"
-    print "PGRAPH_FILE = str(sys.argv[3])"
-    print "OUTPUT_DIR  = str(sys.argv[4])"
+    print "TAGGER_FILE = str(sys.argv[3])"
+    print "PGRAPH_FILE = str(sys.argv[4])"
+    print "OUTPUT_DIR  = str(sys.argv[5])"
     print
     sys.exit(1)
 
@@ -17,6 +18,7 @@ ROOT.gROOT.SetBatch(True)
 
 CONFIG_FILE = str(sys.argv[1])
 IMG_FILE    = str(sys.argv[2])
+TAGGER_FILE = str(sys.argv[3])
 PGRAPH_FILE = str(sys.argv[3])
 OUTPUT_DIR  = str(sys.argv[4])
 
@@ -31,6 +33,7 @@ proc = larcv.ProcessDriver('ProcessDriver')
 proc.configure(CONFIG_FILE)
 flist=ROOT.std.vector('std::string')()
 flist.push_back(ROOT.std.string(IMG_FILE))
+flist.push_back(ROOT.std.string(TAGGER_FILE))
 flist.push_back(ROOT.std.string(PGRAPH_FILE))
 proc.override_input_file(flist)
 
