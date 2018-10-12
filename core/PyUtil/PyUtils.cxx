@@ -93,7 +93,7 @@ larcv::Image2D as_image2d_meta(PyObject *pyarray, ImageMeta meta) {
   std::vector<float> res_data(dims[0] * dims[1], 0.);
   for (int i = 0; i < dims[0]; ++i) {
     for (int j = 0; j < dims[1]; ++j) {
-      res_data[i * dims[1] + j] = (float)(carray[j][i]);
+      res_data[i * dims[1] + j] = (float)(carray[i][j]);
     }
   }
   PyArray_Free(pyarray, (void *)carray);
