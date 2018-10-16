@@ -109,6 +109,10 @@ namespace larcv {
         void SetOriginalImage(   std::vector<larcv::Image2D> originalimage ){original_full_image_v = originalimage;}
         void SetTaggedImage(     std::vector<larcv::Image2D> taggedImage   ){taggedPix_v           = taggedImage;}
         void SetVertexEndPoints( std::vector<TVector3> vertexEndPoints     ){_vertexEndPoints = vertexEndPoints;}
+        void SetVertexID(int vtxID){_vtxID = vtxID;}
+        void FeedLarliteVertexTracks(larlite::event_track recoedVertexTracks){_vertexLarliteTracks = recoedVertexTracks;Get3DtracksFromLarlite();}
+        void FeedVtxGoodness(std::vector<bool> goodTracks_v);
+        void Get3DtracksFromLarlite();
         void SetSingleVertex(TVector3 vertexPoint){NumberRecoveries=0; start_pt = vertexPoint;}
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
         void FeedTrack(std::vector<TVector3> newTrack);
@@ -219,7 +223,7 @@ namespace larcv {
 
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
-        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative()*/;ShaveTracks();}
+        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative();*/ShaveTracks();}
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
@@ -233,11 +237,13 @@ namespace larcv {
         std::string _mctrack_producer;
         std::string _wire_producer;
         std::string _hit_producer;
+        std::string _spline_file;
 
         int _run;
         int _subrun;
         int _event;
         int _track;
+        int _vtxID;
         int _compressionFactor_t;
         int _compressionFactor_w;
         int _eventTreated;
@@ -246,13 +252,6 @@ namespace larcv {
         int _deadWireValue;
         int failedPlane;
         int NumberRecoveries;
-
-        //int _kTooShortDeadWire;
-        //int _ktooShortThinTrack;
-        //int _kMissingTrack;
-        //int _kGoodEnd;
-
-        std::string _spline_file;
 
         double _ADCthreshold;
         double _speedOffset;

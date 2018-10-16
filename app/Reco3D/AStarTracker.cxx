@@ -905,7 +905,7 @@ namespace larcv {
         AveragePoint+=oldEndPoint;
 
         for(size_t i=0;i<NrandomPts;i++){
-            ran->Sphere(x,y,z,3);
+            ran->Sphere(x,y,z,radiusSphere);
             newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
             if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
             NpointsEvaluate++;
@@ -1677,7 +1677,7 @@ namespace larcv {
         hit_image_v = CropFullImage2bounds(_vertexTracks);
         //EnhanceDerivative();
 
-        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),Form("cVertex_%05d_%05d_%05d_%04d",_run,_subrun,_event,_track),1800,1200);
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),1800,1200);
         c->SetFillColor(1);
         c->Divide(1,2);
         c->cd(1)->Divide(3,1);
@@ -1710,8 +1710,8 @@ namespace larcv {
             }
         }
         for(size_t iPlane=0;iPlane<3;iPlane++){
-            hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                      Form("hImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+            hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                      Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1778,16 +1778,16 @@ namespace larcv {
                 gStartNend[iPlane]->SetPoint(iend,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
             }
 
-            hImageMasked[iPlane] = new TH2D(Form("hImageMasked_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                            Form("hImageMasked_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+            hImageMasked[iPlane] = new TH2D(Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                            Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                             hit_image_v[iPlane].meta().cols(),
                                             hit_image_v[iPlane].meta().tl().x,
                                             hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
                                             hit_image_v[iPlane].meta().rows(),
                                             hit_image_v[iPlane].meta().br().y,
                                             hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
-            hTagImage[iPlane] = new TH2D(Form("hTagImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                         Form("hTagImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+            hTagImage[iPlane] = new TH2D(Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                         Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                          hit_image_v[iPlane].meta().cols(),
                                          hit_image_v[iPlane].meta().tl().x,
                                          hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1830,7 +1830,7 @@ namespace larcv {
             hImageMasked[iPlane]->Draw("colz");
             if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
 
-            if(trackEndPoints_v.size()!=0){
+            /*if(trackEndPoints_v.size()!=0){
                 for(size_t itrack = 0;itrack<trackEndPoints_v.size();itrack++){
                     TGraph *gTrackEndPoint = new TGraph();
                     for(size_t iPoint = 0;iPoint<trackEndPoints_v[itrack].size();iPoint++){
@@ -1845,7 +1845,7 @@ namespace larcv {
                     if(_tooShortDeadWire_v.at(itrack) == true) gTrackEndPoint->SetMarkerColor(4);
                     gTrackEndPoint->Draw("same P");
                 }
-            }
+            }*/
         }
         for(size_t i=0;i<_vertexTracks.size();i++){
             TGraph *gTrack[3];
@@ -1866,9 +1866,9 @@ namespace larcv {
                     gTrack[iPlane]->SetLineColor(i+1);
                     gTrack[iPlane]->SetMarkerColor(i+1);
                 }
-                gTrack[iPlane]->Draw("same LP");
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
                 c->cd(1)->cd(iPlane+1);
-                gTrack[iPlane]->Draw("same LP");
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
             }
         }
 
@@ -1877,21 +1877,21 @@ namespace larcv {
             c->cd(2)->cd(iPlane+1);
             gStartNend[iPlane]->SetMarkerColor(0);
             gStartNend[iPlane]->SetMarkerStyle(20);
-            gStartNend[iPlane]->Draw("same P");
+            if(gStartNend[iPlane]->GetN()>0)gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
             gStart[iPlane]->SetMarkerColor(2);
-            if(_possibleCosmic){
+            /*if(_possibleCosmic){
                 gStart[iPlane]->SetMarkerColor(3);
                 gStart[iPlane]->SetMarkerSize(2);
             }
             if(!_possibleCosmic && _possiblyCrossing){
                 gStart[iPlane]->SetMarkerColor(4);
                 gStart[iPlane]->SetMarkerSize(3);
-            }
-            gStart[iPlane]->Draw("same P");
+            }*/
+            if(gStart[iPlane]->GetN()>0)gStart[iPlane]->Draw("same P");
             gAverage[iPlane]->SetMarkerColor(3);
             gAverage[iPlane]->SetMarkerStyle(20);
-            gAverage[iPlane]->Draw("same P");
+            if(gAverage[iPlane]->GetN()>0)gAverage[iPlane]->Draw("same P");
         }
 
 
@@ -1908,25 +1908,28 @@ namespace larcv {
         if(IsGoodVertex()){label_tag+="_OKtracks";}
         if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}
         c->SaveAs(Form("%s/%s_%s.png",_outdir.c_str(),c->GetName(),label_tag.c_str()));
-        //c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
+        c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
 
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             hImage[iPlane]->Delete();
             hTagImage[iPlane]->Delete();
             gStart[iPlane]->Delete();
             gAverage[iPlane]->Delete();
+            hImageMasked[iPlane]->Delete();
+            gStartNend[iPlane]->Delete();
         }
-        std::vector<double> ionPerTrack = GetAverageIonization();
+        /*std::vector<double> ionPerTrack = GetAverageIonization();
         double ionMax = 0;
         double ionMin = 1e9;
         size_t trackIonMax = 0;
-        size_t trackIonMin = 0;
+        size_t trackIonMin = 0;*/
 
-        for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
+        /*for(size_t itrack = 0;itrack<ionPerTrack.size();itrack++){
             if(ionPerTrack[itrack] > ionMax){ionMax=ionPerTrack[itrack];trackIonMax=itrack;}
             if(ionPerTrack[itrack] < ionMin){ionMin=ionPerTrack[itrack];trackIonMin=itrack;}
         }
-        std::cout << "best guess : " << std::endl;
+        tellMe("I'm Also here 2",0);*/
+        /*std::cout << "best guess : " << std::endl;
         std::cout << "track " << trackIonMax << " is the proton" << std::endl;
         std::cout << "track " << trackIonMin << " is the muon" << std::endl;
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
@@ -1935,7 +1938,7 @@ namespace larcv {
                 tellMe(Form("if muon....: %.1f MeV",sMuonRange2T->Eval(_vertexLength[itrack])));
                 tellMe(Form("if proton..: %.1f MeV",sProtonRange2T->Eval(_vertexLength[itrack])));
             }
-        }
+        }*/
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
@@ -2931,7 +2934,18 @@ namespace larcv {
         if(_vertexPhi.size()!=0){_vertexPhi.clear();}
         if(_vertexTheta.size()!=0){_vertexTheta.clear();}
 
-        if(AvPt_v.size() < 2){
+        if(AvPt_v.size() == 0){
+            if(thisTrackAngles.size()!=0)thisTrackAngles.clear();
+            if(vertexAngles_v.size() !=0)vertexAngles_v.clear();
+            thisTrackAngles.push_back(0);
+            vertexAngles_v.push_back(thisTrackAngles);
+            return vertexAngles_v;
+        }
+        if(AvPt_v.size() == 1){
+            theta = (AvPt_v[0]-start_pt).Theta();
+            phi   = (AvPt_v[0]-start_pt).Phi();
+            _vertexPhi.push_back(phi);
+            _vertexTheta.push_back(theta);
             if(thisTrackAngles.size()!=0)thisTrackAngles.clear();
             if(vertexAngles_v.size() !=0)vertexAngles_v.clear();
             thisTrackAngles.push_back(0);
@@ -3495,6 +3509,17 @@ namespace larcv {
         }
     }
     //______________________________________________________
+    void AStarTracker::Get3DtracksFromLarlite(){
+        if(_vertexTracks.size()!=0)_vertexTracks.clear();
+        for(size_t itrack = 0; itrack<_vertexLarliteTracks.size();itrack++){
+            std::vector<TVector3> thisTrack(_vertexLarliteTracks[itrack].NumberTrajectoryPoints());
+            for(size_t iNode=0;iNode<_vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
+                thisTrack[iNode]=_vertexLarliteTracks[itrack].LocationAtPoint(iNode);
+            }
+            _vertexTracks.push_back(thisTrack);
+        }
+    }
+    //______________________________________________________
     bool AStarTracker::IsGoodTrack(){
         for(auto trackinfo:_SelectableTracks){
             if(_run    != trackinfo[0])continue;
@@ -3504,6 +3529,19 @@ namespace larcv {
             return true;
         }
         return false;
+    }
+    //______________________________________________________
+    void AStarTracker::FeedVtxGoodness(std::vector<bool> goodTracks_v){
+        if(goodTracks_v.size() != 9)return;
+        _missingTrack          = goodTracks_v[0];
+        _nothingReconstructed  = goodTracks_v[1];
+        _tooShortDeadWire      = goodTracks_v[2];
+        _tooShortFaintTrack    = goodTracks_v[3];
+        _tooManyTracksAtVertex = goodTracks_v[4];
+        _possibleCosmic        = goodTracks_v[5];
+        _possiblyCrossing      = goodTracks_v[6];
+        _branchingTracks       = goodTracks_v[7];
+        _jumpingTracks         = goodTracks_v[8];
     }
     //______________________________________________________
     void AStarTracker::MakeVertexTrack(){
