@@ -59,6 +59,31 @@ namespace larcv {
   bool DeadWireAna::process(IOManager& mgr)
   {
 
+    _x = -1.0*larcv::kINVALID_FLOAT;
+    _y = -1.0*larcv::kINVALID_FLOAT;
+    _z = -1.0*larcv::kINVALID_FLOAT;
+
+    _sx = -1.0*larcv::kINVALID_FLOAT;
+    _sy = -1.0*larcv::kINVALID_FLOAT;
+    _sz = -1.0*larcv::kINVALID_FLOAT;
+
+    _vertex_in_dead_plane0 = -1.0*larcv::kINVALID_INT;
+    _vertex_in_dead_plane1 = -1.0*larcv::kINVALID_INT;
+    _vertex_in_dead_plane2 = -1.0*larcv::kINVALID_INT;
+
+    _vertex_in_dead = -1.0*larcv::kINVALID_INT;
+
+    _vertex_near_dead_plane0 = -1.0*larcv::kINVALID_INT;
+    _vertex_near_dead_plane1 = -1.0*larcv::kINVALID_INT;
+    _vertex_near_dead_plane2 = -1.0*larcv::kINVALID_INT;
+					      
+    _vertex_near_dead = -1.0*larcv::kINVALID_INT;
+    
+    _nearest_wire_error = -1.0*larcv::kINVALID_INT;
+
+    _d_dead = -1.0*larcv::kINVALID_FLOAT;
+
+
     auto dead_img = (EventImage2D*) mgr.get_data(kProductImage2D,_ev_img2d_prod);
     if (dead_img->Image2DArray().size() != 3) throw larbys("Dead wire image does not have 3 planes");
 
@@ -137,7 +162,8 @@ namespace larcv {
 	
 	LARCV_DEBUG() << "Set (xpixel,ypixel)=("<<xpixel<<","<<ypixel<<")"<<std::endl;
       } else {
-	throw larbys("Vertex outside image");
+	LARCV_WARNING() << "Vertex outside image" << std::endl;
+	return true;
       }
       
       int in_dead = 0;
@@ -145,14 +171,14 @@ namespace larcv {
       
       if (img.pixel((int)ypixel,(int)xpixel) == 0.0) in_dead = 1;
       
-      int col_min = kINVALID_INT;
-      int col_max = kINVALID_INT;
+      int col_min = larcv::kINVALID_INT;
+      int col_max = larcv::kINVALID_INT;
 
       col_min = xpixel - _d_dead;
       col_max = xpixel + _d_dead;
 
-      if (col_max >= bb.cols()) col_max = bb.cols() - 1;
-      if (col_min <= 0        ) col_min = 0;
+      if (col_max >= (int)bb.cols()) col_max = bb.cols() - 1;
+      if (col_min <= 0             ) col_min = 0;
       
       for(int col = col_min; col <= col_max; ++col) {
 	if (img.pixel(ypixel,col) == 0.0)  {
