@@ -52,6 +52,11 @@ namespace larcv {
     
     _tree->Branch("nearest_wire_error", &_nearest_wire_error, "nearest_wire_error/I");
 
+    _tree->Branch("outside_image_error"       , &_outside_image_error       , "outside_image_error/I");
+    _tree->Branch("outside_image_error_plane0", &_outside_image_error_plane0, "outside_image_error_plane0/I");
+    _tree->Branch("outside_image_error_plane1", &_outside_image_error_plane1, "outside_image_error_plane1/I");
+    _tree->Branch("outside_image_error_plane2", &_outside_image_error_plane2, "outside_image_error_plane2/I");
+
     _tree->Branch("d_dead", &_d_dead, "d_dead/F");
 
   }
@@ -80,6 +85,10 @@ namespace larcv {
     _vertex_near_dead = -1.0*larcv::kINVALID_INT;
     
     _nearest_wire_error = -1.0*larcv::kINVALID_INT;
+    _outside_image_error        = -1.0*larcv::kINVALID_INT;
+    _outside_image_error_plane0 = -1.0*larcv::kINVALID_INT;
+    _outside_image_error_plane1 = -1.0*larcv::kINVALID_INT;
+    _outside_image_error_plane2 = -1.0*larcv::kINVALID_INT;
 
     auto dead_img = (EventImage2D*) mgr.get_data(kProductImage2D,_ev_img2d_prod);
     if (dead_img->Image2DArray().size() != 3) throw larbys("Dead wire image does not have 3 planes");
@@ -134,11 +143,17 @@ namespace larcv {
       _tree->Fill();
       LARCV_CRITICAL() << "Could not find nearest wire" << std::endl;
       _nearest_wire_error=1;
+      _tree->Fill();
       return true;
     }
     
     _vertex_in_dead = 0;
     _vertex_near_dead = 0;
+
+    _outside_image_error = 0;
+    _outside_image_error_plane0 = 0;
+    _outside_image_error_plane1 = 0;
+    _outside_image_error_plane2 = 0;
 
     for(size_t plane=0; plane<3; ++plane) {
       LARCV_DEBUG() << "@plane="<<plane<<std::endl;
@@ -148,8 +163,8 @@ namespace larcv {
 
       auto const& wire = wire_v[plane];
 
-      float xpixel = kINVALID_FLOAT;
-      float ypixel = kINVALID_FLOAT;
+      float xpixel = larcv::kINVALID_FLOAT;
+      float ypixel = larcv::kINVALID_FLOAT;
       
       if( bb.min_x() <= wire && wire <= bb.max_x() &&
 	  bb.min_y() <= tick && tick <= bb.max_y() ) {
@@ -160,7 +175,11 @@ namespace larcv {
 	LARCV_DEBUG() << "Set (xpixel,ypixel)=("<<xpixel<<","<<ypixel<<")"<<std::endl;
       } else {
 	LARCV_WARNING() << "Vertex outside image" << std::endl;
-	return true;
+	_outside_image_error += 1;
+	if(plane==0) _outside_image_error_plane0 = 1;
+	if(plane==1) _outside_image_error_plane1 = 1;
+	if(plane==2) _outside_image_error_plane2 = 1;
+	continue;
       }
       
       int in_dead = 0;

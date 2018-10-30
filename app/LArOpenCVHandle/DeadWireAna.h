@@ -48,6 +48,11 @@ namespace larcv {
 
     int _nearest_wire_error;
 
+    int _outside_image_error_plane0;
+    int _outside_image_error_plane1;
+    int _outside_image_error_plane2;
+    int _outside_image_error;
+
     std::string _ev_img2d_prod;
     std::string _seg_roi_prod;
     float _d_dead;
