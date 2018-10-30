@@ -50,7 +50,7 @@ namespace larcv {
     _tree->Branch("vertex_near_dead_plane2", &_vertex_near_dead_plane2, "vertex_near_dead_plane2/I");
     _tree->Branch("vertex_near_dead", &_vertex_near_dead, "vertex_near_dead/I");
     
-    _tree->Branch("nearest_wire_error", &_nearest_wire_error, "_nearest_wire_error/I");
+    _tree->Branch("nearest_wire_error", &_nearest_wire_error, "nearest_wire_error/I");
 
     _tree->Branch("d_dead", &_d_dead, "d_dead/F");
 
@@ -80,9 +80,6 @@ namespace larcv {
     _vertex_near_dead = -1.0*larcv::kINVALID_INT;
     
     _nearest_wire_error = -1.0*larcv::kINVALID_INT;
-
-    _d_dead = -1.0*larcv::kINVALID_FLOAT;
-
 
     auto dead_img = (EventImage2D*) mgr.get_data(kProductImage2D,_ev_img2d_prod);
     if (dead_img->Image2DArray().size() != 3) throw larbys("Dead wire image does not have 3 planes");
