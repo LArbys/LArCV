@@ -83,8 +83,8 @@ namespace larcv {
     _vertex_near_dead_plane2 = -1.0*larcv::kINVALID_INT;
 					      
     _vertex_near_dead = -1.0*larcv::kINVALID_INT;
-    
     _nearest_wire_error = -1.0*larcv::kINVALID_INT;
+
     _outside_image_error        = -1.0*larcv::kINVALID_INT;
     _outside_image_error_plane0 = -1.0*larcv::kINVALID_INT;
     _outside_image_error_plane1 = -1.0*larcv::kINVALID_INT;
@@ -140,7 +140,6 @@ namespace larcv {
       wire_v[1] = geo->NearestWire(xyz,1);
       wire_v[2] = geo->NearestWire(xyz,2);
     } catch(const std::exception& e) {
-      _tree->Fill();
       LARCV_CRITICAL() << "Could not find nearest wire" << std::endl;
       _nearest_wire_error=1;
       _tree->Fill();
