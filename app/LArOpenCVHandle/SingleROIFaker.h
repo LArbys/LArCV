@@ -41,6 +41,9 @@ namespace larcv {
 
     void finalize();
 
+    std::string _img_producer;
+    std::string _roi_producer;
+
   };
 
   /**

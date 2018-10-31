@@ -29,8 +29,11 @@
 #pragma link C++ class larcv::PGraphTruthMatch+;
 #pragma link C++ class larcv::LArbysLoader+;
 #pragma link C++ class larcv::InterWriteOutLC+;
+#pragma link C++ class larcv::SingleROIFaker+;
+#pragma link C++ class larcv::SSNetChecker+;
 
 #endif
+
 
 
 

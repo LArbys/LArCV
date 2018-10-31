@@ -15,20 +15,23 @@ namespace larcv {
   {}
     
   void SingleROIFaker::configure(const PSet& cfg)
-  {}
+  {
+    _img_producer = cfg.get<std::string>("ImageProducer");
+    _roi_producer = cfg.get<std::string>("ROIProducer");
+  }
 
   void SingleROIFaker::initialize()
   {}
 
   bool SingleROIFaker::process(IOManager& mgr)
   {
-    const auto ev_img = (EventImage2D*)mgr.get_data(kProductImage2D,"wire");
-    auto ev_roi = (EventROI*)mgr.get_data(kProductROI,"fake");
+    const auto ev_img = (EventImage2D*)mgr.get_data(kProductImage2D,_img_producer);
+    auto ev_roi = (EventROI*)mgr.get_data(kProductROI,_roi_producer);
     
-    if (!ev_roi->ROIArray().empty()) 
-      throw larbys("non empty ``fake`` ROI producer");
+    if (!ev_roi->ROIArray().empty())
+      return true;
 
-    ROI proi;
+    larcv::ROI proi;
     for(const auto& img : ev_img->Image2DArray())
       proi.AppendBB(img.meta());
     
