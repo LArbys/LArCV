@@ -40,6 +40,16 @@ def pparam_plane(row, pid, prefix, plane):
     
     return res
 
+def pparam_plane_ratio(row,pid,prefix1,prefix2,plane):
+
+    val1 = pparam_plane(row,pid,prefix1,plane)
+    val2 = pparam_plane(row,pid,prefix2,plane)
+    
+    ratio = float(0.0)
+    ratio = val1 / val2
+
+    return ratio
+
 def pparam_v(row, pid, prefix, func):
     res = float(-1)
     
@@ -270,6 +280,32 @@ def multi_pparam_v(row,pid,prefix):
     idx_v = np.argsort(res_v)[::-1]
     
     return [res_v[idx_v[0]],res_v[idx_v[1]]]
+
+
+def multi_pparam_v_plane(row,pid,prefix,plane):
+    res = float(-1)
+
+    par = int(row[pid])
+
+    if par<0: 
+        return res
+    
+    par_id = "nueid_par%d" % par
+    ps = prefix.split("_")
+    prefix = "_".join(ps[2:-2])
+    SS = "%s_planes_v" % par_id
+    par_planes_v = row[SS]
+    
+    if par_planes_v[plane] == 0:
+        return res
+
+    alpha = PLANE_TO_ALPHA[plane]
+    SS="%s_%s_%s_v"% (par_id,prefix,alpha)
+    val = np.max(row[SS])
+    
+    res = val
+    
+    return res
 
 
 def multi_pparam_max(row,pid,prefix):

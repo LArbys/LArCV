@@ -135,32 +135,49 @@ def set_cuts(df,doit=True):
     odf = df.copy()
 
     cut_v = OrderedDict()
-    cut_v["c01"] = c01
-    cut_v["c02"] = c02
-    cut_v["c22"] = c22
-    cut_v["c23"] = c23
-    cut_v["c24"] = c24
-    cut_v["c25"] = c25
-    cut_v["c26"] = c26
-    cut_v["c27"] = c27
-    cut_v["c28"] = c28
-    cut_v["c29"] = c29
-    cut_v["c30"] = c30
-    cut_v["c31"] = c31
-    cut_v["c32"] = c32
-    cut_v["c33"] = c33
-    cut_v["c34"] = c34
-    cut_v["c35"] = c35
-    cut_v["c36"] = c36
-    cut_v["c37"] = c37
-    cut_v["c38"] = c38
-    cut_v["c39"] = c39
-    cut_v["c40"] = c40
-    cut_v["c41"] = c41
-    cut_v["c42"] = c42
-    cut_v["c43"] = c43
-    cut_v["c44"] = c44
-    cut_v["c45"] = c45
+    cut_v["c01"]  = c01
+    cut_v["c01y"] = c01y
+    cut_v["c02"]  = c02
+    cut_v["c02y"] = c02y
+    cut_v["c22"]  = c22
+    cut_v["c22y"] = c22y
+    cut_v["c23"]  = c23
+    cut_v["c23y"] = c23y
+    cut_v["c24"]  = c24
+    cut_v["c25"]  = c25
+    cut_v["c26"]  = c26
+    cut_v["c27"]  = c27
+    cut_v["c28"]  = c28
+    cut_v["c28y"] = c28y
+    cut_v["c29"]  = c29
+    cut_v["c30"]  = c30
+    cut_v["c30y"] = c30y
+    cut_v["c31"]  = c31
+    cut_v["c31y"] = c31y
+    cut_v["c32"]  = c32
+    cut_v["c33"]  = c33
+    cut_v["c33y"] = c33y
+    cut_v["c34"]  = c34
+    cut_v["c34y"] = c34y
+    cut_v["c35"]  = c35
+    cut_v["c35y"] = c35y
+    cut_v["c36"]  = c36
+    cut_v["c36y"] = c36y
+    cut_v["c37"]  = c37
+    cut_v["c37y"] = c37y
+    cut_v["c38"]  = c38
+    cut_v["c38y"] = c38y
+    cut_v["c39"]  = c39
+    cut_v["c40"]  = c40
+    cut_v["c41"]  = c41
+    cut_v["c42"]  = c42
+    cut_v["c42y"] = c42y
+    cut_v["c43"]  = c43
+    cut_v["c43y"] = c43y
+    cut_v["c44"]  = c44
+    cut_v["c44y"] = c44y
+    cut_v["c45"]  = c45
+    cut_v["c45y"] = c45y
 
     if doit == True:
         for cname in cut_v.keys():
@@ -187,6 +204,9 @@ def c01(row):
 
     return ret
 
+def c01y(row):
+    return c01(row)
+
 def c02(row):
     ret = 0
 
@@ -196,6 +216,9 @@ def c02(row):
         ret = 1
         
     return ret
+
+def c02y(row):
+    return c02y(row)
 
 def c19(row):
     ret = 0
@@ -242,6 +265,19 @@ def c22(row):
     
     return ret
 
+def c22y(row):
+    ret = 0
+
+    if int(row['eid']) < 0: 
+        return ret
+
+    ev3 = pparam_plane(row,"eid","nueid_par1_showerfrac_Y",2)
+    
+    if (ev3 > 0.5):
+        ret = 1
+    
+    return ret
+
 def c23(row):
     ret = 0
 
@@ -265,6 +301,20 @@ def c23(row):
         ret = 1
     
     return ret
+
+def c23y(row):
+    ret = 0
+
+    if int(row['pid']) < 0: 
+        return ret
+    
+    ev3 = pparam_plane(row,"pid","nueid_par1_showerfrac_Y",2)
+    
+    if (ev3 < 0.5):
+        ret = 1
+    
+    return ret
+
 
 def c24(row):
     ret = 0
@@ -375,6 +425,9 @@ def c28(row):
     
     return ret
 
+def c28y(row):
+    return c28(row)
+
 def c29(row):
     ret = 0
     
@@ -405,6 +458,9 @@ def c30(row):
         ret = 1
     
     return ret
+
+def c30y(row):
+    return c30(row)
 
 def c31(row):
     ret = 0
@@ -468,6 +524,21 @@ def c33(row):
     
     return ret
 
+
+def c33y(row):
+    ret = 0
+    
+    if int(row['eid']) < 0: 
+        return ret
+
+    eY = pparam_plane(row,"eid","nueid_par1_linefrac_U",2)
+    
+    if (eY < 0.99):
+        ret = 1
+    
+    return ret
+
+
 def c34(row):
     ret = 0
     
@@ -483,6 +554,9 @@ def c34(row):
     
     return ret
     
+def c34y(row):
+    return c34(row)
+
 def c35(row):
     
     ret = 0
@@ -499,6 +573,9 @@ def c35(row):
 
     return ret
 
+def c35y(row):
+    return c35(row)
+
 def c36(row):
     ret = 0
 
@@ -508,6 +585,9 @@ def c36(row):
         ret = 1
         
     return ret
+
+def c36y(row):
+    return c36(row)
 
 def c37(row):
     ret = 0
@@ -548,6 +628,10 @@ def c37(row):
 
     return ret
 
+def c37y(row):
+    return c37(row)
+
+
 def c38(row):
     ret = 0
     
@@ -559,6 +643,27 @@ def c38(row):
 
     key_v = multi_pparam_ratio(row,"eid",key1,key2)
     cut = key_v[0]
+
+    if cut < 14:
+        ret = 1
+    
+    return ret
+
+def c38y(row):
+    ret = 0
+    
+    if int(row['eid']) < 0: 
+        return ret
+    
+    key1 = "nueid_par1_triangle_height_U"
+    key2 = "nueid_par1_triangle_baselength_U"
+
+    param1 = pparam_plane(row,"eid",key1,2)
+    param2 = pparam_plane(row,"eid",key2,2)
+
+    cut = 0.0
+    if param2 > 0:
+        cut = param1 / param2
 
     if cut < 14:
         ret = 1
@@ -626,6 +731,8 @@ def c42(row):
     
     return ret
 
+def c42y(row):
+    return c42(row)
 
 def c43(row):
     ret = 0
@@ -646,6 +753,8 @@ def c43(row):
     
     return ret
 
+def c43y(row):
+    return c43(row)
 
 def c44(row):
     ret = 0
