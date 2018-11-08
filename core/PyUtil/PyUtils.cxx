@@ -174,7 +174,6 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     }
     dim_data[1] = maxlen;
 
-    std::cout << "EvChStatus dims=[" << dim_data[0] << "," << dim_data[1] << "]" << std::endl;
     PyArrayObject* arr = (PyArrayObject*)PyArray_ZEROS( nd, dim_data, NPY_USHORT, 0 );
 
     short* data = (short*)PyArray_DATA(arr);
