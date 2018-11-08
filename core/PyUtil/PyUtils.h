@@ -12,6 +12,7 @@ typedef _object PyObject;
 
 #include "DataFormat/Image2D.h"
 #include "DataFormat/ROI.h"
+#include "DataFormat/EventChStatus.h"
 
 namespace larcv {
 /// Utility function: call one-time-only numpy module initialization (you don't
@@ -34,6 +35,11 @@ Image2D as_image2d(PyObject *);
 // allows one to avoid some loops in python
 void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
                   const int timedownsampling, const float pedestal = 0.0);
+
+// ChStatus helpers
+PyObject* as_ndarray( const ChStatus& chstatus ); 
+PyObject* as_ndarray( const EventChStatus& evstatus );
+   
 }
 
 #endif

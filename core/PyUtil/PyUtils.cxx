@@ -1,6 +1,7 @@
 #ifndef __LARCV_PYUTILS_CXX__
 #define __LARCV_PYUTILS_CXX__
 
+#include <iostream>
 #include "PyUtils.h"
 #include "Base/larcv_logger.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -143,6 +144,51 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     img.set_pixel(irow, col, val + ((float)adcs.at(iadc) - pedestal));
   }
 }
+
+  PyObject* as_ndarray( const ChStatus& status ) {
+    // NOTE: CREATES WRAPPER    
+    SetPyUtil();
+
+    int nd = 1;
+    int dim_data[1];
+    dim_data[0] = status.as_vector().size();
+    auto const &stat_v = status.as_vector();
+        
+    return PyArray_FromDimsAndData( nd, dim_data, NPY_USHORT, (char*)(&stat_v[0]) );
+  }
+
+
+  PyObject* as_ndarray( const EventChStatus& evstatus ) {
+    // NOTE: CREATES NEW ARRAY
+    
+    SetPyUtil();
+
+    int nd = 2;
+    npy_intp dim_data[2];
+    dim_data[0] = evstatus.ChStatusMap().size(); //  num planes
+    int maxlen = 0;
+    for (size_t p=0; p<evstatus.ChStatusMap().size(); p++) {
+      int planelen = evstatus.Status( (larcv::PlaneID_t)p ).as_vector().size();
+      if ( planelen > maxlen )
+	maxlen = planelen;
+    }
+    dim_data[1] = maxlen;
+
+    std::cout << "EvChStatus dims=[" << dim_data[0] << "," << dim_data[1] << "]" << std::endl;
+    PyArrayObject* arr = (PyArrayObject*)PyArray_ZEROS( nd, dim_data, NPY_USHORT, 0 );
+
+    short* data = (short*)PyArray_DATA(arr);
+    
+    for (size_t p=0; p<evstatus.ChStatusMap().size(); p++) {
+      const std::vector<short>& chstatus = evstatus.Status( (larcv::PlaneID_t)p ).as_vector();
+      for (size_t wire=0; wire<chstatus.size(); wire++) {
+	*(data + p*dim_data[1] + wire) = chstatus[wire];
+      }
+    }
+    
+    return (PyObject*)arr;
+  }
+  
 }
 
 #endif
