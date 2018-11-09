@@ -39,7 +39,11 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 // ChStatus helpers
 PyObject* as_ndarray( const ChStatus& chstatus ); 
 PyObject* as_ndarray( const EventChStatus& evstatus );
-   
+
+ChStatus      as_chstatus( PyObject*, larcv::PlaneID_t planeid );
+EventChStatus as_eventchstatus( PyObject* ); 
+
+ 
 }
 
 #endif

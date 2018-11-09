@@ -145,6 +145,10 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
   }
 }
 
+  // =================================================================
+  // CHSTATUS UTILITIES
+  // -------------------
+  
   PyObject* as_ndarray( const ChStatus& status ) {
     // NOTE: CREATES WRAPPER    
     SetPyUtil();
@@ -187,7 +191,65 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     
     return (PyObject*)arr;
   }
+
+  ChStatus as_chstatus( PyObject* pyarray, const int planeid ) {
+    
+    SetPyUtil();
+    const int dtype = NPY_USHORT;
+    PyArray_Descr *descr = PyArray_DescrFromType(dtype);
+    npy_intp dims[1];
+    float *carray;
+    if ( PyArray_AsCArray(&pyarray, (void *)&carray, dims, 1, descr) < 0 ) {
+      logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+				 "ERROR: cannot convert numpy array to ChStatus Object");
+      throw larbys();
+    }
+
+    std::vector<short> status_v( dims[0], 0 );
+    for (int i = 0; i < dims[0]; ++i)
+      status_v[i] = carray[i];
+    PyArray_Free(pyarray,(void*)carray);
+    
+    ChStatus out( (larcv::PlaneID_t)planeid, std::move(status_v) );
+    
+    return out;
+  }
   
+  EventChStatus as_eventchstatus( PyObject* pyarray ) {
+    
+    SetPyUtil();
+    const int dtype      = NPY_USHORT;
+    PyArray_Descr *descr = PyArray_DescrFromType(dtype);
+    int nd               = PyArray_NDIM( (PyArrayObject*)pyarray );
+    npy_intp* dims       = PyArray_DIMS( (PyArrayObject*)pyarray );
+
+    if ( nd!=2 ) {
+      logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+				 "ERROR: unexpected dimension size for EventChStatus numpy array (should be two).");
+      throw larbys();
+    }
+    
+    short **carray;
+    if ( PyArray_AsCArray(&pyarray, (void **)&carray, dims, nd, descr) < 0 ) {
+      logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+				 "ERROR: cannot convert numpy array to ChStatus Object");
+      throw larbys();
+    }
+
+    EventChStatus evchstatus;
+    for (int i = 0; i < dims[0]; ++i) {    
+      std::vector<short> status_v( dims[1], 0 );
+      for (int j=0; j < dims[1]; ++j )
+	status_v[ j ] = carray[i][j];
+      ChStatus chstatus( (larcv::PlaneID_t)i, std::move(status_v) );
+      evchstatus.Emplace( std::move(chstatus) );
+    }
+    
+    PyArray_Free(pyarray,(void*)carray);
+    
+    return evchstatus;    
+  }
+
 }
 
 #endif
