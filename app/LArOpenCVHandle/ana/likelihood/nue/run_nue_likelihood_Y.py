@@ -30,7 +30,7 @@ from lib.ll_functions import select_ll_y
 out_df = apply_ll_y(COMB_DF,LLEM,LLPC)
 out_df = select_ll_y(out_df)
 
-out_file = os.path.join(OUTDIR,"nue_ll_df_%s.pkl" % NUM)
+out_file = os.path.join(OUTDIR,"nue_ll_Y_df_%s.pkl" % NUM)
 out_df.to_pickle(out_file)
 
 del out_df
