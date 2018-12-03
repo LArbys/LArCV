@@ -1,10 +1,14 @@
+import sys, os
 import ROOT
 import numpy as np
 import root_numpy as rn
 import pandas as pd
-import sys, os
-from cut_functions import *
 import collections
+
+from cut_functions import *
+
+from xgb_functions import XGB_DL
+from xgb_functions import pred_xgb
 
 def generate_ll_spec(sig_df,bkg_df,pdf_m):
 
@@ -62,6 +66,14 @@ def fill_empty_ll_vars(df,pdf_m):
         df[SS] = np.nan
         SS = "LL"+SS
         df[SS] = np.nan
+
+    return df
+
+def fill_empty_bdt_vars(df,pdf_m):
+    
+    df['proton_int'] = float(-1)
+    df['xgb_pc'] = float(-1)
+    df['xgb_em'] = float(-1)
 
     return df
 
@@ -978,6 +990,59 @@ def apply_ll_y(COMB_DF, LLEP, LLPC):
 
         df_precut = make_ll(df_precut,llem_sig_spec_m,llem_bkg_spec_m)
         df_precut = make_ll(df_precut,llpc_sig_spec_m,llpc_bkg_spec_m)
+
+    out_df = pd.concat([df_precut,df_rest],ignore_index=True)
+
+    output_size = out_df.index.size
+
+    assert input_size == output_size
+    
+    return out_df
+
+def apply_bdt_y(COMB_DF, LLEM_BIN, LLPC_BIN):
+    
+    comb_df = pd.read_pickle(COMB_DF)
+    out_df = comb_df.copy()
+    
+    input_size = out_df.index.size
+
+    print "input_size=",input_size
+    
+    precut = "passed_ll_precuts_y==1"
+
+    df_precut = out_df.query(precut).copy()
+    df_rest   = out_df.drop(df_precut.index).copy()
+
+    # no events passed the precuts
+    if df_precut.empty == True:
+        print "No vertices passed"
+        df_rest = fill_empty_bdt_vars(df_rest)
+
+    else:
+        assert (df_precut.index.size + df_rest.index.size) == out_df.index.size
+            
+        em_pdf_v = define_LLem_vars_Y().keys()
+        pc_pdf_v = define_LLpc_vars_Y().keys()
+        
+        pc_pdf_v += ['proton_int']
+
+        df_precut['proton_int'] = df_precut.apply(lambda x : x['anapid1_proton_int_score'][2],axis=1)
+
+        param = {
+            'max_depth': 3,
+            'eta': 0.3,
+            'silent': 1,
+            'objective': 'multi:softprob',
+            'num_class': 2
+        }
+        num_round = 50
+
+        xgb_nominal = XGB_DL("xgb_nominal",param,0.8,num_round,pc_pdf_v,em_pdf_v)
+        xgb_nominal.bst_pc.load_model(LLPC_BIN);
+        xgb_nominal.bst_em.load_model(LLEM_BIN);
+        
+        df_precut['xgb_pc'] = pred_xgb(df_precut,pc_pdf_v,xgb_nominal.bst_pc)
+        df_precut['xgb_em'] = pred_xgb(df_precut,em_pdf_v,xgb_nominal.bst_em)
 
     out_df = pd.concat([df_precut,df_rest],ignore_index=True)
 

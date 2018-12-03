@@ -5,6 +5,13 @@ import pandas as pd
 import root_numpy as rn
 from common_functions import bless_scedr
 
+def pred_xgb(df,pdf_v,bst):
+        data = df[pdf_v].values
+        dmat = xgb.DMatrix(data)
+        pred = bst.predict(dmat)
+        return pred[:,0]
+
+
 def prepare_xgb(df1,df2,df3,mcinfo1,mcinfo2):
         
         print "Start"
@@ -228,3 +235,4 @@ class XGB_DL:
 
         return (bst, train_dmat, test_dmat)
 
+        
