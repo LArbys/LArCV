@@ -475,6 +475,10 @@ def c31(row):
         
     return ret
 
+def c31y(row):
+    return c31(row)
+
+
 def c32(row):
     ret = 0
     
@@ -767,6 +771,9 @@ def c44(row):
         
     return ret
 
+def c44y(row):
+    return c44(row)
+
 def c45(row):
     ret = 0
 
@@ -777,3 +784,6 @@ def c45(row):
         ret = 1
     
     return ret
+
+def c45y(row):
+    return c45(row)
