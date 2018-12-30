@@ -10,7 +10,6 @@ namespace larcv {
     : _entry(-1),
       _io(nullptr),
       m_larflowcluster_v(nullptr),
-      m_pixelmask_v(nullptr),
       fEntryLoaded(false)
   {}
     
@@ -60,7 +59,7 @@ namespace larcv {
     }
     
     // make sure the products are as expected
-    int nclusters = m_larflowcluster_v->size();    
+    size_t nclusters = m_larflowcluster_v->size();    
     if ( nclusters!=m_pixelmask_vv.front()->size() ) {
       LARCV_ERROR() << "Number of larflowclusters and pixelmasks in the entry (" << _entry << ") do not match."
 		    << " clusters=" << nclusters
@@ -166,6 +165,17 @@ namespace larcv {
    */  
   std::vector< larcv::Image2D > DLCosmicTagUtil::makeCosmicMaskedImage(  const std::vector<larcv::Image2D>& adc_view_v ) const {
 
+    // check proper condition of class
+    if ( !fEntryLoaded )
+      LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
+
+    // the numbers of planes should match
+    if ( adc_view_v.size()!=m_pixelmask_vv.size() ) {
+      LARCV_ERROR() << "Number of input ADC plane images (" << adc_view_v.size() << ") "
+		    << "does not match with the number of pixelmask planes (" << m_pixelmask_vv.size() << ")"
+		    << std::endl;
+    }
+    
     // create blank copies of the input images
     std::vector< larcv::Image2D > img_v;
     for ( auto const& img : adc_view_v ) {
@@ -201,7 +211,7 @@ namespace larcv {
 
 	  int adccol = adcmeta.col( xy[0] );
 	  int adcrow = adcmeta.row( xy[1] );
-	  masked.set_pixel( adcrow, adccol, adcimg.pixel( adcrow, adcol ) );
+	  masked.set_pixel( adcrow, adccol, adcimg.pixel( adcrow, adccol ) );
 	}
 	
       }
@@ -220,6 +230,17 @@ namespace larcv {
    */  
   std::vector< larcv::Image2D > DLCosmicTagUtil::makeClusterTaggedImages(  const std::vector<larcv::Image2D>& adc_view_v ) const {
 
+    // check proper condition of class
+    if ( !fEntryLoaded )
+      LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
+
+    // the numbers of planes should match
+    if ( adc_view_v.size()!=m_pixelmask_vv.size() ) {
+      LARCV_ERROR() << "Number of input ADC plane images (" << adc_view_v.size() << ") "
+		    << "does not match with the number of pixelmask planes (" << m_pixelmask_vv.size() << ")"
+		    << std::endl;
+    }
+    
     // create blank copies of the input images
     std::vector< larcv::Image2D > img_v;
     for ( auto const& img : adc_view_v ) {
@@ -274,18 +295,7 @@ namespace larcv {
    * @param[in] plane PlaneID to be assigned to output imagemeta.
    * @return ImageMeta representing bounding box around pixels in pixelmask.
    */
-  larcv::ImageMeta DLCosmicTagUtil::metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid ) const {
-
-    // check proper condition of class
-    if ( !fEntryLoaded )
-      LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
-
-    // the numbers of planes should match
-    if ( adc_wholeview_v.size()!=m_pixelmask_vv.size() ) {
-      LARCV_ERROR() << "Number of input ADC plane images (" << adc_wholeview_v.size() << ") "
-		    << "does not match with the number of pixelmask planes (" << m_pixelmask_vv.size() << ")"
-		    << std::endl;
-    }
+  larcv::ImageMeta DLCosmicTagUtil::metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid ) {
     
     std::vector<float> bbox = mask.as_vector_bbox();
     // pixel coordinate height and widths

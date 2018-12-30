@@ -19,8 +19,8 @@ namespace larcv {
   class DLCosmicTagUtil : public larcv::larcv_base {
   public:
     
-    DLCosmicTagUtil() {};
-    ~DLCosmicTagUtil() {};
+    DLCosmicTagUtil();
+    virtual ~DLCosmicTagUtil() {};
 
     void Configure( PSet& pset );
     //void go_to_event( int run, int subrun, int event ); // to-do
@@ -29,7 +29,7 @@ namespace larcv {
     larlite::event_base* get_data( larlite::data::DataType_t data_type, std::string producername );
 
     /// use the intime cluster objects to form a crop within the wholeview image
-    std::vector< larcv::Image2D > makeIntimeCroppedImage( const std::vector<larcv::Image2D>& adc_wholeview_v ) const;
+    std::vector< larcv::Image2D > makeIntimeCroppedImage( const std::vector<larcv::Image2D>& adc_wholeview_v, const int padding=10 ) const;
     
     /// within the region defined by the input images, provide a masked adc image
     std::vector< larcv::Image2D > makeCosmicMaskedImage(  const std::vector<larcv::Image2D>& adc_view_v ) const;
@@ -41,7 +41,7 @@ namespace larcv {
     larlite::storage_manager& io() { return (*_io); };
 
     // utility function: make imagemeta bounding box from a pixelmask object
-    static larcv::ImageMeta metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid=0 ) const;
+    static larcv::ImageMeta metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid=0 );
     
   protected:
 
