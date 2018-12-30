@@ -9,7 +9,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-CORE_SUBDIRS := Base DataFormat Processor CPPUtil
+CORE_SUBDIRS := Base DataFormat Processor CPPUtil ROOTUtil
 ifeq ($(LARCV_NUMPY),1)
 CORE_SUBDIRS += PyUtil
 endif
@@ -19,7 +19,7 @@ endif
 
 APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider MeatSlicer Reco3D
+APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider MeatSlicer Reco3D DLCosmicTag
   ifdef LAROPENCV_BASEDIR
   APP_SUBDIRS += LArOpenCVHandle
   endif

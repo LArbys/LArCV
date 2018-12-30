@@ -78,6 +78,37 @@ namespace larcv {
        << ")" << std::endl;
     return ss.str();
   }
+
+  /** 
+   * Check if this meta contains the given meta
+   *
+   * @param[in] meta Meta to check if contained within this meta.
+   * @return True if given meta is contained
+   */
+  bool ImageMeta::contains( const larcv::ImageMeta& meta ) const {
+    if ( meta!=(*this)
+	 && (meta.min_x() < this->min_x()
+	     || meta.max_x() > this->max_x()
+	     || meta.min_y() < this->min_y()
+	     || meta.max_y() > this->max_y() ) )
+      return false;
+    return true;
+  }
+
+  /** 
+   * Test if point is within the meta's bounding box
+   *
+   * @param[in] x X-coordinate
+   * @param[in] y Y-coordinate
+   * @return True if (x,y) point is within meta bounds
+   */  
+  bool ImageMeta::contains( float x, float y ) const {
+    if ( x<min_x() || x>=max_x()
+	 || y<=min_y() || y>max_y() ) {
+      return false;
+    }
+    return true;
+  }
 }
 
 #endif

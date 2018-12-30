@@ -125,6 +125,10 @@ namespace larcv {
     ImageMeta overlap(const ImageMeta& meta) const;
     /// Construct a union bounding box
     ImageMeta inclusive(const ImageMeta& meta) const;
+    /// Check if this meta containers given
+    bool contains(const ImageMeta& meta) const;
+    /// Check if point is inside meta
+    bool contains( float x, float y ) const;
 
     /// Dump info in text
     std::string dump() const;

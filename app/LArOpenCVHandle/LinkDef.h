@@ -4,6 +4,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class larcv::LArbysImageMaker+;
+#pragma link C++ class larcv::DLCosmicTagImageMaker+;
 #pragma link C++ class larcv::PreProcessor+;
 #pragma link C++ class larcv::LArbysImageExtract+;
 

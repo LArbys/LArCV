@@ -111,6 +111,7 @@ namespace larcv {
     size_t      _out_tree_index;
     size_t      _in_tree_entries;
     size_t      _out_tree_entries;
+    bool        _hasindex;
     EventBase   _event_id;
     EventBase   _set_event_id;
     EventBase   _last_event_id;
@@ -120,6 +121,8 @@ namespace larcv {
     std::vector<std::map<std::string,larcv::ProducerID_t> > _key_list;
     std::vector<TTree*>          _out_tree_v;
     std::vector<TChain*>         _in_tree_v;
+    TChain*                      _in_index_tree_v;
+    TChain*                      _out_index_tree_v;
     std::vector<size_t>          _in_tree_index_v;
     size_t _product_ctr;
     std::vector<larcv::EventBase*>      _product_ptr_v;
