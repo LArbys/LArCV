@@ -20,7 +20,7 @@ namespace larcv {
   public:
     
     DLCosmicTagUtil();
-    virtual ~DLCosmicTagUtil() {};
+    virtual ~DLCosmicTagUtil();
 
     void Configure( PSet& pset );
     //void go_to_event( int run, int subrun, int event ); // to-do
@@ -42,6 +42,9 @@ namespace larcv {
 
     // utility function: make imagemeta bounding box from a pixelmask object
     static larcv::ImageMeta metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid=0 );
+
+    /// get the number of clusters in the current entry
+    int getNumClusters() const;    
     
   protected:
 

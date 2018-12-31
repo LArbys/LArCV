@@ -1,0 +1,5 @@
+TestDLCosmicUtil: {
+  InputFilename: "gridtest_larlite.root"
+  IntimePlanePixelMaskProducers: ["intimeflashmatchedp0","intimeflashmatchedp1","intimeflashmatchedp2"]
+  IntimeLArFlowClusterProducer: "intimeflashmatched"
+}

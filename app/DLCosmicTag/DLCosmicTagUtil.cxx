@@ -12,6 +12,15 @@ namespace larcv {
       m_larflowcluster_v(nullptr),
       fEntryLoaded(false)
   {}
+
+  /**
+   * Default destructor
+   *
+   */  
+  DLCosmicTagUtil::~DLCosmicTagUtil() {
+    _io->close();
+    delete _io;
+  }
     
   /**
    *  Configures class
@@ -35,6 +44,8 @@ namespace larcv {
     _intime_larflowcluster_producername = pset.get<std::string>("IntimeLArFlowClusterProducer");
 
     _io = new larlite::storage_manager( larlite::storage_manager::kREAD );
+    _io->add_in_filename( _larlite_input_filename );
+    _io->open();
     
   }
 
@@ -78,6 +89,19 @@ namespace larcv {
     fEntryLoaded = true;
   }
 
+  /**
+   *  Get number of clusters in the entry
+   * 
+   * @return number of clusters in the entry
+   */      
+  int DLCosmicTagUtil::getNumClusters() const {
+    // check proper condition of class
+    if ( !fEntryLoaded )
+      LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
+    
+    return m_larflowcluster_v->size();
+  }
+  
   /**
    *  Wrapper around larlite::storage_manager::get_data
    * 
@@ -181,7 +205,7 @@ namespace larcv {
     for ( auto const& img : adc_view_v ) {
       larcv::Image2D blank( img.meta() );
       blank.paint(0.0);
-      img_v.emplace_back( std::move(img) );
+      img_v.emplace_back( std::move(blank) );
     }
 
     // if we have no clusters, we provide an empty mask
@@ -193,7 +217,7 @@ namespace larcv {
     for ( size_t iplane=0; iplane<nplanes; iplane++ ) {
 
       // get the input image and the output masked image
-      const larcv::Image2D& adcimg = adc_view_v.at(iplane);      
+      const larcv::Image2D&   adcimg  = adc_view_v.at(iplane);      
       const larcv::ImageMeta& adcmeta = adcimg.meta();
 
       larcv::Image2D& masked = img_v.at(iplane);
@@ -204,6 +228,7 @@ namespace larcv {
 
 	// for each point, check if inside input image meta
 	// if so, copy adc value to output
+	LARCV_DEBUG() << "Masking image on plane=" << iplane << " with " << mask.len() << " pixels" << std::endl;
 	for ( int ipt=0; ipt<mask.len(); ipt++ ) {
 	  std::vector<float> xy = mask.point(ipt);
 	  if ( ! adcmeta.contains( xy[0], xy[1] ) )
@@ -217,7 +242,7 @@ namespace larcv {
       }
     }
     
-    return img_v;    
+    return img_v;
   }
 
   /**
@@ -246,7 +271,7 @@ namespace larcv {
     for ( auto const& img : adc_view_v ) {
       larcv::Image2D blank( img.meta() );
       blank.paint(0.0);
-      img_v.emplace_back( std::move(img) );
+      img_v.emplace_back( std::move(blank) );
     }
 
     // if we have no clusters, we provide an empty mask
