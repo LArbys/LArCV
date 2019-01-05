@@ -3,14 +3,21 @@
 namespace larcv {
 
   /**
+   * static instance used for logger access in static functions
+   */
+  DLCosmicTagUtil* DLCosmicTagUtil::_g_logger_instance = nullptr;
+  
+  /**
    * Default constructor
    *
    */  
   DLCosmicTagUtil::DLCosmicTagUtil()
-    : _entry(-1),
+    : fConfigured(false),
+      _entry(-1),
       _io(nullptr),
       m_larflowcluster_v(nullptr),
-      fEntryLoaded(false)
+      fEntryLoaded(false),
+      _dloutput_entry(-1)
   {}
 
   /**
@@ -18,12 +25,14 @@ namespace larcv {
    *
    */  
   DLCosmicTagUtil::~DLCosmicTagUtil() {
-    _io->close();
-    delete _io;
+    if (_io ) {
+      _io->close();
+      delete _io;
+    }
   }
     
   /**
-   *  Configures class
+   *  Configure class parameters
    *
    * @param[in] pset Parameter set for class.
    */  
@@ -32,21 +41,35 @@ namespace larcv {
     /// Configurable parameters
     
     /// InputFilename: larlite file containing larflowcluster and pixelmask objects
-    _larlite_input_filename             = pset.get<std::string>("InputFilename");
+    _larlite_input_filename_v = pset.get< std::vector<std::string> >("InputFilenames");
 
+    /// IntimeLArFlowClusterProducer: name of tree containing intime larflow cluster objects
+    _intime_larflowcluster_producername = pset.get<std::string>("IntimeLArFlowClusterProducer");
+    
     /// IntimePixelMaskProducer: name of trees containing intime pixel mask objects. should be in plane order.
     _intime_pixelmask_producername_v    = pset.get<std::vector<std::string> >("IntimePlanePixelMaskProducers");
     if ( _intime_pixelmask_producername_v.size()==0 ) {
       LARCV_ERROR() << "Empty producer list for IntimePlanePixelMaskProducers" << std::endl;
     }
 
-    /// IntimeLArFlowClusterProducer: name of tree containing intime larflow cluster objects
-    _intime_larflowcluster_producername = pset.get<std::string>("IntimeLArFlowClusterProducer");
+    /// SSNetShowerProducer: name of tree containing SSNet shower (whole image) pixel mask
+    _ssnet_shower_producername = pset.get<std::string>("SSNetShowerProducer");
 
-    _io = new larlite::storage_manager( larlite::storage_manager::kREAD );
-    _io->add_in_filename( _larlite_input_filename );
-    _io->open();
+    /// SSNetTrackProducer: name of tree containing SSNet track (whole image) pixel mask
+    _ssnet_track_producername = pset.get<std::string>("SSNetTrackProducer");
+
+    /// SSNetEndptProducer: name of tree containing SSNet endpt (whole image) pixel mask
+    _ssnet_endpt_producername = pset.get<std::string>("SSNetEndptProducer");
     
+    /// InfillProducer: name of tree containing Infill (wholeimage) pixel mask
+    _infill_producername = pset.get<std::string>("InfillProducer");
+    
+    /// Load the storage manager
+    _io = new larlite::storage_manager( larlite::storage_manager::kREAD );
+    for ( auto& input_filename : _larlite_input_filename_v ) 
+      _io->add_in_filename( input_filename );
+    _io->open();
+    fConfigured = true;
   }
 
   /**
@@ -54,22 +77,32 @@ namespace larcv {
    * 
    * @param[in] entry Entry number in TChain (or TTree).
    */    
-  void DLCosmicTagUtil::go_to_entry( size_t entry ) {
+  void DLCosmicTagUtil::goto_entry( size_t entry ) {
 
+    // check if the class has been properly configured
+    if ( !fConfigured ) {
+      LARCV_ERROR() << "The class has not been configured yet!" << std::endl;
+    }
+    
     // load entry
     io().go_to( entry );
     _entry = io().get_index();
 
     // get data objects for the entry
+    // ------------------------------
+
+    // larflow clusters
     m_larflowcluster_v = (larlite::event_larflowcluster*)get_data( larlite::data::kLArFlowCluster,
 								  _intime_larflowcluster_producername );
+
+    // pixelmask for the clusters
     m_pixelmask_vv.resize( _intime_pixelmask_producername_v.size(), nullptr );
     for ( size_t iproducer=0; iproducer<_intime_pixelmask_producername_v.size(); iproducer++ ) {
       m_pixelmask_vv[iproducer] = (larlite::event_pixelmask*) get_data( larlite::data::kPixelMask, 
 									_intime_pixelmask_producername_v[iproducer] );
     }
     
-    // make sure the products are as expected
+    // make sure the larflow and pixelmask products are as expected
     size_t nclusters = m_larflowcluster_v->size();    
     if ( nclusters!=m_pixelmask_vv.front()->size() ) {
       LARCV_ERROR() << "Number of larflowclusters and pixelmasks in the entry (" << _entry << ") do not match."
@@ -84,8 +117,20 @@ namespace larcv {
 		      << " vs " << pevent_pixelmask->size() << std::endl;
       }
     }
-    
+
     LARCV_DEBUG() << "Loaded " << m_larflowcluster_v->size() << " larflowclusters and pixelmasks" << std::endl;
+
+    // load ssnet and infill pixelmasks
+    m_dloutput_masks_v.resize(4,nullptr);
+    m_dloutput_masks_v[kShower] = (larlite::event_pixelmask*) get_data(larlite::data::kPixelMask,
+                                                                        _ssnet_shower_producername);
+    m_dloutput_masks_v[kTrack]  = (larlite::event_pixelmask*) get_data(larlite::data::kPixelMask,
+                                                                       _ssnet_track_producername);
+    m_dloutput_masks_v[kEndpt]  = (larlite::event_pixelmask*) get_data(larlite::data::kPixelMask,
+                                                                       _ssnet_endpt_producername);
+    m_dloutput_masks_v[kInfill] = (larlite::event_pixelmask*) get_data(larlite::data::kPixelMask,
+                                                                       _infill_producername);
+    
     fEntryLoaded = true;
   }
 
@@ -110,6 +155,76 @@ namespace larcv {
    */      
   larlite::event_base* DLCosmicTagUtil::get_data( larlite::data::DataType_t data_type, std::string producername ) {
     return _io->get_data( data_type, producername );
+  }
+
+  /**
+   * make the image crops for a given cluster (specified by the index)
+   *
+   * @param[in] cluster_index Index of larflowcluster in the current entry.
+   * @param[in] adc_wholeview_v ADC images of the whole event view, one for each plane.
+   *
+   * @return Struct containing image2d crops for the cluster
+   */
+  DLCosmicTagClusterImageCrops_t DLCosmicTagUtil::makeClusterCrops( int cluster_index, const std::vector<larcv::Image2D>& adc_wholeview_v ) {
+    // check if entry is loaded
+    if ( !fEntryLoaded ) {
+      LARCV_ERROR() << "An entry has not been loaded" << std::endl;
+    }
+
+    // get the larflow cluster and the pixel masks for each plane
+    //const larlite::larflowcluster& lfcluster = m_larflowcluster_v->at(cluster_index);
+    std::vector<const larlite::pixelmask*> mask_v(adc_wholeview_v.size(),nullptr);
+    for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
+      mask_v[p] = &(m_pixelmask_vv.at(p)->at( cluster_index ));
+    }
+
+    DLCosmicTagClusterImageCrops_t output;
+    output.cluster_index = cluster_index;
+
+    // define the meta for the crops
+    for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
+      larcv::ImageMeta cropmeta = DLCosmicTagUtil::metaFromPixelMask( *mask_v[p], p, 50 );
+      output.cropmeta_v.emplace_back( std::move(cropmeta) );
+    }
+
+    // make the whole-view DL Output images, if this is a new entry
+    if ( getCurrentEntry()!=_dloutput_entry ) {
+      m_dloutput_wholeview_vv.clear();
+      m_dloutput_wholeview_vv.resize( kNumDLOutputs );
+      for (int ioutput=0; ioutput<kNumDLOutputs; ioutput++ ) {
+        auto& m_dloutput_wholeview_v = m_dloutput_wholeview_vv.at(ioutput);
+        auto const& dloutput_mask_v    = *(m_dloutput_masks_v[ioutput]);
+        for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
+          larcv::Image2D dloutimg = DLCosmicTagUtil::image2dFromPixelMask( dloutput_mask_v.at(p), adc_wholeview_v.at(p).meta() );
+          m_dloutput_wholeview_v.emplace_back( std::move(dloutimg) );
+        }
+      }
+    }
+
+    // crop from the DL output whole view objects
+    for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
+      auto const& cropmeta = output.cropmeta_v.at(p);
+      
+      larcv::Image2D showercrop = m_dloutput_wholeview_vv[kShower].at(p).crop( cropmeta );
+      output.ssnet_shower_v.emplace_back( std::move(showercrop) );
+
+      larcv::Image2D trackcrop = m_dloutput_wholeview_vv[kTrack].at(p).crop( cropmeta );
+      output.ssnet_track_v.emplace_back( std::move(trackcrop) );
+
+      larcv::Image2D endptcrop = m_dloutput_wholeview_vv[kEndpt].at(p).crop( cropmeta );
+      output.ssnet_endpt_v.emplace_back( std::move(endptcrop) );
+
+      larcv::Image2D infillcrop = m_dloutput_wholeview_vv[kInfill].at(p).crop( cropmeta );
+      output.infill_v.emplace_back( std::move(infillcrop) );
+    }
+
+    // pixel mask crop
+    std::vector<larcv::Image2D> clustercrop_v = makeIntimeCroppedImage( adc_wholeview_v, 50 );
+    for ( auto& clustercrop : clustercrop_v )
+      output.clustermask_v.emplace_back( std::move(clustercrop) );
+
+
+    return output;
   }
 
   /**
@@ -314,15 +429,21 @@ namespace larcv {
   
   
   /**
-   *  utility to make larcv::imagemeta from larlite::pixelmask
+   *  utility to make larcv::imagemeta from larlite::pixelmask. static function.
    *
    * @param[in] mask Input PixelMask.
    * @param[in] plane PlaneID to be assigned to output imagemeta.
    * @return ImageMeta representing bounding box around pixels in pixelmask.
    */
-  larcv::ImageMeta DLCosmicTagUtil::metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid ) {
+  larcv::ImageMeta DLCosmicTagUtil::metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid, const int padding ) {
     
     std::vector<float> bbox = mask.as_vector_bbox();
+
+    bbox[0] -= padding;
+    bbox[1] -= padding;
+    bbox[2] += padding;
+    bbox[3] += padding;
+
     // pixel coordinate height and widths
     float width  = bbox[2]-bbox[0];
     float height = bbox[3]-bbox[1];
@@ -331,6 +452,49 @@ namespace larcv {
 			   bbox[0], bbox[3], (larcv::PlaneID_t)planeid );
     
     return meta;
+  }
+
+  /**
+   *  utility to make larcv::Image2D from larlite::pixelmask. static function.
+   *
+   * @param[in] mask Input PixelMask.
+   * @param[in] outputmeta Meta that defines output image within which we will embed the data from the pixelmask
+   * @return Image2D containing the pixelmask data.
+   */
+  larcv::Image2D DLCosmicTagUtil::image2dFromPixelMask( const larlite::pixelmask& mask, const larcv::ImageMeta& outputmeta ) {
+    
+    larcv::Image2D output( outputmeta );
+    output.paint(0);
+
+    // for each point, check if inside input image meta
+    // if so, copy adc value to output
+    for ( int ipt=0; ipt<mask.len(); ipt++ ) {
+      std::vector<float> xy = mask.point(ipt);
+      if ( ! outputmeta.contains( xy[0], xy[1] ) )
+        continue;
+
+      int adccol = outputmeta.col( xy[0] );
+      int adcrow = outputmeta.row( xy[1] );
+      if ( mask.dim_per_point()==2 )
+        output.set_pixel( adcrow, adccol, 1 );
+      else if ( mask.dim_per_point()>2 )
+        output.set_pixel( adcrow, adccol, xy.at(2) );
+      else
+        DLCOSMICTAGUTIL_ERROR() << "larlite::pixelmask dims per point should be >=2" << std::endl;
+    }
+    
+    return output;
+  }
+
+
+  /**
+   * access to static instance used for logger in static functions
+   *
+   */
+  const larcv::logger& DLCosmicTagUtil::get_logger() {
+    if ( _g_logger_instance==nullptr )
+      _g_logger_instance = new DLCosmicTagUtil();
+    return _g_logger_instance->logger();
   }
   
 }
