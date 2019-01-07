@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
+#include <sstream>
+
 namespace larcv {
 
   Image2D::Image2D(size_t row_count, size_t col_count)
@@ -263,9 +265,16 @@ namespace larcv {
   {
     auto const& rhs_meta = rhs.meta();
 
-    if(rhs_meta.pixel_height() != _meta.pixel_height() || rhs_meta.pixel_width() != _meta.pixel_width())
-
-      throw larbys("Overlay not supported yet for images w/ different pixel size!");
+    if(rhs_meta.pixel_height() != _meta.pixel_height() || rhs_meta.pixel_width() != _meta.pixel_width()) {
+      std::stringstream err;
+      err << "Overlay not supported yet for images w/ different pixel size! "
+          << " Widths: " << _meta.pixel_width() << " vs. " << rhs_meta.pixel_width()
+          << " Heights: " << _meta.pixel_height() << " vs. " << rhs_meta.pixel_height()
+          << std::endl
+          << "Out meta: " << _meta.dump()
+          << "RHS meta: " << rhs_meta.dump();
+      throw larbys( err.str() );
+    }
 
     double x_min = std::max(_meta.min_x(),rhs_meta.min_x());
     double x_max = std::min(_meta.max_x(),rhs_meta.max_x());
