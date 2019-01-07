@@ -1,7 +1,9 @@
 TestDLCosmicUtil: {
-  #InputFilename: "gridtest_larlite.root"
-  #IntimePlanePixelMaskProducers: ["intimeflashmatchedp0","intimeflashmatchedp1","intimeflashmatchedp2"]
-  InputFilename: "flashmatchfilled-larlite-Run000001-SubRun006867.root"
+  InputFilenames: ["flashmatchfilled-larlite-Run000001-SubRun006867.root","dlcosmicstitched-larlite-Run000001-SubRun006867.root"]
+  IntimeLArFlowClusterProducer: "intimeflashmatched"  
   IntimePlanePixelMaskProducers: ["intimefilledp0","intimefilledp1","intimefilledp2"]
-  IntimeLArFlowClusterProducer: "intimeflashmatched"
+  SSNetShowerProducer: "shower"
+  SSNetTrackProducer: "track"
+  SSNetEndptProducer: "endpt"
+  InfillProducer: "infill"
 }

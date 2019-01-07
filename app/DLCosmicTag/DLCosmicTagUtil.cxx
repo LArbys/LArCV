@@ -165,12 +165,13 @@ namespace larcv {
    *
    * @return Struct containing image2d crops for the cluster
    */
-  DLCosmicTagClusterImageCrops_t DLCosmicTagUtil::makeClusterCrops( int cluster_index, const std::vector<larcv::Image2D>& adc_wholeview_v ) {
+  DLCosmicTagClusterImageCrops_t DLCosmicTagUtil::makeClusterCrops( int cluster_index,
+                                                                    const std::vector<larcv::Image2D>& adc_wholeview_v ) {
     // check if entry is loaded
     if ( !fEntryLoaded ) {
       LARCV_ERROR() << "An entry has not been loaded" << std::endl;
     }
-
+    
     // get the larflow cluster and the pixel masks for each plane
     //const larlite::larflowcluster& lfcluster = m_larflowcluster_v->at(cluster_index);
     std::vector<const larlite::pixelmask*> mask_v(adc_wholeview_v.size(),nullptr);
@@ -182,9 +183,20 @@ namespace larcv {
     output.cluster_index = cluster_index;
 
     // define the meta for the crops
+    LARCV_DEBUG() << "Define the crop meta" << std::endl;
     for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
-      larcv::ImageMeta cropmeta = DLCosmicTagUtil::metaFromPixelMask( *mask_v[p], p, 50 );
-      output.cropmeta_v.emplace_back( std::move(cropmeta) );
+      auto const& adcmeta = adc_wholeview_v.at(p).meta();
+      if ( mask_v[p]->len()>0 ) {
+        LARCV_DEBUG() << "defining crop for " << mask_v[p]->len() << " points" << std::endl;
+        larcv::ImageMeta cropmeta = DLCosmicTagUtil::metaFromPixelMask( *mask_v[p], p, 50, &adc_wholeview_v.at(p).meta() );
+        LARCV_DEBUG() << "cropmeta: " << cropmeta.dump();
+        output.cropmeta_v.emplace_back( std::move(cropmeta) );
+      }
+      else {
+        larcv::ImageMeta cropmeta( 0, 0, 0, 0, adcmeta.min_x(), adcmeta.max_y(), adcmeta.plane() );
+        LARCV_DEBUG() << "define meta for empty pixelmask: " << cropmeta.dump();        
+        output.cropmeta_v.emplace_back( std::move(cropmeta) );
+      }
     }
 
     // make the whole-view DL Output images, if this is a new entry
@@ -194,6 +206,7 @@ namespace larcv {
       for (int ioutput=0; ioutput<kNumDLOutputs; ioutput++ ) {
         auto& m_dloutput_wholeview_v = m_dloutput_wholeview_vv.at(ioutput);
         auto const& dloutput_mask_v    = *(m_dloutput_masks_v[ioutput]);
+        LARCV_DEBUG() << "Making wholeview image for DLOutput Type=" << ioutput << std::endl;
         for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
           larcv::Image2D dloutimg = DLCosmicTagUtil::image2dFromPixelMask( dloutput_mask_v.at(p), adc_wholeview_v.at(p).meta() );
           m_dloutput_wholeview_v.emplace_back( std::move(dloutimg) );
@@ -203,39 +216,50 @@ namespace larcv {
 
     // crop from the DL output whole view objects
     for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
-      auto const& cropmeta = output.cropmeta_v.at(p);
       
+      auto const& cropmeta = output.cropmeta_v.at(p);
+
+      LARCV_DEBUG() << "crop for mask" << std::endl;
+      larcv::Image2D maskcrop   = DLCosmicTagUtil::image2dFromPixelMask( *mask_v[p], cropmeta );
+      output.clustermask_v.emplace_back( std::move(maskcrop) );
+
+      LARCV_DEBUG() << "shower crop: " << cropmeta.dump();
       larcv::Image2D showercrop = m_dloutput_wholeview_vv[kShower].at(p).crop( cropmeta );
       output.ssnet_shower_v.emplace_back( std::move(showercrop) );
 
+      LARCV_DEBUG() << "track crop: " << cropmeta.dump();      
       larcv::Image2D trackcrop = m_dloutput_wholeview_vv[kTrack].at(p).crop( cropmeta );
       output.ssnet_track_v.emplace_back( std::move(trackcrop) );
 
+      LARCV_DEBUG() << "end-point crop: " << cropmeta.dump();
       larcv::Image2D endptcrop = m_dloutput_wholeview_vv[kEndpt].at(p).crop( cropmeta );
       output.ssnet_endpt_v.emplace_back( std::move(endptcrop) );
 
+      LARCV_DEBUG() << "infill crop: " << cropmeta.dump();
       larcv::Image2D infillcrop = m_dloutput_wholeview_vv[kInfill].at(p).crop( cropmeta );
       output.infill_v.emplace_back( std::move(infillcrop) );
     }
 
     // pixel mask crop
-    std::vector<larcv::Image2D> clustercrop_v = makeIntimeCroppedImage( adc_wholeview_v, 50 );
-    for ( auto& clustercrop : clustercrop_v )
-      output.clustermask_v.emplace_back( std::move(clustercrop) );
+    // std::vector<larcv::Image2D> clustercrop_v = makeIntimeCroppedImage( adc_wholeview_v, 50 );
+    // for ( auto& clustercrop : clustercrop_v )
+    //   output.clustermask_v.emplace_back( std::move(clustercrop) );
 
 
     return output;
   }
 
   /**
-   *  Provide a cropped image around the intime pixelmask
+   *  Provide a cropped image around all intime pixelmasks
    *  It is expected that entry has been loaded using @see DLCosmicTagUtil#go_to_entry
    * 
    * @param[in] adc_wholeview_v Input images with ADC values to crop from.
    * @param[in] padding Number of pixels to add around mask. Default is 10.
    * @return vector of cropped images; entries align with input images.
    */  
-  std::vector< larcv::Image2D > DLCosmicTagUtil::makeIntimeCroppedImage( const std::vector<larcv::Image2D>& adc_wholeview_v, const int padding ) const {
+  std::vector< larcv::Image2D >
+  DLCosmicTagUtil::makeCombinedIntimeCroppedImage( const std::vector<larcv::Image2D>& adc_wholeview_v,
+                                                   const int padding ) const {
 
     // check proper condition of class
     if ( !fEntryLoaded )
@@ -263,8 +287,10 @@ namespace larcv {
     size_t plane = 0;
     for ( auto const& pevent_pixelmask : m_pixelmask_vv ) {
       auto const& mask = pevent_pixelmask->front();
-      larcv::ImageMeta meta = DLCosmicTagUtil::metaFromPixelMask( mask, plane );
+      larcv::ImageMeta meta
+        = DLCosmicTagUtil::metaFromPixelMask( mask, plane, padding, &adc_wholeview_v.at(plane).meta() );
       meta_v.emplace_back( std::move(meta) );
+      plane++;
     }
 
     // now loop through the rest of the masks, updating the imagemeta
@@ -272,7 +298,9 @@ namespace larcv {
       size_t nclusters = m_pixelmask_vv[plane]->size();
       for ( size_t icluster=1; icluster<nclusters; icluster++ ) {
 	auto const& mask = (*m_pixelmask_vv[plane])[icluster];
-	larcv::ImageMeta cluster_meta = DLCosmicTagUtil::metaFromPixelMask( mask, plane );
+        if ( mask.len()==0 ) continue;
+	larcv::ImageMeta cluster_meta
+          = DLCosmicTagUtil::metaFromPixelMask( mask, plane, padding, &adc_wholeview_v.at(plane).meta() );
 	larcv::ImageMeta& union_meta  = meta_v.at(plane);
 	union_meta = union_meta.inclusive( cluster_meta );
       }
@@ -295,6 +323,80 @@ namespace larcv {
     return img_v;
   }
 
+  // /**
+  //  *  Provide a cropped image around one intime pixelmask
+  //  *  It is expected that entry has been loaded using @see DLCosmicTagUtil#goto_entry
+  //  * 
+  //  * @param[in] cluster_index Index of cluster to provide crop+mask
+  //  * @param[in] adc_wholeview_v Input images with ADC values to crop from.
+  //  * @param[in] padding Number of pixels to add around mask. Default is 10.
+  //  * @return vector of cropped images; entries align with input images.
+  //  */  
+  // std::vector< larcv::Image2D >
+  // DLCosmicTagUtil::makeIntimeCroppedImage( const int cluster_index,
+  //                                          const std::vector<larcv::Image2D>& adc_wholeview_v,
+  //                                          const int padding ) const {
+
+  //   // check proper condition of class
+  //   if ( !fEntryLoaded )
+  //     LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
+
+  //   // the numbers of planes should match
+  //   if ( adc_wholeview_v.size()!=m_pixelmask_vv.size() ) {
+  //     LARCV_ERROR() << "Number of input ADC plane images (" << adc_wholeview_v.size() << ") "
+  //       	    << "does not match with the number of pixelmask planes (" << m_pixelmask_vv.size() << ")"
+  //       	    << std::endl;
+  //   }
+
+  //   // the output vector
+  //   std::vector< larcv::Image2D > img_v;
+
+  //   //return empty vector if no clusters
+  //   if ( m_larflowcluster_v->size()<=cluster_index ) {
+  //     LARCV_ERROR() << "Index of cluster requested (" << cluster_index << ") out of bounds" << std::endl;
+  //   }
+    
+  //   // we get the bounding boxes from each of the pixelmasks and form a axis-aligned union bounding box
+  //   // the bounding boxes are represented by the image2d imagemeta class
+  //   std::vector< larcv::ImageMeta > meta_v;
+
+  //   for ( size_t plane=0; plane<adc_wholeview_v.size(); plane++ ) {
+  //     auto const& mask = pevent_pixelmask->at(cluster_index).at(plane);
+  //     larcv::ImageMeta meta
+  //       = DLCosmicTagUtil::metaFromPixelMask( mask, plane, padding, &adc_wholeview_v.at(plane).meta() );
+  //     meta_v.emplace_back( std::move(meta) );
+  //   }
+
+  //   // now loop through the rest of the masks, updating the imagemeta
+  //   for ( plane=0; plane<m_pixelmask_vv.size(); plane++ ) {
+  //     size_t nclusters = m_pixelmask_vv[plane]->size();
+  //     for ( size_t icluster=1; icluster<nclusters; icluster++ ) {
+  //       auto const& mask = (*m_pixelmask_vv[plane])[icluster];
+  //       if ( mask.len()==0 ) continue;
+  //       larcv::ImageMeta cluster_meta
+  //         = DLCosmicTagUtil::metaFromPixelMask( mask, plane, padding, &adc_wholeview_v.at(plane).meta() );
+  //       larcv::ImageMeta& union_meta  = meta_v.at(plane);
+  //       union_meta = union_meta.inclusive( cluster_meta );
+  //     }
+  //   }
+
+  //   // now that we have union metas for each plane, crop out the regions
+  //   // if for some reason we extend outside the range, we make an intersection box
+  //   for ( plane=0; plane<m_pixelmask_vv.size(); plane++ ) {
+  //     larcv::ImageMeta& unionmeta = meta_v.at(plane);
+  //     const larcv::ImageMeta& adcmeta = adc_wholeview_v.at(plane).meta();
+  //     if ( !adcmeta.contains( unionmeta ) ) {
+  //       unionmeta = unionmeta.overlap( adcmeta );
+  //     }
+
+  //     // make crop
+  //     larcv::Image2D crop = adc_wholeview_v.at(plane).crop( unionmeta );
+  //     img_v.emplace_back( std::move(crop) );
+  //   }
+    
+  //   return img_v;
+  // }
+  
   /**
    *  Mask the input image with the pixel masks from the entry.
    *  It is expected that entry has been loaded using @see DLCosmicTagUtil#go_to_entry
@@ -432,23 +534,65 @@ namespace larcv {
    *  utility to make larcv::imagemeta from larlite::pixelmask. static function.
    *
    * @param[in] mask Input PixelMask.
-   * @param[in] plane PlaneID to be assigned to output imagemeta.
+   * @param[in] planeid (optional) PlaneID to be assigned to output imagemeta. Default is 0.
+   * @param[in] padding (optional) Pixels to pad around mask's bounding box. Default is 50.
+   * @param[in] bounding_meta (optional) If provided, pixelmask is bounded by this meta. Default nullptr.
    * @return ImageMeta representing bounding box around pixels in pixelmask.
    */
-  larcv::ImageMeta DLCosmicTagUtil::metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid, const int padding ) {
+  larcv::ImageMeta DLCosmicTagUtil::metaFromPixelMask( const larlite::pixelmask& mask,
+                                                       unsigned int planeid,
+                                                       const int padding,
+                                                       const larcv::ImageMeta* bounding_meta) {
     
-    std::vector<float> bbox = mask.as_vector_bbox();
+    std::vector<float> bbox;
+    // if ( bounding_meta )
+    //   bbox = mask.as_vector_bbox( bounding_meta->min_x(), bounding_meta->min_y(),
+    //                               bounding_meta->max_x(), bounding_meta->max_y() );
+    // else
+    bbox = mask.as_vector_bbox();
 
-    bbox[0] -= padding;
-    bbox[1] -= padding;
-    bbox[2] += padding;
-    bbox[3] += padding;
+    if ( !bounding_meta ) {
+      bbox[0] -= padding;
+      bbox[1] -= padding;
+      bbox[2] += padding;
+      bbox[3] += padding;
+    }
+    else {
+      bbox[0] -= padding*bounding_meta->pixel_width();
+      bbox[1] -= padding*bounding_meta->pixel_height();
+      bbox[2] += padding*bounding_meta->pixel_width();
+      bbox[3] += padding*bounding_meta->pixel_height();
+    }
+      
+    DLCOSMICTAGUTIL_INFO() << "bbox: " << bbox[0] << "," << bbox[1] << "," << bbox[2] << "," << bbox[3]  << std::endl;
+
+    int nrows = mask.rows();
+    int ncols = mask.cols();
+
+    if ( bounding_meta ) {
+      if ( bbox[0]<bounding_meta->min_x() ) bbox[0] = bounding_meta->min_x();
+      if ( bbox[1]<bounding_meta->min_y() ) bbox[1] = bounding_meta->min_y();
+      if ( bbox[2]>bounding_meta->max_x() ) bbox[2] = bounding_meta->max_x();
+      if ( bbox[3]>bounding_meta->max_y() ) bbox[3] = bounding_meta->max_y();
+    }
 
     // pixel coordinate height and widths
     float width  = bbox[2]-bbox[0];
     float height = bbox[3]-bbox[1];
+    if ( bounding_meta ) {
+      nrows = height/bounding_meta->pixel_height();
+      ncols = width/bounding_meta->pixel_width();
+
+      if ( (nrows*bounding_meta->pixel_height() - height > 1.0e-3 )
+           || (ncols*bounding_meta->pixel_width() - width)>1.0e-3 ) {
+        DLCOSMICTAGUTIL_WARNING()
+          << "crop width or height is not an integer multiple of pixel width or height"
+          << std::endl;
+      }
+    }
+    
     // origin for larcv1 is (minx, maxy)
-    larcv::ImageMeta meta( width, height, mask.rows(), mask.cols(),
+    larcv::ImageMeta meta( width, height, nrows, ncols,
 			   bbox[0], bbox[3], (larcv::PlaneID_t)planeid );
     
     return meta;
@@ -468,20 +612,30 @@ namespace larcv {
 
     // for each point, check if inside input image meta
     // if so, copy adc value to output
+    int ncontains = 0;
+    //DLCOSMICTAGUTIL_INFO() << "fill " << mask.len() << " points into outputmeta=" << outputmeta.dump();
     for ( int ipt=0; ipt<mask.len(); ipt++ ) {
       std::vector<float> xy = mask.point(ipt);
+      //std::cout << "(" << xy[0] << "," << xy[1] << ": " << xy[2] << ") ";
       if ( ! outputmeta.contains( xy[0], xy[1] ) )
         continue;
 
       int adccol = outputmeta.col( xy[0] );
       int adcrow = outputmeta.row( xy[1] );
-      if ( mask.dim_per_point()==2 )
+      if ( mask.dim_per_point()==2 ) {
         output.set_pixel( adcrow, adccol, 1 );
-      else if ( mask.dim_per_point()>2 )
+      }
+      else if ( mask.dim_per_point()>2 ) {
+        //DLCOSMICTAGUTIL_INFO() << "(" << xy[0] << "," << xy[1] << ") " << xy[2] << std::endl;
         output.set_pixel( adcrow, adccol, xy.at(2) );
+      }
       else
         DLCOSMICTAGUTIL_ERROR() << "larlite::pixelmask dims per point should be >=2" << std::endl;
+      ncontains++;
     }
+    DLCOSMICTAGUTIL_INFO() << "filled " << ncontains << " pixels"
+                           << "into output image="
+                           << outputmeta.dump();
     
     return output;
   }
@@ -495,6 +649,24 @@ namespace larcv {
     if ( _g_logger_instance==nullptr )
       _g_logger_instance = new DLCosmicTagUtil();
     return _g_logger_instance->logger();
+  }
+
+  /**
+   * Get wholeview images we made for the DL Output images
+   *
+   * @param[in] 
+   */
+  std::vector< larcv::Image2D >& DLCosmicTagUtil::getWholeViewDLOutputImage( DLCosmicTagUtil::DLOutput_t dltype ) {
+    if ( !fEntryLoaded )
+      LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
+
+    if ( m_dloutput_wholeview_vv.size()!=kNumDLOutputs ) {
+      LARCV_ERROR() << "Have not created the whole-view DLoutputs yet. "
+                    << "(have to call makeClusterCrops first)"
+                    << std::endl;
+    }
+
+    return m_dloutput_wholeview_vv.at(dltype);
   }
   
 }

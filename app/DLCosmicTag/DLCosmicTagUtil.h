@@ -26,7 +26,10 @@
 #include "DataFormat/pixelmask.h"
 #include "DataFormat/larflowcluster.h"
 
-#define DLCOSMICTAGUTIL_ERROR() DLCosmicTagUtil::get_logger().send( ::larcv::msg::kERROR, __FUNCTION__, __LINE__ )
+#define DLCOSMICTAGUTIL_ERROR()   DLCosmicTagUtil::get_logger().send( ::larcv::msg::kERROR,   __FUNCTION__, __LINE__ )
+#define DLCOSMICTAGUTIL_WARNING() DLCosmicTagUtil::get_logger().send( ::larcv::msg::kWARNING, __FUNCTION__, __LINE__ )
+#define DLCOSMICTAGUTIL_INFO()    DLCosmicTagUtil::get_logger().send( ::larcv::msg::kINFO,    __FUNCTION__, __LINE__ )
+#define DLCOSMICTAGUTIL_DEBUG()    DLCosmicTagUtil::get_logger().send(::larcv::msg::kDEBUG,   __FUNCTION__, __LINE__ )
 
 namespace larcv {
 
@@ -74,6 +77,8 @@ namespace larcv {
    */  
   class DLCosmicTagUtil : public larcv::larcv_base {
   public:
+
+    typedef enum { kShower=0, kTrack, kEndpt, kInfill, kNumDLOutputs } DLOutput_t;
     
     DLCosmicTagUtil();
     virtual ~DLCosmicTagUtil();
@@ -91,10 +96,18 @@ namespace larcv {
     int numClusters() const;
     
     /// Make cluster crops for a given larflowcluster
-    DLCosmicTagClusterImageCrops_t makeClusterCrops( int cluster_index, const std::vector<larcv::Image2D>& adc_wholeview_v );
+    DLCosmicTagClusterImageCrops_t makeClusterCrops( int cluster_index,
+                                                     const std::vector<larcv::Image2D>& adc_wholeview_v );
     
-    /// use the intime cluster objects to form a crop within the wholeview image
-    std::vector< larcv::Image2D > makeIntimeCroppedImage( const std::vector<larcv::Image2D>& adc_wholeview_v, const int padding=50 ) const;
+    /// use all the intime cluster objects to form a crop within the wholeview image
+    std::vector< larcv::Image2D >
+      makeCombinedIntimeCroppedImage( const std::vector<larcv::Image2D>& adc_wholeview_v,
+                                      const int padding=50 ) const;
+
+    /* /// use one of the intime cluster objects to form a crop within the wholeview image */
+    /* std::vector< larcv::Image2D > makeIntimeCroppedImage( const int cluster_index, */
+    /*                                                       const std::vector<larcv::Image2D>& adc_wholeview_v, */
+    /*                                                       const int padding=50 ) const; */
     
     /// within the region defined by the input images, provide a masked adc image
     std::vector< larcv::Image2D > makeCosmicMaskedImage(  const std::vector<larcv::Image2D>& adc_view_v ) const;
@@ -106,7 +119,10 @@ namespace larcv {
     larlite::storage_manager& io() { return (*_io); };
 
     // utility function: make imagemeta bounding box from a pixelmask object
-    static larcv::ImageMeta metaFromPixelMask( const larlite::pixelmask& mask, unsigned int planeid=0, const int padding=50 );
+    static larcv::ImageMeta metaFromPixelMask( const larlite::pixelmask& mask,
+                                               unsigned int planeid=0,
+                                               const int padding=50,
+                                               const larcv::ImageMeta* bounding_meta=nullptr);
 
     // utility function: make an image2d from a pixelmask, given the output meta size
     static larcv::Image2D image2dFromPixelMask( const larlite::pixelmask& mask, const larcv::ImageMeta& outputmeta );
@@ -116,6 +132,8 @@ namespace larcv {
 
     /// get current entry number
     int getCurrentEntry() { return _entry; };
+
+    std::vector< larcv::Image2D >& getWholeViewDLOutputImage( DLCosmicTagUtil::DLOutput_t dltype ); 
     
   protected:
 
@@ -136,7 +154,6 @@ namespace larcv {
     larlite::storage_manager* _io; //< interface to larlite file
     const larlite::event_larflowcluster* m_larflowcluster_v; //< event container for larlite larflow clusters
     std::vector<const larlite::event_pixelmask*> m_pixelmask_vv; //< event containers for larlite pixelmask. one for each plane.
-    enum { kShower=0, kTrack, kEndpt, kInfill, kNumDLOutputs } DLOutput_t;
     std::vector<const larlite::event_pixelmask*> m_dloutput_masks_v; //< event containers for DL output pixelmasks
 
     // entry loaded

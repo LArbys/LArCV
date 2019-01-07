@@ -9,7 +9,9 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
+#pragma link C++ struct larcv::DLCosmicTagClusterImageCrops_t+;
 #pragma link C++ class larcv::DLCosmicTagUtil+;
+
 //ADD_NEW_CLASS ... do not change this line
 #endif
 
