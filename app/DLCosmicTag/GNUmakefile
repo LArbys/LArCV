@@ -12,10 +12,14 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
+INCFLAGS += $(shell laropencv-config --includes)
+INCFLAGS += $(shell geo2d-config --includes)
 
 ifdef LARLITE_BASEDIR
 INCFLAGS += $(shell larlite-config --includes)
-LDFLAGS  += $(shell larlite-config --libs)
+INCFLAGS += -I$(LARLITE_BASEDIR)/UserDev/
+LDFLAGS  += $(shell geo2d-config --libs)
+LDFLAGS  += $(shell larlite-config --libs) -lBasicTool_FhiclLite
 else
 #SOURCES = $(filter-out ROIMerger.cxx, $(wildcard *.cxx))
 #EXCLUDE_HEADERS = LinkDef.h ROIMerger.h

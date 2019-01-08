@@ -11,6 +11,8 @@
 
 #pragma link C++ struct larcv::DLCosmicTagClusterImageCrops_t+;
 #pragma link C++ class larcv::DLCosmicTagUtil+;
+#pragma link C++ class larcv::DLCosmicTagVertexReco+;
+#pragma link C++ class larcv::DLCosmicTagVertexRecoProcessFactory+;
 
 //ADD_NEW_CLASS ... do not change this line
 #endif

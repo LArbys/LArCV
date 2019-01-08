@@ -55,3 +55,14 @@ Since we rely on the previous vertex finder, we do not do well on events where
 both particles are forward going or back-2-back.
 Improving this will require dedicated analyses for the 3D clusters and/or
 deep learning classification and/or key-point finding.
+
+# Configuration file
+
+The configuration for the vertex code is a 400-line behemoth.
+Eventually we need to address this.
+Ideally, we use a file format compatibile with FNAL-FHICL and some modern tool.
+
+## Parameter descriptions
+
+## Example
+
