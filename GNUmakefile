@@ -9,7 +9,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-CORE_SUBDIRS := Base DataFormat Processor CPPUtil ROOTUtil
+CORE_SUBDIRS := json Base DataFormat Processor CPPUtil ROOTUtil
 ifeq ($(LARCV_NUMPY),1)
 CORE_SUBDIRS += PyUtil
 endif

@@ -7,7 +7,7 @@ endif
 #
 # Define directories to be compile upon a global "make"...
 #
-SUBDIRS := Base DataFormat Processor CPPUtil
+SUBDIRS := json Base DataFormat Processor CPPUtil
 ifeq ($(LARCV_NUMPY),1)
 SUBDIRS += PyUtil
 endif
