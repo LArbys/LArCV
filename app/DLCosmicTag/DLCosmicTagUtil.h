@@ -29,7 +29,7 @@
 #define DLCOSMICTAGUTIL_ERROR()   DLCosmicTagUtil::get_logger().send( ::larcv::msg::kERROR,   __FUNCTION__, __LINE__ )
 #define DLCOSMICTAGUTIL_WARNING() DLCosmicTagUtil::get_logger().send( ::larcv::msg::kWARNING, __FUNCTION__, __LINE__ )
 #define DLCOSMICTAGUTIL_INFO()    DLCosmicTagUtil::get_logger().send( ::larcv::msg::kINFO,    __FUNCTION__, __LINE__ )
-#define DLCOSMICTAGUTIL_DEBUG()    DLCosmicTagUtil::get_logger().send(::larcv::msg::kDEBUG,   __FUNCTION__, __LINE__ )
+#define DLCOSMICTAGUTIL_DEBUG()   DLCosmicTagUtil::get_logger().send( ::larcv::msg::kDEBUG,   __FUNCTION__, __LINE__ )
 
 namespace larcv {
 

@@ -12,6 +12,7 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
+
 INCFLAGS += $(shell laropencv-config --includes)
 INCFLAGS += $(shell geo2d-config --includes)
 

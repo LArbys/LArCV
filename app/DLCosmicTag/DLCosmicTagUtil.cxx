@@ -668,5 +668,6 @@ namespace larcv {
 
     return m_dloutput_wholeview_vv.at(dltype);
   }
+
   
 }
