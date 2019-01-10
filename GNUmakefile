@@ -53,6 +53,8 @@ obj:
 	@echo
 	@echo Building core...
 	@echo
+	git submodule init
+	git submodule update
 	@for i in $(CORE_SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $(LARCV_COREDIR)/$$i && $(MAKE) ) || exit $$?; done
 	@echo Building app...
 ifeq ($(LARCV_ANN),1)
