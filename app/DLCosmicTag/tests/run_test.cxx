@@ -31,7 +31,6 @@ int main( int nargs, char** argv ) {
   proc.configure( cfg );
   proc.override_input_file( larcv_input_v );
   proc.override_output_file( "output_test_dlcosmictagreco.root" );
-  proc.override_output_file( "output_test_dlcosmictagreco.root" );  
   proc.initialize();
 
   int nentries = proc.io().get_n_entries();
@@ -45,7 +44,7 @@ int main( int nargs, char** argv ) {
   TApplication app( "app", &nargs, argv );
   
   for ( size_t ientry=0; ientry<nentries; ientry++ ) {
-  //for ( size_t ientry=4; ientry<5; ientry++ ) {
+    //for ( size_t ientry=4; ientry<5; ientry++ ) {
     logger.send((larcv::msg::Level_t)2,"EVENT LOOP") << "entry " << ientry << std::endl;
     proc.process_entry(ientry);
   }

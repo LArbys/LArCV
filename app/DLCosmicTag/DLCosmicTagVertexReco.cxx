@@ -548,6 +548,9 @@ namespace larcv {
     // ?
     auto event_img_super_pixel  = (EventPixel2D*) iom.get_data(kProductPixel2D, m_output_producer + "_super_img");
 
+    // crois around cluster regions
+    auto event_croi             = (EventROI*)     iom.get_data(kProductROI,     m_output_producer + "_cluster_roi" );
+
     // get the container for the algo output products
     const auto& data_mgr = _alg_mgr.DataManager();
 
@@ -734,6 +737,13 @@ namespace larcv {
       nvertices_found++;
       
     } // end vertex
+
+    // store ROIs
+    larcv::ROI cluster_roi(larcv::kROIBNB);
+    for ( auto const& cropped_adc : adc_image_v ) {
+      cluster_roi.AppendBB( cropped_adc.meta() );
+    }
+    event_croi->Emplace( std::move(cluster_roi) );
 
     LARCV_DEBUG() << "Event pgraph cummulative size " << event_pgraph->PGraphArray().size() << std::endl;
     return true;
