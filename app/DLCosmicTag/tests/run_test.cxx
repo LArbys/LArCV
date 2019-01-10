@@ -18,20 +18,16 @@ int main( int nargs, char** argv ) {
   std::cout << "This script is used to test the DLCosmicVertexReco" << std::endl;
   
   std::string larcv_input   = argv[1];
-  std::string cfg           = "prod_dlcosmictag_vertexreco.cfg";
+  std::string cfg           = argv[2];
+  std::string larcv_output  = argv[3];
   
   std::vector<std::string> larcv_input_v;
   larcv_input_v.push_back( larcv_input );
 
-  // auto pset = larcv::CreatePSetFromFile(cfg);
-  // auto proccfg = pset.get<larcv::PSet>( "ProcessDriver" );  
-  // std::cout << proccfg.dump() << std::endl;
-
   larcv::ProcessDriver proc("ProcessDriver");  
   proc.configure( cfg );
   proc.override_input_file( larcv_input_v );
-  proc.override_output_file( "output_test_dlcosmictagreco.root" );
-  proc.override_output_file( "output_test_dlcosmictagreco.root" );  
+  proc.override_output_file( larcv_output );  
   proc.initialize();
 
   int nentries = proc.io().get_n_entries();
