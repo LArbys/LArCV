@@ -23,6 +23,8 @@ endif
 .phony: all clean
 
 all:
+	@git submodule init
+	@git submodule update
 	@for i in $(SUBDIRS); do ( echo "" && echo "Compiling $$i..." && cd $$i && $(MAKE) ) || exit $$?; done
 #####################################################################################
 #
