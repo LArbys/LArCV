@@ -12,7 +12,8 @@ namespace larcv {
    *
    */  
   DLCosmicTagUtil::DLCosmicTagUtil()
-    : fConfigured(false),
+    : larcv_base("DLCosmicTagUtil"),
+      fConfigured(false),
       _entry(-1),
       _io(nullptr),
       m_larflowcluster_v(nullptr),
@@ -139,7 +140,7 @@ namespace larcv {
    * 
    * @return number of clusters in the entry
    */      
-  int DLCosmicTagUtil::getNumClusters() const {
+  int DLCosmicTagUtil::numClusters() const {
     // check proper condition of class
     if ( !fEntryLoaded )
       LARCV_ERROR() << "Entry has not been loaded yet." << std::endl;
@@ -184,19 +185,41 @@ namespace larcv {
 
     // define the meta for the crops
     LARCV_DEBUG() << "Define the crop meta" << std::endl;
+    std::vector<int> badplanemeta;
+    float max_tick = 0;
+    float min_tick = 1e4;
     for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
       auto const& adcmeta = adc_wholeview_v.at(p).meta();
       if ( mask_v[p]->len()>0 ) {
         LARCV_DEBUG() << "defining crop for " << mask_v[p]->len() << " points" << std::endl;
         larcv::ImageMeta cropmeta = DLCosmicTagUtil::metaFromPixelMask( *mask_v[p], p, 50, &adc_wholeview_v.at(p).meta() );
         LARCV_DEBUG() << "cropmeta: " << cropmeta.dump();
+        if ( cropmeta.max_y()>max_tick )
+          max_tick = cropmeta.max_y();
+        if ( cropmeta.min_y()<min_tick )
+          min_tick = cropmeta.min_y();
+        
         output.cropmeta_v.emplace_back( std::move(cropmeta) );
       }
       else {
         larcv::ImageMeta cropmeta( 0, 0, 0, 0, adcmeta.min_x(), adcmeta.max_y(), adcmeta.plane() );
         LARCV_DEBUG() << "define meta for empty pixelmask: " << cropmeta.dump();        
         output.cropmeta_v.emplace_back( std::move(cropmeta) );
+        badplanemeta.push_back( p );
       }
+    }
+
+    // if there is one bad meta, we make a dummy one ...
+    for ( auto& badplane : badplanemeta ) {
+      auto const& adcmeta = adc_wholeview_v.at(badplane).meta();
+      float dtick = max_tick - min_tick;
+      int nrows = fabs(dtick)/adcmeta.pixel_height();
+      while ( max_tick >= adcmeta.max_y() ) {
+        nrows--;
+        max_tick = min_tick + nrows*adcmeta.pixel_height();
+      }
+      output.cropmeta_v.at(badplane) = larcv::ImageMeta( 100, nrows*adcmeta.pixel_height(),
+                                                         nrows, 100, 0, max_tick, adcmeta.plane() );
     }
 
     // make the whole-view DL Output images, if this is a new entry
@@ -206,7 +229,7 @@ namespace larcv {
       for (int ioutput=0; ioutput<kNumDLOutputs; ioutput++ ) {
         auto& m_dloutput_wholeview_v = m_dloutput_wholeview_vv.at(ioutput);
         auto const& dloutput_mask_v    = *(m_dloutput_masks_v[ioutput]);
-        LARCV_DEBUG() << "Making wholeview image for DLOutput Type=" << ioutput << std::endl;
+        LARCV_DEBUG() << "Making wholeview image for DLOutput Type=" << DLOutputName( (DLOutput_t)ioutput ) << std::endl;
         for ( size_t p=0; p<adc_wholeview_v.size(); p++ ) {
           larcv::Image2D dloutimg = DLCosmicTagUtil::image2dFromPixelMask( dloutput_mask_v.at(p), adc_wholeview_v.at(p).meta() );
           m_dloutput_wholeview_v.emplace_back( std::move(dloutimg) );
@@ -633,9 +656,9 @@ namespace larcv {
         DLCOSMICTAGUTIL_ERROR() << "larlite::pixelmask dims per point should be >=2" << std::endl;
       ncontains++;
     }
-    DLCOSMICTAGUTIL_INFO() << "filled " << ncontains << " pixels"
-                           << "into output image="
-                           << outputmeta.dump();
+    DLCOSMICTAGUTIL_DEBUG() << "filled " << ncontains << " pixels "
+                            << "into output image w/ meta="
+                            << outputmeta.dump();
     
     return output;
   }

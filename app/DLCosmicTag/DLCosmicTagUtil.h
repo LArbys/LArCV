@@ -14,6 +14,7 @@
  */
 
 #include <vector>
+#include <string>
 
 // LArCV
 #include "Base/larcv_base.h"
@@ -79,7 +80,27 @@ namespace larcv {
   public:
 
     typedef enum { kShower=0, kTrack, kEndpt, kInfill, kNumDLOutputs } DLOutput_t;
-    
+    std::string DLOutputName( DLOutput_t dlout ) {
+      switch (dlout) {
+      case kShower:
+        return "shower";
+        break;
+      case kTrack:
+        return "track";
+      case kEndpt:
+        return "endpt";
+        break;
+      case kInfill:
+        return "infill";
+        break;
+      default:
+        return "unknown";
+        break;
+      };
+      return "error";
+    };
+          
+
     DLCosmicTagUtil();
     virtual ~DLCosmicTagUtil();
 

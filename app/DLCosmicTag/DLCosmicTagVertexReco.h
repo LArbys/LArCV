@@ -92,8 +92,9 @@ namespace larcv {
     /// store the results of the vertex algorithm for one cluster
     bool storeClusterParticles(IOManager& iom,
                                size_t cluster_index,
-                               const std::vector<Image2D>& adc_image_v,                               
-                               size_t& pidx);
+                               const std::vector<Image2D>& adc_image_v,
+                               size_t& nvertices_stored,
+                               size_t& nparticles_stored);
 
     /// The manager that organizes the LArOpenCV algorithms
     larocv::ImageClusterManager _alg_mgr;
@@ -122,8 +123,6 @@ namespace larcv {
 
     /// flag to mark the state: true=filled false=unfilled
     bool fCVMatImagesMade;    
-
-    ::fcllite::PSet _image_cluster_cfg;
 
     /* bool _debug; */
     bool fRunPreprocessor;
@@ -170,6 +169,9 @@ namespace larcv {
     /* double _process_time_cluster_storage; */
 
     /* bool _union_roi; */
+
+    // visualize result of each cluster
+    bool fVisualize;
     
     /* void Report() const; */
 
@@ -207,8 +209,20 @@ namespace larcv {
                                               const std::vector<larcv::Image2D>& chstatus_wholeview_v,
                                               bool& status );
     
-    
+    /// produce adc image masked with ssnet labels from cluster crops
+    void makeSSNetMaskedADCImages( const DLCosmicTagClusterImageCrops_t& crops,
+                                   const std::vector<float> adc_threshold_v,
+                                   const std::vector<float> ssnet_background_thresholds,
+                                   std::vector<larcv::Image2D>& adc_showerimg_v,
+                                   std::vector<larcv::Image2D>& adc_trackimg_v );
 
+    /// visualizer
+    void visualizeAlgoOutput( larcv::IOManager& mgr,
+                              const int cluster_index,
+                              const larcv::DLCosmicTagClusterImageCrops_t& crops,
+                              const size_t start_vertex_id );
+    
+  
   };
 
   /**
