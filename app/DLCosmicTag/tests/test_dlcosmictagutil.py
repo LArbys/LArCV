@@ -31,8 +31,8 @@ nentries = iolarcv.get_n_entries()
 
 logger = larcv.logger.get_shared()
 
-#for ientry in xrange(nentries):
-for ientry in xrange(1,2):
+for ientry in xrange(nentries):
+#for ientry in xrange(1,2):
 
     msg = "Entry {}\n".format(ientry)
     logger.send(2,"Event Loop").write( msg, len(msg) )
@@ -45,9 +45,11 @@ for ientry in xrange(1,2):
     event_img_v  = iolarcv.get_data( larcv.kProductImage2D, "wire" )
     img_v = event_img_v.Image2DArray()
 
-    if algo.getNumClusters()>0:
+    if algo.numClusters()>0:
         crops = algo.makeClusterCrops( 0, img_v )
         wholeshower_v = algo.getWholeViewDLOutputImage( 0 )
+        wholetrack_v  = algo.getWholeViewDLOutputImage( 1 )
+        wholeendpt_v  = algo.getWholeViewDLOutputImage( 2 )        
     else:
         crops = None
 
@@ -56,18 +58,28 @@ for ientry in xrange(1,2):
     evout_masked = out.get_data( larcv.kProductImage2D, "intimemask" )
     evout_shower = out.get_data( larcv.kProductImage2D, "shower" )
     evout_track  = out.get_data( larcv.kProductImage2D, "track" )
+    evout_endpt  = out.get_data( larcv.kProductImage2D, "endpt" )    
     evout_infill = out.get_data( larcv.kProductImage2D, "infill" )
 
     evout_shower_whole = out.get_data( larcv.kProductImage2D, "wholeshower" )
+    evout_track_whole  = out.get_data( larcv.kProductImage2D, "wholetrack" )
+    evout_endpt_whole  = out.get_data( larcv.kProductImage2D, "wholeendpt" )        
 
     if crops is not None:
         for iimg in xrange( img_v.size() ):
-            evout_wire.Append(   img_v.at(iimg) )
+
+            # crops
             evout_masked.Append( crops.clustermask_v.at(iimg) )
             evout_shower.Append( crops.ssnet_shower_v.at(iimg) )
             evout_track.Append(  crops.ssnet_track_v.at(iimg) )
-            evout_infill.Append(  crops.infill_v.at(iimg) )            
+            evout_endpt.Append(  crops.ssnet_endpt_v.at(iimg) )            
+            evout_infill.Append(  crops.infill_v.at(iimg) )
+
+            # whole-images
+            evout_wire.Append(   img_v.at(iimg) )            
             evout_shower_whole.Append( wholeshower_v.at(iimg) )
+            evout_track_whole.Append( wholetrack_v.at(iimg) )
+            evout_endpt_whole.Append( wholeendpt_v.at(iimg) )            
 
     out.set_id( iolarcv.event_id().run(), iolarcv.event_id().subrun(), iolarcv.event_id().event() )
     out.save_entry()
