@@ -17,9 +17,9 @@
 #ifndef __UBSPLITDETECTOR_H__
 #define __UBSPLITDETECTOR_H__
 
-// LArCV
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
+
 #include "DataFormat/EventImage2D.h"
 
 namespace larcv {
@@ -48,6 +48,9 @@ namespace larcv {
     void finalize();
 
     // algo functions
+
+    bool process( const std::vector<larcv::Image2D>& img_v, std::vector<larcv::Image2D>& outimg_v, std::vector<larcv::ROI>& outbbox_v);
+    
     // static functions are defined to allow them to be reused in a stand-alone manner
     static larcv::ROI defineBoundingBoxFromCropCoords( const std::vector<larcv::Image2D>& img_v,
 						       const int box_pixel_width, const int box_pixel_height, 
@@ -63,6 +66,15 @@ namespace larcv {
 				 const int first_outidx,
 				 const bool copy_imgs,
 				 larcv::EventImage2D& output_imgs );
+
+    static bool cropUsingBBox2D( const larcv::ROI& bbox_vec,
+				 const std::vector<larcv::Image2D>& img_v,
+				 const int y1, const int y2, bool fill_y_image,
+				 const float minpixfrac,
+				 const int first_outidx,
+				 const bool copy_imgs,
+				 std::vector<larcv::Image2D>& outimg_v );
+    
     
     static std::vector<int> defineImageBoundsFromPosZT( const float zwire, const float tmid, const float zwidth, const float dtick,
 							const int box_pixel_width, const int box_pixel_height,
