@@ -1,27 +1,18 @@
 #
 # This is an example GNUmakefile for my packages
 #
-PACKAGE_NAME = ImageMod
+PACKAGE_NAME = ROOTUtil
 
 # specific names for this package
 SOURCES = $(wildcard *.cxx)
 FMWK_HEADERS = LinkDef.h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
-#HEADERS += IOManager.inl
+HEADERS_DEST = larcv/core/$(PACKAGE_NAME)
 
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
-INCFLAGS += $(shell larlite-config --includes)
-
-ifdef GEO2D_BASEDIR
-INCFLAGS += $(shell geo2d-config --includes)
-LDFLAGS  += -L$(GEO2D_LIBDIR) -lGeo2D_Core
-else
-SOURCES = $(filter-out ROIMerger.cxx, $(wildcard *.cxx))
-EXCLUDE_HEADERS = LinkDef.h ROIMerger.h
-HEADERS = $(filter-out $(EXCLUDE_HEADERS), $(wildcard *.h))
-endif
+INCFLAGS += -I$(LARCV_INCDIR)
 
 # platform-specific options
 OSNAME          = $(shell uname -s)
@@ -30,11 +21,8 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += $(shell larcv-config --libs)
-LDFLAGS += $(shell larlite-config --libs)
-
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE
 
-pkg_build:
-pkg_clean:
+pkg_build: # nothing extra for this package
+pkg_clean: # nothing extra for this package
