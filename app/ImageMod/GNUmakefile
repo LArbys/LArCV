@@ -12,7 +12,10 @@ HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 # include options for this package
 INCFLAGS  = -I.                       #Include itself
 INCFLAGS += $(shell larcv-config --includes)
+ifdef LARLITE_BASEDIR
 INCFLAGS += $(shell larlite-config --includes)
+INCFLAGS += -DHAS_LARLITE
+endif
 
 ifdef GEO2D_BASEDIR
 INCFLAGS += $(shell geo2d-config --includes)

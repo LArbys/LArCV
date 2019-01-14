@@ -8,8 +8,9 @@
 #include "DataFormat/EventImage2D.h"
 
 //larlite
+#ifdef HAS_LARLITE
 #include "LArUtil/Geometry.h"
-#include "LArUtil/LArProperties.h"
+#endif
 
 // ROOT TRandom3
 #include "TRandom3.h"
@@ -37,6 +38,9 @@ namespace larcv {
     elapsed_fraccheck = 0;
     elapsed_save = 0;
     num_calls = 0;
+#ifndef HAS_LARLITE
+    throw std::runtime_error("This code needed to be build against larlite, which it wasn't. Must rebuild.");
+#endif
   }
 
   void UBSplitDetector::configure(const PSet& cfg)
@@ -687,7 +691,9 @@ namespace larcv {
     // however, we will expand around this region, filling edges of Y image with information
 
     const larcv::ImageMeta& meta = img_v.front().meta();
+#ifdef HAS_LARLITE
     const larutil::Geometry* geo = larutil::Geometry::GetME();
+#endif
 
     float t1 = tmid-0.5*dtick;
     float t2 = tmid+0.5*dtick;
@@ -743,21 +749,29 @@ namespace larcv {
     // determine range for u-plane
     Double_t xyzStart[3];
     Double_t xyzEnd[3];
-    geo->WireEndPoints( 2, zcol0, xyzStart, xyzEnd );
+
+
     float z0 = xyzStart[2];
     Double_t zupt0[3] = { 0,+117.5, z0 };
-    int ucol0 = geo->NearestWire( zupt0, 0 );
+    int ucol0 = 0;
 
+#ifdef HAS_LARLITE
+    geo->NearestWire( zupt0, 0 );
+    geo->WireEndPoints( 2, zcol0, xyzStart, xyzEnd );
     geo->WireEndPoints( 2, zcol1, xyzStart, xyzEnd );
+#endif
+
     float z1 = xyzStart[2];
     Double_t zupt1[3] = { 0,-117.5, z1-0.1 };
     int ucol1 = 0;
+#ifdef HAS_LARLITE
     try {
       ucol1 = geo->NearestWire( zupt1, 0 );
     }
     catch (...) {
       ucol1 = 2399;
     }
+#endif
 
     if ( ucol0>ucol1 ) {
       // this happens on the detector edge
@@ -784,21 +798,30 @@ namespace larcv {
     }
 
     // determine v-plane
+#ifdef HAS_LARLITE
     geo->WireEndPoints( 2, zcol0, xyzStart, xyzEnd );
+#endif
     z0 = xyzStart[2];
     Double_t zvpt0[3] = { 0,-115.5, z0 };
-    int vcol0 = geo->NearestWire( zvpt0, 1 );
+    int vcol0 = 0;
 
+
+#ifdef HAS_LARLITE
+    geo->NearestWire( zvpt0, 1 );
     geo->WireEndPoints( 2, zcol1, xyzStart, xyzEnd );
+#endif
+
     z1 = xyzStart[2];
     Double_t zvpt1[3] = { 0,+117.5, z1-0.1 };
     int vcol1 = 0;
+#ifdef HAS_LARLITE
     try {
       vcol1 = geo->NearestWire( zvpt1, 1 );
     }
     catch  (...) {
       vcol1 = 2399;
     }
+#endif
 
     int ddv = vcol1-vcol0;
     int rdv = box_pixel_width%ddv;

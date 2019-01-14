@@ -17,9 +17,9 @@
 #ifndef __UBSPLITDETECTOR_H__
 #define __UBSPLITDETECTOR_H__
 
+// LArCV
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
-
 #include "DataFormat/EventImage2D.h"
 
 namespace larcv {
