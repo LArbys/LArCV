@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#  /!\
+# CAVEAT :
+# Very specific to Adrien's architecture, no need to try and use it yourself, this WILL not work
+
 setuBooNE
 
 DataPATH="/Volumes/DataStorage/DeepLearningData/MCC8_Overlays"
