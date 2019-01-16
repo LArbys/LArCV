@@ -49,6 +49,15 @@ fi
 # Check Numpy
 export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
 
+# Check for libtorch
+export LARCV_LIBTORCH=1
+if [[ -z $LIBTORCH_INCDIR ]]; then
+    export LARCV_LIBTORCH=0
+fi
+if [[ -z $LIBTORCH_LIBDIR ]]; then
+    export LARCV_LIBTORCH=0
+fi
+
 # Set ANN directories
 if [[ -z $LARCV_ANN ]]; then
     export LARCV_ANN=1
@@ -71,6 +80,11 @@ if [ $LARCV_NUMPY -eq 0 ]; then
 fi
 if [ $LARCV_ANN -eq 0 ]; then
     missing+=" ANN"
+fi
+if [ $LARCV_LIBTORCH -eq 0 ]; then
+    missing+=" libTorch"
+else
+    printf "\033[93mlibTorch\033[00m Building with libtorch (PyTorch C++ API) support \n"
 fi
 if [[ $missing ]]; then
     printf "\033[93mWarning\033[00m ... missing$missing support. Build without them.\n";
@@ -149,6 +163,9 @@ if [ -z `command -v $LARCV_CXX` ]; then
         return 1;
     fi
 fi
+
+# Use this to not build supera (can cause conflicts when building supera in larsoft)
+#export LARCV_NOSUPERA=1
 
 echo
 echo "Finish configuration. To build, type:"

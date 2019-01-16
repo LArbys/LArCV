@@ -14,6 +14,9 @@ endif
 ifeq ($(LARCV_OPENCV),1)
   SUBDIRS += CVUtil
 endif
+ifeq ($(LARCV_LIBTORCH),1)
+SUBDIR += TorchUtil
+endif
 
 #####################################################################################
 #

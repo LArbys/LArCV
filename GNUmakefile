@@ -16,10 +16,20 @@ endif
 ifeq ($(LARCV_OPENCV),1)
   CORE_SUBDIRS += CVUtil
 endif
+ifeq ($(LARCV_LIBTORCH),1)
+CORE_SUBDIRS += TorchUtil
+endif
+
 
 APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider MeatSlicer Reco3D
+APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider Reco3D
+  ifndef LARCV_NOSUPERA
+	APP_SUBDIRS += MeatSlicer
+  endif
+  ifeq ($(LARCV_NOSUPERA),0)
+	APP_SUBDIRS += MeatSlicer
+  endif
   ifdef LAROPENCV_BASEDIR
   APP_SUBDIRS += LArOpenCVHandle
   endif
