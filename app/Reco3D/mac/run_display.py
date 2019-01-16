@@ -37,7 +37,7 @@ if len(sys.argv) == 6:
     EVENT_FILE = str(sys.argv[5])
 
 
-num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
+#num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
 
 BASE_PATH = os.path.realpath(__file__)
 BASE_PATH = os.path.dirname(BASE_PATH)

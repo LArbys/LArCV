@@ -1574,7 +1574,7 @@ namespace larcv {
             gFurther[iPlane]->SetPoint(0,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
 
             hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%zu",_run,_subrun,_event,_track,iPlane),
-                                      Form("hImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+                                      ";wire;time (sample)",//Form("hImage_%05d_%05d_%05d_%04d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1662,7 +1662,213 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::DrawVertex(){
-        tellMe("DrawVertex",0);
+        if(_DrawVertical){DrawVertexVertical();}
+        else DrawVertexHorizontal();
+    }
+    //______________________________________________________
+    void AStarTracker::DrawVertexVertical(){
+        tellMe("DrawVertexHorizontal",0);
+
+        TH2D *hImage[3];
+        TGraph *gStartNend[3];
+        TGraph *gStart[3];
+        TGraph *gAverage[3];
+        double x_pixel_st, y_pixel_st;
+        //if(_tooShortFaintTrack_v.size() != _vertexTracks.size())DiagnoseVertex();
+
+
+        hit_image_v = CropFullImage2bounds(_vertexTracks);
+        //EnhanceDerivative();
+
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),700,1800);
+        c->SetFillColor(0);
+        c->SetFillStyle(0);
+        std::vector<TPad*> pads(3);
+        c->cd();pads[0] = new TPad("pads_0","pads_0",0,2./3,1,3./3);pads[0]->Draw();
+        c->cd();pads[1] = new TPad("pads_1","pads_1",0,1./3,1,2./3);pads[1]->Draw();
+        c->cd();pads[2] = new TPad("pads_2","pads_2",0,0./3,1,1./3);pads[2]->Draw();
+        for(int iPlane=0;iPlane<3;iPlane++){
+            pads[iPlane]->SetTopMargin(0.02);
+            pads[iPlane]->SetBottomMargin(0.1);
+            pads[iPlane]->SetRightMargin(0.16);
+            pads[iPlane]->SetLeftMargin(0.16);
+        }
+
+        int NtracksAtVertex = 0;
+        int NpointAveragedOn = 0;
+        std::vector<TVector3> AvPt_v;
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+            if(_vertexTracks[itrack][0] == start_pt){
+                NtracksAtVertex++;
+                TVector3 AvPt;
+                NpointAveragedOn = 0;
+                for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
+                    if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < 50 ){
+                        AvPt+=(_vertexTracks[itrack][iNode]-start_pt);
+                        NpointAveragedOn++;
+                    }
+                }
+                if(NpointAveragedOn!=0){AvPt*=1./NpointAveragedOn;}
+                AvPt_v.push_back(AvPt+start_pt);
+            }
+        }
+        for(size_t iPlane = 0;iPlane<3;iPlane++){gAverage[iPlane]=new TGraph();}
+        for(size_t iPt = 0;iPt<AvPt_v.size();iPt++){
+            double x_proj,y_proj;
+            for(size_t iPlane=0;iPlane<3;iPlane++){
+                ProjectTo3D(hit_image_v[iPlane].meta(),AvPt_v[iPt].X(),AvPt_v[iPt].Y(),AvPt_v[iPt].Z(),0,iPlane,x_proj,y_proj);
+                gAverage[iPlane]->SetPoint(iPt,x_proj*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_proj*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            }
+        }
+        for(size_t iPlane=0;iPlane<3;iPlane++){
+            hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                      ";wire # ;time (sample)",//Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                      hit_image_v[iPlane].meta().cols(),
+                                      hit_image_v[iPlane].meta().tl().x,
+                                      hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
+                                      hit_image_v[iPlane].meta().rows(),
+                                      hit_image_v[iPlane].meta().br().y,
+                                      hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
+            for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
+                for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
+                    hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
+                }
+            }
+        }
+        std::vector< std::vector<TVector3> > trackEndPoints_v;
+        std::vector<TVector3> thisTrackEndPoint;
+        MaskVertex();
+        //ShaveTracks();
+
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            if(thisTrackEndPoint.size()!=0)thisTrackEndPoint.clear();
+            TVector3 newPoint;
+            int NaveragePts = 0;
+            TVector3 AveragePoint;
+            TVector3 oldEndPoint = _vertexTracks[itrack].back();
+            for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
+                if((_vertexTracks[itrack][iNode]-oldEndPoint).Mag() < 20){NaveragePts++;AveragePoint+=(_vertexTracks[itrack][iNode]-oldEndPoint);}
+            }
+            if(NaveragePts!=0){AveragePoint*=1./NaveragePts;}
+            AveragePoint+=oldEndPoint;
+            double x,y,z;
+            TRandom3 *ran = new TRandom3();
+            ran->SetSeed(0);
+            for(size_t i=0;i<500;i++){
+                ran->Sphere(x,y,z,3);
+                newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
+                if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
+                thisTrackEndPoint.push_back(newPoint);
+            }
+
+            if(_tooShortDeadWire_v.size()!=0){
+                if(_tooShortDeadWire_v[itrack]){
+                    int Niter = 100;
+                    for(size_t i=0;i<Niter;i++){
+                        double r = 4+(50./Niter)*i;
+                        for(size_t j=0;j<Niter;j++){
+                            ran->Sphere(x,y,z,r);
+                            newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
+                            if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.99 )continue;
+                            thisTrackEndPoint.push_back(newPoint);
+                        }
+                    }
+                }
+            }
+
+            trackEndPoints_v.push_back(thisTrackEndPoint);
+
+        }
+        hImage[0]->GetXaxis()->SetTitle("U-plane wire #");
+        hImage[1]->GetXaxis()->SetTitle("V-plane wire #");
+        hImage[2]->GetXaxis()->SetTitle("Y-plane wire #");
+        for(size_t iPlane=0;iPlane<3;iPlane++){
+            gStart[iPlane] = new TGraph();
+            gStartNend[iPlane] = new TGraph();
+            ProjectTo3D(hit_image_v[iPlane].meta(),start_pt.X(),start_pt.Y(),start_pt.Z(),0,iPlane,x_pixel_st,y_pixel_st);
+            gStart[iPlane]->SetPoint(0,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            for(size_t iend = 0;iend<_vertexEndPoints.size();iend++){
+                ProjectTo3D(hit_image_v[iPlane].meta(),_vertexEndPoints[iend].X(),_vertexEndPoints[iend].Y(),_vertexEndPoints[iend].Z(),0,iPlane,x_pixel_st,y_pixel_st);
+                gStartNend[iPlane]->SetPoint(iend,x_pixel_st*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel_st*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+            }
+            pads[iPlane]->cd();
+            if(!_DrawBlack){
+                pads[iPlane]->SetFrameFillColor(0);
+                pads[iPlane]->SetFrameLineColor(1);
+                hImage[iPlane]->GetXaxis()->SetLabelColor(1);
+                hImage[iPlane]->GetXaxis()->SetAxisColor(1);
+                hImage[iPlane]->GetXaxis()->SetTitleColor(1);
+                hImage[iPlane]->GetYaxis()->SetLabelColor(1);
+                hImage[iPlane]->GetYaxis()->SetAxisColor(1);
+                hImage[iPlane]->GetYaxis()->SetTitleColor(1);
+            }
+            else{
+                pads[iPlane]->SetFrameFillColor(1);
+                pads[iPlane]->SetFrameLineColor(0);
+                hImage[iPlane]->GetXaxis()->SetLabelColor(0);
+                hImage[iPlane]->GetXaxis()->SetAxisColor(0);
+                hImage[iPlane]->GetXaxis()->SetTitleColor(0);
+                hImage[iPlane]->GetYaxis()->SetLabelColor(0);
+                hImage[iPlane]->GetYaxis()->SetAxisColor(0);
+                hImage[iPlane]->GetYaxis()->SetTitleColor(0);
+            }
+            hImage[iPlane]->GetYaxis()->SetTitleOffset(1.60);
+            hImage[iPlane]->GetXaxis()->SetTitleOffset(1);
+            hImage[iPlane]->GetXaxis()->SetRangeUser(0.25*(hImage[iPlane]->GetXaxis()->GetXmax()-hImage[iPlane]->GetXaxis()->GetXmin()),
+                                                     0.75*(hImage[iPlane]->GetXaxis()->GetXmax()-hImage[iPlane]->GetXaxis()->GetXmin()));
+            hImage[iPlane]->GetYaxis()->SetRangeUser(0.25*(hImage[iPlane]->GetYaxis()->GetXmax()-hImage[iPlane]->GetYaxis()->GetXmin()),
+                                                     0.75*(hImage[iPlane]->GetYaxis()->GetXmax()-hImage[iPlane]->GetYaxis()->GetXmin()));
+            hImage[iPlane]->Draw("colz");
+        }
+        for(size_t i=0;i<_vertexTracks.size();i++){
+            TGraph *gTrack[3];
+            double x_pixel, y_pixel;
+            for(size_t iPlane=0;iPlane<3;iPlane++){gTrack[iPlane] = new TGraph();}
+            for(size_t iPlane=0;iPlane<3;iPlane++){
+                for(size_t iNode=0;iNode<_vertexTracks[i].size();iNode++){
+                    ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y(),_vertexTracks[i][iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
+                    gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
+                }
+                gTrack[iPlane]->SetMarkerStyle(7);
+                if(i==0){
+                    gTrack[iPlane]->SetLineColor(1);
+                    gTrack[iPlane]->SetMarkerColor(1);
+                }
+                else{
+                    gTrack[iPlane]->SetLineColor(i+1);
+                    gTrack[iPlane]->SetMarkerColor(i+1);
+                }
+                pads[iPlane]->cd();
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP");
+            }
+        }
+
+
+
+        std::string label_tag = "";
+        //c->SaveAs(Form("%s/%s.root",_outdir.c_str(),c->GetName()));
+        if(_nothingReconstructed){label_tag+="_nothing_reconstructed";}
+        if(_missingTrack){label_tag+="_onlyOneTrack";}
+        if(_tooShortDeadWire){label_tag+="_EndPointInDeadRegion";}
+        if(_tooManyTracksAtVertex){label_tag+="_TooManyTracksAtVertex";}
+        if(_branchingTracks){label_tag+="_BranchingTracks";}
+        if(_tooShortFaintTrack){label_tag+="_TooShortFaintTrack";}
+        if(_jumpingTracks){label_tag+="_JumpTrack";}
+        if(IsGoodVertex()){label_tag+="_OKtracks";}
+        if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}
+        c->SaveAs(Form("%s/%s_%s.png",_outdir.c_str(),c->GetName(),label_tag.c_str()));
+        c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
+
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            hImage[iPlane]->Delete();
+            gStart[iPlane]->Delete();
+            gAverage[iPlane]->Delete();
+            gStartNend[iPlane]->Delete();
+        }
+    }
+    //______________________________________________________
+    void AStarTracker::DrawVertexHorizontal(){
+        tellMe("DrawVertexHorizontal",0);
 
         TH2D *hImage[3];
         TH2D *hImageMasked[3];
@@ -1678,7 +1884,8 @@ namespace larcv {
         //EnhanceDerivative();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),1800,1200);
-        c->SetFillColor(1);
+        c->SetFillColor(0);
+        c->SetFillStyle(0);
         c->Divide(1,2);
         c->cd(1)->Divide(3,1);
         c->cd(2)->Divide(3,1);
@@ -1711,7 +1918,7 @@ namespace larcv {
         }
         for(size_t iPlane=0;iPlane<3;iPlane++){
             hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
-                                      Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                      ";wire;time (sample)",//Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1779,7 +1986,7 @@ namespace larcv {
             }
 
             hImageMasked[iPlane] = new TH2D(Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
-                                            Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                            ";wire;time (sample)",//Form("hImageMasked_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                             hit_image_v[iPlane].meta().cols(),
                                             hit_image_v[iPlane].meta().tl().x,
                                             hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1787,7 +1994,7 @@ namespace larcv {
                                             hit_image_v[iPlane].meta().br().y,
                                             hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
             hTagImage[iPlane] = new TH2D(Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
-                                         Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
+                                         ";wire;time (sample)",//Form("hTagImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                          hit_image_v[iPlane].meta().cols(),
                                          hit_image_v[iPlane].meta().tl().x,
                                          hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -1808,25 +2015,28 @@ namespace larcv {
                 }
             }
             c->cd(1)->cd(iPlane+1);
-            c->cd(1)->cd(iPlane+1)->SetFrameFillColor(1);
-            c->cd(1)->cd(iPlane+1)->SetFrameLineColor(0);
-            hImage[iPlane]->GetXaxis()->SetLabelColor(0);
-            hImage[iPlane]->GetXaxis()->SetAxisColor(0);
-            hImage[iPlane]->GetXaxis()->SetTitleColor(0);
-            hImage[iPlane]->GetYaxis()->SetLabelColor(0);
-            hImage[iPlane]->GetYaxis()->SetAxisColor(0);
-            hImage[iPlane]->GetYaxis()->SetTitleColor(0);
+            c->cd(1)->cd(iPlane+1)->SetFrameFillColor(0);
+            c->cd(1)->cd(iPlane+1)->SetFrameLineColor(1);
+            hImage[iPlane]->GetXaxis()->SetLabelColor(1);
+            hImage[iPlane]->GetXaxis()->SetAxisColor(1);
+            hImage[iPlane]->GetXaxis()->SetTitleColor(1);
+            hImage[iPlane]->GetYaxis()->SetTitleOffset(1.50);
+            hImage[iPlane]->GetYaxis()->SetLabelColor(1);
+            hImage[iPlane]->GetYaxis()->SetAxisColor(1);
+            hImage[iPlane]->GetYaxis()->SetTitleColor(1);
             hImage[iPlane]->Draw("colz");
 
             c->cd(2)->cd(iPlane+1);
-            c->cd(2)->cd(iPlane+1)->SetFrameFillColor(1);
-            c->cd(2)->cd(iPlane+1)->SetFrameLineColor(0);
-            hImageMasked[iPlane]->GetXaxis()->SetLabelColor(0);
-            hImageMasked[iPlane]->GetXaxis()->SetAxisColor(0);
-            hImageMasked[iPlane]->GetXaxis()->SetTitleColor(0);
-            hImageMasked[iPlane]->GetYaxis()->SetLabelColor(0);
-            hImageMasked[iPlane]->GetYaxis()->SetAxisColor(0);
-            hImageMasked[iPlane]->GetYaxis()->SetTitleColor(0);
+            c->cd(2)->cd(iPlane+1)->SetFrameFillColor(0);
+            c->cd(2)->cd(iPlane+1)->SetFrameLineColor(1);
+            hImageMasked[iPlane]->GetXaxis()->SetLabelColor(1);
+            //hImageMasked[iPlane]->GetXaxis()->SetLabelSize(0.05);
+            hImageMasked[iPlane]->GetXaxis()->SetAxisColor(1);
+            hImageMasked[iPlane]->GetXaxis()->SetTitleColor(1);
+            hImageMasked[iPlane]->GetYaxis()->SetTitleOffset(1.50);
+            hImageMasked[iPlane]->GetYaxis()->SetLabelColor(1);
+            hImageMasked[iPlane]->GetYaxis()->SetAxisColor(1);
+            hImageMasked[iPlane]->GetYaxis()->SetTitleColor(1);
             hImageMasked[iPlane]->Draw("colz");
             if(hTagImage[iPlane]->Integral()>1)hTagImage[iPlane]->Draw("same colz");
 
@@ -1859,8 +2069,8 @@ namespace larcv {
                 c->cd(2)->cd(iPlane+1);
                 gTrack[iPlane]->SetMarkerStyle(7);
                 if(i==0){
-                    gTrack[iPlane]->SetLineColor(i);
-                    gTrack[iPlane]->SetMarkerColor(i);
+                    gTrack[iPlane]->SetLineColor(1);
+                    gTrack[iPlane]->SetMarkerColor(1);
                 }
                 else{
                     gTrack[iPlane]->SetLineColor(i+1);
@@ -1875,7 +2085,7 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             c->cd(2)->cd(iPlane+1);
-            gStartNend[iPlane]->SetMarkerColor(0);
+            gStartNend[iPlane]->SetMarkerColor(1);
             gStartNend[iPlane]->SetMarkerStyle(20);
             if(gStartNend[iPlane]->GetN()>0)gStartNend[iPlane]->Draw("same P");
             gStart[iPlane]->SetMarkerStyle(20);
@@ -1964,7 +2174,7 @@ namespace larcv {
 
         for(size_t iPlane=0;iPlane<3;iPlane++){
             hImage[iPlane] = new TH2D(Form("hImage_%d_%d_%d_%d_%zu",_run,_subrun,_event,_track,iPlane),
-                                      Form("hImage_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
+                                      ";wire;time (sample)",//Form("hImage_%d_%d_%d_%d_%zu;wire;time",_run,_subrun,_event,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
                                       hit_image_v[iPlane].meta().tl().x,
                                       hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width(),
@@ -2362,6 +2572,8 @@ namespace larcv {
         ReadSplineFile();
         _eventTreated = 0;
         _eventSuccess = 0;
+        _DrawVertical = false;
+        _DrawBlack = false;
         _deadWireValue = _ADCthreshold+1;
         time_bounds.reserve(3);
         wire_bounds.reserve(3);

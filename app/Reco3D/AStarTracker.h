@@ -99,6 +99,8 @@ namespace larcv {
         void CreateDataImage(std::vector<larlite::wire> wire_v);
         void ResetRecoveries(){NumberRecoveries = 0;}
         void SetTimeAndWireBounds();
+        void SetDrawVertical(bool b){_DrawVertical=b;}
+        void SetDrawBlack(bool b){_DrawBlack=b;}
         void SetTimeAndWireBoundsProtonsErez();
         void SetTimeAndWireBounds(TVector3 pointStart, TVector3 pointEnd);
         void SetTimeAndWireBounds(std::vector<TVector3> points);
@@ -120,6 +122,8 @@ namespace larcv {
 
         void DrawTrack();
         void DrawVertex();
+        void DrawVertexVertical();
+        void DrawVertexHorizontal();
         void RegularizeTrack();
         void DrawROI();
         void TellMeRecoedPath();
@@ -269,6 +273,8 @@ namespace larcv {
         bool _possiblyCrossing;
         bool _branchingTracks;
         bool _jumpingTracks;
+        bool _DrawVertical;
+        bool _DrawBlack;
 
         std::vector<bool> _tooShortDeadWire_v;
         std::vector<bool> _tooShortFaintTrack_v;

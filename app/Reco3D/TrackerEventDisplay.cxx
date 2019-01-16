@@ -70,6 +70,8 @@ namespace larcv {
         tracker.SetOutputDir(out_dir);
         tracker.SetSplineFile(_spline_file);
         tracker.initialize();
+        tracker.SetDrawVertical(true);
+        tracker.SetDrawBlack(false);
         tracker.SetVerbose(0);
 
         std::string filename;
@@ -350,18 +352,20 @@ namespace larcv {
         }
         bool GoOn = true;
         int thisRun, thisSubRun, thisEvent, thisVertex;
+        std::cout << "OK, event list file " << eventListFile << "  found!" << std::endl;
         while(GoOn == true){
             std::vector<int> eventInfo(4);
             listFile >> thisRun >> thisSubRun >> thisEvent >> thisVertex;
+            //std::cout << thisRun << " " << thisSubRun << " " << thisEvent << " " << thisVertex;
             eventInfo[0] = thisRun;
             eventInfo[1] = thisSubRun;
             eventInfo[2] = thisEvent;
             eventInfo[3] = thisVertex;
             if(listFile.eof()){GoOn=false;break;}
             SelectedList.push_back(eventInfo);
-            std::cout << SelectedList.back()[0] << "\t" << SelectedList.back()[1] << "\t" << SelectedList.back()[2] << "\t" << SelectedList.back()[3] << std::endl;
+            //std::cout << SelectedList.back()[0] << "\t" << SelectedList.back()[1] << "\t" << SelectedList.back()[2] << "\t" << SelectedList.back()[3] << std::endl;
         }
-
+        std::cout << "Selected " << SelectedList.size() << " events" << std::endl;
     }
 }
 #endif
