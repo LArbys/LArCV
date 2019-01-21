@@ -74,6 +74,7 @@ namespace larcv {
         tracker.SetOutputDir(out_dir);
         tracker.SetSplineFile(_spline_file);
         tracker.initialize();
+        tracker.SetMinLength(3);
         tracker.SetVerbose(0);
 
         std::string filename;

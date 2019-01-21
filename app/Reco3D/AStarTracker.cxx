@@ -663,7 +663,6 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::ConstructTrack(){
         tellMe("ConstructTrack()",0);
-        //double trackMinLength = 1.5;
         ImprovedCluster();
         end_pt = GetFurtherFromVertex();
         SortAndOrderPoints();
@@ -823,7 +822,7 @@ namespace larcv {
             _possiblyCrossing   = false;
 
 
-            if(_vertexLength[itrack] > 5) DiagnoseTrack(itrack);
+            if(_vertexLength[itrack] > _MinLength) DiagnoseTrack(itrack);
 
             _jumpingTracks_v.push_back(     _jumpingTracks     );
             _possiblyCrossing_v.push_back(  _possiblyCrossing  );
@@ -858,7 +857,7 @@ namespace larcv {
         int NtracksAtVertex=0;
         _tooManyTracksAtVertex = false;
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
-            if(_vertexTracks[itrack][0] == start_pt && _vertexLength[itrack] > 5)NtracksAtVertex++;
+            if(_vertexTracks[itrack][0] == start_pt && _vertexLength[itrack] > _MinLength)NtracksAtVertex++;
         }
         if(NtracksAtVertex > 2)_tooManyTracksAtVertex = true;
         if(NtracksAtVertex == 1)_missingTrack = true;
@@ -1025,7 +1024,7 @@ namespace larcv {
             }
 
             //if we have a nicely defined track, find point in a larger cone after the last found point
-            if(list3D.size() > 2 && (lastNode-start_pt).Mag() > 5){
+            if(list3D.size() > 2 && (lastNode-start_pt).Mag() > _MinLength){
                 TVector3 AvPt(0,0,0);
                 int NpointAveragedOn = 0;
                 //try and find the track direction on the last few cm
@@ -2578,6 +2577,7 @@ namespace larcv {
         time_bounds.reserve(3);
         wire_bounds.reserve(3);
         hit_image_v.reserve(3);
+        _MinLength = 3;
         if(_DrawOutputs){
             hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
             hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);

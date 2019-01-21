@@ -119,10 +119,6 @@ namespace larcv {
 
     bool TrackerEventDisplay::process(IOManager& mgr){
         //ClearEvent();
-        std::cout << std::endl;
-        std::cout << "============================================" << std::endl;
-        std::cout << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
-        std::cout << "============================================" << std::endl;
         gStyle->SetOptStat(0);
 
         TVector3 vertex(-1,-1,-1);
@@ -132,6 +128,12 @@ namespace larcv {
         _subrun = (int) ev_img_v->subrun();
         _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
+
+        std::cout << std::endl;
+        std::cout << "============================================" << std::endl;
+        std::cout << "Entry " << mgr.current_entry() << " / " << mgr.get_n_entries() << std::endl;
+        std::cout << "rse " << _run << "\t" << _subrun << "\t" << _event << std::endl;
+        std::cout << "============================================" << std::endl;
 
         _storage.next_event();
         auto ev_track  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco");
@@ -213,23 +215,23 @@ namespace larcv {
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
             std::cout << "vertex #" << vertex_index << std::endl;
-            int treeEntry = SearchMap();
-            if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
-
-            _recoTree->GetEntry(treeEntry);
+            int treeEntry = -1;
+            //treeEntry = SearchMap();
+            //if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
+            //_recoTree->GetEntry(treeEntry);
 
             bool GoodReco = true;
             int N5cm = 0;
-            std::cout  << "==> "<< _Length_v->size() << ",  " << _track_Goodness_v->size() << std::endl;
-            for(int i = 0;i<_Length_v->size();i++){
-                if(_Length_v->at(i) > 5 && _track_Goodness_v->at(i) != 1)GoodReco =false;
-                if(_Length_v->at(i) > 5)N5cm++;
-            }
-            if(N5cm != 2)GoodReco=false;
-            if(_Length_v->size() == 0)GoodReco=false;
+            //std::cout  << "==> "<< _Length_v->size() << ",  " << _track_Goodness_v->size() << std::endl;
+            //for(int i = 0;i<_Length_v->size();i++){
+            //    if(_Length_v->at(i) > 5 && _track_Goodness_v->at(i) != 1)GoodReco =false;
+            //    if(_Length_v->at(i) > 5)N5cm++;
+            //}
+            //if(N5cm != 2)GoodReco=false;
+            //if(_Length_v->size() == 0)GoodReco=false;
             //if(!GoodReco)continue;
 
-            tracker.FeedVtxGoodness((*_Reco_goodness_v));
+            //tracker.FeedVtxGoodness((*_Reco_goodness_v));
 
             tracker.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z()));
             tracker.SetVertexID(ev_vertex->at(vertex_index).ID());

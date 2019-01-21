@@ -153,6 +153,7 @@ namespace larcv {
         void EnhanceDerivative();
         void DumpTrack();
         void FillInTrack();
+        void SetMinLength(double MinLength){_MinLength = MinLength;}
 
         bool initialize();
         bool finalize();
@@ -178,6 +179,7 @@ namespace larcv {
         std::vector<bool> GetRecoGoodness();
         std::vector<bool> GetVtxQuality();
         double GetEnergy(std::string partType, double Length);
+        double GetMinLength(){return _MinLength;}
         double ComputeLength(int node);
         double GetTotalDepositedCharge();
         double X2Tick(double x, size_t plane) const;   // X[cm] to TPC tick (waveform index) conversion
@@ -260,6 +262,7 @@ namespace larcv {
         double _ADCthreshold;
         double _speedOffset;
         double _Length3D;
+        double _MinLength;
         double _RecoverValue;
         double GetDist2line(TVector3 A, TVector3 B, TVector3 C);
 
