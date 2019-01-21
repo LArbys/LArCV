@@ -3434,6 +3434,7 @@ namespace larcv {
         std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
         std::vector<larcv::Image2D> data_images;
         std::vector<larcv::Image2D> tagged_images;
+        if(_deadWires_v.size()!=0){_deadWires_v.clear();}
 
         // find dead/bad wires and paint them with 20
         for(size_t iPlane=0;iPlane<3;iPlane++){
@@ -3443,6 +3444,7 @@ namespace larcv {
                     if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
+                    _deadWires_v.push_back(icol);
                     original_full_image_v[iPlane].paint_col(icol,_deadWireValue);
                 }
             }

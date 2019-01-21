@@ -205,6 +205,7 @@ namespace larcv {
         }
         std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
+        std::vector<int> GetDeadWireList(){return _deadWires_v;}
         std::vector<double>  GetAverageIonization(double distAvg = -1);// average pixel intensity over reconstructed points
         std::vector<double>  GetAverageIonization_Yplane(double distAvg = -1);// average Y plane pixel intensity over reconstructed points
         std::vector<double>  GetTotalIonization_Yplane(double distAvg = -1);// total Y plane plane pixel intensity over reconstructed points
@@ -279,6 +280,7 @@ namespace larcv {
         bool _DrawVertical;
         bool _DrawBlack;
 
+        std::vector<int> _deadWires_v;
         std::vector<bool> _tooShortDeadWire_v;
         std::vector<bool> _tooShortFaintTrack_v;
         std::vector<bool> _possiblyCrossing_v;
