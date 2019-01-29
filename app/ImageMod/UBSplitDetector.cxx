@@ -104,6 +104,9 @@ namespace larcv {
     if (!_randomize_crops) {
       _randomize_minfracpix = -1.0; // only use filter for random cropping
     }
+
+    // verbosity
+    set_verbosity( (larcv::msg::Level_t)cfg.get<int>("Verbosity",2) );
   }
 
   void UBSplitDetector::initialize()
@@ -347,13 +350,14 @@ namespace larcv {
       //   for random cropping or filtering, the size changes. we resize to avoid as many reallocations as possible
       bool filledimg = false;
       if ( _enable_img_crop ) {
-	if ( copy_imgs && _numcrops_changed ) {
+	if ( copy_imgs && ( _numcrops_changed || outimg_v.size()!=_num_expected_crops*img_v.size() ) ) {
 	  // we need to create image to copy to
 	  // the intention is for this to only run once
 	  std::clock_t begin = std::clock();
 	  //std::vector<larcv::Image2D> tmp;
 	  //output_imgs->Move(tmp);
-	  LARCV_DEBUG() << "output image container has " << outimg_v.size() << " images" << std::endl;
+	  LARCV_DEBUG() << "output image container has " << outimg_v.size() 
+			<< " images while we need " << _num_expected_crops*img_v.size() << std::endl;
 	  for ( size_t ip=0; ip<img_v.size(); ip++ ) {
 
 	    // larcv2 meta

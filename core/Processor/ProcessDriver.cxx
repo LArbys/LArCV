@@ -252,40 +252,42 @@ namespace larcv {
     _current_entry = 0;
   }
 
-  bool ProcessDriver::_process_entry_()
+  bool ProcessDriver::_process_entry_( bool autosave_entry )
   {
     // Private method to execute processes and change entry number record
     // This method does not perform any sanity check, hence private and 
     // should be used by wrapper method which performs necessary checks.
 
     // Execute
-    bool good_status=true;
-    bool cleared=false;
+    _process_good_status=true;
+    _process_cleared=false;
     for(auto& p : _proc_v) {
-      good_status = good_status && p->_process_(_io);
-      if(!good_status && _enable_filter) break;
+      _process_good_status = _process_good_status && p->_process_(_io);
+      if(!_process_good_status && _enable_filter) break;
     }
-    // No event-write to be done if _has_event_creator is set. Otherwise go ahead
-    if(!_has_event_creator) {
+    // No event-write to be done if _has_event_creator is set. 
+    // Also, user can prevent automatically saving the entry as well.
+    // Otherwise go ahead
+    if(!_has_event_creator && autosave_entry ) {
       // If not read mode save entry
-      if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || good_status)) {
-	cleared = true;
+      if(_io.io_mode() != IOManager::kREAD && (!_enable_filter || _process_good_status)) {
+	_process_cleared = true;
 	_io.save_entry();    
       }
-      if(!cleared)
+      if(!_process_cleared)
 	_io.clear_entry();
-      cleared=true;
+      _process_cleared=true;
     }
-    if(!cleared && _io.io_mode() == IOManager::kREAD) 
+    if(!_process_cleared && _io.io_mode() == IOManager::kREAD) 
       _io.clear_entry();
 
     // Bump up entry record
     ++_current_entry;
 
-    return good_status;
+    return _process_good_status;
   }
 
-  bool ProcessDriver::process_entry()
+  bool ProcessDriver::process_entry( bool autosave_entry )
   {
     LARCV_DEBUG() << "Called" << std::endl;
     // Public method to process "next" entry
@@ -307,10 +309,10 @@ namespace larcv {
       _io.read_entry(_access_entry_v[_current_entry]);
     }
     // Execute processes
-    return _process_entry_();
+    return _process_entry_( autosave_entry );
   }
   
-  bool ProcessDriver::process_entry(size_t entry, bool force_reload)
+  bool ProcessDriver::process_entry(size_t entry, bool force_reload, bool autosave_entry)
   {
     LARCV_DEBUG() << "Called" << std::endl;
     // Public method to process "specified" entry
@@ -333,7 +335,7 @@ namespace larcv {
       _current_entry = entry;
     }
     // Execute processes
-    return _process_entry_();
+    return _process_entry_(autosave_entry);
   }
   
   void ProcessDriver::batch_process(size_t start_entry,size_t num_entries){

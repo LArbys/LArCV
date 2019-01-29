@@ -24,7 +24,7 @@ OSNAMEMODE      = $(OSNAME)
 
 include $(LARCV_BASEDIR)/Makefile/Makefile.${OSNAME}
 
-LDFLAGS += -L$(LIBTORCH_LIBDIR) -ltorch
+LDFLAGS += -L$(LIBTORCH_LIBDIR) -ltorch -lcaffe2
 
 # call the common GNUmakefile
 include $(LARCV_BASEDIR)/Makefile/GNUmakefile.CORE

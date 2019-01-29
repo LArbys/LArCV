@@ -9,7 +9,7 @@
 //#include "Base/larcv_logger.h"
 
 namespace larcv {
-namespace torchutil {
+namespace torchutils {
   
   /**
    * returns a view of the data in the image. copy-less.

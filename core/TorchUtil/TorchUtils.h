@@ -4,7 +4,7 @@
 //#ifndef __CLING__
 //#ifndef __CINT__
 
-#include <torch/script.h>
+#include <torch/torch.h>
 #include "DataFormat/Image2D.h"
 
 

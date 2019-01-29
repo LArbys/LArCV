@@ -23,6 +23,8 @@ if 'LARCV_ANN' and 'ANN_LIBDIR' in os.environ:
     libs+= [" -lANN" ]
 if 'PYTHON_LIB' in os.environ:
     libs+= [" -L%s -lpython2.7"%(os.environ["PYTHON_LIB"].strip())]
+if 'LIBTORCH_DIR' in os.environ:
+    libs+= [" -L%s -ltorch -lcaffe2"%(os.environ["LIBTORCH_LIBDIR"].strip()) ]
 
 objs_list=[]
 dict_list=[]

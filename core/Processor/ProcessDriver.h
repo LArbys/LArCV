@@ -48,9 +48,9 @@ namespace larcv {
 
     void override_ana_file(const std::string fname);
 
-    bool process_entry();
+    bool process_entry(bool autosave_entry=true);
     
-    bool process_entry(size_t entry,bool force_reload=false);
+    bool process_entry(size_t entry,bool force_reload=false, bool autosave_entry=true);
 
     const EventBase& event_id() const { return _io.last_event_id(); }
 
@@ -70,6 +70,8 @@ namespace larcv {
 
     const IOManager& io() const { return _io; }
 
+    IOManager& io_mutable() { return _io; }
+
     void set_id(size_t run, size_t subrun, size_t event)
     { _io.set_id(run,subrun,event); }
 
@@ -77,13 +79,15 @@ namespace larcv {
 
   private:
 
-    bool _process_entry_();
+    bool _process_entry_( bool autosave_entry=true );
 #ifndef __CINT__
     size_t _batch_start_entry;
     size_t _batch_num_entry;
     size_t _current_entry;
     bool _enable_filter;
     bool _random_access;
+    bool _process_good_status;
+    bool _process_cleared;
     std::vector<size_t> _access_entry_v;
     IOManager _io;
     std::map<std::string,larcv::ProcessID_t> _proc_m;

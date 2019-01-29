@@ -169,9 +169,10 @@ namespace larcv {
     _out_tree_index = 0;
     _prepared = true;
 
-    // clead id: flag to prevent clearing product upon writing to disk
-    _clear_id_bool.resize(_product_ctr,true);    
-
+    // clear id: flag to prevent clearing product upon writing to disk
+    if ( _product_ctr>=_clear_id_bool.size() )
+      _clear_id_bool.resize(_product_ctr+10,true);
+    
     return true;
   }
 
@@ -198,8 +199,9 @@ namespace larcv {
       return (*in_iter).second;
     }
 
-    _product_ptr_v[_product_ctr] = (EventBase*)(DataProductFactory::get().create(type,name));
+    _product_ptr_v[_product_ctr]  = (EventBase*)(DataProductFactory::get().create(type,name));
     _product_type_v[_product_ctr] = type;
+    _clear_id_bool[_product_ctr]  = true;
     
     const ProducerID_t id = _product_ctr;
     key_m.insert(std::make_pair(name,id));
@@ -481,8 +483,13 @@ namespace larcv {
     for(auto& p : _product_ptr_v) {
       pid++;
       if(!p) break;
-      if ( _clear_id_bool[pid] )
+      if ( _clear_id_bool[pid] ) {
+	LARCV_DEBUG() << "clear product " << p->producer() << "[" << pid << "] of " << _product_ptr_v.size() << std::endl;
 	p->clear();
+      }
+      else {
+	LARCV_DEBUG() << "prevented from clearing product " << p->producer() << "[" << pid << "] of " << _product_ptr_v.size() << std::endl;
+      }
     }
     if(_set_event_id.valid()) {
       LARCV_DEBUG() << "Set _last_event_id to externally set values:"
@@ -691,6 +698,7 @@ namespace larcv {
   void IOManager::donot_clear_product( const ProductType_t type, const std::string& producer ) {
     // We do not clear the product upon writing
     // Warning!! user must manager this now!!
+    LARCV_DEBUG() << "IOManager no longer responsible for clearing output vectors for producer=" << producer << std::endl;
     ProducerID_t pid = producer_id( type, producer );
     _clear_id_bool[pid] = false;
   }
