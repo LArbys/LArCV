@@ -22,6 +22,6 @@ set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
 install(TARGETS ${MODULE_NAME}
   EXPORT larcv
   LIBRARY DESTINATION lib
-  PUBLIC_HEADER DESTINATION include/larcv/core/Processor)x
+  PUBLIC_HEADER DESTINATION include/larcv/core/Processor)
 
 

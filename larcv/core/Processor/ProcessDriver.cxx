@@ -4,7 +4,7 @@
 #include <iomanip>
 #include "ProcessDriver.h"
 #include "ProcessFactory.h"
-#include "Base/LArCVBaseUtilFunc.h"
+#include "larcv/core/Base/LArCVBaseUtilFunc.h"
 namespace larcv {
 
   ProcessDriver::ProcessDriver(std::string name)
