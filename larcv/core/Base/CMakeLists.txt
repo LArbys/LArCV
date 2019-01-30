@@ -1,3 +1,5 @@
+set(MODULE_NAME LArCVCoreBase)
+
 # Collect the headers
 file(GLOB HEADERS "*.h")
 
@@ -8,13 +10,13 @@ list(FILTER HEADERS EXCLUDE REGEX ".*LinkDef.h$")
 file(GLOB SOURCES "*.cxx")
 
 # Generate the dictionary
-ROOT_GENERATE_DICTIONARY(LArCVCoreBaseDict ${HEADERS} LINKDEF LinkDef.h)
+ROOT_GENERATE_DICTIONARY(${MODULE_NAME}Dict ${HEADERS} LINKDEF LinkDef.h)
  
 # Generate the shared library from the sources
-add_library(LArCVCoreBase SHARED ${SOURCES} LArCVCoreBaseDict.cxx)
-set_target_properties(LArCVCoreBase PROPERTIES PUBLIC_HEADER "${HEADERS}")
+add_library(${MODULE_NAME} SHARED ${SOURCES} ${MODULE_NAME}Dict.cxx)
+set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
 
-install(TARGETS LArCVCoreBase
+install(TARGETS ${MODULE_NAME}
   EXPORT larcv
   LIBRARY DESTINATION lib
   PUBLIC_HEADER DESTINATION include/larcv/core/Base)
