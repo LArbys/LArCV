@@ -16,7 +16,6 @@
 *.db
 *.log
 *.dat
-!*CMakeLists.txt
 *.txt
 *.bin
 *.root
@@ -40,3 +39,4 @@ app/Supera/APILArSoft/supera.fcl
 .DS_Store
 *.pdf
 *.o
+!CMakeLists.txt
