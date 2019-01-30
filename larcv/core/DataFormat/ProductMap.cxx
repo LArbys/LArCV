@@ -2,7 +2,7 @@
 #define __LARCV_PRODUCTMAP_CXX__
 
 #include "ProductMap.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 #include <sstream>
 
 namespace larcv {

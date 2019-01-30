@@ -3,7 +3,7 @@
 
 #include <sstream>
 #include "ChStatus.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 
 namespace larcv {
 

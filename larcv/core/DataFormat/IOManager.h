@@ -20,10 +20,10 @@
 #include <TTree.h>
 #include <TChain.h>
 #include <TFile.h>
-#include "Base/larcv_base.h"
+#include "larcv/core/Base/larcv_base.h"
 #include "EventBase.h"
-#include "Base/larbys.h"
-#include "Base/PSet.h"
+#include "larcv/core/Base/larbys.h"
+#include "larcv/core/Base/PSet.h"
 #include "ProductMap.h"
 namespace larcv {
   /**

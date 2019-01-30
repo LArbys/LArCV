@@ -2,7 +2,7 @@
 #define __DATAFORMAT_UTILFUNC_CXX__
 
 #include "UtilFunc.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 namespace larcv {
 
   ROIType_t PDG2ROIType(const int pdgcode)

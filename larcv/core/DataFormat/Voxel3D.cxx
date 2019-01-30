@@ -2,7 +2,7 @@
 #define __LARCV_VOXEL3D_CXX__
 
 #include "Voxel3D.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 #include <algorithm>
 #include <sstream>
 namespace larcv {

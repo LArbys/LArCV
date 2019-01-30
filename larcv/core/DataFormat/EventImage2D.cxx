@@ -2,7 +2,7 @@
 #define EVENTIMAGE2D_CXX
 
 #include "EventImage2D.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 
 namespace larcv {
 

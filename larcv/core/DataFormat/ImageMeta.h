@@ -15,8 +15,8 @@
 #define __LARCV_IMAGEMETA_H__
 
 #include <iostream>
-#include "Base/larbys.h"
-//#include "Base/LArCVTypes.h"
+#include "larcv/core/Base/larbys.h"
+//#include "larcv/core/Base/LArCVTypes.h"
 #include "DataFormatTypes.h"
 namespace larcv {
 

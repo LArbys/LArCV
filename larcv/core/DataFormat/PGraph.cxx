@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <sstream>
 #include "PGraph.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 
 namespace larcv {
 

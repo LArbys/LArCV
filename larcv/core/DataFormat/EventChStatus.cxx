@@ -2,7 +2,7 @@
 #define EVENTCHSTATUS_CXX
 
 #include "EventChStatus.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 
 namespace larcv {
 
