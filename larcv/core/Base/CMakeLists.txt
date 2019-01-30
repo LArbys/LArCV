@@ -18,6 +18,4 @@ install(TARGETS LArCVCoreBase
   EXPORT larcv
   LIBRARY DESTINATION lib
   PUBLIC_HEADER DESTINATION include/larcv/core/Base)
-#install(FILES ${HEADERS} DESTINATION  include/larcv/core/Base)
-
 

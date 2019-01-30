@@ -12,6 +12,10 @@ find_package(ROOT REQUIRED)
 #---Define useful ROOT functions and macros (e.g. ROOT_GENERATE_DICTIONARY)
 include(${ROOT_USE_FILE})
 
+#---Define Variables for subdirectory cmakelists
+set(LARCV_BASE_DIR ${CURRENT_SOURCE_DIRECTORY})
+set(LARCV_SOURCE_DIR ${LARCV_BASE_DIR}/larcv)
+
 #---Add base of source
 add_subdirectory(larcv)
 
