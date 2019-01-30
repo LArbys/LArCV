@@ -2,7 +2,7 @@
 #define __ADCTHRESHOLD_CXX__
 
 #include "ADCThreshold.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static ADCThresholdProcessFactory __global_ADCThresholdProcessFactory__;

@@ -2,8 +2,8 @@
 #define __SEGWEIGHTINSTANCE_CXX__
 
 #include "SegWeightInstance.h"
-#include "DataFormat/EventImage2D.h"
-#include "DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventPixel2D.h"
 
 namespace larcv {
 

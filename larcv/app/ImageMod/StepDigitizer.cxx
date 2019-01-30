@@ -2,7 +2,7 @@
 #define __STEPDIGITIZER_CXX__
 
 #include "StepDigitizer.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

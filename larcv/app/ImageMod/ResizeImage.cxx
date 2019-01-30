@@ -2,7 +2,7 @@
 #define __RESIZEIMAGE_CXX__
 
 #include "ResizeImage.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static ResizeImageProcessFactory __global_ResizeImageProcessFactory__;

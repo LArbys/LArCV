@@ -2,7 +2,7 @@
 #define __PLANEIMAGEMERGER_CXX__
 
 #include "PlaneImageMerger.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 #include <sstream>
 
 namespace larcv {

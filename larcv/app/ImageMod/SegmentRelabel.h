@@ -16,8 +16,8 @@
 #ifndef __SEGMENTRELABEL_H__
 #define __SEGMENTRELABEL_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 
 #include <map>
 #include <string>

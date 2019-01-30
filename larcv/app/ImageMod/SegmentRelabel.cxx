@@ -4,7 +4,7 @@
 #include "SegmentRelabel.h"
 #include <vector>
 
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

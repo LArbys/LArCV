@@ -14,8 +14,8 @@
 #ifndef __SLICEIMAGES_H__
 #define __SLICEIMAGES_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 namespace larcv {
 
   /**

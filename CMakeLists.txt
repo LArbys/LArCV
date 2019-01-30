@@ -32,6 +32,9 @@ else()
   set(LARCV_USE_PTYHON 0)
 endif()
 
+# larbys/Geo2D
+set(LARCV_USE_GEO2D 0)
+
 
 
 ## Setup

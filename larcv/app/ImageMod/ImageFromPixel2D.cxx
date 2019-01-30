@@ -2,8 +2,8 @@
 #define __IMAGEFROMPIXEL2D_CXX__
 
 #include "ImageFromPixel2D.h"
-#include "DataFormat/EventPixel2D.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static ImageFromPixel2DProcessFactory __global_ImageFromPixel2DProcessFactory__;

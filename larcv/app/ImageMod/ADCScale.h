@@ -14,9 +14,9 @@
 #ifndef __ADCSCALE_H__
 #define __ADCSCALE_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
-#include "CPPUtil/RandomGaus.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
+#include "larcv/core/CPPUtil/RandomGaus.h"
 
 namespace larcv {
 

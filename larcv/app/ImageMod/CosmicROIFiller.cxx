@@ -2,7 +2,7 @@
 #define __COSMICROIFILLER_CXX__
 
 #include "CosmicROIFiller.h"
-#include "DataFormat/EventROI.h"
+#include "larcv/core/DataFormat/EventROI.h"
 namespace larcv {
 
 static CosmicROIFillerProcessFactory __global_CosmicROIFillerProcessFactory__;

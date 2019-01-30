@@ -2,7 +2,7 @@
 #define __SEGMENTMAKER_CXX__
 
 #include "SegmentMaker.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

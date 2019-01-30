@@ -2,8 +2,8 @@
 #define __ROICLIPPER_CXX__
 
 #include "ROIClipper.h"
-#include "DataFormat/EventImage2D.h"
-#include "DataFormat/EventROI.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventROI.h"
 
 namespace larcv {
 

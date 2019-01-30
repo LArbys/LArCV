@@ -1,9 +1,9 @@
 #ifndef __ROIPAD_H__
 #define __ROIPAD_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
-#include "DataFormat/ImageMeta.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
+#include "larcv/core/DataFormat/ImageMeta.h"
 
 namespace larcv {
 

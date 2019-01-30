@@ -2,7 +2,7 @@
 #define __COMBINEIMAGES_CXX__
 
 #include "CombineImages.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

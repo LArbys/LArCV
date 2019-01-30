@@ -2,7 +2,7 @@
 #define __SIMPLEDIGITIZER_CXX__
 
 #include "SimpleDigitizer.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static SimpleDigitizerProcessFactory __global_SimpleDigitizerProcessFactory__;

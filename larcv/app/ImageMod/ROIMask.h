@@ -16,8 +16,8 @@
 #ifndef __ROIMASK_H__
 #define __ROIMASK_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 
 #include <string>
 

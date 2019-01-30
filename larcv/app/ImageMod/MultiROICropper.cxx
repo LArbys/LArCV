@@ -2,8 +2,8 @@
 #define __MULTIROICROPPER_CXX__
 
 #include "MultiROICropper.h"
-#include "DataFormat/EventROI.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventROI.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static MultiROICropperProcessFactory __global_MultiROICropperProcessFactory__;

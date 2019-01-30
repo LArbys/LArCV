@@ -2,7 +2,7 @@
 #define __MODULARPADIMAGE_CXX__
 
 #include "ModularPadImage.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

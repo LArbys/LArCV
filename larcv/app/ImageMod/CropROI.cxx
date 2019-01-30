@@ -2,8 +2,8 @@
 #define __CROPROI_CXX__
 
 #include "CropROI.h"
-#include "DataFormat/EventROI.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventROI.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static CropROIProcessFactory __global_CropROIProcessFactory__;

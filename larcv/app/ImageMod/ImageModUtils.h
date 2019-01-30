@@ -14,8 +14,8 @@
 #ifndef __IMAGEMODUTILS_H__
 #define __IMAGEMODUTILS_H__
 
-#include "DataFormat/Image2D.h"
-#include "DataFormat/Pixel2DCluster.h"
+#include "larcv/core/DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/Pixel2DCluster.h"
 
 namespace larcv {
 

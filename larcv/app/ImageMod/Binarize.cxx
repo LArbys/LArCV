@@ -2,7 +2,7 @@
 #define __BINARIZE_CXX__
 
 #include "Binarize.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

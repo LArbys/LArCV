@@ -2,9 +2,9 @@
 #define __ROIMERGER_CXX__
 
 #include "ROIMerger.h"
+#include "larcv/core/DataFormat/ImageMeta.h"
+#include "larcv/core/DataFormat/EventROI.h"
 #include "Geo2D/Core/BoundingBox.h"
-#include "DataFormat/ImageMeta.h"
-#include "DataFormat/EventROI.h"
 #include <algorithm>
 #include <array>
 
@@ -14,7 +14,9 @@ namespace larcv {
 
   ROIMerger::ROIMerger(const std::string name)
     : ProcessBase(name)
-  {}
+  {
+    LARCV_CRITICAL() << "Module requires Geo2D to be built, but was not included as part of dependency. Must rebuild with Geo2D." << std::endl;
+  }
     
   void ROIMerger::configure(const PSet& cfg)
   {

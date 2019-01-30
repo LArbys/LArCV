@@ -2,7 +2,7 @@
 #define __IMAGECHARGEANA_CXX__
 
 #include "ImageChargeAna.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static ImageChargeAnaProcessFactory __global_ImageChargeAnaProcessFactory__;

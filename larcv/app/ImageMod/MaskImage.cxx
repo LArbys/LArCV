@@ -2,7 +2,7 @@
 #define __MASKIMAGE_CXX__
 
 #include "MaskImage.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

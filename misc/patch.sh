@@ -1,4 +1,4 @@
-
+# CORE
 sed -i 's|\"Base/|\"larcv/core/Base/|g' *.cxx
 sed -i 's|\"Base/|\"larcv/core/Base/|g' *.h
 
@@ -23,3 +23,6 @@ sed -i 's|\"PyUtil/|\"larcv/core/PyUtil/|g' *.h
 sed -i 's|\"TorchUtil/|\"larcv/core/TorchUtil/|g' *.cxx
 sed -i 's|\"TorchUtil/|\"larcv/core/TorchUtil/|g' *.h
 
+# APP
+sed -i 's|\"ImageMod/|\"larcv/app/ImageMod/|g' *.cxx
+sed -i 's|\"ImageMod/|\"larcv/app/ImageMod/|g' *.h

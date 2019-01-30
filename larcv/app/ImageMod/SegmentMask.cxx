@@ -2,9 +2,9 @@
 #define __SEGMENTMASK_CXX__
 
 #include "SegmentMask.h"
-#include "DataFormat/EventImage2D.h"
-#include "DataFormat/EventROI.h"
-#include "DataFormat/UtilFunc.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventROI.h"
+#include "larcv/core/DataFormat/UtilFunc.h"
 
 namespace larcv {
 

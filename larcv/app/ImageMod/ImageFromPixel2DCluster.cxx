@@ -2,8 +2,8 @@
 #define __IMAGEFROMPIXEL2DCLUSTER_CXX__
 
 #include "ImageFromPixel2DCluster.h"
-#include "DataFormat/EventPixel2D.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 namespace larcv {
 
   static ImageFromPixel2DClusterProcessFactory __global_ImageFromPixel2DClusterProcessFactory__;

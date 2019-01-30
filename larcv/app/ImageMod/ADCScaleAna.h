@@ -14,8 +14,8 @@
 #ifndef __ADCSCALEANA_H__
 #define __ADCSCALEANA_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 #include <TH1D.h>
 namespace larcv {
 

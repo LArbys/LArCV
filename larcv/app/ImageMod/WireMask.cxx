@@ -2,8 +2,8 @@
 #define __WIREMASK_CXX__
 
 #include "WireMask.h"
-#include "DataFormat/EventImage2D.h"
-#include "DataFormat/EventChStatus.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventChStatus.h"
 namespace larcv {
 
   static WireMaskProcessFactory __global_WireMaskProcessFactory__;

@@ -14,9 +14,9 @@
 #ifndef __MULTIROICROPPER_H__
 #define __MULTIROICROPPER_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
-#include "DataFormat/Image2D.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
+#include "larcv/core/DataFormat/Image2D.h"
 namespace larcv {
 
   /**
