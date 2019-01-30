@@ -14,11 +14,25 @@ find_package(ROOT REQUIRED)
 #---OPENCV
 if (USE_OPENCV)
   find_package(OpenCV)
-  message("Using OpenCV: ${OpenCV_FOUND}")
   if (NOT OpenCV_FOUND)
     set(USE_OPENCV 0)
   endif()
 endif()
+
+#---PYTHON
+if (USE_PYTHON3)
+  find_package( PythonInterp 3 REQUIRED )
+  find_package( PythonLibs 3 REQUIRED )
+  set(LARCV_USE_PYTHON 1)
+elseif(USE_PYTHON2)
+  find_package( PythonInterp 2.7 REQUIRED )
+  find_package( PythonLibs 2.7 REQUIRED )
+  set(LARCV_USE_PYTHON 1)
+else()
+  set(LARCV_USE_PTYHON 0)
+endif()
+
+
 
 ## Setup
 
