@@ -20,4 +20,9 @@ install(TARGETS ${MODULE_NAME}
   EXPORT larcv
   LIBRARY DESTINATION lib
   PUBLIC_HEADER DESTINATION include/larcv/core/Base)
+install( FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}Dict_rdict.pcm
+  ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}Dict.rootmap
+  DESTINATION lib  )
+
 

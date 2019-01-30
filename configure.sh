@@ -17,11 +17,11 @@ if [[ -z $LARCV_BUILDDIR ]]; then
     export LARCV_BUILDDIR=$LARCV_BASEDIR/build
 fi
 
-export LARCV_COREDIR=$LARCV_BASEDIR/core
-export LARCV_APPDIR=$LARCV_BASEDIR/app
-export LARCV_LIBDIR=$LARCV_BUILDDIR/lib
-export LARCV_INCDIR=$LARCV_BUILDDIR/include
-export LARCV_BINDIR=$LARCV_BUILDDIR/bin
+export LARCV_COREDIR=$LARCV_BASEDIR/larcv/core
+export LARCV_APPDIR=$LARCV_BASEDIR/larcv/app
+export LARCV_LIBDIR=$LARCV_BUILDDIR/installed/lib
+export LARCV_INCDIR=$LARCV_BUILDDIR/installed/include
+export LARCV_BINDIR=$LARCV_BUILDDIR/installed/bin
 
 # Abort if ROOT not installed. Let's check rootcint for this.
 if [ `command -v rootcling` ]; then
