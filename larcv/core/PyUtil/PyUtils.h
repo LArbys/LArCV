@@ -10,9 +10,9 @@ typedef _object PyObject;
 #endif
 #endif
 
-#include "DataFormat/Image2D.h"
-#include "DataFormat/ROI.h"
-#include "DataFormat/EventChStatus.h"
+#include "larcv/core/DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/ROI.h"
+#include "larcv/core/DataFormat/EventChStatus.h"
 
 namespace larcv {
 /// Utility function: call one-time-only numpy module initialization (you don't

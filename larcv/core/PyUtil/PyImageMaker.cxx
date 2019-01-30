@@ -2,7 +2,7 @@
 #define __PYIMAGEMAKER_CXX__
 
 #include "PyImageMaker.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 
 namespace larcv {
 

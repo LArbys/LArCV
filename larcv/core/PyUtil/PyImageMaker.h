@@ -14,10 +14,10 @@
 #ifndef __PYIMAGEMAKER_H__
 #define __PYIMAGEMAKER_H__
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 #include "PyUtils.h"
-#include "DataFormat/ImageMeta.h"
+#include "larcv/core/DataFormat/ImageMeta.h"
 namespace larcv {
 
   /**
