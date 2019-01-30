@@ -2,12 +2,16 @@
 
 Data format and image processing tools, routines, and framework for LAr TPC-derived images. Developing as bridge between LArSoft and Caffe/Tensorflow.
 
+This is the UBDL_DEV branch, which is the version to be used when
+deploying the (new) UB DL reco. chain on FNAL (or Tufts).
+
 ## Installation
 
-### Dependencies
+### (direct) Dependencies
 
-* ROOT
-* Python (optional)
+* Cmake (3.10) REQUIRED
+* ROOT  (>6)   REQUIRED
+* Python 2 or 3 (optional)
 * OpenCV 3 (optional)
 * LArLite (optional)
 * LArSoft (optional)
