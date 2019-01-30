@@ -1,3 +1,5 @@
+set(MODULE_NAME LArCVCoreDataFormat)
+
 # Collect the headers
 file(GLOB HEADERS "*.h")
 
