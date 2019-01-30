@@ -19,7 +19,7 @@
 #include "TCanvas.h"
 #include "TH2D.h"
 
-#include "DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/Image2D.h"
 
 namespace larcv {
 

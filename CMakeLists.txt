@@ -13,8 +13,7 @@ find_package(ROOT REQUIRED)
 include(${ROOT_USE_FILE})
 
 #---Define Variables for subdirectory cmakelists
-set(LARCV_BASE_DIR ${CURRENT_SOURCE_DIRECTORY})
-set(LARCV_SOURCE_DIR ${LARCV_BASE_DIR}/larcv)
+set(LARCV_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 #---Add base of source
 add_subdirectory(larcv)
