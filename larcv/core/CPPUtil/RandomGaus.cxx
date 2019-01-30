@@ -2,7 +2,7 @@
 #define __LARCVUTIL_RANDOM_GAUS_CXX__
 
 #include "RandomGaus.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larbys.h"
 
 namespace larcv {
 

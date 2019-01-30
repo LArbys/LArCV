@@ -1,7 +1,7 @@
 #ifndef __LARCV_CSVREADER_H__
 #define __LARCV_CSVREADER_H__
-#include "Base/larcv_logger.h"
-#include "Base/larbys.h"
+#include "larcv/core/Base/larcv_logger.h"
+#include "larcv/core/Base/larbys.h"
 #include <fstream>
 #include <map>
 #include <array>
