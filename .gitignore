@@ -20,7 +20,7 @@
 *.txt
 *.bin
 *.root
-build
+build*
 app/PlayGround/*
 app/Supera/APILArLite/Cropper.*
 app/Supera/APILArLite/MCParticleTree.*
