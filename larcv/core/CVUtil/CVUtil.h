@@ -7,8 +7,8 @@
 #include <opencv2/core/core.hpp>
 #endif
 #endif
-#include "DataFormat/Image2D.h"
-#include "DataFormat/ImageMeta.h"
+#include "larcv/core/DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/ImageMeta.h"
 
 namespace larcv {
 #ifndef __CINT__
