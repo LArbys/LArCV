@@ -10,7 +10,7 @@ list(FILTER HEADERS EXCLUDE REGEX ".*LinkDef.h$")
 file(GLOB SOURCES "*.cxx")
 
 # We remove sources for those classes with non-standard dependencies
-if(NOT LARCV_HAS_GEO2D)
+if(NOT LARCV_USE_GEO2D)
   message("removing classes with Geo2D dependenies from ImageMod source list")
   list(FILTER SOURCES EXCLUDE REGEX ".*ROIMerger.cxx$")
   list(FILTER HEADERS EXCLUDE REGEX ".*ROIMerger.h$")
@@ -18,6 +18,9 @@ endif()
 
 # includes
 include_directories( ${LARCV_BASE_DIR} )
+if(LARCV_USE_GEO2D)
+  include_directories( ${GEO2D_INC_DIR} )
+endif()
 
 # Generate the dictionary
 ROOT_GENERATE_DICTIONARY(${MODULE_NAME}Dict ${HEADERS} LINKDEF LinkDef.h)
@@ -26,6 +29,7 @@ ROOT_GENERATE_DICTIONARY(${MODULE_NAME}Dict ${HEADERS} LINKDEF LinkDef.h)
 add_library(${MODULE_NAME} SHARED ${SOURCES} ${MODULE_NAME}Dict.cxx)
 set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
 target_link_libraries(${MODULE_NAME} PUBLIC LArCVCoreBase LArCVCoreDataFormat LArCVCoreProcessor)
+target_link_libraries(${MODULE_NAME} PUBLIC ${GEO2D_LIBS})
 
 # install libraries and headers
 install(TARGETS ${MODULE_NAME}

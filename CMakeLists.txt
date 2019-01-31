@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(larcv)
+project(larcv VERSION 1.1.0)
 
 #---Install location by default is in the build directory
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -9,7 +9,7 @@ endif()
 ## Dependencies
 
 #---CERN ROOT
-find_package(ROOT REQUIRED)
+find_package(ROOT CONFIG REQUIRED)
 
 #---OPENCV
 if (USE_OPENCV)
@@ -24,18 +24,34 @@ if (USE_PYTHON3)
   find_package( PythonInterp 3 REQUIRED )
   find_package( PythonLibs 3 REQUIRED )
   set(LARCV_USE_PYTHON 1)
+  set(LARCV_PYTHON_VERSION 3)
 elseif(USE_PYTHON2)
   find_package( PythonInterp 2.7 REQUIRED )
   find_package( PythonLibs 2.7 REQUIRED )
   set(LARCV_USE_PYTHON 1)
+  set(LARCV_PYTHON_VERSION 2)  
 else()
   set(LARCV_USE_PTYHON 0)
 endif()
 
-# larbys/Geo2D
-set(LARCV_USE_GEO2D 0)
+#---larbys GEO2D
+# use it if env variables defined
+if (DEFINED ENV{GEO2D_BASEDIR})
+  set(LARCV_USE_GEO2D 1)
+else()
+  set(LARCV_USE_GEO2D 0)
+endif()
 
+# unless explicitly told no
+if (NOT USE_GEO2D)
+  set(LARCV_USE_GEO2D 0)
+endif()
 
+if (LARCV_USE_GEO2D)
+  set( GEO2D_INC_DIR "$ENV{GEO2D_INCDIR}" )
+  set( GEO2D_LIB_DIR "$ENV{GEO2D_LIBDIR}" )
+  file( GLOB GEO2D_LIBS "$ENV{GEO2D_LIBDIR}/*.so" )
+endif()
 
 ## Setup
 
@@ -50,6 +66,19 @@ set(LARCV_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 #---Add base of source
 add_subdirectory(larcv)
 
+#---Configuration export
+include(CMakePackageConfigHelpers)
+set(LARCV_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include")
+set(LARCV_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+set(TARGETS_EXPORT_NAME "larcvTargets")
+configure_package_config_file("cmake/Config.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/larcvConfig.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/larcv"
+  PATH_VARS LARCV_INCLUDE_DIR LARCV_LIBRARY_DIR LARCV_BASE_DIR LARCV_USE_GEO2D LARCV_USE_PYTHON LARCV_PYTHON_VERSION)
+write_basic_package_version_file("${CMAKE_BINARY_DIR}/cmake/larcvConfigVersion.cmake"
+  COMPATIBILITY SameMajorVersion)
+
+
 ## Export Targets
 
 #---Create info to include LArCV in other cmake files
@@ -57,6 +86,10 @@ install(EXPORT larcv
         FILE larcvTargets.cmake
         DESTINATION "${CMAKE_BINARY_DIR}/installed/lib/cmake/larcv")
 
+#---Create info to include LArCV in other cmake files
+install(FILES "${CMAKE_BINARY_DIR}/cmake/larcvConfig.cmake"
+  "${CMAKE_BINARY_DIR}/cmake/larcvConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/larcv")
 
 
 
