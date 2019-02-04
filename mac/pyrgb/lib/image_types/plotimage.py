@@ -91,8 +91,8 @@ class PlotImage(object):
 
         # pyqtgraph quirk -- flip the middle axis so it's displayed upright for now
         # we have to keep thi standard betweek all Image2D i'm sorry!
-        self.work_mat = self.work_mat[:,::-1,:]
-        self.orig_mat = self.orig_mat[:,::-1,:]
+        #self.work_mat = self.work_mat[:,::-1,:]
+        #self.orig_mat = self.orig_mat[:,::-1,:]
 
     def set_imin_imax(self):
         self.iimin = np.min(self.orig_mat)
