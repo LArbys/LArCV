@@ -214,16 +214,26 @@ namespace larcv {
   void Image2D::compress(size_t rows, size_t cols, CompressionModes_t mode)
   {
     _img = copy_compress(rows,cols,mode);
-    _meta = ImageMeta(_meta.width(),_meta.height(),rows,cols,_meta.min_x(),_meta.max_y(),_meta.plane());
+    _meta = ImageMeta(_meta.width(),_meta.height(),rows,cols,_meta.min_x(),_meta.min_y(),_meta.plane());
   }
 
+  /**
+   * crop a region from within 'this' image.
+   *
+   * The given meta that defines the cropping region, must be fully contained within the image.
+   *
+   * @param[int] crop_meta ImageMeta that defines the crop
+   * @return Image2D image with values cropped from 'this' image.
+   *
+   */
   Image2D Image2D::crop(const ImageMeta& crop_meta) const
   {
     // Croppin region must be within the image
     if( crop_meta.min_x() < _meta.min_x() || crop_meta.min_y() < _meta.min_y() ||
 	crop_meta.max_x() > _meta.max_x() || crop_meta.max_y() > _meta.max_y() )
       throw larbys("Cropping region contains region outside the image!");
-    
+
+    // handle rounding issues
     size_t min_col = _meta.col(crop_meta.min_x() + _meta.pixel_width()  / 2. );
     size_t max_col = _meta.col(crop_meta.max_x() - _meta.pixel_width()  / 2. );
     size_t min_row = _meta.row(crop_meta.max_y() - _meta.pixel_height() / 2. );
@@ -242,7 +252,7 @@ namespace larcv {
 			(max_row - min_row + 1),
 			(max_col - min_col + 1),
 			_meta.min_x() + min_col * _meta.pixel_width(),
-			_meta.max_y() - min_row * _meta.pixel_height(),
+			_meta.min_y() + min_row * _meta.pixel_height(),
 			_meta.plane());
     
     std::vector<float> img;
@@ -250,7 +260,7 @@ namespace larcv {
 
     size_t column_size = max_row - min_row + 1;
     for(size_t col=min_col; col<=max_col; ++col)
-
+      
       memcpy(&(img[(col-min_col)*column_size]), &(_img[_meta.index(min_row,col)]), column_size * sizeof(float));
 
     //std::cout<<"Cropped:" << std::endl << res_meta.dump()<<std::endl;
