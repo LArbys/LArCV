@@ -16,21 +16,26 @@
 
 #include <iostream>
 #include "larcv/core/Base/larbys.h"
-//#include "larcv/core/Base/LArCVTypes.h"
 #include "DataFormatTypes.h"
 namespace larcv {
 
   class Image2D;
   /**
      \class ImageMeta
-     A simple class to store image's meta data including\n
-     0) origin (left-top corner of the picture) absolute coordinate \n
+     A simple class to store image's meta data which is the (tick,wire)\n
+     coordinate system imposed over an image whose pixels are stored in a (row,col) matrix.
+     The coordinate system properties are that:
+     0) origin (left-bottom corner of the picture) absolute coordinate \n
      1) horizontal and vertical size (width and height) in double precision \n
      2) number of horizontal and vertical pixels \n
-     It is meant to be associated with a specific cv::Mat or larcv::Image2D object \n
-     (where the latter class contains ImageMeta as an attribute). For cv::Mat, there \n
-     is a function ImageMeta::update to constantly update vertical/horizontal # pixels \n
-     as it may change in the course of matrix operation.
+     It is meant to be associated with a larcv::Image2D object, \n
+     which contains ImageMeta as an attribute. 
+
+     Note, that in previous versions, origin is the left-top corner such that
+     the rows in the matrix were in tick-reverse order.
+     We still can read in these tick-reversed images for backwards compatibility reasons,
+     but we consider such images deprecated and do not support functions assuming
+     reverse-tick order.
   */
   class ImageMeta{
 
@@ -74,13 +79,13 @@ namespace larcv {
     ImageIndex_t image_index() const  { return _image_id; }
     void image_index(ImageIndex_t id) { _image_id = id;   }
     /// Top-left corner point
-    const Point2D& tl   () const { return _origin;                                          }
+    const Point2D  tl   () const { return Point2D(_origin.x,          _origin.y + _height); }
     /// Bottom-left corner point
-    const Point2D  bl   () const { return Point2D(_origin.x,          _origin.y - _height); }
+    const Point2D& bl   () const { return _origin; }
     /// Top-right corner point
-    const Point2D  tr   () const { return Point2D(_origin.x + _width, _origin.y          ); }
+    const Point2D  tr   () const { return Point2D(_origin.x + _width, _origin.y + _height); }
     /// Bottom-right corner point
-    const Point2D  br   () const { return Point2D(_origin.x + _width, _origin.y - _height); }
+    const Point2D  br   () const { return Point2D(_origin.x + _width, _origin.y          ); }
     /// PlaneID_t getter
     PlaneID_t plane     () const { return _plane;     }
     /// Width accessor
@@ -103,13 +108,13 @@ namespace larcv {
     /// Provide absolute scale max x
     double max_x() const { return _origin.x + _width; }
     /// Provide absolute scale min y
-    double min_y() const { return _origin.y - _height; }
+    double min_y() const { return _origin.y; }
     /// Provide absolute scale max y
-    double max_y() const { return _origin.y; }
+    double max_y() const { return _origin.y + _height; }
     /// Provide absolute horizontal coordinate of the center of a specified pixel row
-    double pos_x   (size_t col) const { return _origin.x + pixel_width() * col; }
+    double pos_x   (size_t col) const { return _origin.x + pixel_width()  * col; }
     /// Provide absolute vertical coordinate of the center of a specified pixel row
-    double pos_y   (size_t row) const { return _origin.y - pixel_height() * row; }
+    double pos_y   (size_t row) const { return _origin.y + pixel_height() * row; }
     /// Provide horizontal pixel index for a given horizontal x position (in absolute coordinate)
     size_t col (double x) const;
     /// Provide vertical pixel index for a given vertical y position (in absolute coordinate)

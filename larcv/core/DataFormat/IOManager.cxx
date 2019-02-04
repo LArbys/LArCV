@@ -6,11 +6,14 @@
 #include "ProductMap.h"
 #include "DataProductFactory.h"
 #include <algorithm>
+#include "EventImage2D.h"
+
 namespace larcv {
 
-  IOManager::IOManager(IOMode_t mode, std::string name)
+  IOManager::IOManager(IOMode_t mode, std::string name, TickOrder_t tickorder)
     : larcv_base(name)
     , _io_mode          ( mode          )
+    , _input_tick_order ( tickorder     )
     , _prepared         ( false         )
     , _out_file         ( nullptr       )
     , _in_tree_index    ( 0             )
@@ -176,7 +179,7 @@ namespace larcv {
     return true;
   }
 
-  size_t IOManager::register_producer(const ProductType_t type, const std::string& name)
+  size_t IOManager::register_producer(const ProductType_t type, const std::string& name )
   {
     LARCV_DEBUG() << "start" << std::endl;
 
@@ -190,7 +193,7 @@ namespace larcv {
     auto in_iter = key_m.find(name);
     std::string tree_name = std::string(ProductName(type)) + "_" + name + "_tree";
     std::string tree_desc = name + " tree";
-    std::string br_name = std::string(ProductName(type)) + "_" + name + "_branch";
+    std::string br_name   = std::string(ProductName(type)) + "_" + name + "_branch";
 
     LARCV_INFO() << "Requested to register a producer: " << name << " (TTree " << tree_name << ")" << std::endl;
     
@@ -228,6 +231,12 @@ namespace larcv {
       in_tree_ptr->SetBranchAddress(br_name.c_str(), &(_product_ptr_v[id]));
       _in_tree_v[id] = in_tree_ptr;
       _in_tree_index_v.push_back(kINVALID_SIZE);
+
+      if ( type==kProductImage2D && _input_tick_order==kTickBackward ) {
+        LARCV_INFO() << "  input image2d is in tick-backward order" << std::endl;
+        // register product ID
+        //_image2d_id_wasreversed.insert(std::make_pair(id,false));
+      }
     }	
     
     if(_io_mode != kREAD) {
@@ -507,6 +516,9 @@ namespace larcv {
     }
     _event_id.clear();
     _set_event_id.clear();
+    // reset reverse-tick flags
+    //for ( auto& it_reversed : _image2d_id_wasreversed )
+    //it_reversed.second = true;
   }
 
   ProducerID_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const
@@ -562,7 +574,8 @@ namespace larcv {
 
       LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _in_tree_index << std::endl;
       _in_tree_v[id]->GetEntry(_in_tree_index);
-      _in_tree_index_v[id] =_in_tree_index;
+      _in_tree_index_v[id] =_in_tree_index; // marks that we've already asked for the entry
+
 
       auto& ptr = _product_ptr_v[id];
       // retrieve event_id if not yet done
@@ -575,8 +588,21 @@ namespace larcv {
 			 << "Read-in (" << ptr->run() << "," << ptr->subrun() << "," << ptr->event() << ")" << std::endl;
 	throw larbys();
       }
-    }
 
+      // if image2d and input is expected to be in reverse-tick order AND we haven't flipped it yet,
+      // then we flip the row data
+      if ( product_type(id)==kProductImage2D && _input_tick_order==kTickBackward ) {
+        LARCV_DEBUG() << "Input expected in tick-backward order. Reverse. "
+                      << "And move origin to be w.r.t bottom left" << std::endl;
+        EventImage2D* evimg = (EventImage2D*)ptr;
+        std::vector<Image2D> img_v;
+        evimg->Move(img_v);
+        for ( auto& img2d : img_v ) img2d.reverseTimeOrder();
+        evimg->Emplace(std::move(img_v));
+      }
+      
+    }
+    
     return _product_ptr_v[id];
   }
 

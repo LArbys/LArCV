@@ -145,7 +145,10 @@ namespace larcv {
     void eltwise(const std::vector<float>& arr,bool allow_longer=false);
 
     /// Modify Meta
-    void modifyMeta( const ImageMeta& newmeta );    
+    void modifyMeta( const ImageMeta& newmeta );
+
+    /// Reverse time-order
+    void reverseTimeOrder();
     
   private:
     std::vector<float> _img;

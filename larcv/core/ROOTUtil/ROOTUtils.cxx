@@ -17,9 +17,7 @@ namespace larcv {
     TH2D h( hname.c_str(), "", meta.cols(), meta.min_x(), meta.max_x(), meta.rows(), meta.min_y(), meta.max_y() );
     for (size_t r=0; r<meta.rows(); r++) {
       for (size_t c=0; c<meta.cols(); c++) {
-
-	h.SetBinContent( c+1, 1+meta.rows()-(r+1), img.pixel( r, c ) );
-	
+	h.SetBinContent( c+1, r+1, img.pixel( r, c ) );
       }
     }
     

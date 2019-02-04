@@ -36,8 +36,11 @@ namespace larcv {
     /// Three IO modes: read, write, or read-and-write
     enum IOMode_t { kREAD, kWRITE, kBOTH };
 
+    /// What is the tick order on-disk. TickForward, TickBackward. Forward is default. Backward for backwards compatibility.
+    enum TickOrder_t { kTickForward, kTickBackward };
+    
     /// Default constructor
-    IOManager(IOMode_t mode=kREAD, std::string name="IOManager");
+    IOManager(IOMode_t mode=kREAD, std::string name="IOManager", TickOrder_t tickorder=kTickForward);
 
     /// Configuration PSet construction so you don't have to call setter functions
     IOManager(const PSet& cfg);
@@ -111,6 +114,7 @@ namespace larcv {
     size_t register_producer(const ProductType_t type, const std::string& name);
 
     IOMode_t    _io_mode;
+    TickOrder_t _input_tick_order;
     bool        _prepared;
     TFile*      _out_file;
     size_t      _in_tree_index;
@@ -136,10 +140,10 @@ namespace larcv {
     std::vector<larcv::ProductType_t> _read_only_type;
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
-    std::vector<bool> _clear_id_bool;    
+    std::vector<bool> _clear_id_bool;
+    //std::map< larcv::ProducerID_t, bool > _image2d_id_wasreversed;
   };
 
 }
-
 #endif
 
