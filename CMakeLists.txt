@@ -71,7 +71,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 endif()
 
 #---check json
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/larcv/core/json/CMakeLists.txt")
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/json/CMakeLists.txt")
   message(FATAL_ERROR "The json submodule was not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
@@ -82,6 +82,9 @@ include(${ROOT_USE_FILE})
 
 #---Define Variables for subdirectory cmakelists
 set(LARCV_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
+## External repos (from submodules)
+add_subdirectory(extern/json)
 
 ## Add Source
 
