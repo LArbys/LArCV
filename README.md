@@ -17,6 +17,10 @@ Planned features
   We do this by specifying in IOManager that Image2D loaded from branches are reversetimeorder.
   For those image2d's, we reshape the array. (done)
 * Propagate changes of tick-forward order to rest of code.
+    * imagemeta methods [done]
+    * image2d methods
+    * pyrgb viewer
+    * ... more
 * Canvas support for Supera API. No need for lar.
 * Remove UB-stuff from app (now in its own [repo](https://github.com/LArbys/ublarcvapp).
 * Proper documentation off all classes

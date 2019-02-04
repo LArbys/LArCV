@@ -5,6 +5,13 @@
 #include <sstream>
 namespace larcv {
 
+  /**
+     get the one-dim index of the data vector from the (row,col) pixel coordinates)
+     
+     @param[in] row row in 2D pixel coordinates
+     @param[in] col column in 2D pixel coordinates
+     @return int index of data vector (col-major), i.e. col*rows()+row
+  */  
   size_t ImageMeta::index( size_t row, size_t col ) const {
     
     if ( row >= _row_count || col >= _col_count ) {
@@ -15,6 +22,14 @@ namespace larcv {
     return ( col * _row_count + row );
   }
 
+  /** 
+      get the pixel column from the x-coordinate
+
+      note: the bounds are checked and an exception is thrown if out-of-bounds
+      
+      @param[in] x-coordinate
+      @return size_t column coordinate
+  */
   size_t ImageMeta::col(double x) const
   {
     if(x < _origin.x || x >= (_origin.x + _width)) {
@@ -25,16 +40,32 @@ namespace larcv {
     return (size_t)((x - _origin.x) / pixel_width());
   }
 
+  /** 
+      get the pixel row from the y-coordinate
+
+      note: the bounds are checked and an exception is thrown if out-of-bounds
+      
+      @param[in] y-coordinate
+      @return size_t row coordinate
+  */
   size_t ImageMeta::row(double y) const
   {
-    if(y <= (_origin.y - _height) || y > _origin.y) {
+    if(y < _origin.y || y >= (_origin.y+_height) ) {
       std::stringstream ss;
-      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y - _height << " => " << _origin.y << "!" << std::endl;
+      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y << " => " << _origin.y + _height << "!" << std::endl;
       throw larbys(ss.str());
     }
-    return (size_t)((_origin.y - y) / pixel_height());
+    return (size_t)((y-_origin.y) / pixel_height());
   }
-
+  
+  /** 
+      return the intersection of this and given meta
+      
+      note: exception thrown if no-overlap
+      
+      @param[in] y-coordinate
+      @return size_t row coordinate
+  */
   ImageMeta ImageMeta::overlap(const ImageMeta& meta) const
   {
     double minx = ( meta.min_x() < this->min_x() ? this->min_x() : meta.min_x()  ); //pick larger x min-bound
@@ -55,6 +86,14 @@ namespace larcv {
 		     minx, maxy, _plane);
   }
 
+  /**
+   *  smallest bounding that encloses both
+   *
+   *  note: uses 'this' meta for pixel height and row to calculate number of cols and rows in new meta.
+   *
+   *  @param[in] meta to check inclusive bounds
+   *  @return ImageMeta with new bounds
+   */
   ImageMeta ImageMeta::inclusive(const ImageMeta& meta) const
   {
     double min_x = ( meta.min_x() < this->min_x() ? meta.min_x() : this->min_x() ); //pick smaller x min-boudn
@@ -66,9 +105,41 @@ namespace larcv {
     return ImageMeta(max_x - min_x, max_y - min_y,
 		     (max_y - min_y) / pixel_height(),
 		     (max_x - min_x) / pixel_width(),
-		     min_x, max_y, _plane);
+		     min_x, min_y, _plane);
   }
 
+  /**
+   * check if (x,y) coordinate is contained in meta
+   *
+   * @param[in] x x-coordindate
+   * @param[in] y y-coordindate
+   * @return bool true if contained
+   */
+  bool ImageMeta::contains( const float x, const float y ) const {
+    if ( min_x()<=x && x<max_x()
+         && min_y()<=y && y<max_y() )
+      return true;
+    return false;
+  }
+
+  /**
+   * check if Point2D (x,y) coordinate is contained in meta
+   *
+   * @param[in] pt Point2D
+   * @return bool true if contained
+   */
+  bool ImageMeta::contains( const Point2D& pt ) const {
+    if ( min_x()<=pt.x && pt.x<max_x()
+         && min_y()<=pt.y && pt.y<max_y() )
+      return true;
+    return false;
+  }
+  
+  /**
+   *  dump key statistics of imagemeta
+   *
+   *  @return string with info
+   */
   std::string ImageMeta::dump() const
   {
     std::stringstream ss;

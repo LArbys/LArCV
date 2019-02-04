@@ -42,7 +42,7 @@ class PlotImage(object):
         for i in xrange(len(self.imgs)):
             meta = larcv.ImageMeta(ometa.cols() * comp_x, ometa.rows() * comp_y,
                                    ometa.rows(), ometa.cols(),
-                                   ometa.min_x(), ometa.max_y(), i)
+                                   ometa.min_x(), ometa.min_y(), i)
             img = larcv.Image2D(meta)
             img.paint(0.)
             img.overlay(self.imgs[i])

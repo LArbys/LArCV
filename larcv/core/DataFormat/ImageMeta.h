@@ -76,7 +76,9 @@ namespace larcv {
     inline bool operator!= (const ImageMeta& rhs) const
     { return !((*this) == rhs); }
 
+    /// get integer index value provided for user
     ImageIndex_t image_index() const  { return _image_id; }
+    /// integer provided for user
     void image_index(ImageIndex_t id) { _image_id = id;   }
     /// Top-left corner point
     const Point2D  tl   () const { return Point2D(_origin.x,          _origin.y + _height); }
@@ -130,6 +132,11 @@ namespace larcv {
     ImageMeta overlap(const ImageMeta& meta) const;
     /// Construct a union bounding box
     ImageMeta inclusive(const ImageMeta& meta) const;
+    /// Check if (x,y) coordinate is contained in Meta
+    bool contains( const float x, const float y ) const;
+    /// Check if (x,y) coordinate is contained in Meta
+    bool contains( const Point2D& pt ) const;
+    
 
     /// Dump info in text
     std::string dump() const;

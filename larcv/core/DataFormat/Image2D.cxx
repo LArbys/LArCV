@@ -259,6 +259,14 @@ namespace larcv {
   }
 
 
+  /**
+   *   take given image values and overlay into 'this' values
+   *
+   *   note: does not support overlaying images with different pixel-sizes at the moment
+   *
+   *   @param[in] rhs Image2D to take values from
+   *   @param[in] mode operation for combining given and existing pixel values: [kSum(default),kAverage,kMaxPool,kOverWrite]
+  */
   void Image2D::overlay(const Image2D& rhs, CompressionModes_t mode )
   {
     auto const& rhs_meta = rhs.meta();
@@ -275,10 +283,10 @@ namespace larcv {
     double y_max = std::min(_meta.max_y(),rhs_meta.max_y());
     if(y_min >= y_max) return;
 
-    size_t row_min1 = _meta.row(y_max);
+    size_t row_min1 = _meta.row(y_min);
     size_t col_min1 = _meta.col(x_min);
 
-    size_t row_min2 = rhs_meta.row(y_max);
+    size_t row_min2 = rhs_meta.row(y_min);
     size_t col_min2 = rhs_meta.col(x_min);
 
     size_t nrows = (y_max - y_min) / _meta.pixel_height();
