@@ -72,10 +72,10 @@ namespace larcv {
   std::string ImageMeta::dump() const
   {
     std::stringstream ss;
-    ss << "Plane " << plane() << " (rows,cols) = (" << _row_count << "," << _col_count
-       << ") ... Left Top (" << min_x() << "," << max_y()
-       << ") ... Right Bottom (" << max_x() << "," << min_y()
-       << ")" << std::endl;
+    ss << "Plane " << plane() << " (cols,rows) = (" << cols() << "," << rows() << ")"
+       << " ... pixel (width,height)=(" << pixel_width() << "," << pixel_height() << ")"
+       << " ... Left Top (x,y)=(" << min_x() << "," << max_y() << ")"
+       << " ... Right Bottom (x,y)=(" << max_x() << "," << min_y() << ")";
     return ss.str();
   }
 }

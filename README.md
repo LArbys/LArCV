@@ -5,26 +5,26 @@ Data format and image processing tools, routines, and framework for LAr TPC-deri
 This is the UBDL_DEV branch, which is the version to be used when
 deploying the (new) UB DL reco. chain on FNAL (or Tufts).
 
-Proposed features
+Planned features
 
-* CMake support, for easier exporting of package into other projects
-* python2 and python3 support
+* CMake support, for easier exporting of package into other projects (done)
+* python2 and python3 support 
 * ROOT utilities for quick, cheap visualization from command line or python interpretor
 * ROOT Eve Viewer by Ralitsa
 * Row indices are in positive time order (same as LArCV2).
   But we provide mechanism to read old larcv1 data, then reverse convention.
   This way data is not obsolete, but any code that assumes reverse time order is!
   We do this by specifying in IOManager that Image2D loaded from branches are reversetimeorder.
-  For those image2d's, we reshape the array.
+  For those image2d's, we reshape the array. (done)
+* Propagate changes of tick-forward order to rest of code.
 * Canvas support for Supera API. No need for lar.
-* Remove all UB-geom stuff as calls to larlite. (Keep SBND in mind.)
+* Remove UB-stuff from app (now in its own [repo](https://github.com/LArbys/ublarcvapp).
 * Proper documentation off all classes
 * Convenient multi-process data-loader into DL frameworks (still kind of clunky right now).
   examples and unittests.
 * Image2D -> BJSON -> Image2D support for message passing to GPU server
 * maintain Vic's pyqtgraph viewer, add 3d and pmt views (from pylard)
-* pyutil doesn't have transpose
-* image2d data layout uses proper C-conventions for (row,col) <--> (tick,wire)
+* pyutil doesn't need transpose (row,col) means same in image2d as in numpy array
 * export to eigen representations (maps, copied dense and sparse matrices)
 
 ## Installation

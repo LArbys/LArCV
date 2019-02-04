@@ -30,6 +30,7 @@ ev_img = io.get_data( larcv.kProductImage2D, imagetree )
 
 if ev_img.Image2DArray().size()>0:
     img = ev_img.Image2DArray().front()
+    print "image loaded. meta=",img.meta().dump()
 else:
     print "No images in tree=%s and entry=%d"%(imagetree,entry)
 
