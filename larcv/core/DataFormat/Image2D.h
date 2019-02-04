@@ -5,6 +5,11 @@
  * 
  * \brief Class def header for an image data holder
  *
+ * The image is assumed to be a 2D array.
+ * However, the data is stored as a 1D array with the data in Col-Major order.
+ * An ImageMeta instance defines the correspondence between (row,col) in the array to (tick,wire).
+ *
+ *
  * @author tmw, kazu
  */
 
