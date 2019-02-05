@@ -1,6 +1,10 @@
 #include "nlohmann/json.hpp"
 #include "larcv/core/DataFormat/Image2D.h"
 
+#ifdef HASPYUTIL
+#include "larcv/core/PyUtil/PyUtils.h"
+#endif
+
 namespace larcv {
 
   namespace json {
@@ -20,12 +24,17 @@ namespace larcv {
     larcv::Image2D image2d_from_bson( const std::vector<std::uint8_t>& b );
     larcv::Image2D image2d_from_json_str( const std::string& s );    
 
+#ifdef HASPYUTIL
+    PyObject* as_pystring( const larcv::Image2D& img );
+    larcv::Image2D image2d_from_pystring( PyObject* str );
+#endif
+    
     // this hack is needed for some reason
     class load_jsonutils {
     public:
       load_jsonutils(){};
       ~load_jsonutils(){};
     };
+    
   }
-
 }

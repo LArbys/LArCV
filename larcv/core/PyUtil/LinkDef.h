@@ -21,6 +21,7 @@
 #pragma link C++ function larcv::play(PyObject*)+;
 #pragma link C++ function larcv::as_ndarray(const larcv::EventChStatus&)+;
 #pragma link C++ function larcv::as_ndarray(const larcv::ChStatus&)+;
+#pragma link C++ function larcv::as_pystring(const std::vector<std::uint8_t>&)+;
 //#pragma link C++ function larcv::as_mat(const larcv::Image2D&)+;
 #endif
 #pragma link C++ class larcv::load_pyutil+;
@@ -28,23 +29,3 @@
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -99,5 +99,24 @@ namespace larcv {
       return image2d_from_json( json::parse(s) );
     }
     
-  }
-}
+
+#ifdef HASPYUTIL
+    PyObject* as_pystring( const larcv::Image2D& img ) {
+      std::vector<std::uint8_t> b_v = as_bson( img );
+      return larcv::as_pystring( b_v );
+    }
+    
+    larcv::Image2D image2d_from_pystring( PyObject* str ) {
+      if ( PyString_Check( str )==0 ) {
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyString object" );
+      }
+      size_t len = PyString_Size(str);
+      std::vector<std::uint8_t> b_v(len,0);
+      memcpy( b_v.data(), (unsigned char*)PyString_AsString(str), sizeof(unsigned char)*len );
+      
+      return image2d_from_bson( b_v );
+    }
+#endif
+
+  }//end of json namespace
+}//end of larcv namespace

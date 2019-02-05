@@ -12,6 +12,11 @@ file(GLOB SOURCES "*.cxx")
 # Include directory
 include_directories( ${LARCV_JSON_INCLUDE_DIR} ${LARCV_BASE_DIR})
 
+if (LARCV_USE_PYTHON)
+  add_definitions("-DHASPYUTIL")
+  include_directories( ${PYTHON_INCLUDE_PATH} )
+endif()
+
 # Generate the dictionary
 ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
  

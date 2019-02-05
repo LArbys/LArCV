@@ -31,14 +31,15 @@ else:
 nexpected_elems = 1008*3456
 print("num expected elements: {}".format(nexpected_elems))
 strimg = larcv.json.as_json_str( img )
+print("load from string dump")
 jimg = json.load( cStringIO.StringIO(strimg) )
-print(len(jimg["data"]))
 
-bson = larcv.json.as_bson( img )
-print(bson," size=",len(bson)/1.0e6,"MB")
+print("as binary json in the form of a pystring")
+bson = larcv.json.as_pystring( img )
+print(type(bson)," size=",len(bson)/1.0e6,"MB")
 
 roundtrip_img  = larcv.json.image2d_from_json_str( strimg )
-roundtrip_bson = larcv.json.image2d_from_bson( bson )
+roundtrip_bson = larcv.json.image2d_from_pystring( bson )
 
 rt.gStyle.SetOptStat(0)
 larcv.load_rootutil()

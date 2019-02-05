@@ -250,6 +250,17 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     return evchstatus;    
   }
 
+
+  /**
+   * convert std::vector<std::uint8_t> to a PyString
+   *
+   * note: used for json handling. performs a copy.
+   *
+   */
+  PyObject* as_pystring( const std::vector<std::uint8_t>& buf ) {
+    return PyString_FromStringAndSize( (const char*)buf.data(), buf.size() );
+  }
+
 }
 
 #endif

@@ -43,6 +43,8 @@ PyObject* as_ndarray( const EventChStatus& evstatus );
 ChStatus      as_chstatus( PyObject*, larcv::PlaneID_t planeid );
 EventChStatus as_eventchstatus( PyObject* ); 
 
+// Byte vector helper
+PyObject* as_pystring( const std::vector<std::uint8_t>& buf );
  
 }
 
