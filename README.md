@@ -15,7 +15,7 @@ Planned features
   But we provide mechanism to read old larcv1 data, then reverse convention.
   This way data is not obsolete, but any code that assumes reverse time order is!
   We do this by specifying in IOManager that Image2D loaded from branches are reversetimeorder.
-  For those image2d's, we reshape the array. (done)
+  For those image2d's, we reshape the array. [done]
 * Propagate changes of tick-forward order to rest of code.
     * imagemeta methods [done]
     * image2d methods
@@ -26,8 +26,8 @@ Planned features
 * Proper documentation off all classes
 * Convenient multi-process data-loader into DL frameworks (still kind of clunky right now).
   examples and unittests.
-* Image2D -> BJSON -> Image2D support for message passing to GPU server
-* maintain Vic's pyqtgraph viewer, add 3d and pmt views (from pylard)
+* Image2D -> BJSON -> Image2D support for message passing to GPU server [done]
+* maintain Vic's pyqtgraph viewer, add 3d and pmt views (from pylard) [done]
 * pyutil doesn't need transpose (row,col) means same in image2d as in numpy array
 * export to eigen representations (maps, copied dense and sparse matrices)
 
