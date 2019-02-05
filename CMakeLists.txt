@@ -84,7 +84,9 @@ include(${ROOT_USE_FILE})
 set(LARCV_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 ## External repos (from submodules)
+include_directories(extern/json)
 add_subdirectory(extern/json)
+set(LARCV_JSON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/json/single_include)
 
 ## Add Source
 

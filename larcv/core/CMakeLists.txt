@@ -1,5 +1,6 @@
 add_subdirectory(Base)
 add_subdirectory(DataFormat)
+add_subdirectory(json)
 add_subdirectory(CPPUtil)
 add_subdirectory(Processor)
 add_subdirectory(ROOTUtil)
