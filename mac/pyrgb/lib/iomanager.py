@@ -4,10 +4,15 @@ from .. import larcv
 
 class IOManager(object):
 
-    def __init__(self,infiles=[],outfile=None,IOMode=0) :
+    def __init__(self,infiles=[],outfile=None,IOMode=0,tick_forward=True) :
         assert type(infiles) == list
 
-        self.iom = larcv.IOManager(IOMode)
+        tf = 0
+        if not tick_forward:
+            tf = 1
+            print "Assuming tick-backward order to Image2D data"
+
+        self.iom = larcv.IOManager(IOMode,"pyrgb",tf)
 
         for f in infiles :
             self.iom.add_in_file(f)

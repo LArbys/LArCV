@@ -14,8 +14,16 @@ from imagefactory import ImageFactory
 class DataManager(object):
 
     def __init__(self,argv):
+
+        input_list = []
+        for arg in argv:
+            if "--" not in arg:
+                input_list.append(arg)
+        tick_forward=True
+        if "--tickbackward" in argv:
+            tick_forward=False
         
-        self.iom = IOManager(argv)
+        self.iom = IOManager(input_list,tick_forward=tick_forward)
         self.keys ={}
 
         self.IF = ImageFactory()
