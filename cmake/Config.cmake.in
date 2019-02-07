@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/@TARGETS_EXPORT_NAME@.cmake")
+#include("${CMAKE_CURRENT_LIST_DIR}/@TARGETS_EXPORT_NAME@-noconfig.cmake")
+set_and_check(LARCV_INCLUDE_DIR "@PACKAGE_LARCV_INCLUDE_DIR@")
+set_and_check(LARCV_LIBRARY_DIR "@PACKAGE_LARCV_LIBRARY_DIR@")
+check_required_components("@PROJECT_NAME@")
