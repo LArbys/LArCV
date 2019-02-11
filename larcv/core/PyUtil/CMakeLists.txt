@@ -10,7 +10,7 @@ list(FILTER HEADERS EXCLUDE REGEX ".*LinkDef.h$")
 file(GLOB SOURCES "*.cxx")
 
 # includes
-include_directories( ${LARCV_BASE_DIR} ${PYTHON_INCLUDE_PATH})
+include_directories( ${LARCV_BASE_DIR} ${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDES})
 
 # Generate the dictionary
 ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)

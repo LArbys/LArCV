@@ -6,6 +6,9 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/installed" CACHE PATH "${CMAKE_BUILD_DIR}" FORCE )
 endif()
 
+#---Module directory
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
 ## Dependencies
 
 #---CERN ROOT
@@ -28,6 +31,7 @@ if (USE_PYTHON3)
 elseif(USE_PYTHON2)
   find_package( PythonInterp 2.7 REQUIRED )
   find_package( PythonLibs 2.7 REQUIRED )
+  find_package( Numpy REQUIRED )
   set(LARCV_USE_PYTHON 1)
   set(LARCV_PYTHON_VERSION 2)  
 else()
