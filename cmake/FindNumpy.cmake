@@ -38,7 +38,8 @@ if (NOT NUMPY_FOUND)
     endif (NOT NUMPY_ROOT_DIR)
 
     if (NOT PYTHON_FOUND)
-        find_package (Python)
+        find_package( PythonInterp 2.7 REQUIRED )
+        #find_package (Python)
     endif (NOT PYTHON_FOUND)
 
     ##__________________________________________________________________________
