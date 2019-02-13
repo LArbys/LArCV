@@ -204,6 +204,11 @@ namespace larcv {
 
     _product_ptr_v[_product_ctr]  = (EventBase*)(DataProductFactory::get().create(type,name));
     _product_type_v[_product_ctr] = type;
+
+    if ( _product_ctr>=_clear_id_bool.size() ) {
+      LARCV_DEBUG() << "increase clear_id_bool vector (size=" << _clear_id_bool.size() << ") request=" << _product_ctr << std::endl;
+      _clear_id_bool.resize(_product_ctr+10,true);
+    }
     _clear_id_bool[_product_ctr]  = true;
     
     const ProducerID_t id = _product_ctr;
