@@ -10,9 +10,9 @@
 #pragma link off all functions;
 
 #ifndef __CINT__
-//#pragma link C++ namespace larcv;
-//#pragma link C++ namespace larcv::torchutil;
-//#pragma link C++ function larcv::torchutil::as_tensor(const larcv::Image2D&)+;
+#pragma link C++ namespace larcv;
+#pragma link C++ namespace larcv::torchutil;
+#pragma link C++ function larcv::torchutil::as_tensor(const larcv::Image2D&)+;
 #endif
 //ADD_NEW_CLASS ... do not change this line
 

@@ -57,6 +57,14 @@ if (LARCV_USE_GEO2D)
   file( GLOB GEO2D_LIBS "$ENV{GEO2D_LIBDIR}/*.so" )
 endif()
 
+# --- Torch
+#set( Caffe2_DIR "$ENV{MRB_INSTALL}/libtorch/share/cmake/Caffe2" )
+#find_package( Caffe2 )
+
+# --- Torch
+set( Torch_DIR "$ENV{MRB_INSTALL}/libtorch/share/cmake/Torch" )
+find_package( Torch )
+
 ## Git Submodules
 
 find_package(Git QUIET)

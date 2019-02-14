@@ -2,7 +2,9 @@
 #include "Image2D.h"
 #include <iostream>
 #include <string.h>
+#include <sstream>
 #include <stdio.h>
+
 namespace larcv {
 
   Image2D::Image2D(size_t row_count, size_t col_count)
@@ -230,23 +232,33 @@ namespace larcv {
   {
     // Croppin region must be within the image
     if( crop_meta.min_x() < _meta.min_x() || crop_meta.min_y() < _meta.min_y() ||
-	crop_meta.max_x() > _meta.max_x() || crop_meta.max_y() > _meta.max_y() )
-      throw larbys("Cropping region contains region outside the image!");
-
+	crop_meta.max_x() > _meta.max_x() || crop_meta.max_y() > _meta.max_y() ) {
+      std::stringstream ss;
+      ss << "Cropping region contains region outside the image!: ";
+      if ( crop_meta.min_x() < _meta.min_x() )
+	ss << "min_x[crop]=" << crop_meta.min_x() << " < min_x[source]=" << _meta.min_x() << ";";
+      if ( crop_meta.min_y() < _meta.min_y() )
+	ss << "min_y[crop]=" << crop_meta.min_y() << " < min_y[source]=" << _meta.min_y() << ";";
+      if ( crop_meta.max_x() > _meta.max_x() )
+	ss << "max_x[crop]=" << crop_meta.max_x() << " < max_x[source]=" << _meta.max_x() << ";";
+      if ( crop_meta.max_y() > _meta.max_y() )
+	ss << "max_y[crop]=" << crop_meta.max_y() << " < max_y[source]=" << _meta.max_y() << ";";
+      throw larbys(ss.str());
+    }
+    
     // handle rounding issues
     size_t min_col = _meta.col(crop_meta.min_x() + _meta.pixel_width()  / 2. );
     size_t max_col = _meta.col(crop_meta.max_x() - _meta.pixel_width()  / 2. );
-    size_t min_row = _meta.row(crop_meta.max_y() - _meta.pixel_height() / 2. );
-    size_t max_row = _meta.row(crop_meta.min_y() + _meta.pixel_height() / 2. );
-    /*
-    std::cout<<"Cropping! Requested:" << std::endl
-	     << crop_meta.dump() << std::endl
-	     <<"Original:"<<std::endl
-	     <<_meta.dump()<<std::endl;
+    size_t min_row = _meta.row(crop_meta.min_y() + _meta.pixel_height() / 2. );
+    size_t max_row = _meta.row(crop_meta.max_y() - _meta.pixel_height() / 2. );
     
-    std::cout<<min_col<< " => " << max_col << " ... " << min_row << " => " << max_row << std::endl;
-    std::cout<<_meta.width() << " / " << _meta.cols() << " = " << _meta.pixel_width() << std::endl;
-    */
+    // std::cout<<"Cropping! Requested:" << std::endl
+    // 	     << crop_meta.dump() << std::endl
+    // 	     <<"Original:"<<std::endl
+    // 	     <<_meta.dump()<<std::endl;    
+    // std::cout<<min_col<< " => " << max_col << " ... " << min_row << " => " << max_row << std::endl;
+    // std::cout<<_meta.width() << " / " << _meta.cols() << " = " << _meta.pixel_width() << std::endl;
+    
     ImageMeta res_meta( (max_col - min_col + 1) * _meta.pixel_width(),
 			(max_row - min_row + 1) * _meta.pixel_height(),
 			(max_row - min_row + 1),
