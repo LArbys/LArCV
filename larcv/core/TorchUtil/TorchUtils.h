@@ -21,6 +21,11 @@ namespace larcv {
     /// larcv::Image2D to torch tensor
     torch::Tensor as_tensor(const larcv::Image2D &img);
 
+    /// torch tensor to larcv::Image2D
+    larcv::Image2D image2d_fromtorch( torch::Tensor& ten, 
+				      const larcv::ImageMeta& meta );
+
+
 #endif
 #endif
 
