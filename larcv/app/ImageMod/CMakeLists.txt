@@ -19,7 +19,7 @@ endif()
 # includes
 include_directories( ${LARCV_BASE_DIR} )
 if(LARCV_USE_GEO2D)
-  include_directories( ${GEO2D_INC_DIR} )
+  include_directories( ${GEO2D_INC_DIR} ${OpenCV_INCLUDE_DIRS} )
 endif()
 
 # Generate the dictionary
@@ -29,7 +29,9 @@ ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
 add_library( ${MODULE_NAME} SHARED ${SOURCES} G__${MODULE_NAME}.cxx)
 set_target_properties( ${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
 target_link_libraries( ${MODULE_NAME} PUBLIC LArCVCoreBase LArCVCoreDataFormat LArCVCoreProcessor)
-target_link_libraries( ${MODULE_NAME} PUBLIC ${GEO2D_LIBS})
+if (LARCV_USE_GEO2D)
+  target_link_libraries( ${MODULE_NAME} PUBLIC ${GEO2D_LIBS} ${OpenCV_LIBS} )
+endif()
 
 # install libraries and headers
 install(TARGETS ${MODULE_NAME}

@@ -16,7 +16,7 @@ find_package(ROOT CONFIG REQUIRED)
 
 #---OPENCV
 if (USE_OPENCV)
-  find_package(OpenCV)
+  find_package(OpenCV CONFIG REQUIRED)
   if (NOT OpenCV_FOUND)
     set(USE_OPENCV 0)
   endif()
@@ -58,11 +58,7 @@ if (LARCV_USE_GEO2D)
 endif()
 
 # --- Torch
-#set( Caffe2_DIR "$ENV{MRB_INSTALL}/libtorch/share/cmake/Caffe2" )
-#find_package( Caffe2 )
-
-# --- Torch
-set( Torch_DIR "$ENV{MRB_INSTALL}/libtorch/share/cmake/Torch" )
+set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
 find_package( Torch )
 
 ## Git Submodules
