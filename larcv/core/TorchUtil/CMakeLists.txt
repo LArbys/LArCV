@@ -34,7 +34,7 @@ install(TARGETS ${MODULE_NAME}
   LIBRARY DESTINATION lib
   PUBLIC_HEADER DESTINATION include/larcv/core/TorchUtil)
 
-install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}_rdict.pcm
-  ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}.rootmap
-  DESTINATION lib  )
+#install( FILES
+#  ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}_rdict.pcm
+#  ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}.rootmap
+#  DESTINATION lib  )
