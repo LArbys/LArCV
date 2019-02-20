@@ -5,8 +5,8 @@
 #include "PyUtils.h"
 #include "larcv/core/Base/larcv_logger.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-//#include <numpy/ndarrayobject.h>
-#include "numpy/arrayobject.h"
+#include <numpy/ndarrayobject.h>
+//#include "numpy/arrayobject.h"
 
 namespace larcv {
 
@@ -37,7 +37,7 @@ PyObject *as_ndarray(const std::vector<float> &vec) {
 
 PyObject *as_ndarray(const Image2D &img) {
   SetPyUtil();
-  int *dim_data = new int[2];
+  int* dim_data = new int[2];
   dim_data[0] = img.meta().cols();
   dim_data[1] = img.meta().rows();
   auto const &vec = img.as_vector();
@@ -258,7 +258,68 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    *
    */
   PyObject* as_pystring( const std::vector<std::uint8_t>& buf ) {
+    SetPyUtil();    
     return PyString_FromStringAndSize( (const char*)buf.data(), buf.size() );
+  }
+
+  /**
+   * convert std::image2d into list of pixel coordinates and values
+   *
+   *
+   */
+  PyObject* as_pixelarray( const larcv::Image2D& img, const float threshold, larcv::msg::Level_t verbosity ) {
+    SetPyUtil();
+    // first, get a list of pixel values
+    // each entry is (row,col,pixelvalue)
+    larcv::logger::get("pyutils::as_pixelarray").set(verbosity);
+
+    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+      << "extracting pixel list from image" << std::endl;
+    std::vector<float> data_v;
+    data_v.reserve( 3*img.meta().rows()*img.meta().cols() ); // maximum size
+    size_t npts = 0;
+    for ( size_t r=0; r<img.meta().rows(); r++ ) {
+      for ( size_t c=0; c<img.meta().cols(); c++ ) {
+        if ( img.pixel(r,c)>=threshold ) {
+          data_v.push_back( (float)r );
+          data_v.push_back( (float)c );
+          data_v.push_back( (float)img.pixel(r,c) );
+          npts++;
+        }
+      }
+    }
+
+    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+      << "create new array with " << npts << " pixels "
+      << " (of max " << img.meta().rows()*img.meta().cols()
+      << ", " << float(npts)/float(img.meta().rows()*img.meta().cols()) << " fraction)"
+      << std::endl;
+    
+    npy_intp *dim_data = new npy_intp[2];    
+    dim_data[0] = npts;
+    dim_data[1] = 3;
+    PyArrayObject* array = nullptr;
+    try {
+      array = (PyArrayObject*)PyArray_SimpleNew( 2, dim_data, NPY_FLOAT );
+    }
+    catch (std::exception& e ) {
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
+        << "trouble allocating new pyarray: " << e.what() << std::endl;
+    }
+    
+    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+      << "fill array with " << npts << " points" << std::endl;
+    
+    for ( size_t ipt=0; ipt<npts; ipt++ ) {
+      *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[3*ipt+0];
+      *((float*)PyArray_GETPTR2( array, ipt, 1 )) = data_v[3*ipt+1];
+      *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];      
+    }
+
+    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+      << "returned array" << std::endl;
+    
+    return (PyObject*)array;
   }
 
 }
