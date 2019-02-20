@@ -273,7 +273,8 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     // each entry is (row,col,pixelvalue)
     larcv::logger::get("pyutils::as_pixelarray").set(verbosity);
 
-    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+    if ( verbosity==larcv::msg::kDEBUG )
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
       << "extracting pixel list from image" << std::endl;
     std::vector<float> data_v;
     data_v.reserve( 3*img.meta().rows()*img.meta().cols() ); // maximum size
@@ -289,11 +290,12 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       }
     }
 
-    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
-      << "create new array with " << npts << " pixels "
-      << " (of max " << img.meta().rows()*img.meta().cols()
-      << ", " << float(npts)/float(img.meta().rows()*img.meta().cols()) << " fraction)"
-      << std::endl;
+    if ( verbosity==larcv::msg::kDEBUG )    
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "create new array with " << npts << " pixels "
+        << " (of max " << img.meta().rows()*img.meta().cols()
+        << ", " << float(npts)/float(img.meta().rows()*img.meta().cols()) << " fraction)"
+        << std::endl;
     
     npy_intp *dim_data = new npy_intp[2];    
     dim_data[0] = npts;
@@ -305,10 +307,13 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     catch (std::exception& e ) {
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
         << "trouble allocating new pyarray: " << e.what() << std::endl;
+      throw larbys();
     }
-    
-    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
-      << "fill array with " << npts << " points" << std::endl;
+
+      
+    if ( verbosity==larcv::msg::kDEBUG )          
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "fill array with " << npts << " points" << std::endl;
     
     for ( size_t ipt=0; ipt<npts; ipt++ ) {
       *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[3*ipt+0];
@@ -316,8 +321,9 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];      
     }
 
-    larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
-      << "returned array" << std::endl;
+    if ( verbosity==larcv::msg::kDEBUG )              
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "returned array" << std::endl;
     
     return (PyObject*)array;
   }
