@@ -328,6 +328,89 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     return (PyObject*)array;
   }
 
+  /**
+   * convert std::image2d into list of pixel coordinates and values.
+   * which pixels that are saved are conditioned on values of another image
+   *
+   * @param[in] value_img Image2D from which we get the values of the pixel list
+   * @param[in] select_img Image2D with which we select the values of the list
+   * @param[in] threshold threshold value for each pixel
+   * @param[in] selectabove if true, pixel in select_img must be above some threshold, below if false
+   * @param[in] verbosity level of debug statements
+   *
+   */
+  PyObject* as_pixelarray_with_selection( const larcv::Image2D& value_img,
+                                          const larcv::Image2D& select_img,
+                                          const float threshold, bool selectifabove,
+                                          larcv::msg::Level_t verbosity ) {
+    SetPyUtil();
+    // first, get a list of pixel values
+    // each entry is (row,col,pixelvalue)
+    larcv::logger::get("pyutils::as_pixelarray").set(verbosity);
+
+    // this only makes sense if the metas mean the same thing
+    if ( value_img.meta()!=select_img.meta() ) {
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
+        << "value and select images must have the same meta" << std::endl;
+      throw larbys();
+    }
+
+    if ( verbosity==larcv::msg::kDEBUG )
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+      << "extracting pixel list from image" << std::endl;
+    std::vector<float> data_v;
+    data_v.reserve( 3*value_img.meta().rows()*value_img.meta().cols() ); // maximum size
+    size_t npts = 0;
+    for ( size_t r=0; r<value_img.meta().rows(); r++ ) {
+      for ( size_t c=0; c<value_img.meta().cols(); c++ ) {
+        float selectpix = select_img.pixel(r,c);
+        if ( (selectifabove && selectpix>=threshold) || (!selectifabove && selectpix<=threshold) ) {
+          data_v.push_back( (float)r );
+          data_v.push_back( (float)c );
+          data_v.push_back( (float)value_img.pixel(r,c) );
+          npts++;
+        }
+      }
+    }
+
+    if ( verbosity==larcv::msg::kDEBUG )    
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "create new array with " << npts << " pixels "
+        << " (of max " << value_img.meta().rows()*value_img.meta().cols()
+        << ", " << float(npts)/float(value_img.meta().rows()*value_img.meta().cols()) << " fraction)"
+        << std::endl;
+    
+    npy_intp *dim_data = new npy_intp[2];    
+    dim_data[0] = npts;
+    dim_data[1] = 3;
+    PyArrayObject* array = nullptr;
+    try {
+      array = (PyArrayObject*)PyArray_SimpleNew( 2, dim_data, NPY_FLOAT );
+    }
+    catch (std::exception& e ) {
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
+        << "trouble allocating new pyarray: " << e.what() << std::endl;
+      throw larbys();
+    }
+
+      
+    if ( verbosity==larcv::msg::kDEBUG )          
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "fill array with " << npts << " points" << std::endl;
+    
+    for ( size_t ipt=0; ipt<npts; ipt++ ) {
+      *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[3*ipt+0];
+      *((float*)PyArray_GETPTR2( array, ipt, 1 )) = data_v[3*ipt+1];
+      *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];      
+    }
+
+    if ( verbosity==larcv::msg::kDEBUG )              
+      larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "returned array" << std::endl;
+    
+    return (PyObject*)array;
+  }
+  
 }
 
 #endif

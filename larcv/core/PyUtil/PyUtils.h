@@ -50,6 +50,11 @@ namespace larcv {
   // as a list of 2D numpy array with (row,col,values) for each numpy row
   PyObject* as_pixelarray( const larcv::Image2D& img, const float threshold,
                            larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
+
+  PyObject* as_pixelarray_with_selection( const larcv::Image2D& value_img,
+                                          const larcv::Image2D& select_img,
+                                          const float threshold, bool selectifabove=true,
+                                          larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
   
 }
 
