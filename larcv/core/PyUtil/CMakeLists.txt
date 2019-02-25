@@ -18,7 +18,7 @@ ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
 # Generate the shared library from the sources
 add_library( ${MODULE_NAME} SHARED ${SOURCES} G__${MODULE_NAME}.cxx)
 set_target_properties( ${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
-target_link_libraries( ${MODULE_NAME} ${PYTHON_LIBRARIES} LArCVCoreBase LArCVCoreDataFormat )
+target_link_libraries( ${MODULE_NAME} ${PYTHON_LIBRARIES} LArCVCoreBase LArCVCoreDataFormat LArCVCoreProcessor )
 
 install(TARGETS ${MODULE_NAME}
   EXPORT larcv
