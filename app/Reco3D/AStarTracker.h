@@ -154,6 +154,7 @@ namespace larcv {
         void DumpTrack();
         void FillInTrack();
         void SetMinLength(double MinLength){_MinLength = MinLength;}
+        void DrawVertex3D();
 
         bool initialize();
         bool finalize();
@@ -236,6 +237,7 @@ namespace larcv {
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
         TSpline3* GetProtonT2dEdx(){return sProtonT2dEdx;}
         TSpline3* GetMuonT2dEdx(){return sMuonT2dEdx;}
+
 
     protected:
 

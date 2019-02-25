@@ -1681,6 +1681,7 @@ namespace larcv {
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),700,1800);
         c->SetFillColor(0);
+        if(_DrawBlack)c->SetFillColor(1);
         c->SetFillStyle(0);
         std::vector<TPad*> pads(3);
         c->cd();pads[0] = new TPad("pads_0","pads_0",0,2./3,1,3./3);pads[0]->Draw();
@@ -2148,6 +2149,55 @@ namespace larcv {
                 tellMe(Form("if proton..: %.1f MeV",sProtonRange2T->Eval(_vertexLength[itrack])));
             }
         }*/
+    }
+    //______________________________________________________
+    void AStarTracker::DrawVertex3D(){
+        std::cout << "DrawVertex3D()" << std::endl;
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),1200,1200);
+        gWorld->SetTitle("");
+        gWorld->Draw("AP");
+        gDetector->Draw("same P");
+        c->SetFillColor(0);
+        c->SetFillStyle(0);
+        if(_DrawBlack){
+            c->SetFillColor(1);
+            c->SetFillStyle(1);
+        }
+
+        std::vector<TGraph2D*> gTrack3D;
+        for(int i = 0;i<_vertexTracks.size();i++){
+            TGraph2D *gTrack3D_oneshot = new TGraph2D();
+            gTrack3D.push_back(gTrack3D_oneshot);
+        }
+
+        for(int i = 0;i<_vertexTracks.size();i++){
+            for(int j=0;j<_vertexTracks[i].size();j++){
+                gTrack3D[i]->SetPoint(j,_vertexTracks[i][j].Z(),_vertexTracks[i][j].X(),_vertexTracks[i][j].Y());
+            }
+            gTrack3D[i]->SetMarkerColor(i+1);
+            if(_DrawBlack){
+                gTrack3D[i]->SetMarkerColor(i+2);
+                gTrack3D[i]->GetXaxis()->SetLabelColor(0);
+                gTrack3D[i]->GetXaxis()->SetAxisColor(0);
+                gTrack3D[i]->GetXaxis()->SetTitleColor(0);
+                gTrack3D[i]->GetYaxis()->SetLabelColor(0);
+                gTrack3D[i]->GetYaxis()->SetAxisColor(0);
+                gTrack3D[i]->GetYaxis()->SetTitleColor(0);
+                gTrack3D[i]->GetZaxis()->SetLabelColor(0);
+                gTrack3D[i]->GetZaxis()->SetAxisColor(0);
+                gTrack3D[i]->GetZaxis()->SetTitleColor(0);
+            }
+            gTrack3D[i]->SetMarkerStyle(7);
+            if(i==0){gTrack3D[i]->Draw("same LP");}
+            else{gTrack3D[i]->Draw("same LP");}
+        }
+
+        /*int Npng = 200;
+        for(int i=0;i<Npng;i++){
+            c->cd(1)->SetPhi(i*360./Npng);
+            c->SaveAs(Form("%s/%s_3D_%03d.png",_outdir.c_str(),c->GetName(),i));
+        }*/
+        c->SaveAs(Form("%s/%s.png",_outdir.c_str(),c->GetName()));
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
@@ -3724,6 +3774,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::Get3DtracksFromLarlite(){
+        std::cout << "Get3DtracksFromLarlite()" << std::endl;
         if(_vertexTracks.size()!=0)_vertexTracks.clear();
         for(size_t itrack = 0; itrack<_vertexLarliteTracks.size();itrack++){
             std::vector<TVector3> thisTrack(_vertexLarliteTracks[itrack].NumberTrajectoryPoints());
