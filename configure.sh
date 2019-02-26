@@ -132,7 +132,7 @@ mkdir -p $LARCV_LIBDIR;
 mkdir -p $LARCV_BINDIR;
 
 # add to python path
-[[ ":$PYTHONPATH:" != *":${LARCV_BASEDIR}/python:"* ]] && export PYTHONPATH="${LARCV_BASEDIR}/python:${PATH}"
+[[ ":$PYTHONPATH:" != *":${LARCV_BASEDIR}/python:"* ]] && export PYTHONPATH="${LARCV_BASEDIR}/python:${PYTHONPATH}"
 
 echo
 echo "Finish configuration. To build, type:"
