@@ -457,7 +457,7 @@ namespace larcv {
         tellMe("getting start and end points",0);
         std::vector<int> start_cols(3);
         std::vector<int> end_cols(3);
-        int start_row, end_row;
+        int start_row(0), end_row(0);
 
         //tellMe("ok here");
 
@@ -1666,7 +1666,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::DrawVertexVertical(){
-        tellMe("DrawVertexHorizontal",0);
+        tellMe("DrawVertexVertical",0);
 
         TH2D *hImage[3];
         TGraph *gStartNend[3];
@@ -1676,10 +1676,10 @@ namespace larcv {
         //if(_tooShortFaintTrack_v.size() != _vertexTracks.size())DiagnoseVertex();
 
 
-        hit_image_v = CropFullImage2bounds(_vertexTracks);
+        hit_image_v = GetFullImage();
         //EnhanceDerivative();
 
-        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),700,1800);
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),8000,4500);
         c->SetFillColor(0);
         if(_DrawBlack)c->SetFillColor(1);
         c->SetFillStyle(0);
@@ -1690,8 +1690,8 @@ namespace larcv {
         for(int iPlane=0;iPlane<3;iPlane++){
             pads[iPlane]->SetTopMargin(0.02);
             pads[iPlane]->SetBottomMargin(0.1);
-            pads[iPlane]->SetRightMargin(0.16);
-            pads[iPlane]->SetLeftMargin(0.16);
+            pads[iPlane]->SetRightMargin(0.08);
+            pads[iPlane]->SetLeftMargin(0.08);
         }
 
         int NtracksAtVertex = 0;
@@ -1721,6 +1721,9 @@ namespace larcv {
             }
         }
         for(size_t iPlane=0;iPlane<3;iPlane++){
+
+
+
             hImage[iPlane] = new TH2D(Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu",_run,_subrun,_event,_vtxID,_track,iPlane),
                                       ";wire # ;time (sample)",//Form("hImage_%05d_%05d_%05d_%04d_%04d_%zu;wire;time",_run,_subrun,_event,_vtxID,_track,iPlane),
                                       hit_image_v[iPlane].meta().cols(),
@@ -1729,6 +1732,16 @@ namespace larcv {
                                       hit_image_v[iPlane].meta().rows(),
                                       hit_image_v[iPlane].meta().br().y,
                                       hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height());
+
+            /*std::cout << "plane " << iPlane << " image dimensions : " << std::endl;
+            std::cout << "nbinsX "<< hit_image_v[iPlane].meta().cols()                                     << "/" << hImage[iPlane]->GetNbinsX() << std::endl;
+            std::cout << "Xmin "  << hit_image_v[iPlane].meta().tl().x                                     << "/" << hImage[iPlane]->GetXaxis()->GetXmin()<< std::endl;
+            std::cout << "Xmax "  <<hit_image_v[iPlane].meta().tl().x+hit_image_v[iPlane].meta().width()   << "/" << hImage[iPlane]->GetXaxis()->GetXmax()<< std::endl;
+            std::cout << "NbinsY" << hit_image_v[iPlane].meta().rows()                                     << "/" << hImage[iPlane]->GetNbinsY() << std::endl;
+            std::cout << "Ymin "  << hit_image_v[iPlane].meta().br().y                                     << "/" << hImage[iPlane]->GetYaxis()->GetXmin() << std::endl;
+            std::cout << "Ymax "  << hit_image_v[iPlane].meta().br().y+hit_image_v[iPlane].meta().height() << "/" << hImage[iPlane]->GetYaxis()->GetXmax() << std::endl;
+            std::cout << std::endl;*/
+
             for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                 for(size_t irow=0;irow<hit_image_v[iPlane].meta().rows();irow++){
                     hImage[iPlane]->SetBinContent(icol+1,irow+1,hit_image_v[iPlane].pixel(irow,icol));
@@ -1737,7 +1750,7 @@ namespace larcv {
         }
         std::vector< std::vector<TVector3> > trackEndPoints_v;
         std::vector<TVector3> thisTrackEndPoint;
-        MaskVertex();
+        //MaskVertex();
         //ShaveTracks();
 
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
@@ -1812,13 +1825,11 @@ namespace larcv {
                 hImage[iPlane]->GetYaxis()->SetAxisColor(0);
                 hImage[iPlane]->GetYaxis()->SetTitleColor(0);
             }
-            hImage[iPlane]->GetYaxis()->SetTitleOffset(1.60);
+            hImage[iPlane]->GetYaxis()->SetTitleOffset(0.8);
             hImage[iPlane]->GetXaxis()->SetTitleOffset(1);
-            hImage[iPlane]->GetXaxis()->SetRangeUser(0.25*(hImage[iPlane]->GetXaxis()->GetXmax()-hImage[iPlane]->GetXaxis()->GetXmin()),
-                                                     0.75*(hImage[iPlane]->GetXaxis()->GetXmax()-hImage[iPlane]->GetXaxis()->GetXmin()));
-            hImage[iPlane]->GetYaxis()->SetRangeUser(0.25*(hImage[iPlane]->GetYaxis()->GetXmax()-hImage[iPlane]->GetYaxis()->GetXmin()),
-                                                     0.75*(hImage[iPlane]->GetYaxis()->GetXmax()-hImage[iPlane]->GetYaxis()->GetXmin()));
-            hImage[iPlane]->Draw("colz");
+            //hImage[iPlane]->GetXaxis()->SetRangeUser(0.25*(hImage[iPlane]->GetXaxis()->GetXmax()-hImage[iPlane]->GetXaxis()->GetXmin()),0.75*(hImage[iPlane]->GetXaxis()->GetXmax()-hImage[iPlane]->GetXaxis()->GetXmin()));
+            //hImage[iPlane]->GetYaxis()->SetRangeUser(0.25*(hImage[iPlane]->GetYaxis()->GetXmax()-hImage[iPlane]->GetYaxis()->GetXmin()),0.75*(hImage[iPlane]->GetYaxis()->GetXmax()-hImage[iPlane]->GetYaxis()->GetXmin()));
+            hImage[iPlane]->Draw("col");
         }
         for(size_t i=0;i<_vertexTracks.size();i++){
             TGraph *gTrack[3];
@@ -1829,7 +1840,8 @@ namespace larcv {
                     ProjectTo3D(hit_image_v[iPlane].meta(),_vertexTracks[i][iNode].X(),_vertexTracks[i][iNode].Y(),_vertexTracks[i][iNode].Z(),0,iPlane,x_pixel,y_pixel); // y_pixel is time
                     gTrack[iPlane]->SetPoint(iNode,x_pixel*hit_image_v[iPlane].meta().pixel_width()+hit_image_v[iPlane].meta().tl().x, y_pixel*hit_image_v[iPlane].meta().pixel_height()+hit_image_v[iPlane].meta().br().y);
                 }
-                gTrack[iPlane]->SetMarkerStyle(7);
+                gTrack[iPlane]->SetMarkerStyle(20);
+                gTrack[iPlane]->SetLineWidth(3);
                 if(i==0){
                     gTrack[iPlane]->SetLineColor(1);
                     gTrack[iPlane]->SetMarkerColor(1);
@@ -2153,10 +2165,11 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::DrawVertex3D(){
         std::cout << "DrawVertex3D()" << std::endl;
-        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),1200,1200);
+        TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),3000,3000);
         gWorld->SetTitle("");
         gWorld->Draw("AP");
         gDetector->Draw("same P");
+
         c->SetFillColor(0);
         c->SetFillStyle(0);
         if(_DrawBlack){
@@ -2188,16 +2201,20 @@ namespace larcv {
                 gTrack3D[i]->GetZaxis()->SetTitleColor(0);
             }
             gTrack3D[i]->SetMarkerStyle(7);
-            if(i==0){gTrack3D[i]->Draw("same LP");}
-            else{gTrack3D[i]->Draw("same LP");}
+            if(i==0){gTrack3D[i]->Draw("same AP");}
+            else{gTrack3D[i]->Draw("same P");}
         }
 
-        /*int Npng = 200;
+
+        int Npng = 10;
         for(int i=0;i<Npng;i++){
-            c->cd(1)->SetPhi(i*360./Npng);
-            c->SaveAs(Form("%s/%s_3D_%03d.png",_outdir.c_str(),c->GetName(),i));
-        }*/
-        c->SaveAs(Form("%s/%s.png",_outdir.c_str(),c->GetName()));
+            c->cd(1)->SetPhi(10+i*360./Npng);
+            //c->SaveAs(Form("%s/%s_3D_%03d.png",_outdir.c_str(),c->GetName(),i));
+            std::cout << i*100./Npng << std::endl;
+            c->Print(Form("%s/%s_3D.gif+5",_outdir.c_str(),c->GetName()));
+        }
+        c->Print(Form("%s/%s_3D.gif++",_outdir.c_str(),c->GetName()));
+        //c->SaveAs(Form("%s/%s.png",_outdir.c_str(),c->GetName()));
     }
     //______________________________________________________
     void AStarTracker::ReadSplineFile(){
@@ -3548,6 +3565,79 @@ namespace larcv {
         return data_images;
     }
     //______________________________________________________
+    std::vector<larcv::Image2D> AStarTracker::GetFullImage(){
+        std::vector<larcv::ImageMeta> Full_meta_v(3);
+        for(size_t iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = original_full_image_v[iPlane].meta();}
+
+        //SetTimeAndWireBounds(EndPoints, Full_meta_v);
+        //std::vector<std::pair<double,double> > time_bounds = GetTimeBounds();
+        //std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
+        std::vector<larcv::Image2D> data_images;
+        std::vector<larcv::Image2D> tagged_images;
+        if(_deadWires_v.size()!=0){_deadWires_v.clear();}
+
+        // find dead/bad wires and paint them with 20
+        for(size_t iPlane=0;iPlane<3;iPlane++){
+            for(size_t icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
+                int summedVal = 0;
+                for(size_t irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
+                    if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
+                }
+                if(summedVal == 0){
+                    _deadWires_v.push_back(icol);
+                    original_full_image_v[iPlane].paint_col(icol,_deadWireValue);
+                }
+            }
+        }
+        // make smaller image by inverting and cropping the full one
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            //double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_width());
+            //double image_height = 1.*(size_t)((time_bounds[iPlane].second - time_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_height());
+            //size_t col_count    = (size_t)(image_width / original_full_image_v[iPlane].meta().pixel_width());
+            //size_t row_count    = (size_t)(image_height/ original_full_image_v[iPlane].meta().pixel_height());
+            //double origin_x     = original_full_image_v[iPlane].meta().tl().x+wire_bounds[iPlane].first *original_full_image_v[iPlane].meta().pixel_width();
+            //double origin_y     = original_full_image_v[iPlane].meta().br().y+time_bounds[iPlane].second*original_full_image_v[iPlane].meta().pixel_height();
+            larcv::ImageMeta newMeta = original_full_image_v[iPlane].meta();//(image_width, 6.*row_count,row_count, col_count,origin_x,origin_y,iPlane);
+            larcv::ImageMeta newTagMeta = original_full_image_v[iPlane].meta();//(image_width, 6.*row_count,row_count, col_count,origin_x,origin_y,iPlane);
+
+            newMeta = original_full_image_v[iPlane].meta().overlap(newMeta);
+            newTagMeta = taggedPix_v[iPlane].meta().overlap(newTagMeta);
+
+            larcv::Image2D newImage = original_full_image_v[iPlane].crop(newMeta);
+            larcv::Image2D newTaggedImage = taggedPix_v[iPlane].crop(newTagMeta);
+
+            larcv::Image2D invertedImage = newImage;
+            larcv::Image2D invertedTagImage = newTaggedImage;
+
+            for(size_t icol = 0;icol<newImage.meta().cols();icol++){
+                for(size_t irow = 0;irow<newImage.meta().rows();irow++){
+                    if(newImage.pixel(irow, icol) > _ADCthreshold){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
+                    else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);}
+                }
+            }
+            data_images.push_back(invertedImage);
+
+            for(size_t icol = 0;icol<newTaggedImage.meta().cols();icol++){
+                for(size_t irow = 0;irow<newTaggedImage.meta().rows();irow++){
+                    if(newTaggedImage.pixel(irow, icol) > _ADCthreshold){invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,newTaggedImage.pixel(irow, icol));}
+                    else{invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,0);}
+                }
+            }
+            tagged_images.push_back(invertedTagImage);
+        }
+        CroppedTaggedPix_v = tagged_images;
+
+        for(size_t iPlane = 0;iPlane<3;iPlane++){
+            for(size_t icol = 0;icol<data_images[iPlane].meta().cols();icol++){
+                for(size_t irow = 0;irow<data_images[iPlane].meta().rows();irow++){
+                    if(CroppedTaggedPix_v[iPlane].pixel(irow, icol) > _ADCthreshold){data_images[iPlane].set_pixel(irow,icol,0);}
+                }
+            }
+        }
+        
+        return data_images;
+    }
+    //______________________________________________________
     std::vector<std::pair<int, int> > AStarTracker::GetWireTimeProjection(TVector3 point){
         std::vector<std::pair<int, int> > projection(3);
         for(size_t iPlane = 0;iPlane<3;iPlane++){
@@ -3732,7 +3822,17 @@ namespace larcv {
         _3DTrack = newTrack;
     }
     //-------------------------------------------------------
-    
+    std::vector<TVector3>   AStarTracker::GetEndPoints(){
+        tellMe("GetEndPoints()",0);
+
+        std::vector<TVector3> vertexEndPoints(_vertexTracks.size());
+        for(size_t itrack = 0;itrack< _vertexTracks.size();itrack++){
+            TVector3 trackEndPoint = _vertexTracks[itrack].back();
+            vertexEndPoints[itrack] = trackEndPoint;
+        }
+        return vertexEndPoints;
+    }
+    //_______________________________________________________
     
     //
     //

@@ -102,6 +102,11 @@ namespace larcv {
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
         std::vector<double> _Ion_tot_v;
+        std::vector<int> _DeadWireList;
+
+        std::vector<double> recoEndPoints_x;
+        std::vector<double> recoEndPoints_y;
+        std::vector<double> recoEndPoints_z;
 
         std::vector<double> _IonY_5cm_v;
         std::vector<double> _IonY_10cm_v;
@@ -110,6 +115,7 @@ namespace larcv {
         std::vector<double> _Trunc_dQdX1_v;
         std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
+
         std::vector<std::vector<double>> _trackQ3_v;
         std::vector<std::vector<double>> _trackQ5_v;
         std::vector<std::vector<double>> _trackQ10_v;
@@ -123,9 +129,11 @@ namespace larcv {
         std::vector<larlite::event_track> _EventRecoVertices;
 
         std::vector<TVector3> MCVertices;
+        std::vector<TVector3> recoEndPoints;
         TVector3 MCvertex;
         TVector3 RecoVertex;
         TVector3 _RecoVertex;
+
 
         bool GoodVertex;
         bool _missingTrack;

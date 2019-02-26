@@ -196,6 +196,7 @@ namespace larcv {
         std::vector<TVector3>   GetTrack(){return _3DTrack;}
         std::vector<TVector3>   OrderList(std::vector<TVector3> list);
         std::vector<TVector3>   FitBrokenLine();
+        std::vector<TVector3>   GetEndPoints();
         std::vector<TVector3>   Reconstruct(int run, int subrun,int event,int track,std::vector<larcv::Image2D> images,TVector3 vertex, TVector3 endPoint){
             SetTrackInfo(run, subrun, event, track);
             SetImages(images);
@@ -229,6 +230,7 @@ namespace larcv {
         std::vector<std::pair<double,double> > GetWireBounds(){return wire_bounds;}
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
 
+        std::vector<larcv::Image2D> GetFullImage();
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
         void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative();*/ShaveTracks();}

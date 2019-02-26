@@ -144,9 +144,9 @@ namespace larcv {
         if(ev_img_v->Image2DArray().size()==0){std::cout << "ev_img_v->Image2DArray().size()==0" << std::endl;return true;}
         if(ev_track->size()==0){std::cout << "ev_track->size()==0" << std::endl;return true;}
 
-        if((int)(_storage.run_id()) != _run){std::cout << "run# larlite and larcv don't match" << std::endl;return true;}
+        if((int)(_storage.run_id())    != _run){std::cout << "run# larlite and larcv don't match" << std::endl;return true;}
         if((int)(_storage.subrun_id()) != _subrun){std::cout << "subrun# larlite and larcv don't match" << std::endl;return true;}
-        if((int)(_storage.event_id()) != _event){std::cout << "event# larlite and larcv don't match" << std::endl;return true;}
+        if((int)(_storage.event_id())  != _event){std::cout << "event# larlite and larcv don't match" << std::endl;return true;}
 
 
 
@@ -183,12 +183,14 @@ namespace larcv {
         std::vector<larcv::Image2D> Tagged_Image(3);
         std::vector<larcv::Image2D> Full_image_v(3);
 
-        double wireRange = 5000;
+        //double wireRange = 5000;
+        double wireRange[3] = {2500,2500,3500};
         double tickRange = 8502;
+        //double tickRange = 10000;
 
         // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
         for(size_t iPlane=0;iPlane<3;iPlane++){
-            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
+            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange[iPlane],tickRange,(int)(tickRange)/6,(int)(wireRange[iPlane]),0,tickRange);
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             Tagged_Image[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
@@ -244,7 +246,7 @@ namespace larcv {
             tracker.FeedLarliteVertexTracks(TracksAtVertex);
             tracker.Get3DtracksFromLarlite();
             tracker.DrawVertex();
-            tracker.DrawVertex3D();
+            //tracker.DrawVertex3D();
         }
 
         return true;
@@ -320,7 +322,7 @@ namespace larcv {
     int  TrackerEventDisplay::SearchMap(){
         int treeEntry=-1;
         for(int i=0;i<TreeMap.size();i++){
-            if(_run != TreeMap[i][0])continue;
+            if(_run    != TreeMap[i][0])continue;
             if(_subrun != TreeMap[i][1])continue;
             if(_event  != TreeMap[i][2])continue;
             if(_vtx_id != TreeMap[i][3])continue;
@@ -356,10 +358,11 @@ namespace larcv {
         }
         bool GoOn = true;
         int thisRun, thisSubRun, thisEvent, thisVertex;
+        char coma;
         std::cout << "OK, event list file " << eventListFile << "  found!" << std::endl;
         while(GoOn == true){
             std::vector<int> eventInfo(4);
-            listFile >> thisRun >> thisSubRun >> thisEvent >> thisVertex;
+            listFile >> thisRun >> coma >> thisSubRun >> coma >> thisEvent >> coma >> thisVertex;
             //std::cout << thisRun << " " << thisSubRun << " " << thisEvent << " " << thisVertex;
             eventInfo[0] = thisRun;
             eventInfo[1] = thisSubRun;

@@ -1,5 +1,8 @@
 import os,sys
 
+print len(sys.argv)
+print
+print
 if len(sys.argv) < 5:
     print
     print "IMG_FILE        = str(sys.argv[1])"
@@ -35,7 +38,9 @@ EVENT_FILE      = ""
 
 if len(sys.argv) == 6:
     EVENT_FILE = str(sys.argv[5])
-
+    print
+    print "event list provided"
+    print
 
 #num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
 

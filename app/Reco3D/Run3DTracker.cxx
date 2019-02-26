@@ -135,6 +135,11 @@ namespace larcv {
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
         _recoTree->Branch("closestWall",&_closestWall);
+        _recoTree->Branch("deadWireList",&_DeadWireList);
+
+        _recoTree->Branch("recoEndPoints_x",&recoEndPoints_x);
+        _recoTree->Branch("recoEndPoints_y",&recoEndPoints_y);
+        _recoTree->Branch("recoEndPoints_z",&recoEndPoints_z);
 
         _recoTree->Branch("MCvertex",&MCvertex);
         _recoTree->Branch("Ep_t"       , &_Ep_t       , "Ep_t/D");
@@ -389,6 +394,20 @@ namespace larcv {
                 _IonY_5cm_v     = tracker.GetTotalIonization_Yplane(5);
                 _IonY_10cm_v    = tracker.GetTotalIonization_Yplane(10);
                 _IonY_tot_v     = tracker.GetTotalIonization_Yplane();
+
+                if(_DeadWireList.size() !=0)_DeadWireList.clear();
+                _DeadWireList = tracker.GetDeadWireList();
+
+                if(recoEndPoints.size() !=0)recoEndPoints.clear();
+                if(recoEndPoints_x.size() !=0)recoEndPoints_x.clear();
+                if(recoEndPoints_y.size() !=0)recoEndPoints_y.clear();
+                if(recoEndPoints_z.size() !=0)recoEndPoints_z.clear();
+                recoEndPoints = tracker.GetEndPoints();
+                for(int kk = 0;kk < recoEndPoints.size(); kk++){
+                    recoEndPoints_x.push_back(recoEndPoints[kk].X());
+                    recoEndPoints_y.push_back(recoEndPoints[kk].Y());
+                    recoEndPoints_z.push_back(recoEndPoints[kk].Z());
+                }
 
                 _Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
                 _Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
