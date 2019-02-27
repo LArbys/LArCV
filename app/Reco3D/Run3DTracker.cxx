@@ -134,6 +134,16 @@ namespace larcv {
         _recoTree->Branch("RecoVertex",&_RecoVertex);
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
+        _recoTree->Branch("vertexPhi_2cm",&_vertexPhi_2cm);
+        _recoTree->Branch("vertexTheta_2cm",&_vertexTheta_2cm);
+        _recoTree->Branch("vertexPhi_5cm",&_vertexPhi_5cm);
+        _recoTree->Branch("vertexTheta_5cm",&_vertexTheta_5cm);
+        _recoTree->Branch("vertexPhi_7cm",&_vertexPhi_7cm);
+        _recoTree->Branch("vertexTheta_7cm",&_vertexTheta_7cm);
+        _recoTree->Branch("vertexPhi_10cm",&_vertexPhi_10cm);
+        _recoTree->Branch("vertexTheta_10cm",&_vertexTheta_10cm);
+        _recoTree->Branch("vertexPhi_15cm",&_vertexPhi_15cm);
+        _recoTree->Branch("vertexTheta_15cm",&_vertexTheta_15cm);
         _recoTree->Branch("closestWall",&_closestWall);
         _recoTree->Branch("deadWireList",&_DeadWireList);
 
@@ -415,10 +425,23 @@ namespace larcv {
                     _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
                 }
                 _TotalADCvalues_v = tracker.GetTotalPixADC();
-
+                _Angle_v   = tracker.GetVertexAngle(2); // average over 2 cm to estimate the angles
+                _vertexPhi_2cm   = tracker.GetVertexPhi();
+                _vertexTheta_2cm = tracker.GetVertexTheta();
+                _Angle_v   = tracker.GetVertexAngle(5); // average over 5 cm to estimate the angles
+                _vertexPhi_5cm   = tracker.GetVertexPhi();
+                _vertexTheta_5cm = tracker.GetVertexTheta();
+                _Angle_v   = tracker.GetVertexAngle(7); // average over 7 cm to estimate the angles
+                _vertexPhi_7cm   = tracker.GetVertexPhi();
+                _vertexTheta_7cm = tracker.GetVertexTheta();
+                _Angle_v   = tracker.GetVertexAngle(10); // average over 10 cm to estimate the angles
+                _vertexPhi_10cm   = tracker.GetVertexPhi();
+                _vertexTheta_10cm = tracker.GetVertexTheta();
                 _Angle_v   = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
                 _vertexPhi   = tracker.GetVertexPhi();
                 _vertexTheta = tracker.GetVertexTheta();
+                _vertexPhi_15cm   = tracker.GetVertexPhi();
+                _vertexTheta_15cm = tracker.GetVertexTheta();
                 _Reco_goodness_v = tracker.GetRecoGoodness();
                 _track_Goodness_v = tracker.GetVtxQuality();
 
