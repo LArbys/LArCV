@@ -114,7 +114,7 @@ namespace larcv {
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
         std::vector<double> _Ion_tot_v;
-        std::vector<int> _DeadWireList;
+
 
         std::vector<double> recoEndPoints_x;
         std::vector<double> recoEndPoints_y;
@@ -128,14 +128,18 @@ namespace larcv {
         std::vector<double> _Trunc_dQdX3_v;
         std::vector<double> _IondivLength_v;
 
-        std::vector<std::vector<double>> _trackQ3_v;
-        std::vector<std::vector<double>> _trackQ5_v;
-        std::vector<std::vector<double>> _trackQ10_v;
-        std::vector<std::vector<double>> _trackQ20_v;
-        std::vector<std::vector<double>> _trackQ30_v;
-        std::vector<std::vector<double>> _trackQ50_v;
+        std::vector< std::vector<double> > _trackQ3_v;
+        std::vector< std::vector<double> > _trackQ5_v;
+        std::vector< std::vector<double> > _trackQ10_v;
+        std::vector< std::vector<double> > _trackQ20_v;
+        std::vector< std::vector<double> > _trackQ30_v;
+        std::vector< std::vector<double> > _trackQ50_v;
         std::vector< std::vector<double> > _TotalADCvalues_v;
         std::vector< std::vector<double> > _Angle_v;
+        std::vector< std::vector<double> > _DeadWireList;
+        std::vector<int> _DeadWireList_U;
+        std::vector<int> _DeadWireList_V;
+        std::vector<int> _DeadWireList_Y;
         std::vector<bool>   _Reco_goodness_v;
         std::vector<bool>  _track_Goodness_v;
         std::vector<larlite::event_track> _EventRecoVertices;

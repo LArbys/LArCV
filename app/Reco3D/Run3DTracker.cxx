@@ -145,7 +145,10 @@ namespace larcv {
         _recoTree->Branch("vertexPhi_15cm",&_vertexPhi_15cm);
         _recoTree->Branch("vertexTheta_15cm",&_vertexTheta_15cm);
         _recoTree->Branch("closestWall",&_closestWall);
-        _recoTree->Branch("deadWireList",&_DeadWireList);
+        _recoTree->Branch("DeadWireList_U",&_DeadWireList_U);
+        _recoTree->Branch("DeadWireList_V",&_DeadWireList_V);
+        _recoTree->Branch("DeadWireList_Y",&_DeadWireList_Y);
+
 
         _recoTree->Branch("recoEndPoints_x",&recoEndPoints_x);
         _recoTree->Branch("recoEndPoints_y",&recoEndPoints_y);
@@ -255,12 +258,13 @@ namespace larcv {
         std::vector<larcv::Image2D> Tagged_Image(3);
         std::vector<larcv::Image2D> Full_image_v(3);
 
-        double wireRange = 5000;
+        double wireRange[3] = {2500,2500,3500};
         double tickRange = 8502;
+        //double tickRange = 6000;
 
         // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
         for(size_t iPlane=0;iPlane<3;iPlane++){
-            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange,tickRange,(int)(tickRange)/6,(int)(wireRange),0,tickRange);
+            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange[iPlane],tickRange,(int)(tickRange)/6,(int)(wireRange[iPlane]),0,tickRange);
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             Tagged_Image[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
@@ -357,7 +361,9 @@ namespace larcv {
                 auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
+
                 tracker.ReconstructVertex();
+                
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
 
@@ -405,8 +411,16 @@ namespace larcv {
                 _IonY_10cm_v    = tracker.GetTotalIonization_Yplane(10);
                 _IonY_tot_v     = tracker.GetTotalIonization_Yplane();
 
-                if(_DeadWireList.size() !=0)_DeadWireList.clear();
                 _DeadWireList = tracker.GetDeadWireList();
+                for(size_t iwire = 0;iwire<_DeadWireList[0].size();iwire++){
+                    _DeadWireList_U.push_back((int)(_DeadWireList[0][iwire]));
+                }
+                for(size_t iwire = 0;iwire<_DeadWireList[1].size();iwire++){
+                    _DeadWireList_V.push_back((int)(_DeadWireList[1][iwire]));
+                }
+                for(size_t iwire = 0;iwire<_DeadWireList[2].size();iwire++){
+                    _DeadWireList_Y.push_back((int)(_DeadWireList[2][iwire]));
+                }
 
                 if(recoEndPoints.size() !=0)recoEndPoints.clear();
                 if(recoEndPoints_x.size() !=0)recoEndPoints_x.clear();
@@ -425,24 +439,24 @@ namespace larcv {
                     _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
                 }
                 _TotalADCvalues_v = tracker.GetTotalPixADC();
-                _Angle_v   = tracker.GetVertexAngle(2); // average over 2 cm to estimate the angles
-                _vertexPhi_2cm   = tracker.GetVertexPhi();
-                _vertexTheta_2cm = tracker.GetVertexTheta();
-                _Angle_v   = tracker.GetVertexAngle(5); // average over 5 cm to estimate the angles
-                _vertexPhi_5cm   = tracker.GetVertexPhi();
-                _vertexTheta_5cm = tracker.GetVertexTheta();
-                _Angle_v   = tracker.GetVertexAngle(7); // average over 7 cm to estimate the angles
-                _vertexPhi_7cm   = tracker.GetVertexPhi();
-                _vertexTheta_7cm = tracker.GetVertexTheta();
-                _Angle_v   = tracker.GetVertexAngle(10); // average over 10 cm to estimate the angles
+                _Angle_v          = tracker.GetVertexAngle(2); // average over 2 cm to estimate the angles
+                _vertexPhi_2cm    = tracker.GetVertexPhi();
+                _vertexTheta_2cm  = tracker.GetVertexTheta();
+                _Angle_v          = tracker.GetVertexAngle(5); // average over 5 cm to estimate the angles
+                _vertexPhi_5cm    = tracker.GetVertexPhi();
+                _vertexTheta_5cm  = tracker.GetVertexTheta();
+                _Angle_v          = tracker.GetVertexAngle(7); // average over 7 cm to estimate the angles
+                _vertexPhi_7cm    = tracker.GetVertexPhi();
+                _vertexTheta_7cm  = tracker.GetVertexTheta();
+                _Angle_v          = tracker.GetVertexAngle(10); // average over 10 cm to estimate the angles
                 _vertexPhi_10cm   = tracker.GetVertexPhi();
                 _vertexTheta_10cm = tracker.GetVertexTheta();
-                _Angle_v   = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
-                _vertexPhi   = tracker.GetVertexPhi();
-                _vertexTheta = tracker.GetVertexTheta();
+                _Angle_v          = tracker.GetVertexAngle(15); // average over 15 cm to estimate the angles
+                _vertexPhi        = tracker.GetVertexPhi();
+                _vertexTheta      = tracker.GetVertexTheta();
                 _vertexPhi_15cm   = tracker.GetVertexPhi();
                 _vertexTheta_15cm = tracker.GetVertexTheta();
-                _Reco_goodness_v = tracker.GetRecoGoodness();
+                _Reco_goodness_v  = tracker.GetRecoGoodness();
                 _track_Goodness_v = tracker.GetVtxQuality();
 
 
@@ -461,13 +475,21 @@ namespace larcv {
 
                 GoodVertex = false;
                 GoodVertex = tracker.IsGoodVertex();
-                //if(!_nothingReconstructed)tracker.DrawVertex();
+                //tracker.DrawVertexVertical();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
                 //----------------------
 
                 _recoTree->Fill();
+                /*std::cout << "_DeadWireList : " << std::endl;
+                for(int i=0;i<3;i++){
+                    for(int j=0;j<_DeadWireList[i].size();j++){
+                        std::cout << _DeadWireList[i][j] << " ";
+                    }
+                    std::cout << std::endl;
+                    std::cout << std::endl;
+                }*/
                 ClearVertex();
                 std::cout << std::endl << std::endl;
 
@@ -700,6 +722,7 @@ namespace larcv {
         _Length_v.clear();
         _Avg_Ion_v.clear();
         _Angle_v.clear();
+        _DeadWireList.clear();
         _Reco_goodness_v.clear();
         GoodVertex = -1.0*kINVALID_INT;
         _missingTrack = -1.0*kINVALID_INT;

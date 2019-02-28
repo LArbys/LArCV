@@ -648,7 +648,10 @@ namespace larcv {
         //fEventOutput = TFile::Open(Form("%s/cVertex_%05d_%05d_%05d_%03d.root",_outdir.c_str(),_run,_subrun,_event,_track),"RECREATE");
         std::vector<TVector3> thisvertex;
         thisvertex.push_back(start_pt);
+        MakeDeadWireList();
         CropFullImage2boundsIntegrated(thisvertex);
+        //DrawROI();
+        //MakeDeadWireList();
         //ShaveTracks();
         SetTrackInfo(_run, _subrun, _event, _track);
         ConstructVertex();
@@ -2234,6 +2237,7 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::DrawROI(){
+        std::cout << "DrawROI()" << std::endl;
         TH2D *hImage[3];
         TGraph *gStartNend[3];
         TGraph *gStart[3];
@@ -3492,6 +3496,31 @@ namespace larcv {
         return CropFullImage2bounds(_3DTrack);
     }
     //______________________________________________________
+    void AStarTracker::MakeDeadWireList(){
+        std::cout << "MakeDeadWireList()" << std::endl;
+        if(_deadWires_v.size()!=0){std::cout << "dead wires already acqured for this image" << std::endl;return;}
+        // find dead/bad wires and paint them with 20
+        for(size_t iPlane=0;iPlane<3;iPlane++){
+            std::vector<double> deadWires_oneplane;
+            for(size_t icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
+                int summedVal = 0;
+                for(size_t irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
+                    //std::cout << icol << "\t" << irow << "\t" << original_full_image_v[iPlane].pixel(irow,icol) << std::endl;
+                    if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
+                }
+                if(summedVal == 0){
+                    deadWires_oneplane.push_back(icol);
+                }
+                //else std::cout << "Active Wire!" << std::endl;
+            }
+            _deadWires_v.push_back(deadWires_oneplane);
+        }
+        std::cout << "_deadWires_v.size() = " << _deadWires_v.size() << std::endl;
+        for(size_t i=0;i<_deadWires_v.size();i++){
+            std::cout << "_deadWires_v[" << i << "].size() = " << _deadWires_v[i].size() << std::endl;
+        }
+    }
+    //______________________________________________________
     std::vector<larcv::Image2D> AStarTracker::CropFullImage2bounds(std::vector<TVector3> EndPoints){
         std::vector<larcv::ImageMeta> Full_meta_v(3);
         for(size_t iPlane = 0;iPlane<3;iPlane++){Full_meta_v[iPlane] = original_full_image_v[iPlane].meta();}
@@ -3501,21 +3530,26 @@ namespace larcv {
         std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
         std::vector<larcv::Image2D> data_images;
         std::vector<larcv::Image2D> tagged_images;
-        if(_deadWires_v.size()!=0){_deadWires_v.clear();}
-
+        //if(_deadWires_v.size()!=0){_deadWires_v.clear();}
         // find dead/bad wires and paint them with 20
         for(size_t iPlane=0;iPlane<3;iPlane++){
+            //std::vector<int> deadWires_oneplane;
             for(size_t icol = 0;icol<original_full_image_v[iPlane].meta().cols();icol++){
                 int summedVal = 0;
                 for(size_t irow = 0;irow<original_full_image_v[iPlane].meta().rows();irow++){
                     if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
-                    _deadWires_v.push_back(icol);
+                    //deadWires_oneplane.push_back(icol);
                     original_full_image_v[iPlane].paint_col(icol,_deadWireValue);
                 }
             }
+            //_deadWires_v.push_back(deadWires_oneplane);
         }
+        //std::cout << "_deadWires_v.size() = " << _deadWires_v.size() << std::endl;
+        //for(uint i=0;i<_deadWires_v.size();i++){
+        //    std::cout << "_deadWires_v[" << i << "].size() = " << _deadWires_v[i].size() << std::endl;
+        //}
         // make smaller image by inverting and cropping the full one
         for(size_t iPlane = 0;iPlane<3;iPlane++){
             double image_width  = 1.*(size_t)((wire_bounds[iPlane].second - wire_bounds[iPlane].first)*original_full_image_v[iPlane].meta().pixel_width());
@@ -3574,7 +3608,6 @@ namespace larcv {
         //std::vector<std::pair<double,double> > wire_bounds = GetWireBounds();
         std::vector<larcv::Image2D> data_images;
         std::vector<larcv::Image2D> tagged_images;
-        if(_deadWires_v.size()!=0){_deadWires_v.clear();}
 
         // find dead/bad wires and paint them with 20
         for(size_t iPlane=0;iPlane<3;iPlane++){
@@ -3584,7 +3617,6 @@ namespace larcv {
                     if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
-                    _deadWires_v.push_back(icol);
                     original_full_image_v[iPlane].paint_col(icol,_deadWireValue);
                 }
             }

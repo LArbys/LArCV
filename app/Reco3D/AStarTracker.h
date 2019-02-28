@@ -175,7 +175,7 @@ namespace larcv {
         std::vector<double> GetVertexLength();
         std::vector<double> GetClosestWall();
         std::vector<double> GetClosestWall_SCE();
-        std::vector< std::vector<double> > GetVertexAngle(double dAverage);
+
         std::vector<double> GetOldVertexAngle(double dAverage);
         std::vector<bool> GetRecoGoodness();
         std::vector<bool> GetVtxQuality();
@@ -207,7 +207,8 @@ namespace larcv {
         }
         std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
-        std::vector<int> GetDeadWireList(){return _deadWires_v;}
+        void MakeDeadWireList();
+
         std::vector<double>  GetAverageIonization(double distAvg = -1);// average pixel intensity over reconstructed points
         std::vector<double>  GetAverageIonization_Yplane(double distAvg = -1);// average Y plane pixel intensity over reconstructed points
         std::vector<double>  GetTotalIonization_Yplane(double distAvg = -1);// total Y plane plane pixel intensity over reconstructed points
@@ -217,10 +218,12 @@ namespace larcv {
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 
         std::vector< std::vector<int> >    _SelectableTracks;
+        std::vector< std::vector<double> > GetVertexAngle(double dAverage);
+        std::vector< std::vector<double> > GetDeadWireList(){return _deadWires_v;}
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();
-        std::vector< std::vector<double> >  GetTotalPixADC();
-        std::vector< std::vector<double> >  GetTotalPixADC(float tkLen);
+        std::vector< std::vector<double> > GetTotalPixADC();
+        std::vector< std::vector<double> > GetTotalPixADC(float tkLen);
 
         larlite::event_track GetReconstructedVertexTracks(){return _vertexLarliteTracks;}
 
@@ -284,7 +287,7 @@ namespace larcv {
         bool _DrawVertical;
         bool _DrawBlack;
 
-        std::vector<int> _deadWires_v;
+        std::vector<std::vector<double> > _deadWires_v;
         std::vector<bool> _tooShortDeadWire_v;
         std::vector<bool> _tooShortFaintTrack_v;
         std::vector<bool> _possiblyCrossing_v;
