@@ -207,6 +207,7 @@ namespace larcv {
         }
         std::vector<std::vector<TVector3> > GetVertexTracks(){return _vertexTracks;}
 
+        void ClearDeadWireList();
         void MakeDeadWireList();
 
         std::vector<double>  GetAverageIonization(double distAvg = -1);// average pixel intensity over reconstructed points

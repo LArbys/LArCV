@@ -145,9 +145,10 @@ namespace larcv {
         _recoTree->Branch("vertexPhi_15cm",&_vertexPhi_15cm);
         _recoTree->Branch("vertexTheta_15cm",&_vertexTheta_15cm);
         _recoTree->Branch("closestWall",&_closestWall);
-        _recoTree->Branch("DeadWireList_U",&_DeadWireList_U);
-        _recoTree->Branch("DeadWireList_V",&_DeadWireList_V);
-        _recoTree->Branch("DeadWireList_Y",&_DeadWireList_Y);
+
+        //_recoTree->Branch("DeadWireList_U",&_DeadWireList_U);
+        //_recoTree->Branch("DeadWireList_V",&_DeadWireList_V);
+        //_recoTree->Branch("DeadWireList_Y",&_DeadWireList_Y);
 
 
         _recoTree->Branch("recoEndPoints_x",&recoEndPoints_x);
@@ -339,7 +340,7 @@ namespace larcv {
         tracker.SetOriginalImage(Full_image_v);
         tracker.SetTaggedImage(Tagged_Image);
         tracker.SetTrackInfo(_run, _subrun, _event, 0);
-
+        tracker.ClearDeadWireList();
         std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
         ass_vertex_to_track_vv.resize(vertex_v.size());
 

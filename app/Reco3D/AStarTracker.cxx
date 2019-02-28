@@ -3496,6 +3496,10 @@ namespace larcv {
         return CropFullImage2bounds(_3DTrack);
     }
     //______________________________________________________
+    void AStarTracker::ClearDeadWireList(){
+        if(_deadWires_v.size()!=0)_deadWires_v.clear();
+    }
+    //______________________________________________________
     void AStarTracker::MakeDeadWireList(){
         std::cout << "MakeDeadWireList()" << std::endl;
         if(_deadWires_v.size()!=0){std::cout << "dead wires already acqured for this image" << std::endl;return;}
