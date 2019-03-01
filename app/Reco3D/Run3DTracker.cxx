@@ -150,6 +150,8 @@ namespace larcv {
         _recoTree->Branch("vertexTheta_17cm",&_vertexTheta_17cm);
         _recoTree->Branch("vertexPhi_20cm",&_vertexPhi_20cm);
         _recoTree->Branch("vertexTheta_20cm",&_vertexTheta_20cm);
+        _recoTree->Branch("vertexPhi_30cm",&_vertexPhi_30cm);
+        _recoTree->Branch("vertexTheta_30cm",&_vertexTheta_30cm);
         _recoTree->Branch("closestWall",&_closestWall);
 
         //_recoTree->Branch("DeadWireList_U",&_DeadWireList_U);
@@ -467,6 +469,9 @@ namespace larcv {
                 _Angle_v          = tracker.GetVertexAngle(20,2); // average over 10 cm to estimate the angles
                 _vertexPhi_20cm   = tracker.GetVertexPhi();
                 _vertexTheta_20cm = tracker.GetVertexTheta();
+                _Angle_v          = tracker.GetVertexAngle(30,2); // average over 10 cm to estimate the angles
+                _vertexPhi_30cm   = tracker.GetVertexPhi();
+                _vertexTheta_30cm = tracker.GetVertexTheta();
                 _Angle_v          = tracker.GetVertexAngle(15,2); // average over 15 cm to estimate the angles
                 _vertexPhi        = tracker.GetVertexPhi();
                 _vertexTheta      = tracker.GetVertexTheta();

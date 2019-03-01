@@ -115,6 +115,8 @@ namespace larcv {
         std::vector<double> _vertexTheta_17cm;
         std::vector<double> _vertexPhi_20cm;
         std::vector<double> _vertexTheta_20cm;
+        std::vector<double> _vertexPhi_30cm;
+        std::vector<double> _vertexTheta_30cm;
         std::vector<double> _closestWall;
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
