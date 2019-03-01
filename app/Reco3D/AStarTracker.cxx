@@ -847,7 +847,7 @@ namespace larcv {
         }
 
         // Find if tracks are back to back at the vertex point
-        std::vector<std::vector<double> > Angle_v = GetVertexAngle(15);
+        std::vector<std::vector<double> > Angle_v = GetVertexAngle(15,0);
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             for(size_t jtrack = 0;jtrack<_vertexTracks.size();jtrack++){
                 if(Angle_v[itrack][jtrack] > 170)_possibleCosmic=true;
@@ -3186,8 +3186,8 @@ namespace larcv {
     }
 
     //______________________________________________________
-    std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 5){
-        tellMe(Form("GetVertexAngle(%.1f)",dAverage),0);
+    std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 15, double dMin = 0){
+        tellMe(Form("GetVertexAngle(%.1f,%.1f)",dAverage,dMin),0);
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
@@ -3203,7 +3203,7 @@ namespace larcv {
                 TVector3 AvPt;
                 NpointAveragedOn = 0;
                 for(size_t iNode=1;iNode<_vertexTracks[itrack].size();iNode++){
-                    if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < dAverage ){
+                    if( (_vertexTracks[itrack][iNode]-start_pt).Mag() < dAverage  && (_vertexTracks[itrack][iNode]-start_pt).Mag() > dMin ){
                         AvPt+=(_vertexTracks[itrack][iNode]-start_pt);
                         NpointAveragedOn++;
                     }

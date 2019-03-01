@@ -219,7 +219,7 @@ namespace larcv {
         std::vector<double>  GetVertexTheta(){return _vertexTheta;}
 
         std::vector< std::vector<int> >    _SelectableTracks;
-        std::vector< std::vector<double> > GetVertexAngle(double dAverage);
+        std::vector< std::vector<double> > GetVertexAngle(double dAverage, double dMin);
         std::vector< std::vector<double> > GetDeadWireList(){return _deadWires_v;}
         std::vector< std::vector<double> > GetdQdx(){return _dQdx;}
         std::vector< std::vector<double> > GetEnergies();

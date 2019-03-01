@@ -107,9 +107,14 @@ namespace larcv {
         std::vector<double> _vertexTheta_7cm;
         std::vector<double> _vertexPhi_10cm;
         std::vector<double> _vertexTheta_10cm;
+        std::vector<double> _vertexPhi_12cm;
+        std::vector<double> _vertexTheta_12cm;
         std::vector<double> _vertexPhi_15cm;// same as simply _vertexPhi, I just wanted to make the distance averaged on explicit
         std::vector<double> _vertexTheta_15cm;// same as simply _vertexTheta, I just wanted to make the distance averaged on explicit
-
+        std::vector<double> _vertexPhi_17cm;
+        std::vector<double> _vertexTheta_17cm;
+        std::vector<double> _vertexPhi_20cm;
+        std::vector<double> _vertexTheta_20cm;
         std::vector<double> _closestWall;
         std::vector<double> _Ion_5cm_v;
         std::vector<double> _Ion_10cm_v;
