@@ -381,7 +381,7 @@ namespace larcv {
                     tracker.ReconstructVertex();
                     GoodVertex = tracker.IsGoodVertex();
                     Ntrials++;
-                    std::cout << "trial #" << Ntrials << "/5" << std::end;
+                    std::cout << "trial #" << Ntrials << "/5" << std::endl;
                     if(GoodVertex || Ntrials == 5)break;
                 }
                 
