@@ -74,7 +74,8 @@ namespace larcv {
         tracker.SetOutputDir(out_dir);
         tracker.SetSplineFile(_spline_file);
         tracker.initialize();
-        tracker.SetMinLength(3);
+        tracker.SetRandomSeed(100);
+        tracker.SetMinLength(3);//cm
         tracker.SetVerbose(0);
 
         std::string filename;
@@ -93,6 +94,7 @@ namespace larcv {
         _recoTree->Branch("vtx_y" , &_vtx_y , "vtx_y/F");
         _recoTree->Branch("vtx_z" , &_vtx_z , "vtx_z/F");
 
+        _recoTree->Branch("randomSeed",&randomSeed);
         _recoTree->Branch("trk_id_v", &_trk_id_v);
         _recoTree->Branch("NtracksReco",&NtracksReco);
 
@@ -371,7 +373,17 @@ namespace larcv {
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
 
-                tracker.ReconstructVertex();
+                int Ntrials = 0;
+                GoodVertex = false;
+                while(GoodVertex == false && Ntrials < 5){
+                    GoodVertex = false;
+                    tracker.SetRandomSeed(Ntrials+1);
+                    tracker.ReconstructVertex();
+                    GoodVertex = tracker.IsGoodVertex();
+                    Ntrials++;
+                    std::cout << "trial #" << Ntrials << "/5" << std::end;
+                    if(GoodVertex || Ntrials == 5)break;
+                }
                 
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
@@ -494,8 +506,7 @@ namespace larcv {
 
                 _RecoVertex = vertex_v.at(ivertex);
 
-                GoodVertex = false;
-                GoodVertex = tracker.IsGoodVertex();
+                randomSeed = tracker.GetRandomSeed();
                 //tracker.DrawVertexVertical();
 
                 //______________________

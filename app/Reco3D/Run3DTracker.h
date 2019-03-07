@@ -81,6 +81,7 @@ namespace larcv {
         int _nentry;
         int _entry;
         int _Nreco;
+        int randomSeed;
 
         int _vtx_id;
         int NvertexSubmitted;

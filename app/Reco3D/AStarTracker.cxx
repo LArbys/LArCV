@@ -882,8 +882,6 @@ namespace larcv {
         tellMe("DiagnoseTrack",0);
 
         // find events for which the track is too small because of dead wires || ends on dead wires
-        TRandom3 *ran = new TRandom3();
-        ran->SetSeed(0);
         double x,y,z;
         double radiusSphere = 3;
         double NrandomPts = 100*radiusSphere*radiusSphere;
@@ -907,7 +905,7 @@ namespace larcv {
         AveragePoint+=oldEndPoint;
 
         for(size_t i=0;i<NrandomPts;i++){
-            ran->Sphere(x,y,z,radiusSphere);
+            ran.Sphere(x,y,z,radiusSphere);
             newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
             if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
             NpointsEvaluate++;
@@ -997,8 +995,6 @@ namespace larcv {
         bool foundNewPoint = true;
         bool terminate = false;
         std::vector<TVector3> list3D;
-        TRandom3 ran;
-        ran.SetSeed(0);
         double x,y,z;
         int Ncrop=0;
         double rmax = 6;
@@ -1768,10 +1764,8 @@ namespace larcv {
             if(NaveragePts!=0){AveragePoint*=1./NaveragePts;}
             AveragePoint+=oldEndPoint;
             double x,y,z;
-            TRandom3 *ran = new TRandom3();
-            ran->SetSeed(0);
             for(size_t i=0;i<500;i++){
-                ran->Sphere(x,y,z,3);
+                ran.Sphere(x,y,z,3);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
                 thisTrackEndPoint.push_back(newPoint);
@@ -1783,7 +1777,7 @@ namespace larcv {
                     for(size_t i=0;i<Niter;i++){
                         double r = 4+(50./Niter)*i;
                         for(size_t j=0;j<Niter;j++){
-                            ran->Sphere(x,y,z,r);
+                            ran.Sphere(x,y,z,r);
                             newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                             if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.99 )continue;
                             thisTrackEndPoint.push_back(newPoint);
@@ -1963,10 +1957,9 @@ namespace larcv {
             if(NaveragePts!=0){AveragePoint*=1./NaveragePts;}
             AveragePoint+=oldEndPoint;
             double x,y,z;
-            TRandom3 *ran = new TRandom3();
-            ran->SetSeed(0);
+
             for(size_t i=0;i<500;i++){
-                ran->Sphere(x,y,z,3);
+                ran.Sphere(x,y,z,3);
                 newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                 if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.8 )continue;
                 thisTrackEndPoint.push_back(newPoint);
@@ -1978,7 +1971,7 @@ namespace larcv {
                     for(size_t i=0;i<Niter;i++){
                         double r = 4+(50./Niter)*i;
                         for(size_t j=0;j<Niter;j++){
-                            ran->Sphere(x,y,z,r);
+                            ran.Sphere(x,y,z,r);
                             newPoint.SetXYZ(oldEndPoint.X()+x,oldEndPoint.Y()+y,oldEndPoint.Z()+z);
                             if( (oldEndPoint-AveragePoint).Dot(newPoint-oldEndPoint)/( (oldEndPoint-AveragePoint).Mag()*(newPoint-oldEndPoint).Mag() ) < 0.99 )continue;
                             thisTrackEndPoint.push_back(newPoint);
@@ -2648,6 +2641,8 @@ namespace larcv {
         time_bounds.reserve(3);
         wire_bounds.reserve(3);
         hit_image_v.reserve(3);
+        randomSeed = 1;
+        ran.SetSeed(randomSeed);
         _MinLength = 3;
         if(_DrawOutputs){
             hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
@@ -2660,7 +2655,6 @@ namespace larcv {
             hdQdX2D = new TH2D("hdQdX2D","hdQdX2D",200,0,100,300,0,300);
         }
         WorldInitialization();
-        std::cout << "world initialized" << std::endl;
         return true;
     }
     //______________________________________________________
@@ -3187,7 +3181,7 @@ namespace larcv {
 
     //______________________________________________________
     std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 15, double dMin = 0){
-        tellMe(Form("GetVertexAngle(%.1f,%.1f)",dAverage,dMin),0);
+        //tellMe(Form("GetVertexAngle(%.1f,%.1f)",dAverage,dMin),0);
         int NtracksAtVertex = 0;
         int NpointAveragedOn = 0;
         std::vector<TVector3> AvPt_v;
@@ -3247,7 +3241,7 @@ namespace larcv {
                 //if(iPt==jPt){thisAngle=0;thisTrackAngles.push_back(thisAngle);}
                 thisAngle = (AvPt_v[iPt]-start_pt).Angle(AvPt_v[jPt]-start_pt)*180/3.1415;
                 thisTrackAngles.push_back(thisAngle);
-                tellMe(Form("%zu : %zu => %.1f",iPt,jPt,thisAngle),0);
+                //tellMe(Form("%zu : %zu => %.1f",iPt,jPt,thisAngle),0);
             }
             vertexAngles_v.push_back(thisTrackAngles);
         }
@@ -3708,7 +3702,6 @@ namespace larcv {
     //-------------------------------------------------------
     void AStarTracker::RecoverFromFail(){
         tellMe("RecoverFromFail()",0);
-        TRandom3 *ran = new TRandom3();
         double x,y,z;
         double recoveredvalue = _deadWireValue+100;
         bool recoverFromFaint = false;

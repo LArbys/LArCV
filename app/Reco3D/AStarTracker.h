@@ -31,6 +31,7 @@
 #include "TGraph2D.h"
 #include "TGraph.h"
 #include "TFile.h"
+#include "TRandom3.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
 //#include "larcv/app/LArOpenCVHandle/LArbysUtils.h"
@@ -155,6 +156,7 @@ namespace larcv {
         void FillInTrack();
         void SetMinLength(double MinLength){_MinLength = MinLength;}
         void DrawVertex3D();
+        void SetRandomSeed(int this_seed){randomSeed = this_seed;}
 
         bool initialize();
         bool finalize();
@@ -166,8 +168,10 @@ namespace larcv {
         bool CheckEndPoints(std::vector< std::pair<int,int> > endPix);
         bool IsTrackIn(std::vector<TVector3> trackA, std::vector<TVector3> trackB);
 
-        int  GetCompressionFactorTime(){return _compressionFactor_t;}
-        int  GetCompressionFactorWire(){return _compressionFactor_w;}
+        int GetCompressionFactorTime(){return _compressionFactor_t;}
+        int GetCompressionFactorWire(){return _compressionFactor_w;}
+        int GetRandomSeed(){return randomSeed;}
+
 
         double EvalMinDist(TVector3 point);
         double EvalMinDist(TVector3 point, std::vector< std::pair<int,int> > endPix);
@@ -267,6 +271,7 @@ namespace larcv {
         int _deadWireValue;
         int failedPlane;
         int NumberRecoveries;
+        int randomSeed;
 
         double _ADCthreshold;
         double _speedOffset;
@@ -342,6 +347,7 @@ namespace larcv {
         TSpline3 *sMuonT2dEdx;
         TSpline3 *sProtonRange2T;
         TSpline3 *sProtonT2dEdx;
+        TRandom3 ran;
 
         TGraph   *gdQdXperPlane[3];
 
