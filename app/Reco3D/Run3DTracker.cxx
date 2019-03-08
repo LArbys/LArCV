@@ -377,15 +377,15 @@ namespace larcv {
 
                 int Ntrials = 0;
                 GoodVertex = false;
-                //while(GoodVertex == false && Ntrials < 5){
-                    //GoodVertex = false;
+                while(GoodVertex == false && Ntrials < 5){
+                    GoodVertex = false;
                     tracker.SetRandomSeed(Ntrials+1);
                     tracker.ReconstructVertex();
                     GoodVertex = tracker.IsGoodVertex();
                     Ntrials++;
                     std::cout << "trial #" << Ntrials << "/5 GoodVertex = " << GoodVertex << std::endl;
-                    //if(GoodVertex || Ntrials == 5)break;
-                //}
+                    if(GoodVertex || Ntrials == 5)break;
+                }
                 
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
