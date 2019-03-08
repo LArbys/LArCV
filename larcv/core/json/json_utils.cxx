@@ -8,13 +8,26 @@ namespace larcv {
      * create a json object from an image2d object
      *
      */
-    json as_json( const larcv::Image2D& img ) {
+    json as_json( const larcv::Image2D& img, int run, int subrun, int event, int id ) {
 
-      // we stuff 
+      // we stuff the data into json format.
+      // we provide optional run,subrun,event,id
+      // to help track if the images coming back
+      //  are the ones we sent for the event
+      //
+      // sometimes if we a client sends out a job, gets disconnet and resends the job,
+      // it can get replies from the worker twice which can
+      // cause ssnet jobs from going out of sync
+      std::vector<int> rseid(5);
+      rseid[0] = run;
+      rseid[1] = subrun;
+      rseid[2] = event;
+      rseid[3] = id;
       
       json j;
-      j["meta"] = as_json( img.meta() );
-      j["data"] = img.as_vector();
+      j["meta"]  = as_json( img.meta() );
+      j["data"]  = img.as_vector();
+      j["rseid"] = rseid;
       return j;
     }
 
@@ -43,8 +56,9 @@ namespace larcv {
      * @param[in] img Image2D to be serialized
      * @return vector<uint8_t> binary vector containing serialized img
      */
-    std::vector<std::uint8_t> as_bson( const larcv::Image2D& img ) {
-      return json::to_bson( as_json(img) );
+    std::vector<std::uint8_t> as_bson( const larcv::Image2D& img,
+                                       int run, int subrun, int event, int id) {
+      return json::to_bson( as_json(img,run,subrun,event,id) );
     }
 
     /*
@@ -53,8 +67,9 @@ namespace larcv {
      * @param[in] img Image2D to be serialized
      * @return std::string in JSON format
      */
-    std::string as_json_str( const larcv::Image2D& img ) {
-      return as_json(img).dump();
+    std::string as_json_str( const larcv::Image2D& img,
+                             int run, int subrun, int event, int id ) {
+      return as_json(img,run,subrun,event,id).dump();
     }
     
     /**
@@ -65,6 +80,18 @@ namespace larcv {
       larcv::ImageMeta meta = imagemeta_from_json( j["meta"] );
       larcv::Image2D img2d( meta, j["data"].get<std::vector<float>>() );
       return img2d;
+    }
+
+    /**
+     * get run, subrun, event, id from json
+     *
+     */
+    void rseid_from_json( const json& j,
+                          int& run, int& subrun, int& event, int& id ) {
+      run    = j["run"].get<int>();
+      subrun = j["subrun"].get<int>();
+      event  = j["event"].get<int>();
+      id     = j["id"].get<int>();      
     }
 
 
@@ -230,6 +257,20 @@ namespace larcv {
       return img2d;
     }
 
+    /**
+     * convert bson into json.
+     *
+     * providing wrapper in order to include into python
+     *
+     * @param[in] bson binary data in a vector<uint8_t>
+     *
+     * return json object
+     *
+     */
+    json json_from_bson( const std::vector<std::uint8_t>& bson ) {
+      return json::from_bson(bson);
+    }
+
 #ifdef HASPYUTIL
     PyObject* as_pystring( const larcv::Image2D& img ) {
       std::vector<std::uint8_t> b_v = as_bson( img );
@@ -245,6 +286,21 @@ namespace larcv {
       memcpy( b_v.data(), (unsigned char*)PyString_AsString(str), sizeof(unsigned char)*len );
       
       return image2d_from_bson( b_v );
+    }
+
+    larcv::Image2D image2d_from_pystring( PyObject* str,
+                                          int& run, int& subrun, int& event, int& id ) {
+      if ( PyString_Check( str )==0 ) {
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyString object" );
+      }
+      size_t len = PyString_Size(str);
+      std::vector<std::uint8_t> b_v(len,0);
+      memcpy( b_v.data(), (unsigned char*)PyString_AsString(str), sizeof(unsigned char)*len );
+
+      json data = json::from_bson(b_v);
+      rseid_from_json( data, run, subrun, event, id );
+      
+      return image2d_from_json( data );
     }
 #endif
 
