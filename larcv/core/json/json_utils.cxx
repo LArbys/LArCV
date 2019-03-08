@@ -18,7 +18,7 @@ namespace larcv {
       // sometimes if we a client sends out a job, gets disconnet and resends the job,
       // it can get replies from the worker twice which can
       // cause ssnet jobs from going out of sync
-      std::vector<int> rseid(5);
+      std::vector<int> rseid(4);
       rseid[0] = run;
       rseid[1] = subrun;
       rseid[2] = event;
@@ -88,10 +88,11 @@ namespace larcv {
      */
     void rseid_from_json( const json& j,
                           int& run, int& subrun, int& event, int& id ) {
-      run    = j["run"].get<int>();
-      subrun = j["subrun"].get<int>();
-      event  = j["event"].get<int>();
-      id     = j["id"].get<int>();      
+      std::vector<int> rseid = j["rseid"].get< std::vector<int> >();
+      run    = rseid[0];
+      subrun = rseid[1];
+      event  = rseid[2];
+      id     = rseid[3];
     }
 
 
