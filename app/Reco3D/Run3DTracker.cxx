@@ -136,6 +136,7 @@ namespace larcv {
         _recoTree->Branch("RecoVertex",&_RecoVertex);
         _recoTree->Branch("vertexPhi",&_vertexPhi);
         _recoTree->Branch("vertexTheta",&_vertexTheta);
+
         _recoTree->Branch("vertexPhi_2cm",&_vertexPhi_2cm);
         _recoTree->Branch("vertexTheta_2cm",&_vertexTheta_2cm);
         _recoTree->Branch("vertexPhi_5cm",&_vertexPhi_5cm);
@@ -154,6 +155,7 @@ namespace larcv {
         _recoTree->Branch("vertexTheta_20cm",&_vertexTheta_20cm);
         _recoTree->Branch("vertexPhi_30cm",&_vertexPhi_30cm);
         _recoTree->Branch("vertexTheta_30cm",&_vertexTheta_30cm);
+
         _recoTree->Branch("closestWall",&_closestWall);
 
         //_recoTree->Branch("DeadWireList_U",&_DeadWireList_U);
@@ -218,7 +220,7 @@ namespace larcv {
 
         TVector3 vertex(-1,-1,-1);
 
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer); // for BNB 5e19, comment when EXTBNB
+        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer);
         _run    = (int) ev_pgraph_v->run();
         _subrun = (int) ev_pgraph_v->subrun();
         _event  = (int) ev_pgraph_v->event();
@@ -375,15 +377,15 @@ namespace larcv {
 
                 int Ntrials = 0;
                 GoodVertex = false;
-                while(GoodVertex == false && Ntrials < 5){
-                    GoodVertex = false;
+                //while(GoodVertex == false && Ntrials < 5){
+                    //GoodVertex = false;
                     tracker.SetRandomSeed(Ntrials+1);
                     tracker.ReconstructVertex();
                     GoodVertex = tracker.IsGoodVertex();
                     Ntrials++;
-                    std::cout << "trial #" << Ntrials << "/5" << std::endl;
-                    if(GoodVertex || Ntrials == 5)break;
-                }
+                    std::cout << "trial #" << Ntrials << "/5 GoodVertex = " << GoodVertex << std::endl;
+                    //if(GoodVertex || Ntrials == 5)break;
+                //}
                 
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
@@ -578,14 +580,13 @@ namespace larcv {
     void Run3DTracker::finalize()
     {
         tracker.finalize();
-        std::cout << "finalized tracker" << std::endl;
 
         if(has_ana_file()) {
             ana_file().cd();
             _recoTree->Write();
         }
         _storage.close();
-
+        std::cout << "finalized tracker" << std::endl;
     }
 
     void Run3DTracker::SetSplineLocation(const std::string& fpath) {

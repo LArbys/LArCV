@@ -925,9 +925,9 @@ namespace larcv {
             fractionSphereTrack[iPlane]*=100./NpointsEvaluate;
             fractionSphereEmpty[iPlane]*=100./NpointsEvaluate;
             fractionSphereDead[iPlane ]*=100./NpointsEvaluate;
-            std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << "% on track" << std::endl;
+            /*std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereTrack[iPlane] << "% on track" << std::endl;
             std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereEmpty[iPlane] << "% on empty" << std::endl;
-            std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane ]  << "% on dead" << std::endl;
+            std::cout << "track : " << itrack << ", plane : " << iPlane << " : " << fractionSphereDead[iPlane ]  << "% on dead" << std::endl;*/
             if(fractionSphereDead[iPlane]  > 40){NplanesDead++;PlaneDead[iPlane]=true;}
             else{PlaneDead[iPlane]=false;}
 
@@ -2403,14 +2403,14 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ComputeLength(){
-        tellMe("ComputeLength()",0);
+        //tellMe("ComputeLength()",0);
         _Length3D = 0;
         if(_3DTrack.size()>2){
             for(size_t iNode = 0;iNode<_3DTrack.size()-1;iNode++){
                 _Length3D+=(_3DTrack[iNode+1]-_3DTrack[iNode]).Mag();
             }
         }
-        tellMe(Form("%.1f cm",_Length3D),0);
+        tellMe(Form("ComputeLength() : %.1f cm",_Length3D),0);
 
     }
     //______________________________________________________
