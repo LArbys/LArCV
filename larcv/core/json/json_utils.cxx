@@ -23,7 +23,7 @@ namespace larcv {
       rseid[1] = subrun;
       rseid[2] = event;
       rseid[3] = id;
-      
+
       json j;
       j["meta"]  = as_json( img.meta() );
       j["data"]  = img.as_vector();
@@ -31,7 +31,7 @@ namespace larcv {
       return j;
     }
 
-    /** 
+    /**
      * create a json object from an imagemeta object
      *
      */
@@ -71,7 +71,7 @@ namespace larcv {
                              int run, int subrun, int event, int id ) {
       return as_json(img,run,subrun,event,id).dump();
     }
-    
+
     /**
      * create image2d from json
      *
@@ -98,8 +98,8 @@ namespace larcv {
 
     /**
      * create imagemeta from json
-     * 
-     * 
+     *
+     *
      */
     larcv::ImageMeta imagemeta_from_json( const json& j ) {
       larcv::ImageMeta meta( (j["max_x"].get<double>() - j["min_x"].get<double>()),
@@ -127,15 +127,15 @@ namespace larcv {
       return image2d_from_json( json::parse(s) );
     }
 
-    /* 
+    /*
      * create a json object for an image2d represented as a pixel list
      *
-     * the pixel list is stored in a single 1D vector<float> 
+     * the pixel list is stored in a single 1D vector<float>
      *  which stores 3 numbers for each pixel: (row,col,value)
-     * 
+     *
      * @param[in] img Image2D to convert
      * @param[in] pixels with value>threshold are stored in the list
-     * return json object with keys "meta" and "data" 
+     * return json object with keys "meta" and "data"
      */
     json as_json_pixelarray( const larcv::Image2D& img, const float threshold ) {
       json j;
@@ -158,16 +158,16 @@ namespace larcv {
       return j;
     }
 
-    /* 
+    /*
      * create a json object stored as pixel list, chosing pixels with values from another image.
      *
-     * the pixel list is stored in a single 1D vector<float> 
+     * the pixel list is stored in a single 1D vector<float>
      *  which stores 3 numbers for each pixel: (row,col,value)
-     * 
+     *
      * @param[in] img Image2D to convert
      * @param[in] selectimg Image2D with which we do the selection
      * @param[in] pixels with value>threshold are stored in the list
-     * return json object with keys "meta" and "data" 
+     * return json object with keys "meta" and "data"
      */
     json as_json_pixelarray_withselection( const larcv::Image2D& img,
                                            const larcv::Image2D& selectimg, float threshold ) {
@@ -182,7 +182,7 @@ namespace larcv {
       }
       json j;
       j["meta"] = as_json( img.meta() );
-	
+
       std::vector< float > pixelarray;
       pixelarray.reserve( img.as_vector().size() );
       for ( size_t c=0; c<img.meta().cols(); c++ ) {
@@ -273,11 +273,12 @@ namespace larcv {
     }
 
 #ifdef HASPYUTIL
-    PyObject* as_pystring( const larcv::Image2D& img ) {
-      std::vector<std::uint8_t> b_v = as_bson( img );
-      return larcv::as_pystring( b_v );
+    PyObject* as_pystring( const larcv::Image2D& img,
+      int run, int subrun, int event, int id ) {
+      std::vector<std::uint8_t> b_v = as_bson( img, run, subrun, event, id );
+      return larcv::as_pystring( b_v ); //from pyutils
     }
-    
+
     larcv::Image2D image2d_from_pystring( PyObject* str ) {
       if ( PyString_Check( str )==0 ) {
         logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyString object" );
@@ -285,7 +286,7 @@ namespace larcv {
       size_t len = PyString_Size(str);
       std::vector<std::uint8_t> b_v(len,0);
       memcpy( b_v.data(), (unsigned char*)PyString_AsString(str), sizeof(unsigned char)*len );
-      
+
       return image2d_from_bson( b_v );
     }
 
@@ -300,7 +301,7 @@ namespace larcv {
 
       json data = json::from_bson(b_v);
       rseid_from_json( data, run, subrun, event, id );
-      
+
       return image2d_from_json( data );
     }
 #endif
