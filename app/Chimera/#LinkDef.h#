@@ -1,0 +1,15 @@
+#ifdef __CINT__
+#pragma link off all globals;
+#pragma link off all classes;
+#pragma link off all functions;
+
+
+
+
+//#pragma link C++ class larcv::ReadRuiFile+;
+#pragma link C++ class larcv::ReadJarrettFile+;
+#pragma link C++ class larcv::ReadNueFile+;
+#pragma link C++ class larcv::Run3DTracker+;
+#pragma link C++ class larcv::TrackerEventDisplay+;
+
+#endif
