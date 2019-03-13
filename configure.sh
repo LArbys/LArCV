@@ -121,6 +121,9 @@ printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
 [[ ":$LD_LIBRARY_PATH:" != *":${LARCV_LIBDIR}/bin:"* ]] && export LD_LIBRARY_PATH="${LARCV_LIBDIR}:${LD_LIBRARY_PATH}"
 [[ ":$DYLD_LIBRARY_PATH:" != *":${LARCV_LIBDIR}/bin:"* ]] && export DYLD_LIBRARY_PATH="${LARCV_LIBDIR}:${DYLD_LIBRARY_PATH}"
 
+# put the rgb viewer into the path
+[[ ":$PATH:" != *":${LARCV_BASEDIR}/mac:"* ]] && export PATH="${LARCV_BASEDIR}/mac:${PATH}"
+
 # paths if using OPENCV (NO_OPENCV to explicitly disallow)
 if [[ -z $LARCV_NOOPENCV ]]; then
     [[ ":$LD_LIBRARY_PATH:" != *":${OPENCV_LIBDIR}/bin:"* ]] && export LD_LIBRARY_PATH="${OPENCV_LIBDIR}:${LD_LIBRARY_PATH}"
@@ -132,7 +135,7 @@ mkdir -p $LARCV_LIBDIR;
 mkdir -p $LARCV_BINDIR;
 
 # add to python path
-[[ ":$PYTHONPATH:" != *":${LARCV_BASEDIR}/python:"* ]] && export PYTHONPATH="${LARCV_BASEDIR}/python:${PATH}"
+[[ ":$PYTHONPATH:" != *":${LARCV_BASEDIR}/python:"* ]] && export PYTHONPATH="${LARCV_BASEDIR}/python:${PYTHONPATH}"
 
 echo
 echo "Finish configuration. To build, type:"
