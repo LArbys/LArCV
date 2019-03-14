@@ -425,7 +425,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    * @return numpy array with shape (N,2+M) where M=images given, N=pixels above threshold in one image
    *
    */
-  PyObject* as_union_pixelarray( const std::vector<larcv::Image2D*> pimg_v,
+  PyObject* as_union_pixelarray( const std::vector<const larcv::Image2D*> pimg_v,
                                  const float threshold,
                                  larcv::msg::Level_t verbosity ) {
     SetPyUtil();
@@ -533,7 +533,26 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     
     return (PyObject*)array;
   }
-  
+
+  /**
+   * wrapper for as_union_pixelarray with vector. for ease of use in python.
+   *
+   * @param[in] img1 first input image
+   * @param[in] img2 second input image
+   * @param[in] threshold pixel value for at least one image, must be greater than or equal to threshold to be included
+   * @param[in] verbosity level of verbosity for function
+   * @return numpy array with shape (N,2+M) where M=images given, N=pixels above threshold in one image
+   *
+   */
+  PyObject* as_union_pixelarray( const larcv::Image2D& img1, const larcv::Image2D& img2,
+                                 const float threshold,
+                                 larcv::msg::Level_t verbosity ) {
+    std::vector< const larcv::Image2D* > img_v;
+    img_v.push_back( &img1 );
+    img_v.push_back( &img2 );
+    return as_union_pixelarray( img_v, threshold, verbosity );
+  }
+
 }
 
 #endif

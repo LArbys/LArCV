@@ -56,6 +56,15 @@ namespace larcv {
                                           const float threshold, bool selectifabove=true,
                                           larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
   
+  PyObject* as_union_pixelarray( const std::vector<const larcv::Image2D*> pimg_v,
+                                 const float threshold,
+                                 larcv::msg::Level_t verbosity );
+
+  PyObject* as_union_pixelarray( const larcv::Image2D& img1, const larcv::Image2D& img2,
+                                 const float threshold,
+                                 larcv::msg::Level_t verbosity );
+
+  
 }
 
 #endif
