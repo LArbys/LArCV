@@ -733,7 +733,25 @@ namespace larcv {
     ProducerID_t pid = producer_id( type, producer );
     _clear_id_bool[pid] = false;
   }
-  
+
+  /**
+   * specify a data type and producername to be read. 
+   *
+   * if at least one defined, then these are only the 
+   * data products read from the file. rest ignored.
+   * if this never set, then by default, we read all 
+   * trees from the file
+   *
+   * @param[in] type ProductType_t number
+   * @param[in] string Name of producer (in otherwords, the tree name in the file)
+   *
+   * effect is to modify _read_only_type and _read_only_name
+   */
+  void IOManager::specify_data_read( const ProductType_t type,
+                                     const std::string& producername ) {
+    _read_only_name.push_back( producername );
+    _read_only_type.push_back( type );
+  }
 
 }
 #endif
