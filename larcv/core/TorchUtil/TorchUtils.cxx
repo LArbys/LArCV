@@ -51,7 +51,7 @@ namespace larcv {
       
       larcv::Image2D out( meta );
       std::vector<float> vec = out.move();
-      memcpy( vec.data(), ten.reshape( {meta.rows(),meta.cols()} ).data_ptr(), sizeof(float)*meta.rows()*meta.cols() );
+      memcpy( vec.data(), ten.reshape( {(int)meta.rows(),(int)meta.cols()} ).data_ptr(), sizeof(float)*meta.rows()*meta.cols() );
       out.move( std::move(vec) );
       
       return out;

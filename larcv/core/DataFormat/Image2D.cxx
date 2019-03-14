@@ -120,6 +120,34 @@ namespace larcv {
       throw larbys("Not enough pixel in source!");
   }
 
+  void Image2D::forward_copy(size_t row, size_t col, const std::vector<float>& src, size_t nskip, size_t num_pixel) 
+  {
+
+    size_t idx = 0;
+    if ( num_pixel==0 )
+      num_pixel = src.size();
+
+    try{
+      idx = _meta.index(row,col);
+    }catch(const larbys& err){
+      std::cout << "Exception caught @ " << __FUNCTION__ << std::endl
+		<< "Image2D ... fill row: "<<row<<" => "<<(row+num_pixel)<<std::endl
+		<< "Image2D ... orig idx: "<<nskip<<" => "<<nskip+num_pixel-1<<std::endl
+		<< "meta range: " << meta().dump()
+		<< "what: " << err.what()
+		<< "Re-throwing exception..."<<std::endl; 
+      throw err;
+    }
+    try {
+      for(size_t i=0; i<num_pixel; ++i) { _img[idx+i] = src[nskip+i]; }
+    }
+    catch(const std::exception& e ) {
+      std::stringstream ss;
+      ss << "Error filling image: " << e.what() << std::endl;
+      throw larbys(ss.str());
+    }
+  }
+
   void Image2D::copy(size_t row, size_t col, const short* src, size_t num_pixel) 
   {
     const size_t idx = _meta.index(row,col);
