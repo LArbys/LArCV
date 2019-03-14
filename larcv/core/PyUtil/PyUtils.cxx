@@ -265,6 +265,10 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
   /**
    * convert std::image2d into list of pixel coordinates and values
    *
+   * @param[in] img Input image from which to take values
+   * @param[in] threshold pixel value must be greater than or equal to threshold to be included
+   * @param[in] verbosity level of verbosity for function
+   * @return numpy array with shape (N,3)
    *
    */
   PyObject* as_pixelarray( const larcv::Image2D& img, const float threshold, larcv::msg::Level_t verbosity ) {
@@ -406,6 +410,125 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
     if ( verbosity==larcv::msg::kDEBUG )              
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "returned array" << std::endl;
+    
+    return (PyObject*)array;
+  }
+
+
+  /**
+   * convert vector< std::image2d > into a union of pixel coordinates and values
+   *
+   * @param[in] pimg_v vector of image (pointers) to be get pixel values from
+   * @param[in] pixel value for at least one image, must be greater than or equal to threshold to be included
+   * @param[in] verbosity level of verbosity for function
+   * @return numpy array with shape (N,2+M) where M=images given, N=pixels above threshold in one image
+   *
+   */
+  PyObject* as_union_pixelarray( const std::vector<larcv::Image2D*> pimg_v,
+                                 const float threshold,
+                                 larcv::msg::Level_t verbosity ) {
+    SetPyUtil();
+    // first, get a list of pixel values
+    // each entry is (row,col,pixelvalue)
+    larcv::logger::get("pyutils::as_union_pixelarray").set(verbosity);
+
+    if ( verbosity==larcv::msg::kDEBUG )
+      larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG,
+                                                               __FUNCTION__, __LINE__, __FILE__ )
+        << "extracting pixel list from image" << std::endl;
+
+    if ( pimg_v.size()==0 ) {
+      larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kCRITICAL,
+                                                               __FUNCTION__, __LINE__, __FILE__ )
+        << "no images given" << std::endl;
+      throw std::runtime_error("pyutils::as_union_pixelarray: no imaes given");
+    }
+    
+    size_t nimgs = pimg_v.size();
+    
+    // first image defines the array size
+    size_t ncols = pimg_v.front()->meta().cols();
+    size_t nrows = pimg_v.front()->meta().rows();
+
+    // check the others
+    for ( size_t iimg=1; iimg<nimgs; iimg++ ) {
+      auto const& pimg = pimg_v[iimg];
+      if ( ncols<pimg->meta().cols() ) {
+        throw std::runtime_error("pyutils::as_union_pixelarray: image ncols bigger than first");
+      }
+      if ( nrows<pimg->meta().rows() ) {
+        throw std::runtime_error("pyutils::as_union_pixelarray: image nrows bigger than first");        
+      }
+    }
+
+    std::vector<float> data_v;    
+    data_v.reserve( (2+nimgs)*nrows*ncols ); // maximum size
+    size_t npts = 0;
+    
+    for ( size_t c=0; c<ncols; c++ ) {
+      for ( size_t r=0; r<nrows; r++ ) {        
+        // for every pixel, get value in all images in input vector
+        // mark for save if any are above threshold
+        // if saving, add to data vector
+        std::vector<float> pixvals(nimgs,0);
+        bool fill = false;
+        for ( size_t iimg=0; iimg<nimgs; iimg++ ) {
+          auto const& pimg = pimg_v[iimg];
+          float pixval = pimg->pixel(r,c);
+          if ( pixval>=threshold ) {
+            fill = true;
+            pixvals[iimg] = pixval;
+          }
+        }
+
+        if ( fill ) {
+          data_v.push_back( (float)r );
+          data_v.push_back( (float)c );
+          for ( auto& pixval : pixvals ) {
+            data_v.push_back( pixval );
+            npts++;
+          }
+        }
+        
+      }//end of col loop
+    }//end of row loop
+
+    if ( verbosity==larcv::msg::kDEBUG )    
+      larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "create new array with " << npts << " pixels "
+        << " (of max " << nimgs*ncols*nrows
+        << ", " << float(npts)/float(nimgs*ncols*nrows) << " fraction)"
+        << std::endl;
+    
+    npy_intp *dim_data = new npy_intp[2];    
+    dim_data[0] = npts;
+    dim_data[1] = 2+(int)nimgs;
+    PyArrayObject* array = nullptr;
+    try {
+      array = (PyArrayObject*)PyArray_SimpleNew( 2, dim_data, NPY_FLOAT );
+    }
+    catch (std::exception& e ) {
+      larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
+        << "trouble allocating new pyarray: " << e.what() << std::endl;
+      throw larbys();
+    }
+
+      
+    if ( verbosity==larcv::msg::kDEBUG )          
+      larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "fill array with " << npts << " points" << std::endl;
+
+    size_t blocksize = 2+nimgs;
+    for ( size_t ipt=0; ipt<npts; ipt++ ) {
+      *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[blocksize*ipt+0];
+      *((float*)PyArray_GETPTR2( array, ipt, 1 )) = data_v[blocksize*ipt+1];
+      for ( size_t iimg=0; iimg<nimgs; iimg++ )
+        *((float*)PyArray_GETPTR2( array, ipt, 2+iimg )) = data_v[blocksize*ipt+2+iimg];      
+    }
+    
+    if ( verbosity==larcv::msg::kDEBUG )              
+      larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "returned array" << std::endl;
     
     return (PyObject*)array;
