@@ -2201,15 +2201,16 @@ namespace larcv {
             else{gTrack3D[i]->Draw("same P");}
         }
 
-
-        int Npng = 10;
+        c->SaveAs(Form("%s/%s_3D.root",_outdir.c_str(),c->GetName()));
+        /*int Npng = 72;
         for(int i=0;i<Npng;i++){
             c->cd(1)->SetPhi(10+i*360./Npng);
             //c->SaveAs(Form("%s/%s_3D_%03d.png",_outdir.c_str(),c->GetName(),i));
             std::cout << i*100./Npng << std::endl;
             c->Print(Form("%s/%s_3D.gif+5",_outdir.c_str(),c->GetName()));
         }
-        c->Print(Form("%s/%s_3D.gif++",_outdir.c_str(),c->GetName()));
+        std::cout << Form("%s/%s_3D.gif++",_outdir.c_str(),c->GetName()) << std::endl;
+        c->Print(Form("%s/%s_3D.gif++",_outdir.c_str(),c->GetName()));*/
         //c->SaveAs(Form("%s/%s.png",_outdir.c_str(),c->GetName()));
     }
     //______________________________________________________
@@ -2613,8 +2614,6 @@ namespace larcv {
             }
         }
     }
-
-
     //______________________________________________________
     bool AStarTracker::CheckEndPointsInVolume(TVector3 point){
         bool endpointInRange = true;
@@ -2643,7 +2642,7 @@ namespace larcv {
         hit_image_v.reserve(3);
         randomSeed = 1;
         ran.SetSeed(randomSeed);
-        _MinLength = 3;
+        _MinLength = 3; // cm
         if(_DrawOutputs){
             hAngleLengthGeneral = new TH2D("hAngleLengthGeneral","hAngleLengthGeneral;angle;length",220,-1.1,1.1,200,0,20);
             hDist2point   = new TH1D("hDist2point",  "hDist2point",  300,0,100);
@@ -2718,7 +2717,6 @@ namespace larcv {
         if(dist > 2)return false;
         else return true;
     }
-
     //______________________________________________________
     double AStarTracker::EvalMinDist(TVector3 point){
         tellMe(Form("EvalMinDist : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
@@ -3079,7 +3077,6 @@ namespace larcv {
         return totalADC;
     }
     //______________________________________________________
-
     std::vector<double> AStarTracker::GetVertexLength(){
         tellMe("GetVertexLength()",0);
         if(_vertexLength.size()==_vertexTracks.size())return _vertexLength;
@@ -3097,14 +3094,11 @@ namespace larcv {
         if(_closestWall.size()     != _vertexTracks.size()) ComputeClosestWall();
         return _closestWall;
     }
-
+    //______________________________________________________
     std::vector<double> AStarTracker::GetClosestWall_SCE(){
         if(_closestWall_SCE.size() != _vertexTracks.size()) ComputeClosestWall_SCE();
         return _closestWall_SCE;
     }
-
-
-
     //______________________________________________________
     void AStarTracker::ComputeClosestWall(){
         if(_closestWall.size() ==_vertexTracks.size()) return;
@@ -3135,12 +3129,75 @@ namespace larcv {
             _closestWall.push_back(minApproach);
         }
     }
+    //______________________________________________________
+    void AStarTracker::Add_SCE_to_Tracks(){
+        tellMe("Add_SCE_to_Tracks()",0);
+        if(_vertexTracks_SCE.size()!=0)_vertexTracks_SCE.clear();
+        larutil::SpaceChargeMicroBooNE sce;
+        larlite::geo::View_t views[3] = {larlite::geo::kU,larlite::geo::kV,larlite::geo::kZ};
 
+        for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
+            std::vector<TVector3> CorrectedTrack;
+            for(size_t iNode = 0;iNode<_vertexTracks[itrack].size();iNode++){
+                double pt_X = _vertexTracks[itrack][iNode].X();
+                double pt_Y = _vertexTracks[itrack][iNode].Y();
+                double pt_Z = _vertexTracks[itrack][iNode].Z();
+
+                auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
+
+                double sceptX = pt_X - sceOffset[0] + 0.7;
+                double sceptY = pt_Y - sceOffset[1];
+                double sceptZ = pt_Z - sceOffset[2];
+
+                TVector3 CorrectedNode(sceptX,sceptY,sceptZ);
+                CorrectedTrack.push_back(CorrectedNode);
+            }
+            _vertexTracks_SCE.push_back(CorrectedTrack);
+        }
+        _vertexTracks = _vertexTracks_SCE;
+
+        // corrected the vector of 3D points, I now need to push that into a new larlite::track
+        
+        if(_vertexLarliteTracks_sceadded.size()!=0)_vertexLarliteTracks_sceadded.clear();
+
+        for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
+            _3DTrack=_vertexTracks[itrack];
+            larlite::track _thisLarliteTrack_sceadded;
+
+            for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
+                _thisLarliteTrack_sceadded.add_vertex(_3DTrack[iNode]);
+            }
+            for(size_t iNode = 0;iNode<_3DTrack.size();iNode++){
+                if(iNode<_3DTrack.size()-1){
+                    _thisLarliteTrack_sceadded.add_direction(_3DTrack[iNode+1]-_3DTrack[iNode]);
+                }
+                else{
+                    _thisLarliteTrack_sceadded.add_direction(_3DTrack[iNode]-_3DTrack[iNode-1]);
+                }
+            }
+
+            for(size_t iPlane = 0;iPlane<3;iPlane++){
+                std::vector<double> dQdXOnePlane_v;
+                for(size_t iNode = 0;iNode<_vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
+                    dQdXOnePlane_v.push_back(_vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[iPlane]));
+                }
+                _thisLarliteTrack_sceadded.add_dqdx(dQdXOnePlane_v);
+            }
+            _vertexLarliteTracks_sceadded.push_back(_thisLarliteTrack_sceadded);
+
+        }
+
+        _vertexLarliteTracks = _vertexLarliteTracks_sceadded;
+
+    }
+    //______________________________________________________
     void AStarTracker::ComputeClosestWall_SCE(){
+        tellMe("ComputeClosestWall_SCE()",0);
         if(_closestWall_SCE.size() ==_vertexTracks.size()) return;
         if(_closestWall_SCE.size()!=0)_closestWall_SCE.clear();
 
         larutil::SpaceChargeMicroBooNE sce;
+        //std::cout << "sce defined" << std::endl;
 
         //find tracks that approach the edge of the detector too much
         double detectorLength = 1036.8;//cm
@@ -3153,6 +3210,8 @@ namespace larcv {
         double Zmindet = 0;
         double Zmaxdet = detectorLength;
 
+        //std::cout << "XYZ boundaires defined" << std::endl;
+
         double minApproach = 1e9;
         for(size_t itrack=0;itrack<_vertexTracks.size();itrack++){
             for(size_t iNode=0;iNode<_vertexTracks[itrack].size();iNode++){
@@ -3161,11 +3220,19 @@ namespace larcv {
                 double pt_Y = _vertexTracks[itrack][iNode].Y();
                 double pt_Z = _vertexTracks[itrack][iNode].Z();
 
+                //std::cout << "about to get sceOffset" << std::endl;
                 auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
+                //std::cout << "sceOffset gotten" << std::endl;
+
+                // from discussion with Chris on 3/14/2019:
+                // put sce on truth info : subtract the offset for X and add it for Y and Z (from true track to where it will be with sce)
+                // for reco (from where the track is recoed to where it would be without space charge) :
 
                 double sceptX = pt_X - sceOffset[0] + 0.7;
                 double sceptY = pt_Y - sceOffset[1];
                 double sceptZ = pt_Z - sceOffset[2];
+
+                //std::cout << "point corrected for SCE" << std::endl;
 
 
                 if( std::abs(sceptX-Xmindet) < minApproach) minApproach = std::abs(sceptX-Xmindet);
@@ -3178,7 +3245,6 @@ namespace larcv {
             _closestWall_SCE.push_back(minApproach);
         }
     }
-
     //______________________________________________________
     std::vector<std::vector<double> > AStarTracker::GetVertexAngle(double dAverage = 15, double dMin = 0){
         //tellMe(Form("GetVertexAngle(%.1f,%.1f)",dAverage,dMin),0);
@@ -3325,8 +3391,6 @@ namespace larcv {
         }
         return dist;
     }
-
-
     //______________________________________________________
     TVector3 AStarTracker::CheckEndPoints(TVector3 point){
         tellMe(Form("start point : (%f,%f,%f)",point.X(),point.Y(),point.Z()),2);
@@ -3394,8 +3458,6 @@ namespace larcv {
         tellMe("Point updated",0);
         return newPoint;
     }
-
-
     //______________________________________________________
     std::vector<TVector3> AStarTracker::FitBrokenLine(){
         std::vector<TVector3> Skeleton;
@@ -3477,7 +3539,6 @@ namespace larcv {
         }
         return openSet;
     }
-
     //______________________________________________________
     std::vector<larcv::Image2D> AStarTracker::CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v){
         if(_3DTrack.size()!=0)_3DTrack.clear();
@@ -3679,25 +3740,29 @@ namespace larcv {
         return projection;
     }
     //-------------------------------------------------------
-    std::vector<bool> AStarTracker::GetRecoGoodness(){
-        std::vector<bool> recoGoodness_v(9);
+    std::vector<int> AStarTracker::GetRecoGoodness(){
+        std::vector<int> recoGoodness_v(9);
 
-        recoGoodness_v[0] = _missingTrack;
-        recoGoodness_v[1] = _nothingReconstructed;
-        recoGoodness_v[2] = _tooShortDeadWire;
-        recoGoodness_v[3] = _tooShortFaintTrack;
-        recoGoodness_v[4] = _tooManyTracksAtVertex;
-        recoGoodness_v[5] = _possibleCosmic;
-        recoGoodness_v[6] = _possiblyCrossing;
-        recoGoodness_v[7] = _branchingTracks;
-        recoGoodness_v[8] = _jumpingTracks;
+        recoGoodness_v[0] = (int)_missingTrack;
+        recoGoodness_v[1] = (int)_nothingReconstructed;
+        recoGoodness_v[2] = (int)_tooShortDeadWire;
+        recoGoodness_v[3] = (int)_tooShortFaintTrack;
+        recoGoodness_v[4] = (int)_tooManyTracksAtVertex;
+        recoGoodness_v[5] = (int)_possibleCosmic;
+        recoGoodness_v[6] = (int)_possiblyCrossing;
+        recoGoodness_v[7] = (int)_branchingTracks;
+        recoGoodness_v[8] = (int)_jumpingTracks;
 
         return recoGoodness_v;
     }
     //-------------------------------------------------------
-    std::vector<bool> AStarTracker::GetVtxQuality(){
+    std::vector<int> AStarTracker::GetVtxQuality(){
         if(_goodTrack_v.size()!=_vertexTracks.size())DiagnoseVertex();
-        return _goodTrack_v;
+        std::vector<int> _goodTrack_v_int;
+        for(size_t i=0;i<_goodTrack_v.size();i++){
+            _goodTrack_v_int.push_back((int)_goodTrack_v[i]);
+        }
+        return _goodTrack_v_int;
     }
     //-------------------------------------------------------
     void AStarTracker::RecoverFromFail(){
@@ -3862,53 +3927,15 @@ namespace larcv {
         return vertexEndPoints;
     }
     //_______________________________________________________
-    
-    //
-    //
-    // When reading proton file
-    //
-    void AStarTracker::ReadProtonTrackFile(){
-        _SelectableTracks.clear();
-        std::vector<int> trackinfo(16);
-        std::ifstream file("passedGBDT_extBNB_AnalysisTrees_cosmic_trained_only_on_mc_score_0.99.csv");
-        if(!file){std::cout << "ERROR, could not open file of tracks to sort through" << std::endl;return;}
-        std::string firstline;
-        getline(file, firstline);
-        bool goOn = true;
-        int Run,SubRun,Event,TrackID,WireUMin,TimeUMin,WireUMax,TimeUMax,WireVMin,TimeVMin,WireVMax,TimeVMax,WireYMin,TimeYMin,WireYMax,TimeYMax;
-        double BDTScore;
-        while(goOn){
-            file >> Run >> SubRun >> Event >> TrackID >> WireUMin >> TimeUMin >> WireUMax >> TimeUMax >> WireVMin >> TimeVMin >> WireVMax >> TimeVMax >> WireYMin >> TimeYMin >> WireYMax >> TimeYMax >> BDTScore;
-            
-            trackinfo[0] = Run;
-            trackinfo[1] = SubRun;
-            trackinfo[2] = Event;
-            trackinfo[3] = TrackID;
-            trackinfo[4] = WireUMin;
-            trackinfo[5] = TimeUMin;
-            trackinfo[6] = WireUMax;
-            trackinfo[7] = TimeUMax;
-            trackinfo[8] = WireVMin;
-            trackinfo[9] = TimeVMin;
-            trackinfo[10] = WireVMax;
-            trackinfo[11] = TimeVMax;
-            trackinfo[12] = WireYMin;
-            trackinfo[13] = TimeYMin;
-            trackinfo[14] = WireYMax;
-            trackinfo[15] = TimeYMax;
-            
-            _SelectableTracks.push_back(trackinfo);
-            if(file.eof()){goOn=false;break;}
-        }
-    }
-    //______________________________________________________
     void AStarTracker::Get3DtracksFromLarlite(){
         std::cout << "Get3DtracksFromLarlite()" << std::endl;
+        larlite::geo::View_t views[3] = {larlite::geo::kU,larlite::geo::kV,larlite::geo::kZ};
         if(_vertexTracks.size()!=0)_vertexTracks.clear();
         for(size_t itrack = 0; itrack<_vertexLarliteTracks.size();itrack++){
             std::vector<TVector3> thisTrack(_vertexLarliteTracks[itrack].NumberTrajectoryPoints());
             for(size_t iNode=0;iNode<_vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
                 thisTrack[iNode]=_vertexLarliteTracks[itrack].LocationAtPoint(iNode);
+                std::cout << "_vertexLarliteTracks["<< itrack <<"].DQdxAtPoint("<< iNode <<",views[2]) = " << _vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[2]) << std::endl;
             }
             _vertexTracks.push_back(thisTrack);
         }

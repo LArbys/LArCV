@@ -90,8 +90,6 @@ namespace larcv {
         void SetVerbose(int v){_verbose = v;}
         void SetDrawOutputs(bool d){_DrawOutputs = d;}
         void SetCompressionFactors(int compress_w, int compress_t){_compressionFactor_w = compress_w; _compressionFactor_t = compress_t;}
-
-        void ReadProtonTrackFile();
         void ReadSplineFile();
         void SetSplineFile(const std::string& fpath);
         void SetOutputDir(std::string outdir){_outdir=outdir;}
@@ -180,9 +178,11 @@ namespace larcv {
         std::vector<double> GetClosestWall();
         std::vector<double> GetClosestWall_SCE();
 
+        void Add_SCE_to_Tracks();
+
         std::vector<double> GetOldVertexAngle(double dAverage);
-        std::vector<bool> GetRecoGoodness();
-        std::vector<bool> GetVtxQuality();
+        std::vector<int> GetRecoGoodness();
+        std::vector<int> GetVtxQuality();
         double GetEnergy(std::string partType, double Length);
         double GetMinLength(){return _MinLength;}
         double ComputeLength(int node);
@@ -326,6 +326,7 @@ namespace larcv {
         std::vector<TVector3> _vertexEndPoints;
         std::vector<TVector3> _eventVertices;
         std::vector<std::vector<TVector3> > _vertexTracks;
+        std::vector<std::vector<TVector3> > _vertexTracks_SCE;
 
         std::vector<larcv::AStar3DNode> RecoedPath;
 
@@ -369,6 +370,7 @@ namespace larcv {
 
         larlite::track _thisLarliteTrack;
         larlite::event_track _vertexLarliteTracks;
+        larlite::event_track _vertexLarliteTracks_sceadded;
 
         TCanvas *c2;
 

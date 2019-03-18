@@ -31,6 +31,9 @@ void runDisplay(){
         subrun = targetList[i][1];
         event  = targetList[i][2];
 
+        //if(run != 7004 || subrun != 465 || event!= 23256)continue;
+        if(run != 7004 || subrun != 1134 || event!= 56703)continue;
+
         std::cout << run << "\t" << subrun << "\t" << event << std::endl;
         std::string larliteFile  = Form("%s/tracker_reco_*%d_%d_%d*.root",larlitePATH.c_str(),run,subrun,event);
         std::string analysisFile = Form("%s/tracker_anaout_*%d_%d_%d*.root",anaoutPATH.c_str(),run,subrun,event);

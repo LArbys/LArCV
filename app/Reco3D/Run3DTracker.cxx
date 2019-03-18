@@ -53,7 +53,8 @@ namespace larcv {
     : ProcessBase(name),
     _foutll("larlite_reco3D.root"),
     _spline_file("Proton_Muon_Range_dEdx_LAr_TSplines.root"),
-    _recoTree(nullptr)
+    _recoTree(nullptr),
+    _recoTree_SCEadded(nullptr)
     {}
 
     void Run3DTracker::configure(const PSet& cfg)
@@ -66,22 +67,7 @@ namespace larcv {
 
     }
 
-    void Run3DTracker::initialize()
-    {
-        LARCV_INFO() << "[Run3DTracker]" << std::endl;
-        assert(!_spline_file.empty());
-        tracker.SetDrawOutputs(false);
-        tracker.SetOutputDir(out_dir);
-        tracker.SetSplineFile(_spline_file);
-        tracker.initialize();
-        tracker.SetRandomSeed(100);
-        tracker.SetMinLength(3);//cm
-        tracker.SetVerbose(0);
-
-        std::string filename;
-
-        std::cout << filename << std::endl;
-
+    void Run3DTracker::MakeTTree(){
         _recoTree = new TTree("_recoTree","_recoTree");
 
         _recoTree->Branch("run"     , &_run   , "_run/I");
@@ -158,11 +144,6 @@ namespace larcv {
 
         _recoTree->Branch("closestWall",&_closestWall);
 
-        //_recoTree->Branch("DeadWireList_U",&_DeadWireList_U);
-        //_recoTree->Branch("DeadWireList_V",&_DeadWireList_V);
-        //_recoTree->Branch("DeadWireList_Y",&_DeadWireList_Y);
-
-
         _recoTree->Branch("recoEndPoints_x",&recoEndPoints_x);
         _recoTree->Branch("recoEndPoints_y",&recoEndPoints_y);
         _recoTree->Branch("recoEndPoints_z",&recoEndPoints_z);
@@ -195,7 +176,138 @@ namespace larcv {
         _recoTree->Branch("MuonEndPoint_Z", &_MuonEndPoint_Z, "MuonEndPoint_Z/D");
         _recoTree->Branch("ProtonEndPoint_Z", &_ProtonEndPoint_Z, "ProtonEndPoint_Z/D");
         _recoTree->Branch("ElectronEndPoint_Z", &_ElectronEndPoint_Z, "ElectronEndPoint_Z/D");
+    }
 
+    void Run3DTracker::MakeTTree_SCEadded(){
+        _recoTree_SCEadded = new TTree("_recoTree_SCEadded","_recoTree_SCEadded");
+
+        _recoTree_SCEadded->Branch("run"     , &_run   , "_run/I");
+        _recoTree_SCEadded->Branch("subrun"  , &_subrun, "_subrun/I");
+        _recoTree_SCEadded->Branch("event"   , &_event , "_event/I");
+        _recoTree_SCEadded->Branch("entry"   , &_entry , "_entry/I");
+
+        _recoTree_SCEadded->Branch("vtx_id", &_vtx_id , "vtx_id/I");
+        _recoTree_SCEadded->Branch("vtx_x" , &_vtx_x_sceadded , "vtx_x_sceadded/F");
+        _recoTree_SCEadded->Branch("vtx_y" , &_vtx_y_sceadded , "vtx_y_sceadded/F");
+        _recoTree_SCEadded->Branch("vtx_z" , &_vtx_z_sceadded , "vtx_z_sceadded/F");
+
+        _recoTree_SCEadded->Branch("randomSeed",&randomSeed);
+        _recoTree_SCEadded->Branch("trk_id_v", &_trk_id_v);
+        _recoTree_SCEadded->Branch("NtracksReco",&NtracksReco);
+
+        _recoTree_SCEadded->Branch("trackQ3_v",&_trackQ3_v_sceadded);
+        _recoTree_SCEadded->Branch("trackQ5_v",&_trackQ5_v_sceadded);
+        _recoTree_SCEadded->Branch("trackQ10_v",&_trackQ10_v_sceadded);
+        _recoTree_SCEadded->Branch("trackQ20_v",&_trackQ20_v_sceadded);
+        _recoTree_SCEadded->Branch("trackQ30_v",&_trackQ30_v_sceadded);
+        _recoTree_SCEadded->Branch("trackQ50_v",&_trackQ50_v_sceadded);
+
+        _recoTree_SCEadded->Branch("E_muon_v",&_E_muon_v_sceadded);
+        _recoTree_SCEadded->Branch("E_proton_v",&_E_proton_v_sceadded);
+        _recoTree_SCEadded->Branch("Length_v",&_Length_v_sceadded);
+        _recoTree_SCEadded->Branch("Avg_Ion_v",&_Avg_Ion_v_sceadded);
+        _recoTree_SCEadded->Branch("Avg_IonY_v",&_Avg_IonY_v_sceadded);
+        _recoTree_SCEadded->Branch("Ion_5cm_v",&_Ion_5cm_v_sceadded);
+        _recoTree_SCEadded->Branch("Ion_10cm_v",&_Ion_10cm_v_sceadded);
+        _recoTree_SCEadded->Branch("Ion_tot_v",&_Ion_tot_v_sceadded);
+        _recoTree_SCEadded->Branch("IonY_5cm_v",&_IonY_5cm_v_sceadded);
+        _recoTree_SCEadded->Branch("IonY_10cm_v",&_IonY_10cm_v_sceadded);
+        _recoTree_SCEadded->Branch("IonY_tot_v",&_IonY_tot_v_sceadded);
+        _recoTree_SCEadded->Branch("Truncated_dQdX1_v",&_Trunc_dQdX1_v_sceadded);
+        _recoTree_SCEadded->Branch("Truncated_dQdX3_v",&_Trunc_dQdX3_v_sceadded);
+        _recoTree_SCEadded->Branch("IondivLength_v",&_IondivLength_v_sceadded);
+        _recoTree_SCEadded->Branch("TotalADCvalues_v",&_TotalADCvalues_v_sceadded);
+        _recoTree_SCEadded->Branch("Angle_v",&_Angle_v_sceadded);
+        _recoTree_SCEadded->Branch("Reco_goodness_v",&_Reco_goodness_v);
+        _recoTree_SCEadded->Branch("track_Goodness_v",&_track_Goodness_v);
+        _recoTree_SCEadded->Branch("GoodVertex",&GoodVertex);
+        _recoTree_SCEadded->Branch("missingTrack",&_missingTrack);
+        _recoTree_SCEadded->Branch("nothingReconstructed",&_nothingReconstructed);
+        _recoTree_SCEadded->Branch("tooShortDeadWire",&_tooShortDeadWire);
+        _recoTree_SCEadded->Branch("tooShortFaintTrack",&_tooShortFaintTrack);
+        _recoTree_SCEadded->Branch("tooManyTracksAtVertex",&_tooManyTracksAtVertex);
+        _recoTree_SCEadded->Branch("possibleCosmic",&_possibleCosmic);
+        _recoTree_SCEadded->Branch("possiblyCrossing",&_possiblyCrossing);
+        _recoTree_SCEadded->Branch("branchingTracks",&_branchingTracks);
+        _recoTree_SCEadded->Branch("jumpingTracks",&_jumpingTracks);
+        _recoTree_SCEadded->Branch("RecoVertex",&_RecoVertex_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi",&_vertexPhi_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta",&_vertexTheta_sceadded);
+
+        _recoTree_SCEadded->Branch("vertexPhi_2cm",&_vertexPhi_2cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_2cm",&_vertexTheta_2cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_5cm",&_vertexPhi_5cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_5cm",&_vertexTheta_5cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_7cm",&_vertexPhi_7cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_7cm",&_vertexTheta_7cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_10cm",&_vertexPhi_10cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_10cm",&_vertexTheta_10cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_12cm",&_vertexPhi_12cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_12cm",&_vertexTheta_12cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_15cm",&_vertexPhi_15cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_15cm",&_vertexTheta_15cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_17cm",&_vertexPhi_17cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_17cm",&_vertexTheta_17cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_20cm",&_vertexPhi_20cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_20cm",&_vertexTheta_20cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexPhi_30cm",&_vertexPhi_30cm_sceadded);
+        _recoTree_SCEadded->Branch("vertexTheta_30cm",&_vertexTheta_30cm_sceadded);
+
+        _recoTree_SCEadded->Branch("closestWall",&_closestWall_sceadded);
+
+        _recoTree_SCEadded->Branch("recoEndPoints_x",&recoEndPoints_x_sceadded);
+        _recoTree_SCEadded->Branch("recoEndPoints_y",&recoEndPoints_y_sceadded);
+        _recoTree_SCEadded->Branch("recoEndPoints_z",&recoEndPoints_z_sceadded);
+
+        _recoTree_SCEadded->Branch("MCvertex",&MCvertex);
+        _recoTree_SCEadded->Branch("Ep_t"       , &_Ep_t       , "Ep_t/D");
+        _recoTree_SCEadded->Branch("Em_t"       , &_Em_t       , "Em_t/D");
+        _recoTree_SCEadded->Branch("Ee_t"       , &_Ee_t       , "Ee_t/D");
+
+        _recoTree_SCEadded->Branch("MuonStartPoint_X", &_MuonStartPoint_X, "MuonStartPoint_X/D");
+        _recoTree_SCEadded->Branch("ProtonStartPoint_X", &_ProtonStartPoint_X, "ProtonStartPoint_X/D");
+        _recoTree_SCEadded->Branch("ElectronStartPoint_X", &_ElectronStartPoint_X, "ElectronStartPoint_X/D");
+
+        _recoTree_SCEadded->Branch("MuonStartPoint_Y", &_MuonStartPoint_Y, "MuonStartPoint_Y/D");
+        _recoTree_SCEadded->Branch("ProtonStartPoint_Y", &_ProtonStartPoint_Y, "ProtonStartPoint_Y/D");
+        _recoTree_SCEadded->Branch("ElectronStartPoint_Y", &_ElectronStartPoint_Y, "ElectronStartPoint_Y/D");
+
+        _recoTree_SCEadded->Branch("MuonStartPoint_Z", &_MuonStartPoint_Z, "MuonStartPoint_Z/D");
+        _recoTree_SCEadded->Branch("ProtonStartPoint_Z", &_ProtonStartPoint_Z, "ProtonStartPoint_Z/D");
+        _recoTree_SCEadded->Branch("ElectronStartPoint_Z", &_ElectronStartPoint_Z, "ElectronStartPoint_Z/D");
+
+        _recoTree_SCEadded->Branch("MuonEndPoint_X", &_MuonEndPoint_X, "MuonEndPoint_X/D");
+        _recoTree_SCEadded->Branch("ProtonEndPoint_X", &_ProtonEndPoint_X, "ProtonEndPoint_X/D");
+        _recoTree_SCEadded->Branch("ElectronEndPoint_X", &_ElectronEndPoint_X, "ElectronEndPoint_X/D");
+
+        _recoTree_SCEadded->Branch("MuonEndPoint_Y", &_MuonEndPoint_Y, "MuonEndPoint_Y/D");
+        _recoTree_SCEadded->Branch("ProtonEndPoint_Y", &_ProtonEndPoint_Y, "ProtonEndPoint_Y/D");
+        _recoTree_SCEadded->Branch("ElectronEndPoint_Y", &_ElectronEndPoint_Y, "ElectronEndPoint_Y/D");
+
+        _recoTree_SCEadded->Branch("MuonEndPoint_Z", &_MuonEndPoint_Z, "MuonEndPoint_Z/D");
+        _recoTree_SCEadded->Branch("ProtonEndPoint_Z", &_ProtonEndPoint_Z, "ProtonEndPoint_Z/D");
+        _recoTree_SCEadded->Branch("ElectronEndPoint_Z", &_ElectronEndPoint_Z, "ElectronEndPoint_Z/D");
+    }
+    
+    void Run3DTracker::initialize()
+    {
+        LARCV_INFO() << "[Run3DTracker]" << std::endl;
+        assert(!_spline_file.empty());
+        tracker.SetDrawOutputs(false);
+        tracker.SetOutputDir(out_dir);
+        tracker.SetSplineFile(_spline_file);
+        tracker.initialize();
+        tracker.SetRandomSeed(100);
+        tracker.SetMinLength(3);//cm
+        tracker.SetVerbose(0);
+
+        std::string filename;
+
+        std::cout << filename << std::endl;
+
+        // define trees & branches
+        MakeTTree();
+        MakeTTree_SCEadded();
 
         if (_foutll.empty()) throw larbys("specify larlite file output name");
 
@@ -226,9 +338,12 @@ namespace larcv {
         _event  = (int) ev_pgraph_v->event();
         _entry  = (int) mgr.current_entry();
 
-        auto ev_track  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco");
-        auto ev_vertex = (larlite::event_vertex*) _storage.get_data(larlite::data::kVertex,"trackReco");
-        auto ev_ass    = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco");
+        auto ev_track           = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco");
+        auto ev_vertex          = (larlite::event_vertex*) _storage.get_data(larlite::data::kVertex,"trackReco");
+        auto ev_ass             = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco");
+        auto ev_track_sceadded  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco_sceadded");
+        auto ev_ass_scedradded  = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco_sceadded");
+
 
         if(ev_pgraph_v->PGraphArray().size()==0){advance_larlite();return true;}
 
@@ -237,8 +352,7 @@ namespace larcv {
         //auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
 
         EventPixel2D* ev_pix_v = nullptr;
-        if (!_par_pix_producer.empty())
-            ev_pix_v = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
+        if (!_par_pix_producer.empty())ev_pix_v = (EventPixel2D*) mgr.get_data(kProductPixel2D,_par_pix_producer);
 
 
         //auto ev_pcluster_v = (EventPixel2D*)mgr.get_data(kProductPixel2D,"test_img");
@@ -289,9 +403,9 @@ namespace larcv {
         tracker.SetTrackInfo(_run, _subrun, _event, 0);
 
         std::cout << _run << " " << _subrun << " " << _event <<  std::endl;
-        //if(!(_subrun == 107 && _event == 96242)){advance_larlite(); return true;}
 
         static std::vector<TVector3> vertex_v;
+        static std::vector<TVector3> vertex_v_sceadded;
         if(vertex_v.size()!=0)vertex_v.clear();
 
         for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
@@ -302,6 +416,9 @@ namespace larcv {
 
             RecoVertex.SetXYZ(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
             vertex_v.push_back(RecoVertex);
+
+            RecoVertex_sceadded.SetXYZ(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
+            vertex_v_sceadded.push_back(RecoVertex_sceadded);
 
             if (_mask_shower) {
 
@@ -356,8 +473,10 @@ namespace larcv {
         std::vector<std::vector<unsigned> > ass_vertex_to_track_vv;
         ass_vertex_to_track_vv.resize(vertex_v.size());
 
+        std::vector<std::vector<unsigned> > ass_vertex_to_track_sceadded_vv;
+        ass_vertex_to_track_sceadded_vv.resize(vertex_v.size());
+
         //vertex_v = MCVertices;
-        NvertexSubmitted+=vertex_v.size();
         int TrackID = 0;
 
         if(vertex_v.size()!=0){
@@ -367,11 +486,15 @@ namespace larcv {
                 if(_trk_id_v.size()!=0)_trk_id_v.clear();
                 if(_IondivLength_v.size()!=0)_IondivLength_v.clear();
                 if(_TotalADCvalues_v.size()!=0)_TotalADCvalues_v.clear();
+                if(_IondivLength_v_sceadded.size()!=0)_IondivLength_v_sceadded.clear();
+                if(_TotalADCvalues_v_sceadded.size()!=0)_TotalADCvalues_v_sceadded.clear();
 
                 double xyz[3] = {vertex_v[ivertex].X(),vertex_v[ivertex].Y(),vertex_v[ivertex].Z()};
+                double xyz_sceadded[3] = {vertex_v_sceadded[ivertex].X(),vertex_v_sceadded[ivertex].Y(),vertex_v_sceadded[ivertex].Z()};
                 ev_vertex->push_back(larlite::vertex(xyz,ivertex));
 
-                auto& ass_vertex_to_track_v = ass_vertex_to_track_vv[ivertex];
+                auto& ass_vertex_to_track_v          = ass_vertex_to_track_vv[ivertex];
+                auto& ass_vertex_to_track_sceadded_v = ass_vertex_to_track_sceadded_vv[ivertex];
 
                 tracker.SetSingleVertex(vertex_v[ivertex]);
 
@@ -402,7 +525,6 @@ namespace larcv {
                 auto Energies_v = tracker.GetEnergies();
                 _E_muon_v.resize(Energies_v.size());
                 _E_proton_v.resize(Energies_v.size());
-
                 for(size_t trackid=0; trackid<Energies_v.size(); ++trackid) {
                     _E_proton_v[trackid] = Energies_v[trackid].front();
                     _E_muon_v[trackid]   = Energies_v[trackid].back();
@@ -414,25 +536,7 @@ namespace larcv {
                 _vtx_y  = (float) vertex_v[ivertex].Y();
                 _vtx_z  = (float) vertex_v[ivertex].Z();
 
-                _Length_v    = tracker.GetVertexLength();
-                _closestWall = tracker.GetClosestWall();
 
-                _trackQ3_v     = tracker.GetTotalPixADC(3.);
-                _trackQ5_v     = tracker.GetTotalPixADC(5.);
-                _trackQ10_v    = tracker.GetTotalPixADC(10.);
-                _trackQ20_v    = tracker.GetTotalPixADC(20.);
-                _trackQ30_v    = tracker.GetTotalPixADC(30.);
-                _trackQ50_v    = tracker.GetTotalPixADC(50.);
-
-                _Avg_Ion_v     = tracker.GetAverageIonization();
-                _Ion_5cm_v     = tracker.GetTotalIonization(5);
-                _Ion_10cm_v    = tracker.GetTotalIonization(10);
-                _Ion_tot_v     = tracker.GetTotalIonization();
-
-                _Avg_IonY_v     = tracker.GetAverageIonization_Yplane();
-                _IonY_5cm_v     = tracker.GetTotalIonization_Yplane(5);
-                _IonY_10cm_v    = tracker.GetTotalIonization_Yplane(10);
-                _IonY_tot_v     = tracker.GetTotalIonization_Yplane();
 
                 _DeadWireList = tracker.GetDeadWireList();
                 for(size_t iwire = 0;iwire<_DeadWireList[0].size();iwire++){
@@ -444,24 +548,26 @@ namespace larcv {
                 for(size_t iwire = 0;iwire<_DeadWireList[2].size();iwire++){
                     _DeadWireList_Y.push_back((int)(_DeadWireList[2][iwire]));
                 }
-
-                if(recoEndPoints.size() !=0)recoEndPoints.clear();
-                if(recoEndPoints_x.size() !=0)recoEndPoints_x.clear();
-                if(recoEndPoints_y.size() !=0)recoEndPoints_y.clear();
-                if(recoEndPoints_z.size() !=0)recoEndPoints_z.clear();
-                recoEndPoints = tracker.GetEndPoints();
-                for(int kk = 0;kk < recoEndPoints.size(); kk++){
-                    recoEndPoints_x.push_back(recoEndPoints[kk].X());
-                    recoEndPoints_y.push_back(recoEndPoints[kk].Y());
-                    recoEndPoints_z.push_back(recoEndPoints[kk].Z());
-                }
-
-                _Trunc_dQdX1_v = tracker.ComputeTruncateddQdX(1.0);
-                _Trunc_dQdX3_v = tracker.ComputeTruncateddQdX(3.0);
-                for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
-                    _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
-                }
+                _Length_v        = tracker.GetVertexLength();
+                _closestWall     = tracker.GetClosestWall();
+                _trackQ3_v       = tracker.GetTotalPixADC(3.);
+                _trackQ5_v       = tracker.GetTotalPixADC(5.);
+                _trackQ10_v      = tracker.GetTotalPixADC(10.);
+                _trackQ20_v      = tracker.GetTotalPixADC(20.);
+                _trackQ30_v      = tracker.GetTotalPixADC(30.);
+                _trackQ50_v      = tracker.GetTotalPixADC(50.);
+                _Avg_Ion_v       = tracker.GetAverageIonization();
+                _Ion_5cm_v       = tracker.GetTotalIonization(5);
+                _Ion_10cm_v      = tracker.GetTotalIonization(10);
+                _Ion_tot_v       = tracker.GetTotalIonization();
+                _Avg_IonY_v      = tracker.GetAverageIonization_Yplane();
+                _IonY_5cm_v      = tracker.GetTotalIonization_Yplane(5);
+                _IonY_10cm_v     = tracker.GetTotalIonization_Yplane(10);
+                _IonY_tot_v      = tracker.GetTotalIonization_Yplane();
+                _Trunc_dQdX1_v   = tracker.ComputeTruncateddQdX(1.0);
+                _Trunc_dQdX3_v   = tracker.ComputeTruncateddQdX(3.0);
                 _TotalADCvalues_v = tracker.GetTotalPixADC();
+
                 _Angle_v          = tracker.GetVertexAngle(2,0); // average over 2 cm to estimate the angles
                 _vertexPhi_2cm    = tracker.GetVertexPhi();
                 _vertexTheta_2cm  = tracker.GetVertexTheta();
@@ -491,6 +597,22 @@ namespace larcv {
                 _vertexTheta      = tracker.GetVertexTheta();
                 _vertexPhi_15cm   = tracker.GetVertexPhi();
                 _vertexTheta_15cm = tracker.GetVertexTheta();
+
+                if(recoEndPoints.size()   !=0)recoEndPoints.clear();
+                if(recoEndPoints_x.size() !=0)recoEndPoints_x.clear();
+                if(recoEndPoints_y.size() !=0)recoEndPoints_y.clear();
+                if(recoEndPoints_z.size() !=0)recoEndPoints_z.clear();
+                recoEndPoints = tracker.GetEndPoints();
+                for(int kk = 0;kk < recoEndPoints.size(); kk++){
+                    recoEndPoints_x.push_back(recoEndPoints[kk].X());
+                    recoEndPoints_y.push_back(recoEndPoints[kk].Y());
+                    recoEndPoints_z.push_back(recoEndPoints[kk].Z());
+                }
+                for(size_t itrack = 0; itrack<_Length_v.size();itrack++){
+                    _IondivLength_v.push_back(_Ion_tot_v[itrack]/_Length_v[itrack]);
+                }
+                _RecoVertex = vertex_v.at(ivertex);
+
                 _Reco_goodness_v  = tracker.GetRecoGoodness();
                 _track_Goodness_v = tracker.GetVtxQuality();
 
@@ -506,7 +628,99 @@ namespace larcv {
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
 
-                _RecoVertex = vertex_v.at(ivertex);
+
+                /////////////////////////
+                // sce added variables //
+                /////////////////////////
+                std::cout << "Adding SCE to reconstructed tracks" << std::endl;
+                tracker.Add_SCE_to_Tracks();
+
+                auto recoedVertex_sceadded = tracker.GetReconstructedVertexTracks();
+                for(size_t itrack = 0; itrack<recoedVertex_sceadded.size();itrack++){
+                    ass_vertex_to_track_sceadded_v.push_back(ev_track->size());
+                    recoedVertex_sceadded[itrack].set_track_id(TrackID);
+                    (*ev_track).push_back(recoedVertex_sceadded[itrack]);
+                    _trk_id_v.push_back(TrackID);
+                    TrackID++;
+                    if(recoedVertex_sceadded[itrack].Length(0) > 5){NtracksReco++;}
+                }
+
+                auto Energies_scedr_v = tracker.GetEnergies();
+                _E_muon_v_sceadded.resize(Energies_scedr_v.size());
+                _E_proton_v_sceadded.resize(Energies_scedr_v.size());
+                for(size_t trackid=0; trackid<Energies_v.size(); ++trackid) {
+                    _E_proton_v_sceadded[trackid] = Energies_scedr_v[trackid].front();
+                    _E_muon_v_sceadded[trackid]   = Energies_scedr_v[trackid].back();
+                }
+
+                _vtx_x_sceadded  = (float) vertex_v_sceadded[ivertex].X();
+                _vtx_y_sceadded  = (float) vertex_v_sceadded[ivertex].Y();
+                _vtx_z_sceadded  = (float) vertex_v_sceadded[ivertex].Z();
+
+                _Length_v_sceadded         = tracker.GetVertexLength();
+                _closestWall_sceadded      = tracker.GetClosestWall();
+                _trackQ3_v_sceadded        = tracker.GetTotalPixADC(3.);
+                _trackQ5_v_sceadded        = tracker.GetTotalPixADC(5.);
+                _trackQ10_v_sceadded       = tracker.GetTotalPixADC(10.);
+                _trackQ20_v_sceadded       = tracker.GetTotalPixADC(20.);
+                _trackQ30_v_sceadded       = tracker.GetTotalPixADC(30.);
+                _trackQ50_v_sceadded       = tracker.GetTotalPixADC(50.);
+                _Avg_Ion_v_sceadded        = tracker.GetAverageIonization();
+                _Ion_5cm_v_sceadded        = tracker.GetTotalIonization(5);
+                _Ion_10cm_v_sceadded       = tracker.GetTotalIonization(10);
+                _Ion_tot_v_sceadded        = tracker.GetTotalIonization();
+                _Avg_IonY_v_sceadded       = tracker.GetAverageIonization_Yplane();
+                _IonY_5cm_v_sceadded       = tracker.GetTotalIonization_Yplane(5);
+                _IonY_10cm_v_sceadded      = tracker.GetTotalIonization_Yplane(10);
+                _IonY_tot_v_sceadded       = tracker.GetTotalIonization_Yplane();
+                _Trunc_dQdX1_v_sceadded    = tracker.ComputeTruncateddQdX(1.0);
+                _Trunc_dQdX3_v_sceadded    = tracker.ComputeTruncateddQdX(3.0);
+                _TotalADCvalues_v_sceadded = tracker.GetTotalPixADC();
+
+                _Angle_v_sceadded          = tracker.GetVertexAngle(2,0); // average over 2 cm to estimate the angles
+                _vertexPhi_2cm_sceadded    = tracker.GetVertexPhi();
+                _vertexTheta_2cm_sceadded  = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(5,2); // average over 5 cm to estimate the angles
+                _vertexPhi_5cm_sceadded    = tracker.GetVertexPhi();
+                _vertexTheta_5cm_sceadded  = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(7,2); // average over 7 cm to estimate the angles
+                _vertexPhi_7cm_sceadded    = tracker.GetVertexPhi();
+                _vertexTheta_7cm_sceadded  = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(10,2); // average over 10 cm to estimate the angles
+                _vertexPhi_10cm_sceadded   = tracker.GetVertexPhi();
+                _vertexTheta_10cm_sceadded = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(12,2); // average over 12 cm to estimate the angles
+                _vertexPhi_12cm_sceadded   = tracker.GetVertexPhi();
+                _vertexTheta_12cm_sceadded = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(17,2); // average over 10 cm to estimate the angles
+                _vertexPhi_17cm_sceadded   = tracker.GetVertexPhi();
+                _vertexTheta_17cm_sceadded = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(20,2); // average over 10 cm to estimate the angles
+                _vertexPhi_20cm_sceadded   = tracker.GetVertexPhi();
+                _vertexTheta_20cm_sceadded = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(30,2); // average over 10 cm to estimate the angles
+                _vertexPhi_30cm_sceadded   = tracker.GetVertexPhi();
+                _vertexTheta_30cm_sceadded = tracker.GetVertexTheta();
+                _Angle_v_sceadded          = tracker.GetVertexAngle(15,2); // average over 15 cm to estimate the angles
+                _vertexPhi_sceadded        = tracker.GetVertexPhi();
+                _vertexTheta_sceadded      = tracker.GetVertexTheta();
+                _vertexPhi_15cm_sceadded   = tracker.GetVertexPhi();
+                _vertexTheta_15cm_sceadded = tracker.GetVertexTheta();
+
+                if(recoEndPoints_sceadded.size()   !=0)recoEndPoints_sceadded.clear();
+                if(recoEndPoints_x_sceadded.size() !=0)recoEndPoints_x_sceadded.clear();
+                if(recoEndPoints_y_sceadded.size() !=0)recoEndPoints_y_sceadded.clear();
+                if(recoEndPoints_z_sceadded.size() !=0)recoEndPoints_z_sceadded.clear();
+                recoEndPoints_sceadded = tracker.GetEndPoints();
+                for(int kk = 0;kk < recoEndPoints_sceadded.size(); kk++){
+                    recoEndPoints_x_sceadded.push_back(recoEndPoints_sceadded[kk].X());
+                    recoEndPoints_y_sceadded.push_back(recoEndPoints_sceadded[kk].Y());
+                    recoEndPoints_z_sceadded.push_back(recoEndPoints_sceadded[kk].Z());
+                }
+                for(size_t itrack = 0; itrack<_Length_v_sceadded.size();itrack++){
+                    _IondivLength_v_sceadded.push_back(_Ion_tot_v_sceadded[itrack]/_Length_v_sceadded[itrack]);
+                }
+                _RecoVertex_sceadded = vertex_v_sceadded.at(ivertex);
 
                 randomSeed = tracker.GetRandomSeed();
                 //tracker.DrawVertexVertical();
@@ -516,14 +730,8 @@ namespace larcv {
                 //----------------------
 
                 _recoTree->Fill();
-                /*std::cout << "_DeadWireList : " << std::endl;
-                for(int i=0;i<3;i++){
-                    for(int j=0;j<_DeadWireList[i].size();j++){
-                        std::cout << _DeadWireList[i][j] << " ";
-                    }
-                    std::cout << std::endl;
-                    std::cout << std::endl;
-                }*/
+                _recoTree_SCEadded->Fill();
+
                 ClearVertex();
                 std::cout << std::endl << std::endl;
 
@@ -532,6 +740,7 @@ namespace larcv {
 
         // set the ass
         ev_ass->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_vv);
+        ev_ass_scedradded->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_sceadded_vv);
 
         advance_larlite();
         std::cout << "...Reconstruted..." << std::endl;
@@ -584,6 +793,7 @@ namespace larcv {
         if(has_ana_file()) {
             ana_file().cd();
             _recoTree->Write();
+            _recoTree_SCEadded->Write();
         }
         _storage.close();
         std::cout << "finalized tracker" << std::endl;
@@ -750,11 +960,19 @@ namespace larcv {
         _vtx_x  = -1.0 * kINVALID_FLOAT;
         _vtx_y  = -1.0 * kINVALID_FLOAT;
         _vtx_z  = -1.0 * kINVALID_FLOAT;
+        _vtx_x_sceadded  = -1.0 * kINVALID_FLOAT;
+        _vtx_y_sceadded  = -1.0 * kINVALID_FLOAT;
+        _vtx_z_sceadded  = -1.0 * kINVALID_FLOAT;
         _E_muon_v.clear();
+        _E_muon_v_sceadded.clear();
         _E_proton_v.clear();
+        _E_proton_v_sceadded.clear();
         _Length_v.clear();
+        _Length_v_sceadded.clear();
         _Avg_Ion_v.clear();
+        _Avg_Ion_v_sceadded.clear();
         _Angle_v.clear();
+        _Angle_v_sceadded.clear();
         _DeadWireList.clear();
         _Reco_goodness_v.clear();
         GoodVertex = -1.0*kINVALID_INT;
@@ -768,11 +986,17 @@ namespace larcv {
         _branchingTracks = -1.0*kINVALID_INT;
         _jumpingTracks = -1.0*kINVALID_INT;
         _trackQ50_v.clear();
+        _trackQ50_v_sceadded.clear();
         _trackQ30_v.clear();
+        _trackQ30_v_sceadded.clear();
         _trackQ20_v.clear();
+        _trackQ20_v_sceadded.clear();
         _trackQ10_v.clear();
+        _trackQ10_v_sceadded.clear();
         _trackQ5_v.clear();
+        _trackQ5_v_sceadded.clear();
         _trackQ3_v.clear();
+        _trackQ3_v_sceadded.clear();
         
     }
 
