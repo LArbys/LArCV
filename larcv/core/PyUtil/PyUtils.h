@@ -13,6 +13,7 @@ typedef _object PyObject;
 #include "larcv/core/DataFormat/Image2D.h"
 #include "larcv/core/DataFormat/ROI.h"
 #include "larcv/core/DataFormat/EventChStatus.h"
+#include "larcv/core/DataFormat/SparseImage.h"
 
 namespace larcv {
 
@@ -64,6 +65,12 @@ namespace larcv {
                                  const float threshold,
                                  larcv::msg::Level_t verbosity );
 
+  PyObject* as_union_pixelarray( const larcv::Image2D& img1, const larcv::Image2D& img2,
+                                 const larcv::Image2D& img3,
+                                 const float threshold, larcv::msg::Level_t verbosity );
+
+  PyObject* as_ndarray( const larcv::SparseImage&,
+                        larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
   
 }
 

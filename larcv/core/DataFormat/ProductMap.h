@@ -22,6 +22,8 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::PGraph   > ();
   class Voxel3D;
   template<> ProductType_t ProductType< larcv::Voxel3D  > ();
+  class SparseImage;
+  template<> ProductType_t ProductType< larcv::SparseImage  > ();
 }
 
 #endif

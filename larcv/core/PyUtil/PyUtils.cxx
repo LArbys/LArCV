@@ -553,6 +553,74 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     return as_union_pixelarray( img_v, threshold, verbosity );
   }
 
+  /**
+   * wrapper for as_union_pixelarray with vector. for ease of use in python.
+   *
+   * @param[in] img1 first input image
+   * @param[in] img2 second input image
+   * @param[in] img3 third input image
+   * @param[in] threshold pixel value for at least one image, must be greater than or equal to threshold to be included
+   * @param[in] verbosity level of verbosity for function
+   * @return numpy array with shape (N,2+M) where M=images given, N=pixels above threshold in one image
+   *
+   */
+  PyObject* as_union_pixelarray( const larcv::Image2D& img1, const larcv::Image2D& img2,
+                                 const larcv::Image2D& img3,
+                                 const float threshold, larcv::msg::Level_t verbosity ) {
+    std::vector< const larcv::Image2D* > img_v;
+    img_v.push_back( &img1 );
+    img_v.push_back( &img2 );
+    img_v.push_back( &img3 );    
+    return as_union_pixelarray( img_v, threshold, verbosity );
+  }
+
+  /**
+   * convert sparse image data into a numpy array
+   *
+   */
+  PyObject* as_ndarray( const larcv::SparseImage& sparseimg,
+                        larcv::msg::Level_t verbosity ) {
+
+    larcv::SetPyUtil();
+    
+    size_t stride = 2+sparseimg.nfeatures();
+    size_t npts   = sparseimg.pixellist().size()/stride;
+    if ( verbosity==larcv::msg::kDEBUG )
+      larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << " npts=" << npts << " stride=" << stride << std::endl;
+
+    npy_intp *dim_data = new npy_intp[2];    
+    dim_data[0] = npts;
+    dim_data[1] = stride;
+    PyArrayObject* array = nullptr;
+    try {
+      array = (PyArrayObject*)PyArray_SimpleNew( 2, dim_data, NPY_FLOAT );
+    }
+    catch (std::exception& e ) {
+      larcv::logger::get("pyutils::as_ndarray(sparseimage)").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
+        << "trouble allocating new pyarray: " << e.what() << std::endl;
+      throw larbys();
+    }
+
+      
+    if ( verbosity==larcv::msg::kDEBUG )          
+      larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "fill array with " << npts << " points" << std::endl;
+
+    for ( size_t ipt=0; ipt<npts; ipt++ ) {
+      for ( size_t ifeat=0; ifeat<stride; ifeat++ ) {
+        *((float*)PyArray_GETPTR2( array, ipt, ifeat )) = sparseimg.pixellist()[stride*ipt+ifeat];
+      }
+    }
+
+    if ( verbosity==larcv::msg::kDEBUG )              
+      larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
+        << "returned array" << std::endl;
+    
+    return (PyObject*)array;
+    
+  }
+  
 }
 
 #endif
