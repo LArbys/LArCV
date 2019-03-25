@@ -20,6 +20,11 @@ namespace larcv {
     SparseImage( const std::vector<larcv::Image2D>& img_v,
                  const std::vector<float>& thresholds,
                  const std::vector<int>& require_pixel=std::vector<int>() );
+    SparseImage( const int nfeatures,
+                 const int npoints,
+                 const std::vector<float>& data,
+                 const std::vector<larcv::ImageMeta>& meta_v,
+                 const int index=0);
     virtual ~SparseImage() {};
 
     /// Return image index ID number (should be unique within larcv::EventImage2D)
@@ -32,7 +37,7 @@ namespace larcv {
     const std::vector<float>& pixellist() const { return _pixelarray; };
     std::vector<float>& mutable_pixellist() { return _pixelarray; };    
     
-    const larcv::ImageMeta& meta(int feature_index) {
+    const larcv::ImageMeta& meta(int feature_index) const {
       return _meta_v.at(feature_index);
     };
 

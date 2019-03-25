@@ -1,5 +1,7 @@
 #include "SparseImage.h"
 
+#include <sstream>
+
 namespace larcv {
 
   SparseImage::SparseImage( const std::vector<const larcv::Image2D*>& img_v,
@@ -21,6 +23,31 @@ namespace larcv {
     for ( auto const& img : img_v )
       pimg_v.push_back( &img );
     convertImages(pimg_v,thresholds,require_pixel);
+  }
+
+  /**
+   * constructor directly using values. for copying.
+   *
+   */
+  SparseImage::SparseImage( const int nfeatures,
+                            const int npoints,
+                            const std::vector<float>& data,
+                            const std::vector<larcv::ImageMeta>& meta_v,
+                            const int index)
+    : _id(index), _nfeatures(nfeatures), _pixelarray(data), _meta_v(meta_v)
+  {
+    // sanity checks
+    if ( (2+nfeatures)*npoints != (int)data.size()  ) {
+      std::stringstream msg;
+      msg << "SparseImage::SparseImage: "
+          << " given number of features and points, "
+          << " the number of data elements disagrees";
+      throw std::runtime_error(msg.str());
+    }
+
+    if ( nfeatures!=meta_v.size() ) {
+      throw std::runtime_error("SparseImage::SparseImage: number of features and metas must be the same");
+    }
   }
 
 
