@@ -148,23 +148,23 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
   // =================================================================
   // CHSTATUS UTILITIES
   // -------------------
-  
+
   PyObject* as_ndarray( const ChStatus& status ) {
-    // NOTE: CREATES WRAPPER    
+    // NOTE: CREATES WRAPPER
     SetPyUtil();
 
     int nd = 1;
     int dim_data[1];
     dim_data[0] = status.as_vector().size();
     auto const &stat_v = status.as_vector();
-        
+
     return PyArray_FromDimsAndData( nd, dim_data, NPY_USHORT, (char*)(&stat_v[0]) );
   }
 
 
   PyObject* as_ndarray( const EventChStatus& evstatus ) {
     // NOTE: CREATES NEW ARRAY
-    
+
     SetPyUtil();
 
     int nd = 2;
@@ -181,19 +181,19 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     PyArrayObject* arr = (PyArrayObject*)PyArray_ZEROS( nd, dim_data, NPY_USHORT, 0 );
 
     short* data = (short*)PyArray_DATA(arr);
-    
+
     for (size_t p=0; p<evstatus.ChStatusMap().size(); p++) {
       const std::vector<short>& chstatus = evstatus.Status( (larcv::PlaneID_t)p ).as_vector();
       for (size_t wire=0; wire<chstatus.size(); wire++) {
 	*(data + p*dim_data[1] + wire) = chstatus[wire];
       }
     }
-    
+
     return (PyObject*)arr;
   }
 
   ChStatus as_chstatus( PyObject* pyarray, const int planeid ) {
-    
+
     SetPyUtil();
     const int dtype = NPY_USHORT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
@@ -209,14 +209,14 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     for (int i = 0; i < dims[0]; ++i)
       status_v[i] = carray[i];
     PyArray_Free(pyarray,(void*)carray);
-    
+
     ChStatus out( (larcv::PlaneID_t)planeid, std::move(status_v) );
-    
+
     return out;
   }
-  
+
   EventChStatus as_eventchstatus( PyObject* pyarray ) {
-    
+
     SetPyUtil();
     const int dtype      = NPY_USHORT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
@@ -228,7 +228,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 				 "ERROR: unexpected dimension size for EventChStatus numpy array (should be two).");
       throw larbys();
     }
-    
+
     short **carray;
     if ( PyArray_AsCArray(&pyarray, (void **)&carray, dims, nd, descr) < 0 ) {
       logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
@@ -237,17 +237,17 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     }
 
     EventChStatus evchstatus;
-    for (int i = 0; i < dims[0]; ++i) {    
+    for (int i = 0; i < dims[0]; ++i) {
       std::vector<short> status_v( dims[1], 0 );
       for (int j=0; j < dims[1]; ++j )
 	status_v[ j ] = carray[i][j];
       ChStatus chstatus( (larcv::PlaneID_t)i, std::move(status_v) );
       evchstatus.Emplace( std::move(chstatus) );
     }
-    
+
     PyArray_Free(pyarray,(void*)carray);
-    
-    return evchstatus;    
+
+    return evchstatus;
   }
 
 
@@ -258,7 +258,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    *
    */
   PyObject* as_pystring( const std::vector<std::uint8_t>& buf ) {
-    SetPyUtil();    
+    SetPyUtil();
     return PyString_FromStringAndSize( (const char*)buf.data(), buf.size() );
   }
 
@@ -294,14 +294,14 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       }
     }
 
-    if ( verbosity==larcv::msg::kDEBUG )    
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "create new array with " << npts << " pixels "
         << " (of max " << img.meta().rows()*img.meta().cols()
         << ", " << float(npts)/float(img.meta().rows()*img.meta().cols()) << " fraction)"
         << std::endl;
-    
-    npy_intp *dim_data = new npy_intp[2];    
+
+    npy_intp *dim_data = new npy_intp[2];
     dim_data[0] = npts;
     dim_data[1] = 3;
     PyArrayObject* array = nullptr;
@@ -314,21 +314,21 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       throw larbys();
     }
 
-      
-    if ( verbosity==larcv::msg::kDEBUG )          
+
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "fill array with " << npts << " points" << std::endl;
-    
+
     for ( size_t ipt=0; ipt<npts; ipt++ ) {
       *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[3*ipt+0];
       *((float*)PyArray_GETPTR2( array, ipt, 1 )) = data_v[3*ipt+1];
-      *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];      
+      *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];
     }
 
-    if ( verbosity==larcv::msg::kDEBUG )              
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "returned array" << std::endl;
-    
+
     return (PyObject*)array;
   }
 
@@ -377,14 +377,14 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       }
     }
 
-    if ( verbosity==larcv::msg::kDEBUG )    
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "create new array with " << npts << " pixels "
         << " (of max " << value_img.meta().rows()*value_img.meta().cols()
         << ", " << float(npts)/float(value_img.meta().rows()*value_img.meta().cols()) << " fraction)"
         << std::endl;
-    
-    npy_intp *dim_data = new npy_intp[2];    
+
+    npy_intp *dim_data = new npy_intp[2];
     dim_data[0] = npts;
     dim_data[1] = 3;
     PyArrayObject* array = nullptr;
@@ -397,21 +397,21 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       throw larbys();
     }
 
-      
-    if ( verbosity==larcv::msg::kDEBUG )          
+
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "fill array with " << npts << " points" << std::endl;
-    
+
     for ( size_t ipt=0; ipt<npts; ipt++ ) {
       *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[3*ipt+0];
       *((float*)PyArray_GETPTR2( array, ipt, 1 )) = data_v[3*ipt+1];
-      *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];      
+      *((float*)PyArray_GETPTR2( array, ipt, 2 )) = data_v[3*ipt+2];
     }
 
-    if ( verbosity==larcv::msg::kDEBUG )              
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "returned array" << std::endl;
-    
+
     return (PyObject*)array;
   }
 
@@ -444,9 +444,9 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
         << "no images given" << std::endl;
       throw std::runtime_error("pyutils::as_union_pixelarray: no imaes given");
     }
-    
+
     size_t nimgs = pimg_v.size();
-    
+
     // first image defines the array size
     size_t ncols = pimg_v.front()->meta().cols();
     size_t nrows = pimg_v.front()->meta().rows();
@@ -458,16 +458,16 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
         throw std::runtime_error("pyutils::as_union_pixelarray: image ncols bigger than first");
       }
       if ( nrows<pimg->meta().rows() ) {
-        throw std::runtime_error("pyutils::as_union_pixelarray: image nrows bigger than first");        
+        throw std::runtime_error("pyutils::as_union_pixelarray: image nrows bigger than first");
       }
     }
 
-    std::vector<float> data_v;    
+    std::vector<float> data_v;
     data_v.reserve( (2+nimgs)*nrows*ncols ); // maximum size
     size_t npts = 0;
-    
+
     for ( size_t c=0; c<ncols; c++ ) {
-      for ( size_t r=0; r<nrows; r++ ) {        
+      for ( size_t r=0; r<nrows; r++ ) {
         // for every pixel, get value in all images in input vector
         // mark for save if any are above threshold
         // if saving, add to data vector
@@ -490,18 +490,18 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
             npts++;
           }
         }
-        
+
       }//end of col loop
     }//end of row loop
 
-    if ( verbosity==larcv::msg::kDEBUG )    
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "create new array with " << npts << " pixels "
         << " (of max " << nimgs*ncols*nrows
         << ", " << float(npts)/float(nimgs*ncols*nrows) << " fraction)"
         << std::endl;
-    
-    npy_intp *dim_data = new npy_intp[2];    
+
+    npy_intp *dim_data = new npy_intp[2];
     dim_data[0] = npts;
     dim_data[1] = 2+(int)nimgs;
     PyArrayObject* array = nullptr;
@@ -514,8 +514,8 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       throw larbys();
     }
 
-      
-    if ( verbosity==larcv::msg::kDEBUG )          
+
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "fill array with " << npts << " points" << std::endl;
 
@@ -524,13 +524,13 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       *((float*)PyArray_GETPTR2( array, ipt, 0 )) = data_v[blocksize*ipt+0];
       *((float*)PyArray_GETPTR2( array, ipt, 1 )) = data_v[blocksize*ipt+1];
       for ( size_t iimg=0; iimg<nimgs; iimg++ )
-        *((float*)PyArray_GETPTR2( array, ipt, 2+iimg )) = data_v[blocksize*ipt+2+iimg];      
+        *((float*)PyArray_GETPTR2( array, ipt, 2+iimg )) = data_v[blocksize*ipt+2+iimg];
     }
-    
-    if ( verbosity==larcv::msg::kDEBUG )              
+
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_union_pixelarray").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "returned array" << std::endl;
-    
+
     return (PyObject*)array;
   }
 
@@ -570,26 +570,30 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     std::vector< const larcv::Image2D* > img_v;
     img_v.push_back( &img1 );
     img_v.push_back( &img2 );
-    img_v.push_back( &img3 );    
+    img_v.push_back( &img3 );
     return as_union_pixelarray( img_v, threshold, verbosity );
   }
 
   /**
    * convert sparse image data into a numpy array
    *
+   * @param[in] sparseimg SparseImage object to convert
+   * @param[in] verbosity verbose level with 0 the most verbose and 2 quietest
+   * @return a numpy array with shape (N,F) where N is number of points
+   *         and F is number of features. First two values are (row,col)
    */
   PyObject* as_ndarray( const larcv::SparseImage& sparseimg,
                         larcv::msg::Level_t verbosity ) {
 
     larcv::SetPyUtil();
-    
+
     size_t stride = 2+sparseimg.nfeatures();
     size_t npts   = sparseimg.pixellist().size()/stride;
     if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << " npts=" << npts << " stride=" << stride << std::endl;
 
-    npy_intp *dim_data = new npy_intp[2];    
+    npy_intp *dim_data = new npy_intp[2];
     dim_data[0] = npts;
     dim_data[1] = stride;
     PyArrayObject* array = nullptr;
@@ -602,8 +606,8 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       throw larbys();
     }
 
-      
-    if ( verbosity==larcv::msg::kDEBUG )          
+
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "fill array with " << npts << " points" << std::endl;
 
@@ -613,14 +617,60 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       }
     }
 
-    if ( verbosity==larcv::msg::kDEBUG )              
+    if ( verbosity==larcv::msg::kDEBUG )
       larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "returned array" << std::endl;
-    
+
     return (PyObject*)array;
-    
+
   }
-  
+
+  /**
+   * convert numpy array into SparseImage object
+   *
+   * @param[in] ndarray numpy array with (N,F) shape. F>2 as first two values
+   *            are (row,col) coordinates.
+   * @param[in] meta_v Vector of larcv::ImageMeta for each feature
+   * @param[in] verbosity verbose level with 0 the most verbose and 2 quietest
+   * @return a numpy array with shape (N,F) where N is number of points
+   *         and F is number of features. First two values are (row,col)
+   */
+  larcv::SparseImage sparseimg_from_ndarray( PyObject* ndarray,
+                        const std::vector<larcv::ImageMeta>& meta_v,
+                        larcv::msg::Level_t verbosity )
+  {
+
+    float **carray;
+    // Create C arrays from numpy objects:
+    const int dtype = NPY_FLOAT;
+    PyArray_Descr *descr = PyArray_DescrFromType(dtype);
+    npy_intp dims[3];
+    if (PyArray_AsCArray(&ndarray, (void **)&carray, dims, 2, descr) < 0) {
+      logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+                                 "ERROR: cannot convert to 2D C-array");
+      throw larbys();
+    }
+    // checks
+    if ( (int)meta_v.size()!=dims[1]-2 ) {
+      logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+                                 "ERROR: number of meta != num features");
+      throw larbys("larcv::sparseimg_from_ndarray error");
+    }
+
+    std::vector<float> data(dims[0] * dims[1], 0.);
+    for (int i = 0; i < dims[0]; ++i) {
+      for (int j = 0; j < dims[1]; ++j) {
+        data[i * dims[1] + j] = (float)(carray[i][j]);
+      }
+    }
+    PyArray_Free(ndarray, (void *)carray);
+
+    int nfeatures = dims[1]-2;
+    int npts      = dims[0];
+    SparseImage sparseimg(nfeatures, npts, data, meta_v); // empty imae
+
+    return sparseimg;
+  }
 }
 
 #endif

@@ -27,6 +27,8 @@
 #pragma link C++ function larcv::as_union_pixelarray( const larcv::Image2D&, const larcv::Image2D&, const float, larcv::msg::Level_t );
 #pragma link C++ function larcv::as_union_pixelarray( const larcv::Image2D&, const larcv::Image2D&, const larcv::Image2D&, const float, larcv::msg::Level_t );
 #pragma link C++ function larcv::as_ndarray( const larcv::SparseImage&, larcv::msg::Level_t )+;
+#pragma link c++ function larcv::sparseimg_from_ndarray( PyObject*, const std::vector<larcv::ImageMeta>&, larcv::msg::Level_t );
+
 #endif
 #pragma link C++ class larcv::load_pyutil+;
 #pragma link C++ class larcv::PyImageMaker+;
