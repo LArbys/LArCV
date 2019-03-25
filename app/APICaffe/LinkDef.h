@@ -11,8 +11,8 @@
 
 //#ifndef __CINT__
 #pragma link C++ class larcv::ThreadDatumFiller+;
-//#endif
 #pragma link C++ class larcv::DatumFillerBase+;
+#pragma link C++ class larcv::ImageFillerBase+;
 #pragma link C++ class larcv::SegFiller+;
 #pragma link C++ class larcv::SimpleFiller+;
 #pragma link C++ class larcv::ThreadFillerFactory+;

@@ -419,4 +419,21 @@ namespace larcv {
     eltwise(rhs.as_vector(),false);
   }
 
+  std::vector<float> Image2D::norm_image_as_vector() const{
+    float sum=0;
+    for (auto const each : _img) sum+=each;
+
+    if (sum==0) return _img;
+
+    std::vector<float> norm_img;
+    norm_img.clear();
+
+    for (auto const each : _img) norm_img.push_back(each / sum);
+
+    if (_img.size()!=norm_img.size())
+      throw larbys("Inconsistent dimensions in original/normalized images!");
+
+    return norm_img;
+  }
+
 }

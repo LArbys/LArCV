@@ -105,7 +105,9 @@ namespace larcv {
     std::vector<float>&& move();
     /// Move data contents in
     void move(std::vector<float>&&);
-
+    // Make a sum-normalized-to-1 image
+    std::vector<float> norm_image_as_vector() const;      
+    
     inline Image2D& operator+=(const float val)
     { for(auto& v : _img) v+= val; return (*this);}
     inline Image2D operator+(const float val) const
@@ -139,7 +141,7 @@ namespace larcv {
     void eltwise( const Image2D& rhs );
     /// Element-wise multiplication w/ 1D array data
     void eltwise(const std::vector<float>& arr,bool allow_longer=false);
-    
+        
   private:
     std::vector<float> _img;
     ImageIndex_t _id;
