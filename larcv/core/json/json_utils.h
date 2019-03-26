@@ -34,7 +34,7 @@ namespace larcv {
 
     // =========================================
     // IMAGE2D -> numpy pixel array
-    // =========================================    
+    // =========================================
     json as_json_pixelarray( const larcv::Image2D&, const float );
     json as_json_pixelarray_withselection( const larcv::Image2D&,
                                            const larcv::Image2D&,
@@ -54,10 +54,10 @@ namespace larcv {
                   int run=0, int subrun=0, int event=0, int id=0);
     std::vector<std::uint8_t> as_bson( const larcv::SparseImage& sparsedata,
                                        int run=0, int subrun=0, int event=0, int id=0);
-    larcv::SparseImage sparseimg_fromjson( const json& msg );    
+    larcv::SparseImage sparseimg_fromjson( const json& msg );
     larcv::SparseImage sparseimg_fromjson( const json& msg,
                                            int& run, int& subrun, int& event, int& id );
-    
+
 #ifdef HASPYUTIL
     // -----------
     // IMAGE 2D
@@ -71,12 +71,12 @@ namespace larcv {
     // -------------
     // SparseImage
     // -------------
-    
+
     PyObject* as_bson_pystring( const larcv::SparseImage& sparsedata,
                                 int run=0, int subrun=0, int event=0, int id=0);
-    larcv::SparseImage sparseimage_from_bson_pystring( PyObject* str ,
-                                                       int& run, int& subrun, int& event, int& id);
-    
+    larcv::SparseImage sparseimg_from_bson_pystring( PyObject* str ,
+                                                     int& run, int& subrun, int& event, int& id);
+
 #endif
 
     // this hack is needed for some reason

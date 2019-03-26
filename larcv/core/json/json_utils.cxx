@@ -278,7 +278,7 @@ namespace larcv {
 
     /**
        convert SparseImage object into json message
-       
+
        @param[in] sparsedata The data to convert
        @param[in] run run number to store in bson message
        @param[in] subrun subrun number to store in bson message
@@ -295,12 +295,14 @@ namespace larcv {
       int stride    = 2+nfeatures;
       int npts      = sparsedata.pixellist().size()/stride;
 
-      if ( (int)sparsedata.pixellist().size()%stride==0 ) {
+      if ( (int)sparsedata.pixellist().size()%stride!=0 ) {
         std::stringstream msg;
         msg << "json_utils.cxx::as_bson_pystring:"
-            << " calculated stride per point does "
-            << " not divide evenly into data array size"
+            << " calculated stride (" << stride << ") per point does "
+            << " not divide evenly into "
+            << " data array size (" << sparsedata.pixellist().size() << ")"
             << std::endl;
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, msg.str() );
         throw std::runtime_error(msg.str());
       }
 
@@ -314,7 +316,7 @@ namespace larcv {
 
       // output msg
       json j;
-      
+
       // key params
       j["datatype"] = "larcv::SparseImage";
       j["nfeatures"] = nfeatures;
@@ -334,13 +336,13 @@ namespace larcv {
 
       // the data
       j["data"] = sparsedata.pixellist();
-      
+
       return j;
     }
 
     /**
        convert SparseImage object into bson (binary-json) message
-       
+
        @param[in] sparsedata The data to convert
        @param[in] run run number to store in bson message
        @param[in] subrun subrun number to store in bson message
@@ -357,18 +359,19 @@ namespace larcv {
 
     /**
      * convert SparseImage json message back into a SparseImage object
-     * 
+     *
      * @param[in] json message containng sparseimage data
      */
     larcv::SparseImage sparseimg_fromjson( const json& msg )
     {
-      
+
       //int& run, int& subrun, int& event, int& id) {
       std::vector<float> data = msg["data"].get< std::vector<float> >();
       std::vector< json > jmeta_v = msg["meta_v"].get< std::vector<json> >();
       std::vector< larcv::ImageMeta > meta_v;
       for ( auto const& jmeta : jmeta_v ) {
         meta_v.push_back( imagemeta_from_json( jmeta ) );
+        //std::cout << "  " << meta_v.back().plane() << ", " << meta_v.back().dump() << std::endl;
       }
 
       int nfeatures = msg["nfeatures"];
@@ -379,10 +382,10 @@ namespace larcv {
       return sparseimg;
     }
 
-    
+
     /**
      * convert SparseImage json message back into a SparseImage object w RSEid
-     * 
+     *
      * @param[in] json message containng sparseimage data
      * @param[inout] run    get run number from messaeg
      * @param[inout] subrun get subrun number from message
@@ -397,13 +400,13 @@ namespace larcv {
       run    = rseid.at(0);
       subrun = rseid.at(1);
       event  = rseid.at(2);
-      id     = rseid.at(3);      
+      id     = rseid.at(3);
       return sparseimg;
     }
 
 
-    
-    
+
+
 
 #ifdef HASPYUTIL
     PyObject* as_pystring( const larcv::Image2D& img,
@@ -441,10 +444,10 @@ namespace larcv {
     // ======================
     // SPARSEIMAGE
     // ======================
-    
+
     /**
        convert SparseImage object into pystring containing data stored in BSON format
-       
+
        @param[in] sparsedata The data to convert
        @param[in] run run number to store in bson message
        @param[in] subrun subrun number to store in bson message
@@ -483,11 +486,12 @@ namespace larcv {
 
       json data = json::from_bson(b_v);
       rseid_from_json( data, run, subrun, event, id );
-      
+      //std::cout << "rse: " << run << " " << subrun << " " << event << std::endl;
+
       return sparseimg_fromjson(data);
     }
-    
-    // END OF HASPYUTIL: Block for Python functions    
+
+    // END OF HASPYUTIL: Block for Python functions
 #endif
 
   }//end of json namespace

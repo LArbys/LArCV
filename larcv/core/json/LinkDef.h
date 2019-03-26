@@ -30,15 +30,9 @@
 #pragma link C++ function  larcv::json::as_pystring(const larcv::Image2D&,int, int, int, int)+;
 #pragma link C++ function  larcv::json::image2d_from_pystring( PyObject* str )+;
 #pragma link C++ function  larcv::json::image2d_from_pystring( PyObject* str, int&, int&, int&, int& )+;
-#pragma link C++ function  larcv::json::as_bson_pystring(const larcv::Image2D&,int, int, int, int)+;
-#pragma link C++ function  larcv::json::sparse_from_bson_pystring( PyObject* str, int&, int&, int&, int& )+;
+#pragma link C++ function  larcv::json::as_bson_pystring(const larcv::SparseImage&,int, int, int, int)+;
+#pragma link C++ function  larcv::json::sparseimg_from_bson_pystring( PyObject* str, int&, int&, int&, int& )+;
 #endif
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
-
-
-
-
-
-

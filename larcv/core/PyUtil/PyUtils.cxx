@@ -639,21 +639,29 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
                         const std::vector<larcv::ImageMeta>& meta_v,
                         larcv::msg::Level_t verbosity )
   {
+    SetPyUtil();
+
+    int dtype = PyArray_TYPE((PyArrayObject*)ndarray);
 
     float **carray;
     // Create C arrays from numpy objects:
-    const int dtype = NPY_FLOAT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
-    npy_intp dims[3];
+    npy_intp dims[2];
     if (PyArray_AsCArray(&ndarray, (void **)&carray, dims, 2, descr) < 0) {
+      std::stringstream msg;
+      msg << "ERROR: cannot convert to 2D C-array." << std::endl;
       logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
-                                 "ERROR: cannot convert to 2D C-array");
+                                 msg.str());
       throw larbys();
     }
     // checks
     if ( (int)meta_v.size()!=dims[1]-2 ) {
+      std::stringstream msg;
+      msg << "ERROR: number of meta (" << meta_v.size() << ") "
+          << " != num features (" << dims[1]-2 << ")"
+          << std::endl;
       logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
-                                 "ERROR: number of meta != num features");
+                                 msg.str());
       throw larbys("larcv::sparseimg_from_ndarray error");
     }
 

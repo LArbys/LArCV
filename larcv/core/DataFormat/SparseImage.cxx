@@ -17,7 +17,7 @@ namespace larcv {
                             const std::vector<float>& thresholds,
                             const std::vector<int>& require_pixel )
     : _id(0),
-      _nfeatures(img_v.size())      
+      _nfeatures(img_v.size())
   {
     std::vector<const larcv::Image2D*> pimg_v;
     for ( auto const& img : img_v )
@@ -59,15 +59,15 @@ namespace larcv {
     if ( img_v.size()==0 ) {
       throw std::runtime_error("SparseImage::convertImages: input image vector is empty");
     }
-    
+
     // save metas
-    for (auto const& pimg : img_v ) 
+    for (auto const& pimg : img_v )
       _meta_v.push_back( pimg->meta() );
 
     size_t ncols  = _meta_v.front().cols();
     size_t nrows  = _meta_v.front().rows();
-    size_t nfeats = nfeatures(); 
-      
+    size_t nfeats = nfeatures();
+
     std::vector<float> thresh = thresholds;
     if (thresh.size()==1) {
       // broadcast
@@ -76,7 +76,7 @@ namespace larcv {
     else if ( thresh.size()!=img_v.size() ) {
       throw std::runtime_error("SparseImage::SparseImage: number of threshold values should be 1 or match number of images");
     }
-    
+
     // reserve space, expect sparsity factor of about 10
     _pixelarray.clear();
     _pixelarray.reserve( ncols*nrows*nfeats/10 );
@@ -101,7 +101,30 @@ namespace larcv {
         }
       }
     }
-    
+  }
 
+  /**
+  * embed data into dense image2d format
+  *
+  */
+  std::vector<larcv::Image2D> SparseImage::as_Image2D() {
+    std::vector<larcv::Image2D> img_v;
+    for (size_t iimg=0; iimg<_meta_v.size(); iimg++ ) {
+      larcv::ImageMeta meta = _meta_v.at(iimg);
+      larcv::Image2D img(meta);
+      img.paint(0.0);
+      img_v.emplace_back( std::move(img) );
+    }
+
+    size_t stride = 2+_nfeatures;
+    size_t npts = _pixelarray.size()/stride;
+    for ( size_t ipt=0; ipt<npts; ipt++ ) {
+      size_t row = _pixelarray[ ipt*stride ];
+      size_t col = _pixelarray[ ipt*stride+1 ];
+
+      for (size_t iimg=0; iimg<_meta_v.size(); iimg++ )
+        img_v[iimg].set_pixel( row, col, _pixelarray[ ipt*stride+2+iimg ] );
+    }
+    return img_v;
   }
 }

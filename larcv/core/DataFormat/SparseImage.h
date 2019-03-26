@@ -35,16 +35,18 @@ namespace larcv {
     /// Get Data
     unsigned int nfeatures() const { return _nfeatures; };
     const std::vector<float>& pixellist() const { return _pixelarray; };
-    std::vector<float>& mutable_pixellist() { return _pixelarray; };    
-    
+    std::vector<float>& mutable_pixellist() { return _pixelarray; };
+
     const larcv::ImageMeta& meta(int feature_index) const {
       return _meta_v.at(feature_index);
     };
 
-    const std::vector<larcv::ImageMeta> meta_v() { return _meta_v; };
+    const std::vector<larcv::ImageMeta>& meta_v() const { return _meta_v; };
+
+    std::vector<larcv::Image2D> as_Image2D();
 
   protected:
-    
+
     /// Add images
     void convertImages(const std::vector<const larcv::Image2D*>& img_v,
                        const std::vector<float>& thresholds,
@@ -53,8 +55,8 @@ namespace larcv {
     std::vector<float> _pixelarray;
     std::vector<larcv::ImageMeta>   _meta_v;
     ImageIndex_t _id;
-    unsigned int _nfeatures;    
-    
+    unsigned int _nfeatures;
+
   };
 }
 #endif
