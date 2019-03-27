@@ -110,7 +110,7 @@ namespace larcv {
   std::vector<larcv::Image2D> SparseImage::as_Image2D() {
     std::vector<larcv::Image2D> img_v;
     for (size_t iimg=0; iimg<_meta_v.size(); iimg++ ) {
-      larcv::ImageMeta meta = _meta_v.at(iimg);
+      const larcv::ImageMeta& meta = _meta_v.at(iimg);
       larcv::Image2D img(meta);
       img.paint(0.0);
       img_v.emplace_back( std::move(img) );
@@ -119,12 +119,13 @@ namespace larcv {
     size_t stride = 2+_nfeatures;
     size_t npts = _pixelarray.size()/stride;
     for ( size_t ipt=0; ipt<npts; ipt++ ) {
-      size_t row = _pixelarray[ ipt*stride ];
-      size_t col = _pixelarray[ ipt*stride+1 ];
+      int row = (int)_pixelarray[ ipt*stride ];
+      int col = (int)_pixelarray[ ipt*stride+1 ];
 
       for (size_t iimg=0; iimg<_meta_v.size(); iimg++ )
         img_v[iimg].set_pixel( row, col, _pixelarray[ ipt*stride+2+iimg ] );
     }
+
     return img_v;
   }
 }
