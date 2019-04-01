@@ -21,6 +21,12 @@ namespace larcv {
     return _image_v[id];
   }
 
+  Image2D& EventImage2D::modimgat(ImageIndex_t id)
+  {
+    if( id >= _image_v.size() ) throw larbys("Invalid request (ImageIndex_t out-o-range)!");
+    return _image_v[id];
+  }
+  
   void EventImage2D::Append(const Image2D& img)
   {
     _image_v.push_back(img);

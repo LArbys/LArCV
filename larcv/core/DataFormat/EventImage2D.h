@@ -40,9 +40,18 @@ namespace larcv {
     /// Const reference getter to an array of larcv::Image2D
     const std::vector<larcv::Image2D>& Image2DArray() const { return _image_v; }
 
+    /// Const reference getter to an array of larcv::Image2D
+    const std::vector<larcv::Image2D>& as_vector() const { return _image_v; }
+
+    /// Mutable reference getter to an array of larcv::Image2D
+    std::vector<larcv::Image2D>& as_mut_vector() { return _image_v; }
+    
     /// larcv::Image2D const reference getter for a specified index number
     const Image2D& at(ImageIndex_t id) const;
 
+    /// larcv::Image2D const reference getter for a specified index number
+    Image2D& modimgat(ImageIndex_t id);
+    
     /// Inserter into larcv::Image2D array
     void Append(const Image2D& img);
 #ifndef __CINT__

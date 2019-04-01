@@ -90,6 +90,8 @@ namespace larcv {
     const Point2D  br   () const { return Point2D(_origin.x + _width, _origin.y          ); }
     /// PlaneID_t getter
     PlaneID_t plane     () const { return _plane;     }
+    /// PlaneID_t getter
+    PlaneID_t id        () const { return _plane;     }
     /// Width accessor
     double width        () const { return _width;     }
     /// Height accessor
@@ -136,6 +138,10 @@ namespace larcv {
     bool contains( const float x, const float y ) const;
     /// Check if (x,y) coordinate is contained in Meta
     bool contains( const Point2D& pt ) const;
+    /// produce a vector containing the xaxis coordinate values
+    std::vector<float> xaxis() const;
+    /// produce a vector containing the y-axis coordinate values
+    std::vector<float> yaxis() const;
     
 
     /// Dump info in text

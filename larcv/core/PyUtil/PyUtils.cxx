@@ -667,9 +667,12 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
     std::vector<float> data(dims[0] * dims[1], 0.);
     for (int i = 0; i < dims[0]; ++i) {
+      //std::cout << "N[" << i << "] :";
       for (int j = 0; j < dims[1]; ++j) {
         data[i * dims[1] + j] = (float)(carray[i][j]);
+        //std::cout << (float)(carray[i][j]) << " ";        
       }
+      //std::cout << std::endl;
     }
     PyArray_Free(ndarray, (void *)carray);
 

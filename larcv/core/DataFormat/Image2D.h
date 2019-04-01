@@ -90,6 +90,9 @@ namespace larcv {
     /// 1D const reference array getter
     const std::vector<float>& as_vector() const 
     { return _img; }
+    /// 1D mutable reference array getter
+    std::vector<float>& as_mod_vector()
+    { return _img; }
     /// Re-size the 1D data array w/ updated # rows and # columns
     void resize( size_t row_count, size_t col_count, float fillval=0.0 );
     /// Set pixel value via row/col specification
@@ -156,6 +159,16 @@ namespace larcv {
 
     /// Reverse time-order
     void reverseTimeOrder();
+
+    /// iterators for values at a given column (contigous)
+    std::vector<float>::iterator row_start( int col ) { return _img.begin()+col*meta().rows(); };
+    std::vector<float>::iterator row_end(   int col ) { return _img.begin()+(col+1)*meta().rows(); };
+    std::vector<float>::const_iterator row_start_const( int col ) const { return _img.begin()+col*meta().rows(); };
+    std::vector<float>::const_iterator row_end_const( int col ) const   { return _img.begin()+(col+1)*meta().rows(); };
+    /// create vector for values at a given row (no reference because not contigous)
+    std::vector<float> timeslice( int row ) const;
+    void rowcopy(size_t row, const std::vector<float>& src);
+    
     
   private:
     std::vector<float> _img;

@@ -508,36 +508,45 @@ namespace larcv {
 	 || meta().min_y() > src.meta().max_y()
 	 || meta().max_y() < src.meta().min_y() )
       return; // no overlap, so no copy
-    
-    //size_t dest_row_start, size_t dest_col_start, size_t src_row_start, size_t nrows, size_t src_col_start, size_t ncols;
+
+    if (src.meta().pixel_width()!=meta().pixel_width()
+        || src.meta().pixel_height()!=meta().pixel_height() ) {
+      char nope[500];
+      sprintf(nope,"Image2D::copy_region requires pixel scales to be the same");
+      throw larbys(nope);
+    }
+
+    // find starting column for source and destination image
     size_t src_col_start = 0;
     size_t des_col_start = 0;
     if ( meta().min_x() > src.meta().min_x() )
       src_col_start = src.meta().col( meta().min_x() );
     else
       des_col_start = meta().col( src.meta().min_x() );
-    
+
+    // find starting row for source and destination image    
     size_t src_row_start = 0;
     size_t des_row_start = 0;
-    if ( meta().max_y() < src.meta().max_y() )
-      src_row_start = src.meta().row( meta().max_y() );
+    if ( meta().min_y() > src.meta().min_y() )
+      src_row_start = src.meta().row( meta().min_y() );
     else
-      des_row_start = meta().row( src.meta().max_y() );
-    
+      des_row_start = meta().row( src.meta().min_y() );
+
+    // find end column (inclusive)
     size_t src_col_end = src.meta().cols()-1;
     size_t des_col_end = meta().cols()-1;
     if ( meta().max_x() < src.meta().max_x() )
-      src_col_end = src.meta().col( meta().max_x() );
+      src_col_end = src.meta().col( meta().max_x() )-1;
     else
-      des_col_end = meta().col( src.meta().max_x() );
+      des_col_end = meta().col( src.meta().max_x() )-1;
 
     size_t src_row_end = src.meta().rows()-1;
     size_t des_row_end = meta().rows()-1;
-    if ( meta().min_y() > src.meta().min_y() ) {
-      src_row_end = src.meta().row( meta().min_y() );
+    if ( meta().max_y() < src.meta().max_y() ) {
+      src_row_end = src.meta().row( meta().max_y() )-1;
     }
-    else if ( meta().min_y() < src.meta().min_y() ) {
-      des_row_end = meta().row( src.meta().min_y() );
+    else if ( meta().max_y() < src.meta().max_y() ) {
+      des_row_end = meta().row( src.meta().max_y() )-1;
     }
     else {
       // equal and @min_y, nothing needed
@@ -591,6 +600,34 @@ namespace larcv {
 
     // if originally in reverse-tick order, then origin is in wrong spot. change it.
     _meta.reset_origin(_meta.min_x(),_meta.min_y()-_meta.height());
+  }
+
+  /**
+   *  return values at a given row
+   *
+   * @param[in] row the row to copy at
+   * @return vector of pixel values
+   */
+  std::vector<float> Image2D::timeslice( int row ) const {
+    // returns columns at given row
+    std::vector<float> pixvalues(meta().cols());
+    const int nrows = meta().rows();
+    for ( int i=0; i<(int)meta().cols(); i++ ) {
+      pixvalues[i] = _img[ i*nrows + row ]; // strided access, compiler do your thing!
+    }
+    return pixvalues;
+  }
+
+  /**
+   *  copy values from vector at the row
+   *
+   * @param[in] row the row to copy at
+   */  
+  void Image2D::rowcopy( size_t row, const std::vector<float>& src ) {
+    const int nrows = meta().rows();
+    int ncols = (meta().cols() < src.size()) ? meta().cols() : src.size();
+    for ( int i=0; i<ncols; i++ )
+      _img[ i*nrows + row ] = src[i];
   }
   
 }

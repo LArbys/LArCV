@@ -149,6 +149,36 @@ namespace larcv {
        << " ... Right Bottom (x,y)=(" << max_x() << "," << min_y() << ")";
     return ss.str();
   }
+
+  /**
+   * produce a vector containing the xaxis values for each pixel column
+   *
+   * @return vector of floats
+   */
+  std::vector<float> ImageMeta::xaxis() const {
+    std::vector<float> axis( cols() );
+    float minx = min_x();
+    float width = pixel_width();
+    for ( size_t c=0; c<cols(); c++ )
+      axis[c] = minx + c*width;
+    return axis;
+  }
+
+  /**
+   * produce a vector containing the xaxis values for each pixel column
+   *
+   * @return vector of floats
+   */
+  std::vector<float> ImageMeta::yaxis() const {
+    std::vector<float> axis( rows() );
+    float miny   = min_y();
+    float height = pixel_height();
+    for ( size_t r=0; r<rows(); r++ )
+      axis[r] = miny + r*height;
+    return axis;
+  }
+  
+  
 }
 
 #endif
