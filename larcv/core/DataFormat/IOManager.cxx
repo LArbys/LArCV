@@ -130,6 +130,8 @@ namespace larcv {
       LARCV_CRITICAL() << "ReadOnlyName and ReadOnlyType has different lengths!" << std::endl;
       throw larbys();
     }
+
+    _input_tick_order = (!cfg.get<bool>("TickBackward",false)) ? kTickForward :  kTickBackward;
   }
 
   bool IOManager::initialize()
