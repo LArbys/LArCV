@@ -1,6 +1,8 @@
+from __future__ import print_function
 import ROOT,os
+
 if not 'LARCV_BASEDIR' in os.environ:
-    print '$LARCV_BASEDIR shell env. var. not found (run configure.sh)'
+    print('$LARCV_BASEDIR shell env. var. not found (run configure.sh)')
     raise ImportError
 
 # must load dependencies first

@@ -17,7 +17,7 @@ fi
 # Abort if ROOT not installed. Let's check rootcint for this.
 if [ `command -v rootcling` ]; then
     export LARCV_ROOT6=1
-else 
+else
     if [[ -z `command -v rootcint` ]]; then
 	echo
 	echo Looks like you do not have ROOT installed.
@@ -58,7 +58,7 @@ export LARCV_BINDIR=$LARCV_BUILDDIR/installed/bin
 export LARCV_VERSION=1
 
 # Check OpenCV
-export LARCV_OPENCV=1
+# export LARCV_OPENCV=1
 if [[ -z $OPENCV_INCDIR ]]; then
     export LARCV_OPENCV=0
 fi
@@ -127,7 +127,7 @@ printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
 # paths if using OPENCV (NO_OPENCV to explicitly disallow)
 if [[ -z $LARCV_NOOPENCV ]]; then
     [[ ":$LD_LIBRARY_PATH:" != *":${OPENCV_LIBDIR}/bin:"* ]] && export LD_LIBRARY_PATH="${OPENCV_LIBDIR}:${LD_LIBRARY_PATH}"
-    [[ ":$DYLD_LIBRARY_PATH:" != *":${OPENCV_LIBDIR}/bin:"* ]] && export DYLD_LIBRARY_PATH="${OPENCV_LIBDIR}:${DYLD_LIBRARY_PATH}"    
+    [[ ":$DYLD_LIBRARY_PATH:" != *":${OPENCV_LIBDIR}/bin:"* ]] && export DYLD_LIBRARY_PATH="${OPENCV_LIBDIR}:${DYLD_LIBRARY_PATH}"
 fi
 
 mkdir -p $LARCV_BUILDDIR;

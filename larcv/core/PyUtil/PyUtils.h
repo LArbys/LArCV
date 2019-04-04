@@ -14,12 +14,14 @@ typedef _object PyObject;
 #include "larcv/core/DataFormat/ROI.h"
 #include "larcv/core/DataFormat/EventChStatus.h"
 #include "larcv/core/DataFormat/SparseImage.h"
+#include "larcv/core/DataFormat/ClusterMask.h"
+
 
 namespace larcv {
 
   /// Utility function: call one-time-only numpy module initialization (you don't
   /// have to call)
-  void SetPyUtil();
+  int SetPyUtil();
   ///
   PyObject *as_ndarray(const std::vector<float> &data);
   /// larcv::Image2D to numpy array converter
@@ -29,25 +31,25 @@ namespace larcv {
   /// copy array
   void copy_array(PyObject *arrayin, const std::vector<float> &cvec);
   // void copy_array(PyObject *arrayin);//, const std::vector<float>& vec);
-  
+
   Image2D as_image2d_meta(PyObject *, ImageMeta meta);
-  
+
   Image2D as_image2d(PyObject *);
-  
+
   // allows one to avoid some loops in python
   void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
                     const int timedownsampling, const float pedestal = 0.0);
-  
+
   // ChStatus helpers
-  PyObject* as_ndarray( const ChStatus& chstatus ); 
+  PyObject* as_ndarray( const ChStatus& chstatus );
   PyObject* as_ndarray( const EventChStatus& evstatus );
-  
+
   ChStatus      as_chstatus( PyObject*, larcv::PlaneID_t planeid );
-  EventChStatus as_eventchstatus( PyObject* ); 
-  
+  EventChStatus as_eventchstatus( PyObject* );
+
   // Byte vector helper
-  PyObject* as_pystring( const std::vector<std::uint8_t>& buf );
-  
+  PyObject* as_pybytes( const std::vector<std::uint8_t>& buf );
+
   // as a list of 2D numpy array with (row,col,values) for each numpy row
   PyObject* as_pixelarray( const larcv::Image2D& img, const float threshold,
                            larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
@@ -56,7 +58,7 @@ namespace larcv {
                                           const larcv::Image2D& select_img,
                                           const float threshold, bool selectifabove=true,
                                           larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
-  
+
   PyObject* as_union_pixelarray( const std::vector<const larcv::Image2D*> pimg_v,
                                  const float threshold,
                                  larcv::msg::Level_t verbosity );
@@ -71,7 +73,16 @@ namespace larcv {
 
   PyObject* as_ndarray( const larcv::SparseImage&,
                         larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
-  
+
+  /// larcv::ClusterMask bbox to numpy array converter
+  PyObject* as_ndarray_bbox(const larcv::ClusterMask &mask);
+  /// larcv::ClusterMask points_v to numpy array converter
+  PyObject* as_ndarray_mask(const larcv::ClusterMask &mask);
+
+  ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
+
+
+
 }
 
 #endif

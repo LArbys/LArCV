@@ -5,16 +5,24 @@ file(GLOB HEADERS "*.h")
 
 # Remove LinkDef.h
 list(FILTER HEADERS EXCLUDE REGEX ".*LinkDef.h$")
- 
+
 # However, the file(GLOB...) allows for wildcard additions:
 file(GLOB SOURCES "*.cxx")
 
 # includes
 include_directories( ${LARCV_BASE_DIR} ${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDES})
 
+# compiler flag for python3
+message( ${LARCV_PYTHON_VERSION} )
+# if (${LARCV_PYTHON_VERSION} EQUAL 3)
+
+if (${LARCV_PYTHON_VERSION} EQUAL  3)
+  add_definitions(-DUSE_PYTHON3)
+endif()
+
 # Generate the dictionary
 ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
- 
+
 # Generate the shared library from the sources
 add_library( ${MODULE_NAME} SHARED ${SOURCES} G__${MODULE_NAME}.cxx)
 set_target_properties( ${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")

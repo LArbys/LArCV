@@ -24,6 +24,8 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::Voxel3D  > ();
   class SparseImage;
   template<> ProductType_t ProductType< larcv::SparseImage  > ();
+  class ClusterMask;
+  template<> ProductType_t ProductType< larcv::ClusterMask  > ();
 }
 
 #endif

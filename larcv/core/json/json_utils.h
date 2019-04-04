@@ -1,6 +1,10 @@
 #include "nlohmann/json.hpp"
 #include "larcv/core/DataFormat/Image2D.h"
 
+#include "stdlib.h"
+#include "Python.h"
+#include "bytesobject.h"
+
 #ifdef HASPYUTIL
 #include "larcv/core/PyUtil/PyUtils.h"
 #endif
@@ -18,9 +22,14 @@ namespace larcv {
 
     std::vector<std::uint8_t> as_bson( const larcv::Image2D& img,
                                        int run=0, int subrun=0, int event=0, int id=0 );
+    std::vector<std::uint8_t> as_bson( const larcv::ClusterMask& mask,
+                                       int run=0, int subrun=0, int event=0, int id=0 );
+
     std::string as_json_str( const larcv::Image2D& img,
                              int run=0, int subrun=0, int event=0, int id=0 );
     larcv::Image2D   image2d_from_json( const json& j );
+    larcv::ClusterMask   clustermask_from_json( const json& j );
+
     larcv::ImageMeta imagemeta_from_json( const json& j );
     void rseid_from_json( const json& j,
                           int& run, int& subrun, int& event, int& id );
@@ -42,10 +51,15 @@ namespace larcv {
     json json_from_bson( const std::vector<std::uint8_t>& bson );
 
 #ifdef HASPYUTIL
-    PyObject* as_pystring( const larcv::Image2D& img,
+    PyObject* as_pybytes( const larcv::Image2D& img,
                            int run=0, int subrun=0, int event=0, int id=0);
-    larcv::Image2D image2d_from_pystring( PyObject* str );
-    larcv::Image2D image2d_from_pystring( PyObject* str,
+
+    PyObject* as_pybytes( const larcv::ClusterMask& mask,
+                           int run=0, int subrun=0, int event=0, int id=0);
+    larcv::Image2D image2d_from_pybytes( PyObject* bytes );
+    larcv::Image2D image2d_from_pybytes( PyObject* bytes,
+                                          int& run, int& subrun, int& event, int& id);
+    larcv::ClusterMask clustermask_from_pybytes( PyObject* bytes,
                                           int& run, int& subrun, int& event, int& id);
 #endif
 

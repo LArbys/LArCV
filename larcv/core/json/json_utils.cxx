@@ -32,6 +32,36 @@ namespace larcv {
     }
 
     /**
+     * create a json object from an clustermask object
+     *
+     */
+    json as_json( const larcv::ClusterMask& mask, int run, int subrun, int event, int id ) {
+
+      // we stuff the data into json format.
+      // we provide optional run,subrun,event,id
+      // to help track if the images coming back
+      //  are the ones we sent for the event
+      //
+      // sometimes if we a client sends out a job, gets disconnet and resends the job,
+      // it can get replies from the worker twice which can
+      // cause  jobs from going out of sync
+      std::vector<int> rseid(4);
+      rseid[0] = run;
+      rseid[1] = subrun;
+      rseid[2] = event;
+      rseid[3] = id;
+
+      json j;
+      j["prob"] = mask.probability_of_class;
+      j["meta"]  = as_json( mask.meta );
+      j["box"]  = mask.as_vector_box_no_convert();
+      j["type"] = mask.type;
+      j["points_v"] = mask.as_vector_mask_no_convert();
+      j["rseid"] = rseid;
+      return j;
+    }
+
+    /**
      * create a json object from an imagemeta object
      *
      */
@@ -61,6 +91,11 @@ namespace larcv {
       return json::to_bson( as_json(img,run,subrun,event,id) );
     }
 
+    std::vector<std::uint8_t> as_bson( const larcv::ClusterMask& mask,
+                                       int run, int subrun, int event, int id) {
+      return json::to_bson( as_json(mask,run,subrun,event,id) );
+    }
+
     /*
      * create a json message from an image2d (useful for python)
      *
@@ -80,6 +115,27 @@ namespace larcv {
       larcv::ImageMeta meta = imagemeta_from_json( j["meta"] );
       larcv::Image2D img2d( meta, j["data"].get<std::vector<float>>() );
       return img2d;
+    }
+    larcv::ClusterMask clustermask_from_json( const json& j ) {
+      larcv::ImageMeta meta = imagemeta_from_json( j["meta"] );
+      larcv::BBox2D dummy_box(1600,5000,1600,5000,kINVALID_PROJECTIONID);
+      std::vector<larcv::Point2D> dummy_v(0,Point2D(0,0));
+      larcv::ClusterMask cmask(dummy_box, meta, dummy_v, 0);
+
+      cmask.probability_of_class = j["prob"].get<float>();
+      cmask.meta = meta;
+      std::vector<float> box_v = j["box"].get<std::vector<float>>();
+      cmask.type = j["type"].get<InteractionID_t>();
+      std::vector<float> pts_v_float = j["points_v"].get<std::vector<float>>();
+      cmask.box = larcv::BBox2D((double)box_v.at(0) , (double)box_v.at(1) , (double)box_v.at(2), (double)box_v.at(3));
+      size_t num_pts = pts_v_float.size() / 2 ;
+      std::vector<Point2D> pts_v(num_pts, Point2D() );
+      for (int i=0; i < num_pts; ++i){
+        pts_v.at(i) = Point2D(pts_v_float[2*i], pts_v_float[2*i+1]);
+      }
+      cmask.points_v = pts_v;
+
+      return cmask;
     }
 
     /**
@@ -273,36 +329,57 @@ namespace larcv {
     }
 
 #ifdef HASPYUTIL
-    PyObject* as_pystring( const larcv::Image2D& img,
+    PyObject* as_pybytes( const larcv::Image2D& img,
       int run, int subrun, int event, int id ) {
       std::vector<std::uint8_t> b_v = as_bson( img, run, subrun, event, id );
-      return larcv::as_pystring( b_v ); //from pyutils
+      return larcv::as_pybytes( b_v ); //from pyutils
     }
 
-    larcv::Image2D image2d_from_pystring( PyObject* str ) {
-      if ( PyString_Check( str )==0 ) {
-        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyString object" );
+    PyObject* as_pybytes( const larcv::ClusterMask& mask,
+      int run, int subrun, int event, int id ) {
+      std::vector<std::uint8_t> b_v = as_bson( mask, run, subrun, event, id );
+      return larcv::as_pybytes( b_v ); //from pyutils
+    }
+
+    larcv::Image2D image2d_from_pybytes( PyObject* bytes ) {
+      if ( PyBytes_Check( bytes )==0 ) {
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyBytes object" );
       }
-      size_t len = PyString_Size(str);
+      size_t len = PyBytes_Size(bytes);
       std::vector<std::uint8_t> b_v(len,0);
-      memcpy( b_v.data(), (unsigned char*)PyString_AsString(str), sizeof(unsigned char)*len );
+      memcpy( b_v.data(), (unsigned char*)PyBytes_AsString(bytes), sizeof(unsigned char)*len );
 
       return image2d_from_bson( b_v );
     }
 
-    larcv::Image2D image2d_from_pystring( PyObject* str,
+    larcv::Image2D image2d_from_pybytes( PyObject* bytes,
                                           int& run, int& subrun, int& event, int& id ) {
-      if ( PyString_Check( str )==0 ) {
-        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyString object" );
+      if ( PyBytes_Check( bytes )==0 ) {
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyBytes object" );
       }
-      size_t len = PyString_Size(str);
+      size_t len = PyBytes_Size(bytes);
       std::vector<std::uint8_t> b_v(len,0);
-      memcpy( b_v.data(), (unsigned char*)PyString_AsString(str), sizeof(unsigned char)*len );
+      memcpy( b_v.data(), (unsigned char*)PyBytes_AsString(bytes), sizeof(unsigned char)*len );
 
       json data = json::from_bson(b_v);
       rseid_from_json( data, run, subrun, event, id );
 
       return image2d_from_json( data );
+    }
+
+    larcv::ClusterMask clustermask_from_pybytes( PyObject* bytes,
+                                          int& run, int& subrun, int& event, int& id ) {
+      if ( PyBytes_Check( bytes )==0 ) {
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyBytes object" );
+      }
+      size_t len = PyBytes_Size(bytes);
+      std::vector<std::uint8_t> b_v(len,0);
+      memcpy( b_v.data(), (unsigned char*)PyBytes_AsString(bytes), sizeof(unsigned char)*len );
+
+      json data = json::from_bson(b_v);
+      rseid_from_json( data, run, subrun, event, id );
+
+      return clustermask_from_json( data );
     }
 #endif
 

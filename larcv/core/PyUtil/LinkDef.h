@@ -21,7 +21,7 @@
 #pragma link C++ function larcv::play(PyObject*)+;
 #pragma link C++ function larcv::as_ndarray(const larcv::EventChStatus&)+;
 #pragma link C++ function larcv::as_ndarray(const larcv::ChStatus&)+;
-#pragma link C++ function larcv::as_pystring(const std::vector<std::uint8_t>&)+;
+#pragma link C++ function larcv::as_pybytes(const std::vector<std::uint8_t>&)+;
 #pragma link C++ function larcv::as_pixelarray(const std::vector<std::uint8_t>&)+;
 #pragma link C++ function larcv::as_union_pixelarray( const std::vector<const larcv::Image2D*>, const float, larcv::msg::Level_t );
 #pragma link C++ function larcv::as_union_pixelarray( const larcv::Image2D&, const larcv::Image2D&, const float, larcv::msg::Level_t );

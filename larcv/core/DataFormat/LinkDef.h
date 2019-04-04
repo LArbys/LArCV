@@ -62,8 +62,23 @@
 #pragma link C++ function larcv::String2ROIType(const string&)+;
 #endif
 
+#pragma link C++ class larcv::Point2D+;
+#pragma link C++ class std::vector<larcv::Point2D>+;
+#pragma link C++ class larcv::Point3D+;
+
+#pragma link C++ class larcv::BBox2D+;
+#pragma link C++ class std::vector<larcv::BBox2D>+;
+#pragma link C++ class larcv::EventBBox2D+;
+
+#pragma link C++ class larcv::BBox3D+;
+#pragma link C++ class std::vector<larcv::BBox3D>+;
+#pragma link C++ class larcv::EventBBox3D+;
+
+#pragma link C++ class larcv::ClusterMask+;
+#pragma link C++ class std::vector<larcv::ClusterMask>+;
+#pragma link C++ class std::vector<std::vector<larcv::ClusterMask>>+;
+#pragma link C++ class larcv::EventClusterMask+;
+
 //ADD_NEW_CLASS ... do not change this line
 
 #endif
-
-

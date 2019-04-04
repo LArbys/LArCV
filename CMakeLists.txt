@@ -23,6 +23,7 @@ if (USE_OPENCV)
 endif()
 
 #---PYTHON
+
 if (USE_PYTHON3)
   find_package( PythonInterp 3 REQUIRED )
   find_package( PythonLibs 3 REQUIRED )
@@ -33,9 +34,9 @@ elseif(USE_PYTHON2)
   find_package( PythonLibs 2.7 REQUIRED )
   find_package( Numpy REQUIRED )
   set(LARCV_USE_PYTHON 1)
-  set(LARCV_PYTHON_VERSION 2)  
+  set(LARCV_PYTHON_VERSION 2)
 else()
-  set(LARCV_USE_PTYHON 0)
+  set(LARCV_USE_PYTHON 0)
 endif()
 
 #---larbys GEO2D
@@ -59,10 +60,11 @@ endif()
 
 # --- Torch
 # For container
-set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
+#set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
 # For FNAL
 #set( Torch_DIR "$ENV{LIBTORCH_DIR}/Linux64bit+3.10-2.17-e17-prof/share/cmake/Torch" )
-find_package( Torch )
+#find_package( Torch )
+find_package( CUDA )
 
 ## Git Submodules
 
@@ -128,8 +130,3 @@ install(EXPORT larcv
 install(FILES "${CMAKE_BINARY_DIR}/cmake/larcvConfig.cmake"
   "${CMAKE_BINARY_DIR}/cmake/larcvConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/larcv")
-
-
-
-
-
