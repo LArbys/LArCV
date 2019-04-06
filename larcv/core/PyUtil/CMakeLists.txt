@@ -11,11 +11,10 @@ file(GLOB SOURCES "*.cxx")
 
 # includes
 include_directories( ${LARCV_BASE_DIR} ${PYTHON_INCLUDE_PATH} ${NUMPY_INCLUDES})
+#message("NUMPY_INCLUDES: ${NUMPY_INCLUDES}")
 
 # compiler flag for python3
-message( ${LARCV_PYTHON_VERSION} )
-# if (${LARCV_PYTHON_VERSION} EQUAL 3)
-
+#message( "PYTHON VERSION: ${LARCV_PYTHON_VERSION}" )
 if (${LARCV_PYTHON_VERSION} EQUAL  3)
   add_definitions(-DUSE_PYTHON3)
 endif()
