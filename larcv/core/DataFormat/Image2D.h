@@ -168,6 +168,9 @@ namespace larcv {
     /// create vector for values at a given row (no reference because not contigous)
     std::vector<float> timeslice( int row ) const;
     void rowcopy(size_t row, const std::vector<float>& src);
+
+    // scale values (in-place)
+    void scale_inplace( float scalefactor );
     
     
   private:

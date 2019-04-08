@@ -629,5 +629,11 @@ namespace larcv {
     for ( int i=0; i<ncols; i++ )
       _img[ i*nrows + row ] = src[i];
   }
+
+  void Image2D::scale_inplace( float scale_factor ) {
+    size_t n = _img.size();
+    for ( size_t i=0; i<n; i++ )
+      _img[i] *= scale_factor;
+  }
   
 }
