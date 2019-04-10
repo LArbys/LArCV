@@ -2,7 +2,7 @@
  * \file ImageMeta.h
  *
  * \ingroup LArCV
- * 
+ *
  * \brief Class def header for a class ImageMeta
  *
  * @author kazuhiro
@@ -17,6 +17,7 @@
 #include <iostream>
 #include "larcv/core/Base/larbys.h"
 #include "DataFormatTypes.h"
+#include "Point.h"
 namespace larcv {
 
   class Image2D;
@@ -29,7 +30,7 @@ namespace larcv {
      1) horizontal and vertical size (width and height) in double precision \n
      2) number of horizontal and vertical pixels \n
      It is meant to be associated with a larcv::Image2D object, \n
-     which contains ImageMeta as an attribute. 
+     which contains ImageMeta as an attribute.
 
      Note, that in previous versions, origin is the left-top corner such that
      the rows in the matrix were in tick-reverse order.
@@ -42,8 +43,8 @@ namespace larcv {
     friend class Image2D;
 
   public:
-    
-    /// Default constructor: width, height, and origin coordinate won't be modifiable 
+
+    /// Default constructor: width, height, and origin coordinate won't be modifiable
     ImageMeta(const double width=0.,     const double height=0.,
 	      const size_t row_count=0., const size_t col_count=0,
 	      const double origin_x=0.,  const double origin_y=0.,
@@ -58,7 +59,7 @@ namespace larcv {
       if( height < 0. ) throw larbys("Height must be a positive floating point!");
       update(row_count,col_count);
     }
-    
+
     /// Default destructor
     ~ImageMeta(){}
 
@@ -101,7 +102,7 @@ namespace larcv {
     /// # columns accessor
     size_t cols         () const { return _col_count; }
     /// Pixel horizontal size
-    double pixel_width  () const { return (_col_count ? _width  / (double)_col_count : 0.); } 
+    double pixel_width  () const { return (_col_count ? _width  / (double)_col_count : 0.); }
     /// Pixel vertical size
     double pixel_height () const { return (_row_count ? _height / (double)_row_count : 0.); }
 
@@ -138,11 +139,15 @@ namespace larcv {
     bool contains( const float x, const float y ) const;
     /// Check if (x,y) coordinate is contained in Meta
     bool contains( const Point2D& pt ) const;
+
     /// produce a vector containing the xaxis coordinate values
     std::vector<float> xaxis() const;
     /// produce a vector containing the y-axis coordinate values
     std::vector<float> yaxis() const;
     
+=======
+
+>>>>>>> origin/jmills_clustering
 
     /// Dump info in text
     std::string dump() const;
@@ -161,5 +166,4 @@ namespace larcv {
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group

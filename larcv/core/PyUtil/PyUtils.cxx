@@ -5,17 +5,150 @@
 #include "PyUtils.h"
 #include "larcv/core/Base/larcv_logger.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#ifdef USE_PYTHON3
+#include "numpy/arrayobject.h"
+#include <cassert>
+#else
 #include <numpy/ndarrayobject.h>
-//#include "numpy/arrayobject.h"
-
+#endif
 namespace larcv {
 
-void SetPyUtil() {
+int SetPyUtil() {
   static bool once = false;
   if (!once) {
-    import_array();
+    #ifdef USE_PYTHON3
+        import_array1(0);
+    #else
+        import_array();
+    #endif
     once = true;
   }
+  return 0;
+}
+
+larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarray_box, ImageMeta meta, PyObject *pyarray_prob) {
+  /*
+  This function takes in a numpy matrix of shape (N,2) representing a binary
+  sparse matrix within the box and a pyarray_box
+  numpy array of shape (5) [x1,y1,x2,y2,class], and transforms them to the C++
+  object ClusterMask, having built a meta, a BBox2D and a vector of Point2Ds
+  from them. (Hopefully) it now also takes in a 1 value numpy array with the probability of class
+  */
+  SetPyUtil();
+  float *carray_prob;
+  // Create C arrays from numpy objects:
+  const int dtype_prob = NPY_FLOAT;
+  PyArray_Descr *descr_prob = PyArray_DescrFromType(dtype_prob);
+  npy_intp dims_prob[1];
+  if (PyArray_AsCArray(&pyarray_prob, (void *)&carray_prob, dims_prob, 1, descr_prob) < 0) {
+    logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+                               "ERROR: cannot convert to 1D C-array");
+    throw larbys("ERROR: cannot convert to 1D C-array");
+  }
+  float prob = carray_prob[0];
+
+  float *carray_box;
+  // Create C arrays from numpy objects:
+  const int dtype_box = NPY_FLOAT;
+  PyArray_Descr *descr_box = PyArray_DescrFromType(dtype_box);
+  npy_intp dims_box[1];
+  if (PyArray_AsCArray(&pyarray_box, (void *)&carray_box, dims_box, 1, descr_box) < 0) {
+    logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+                               "ERROR: cannot convert to 1D C-array");
+    throw larbys("ERROR: cannot convert to 1D C-array");
+  }
+  // if (dims_box[0] != 5){
+  //   logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+  //                              "ERROR: box array needs to be 5 long, x1,y1,x2,y2,class");
+  //   throw larbys("ERROR: box array needs to be 5 long, x1,y1,x2,y2,class");
+  // }
+
+  std::vector<float> box_v(dims_box[0],0.);
+  for (int i=0;i<dims_box[0]; ++i){
+    box_v[i] = (float)(carray_box[i]);
+  }
+  // if (sizeof(carray_box)/sizeof(carray_box[0]) != 5){
+  //   logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+  //                              "ERROR: got this far");
+  //   // std::string str1 = std::to_string(sizeof(*carray_box)/sizeof(*carray_box[0]));
+  //   std::string str1 = std::to_string(box_v[0])+ " "+ std::to_string(box_v[1])+ " "+ std::to_string(box_v[2])+ " "+ std::to_string(box_v[3])+ " "+ std::to_string(box_v[4]);
+  //   std::string str2 = "Error is: ";
+  //   std::string str = str2+str1;
+  //   throw larbys(str);
+  // }
+  BBox2D bbox((double)(carray_box[0]), (double)(carray_box[1]), (double)(carray_box[2]), (double)(carray_box[3]));
+
+
+  InteractionID_t type = carray_box[4];
+
+  // ImageMeta meta((double)(carray_box[2]-carray_box[0]), (double)(carray_box[3]-carray_box[1]), (size_t)(carray_box[3]-carray_box[1]),
+  //                (size_t)(carray_box[2]-carray_box[0]), (double)(carray_box[0]), (double)(carray_box[1]), larcv::kINVALID_PLANE);
+
+
+
+  float **carray_mask;
+  const int dtype_mask = NPY_FLOAT;
+  PyArray_Descr *descr_mask = PyArray_DescrFromType(dtype_mask);
+  npy_intp dims_mask[2];
+
+  if (PyArray_AsCArray(&pyarray_sparse_mask, (void **)&carray_mask, dims_mask, 2, descr_mask) < 0) {
+    logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+                               "ERROR: cannot convert to 2D C-array");
+    throw larbys("ERROR: cannot convert to 2D C-array");
+  }
+  if (dims_mask[1] != 2){
+    logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+                               "ERROR: mask array needs to be Npoints by 2");
+    throw larbys("ERROR: mask array needs to be Npoints by 2");
+  }
+
+  std::vector<Point2D> points_v(dims_mask[0], Point2D() );
+  std::vector<float> points_v_ft(dims_mask[0]*2, 0.);
+  for (int i=0; i < dims_mask[0]; i++) {
+    points_v[i] = Point2D(carray_mask[i][0], carray_mask[i][1]);
+    points_v_ft[2*i] = carray_mask[i][0];
+    points_v_ft[2*i+1] = carray_mask[i][1];
+  }
+  BBox2D dummy_box(1600,5000,1600,5000,kINVALID_PROJECTIONID);
+  std::vector<Point2D> dummy_v(0,Point2D(0,0));
+  ClusterMask cmask(dummy_box, meta, dummy_v, 0);
+  cmask.probability_of_class = prob;
+  cmask.box = bbox;
+  cmask.meta = meta;
+  cmask.points_v = points_v;
+  cmask.type = type;
+
+  // cmask._box[0] = carray_box[0];
+  // cmask._box[1] = carray_box[1];
+  // cmask._box[2] = carray_box[2];
+  // cmask._box[3] = carray_box[3];
+  // cmask._box[4] = carray_box[4];
+  // cmask._mask = points_v_ft;
+
+  PyArray_Free(pyarray_box, (void *)carray_box);
+  PyArray_Free(pyarray_sparse_mask, (void *)carray_mask);
+  PyArray_Free(pyarray_prob, (void *)carray_prob);
+
+  return cmask;
+}
+
+PyObject *as_ndarray_mask(const ClusterMask &mask) {
+  SetPyUtil();
+  npy_intp dim_data[2];
+  dim_data[0] = (mask.box.width()/mask.meta.pixel_width())+1; //Add one for the 0th spot
+  dim_data[1] = (mask.box.height()/mask.meta.pixel_height())+1; //Add one for the 0th spot
+  std::vector<float> const &vec = mask.as_vector_mask();//= copy_v;
+
+  return PyArray_Transpose(((PyArrayObject*)(PyArray_SimpleNewFromData(2, dim_data, NPY_FLOAT, (char *)&(vec[0])))),NULL);
+}
+
+PyObject *as_ndarray_bbox(const ClusterMask &mask) {
+  SetPyUtil();
+  npy_intp dim_data[1];
+  dim_data[0] = 5;
+  std::vector<float> const &vec = mask.as_vector_box();
+
+  return PyArray_Transpose(((PyArrayObject*)(PyArray_SimpleNewFromData(1, dim_data, NPY_FLOAT, (char *)&(vec[0])))),NULL);
 }
 
 PyObject *as_ndarray(const std::vector<float> &vec) {
@@ -84,11 +217,11 @@ larcv::Image2D as_image2d_meta(PyObject *pyarray, ImageMeta meta) {
   // Create C arrays from numpy objects:
   const int dtype = NPY_FLOAT;
   PyArray_Descr *descr = PyArray_DescrFromType(dtype);
-  npy_intp dims[3];
+  npy_intp dims[2];
   if (PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr) < 0) {
     logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
                                "ERROR: cannot convert to 2D C-array");
-    throw larbys();
+    throw larbys("ERROR: cannot convert to 2D C-array");
   }
 
   std::vector<float> res_data(dims[0] * dims[1], 0.);
@@ -109,7 +242,7 @@ larcv::Image2D as_image2d(PyObject *pyarray) {
   // Create C arrays from numpy objects:
   const int dtype = NPY_FLOAT;
   PyArray_Descr *descr = PyArray_DescrFromType(dtype);
-  npy_intp dims[3];
+  npy_intp dims[2];
   if (PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr) < 0) {
     logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
                                "ERROR: cannot convert to 2D C-array");
@@ -252,14 +385,14 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
 
   /**
-   * convert std::vector<std::uint8_t> to a PyString
+   * convert std::vector<std::uint8_t> to a PyBytes
    *
    * note: used for json handling. performs a copy.
    *
    */
-  PyObject* as_pystring( const std::vector<std::uint8_t>& buf ) {
+  PyObject* as_pybytes( const std::vector<std::uint8_t>& buf ) {
     SetPyUtil();
-    return PyString_FromStringAndSize( (const char*)buf.data(), buf.size() );
+    return PyBytes_FromStringAndSize( (const char*)buf.data(), buf.size() );
   }
 
   /**
@@ -623,6 +756,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
     return (PyObject*)array;
 
+
   }
 
   /**
@@ -682,6 +816,10 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
     return sparseimg;
   }
+=======
+  }
+
+>>>>>>> origin/jmills_clustering
 }
 
 #endif

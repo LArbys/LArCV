@@ -22,10 +22,11 @@ namespace larcv {
      \struct Point2D
      Simple 2D point struct (unit of "x" and "y" are not defined here and app specific)
   */
-  struct Point2D {
-    double x, y;
-    Point2D(double xv=0, double yv=0) : x(xv), y(yv) {}
-  };
+  // Point2D is now a class defined in larcv/larcv/core/DataFormat/Point.h
+  // struct Point2D {
+  //   double x, y;
+  //   Point2D(double xv=0, double yv=0) : x(xv), y(yv) {}
+  // };
 
   /// Used as an invalid value identifier for long long
   const long long          kINVALID_LONGLONG  = std::numeric_limits< long long          >::max();
@@ -41,7 +42,7 @@ namespace larcv {
   const short              kINVALID_SHORT     = std::numeric_limits< short              >::max();
   /// Used as an invalid value identifier for unsigned unsigned short
   const unsigned short     kINVALID_USHORT    = std::numeric_limits< unsigned short     >::max();
-  /// Used as an invalid value idnetifier for single-point precision  
+  /// Used as an invalid value idnetifier for single-point precision
   const float              kINVALID_FLOAT     = std::numeric_limits< float              >::max();
   /// Used as an invalid value idnetifier for double-point precision
   const double             kINVALID_DOUBLE    = std::numeric_limits< double             >::max();

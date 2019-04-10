@@ -8,10 +8,15 @@ namespace larcv {
 
   /// Invalid rep for vector index
   static const unsigned short kINVALID_INDEX = kINVALID_USHORT;
-  /// Image index type for Image2D within EventImage2D  
+  /// Image index type for Image2D within EventImage2D
   typedef unsigned short ImageIndex_t;
   /// ROI index type for ROI within EventROI
   typedef unsigned short ROIIndex_t;
+
+  /// Projection ID to distinguish different 2D projections
+  typedef unsigned short ProjectionID_t;
+  /// Invalid projection id
+  static const ProjectionID_t kINVALID_PROJECTIONID = kINVALID_USHORT;
 
   /// "ID" of MCShower/MCTrack in terms of its index number in the collection std::vector
   typedef unsigned short MCSTIndex_t;
@@ -32,7 +37,7 @@ namespace larcv {
     static const short kNOTPRESENT = -1;        ///< Channel does not exist
     static const short kNEGATIVEPEDESTAL = -2;  ///< Channel not reco-ed due to pedestal < 0
     /// Standard channel status enum stored in the database
-    enum ChannelStatus_t { 
+    enum ChannelStatus_t {
       kDISCONNECTED=0, ///< Channel is not connected
       kDEAD=1,         ///< Dead channel
       kLOWNOISE=2,     ///< Abnormally low noise channel
@@ -49,7 +54,7 @@ namespace larcv {
     kPoolMax      ///< max channel
   };
 
-  /// Object appearance type in LArTPC  
+  /// Object appearance type in LArTPC
   enum ShapeType_t {
     kShapeShower,  ///< Shower
     kShapeTrack,   ///< Track
@@ -81,7 +86,7 @@ namespace larcv {
   /// Invalid ProducerID_t
   static const ProducerID_t kINVALID_PRODUCER=kINVALID_SIZE;
 
-  /// Type of data product  
+  /// Type of data product
   enum ProductType_t {
     kProductImage2D,  ///< Image2D, EventImage2D
     kProductROI,      ///< ROI, EventROI
@@ -91,6 +96,8 @@ namespace larcv {
     kProductPGraph,   ///< PGraph, EventPGraph
     kProductVoxel3D,     ///< Voxel3D, EventVoxel3D
     kProductSparseImage, ///< SparseImage, EventSparseImage
+    kProductClusterMask,  ///< ClusterMask, EventClusterMask
+
     kProductUnknown      ///< LArbys
   };
 

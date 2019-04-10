@@ -7,6 +7,7 @@
 #include "DataProductFactory.h"
 #include <algorithm>
 #include "EventImage2D.h"
+#include "EventClusterMask.h"
 
 namespace larcv {
 
@@ -52,11 +53,11 @@ namespace larcv {
     , _product_ptr_v    ()
     , _product_type_v   ()
 
-  { 
+  {
     reset();
     configure(cfg);
   }
-  
+
   void IOManager::add_in_file(const std::string filename, const std::string dirname)
   { _in_file_v.push_back(filename); _in_dir_v.push_back(dirname); }
 
@@ -90,7 +91,7 @@ namespace larcv {
     _in_dir_v = cfg.get<std::vector<std::string> >("InputDirs",_in_dir_v);
     if(_in_dir_v.empty()) _in_dir_v.resize(_in_file_v.size(),"");
     if(_in_dir_v.size()!=_in_file_v.size()) {
-      LARCV_CRITICAL() << "# of input file (" << _in_file_v.size() 
+      LARCV_CRITICAL() << "# of input file (" << _in_file_v.size()
 		       << ") != # of input dir (" << _in_dir_v.size() << ")!" << std::endl;
       throw larbys();
     }
@@ -102,7 +103,7 @@ namespace larcv {
     _store_only_type.clear();
     for(auto const& ptype : store_only_type) {
       if(ptype >= (unsigned short)kProductUnknown) {
-	LARCV_CRITICAL() << "StoreOnlyType contains invalid type: " 
+	LARCV_CRITICAL() << "StoreOnlyType contains invalid type: "
 			 << ptype << " (>=" << kProductUnknown << ")" << std::endl;
 	throw larbys();
       }
@@ -120,7 +121,7 @@ namespace larcv {
     _read_only_type.clear();
     for(auto const& ptype : read_only_type) {
       if(ptype >= (unsigned short)kProductUnknown) {
-	LARCV_CRITICAL() << "ReadOnlyType contains invalid type: " 
+	LARCV_CRITICAL() << "ReadOnlyType contains invalid type: "
 			 << ptype << " (>=" << kProductUnknown << ")" << std::endl;
 	throw larbys();
       }
@@ -139,13 +140,13 @@ namespace larcv {
     LARCV_DEBUG() << "start" << std::endl;
 
     if(_io_mode != kREAD) {
-      
+
       if(_out_file_name.empty()) throw larbys("Must set output file name!");
       LARCV_INFO() << "Opening an output file: " << _out_file_name << std::endl;
       _out_file = TFile::Open(_out_file_name.c_str(),"RECREATE");
-      
+
     }
-    
+
     if(_io_mode != kWRITE) {
       prepare_input();
       if(!_in_tree_entries) {
@@ -156,7 +157,7 @@ namespace larcv {
       _read_id_bool.clear();
       _read_id_bool.resize(_product_ctr,true);
     }
-    
+
 
     // Now handle "store-only" configuration
     _store_only_bool.clear();
@@ -177,7 +178,7 @@ namespace larcv {
     // clear id: flag to prevent clearing product upon writing to disk
     if ( _product_ctr>=_clear_id_bool.size() )
       _clear_id_bool.resize(_product_ctr+10,true);
-    
+
     return true;
   }
 
@@ -191,14 +192,14 @@ namespace larcv {
     }
 
     auto& key_m = _key_list[type];
-    
+
     auto in_iter = key_m.find(name);
     std::string tree_name = std::string(ProductName(type)) + "_" + name + "_tree";
     std::string tree_desc = name + " tree";
     std::string br_name   = std::string(ProductName(type)) + "_" + name + "_branch";
 
     LARCV_INFO() << "Requested to register a producer: " << name << " (TTree " << tree_name << ")" << std::endl;
-    
+
     if(in_iter != key_m.end()) {
       LARCV_INFO() << "... already registered. Returning a registered key " << (*in_iter).second << std::endl;
       return (*in_iter).second;
@@ -212,7 +213,7 @@ namespace larcv {
       _clear_id_bool.resize(_product_ctr+10,true);
     }
     _clear_id_bool[_product_ctr]  = true;
-    
+
     const ProducerID_t id = _product_ctr;
     key_m.insert(std::make_pair(name,id));
 
@@ -244,8 +245,8 @@ namespace larcv {
         // register product ID
         //_image2d_id_wasreversed.insert(std::make_pair(id,false));
       }
-    }	
-    
+    }
+
     if(_io_mode != kREAD) {
       LARCV_INFO() << "kWRITE/kBOTH mode: creating an output TTree" << std::endl;
       LARCV_DEBUG() << "Branch name: " << br_name << " data pointer: " << _product_ptr_v[id] << "(" << id <<"/"<<_product_ptr_v.size()<<")"<<std::endl;
@@ -268,16 +269,16 @@ namespace larcv {
 
     LARCV_INFO() << "Start inspecting " << _in_file_v.size() << "files" << std::endl;
     for(size_t i=0; i<_in_file_v.size(); ++i) {
-      
+
       auto const& fname = _in_file_v[i];
       auto const& dname = _in_dir_v[i];
-      
+
       TFile *fin = TFile::Open(fname.c_str(),"READ");
       if(!fin) {
 	LARCV_CRITICAL() << "Open attempt failed for a file: " << fname << std::endl;
 	throw larbys();
       }
-      
+
       LARCV_NORMAL() << "Opening a file in READ mode: " << fname << std::endl;
       TDirectoryFile* fin_dir = 0;
       if(dname.empty()) fin_dir = fin;
@@ -289,7 +290,7 @@ namespace larcv {
 	}
 	fin_dir = (TDirectoryFile*)obj;
       }
-      
+
       TList* key_list = fin_dir->GetListOfKeys();
       TIter key_iter(key_list);
       std::set<std::string> processed_object;
@@ -300,25 +301,25 @@ namespace larcv {
 	obj = fin_dir->Get(obj->GetName());
 	LARCV_DEBUG() << "Found object " << obj->GetName() << " (type=" << obj->ClassName() << ")" << std::endl;
 	processed_object.insert(obj->GetName());
-	
+
 	if(std::string(obj->ClassName())!="TTree") {
 	  LARCV_DEBUG() << "Skipping " << obj->GetName() << " ... (not TTree)" << std::endl;
 	  continue;
 	}
-	
+
 	std::string obj_name = obj->GetName();
-	
+
 	char c[2] = "_";
 	if(obj_name.find_first_of(c) > obj_name.size() ||
 	   obj_name.find_first_of(c) == obj_name.find_last_of(c)) {
 	    LARCV_INFO() << "Skipping " << obj->GetName() << " ... (not LArCV TTree)" << std::endl;
 	    continue;
 	}
-	
+
 	std::string type_name( obj_name.substr(0,obj_name.find_first_of(c)) );
 	std::string suffix( obj_name.substr(obj_name.find_last_of(c)+1, obj_name.size()-obj_name.find_last_of(c)) );
 	std::string producer_name( obj_name.substr(obj_name.find_first_of(c)+1,obj_name.find_last_of(c)-obj_name.find_first_of(c)-1) );
-	
+
 	if(suffix != "tree") {
 	  LARCV_INFO() << "Skipping " << obj->GetName() << " ... (not LArCV TTree)" << std::endl;
 	  continue;
@@ -378,7 +379,7 @@ namespace larcv {
       if(_in_tree_entries == kINVALID_SIZE) _in_tree_entries = tmp_entries;
       else _in_tree_entries = (_in_tree_entries < tmp_entries ? _in_tree_entries : tmp_entries);
     }
-    
+
   }
 
   bool IOManager::read_entry(const size_t index,bool force_reload)
@@ -443,7 +444,7 @@ namespace larcv {
 	if(!p) break;
 	if(!p->valid()) {
 	  LARCV_CRITICAL() << "Product by a producer " << p->producer()
-			   << " has an invalid event id: (" 
+			   << " has an invalid event id: ("
 			   << p->run() << "," << p->subrun() << "," << p->event() << ")" << std::endl;
 	  throw larbys("Must set an event ID to store!");
 	}
@@ -509,15 +510,15 @@ namespace larcv {
     }
     if(_set_event_id.valid()) {
       LARCV_DEBUG() << "Set _last_event_id to externally set values:"
-		    << " run = " << _set_event_id.run() 
-		    << " subrun = " << _set_event_id.subrun() 
+		    << " run = " << _set_event_id.run()
+		    << " subrun = " << _set_event_id.subrun()
 		    << " event = " << _set_event_id.event() << std::endl;
       _last_event_id = _set_event_id;
-    } 
+    }
     else {
       LARCV_DEBUG() << "Set _last_event_id to inherited values:"
-		    << " run = " << _event_id.run() 
-		    << " subrun = " << _event_id.subrun() 
+		    << " run = " << _event_id.run()
+		    << " subrun = " << _event_id.subrun()
 		    << " event = " << _event_id.event() << std::endl;
       _last_event_id = _event_id;
     }
@@ -531,7 +532,6 @@ namespace larcv {
   ProducerID_t IOManager::producer_id(const ProductType_t type, const std::string& producer) const
   {
     LARCV_DEBUG() << "start" << std::endl;
-
     if(producer.empty()) {
       LARCV_CRITICAL() << "Empty producer name (invalid)" << std::endl;
       throw larbys();
@@ -540,9 +540,12 @@ namespace larcv {
       LARCV_CRITICAL() << "Queried kProductUnknown type!" << std::endl;
       throw larbys();
     }
+    // for
+    // LARCV_DEBUG() << _key_list  <<  std::endl;
 
     auto& m = _key_list[type];
     auto iter = m.find(producer);
+
     if(iter == m.end()) {
       return kINVALID_PRODUCER;
     }
@@ -552,7 +555,6 @@ namespace larcv {
   EventBase* IOManager::get_data(const ProductType_t type, const std::string& producer)
   {
     LARCV_DEBUG() << "start" << std::endl;
-
     auto id = producer_id(type,producer);
 
     if(id == kINVALID_SIZE) {
@@ -580,6 +582,7 @@ namespace larcv {
        _in_tree_index_v[id] != _in_tree_index && _read_id_bool[id] ) {
 
       LARCV_DEBUG() << "Reading in TTree " << _in_tree_v[id]->GetName() << " index " << _in_tree_index << std::endl;
+
       _in_tree_v[id]->GetEntry(_in_tree_index);
       _in_tree_index_v[id] =_in_tree_index; // marks that we've already asked for the entry
 
@@ -607,9 +610,9 @@ namespace larcv {
         for ( auto& img2d : img_v ) img2d.reverseTimeOrder();
         evimg->Emplace(std::move(img_v));
       }
-      
+
     }
-    
+
     return _product_ptr_v[id];
   }
 
@@ -626,7 +629,7 @@ namespace larcv {
     tmp._event  = event;
 
     LARCV_INFO() << "Request to set event id: " << tmp.event_key() << std::endl;
-    
+
     if(_set_event_id.valid() && _set_event_id != tmp)
       LARCV_INFO() << "Force setting (run,subrun,event) ID as (" << run << "," << subrun << "," << event << ")" << std::endl;
 
@@ -661,7 +664,7 @@ namespace larcv {
 	p->_subrun = _event_id.subrun();
 	p->_event = _event_id.event();
       }
-      
+
     }
   }
 
@@ -680,7 +683,7 @@ namespace larcv {
 	for(auto& t : _out_tree_v) {
 	  if(!t) break;
 	  LARCV_NORMAL() << "Writing " << t->GetName() << " with " << t->GetEntries() << " entries" << std::endl;
-	  t->Write(); 
+	  t->Write();
 	}
       }else{
 	for(size_t i=0; i<_store_only_bool.size(); ++i) {
@@ -725,7 +728,7 @@ namespace larcv {
     _in_dir_v.clear();
     for(auto& m : _key_list) m.clear();
     _clear_id_bool.clear();
-    _clear_id_bool.resize(1000,true);    
+    _clear_id_bool.resize(1000,true);
   }
 
   void IOManager::donot_clear_product( const ProductType_t type, const std::string& producer ) {
@@ -737,11 +740,11 @@ namespace larcv {
   }
 
   /**
-   * specify a data type and producername to be read. 
+   * specify a data type and producername to be read.
    *
-   * if at least one defined, then these are only the 
+   * if at least one defined, then these are only the
    * data products read from the file. rest ignored.
-   * if this never set, then by default, we read all 
+   * if this never set, then by default, we read all
    * trees from the file
    *
    * @param[in] type ProductType_t number

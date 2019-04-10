@@ -14,12 +14,14 @@ typedef _object PyObject;
 #include "larcv/core/DataFormat/ROI.h"
 #include "larcv/core/DataFormat/EventChStatus.h"
 #include "larcv/core/DataFormat/SparseImage.h"
+#include "larcv/core/DataFormat/ClusterMask.h"
+
 
 namespace larcv {
 
   /// Utility function: call one-time-only numpy module initialization (you don't
   /// have to call)
-  void SetPyUtil();
+  int SetPyUtil();
   ///
   PyObject *as_ndarray(const std::vector<float> &data);
   /// larcv::Image2D to numpy array converter
@@ -46,7 +48,7 @@ namespace larcv {
   EventChStatus as_eventchstatus( PyObject* );
 
   // Byte vector helper
-  PyObject* as_pystring( const std::vector<std::uint8_t>& buf );
+  PyObject* as_pybytes( const std::vector<std::uint8_t>& buf );
 
   // as a list of 2D numpy array with (row,col,values) for each numpy row
   PyObject* as_pixelarray( const larcv::Image2D& img, const float threshold,
@@ -75,9 +77,20 @@ namespace larcv {
   PyObject* as_ndarray( const larcv::SparseImage&,
                         larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
 
+
   SparseImage sparseimg_from_ndarray( PyObject*,
                                     const std::vector<larcv::ImageMeta>& meta,
                                     larcv::msg::Level_t verbosity );
+
+  /// larcv::ClusterMask bbox to numpy array converter
+  PyObject* as_ndarray_bbox(const larcv::ClusterMask &mask);
+  /// larcv::ClusterMask points_v to numpy array converter
+  PyObject* as_ndarray_mask(const larcv::ClusterMask &mask);
+
+  ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
+
+
+>>>>>>> origin/jmills_clustering
 
 }
 
