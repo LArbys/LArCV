@@ -27,17 +27,12 @@
 
 #ifndef __CINT__
 
-// conversion to/from pystring
-#pragma link C++ function  larcv::json::as_pystring(const larcv::Image2D&,int, int, int, int)+;
-#pragma link C++ function  larcv::json::image2d_from_pystring( PyObject* str )+;
-#pragma link C++ function  larcv::json::image2d_from_pystring( PyObject* str, int&, int&, int&, int& )+;
-#pragma link C++ function  larcv::json::as_bson_pystring(const larcv::SparseImage&,int, int, int, int)+;
-#pragma link C++ function  larcv::json::sparseimg_from_bson_pystring( PyObject* str, int&, int&, int&, int& )+;
-=======
+// conversion to/from pybytes: a char array for storing binary
 #pragma link C++ function  larcv::json::as_pybytes(const larcv::Image2D&,int, int, int, int)+;
-#pragma link C++ function  larcv::json::image2d_from_pybytes( PyObject* bytes )+;
-#pragma link C++ function  larcv::json::image2d_from_pybytes( PyObject* bytes, int&, int&, int&, int& )+;
->>>>>>> origin/jmills_clustering
+#pragma link C++ function  larcv::json::image2d_from_pybytes( PyObject* str )+;
+#pragma link C++ function  larcv::json::image2d_from_pybytes( PyObject* str, int&, int&, int&, int& )+;
+#pragma link C++ function  larcv::json::as_bson_pybytes(const larcv::SparseImage&,int, int, int, int)+;
+#pragma link C++ function  larcv::json::sparseimg_from_bson_pybytes( PyObject* str, int&, int&, int&, int& )+;
 #endif
 //ADD_NEW_CLASS ... do not change this line
 

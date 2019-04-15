@@ -145,10 +145,6 @@ namespace larcv {
     /// produce a vector containing the y-axis coordinate values
     std::vector<float> yaxis() const;
     
-=======
-
->>>>>>> origin/jmills_clustering
-
     /// Dump info in text
     std::string dump() const;
 

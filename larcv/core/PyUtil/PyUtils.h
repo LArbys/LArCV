@@ -7,6 +7,7 @@ typedef _object PyObject;
 #ifndef __CLING__
 #ifndef __CINT__
 #include <Python.h>
+#include "bytesobject.h"
 #endif
 #endif
 
@@ -89,8 +90,6 @@ namespace larcv {
 
   ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
 
-
->>>>>>> origin/jmills_clustering
 
 }
 

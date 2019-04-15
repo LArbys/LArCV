@@ -19,7 +19,7 @@ int SetPyUtil() {
     #ifdef USE_PYTHON3
         import_array1(0);
     #else
-        import_array();
+        import_array1(0);
     #endif
     once = true;
   }
@@ -770,8 +770,8 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    *         and F is number of features. First two values are (row,col)
    */
   larcv::SparseImage sparseimg_from_ndarray( PyObject* ndarray,
-                        const std::vector<larcv::ImageMeta>& meta_v,
-                        larcv::msg::Level_t verbosity )
+                                             const std::vector<larcv::ImageMeta>& meta_v,
+                                             larcv::msg::Level_t verbosity )
   {
     SetPyUtil();
 
@@ -816,10 +816,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
     return sparseimg;
   }
-=======
-  }
 
->>>>>>> origin/jmills_clustering
 }
 
 #endif

@@ -72,8 +72,6 @@ namespace larcv {
     // -----------
     // IMAGE 2D
     // -----------
-    PyObject* as_pystring( const larcv::Image2D& img,
-=======
     PyObject* as_pybytes( const larcv::Image2D& img,
                            int run=0, int subrun=0, int event=0, int id=0);
 
@@ -89,10 +87,10 @@ namespace larcv {
     // SparseImage
     // -------------
 
-    PyObject* as_bson_pystring( const larcv::SparseImage& sparsedata,
-                                int run=0, int subrun=0, int event=0, int id=0);
-    larcv::SparseImage sparseimg_from_bson_pystring( PyObject* str ,
-                                                     int& run, int& subrun, int& event, int& id);
+    PyObject* as_bson_pybytes( const larcv::SparseImage& sparsedata,
+                               int run=0, int subrun=0, int event=0, int id=0);
+    larcv::SparseImage sparseimg_from_bson_pybytes( PyObject* str ,
+                                                    int& run, int& subrun, int& event, int& id);
 
 #endif
 

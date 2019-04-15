@@ -353,7 +353,7 @@ namespace larcv {
 
       if ( (int)sparsedata.pixellist().size()%stride!=0 ) {
         std::stringstream msg;
-        msg << "json_utils.cxx::as_bson_pystring:"
+        msg << "json_utils.cxx::as_bson_pybytes:"
             << " calculated stride (" << stride << ") per point does "
             << " not divide evenly into "
             << " data array size (" << sparsedata.pixellist().size() << ")"
@@ -465,6 +465,10 @@ namespace larcv {
 
 
 #ifdef HASPYUTIL
+    /**
+     * function returns image2d as binary data in pybytes object
+     * 
+     */
     PyObject* as_pybytes( const larcv::Image2D& img,
       int run, int subrun, int event, int id ) {
       std::vector<std::uint8_t> b_v = as_bson( img, run, subrun, event, id );
@@ -509,7 +513,7 @@ namespace larcv {
     // ======================
 
     /**
-       convert SparseImage object into pystring containing data stored in BSON format
+       convert SparseImage object into pybytes object containing binary data stored in BSON format
 
        @param[in] sparsedata The data to convert
        @param[in] run run number to store in bson message
@@ -517,16 +521,16 @@ namespace larcv {
        @param[in] event event number to store in bson message
        @param[in] id additional user index that can be stored in bson message
 
-       @return bson pystring
+       @return bson pybytes
      */
-    PyObject* as_bson_pystring( const larcv::SparseImage& sparsedata,
+    PyObject* as_bson_pybytes( const larcv::SparseImage& sparsedata,
                                 int run, int subrun, int event, int id)
     {
-      return larcv::as_pystring( as_bson( sparsedata, run, subrun, event, id ) );
+      return larcv::as_pybytes( as_bson( sparsedata, run, subrun, event, id ) );
     }
 
     /**
-     * convert pystring containing bson msg back into SparseImage object
+     * convert pybytes containing bson msg back into SparseImage object
      *
      * @param[in] sparsedata SparseImage object to convert
      * @param[in] run run number to store in message
@@ -536,16 +540,16 @@ namespace larcv {
      *
      * @return SparseImage object
      */
-    larcv::SparseImage sparseimg_from_bson_pystring( PyObject* msg,
-                                                     int& run, int& subrun, int& event, int& id)
+    larcv::SparseImage sparseimg_from_bson_pybytes( PyObject* msg,
+                                                    int& run, int& subrun, int& event, int& id)
     {
 
-      if ( PyString_Check( msg )==0 ) {
-        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyString object" );
+      if ( PyBytes_Check( msg )==0 ) {
+        logger::get("json_utils").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, "Error not a PyBytes object" );
       }
-      size_t len = PyString_Size(msg);
+      size_t len = PyBytes_Size(msg);
       std::vector<std::uint8_t> b_v(len,0);
-      memcpy( b_v.data(), (unsigned char*)PyString_AsString(msg), sizeof(unsigned char)*len );
+      memcpy( b_v.data(), (unsigned char*)PyBytes_AsString(msg), sizeof(unsigned char)*len );
 
       json data = json::from_bson(b_v);
       rseid_from_json( data, run, subrun, event, id );
@@ -554,8 +558,10 @@ namespace larcv {
       return sparseimg_fromjson(data);
     }
 
-    // END OF HASPYUTIL: Block for Python functions
-=======
+    // ==========================
+    // CLUSTERMASK
+    // ==========================
+
     larcv::ClusterMask clustermask_from_pybytes( PyObject* bytes,
                                           int& run, int& subrun, int& event, int& id ) {
       if ( PyBytes_Check( bytes )==0 ) {
@@ -570,7 +576,8 @@ namespace larcv {
 
       return clustermask_from_json( data );
     }
->>>>>>> origin/jmills_clustering
+
+    // END OF HASPYUTIL: Block for Python functions
 #endif
 
   }//end of json namespace

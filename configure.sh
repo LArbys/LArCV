@@ -58,7 +58,7 @@ export LARCV_BINDIR=$LARCV_BUILDDIR/installed/bin
 export LARCV_VERSION=1
 
 # Check OpenCV
-# export LARCV_OPENCV=1
+export LARCV_OPENCV=1
 if [[ -z $OPENCV_INCDIR ]]; then
     export LARCV_OPENCV=0
 fi
