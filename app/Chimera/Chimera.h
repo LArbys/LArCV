@@ -47,7 +47,7 @@ namespace larcv {
         void initialize();
         bool process(IOManager& mgr);
 
-
+	void SetSplineLocation(const std::string& fpath);
         void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
         void SetLLInName(const std::string& finll) { _finll = finll;}
         void SetRootAnaFile(const std::string& anaFile){_fana = anaFile;}

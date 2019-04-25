@@ -40,9 +40,11 @@ alg_id = proc.process_id("Chimera")
 alg    = proc.process_ptr(alg_id)
 print "GOT: ",alg,"@ id=",alg_id
 
+SPLINE_PATH = os.path.join(BASE_PATH,"..","Proton_Muon_Range_dEdx_LAr_TSplines.root")
+alg.SetSplineLocation(SPLINE_PATH)
 alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
-alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
+#alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
 
 
 proc.initialize()

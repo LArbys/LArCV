@@ -232,6 +232,13 @@ namespace larcv {
         _storage.close();
 
     }
+  
+  void Chimera::SetSplineLocation(const std::string& fpath) {
+    LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
+    tracker.SetSplineFile(fpath);
+    _spline_file = fpath;
+    LARCV_DEBUG() << "end" << std::endl;
+  }
 
 }
 #endif
