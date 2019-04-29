@@ -86,9 +86,7 @@ namespace larcv {
         int _Nreco;
         int randomSeed;
 
-        /////////////////////////////////////////////////
-        // variables for raw reconstructed tracks
-        /////////////////////////////////////////////////
+        bool IsMCC9;
 
         int _vtx_id;
         int NtracksReco;

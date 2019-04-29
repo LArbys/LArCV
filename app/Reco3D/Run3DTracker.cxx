@@ -293,6 +293,8 @@ namespace larcv {
     {
         LARCV_INFO() << "[Run3DTracker]" << std::endl;
         assert(!_spline_file.empty());
+        IsMCC9 = false;
+        tracker.SetIsMCC9(IsMCC9);
         tracker.SetDrawOutputs(false);
         tracker.SetOutputDir(out_dir);
         tracker.SetSplineFile(_spline_file);

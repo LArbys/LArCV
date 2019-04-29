@@ -998,11 +998,14 @@ namespace larcv {
         double x,y,z;
         int Ncrop=0;
         double rmax = 6;
+        if(_IsMCC9 == false)rmax=6;
+        else rmax = 6;
 
         TVector3 lastNode = start_pt;
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
         while(foundNewPoint && terminate == false){
+            if(_IsMCC9)std::cout << "update search pattern for MCC9" << std::endl;
             rmax = 2+4*exp(-1.*((lastNode-start_pt).Mag())/5.);//reduces the search range as the track size increases
             foundNewPoint = false;
             iter++;
