@@ -1859,7 +1859,7 @@ namespace larcv {
 
         std::string label_tag = "";
         //c->SaveAs(Form("%s/%s.root",_outdir.c_str(),c->GetName()));
-        if(_nothingReconstructed){label_tag+="_nothing_reconstructed";}
+        /*if(_nothingReconstructed){label_tag+="_nothing_reconstructed";}
         if(_missingTrack){label_tag+="_onlyOneTrack";}
         if(_tooShortDeadWire){label_tag+="_EndPointInDeadRegion";}
         if(_tooManyTracksAtVertex){label_tag+="_TooManyTracksAtVertex";}
@@ -1867,7 +1867,7 @@ namespace larcv {
         if(_tooShortFaintTrack){label_tag+="_TooShortFaintTrack";}
         if(_jumpingTracks){label_tag+="_JumpTrack";}
         if(IsGoodVertex()){label_tag+="_OKtracks";}
-        if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}
+        if(NumberRecoveries!=0){label_tag+=Form("_recovered%d",NumberRecoveries);}*/
         c->SaveAs(Form("%s/%s_%s.png",_outdir.c_str(),c->GetName(),label_tag.c_str()));
         c->SaveAs(Form("%s/%s_%s.root",_outdir.c_str(),c->GetName(),label_tag.c_str()));
 
