@@ -3938,7 +3938,7 @@ namespace larcv {
             std::vector<TVector3> thisTrack(_vertexLarliteTracks[itrack].NumberTrajectoryPoints());
             for(size_t iNode=0;iNode<_vertexLarliteTracks[itrack].NumberTrajectoryPoints();iNode++){
                 thisTrack[iNode]=_vertexLarliteTracks[itrack].LocationAtPoint(iNode);
-                std::cout << "_vertexLarliteTracks["<< itrack <<"].DQdxAtPoint("<< iNode <<",views[2]) = " << _vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[2]) << std::endl;
+                //std::cout << "_vertexLarliteTracks["<< itrack <<"].DQdxAtPoint("<< iNode <<",views[2]) = " << _vertexLarliteTracks[itrack].DQdxAtPoint(iNode,views[2]) << std::endl;
             }
             _vertexTracks.push_back(thisTrack);
         }
