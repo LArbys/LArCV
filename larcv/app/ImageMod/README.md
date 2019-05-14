@@ -97,7 +97,24 @@ Parameters
 | WireList | integer array of wire numbers to be masked|
 | MaskValue | floating point used as a value for masking |
 
+### MaskImage
 
+This module masks the values of a 'target' image depending on values for
+a 'reference' image.  Values are masked in the 'target' image if
+the values in the 'reference' image fall below a threshold.
+The output is a new image.
+
+Parameters
+
+| Parameters        | Default | Description    |
+| ----------------- | ------- | :------------: |
+| MinPIThreshold    | (none) REQUIRED | Minimum Pixel Intensity (PI) threshold. Pixels are masked if less than this value. |
+| ReferenceProducer | (none) REQUIRED | Producer/Tree name for the 'reference' image |
+| TargetProducer    | (none) REQUIRED | Producer/Tree name for the 'target' image    |
+| OutputProducer    | (none) REQUIRED | Output image of the masking operation |
+| MaskValue         | (none) REQUIRED | Value used for pixels that fall below threshold |
+| UseAbsValue       | true            | Use absolute value of pixel intensity in determination |
+| IgnoreRefOrigin   | false           | Do not check if 'target' and 'reference' images are aligned properly |
 
 
 

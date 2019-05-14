@@ -1,6 +1,7 @@
 #ifndef EVENTIMAGE2D_CXX
 #define EVENTIMAGE2D_CXX
 
+#include <sstream>
 #include "EventImage2D.h"
 #include "larcv/core/Base/larbys.h"
 
@@ -17,13 +18,21 @@ namespace larcv {
 
   const Image2D& EventImage2D::at(ImageIndex_t id) const
   {
-    if( id >= _image_v.size() ) throw larbys("Invalid request (ImageIndex_t out-o-range)!");
+    if( id >= _image_v.size() ) {
+      std::stringstream ss;
+      ss << __FILE__"." << __LINE__ << "Invalid request [" << id << "] (ImageIndex_t out-o-range, max=" << _image_v.size() << ")!";
+      throw larbys(ss.str());
+    }
     return _image_v[id];
   }
 
   Image2D& EventImage2D::modimgat(ImageIndex_t id)
   {
-    if( id >= _image_v.size() ) throw larbys("Invalid request (ImageIndex_t out-o-range)!");
+    if( id >= _image_v.size() ) {
+      std::stringstream ss;
+      ss << __FILE__"." << __LINE__ << "Invalid request [" << id << "] (ImageIndex_t out-o-range, max=" << _image_v.size() << ")!";
+      throw larbys(ss.str());
+    }
     return _image_v[id];
   }
   
