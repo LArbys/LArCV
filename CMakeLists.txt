@@ -62,11 +62,14 @@ if (LARCV_USE_GEO2D)
 endif()
 
 # --- Torch
-# For container
-#set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
-# For FNAL
-#set( Torch_DIR "$ENV{LIBTORCH_DIR}/Linux64bit+3.10-2.17-e17-prof/share/cmake/Torch" )
-#find_package( Torch )
+if (USE_TORCH)
+   # For container
+   set( OpenBLAS_DIR "$ENV{OPENBLAS_DIR}/share/cmake/OpenBLAS" )
+   set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
+   find_package( OpenBLAS REQUIRED )
+   find_package( Torch REQUIRED )
+endif()
+
 find_package( CUDA )
 
 ## Git Submodules
