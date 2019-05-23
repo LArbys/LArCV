@@ -1,14 +1,14 @@
 /**
  * \file Chimera.h
  *
- * \ingroup Package_Name
+ * \ingroup Chimera
  *
  * \brief Class def header for a class Chimera
  *
- * @author hourlier
+ * @author Polina Abratenko
  */
 
-/** \addtogroup Package_Name
+/** \addtogroup Chimera
 
  @{*/
 #ifndef __CHIMERA_H__
@@ -24,13 +24,14 @@
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
-#include "../Reco3D/AStarTracker.h" // Useful for looking at image
+
+#include "ChimeraMachinery.h"
 
 namespace larcv {
 
     /**
      \class ProcessBase
-     User defined class Run3DTracker ... these comments are used to generate
+     User defined class Chimera ... these comments are used to generate
      doxygen documentation!
      */
     class Chimera : public ProcessBase {
@@ -41,7 +42,8 @@ namespace larcv {
         Chimera(const std::string name="Chimera");
 
         /// Default destructor
-        ~Chimera(){}
+        ~Chimera(){
+	}
 
         void configure(const PSet&);
         void initialize();
@@ -51,16 +53,15 @@ namespace larcv {
         void SetLLOutName(const std::string& foutll) { _foutll = foutll; }
         void SetLLInName(const std::string& finll) { _finll = finll;}
         void SetRootAnaFile(const std::string& anaFile){_fana = anaFile;}
-        void SetOutDir(std::string s){out_dir = s;}
-
-
+	void SetOutDir(std::string s){out_dir = s;}
+	
         void finalize();
 
         private :
 
 	int iTrack;
 	larlite::storage_manager _storage;
-	larcv::AStarTracker tracker;
+	larcv::ChimeraMachinery mach; 
 	std::vector< std::vector<int> > _vertexInfo;
         double NeutrinoEnergyTh;
         double NeutrinoEnergyReco;
@@ -185,9 +186,6 @@ namespace larcv {
 	std::string out_dir;
 	std::string eventListFile;
         bool _mask_shower;
-
-      
-
     };
 
     /**

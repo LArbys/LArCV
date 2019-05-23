@@ -23,6 +23,8 @@ LARLITE_IN_FILE = str(sys.argv[2])
 OUTPUT_DIR      = str(sys.argv[3])
 EVENT_FILE      = ""
 
+print "This is the output dir: ", OUTPUT_DIR
+
 #num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
 
 BASE_PATH = os.path.realpath(__file__)
@@ -42,6 +44,9 @@ print "GOT: ",alg,"@ id=",alg_id
 
 SPLINE_PATH = os.path.join(BASE_PATH,"..","Proton_Muon_Range_dEdx_LAr_TSplines.root")
 alg.SetSplineLocation(SPLINE_PATH)
+
+print "RIGHT BW SPLINE_PATH AND OUTPUT_DIR"
+
 alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
 #alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))

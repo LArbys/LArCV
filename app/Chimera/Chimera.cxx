@@ -30,13 +30,13 @@
 #include "TSpline.h"
 
 //#include "LArCV/core/DataFormat/ChStatus.h"
-#include "../Reco3D/AStarUtils.h"
+#include "../Reco3D/AStarUtils.h" // ** remove
 
 //#include "AStar3DAlgo.h"
 //#include "AStar3DAlgoProton.h"
 
 //#include "SCE/SpaceChargeMicroBooNE.h"
-#include "../Reco3D/AStarTracker.h"
+#include "ChimeraMachinery.h" // ** remove
 
 
 //#include "../../core/DataFormat/EventPGraph.h"
@@ -65,13 +65,13 @@ namespace larcv {
     void Chimera::initialize(){
         LARCV_INFO() << "[Chimera]" << std::endl;
         assert(!_spline_file.empty());
-        tracker.SetDrawOutputs(false);
-        tracker.SetOutputDir(out_dir);
-        tracker.SetSplineFile(_spline_file);
-        tracker.initialize();
-        tracker.SetDrawVertical(true);
-        tracker.SetDrawBlack(false);
-        tracker.SetVerbose(0);
+	mach.SetDrawOutputs(false); 
+	mach.SetOutputDir(out_dir);
+        mach.SetSplineFile(_spline_file);
+        mach.initialize();
+        mach.SetDrawVertical(true);
+        mach.SetDrawBlack(false);
+        mach.SetVerbose(0);
 
         std::string filename;
 
@@ -100,6 +100,8 @@ namespace larcv {
         _subrun = (int) ev_img_v->subrun();
         _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
+
+	//	if(_subrun != 419){std::cout << "not correct subrun" << std::endl; return true;}
 
         std::cout << std::endl;
         std::cout << "============================================" << std::endl;
@@ -169,9 +171,9 @@ namespace larcv {
             //if(full_tag_img_thru_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_thru_v)[iPlane] );
             //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
         }
-        tracker.SetOriginalImage(Full_image_v);
-        tracker.SetTaggedImage(Tagged_Image);
-        tracker.SetTrackInfo(_run, _subrun, _event, 0);
+        mach.SetOriginalImage(Full_image_v); // **
+        mach.SetTaggedImage(Tagged_Image);
+        mach.SetTrackInfo(_run, _subrun, _event, 0);
 
         std::cout << _run << " " << _subrun << " " << _event <<  std::endl;
 
@@ -188,7 +190,8 @@ namespace larcv {
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
-            std::cout << "vertex #" << vertex_index << std::endl;
+	    //            std::cout << "vertex #" << vertex_index << std::endl;
+	    std::cout << "vertex #" << vertex_index << " / " << ev_vertex->size() << std::endl;
             int treeEntry = -1;
             //treeEntry = SearchMap();
             //if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
@@ -205,20 +208,20 @@ namespace larcv {
             //if(_Length_v->size() == 0)GoodReco=false;
             //if(!GoodReco)continue;
 
-            //tracker.FeedVtxGoodness((*_Reco_goodness_v));
+            //mach.FeedVtxGoodness((*_Reco_goodness_v));
 
-            tracker.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z()));
-            tracker.SetVertexID(ev_vertex->at(vertex_index).ID());
+            mach.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z())); // **
+            mach.SetVertexID(ev_vertex->at(vertex_index).ID());
 
             for(auto const& trk_index : vtx_to_trk[vertex_index]) {
                 TracksAtVertex.push_back( (*ev_trk)[trk_index]);
                 std::cout << "\t => trk#" << trk_index << ", " << TracksAtVertex.back().Length() << " cm" << std::endl;
             }
 
-            tracker.FeedLarliteVertexTracks(TracksAtVertex);
-            tracker.Get3DtracksFromLarlite();
-            tracker.DrawVertex();
-            //tracker.DrawVertex3D();
+            mach.FeedLarliteVertexTracks(TracksAtVertex); // **
+            mach.Get3DtracksFromLarlite();
+	    mach.DrawVertex(); // Commenting out drawing the vertex for now
+            //mach.DrawVertex3D();
         }
 
         return true;
@@ -226,8 +229,8 @@ namespace larcv {
     }
 
     void Chimera::finalize(){
-        tracker.finalize();
-        std::cout << "finalized tracker" << std::endl;
+      mach.finalize(); // **
+        std::cout << "finalized mach" << std::endl;
 
         _storage.close();
 
@@ -235,7 +238,7 @@ namespace larcv {
   
   void Chimera::SetSplineLocation(const std::string& fpath) {
     LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
-    tracker.SetSplineFile(fpath);
+    mach.SetSplineFile(fpath); // **
     _spline_file = fpath;
     LARCV_DEBUG() << "end" << std::endl;
   }
