@@ -19,10 +19,13 @@ endif
 
 APP_SUBDIRS := ImageAna ImageMod Filter Merger APICaffe
 ifdef LARLITE_BASEDIR
-APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider MeatSlicer Reco3D
+APP_SUBDIRS +=  VertexImg UBWireTool PMTWeights HiResDivider Reco3D
 APP_SUBDIRS +=  larlitehandle
   ifdef LAROPENCV_BASEDIR
   APP_SUBDIRS += LArOpenCVHandle
+  endif
+  ifeq ($(LARCV_BUILD_SUPERA),1)
+	APP_SUBDIRS += MeatSlicer
   endif
 endif
 ifeq ($(LARCV_ANN),1)
