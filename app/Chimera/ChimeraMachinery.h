@@ -229,6 +229,7 @@ namespace larcv {
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
 
         std::vector<larcv::Image2D> GetFullImage();
+        void GetImageOneTrack(size_t trackNumber);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
         void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative();*/ShaveTracks();}

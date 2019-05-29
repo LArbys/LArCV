@@ -1,3 +1,4 @@
+// TODO: CLEANUP EVERYTHING NOT RELATED TO MY CHIMERA CODE
 #ifndef LARLITE_ChimeraMachinery_CXX
 #define LARLITE_ChimeraMachinery_CXX
 
@@ -1679,7 +1680,7 @@ namespace larcv {
         //if(_tooShortFaintTrack_v.size() != _vertexTracks.size())DiagnoseVertex();
 
 
-        hit_image_v = GetFullImage();
+	//        hit_image_v = GetFullImage();
         //EnhanceDerivative();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),8000,4500);
@@ -1852,7 +1853,7 @@ namespace larcv {
                     gTrack[iPlane]->SetMarkerColor(i+1);
                 }
                 pads[iPlane]->cd();
-                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same LP"); // remove P, doesn't draw the dots **
+                if(gTrack[iPlane]->GetN() > 0)gTrack[iPlane]->Draw("same L"); // remove P, doesn't draw the dots ** remove L, doesn't draw the red line
             }
         }
 
@@ -3710,7 +3711,7 @@ namespace larcv {
             for(size_t icol = 0;icol<newImage.meta().cols();icol++){
                 for(size_t irow = 0;irow<newImage.meta().rows();irow++){
                     if(newImage.pixel(irow, icol) > _ADCthreshold){invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,newImage.pixel(irow, icol));}
-                    else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);}
+                    else{invertedImage.set_pixel(newImage.meta().rows()-irow-1, icol,0);} // ** set pixel
                 }
             }
             data_images.push_back(invertedImage);
@@ -3718,7 +3719,7 @@ namespace larcv {
             for(size_t icol = 0;icol<newTaggedImage.meta().cols();icol++){
                 for(size_t irow = 0;irow<newTaggedImage.meta().rows();irow++){
                     if(newTaggedImage.pixel(irow, icol) > _ADCthreshold){invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,newTaggedImage.pixel(irow, icol));}
-                    else{invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,0);}
+                    else{invertedTagImage.set_pixel(newTaggedImage.meta().rows()-irow-1, icol,0);} 
                 }
             }
             tagged_images.push_back(invertedTagImage);
@@ -3732,10 +3733,94 @@ namespace larcv {
                 }
             }
         }
+
+	
         
         return data_images;
     }
-    //______________________________________________________
+    //______________________________________________________CHIMERA DEV
+  void ChimeraMachinery::GetImageOneTrack(size_t trackNumber) {
+    
+    hit_image_v = GetFullImage();
+
+    double x_pixel;
+    double y_pixel;
+    
+    std::vector<double> xMax(3);
+    std::vector<double> xMin(3);
+    std::vector<double> yMax(3);
+    std::vector<double> yMin(3);
+    
+    std::vector<std::vector<std::pair<double, double>>> projectedTrack;
+      
+    for(size_t iPlane=0; iPlane<hit_image_v.size();iPlane++) {
+
+      xMax[iPlane] = -999;
+      yMax[iPlane] = -999;
+      
+      xMin[iPlane] = 999e6;
+      yMin[iPlane] = 999e6;
+	
+      std::vector<std::pair<double, double>> planeTrack;
+
+      for(size_t iPoint = 0; iPoint<_vertexTracks[trackNumber].size(); iPoint++) {
+	//	std::cout << "\t" << iPoint << std::endl;
+	ProjectTo3D(hit_image_v.at(iPlane).meta(),_vertexTracks[trackNumber][iPoint].X(),_vertexTracks[trackNumber][iPoint].Y(),_vertexTracks[trackNumber][iPoint].Z(),0,iPlane,x_pixel,y_pixel);
+	//	std::cout << "x_pixel and y_pixel: " << x_pixel << " " << y_pixel << std::endl;
+	std::pair<double, double> xyPoint; 
+	xyPoint.first = x_pixel;
+	xyPoint.second = y_pixel;
+	
+	if (x_pixel > xMax[iPlane]) 
+	  xMax[iPlane] = x_pixel;
+	
+	if (y_pixel > yMax[iPlane]) 
+	  yMax[iPlane] = y_pixel;
+	
+	if (x_pixel < xMin[iPlane]) 
+	  xMin[iPlane] = x_pixel;
+	
+	if (y_pixel < yMin[iPlane]) 
+	  yMin[iPlane] = y_pixel;
+	
+	planeTrack.push_back(xyPoint);
+	
+      }
+      
+      projectedTrack.push_back(planeTrack);
+	
+    }
+    
+    //    std::cout << "ALL MAX AND MINS: " << std::endl;
+    //std::cout << "FIRST PLANE: " << "xMax: " << xMax[0]+3 << " xMin: " << xMin[0]-3 << " yMax: " << yMax[0]+3 << " yMin: " << yMin[0]-3 << std::endl;
+    //std::cout << "SECOND PLANE: " << "xMax: " << xMax[1]+3 << " xMin: " << xMin[1]-3 << " yMax: " << yMax[1]+3 << " yMin: " << yMin[1]-3 << std::endl;
+    //std::cout << "THIRD PLANE: " << "xMax: " << xMax[2]+3 << " xMin: " << xMin[2]-3 << " yMax: " << yMax[2]+3 << " yMin: " << yMin[2]-3 << std::endl;
+    
+      for (size_t iPlane = 0; iPlane<3; iPlane++) {
+          std::cout << "These are the boundaries of the box for this plane:" << std::endl;
+          std::cout << "xMax: " << xMax[iPlane]+3 << " xMin: " << xMin[iPlane]-3 << " yMax: " << yMax[iPlane]+3 << " yMin: " << yMin[iPlane]-3 << std::endl;
+          for (size_t icol = 0; icol < hit_image_v[iPlane].meta().cols(); icol++) {
+              for(size_t irow = 0; irow < hit_image_v[iPlane].meta().rows(); irow++) {
+                  if (hit_image_v[iPlane].pixel(irow,icol) < _ADCthreshold  || hit_image_v[iPlane].pixel(irow,icol)==_deadWireValue) continue;
+                  if ( (irow > yMax[iPlane]+3) || (irow < yMin[iPlane]-3) || (icol > xMax[iPlane]+3) || (icol < xMin[iPlane]-3) ) {
+                      //	    std::cout << "This point is outside the boundaries of the box! This point is X: " << icol << " Y: " << irow << std::endl;
+                      //	    std::cout << "Setting pixel value to zero and moving onto the next point..." << std::endl;
+                      hit_image_v[iPlane].set_pixel(irow,icol,0);
+                      continue;
+                  }
+                  //	  std::cout << "This point is inside the box!" << std::endl;
+                  bool closeEnough = false;
+                  for (size_t iPoint = 0; iPoint < projectedTrack[iPlane].size(); iPoint++) {
+                      if ( std::abs(icol - projectedTrack[iPlane][iPoint].first) <5 && std::abs(irow - projectedTrack[iPlane][iPoint].second) < 5 ) {
+                          closeEnough = true;
+                      }
+                  }
+                  if (closeEnough == false) hit_image_v[iPlane].set_pixel(irow,icol,0);
+              }
+          }
+      }
+  }
+  //______________________________________________________
     std::vector<std::pair<int, int> > ChimeraMachinery::GetWireTimeProjection(TVector3 point){
         std::vector<std::pair<int, int> > projection(3);
         for(size_t iPlane = 0;iPlane<3;iPlane++){
@@ -3795,7 +3880,7 @@ namespace larcv {
                 double x_pixel_old,y_pixel_old;
                 oldEndPoint = _vertexTracks.at(itrack).back();
 
-                ProjectTo3D(original_full_image_v.at(failedPlane).meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,failedPlane,x_pixel_old,y_pixel_old);
+                ProjectTo3D(original_full_image_v.at(failedPlane).meta(),oldEndPoint.X(),oldEndPoint.Y(),oldEndPoint.Z(),0,failedPlane,x_pixel_old,y_pixel_old); // ** use in bw
                 //for(size_t irow = 0;irow<original_full_image_v.at(failedPlane).meta().rows();irow++){
                 for(auto irow = (y_pixel_old-20);irow < (y_pixel_old+20);irow++){
                     for(int imargin=0;imargin<5;imargin++){

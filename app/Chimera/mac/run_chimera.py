@@ -45,8 +45,6 @@ print "GOT: ",alg,"@ id=",alg_id
 SPLINE_PATH = os.path.join(BASE_PATH,"..","Proton_Muon_Range_dEdx_LAr_TSplines.root")
 alg.SetSplineLocation(SPLINE_PATH)
 
-print "RIGHT BW SPLINE_PATH AND OUTPUT_DIR"
-
 alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
 #alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))

@@ -171,7 +171,7 @@ namespace larcv {
             //if(full_tag_img_thru_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_thru_v)[iPlane] );
             //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
         }
-        mach.SetOriginalImage(Full_image_v); // **
+        mach.SetOriginalImage(Full_image_v); 
         mach.SetTaggedImage(Tagged_Image);
         mach.SetTrackInfo(_run, _subrun, _event, 0);
 
@@ -186,12 +186,13 @@ namespace larcv {
         auto const& vtx_to_trk = _storage.find_one_ass(ev_vertex->id(), ev_trk, ev_vertex->name());
         if(!ev_trk || ev_trk->size() == 0) throw larlite::DataFormatException("Could not find associated track data product!");
 
-
+	
+	// Going thru the different vertices found
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
 	    //            std::cout << "vertex #" << vertex_index << std::endl;
-	    std::cout << "vertex #" << vertex_index << " / " << ev_vertex->size() << std::endl;
+	    std::cout << "vertex #" << vertex_index+1 << " / " << ev_vertex->size() << std::endl;
             int treeEntry = -1;
             //treeEntry = SearchMap();
             //if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
@@ -210,7 +211,7 @@ namespace larcv {
 
             //mach.FeedVtxGoodness((*_Reco_goodness_v));
 
-            mach.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z())); // **
+            mach.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z()));
             mach.SetVertexID(ev_vertex->at(vertex_index).ID());
 
             for(auto const& trk_index : vtx_to_trk[vertex_index]) {
@@ -218,10 +219,18 @@ namespace larcv {
                 std::cout << "\t => trk#" << trk_index << ", " << TracksAtVertex.back().Length() << " cm" << std::endl;
             }
 
-            mach.FeedLarliteVertexTracks(TracksAtVertex); // **
+            mach.FeedLarliteVertexTracks(TracksAtVertex);
             mach.Get3DtracksFromLarlite();
-	    mach.DrawVertex(); // Commenting out drawing the vertex for now
-            //mach.DrawVertex3D();
+	    
+	    // "crop" around the selected track (in _vertexTracks)
+	    // set every pixel outside that box to zero
+	    // then loop through each pixel in the cropped region and ask: is it within ~3 pixels of what's in _vertexTracks?
+	    // if yes, then skip; if no, then set pixel value to 0
+	    mach.GetImageOneTrack(1);
+	    mach.DrawVertex(); 
+
+	    //	    mach.DrawVertex3D();
+
         }
 
         return true;
@@ -229,7 +238,7 @@ namespace larcv {
     }
 
     void Chimera::finalize(){
-      mach.finalize(); // **
+      mach.finalize();
         std::cout << "finalized mach" << std::endl;
 
         _storage.close();
@@ -238,7 +247,7 @@ namespace larcv {
   
   void Chimera::SetSplineLocation(const std::string& fpath) {
     LARCV_INFO() << "setting spline loc @ " << fpath << std::endl;
-    mach.SetSplineFile(fpath); // **
+    mach.SetSplineFile(fpath);
     _spline_file = fpath;
     LARCV_DEBUG() << "end" << std::endl;
   }
