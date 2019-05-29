@@ -21,6 +21,11 @@ CONFIG_FILE     = "cfg/chimera.cfg" #str(sys.argv[1])
 IMG_FILE        = str(sys.argv[1])
 LARLITE_IN_FILE = str(sys.argv[2])
 OUTPUT_DIR      = str(sys.argv[3])
+MY_RUN          = int(sys.argv[4])
+MY_SUBRUN       = int(sys.argv[5])
+MY_EVENT        = int(sys.argv[6])
+MY_VTXID        = int(sys.argv[7])
+MY_TRACK        = int(sys.argv[8])
 EVENT_FILE      = ""
 
 print "This is the output dir: ", OUTPUT_DIR
@@ -47,6 +52,11 @@ alg.SetSplineLocation(SPLINE_PATH)
 
 alg.SetOutDir(OUTPUT_DIR)
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
+alg.SetMyRun(MY_RUN)
+alg.SetMySubrun(MY_SUBRUN)
+alg.SetMyEvent(MY_EVENT)
+alg.SetMyVtxid(MY_VTXID)
+alg.SetMyTrack(MY_TRACK)
 #alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
 
 

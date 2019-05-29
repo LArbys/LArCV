@@ -54,6 +54,12 @@ namespace larcv {
         void SetLLInName(const std::string& finll) { _finll = finll;}
         void SetRootAnaFile(const std::string& anaFile){_fana = anaFile;}
 	void SetOutDir(std::string s){out_dir = s;}
+
+	void SetMyRun(int i){myRun = i;}
+	void SetMySubrun(int i){mySubrun = i;}
+	void SetMyEvent(int i){myEvent = i;}
+	void SetMyVtxid(int i){myVtxid = i;}
+	void SetMyTrack(int i){myTrack = i;}
 	
         void finalize();
 
@@ -186,6 +192,12 @@ namespace larcv {
 	std::string out_dir;
 	std::string eventListFile;
         bool _mask_shower;
+
+	int myRun;
+	int mySubrun;
+	int myEvent;
+	int myVtxid;
+	int myTrack;
     };
 
     /**

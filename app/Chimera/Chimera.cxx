@@ -101,7 +101,10 @@ namespace larcv {
         _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
 
-	//	if(_subrun != 419){std::cout << "not correct subrun" << std::endl; return true;}
+	if (_run != myRun && _subrun != mySubrun && _event != myEvent ) {
+	  std::cout << "We don't have a match! QUITTING..." << std::endl; 
+	  return true;
+	}
 
         std::cout << std::endl;
         std::cout << "============================================" << std::endl;
@@ -191,6 +194,8 @@ namespace larcv {
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
+	    if (_vtx_id != myVtxid) continue;
+
 	    //            std::cout << "vertex #" << vertex_index << std::endl;
 	    std::cout << "vertex #" << vertex_index+1 << " / " << ev_vertex->size() << std::endl;
             int treeEntry = -1;
@@ -226,7 +231,7 @@ namespace larcv {
 	    // set every pixel outside that box to zero
 	    // then loop through each pixel in the cropped region and ask: is it within ~3 pixels of what's in _vertexTracks?
 	    // if yes, then skip; if no, then set pixel value to 0
-	    mach.GetImageOneTrack(1);
+	    mach.GetImageOneTrack(myTrack);
 	    mach.DrawVertex(); 
 
 	    //	    mach.DrawVertex3D();
