@@ -101,6 +101,14 @@ namespace larcv {
 
   void EventPixel2D::Append(const larcv::PlaneID_t plane, const Pixel2DCluster& cluster, const ImageMeta& meta)
   {
+
+    if ( _cluster_m.size()==0 || _cluster_m.find(plane)==_cluster_m.end() ) {
+      _cluster_m.insert( std::pair< ::larcv::PlaneID_t, std::vector< ::larcv::Pixel2DCluster > >( plane, std::vector< ::larcv::Pixel2DCluster >() ) );
+    }
+    if ( _cluster_meta_m.size()==0 || _cluster_meta_m.find(plane)==_cluster_meta_m.end() ) {
+      _cluster_meta_m.insert( std::pair< ::larcv::PlaneID_t, std::vector< ::larcv::ImageMeta > >( plane, std::vector< ::larcv::ImageMeta >() ) );
+    }
+
     auto& col = _cluster_m[plane];
     col.push_back(cluster);
     col.back()._id = col.size() - 1;

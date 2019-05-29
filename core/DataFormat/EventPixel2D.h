@@ -32,7 +32,9 @@ namespace larcv {
   public:
     
     /// Default constructor
-    EventPixel2D(){}
+    EventPixel2D() {
+      clear();
+    }
     
     /// Default destructor
     virtual ~EventPixel2D(){}

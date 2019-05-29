@@ -52,10 +52,12 @@ namespace larcv {
     goalpos[2] = poszy_goal[0];
 
     //    if ( verbose>0 && ( start_tri>5 || goal_tri>5 ) ) {
-    std::cout << "start wires provided (" << start_wids[0] << "," << start_wids[1] << "," << start_wids[2] << ") tri=" << start_tri << std::endl;
-    std::cout << "goal wires provided (" << goal_wids[0] << "," << goal_wids[1] << "," << goal_wids[2] << ") tri=" << goal_tri << std::endl;
-    std::cout << "startpos: (" << startpos[0] << "," << startpos[1] << "," << startpos[2] << ")" << std::endl;
-    std::cout << "goalpos:   (" << goalpos[0] << "," << goalpos[1] << "," << goalpos[2] << ")" << std::endl;    
+    if ( verbose>0 ) {
+      std::cout << "start wires provided (" << start_wids[0] << "," << start_wids[1] << "," << start_wids[2] << ") tri=" << start_tri << std::endl;
+      std::cout << "goal wires provided (" << goal_wids[0] << "," << goal_wids[1] << "," << goal_wids[2] << ") tri=" << goal_tri << std::endl;
+      std::cout << "startpos: (" << startpos[0] << "," << startpos[1] << "," << startpos[2] << ")" << std::endl;
+      std::cout << "goalpos:   (" << goalpos[0] << "," << goalpos[1] << "," << goalpos[2] << ")" << std::endl;    
+    }
     //  throw std::runtime_error("AStar3DAlgo::findpath[error] start or goal point not a good 3D space point.");
     //}
 
