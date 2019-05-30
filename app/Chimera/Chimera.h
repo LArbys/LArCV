@@ -20,6 +20,7 @@
 #include "TVector3.h"
 
 #include "DataFormat/storage_manager.h"
+#include "DataFormat/IOManager.h"
 #include "DataFormat/track.h"
 
 #include "Processor/ProcessBase.h"
@@ -67,6 +68,7 @@ namespace larcv {
 
 	int iTrack;
 	larlite::storage_manager _storage;
+	larcv::IOManager ioman;
 	larcv::ChimeraMachinery mach; 
 	std::vector< std::vector<int> > _vertexInfo;
         double NeutrinoEnergyTh;

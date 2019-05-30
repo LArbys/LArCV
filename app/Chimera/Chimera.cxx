@@ -4,6 +4,7 @@
 #include "Chimera.h"
 
 #include "DataFormat/storage_manager.h"
+#include "DataFormat/IOManager.h"
 #include "DataFormat/track.h"
 #include "DataFormat/vertex.h"
 #include "DataFormat/hit.h"
@@ -92,6 +93,11 @@ namespace larcv {
     bool Chimera::process(IOManager& mgr){
         //ClearEvent();
         gStyle->SetOptStat(0);
+
+	//	IOManager out_iom(IOManager::kWRITE);
+	//out_iom.set_verbosity((larcv::msg::Level_t)0);
+	//	mgr.set_out_file("test.root");
+	//mgr.initialize();
 
         TVector3 vertex(-1,-1,-1);
 
@@ -235,6 +241,12 @@ namespace larcv {
 	    mach.DrawVertex(); 
 
 	    //	    mach.DrawVertex3D();
+
+	    std::cout << _run << " " << _subrun << " " << _event << std::endl;
+	    mgr.set_id( _run, _subrun, _event);
+	    std::cout << "hi" << std::endl;
+	    mgr.save_entry();
+	    //	    mgr.finalize();
 
         }
 
