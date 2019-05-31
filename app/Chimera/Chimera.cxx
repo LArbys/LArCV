@@ -57,6 +57,7 @@ namespace larcv {
     void Chimera::configure(const PSet& cfg){
         _input_pgraph_producer     = cfg.get<std::string>("InputPgraphProducer");
         _img2d_producer            = cfg.get<std::string>("Image2DProducer");
+        _chimera_producer            = cfg.get<std::string>("ChimeraProducer");
         _par_pix_producer          = cfg.get<std::string>("ParPixelProducer");
         _true_roi_producer         = cfg.get<std::string>("TrueROIProducer");
         _mask_shower               = cfg.get<bool>("MaskShower",false);
@@ -94,11 +95,13 @@ namespace larcv {
         //ClearEvent();
         gStyle->SetOptStat(0);
 
-	//	IOManager out_iom(IOManager::kWRITE);
-	//out_iom.set_verbosity((larcv::msg::Level_t)0);
-	//	mgr.set_out_file("test.root");
-	//mgr.initialize();
+	IOManager out_iom(IOManager::kWRITE);
+	out_iom.set_verbosity((larcv::msg::Level_t)0);
+	out_iom.set_out_file("test.root");
+	out_iom.initialize();
 
+        auto ev_img_out        = (EventImage2D*)out_iom.get_data(kProductImage2D,_chimera_producer);
+	
         TVector3 vertex(-1,-1,-1);
 
         auto ev_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
@@ -237,19 +240,24 @@ namespace larcv {
 	    // set every pixel outside that box to zero
 	    // then loop through each pixel in the cropped region and ask: is it within ~3 pixels of what's in _vertexTracks?
 	    // if yes, then skip; if no, then set pixel value to 0
-	    mach.GetImageOneTrack(myTrack);
+	    //	    mach.GetImageOneTrack(myTrack);
 	    mach.DrawVertex(); 
-
+	    
 	    //	    mach.DrawVertex3D();
 
-	    std::cout << _run << " " << _subrun << " " << _event << std::endl;
-	    mgr.set_id( _run, _subrun, _event);
-	    std::cout << "hi" << std::endl;
-	    mgr.save_entry();
+	    std::vector<larcv::Image2D> output = mach.GetImageOneTrack(myTrack);
+	    for (auto const& img : output) {
+	      ev_img_out->Append(img);
+	    }
+
 	    //	    mgr.finalize();
 
         }
-
+	
+	out_iom.set_id( _run, _subrun, _event);
+	out_iom.save_entry();
+	out_iom.finalize();
+	
         return true;
 
     }

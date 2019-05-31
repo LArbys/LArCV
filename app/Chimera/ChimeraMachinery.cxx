@@ -3739,7 +3739,7 @@ namespace larcv {
         return data_images;
     }
     //______________________________________________________CHIMERA DEV
-  void ChimeraMachinery::GetImageOneTrack(size_t trackNumber) {
+  std::vector<larcv::Image2D> ChimeraMachinery::GetImageOneTrack(size_t trackNumber) {
     
     hit_image_v = GetFullImage();
 
@@ -3819,6 +3819,7 @@ namespace larcv {
               }
           }
       }
+      return hit_image_v;
   }
   //______________________________________________________
     std::vector<std::pair<int, int> > ChimeraMachinery::GetWireTimeProjection(TVector3 point){

@@ -185,6 +185,7 @@ namespace larcv {
 
 	std::string _input_pgraph_producer;
 	std::string _img2d_producer;
+	std::string _chimera_producer;
 	std::string _par_pix_producer;
 	std::string _true_roi_producer;
 	std::string _spline_file;
