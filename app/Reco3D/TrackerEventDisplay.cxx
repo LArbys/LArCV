@@ -246,8 +246,8 @@ namespace larcv {
 
             tracker.FeedLarliteVertexTracks(TracksAtVertex);
             tracker.Get3DtracksFromLarlite();
-            //tracker.DrawVertex();
-            tracker.DrawVertex3D();
+            tracker.DrawVertexVertical();
+            //tracker.DrawVertex3D();
         }
 
         return true;

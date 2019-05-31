@@ -293,7 +293,7 @@ namespace larcv {
     {
         LARCV_INFO() << "[Run3DTracker]" << std::endl;
         assert(!_spline_file.empty());
-        IsMCC9 = false;
+        IsMCC9 = true;
         tracker.SetIsMCC9(IsMCC9);
         tracker.SetDrawOutputs(false);
         tracker.SetOutputDir(out_dir);
@@ -373,7 +373,7 @@ namespace larcv {
         // Fill MC if exists
         //
         EventROI* ev_partroi_v = nullptr;
-        if (!_true_roi_producer.empty()) ev_partroi_v = (EventROI*) mgr.get_data(kProductROI,_true_roi_producer);
+        if (!_true_roi_producer.empty()){ev_partroi_v = (EventROI*) mgr.get_data(kProductROI,_true_roi_producer);}
         if (ev_partroi_v) {
             const auto& mc_roi_v = ev_partroi_v->ROIArray();
             FillMC(mc_roi_v);
@@ -478,7 +478,7 @@ namespace larcv {
         std::vector<std::vector<unsigned> > ass_vertex_to_track_sceadded_vv;
         ass_vertex_to_track_sceadded_vv.resize(vertex_v.size());
 
-        //vertex_v = MCVertices;
+        vertex_v = MCVertices;
         int TrackID = 0;
 
         if(vertex_v.size()!=0){
@@ -501,15 +501,16 @@ namespace larcv {
                 tracker.SetSingleVertex(vertex_v[ivertex]);
 
                 int Ntrials = 0;
+                int NtotalTrials = 5;
                 GoodVertex = false;
-                while(GoodVertex == false && Ntrials < 5){
+                while(GoodVertex == false && Ntrials < NtotalTrials){
                     GoodVertex = false;
                     tracker.SetRandomSeed(Ntrials+1);
                     tracker.ReconstructVertex();
                     GoodVertex = tracker.IsGoodVertex();
                     Ntrials++;
-                    std::cout << "trial #" << Ntrials << "/5 GoodVertex = " << GoodVertex << std::endl;
-                    if(GoodVertex || Ntrials == 5)break;
+                    std::cout << "trial #" << Ntrials << "/"<< NtotalTrials <<" GoodVertex = " << GoodVertex << std::endl;
+                    if(GoodVertex || Ntrials == NtotalTrials)break;
                 }
                 
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
@@ -630,11 +631,13 @@ namespace larcv {
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
 
+                tracker.DrawVertexVertical();
+
 
                 /////////////////////////
                 // sce added variables //
                 /////////////////////////
-                std::cout << "Adding SCE to reconstructed tracks" << std::endl;
+                /*std::cout << "Adding SCE to reconstructed tracks" << std::endl;
                 tracker.Add_SCE_to_Tracks();
 
                 auto recoedVertex_sceadded = tracker.GetReconstructedVertexTracks();
@@ -725,7 +728,7 @@ namespace larcv {
                 _RecoVertex_sceadded = vertex_v_sceadded.at(ivertex);
 
                 randomSeed = tracker.GetRandomSeed();
-                //tracker.DrawVertexVertical();
+                //tracker.DrawVertexVertical();*/
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();

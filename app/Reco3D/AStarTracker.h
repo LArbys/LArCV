@@ -114,6 +114,7 @@ namespace larcv {
         void DrawVertexVertical();
         void DrawVertexHorizontal();
         void RegularizeTrack();
+        void NewRegularizeTrack();
         void DrawROI();
         void TellMeRecoedPath();
         void Make3DpointList();
@@ -355,6 +356,7 @@ namespace larcv {
 
         TFile *fEventOutput;
 
+        larlite::geo::View_t _views[3];
         larlite::track _thisLarliteTrack;
         larlite::event_track _vertexLarliteTracks;
         larlite::event_track _vertexLarliteTracks_sceadded;
