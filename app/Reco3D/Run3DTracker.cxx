@@ -631,7 +631,7 @@ namespace larcv {
                 _branchingTracks       = _Reco_goodness_v.at(7);
                 _jumpingTracks         = _Reco_goodness_v.at(8);
 
-                tracker.DrawVertexVertical();
+                //tracker.DrawVertexVertical();
 
 
                 /////////////////////////
