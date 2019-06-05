@@ -25,6 +25,11 @@ namespace larcv {
                  const std::vector<float>& data,
                  const std::vector<larcv::ImageMeta>& meta_v,
                  const int index=0);
+    SparseImage( const std::vector<larcv::Image2D>& img_v,
+                 const int start_index, const int end_index,
+                 const std::vector<float>& thresholds,
+                 const std::vector<int>& require_pixel );
+    
     // Infill version of constructor
     SparseImage( const larcv::Image2D& img,
                  const larcv::Image2D& labels,
