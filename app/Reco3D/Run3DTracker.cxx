@@ -478,7 +478,7 @@ namespace larcv {
         std::vector<std::vector<unsigned> > ass_vertex_to_track_sceadded_vv;
         ass_vertex_to_track_sceadded_vv.resize(vertex_v.size());
 
-        vertex_v = MCVertices;
+        //vertex_v = MCVertices;
         int TrackID = 0;
 
         if(vertex_v.size()!=0){
@@ -637,7 +637,7 @@ namespace larcv {
                 /////////////////////////
                 // sce added variables //
                 /////////////////////////
-                /*std::cout << "Adding SCE to reconstructed tracks" << std::endl;
+                std::cout << "Adding SCE to reconstructed tracks" << std::endl;
                 tracker.Add_SCE_to_Tracks();
 
                 auto recoedVertex_sceadded = tracker.GetReconstructedVertexTracks();
@@ -728,7 +728,7 @@ namespace larcv {
                 _RecoVertex_sceadded = vertex_v_sceadded.at(ivertex);
 
                 randomSeed = tracker.GetRandomSeed();
-                //tracker.DrawVertexVertical();*/
+                //tracker.DrawVertexVertical();
 
                 //______________________
                 if(ev_partroi_v)MCevaluation();
