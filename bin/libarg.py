@@ -19,7 +19,7 @@ if 'LARLITE_BASEDIR' in os.environ:
         libs += [' -lBasicTool_FhiclLite']
 if 'GEO2D_BASEDIR' in os.environ:
     libs += commands.getoutput('geo2d-config --libs').split()
-if 'LARCV_ANN' and 'ANN_LIBDIR' in os.environ:
+if 'LARCV_ANN' and 'ANN_LIBDIR' in os.environ and os.environ["LARCV_ANN"]=='1':
     libs+= [" -lANN" ]
 if 'PYTHON_LIB' in os.environ:
     libs+= [" -L%s -lpython2.7"%(os.environ["PYTHON_LIB"].strip())]
