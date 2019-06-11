@@ -43,29 +43,21 @@
 #include "LArUtil/SpaceChargeMicroBooNE.h"
 
 namespace larcv {
-    /**
-     \class AStarTracker
-     User custom analysis class made by SHELL_USER_NAME
-     */
     class AStarTracker {
 
     public:
 
         /// Default constructor
         AStarTracker(){
-            //_name="AStarTracker";
-            //_fout=0;//TFile::Open("output.root","RECREATE");
-            _track_producer="dl";
+            _track_producer    = "dl";
             _chstatus_producer = "chstatus";
             _mctrack_producer  = "mcreco";
             _wire_producer     = "caldata";
             _hit_producer      = "gaushit";
             _spline_file       = "";
-            //_speedOffset=-2;
             _speedOffset=0;
             _verbose = 0;
             _ADCthreshold = 10;
-            //_RecoverValue = 16.01;
             _compressionFactor_t = 6;
             _compressionFactor_w = 1;
             _DrawOutputs = false;
@@ -73,10 +65,6 @@ namespace larcv {
 
         /// Default destructor
         ~AStarTracker(){}
-
-        /** IMPLEMENT in AStarTracker.cc!
-         Initialization method to be called before the analysis event loop.
-         */
 
         void set_producer(std::string track_producer,std::string chstatus_producer){
             _track_producer = track_producer;
@@ -88,10 +76,9 @@ namespace larcv {
         void set_wireProducer(   std::string wire_producer    ){_wire_producer     = wire_producer;    }
         void set_hitProducer(    std::string hit_producer     ){_hit_producer      = hit_producer;     }
         void SetVerbose(int v){_verbose = v;}
+        void SetIsMCC9(bool isMCC9){_IsMCC9 = isMCC9;}
         void SetDrawOutputs(bool d){_DrawOutputs = d;}
         void SetCompressionFactors(int compress_w, int compress_t){_compressionFactor_w = compress_w; _compressionFactor_t = compress_t;}
-
-        void ReadProtonTrackFile();
         void ReadSplineFile();
         void SetSplineFile(const std::string& fpath);
         void SetOutputDir(std::string outdir){_outdir=outdir;}
@@ -116,7 +103,8 @@ namespace larcv {
         void FeedLarliteVertexTracks(larlite::event_track recoedVertexTracks){_vertexLarliteTracks = recoedVertexTracks;Get3DtracksFromLarlite();}
         void FeedVtxGoodness(std::vector<bool> goodTracks_v);
         void Get3DtracksFromLarlite();
-        void SetSingleVertex(TVector3 vertexPoint){NumberRecoveries=0; start_pt = vertexPoint;}
+        void SetSingleVertex(TVector3 vertexPoint){NumberRecoveries=0; start_pt = vertexPoint;
+            std::cout <<"Setting vertex to : "<< vertexPoint.X() << "," << vertexPoint.Y() << "," << vertexPoint.Z() << std::endl; }
         void SetEventVertices(   std::vector<TVector3> vertex_v            ){_eventVertices   = vertex_v;}
         void FeedTrack(std::vector<TVector3> newTrack);
         void WorldInitialization();
@@ -126,6 +114,7 @@ namespace larcv {
         void DrawVertexVertical();
         void DrawVertexHorizontal();
         void RegularizeTrack();
+        void NewRegularizeTrack();
         void DrawROI();
         void TellMeRecoedPath();
         void Make3DpointList();
@@ -180,9 +169,11 @@ namespace larcv {
         std::vector<double> GetClosestWall();
         std::vector<double> GetClosestWall_SCE();
 
+        void Add_SCE_to_Tracks();
+
         std::vector<double> GetOldVertexAngle(double dAverage);
-        std::vector<bool> GetRecoGoodness();
-        std::vector<bool> GetVtxQuality();
+        std::vector<int> GetRecoGoodness();
+        std::vector<int> GetVtxQuality();
         double GetEnergy(std::string partType, double Length);
         double GetMinLength(){return _MinLength;}
         double ComputeLength(int node);
@@ -277,9 +268,9 @@ namespace larcv {
         double _speedOffset;
         double _Length3D;
         double _MinLength;
-        double _RecoverValue;
         double GetDist2line(TVector3 A, TVector3 B, TVector3 C);
 
+        bool _IsMCC9;
         bool _DrawOutputs;
         bool _missingTrack;
         bool _nothingReconstructed;
@@ -311,12 +302,9 @@ namespace larcv {
         TH1D *hDistance2Hit;
         TH1D *hDistanceMC2Hit;
         TH2D *hdQdX2D;
-        //TH2D *hdQdX2DNorm;
         TH2D *hAngleLengthGeneral;
         TH2D *hLengthdQdX;
         TH1D *hDist2point;
-
-        //std::vector<int> _endPointsStatus;
 
         std::vector< std::vector<double> > _dQdx;
         std::vector< std::vector<double> > _vertexQDQX;
@@ -326,6 +314,7 @@ namespace larcv {
         std::vector<TVector3> _vertexEndPoints;
         std::vector<TVector3> _eventVertices;
         std::vector<std::vector<TVector3> > _vertexTracks;
+        std::vector<std::vector<TVector3> > _vertexTracks_SCE;
 
         std::vector<larcv::AStar3DNode> RecoedPath;
 
@@ -367,8 +356,10 @@ namespace larcv {
 
         TFile *fEventOutput;
 
+        larlite::geo::View_t _views[3];
         larlite::track _thisLarliteTrack;
         larlite::event_track _vertexLarliteTracks;
+        larlite::event_track _vertexLarliteTracks_sceadded;
 
         TCanvas *c2;
 
@@ -385,5 +376,3 @@ namespace larcv {
 // http://microboone-docdb.fnal.gov:8080/cgi-bin/ShowDocument?docid=3183
 //
 //**************************************************************************
-
-/** @} */ // end of doxygen group 

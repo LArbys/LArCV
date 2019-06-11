@@ -31,7 +31,7 @@ class NumuHandler(Handler):
 
         print "read @ifile1=",ifile1
         try:
-            df1 = pd.DataFrame(rn.root2array(ifile1))
+            df1 = pd.DataFrame(rn.root2array(ifile1, '_recoTree'))
         except IOError:
             print "Empty ttree in this file"
             df = combine_vertex_numu(df0)

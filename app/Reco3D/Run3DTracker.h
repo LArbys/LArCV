@@ -54,6 +54,8 @@ namespace larcv {
         void ClearEvent();
         void ClearVertex();
         void SetOutDir(std::string s){out_dir = s;}
+        void MakeTTree();
+        void MakeTTree_SCEadded();
 
         bool IsGoodVertex(int run, int subrun, int event/*, int ROIid*/, int vtxID);
         bool IsGoodEntry(int run, int subrun, int event);
@@ -66,12 +68,13 @@ namespace larcv {
 
         private :
 
+
         int iTrack;
         larlite::storage_manager _storage;
         larcv::AStarTracker tracker;
-        std::vector< std::vector<int> > _vertexInfo;
+        //std::vector< std::vector<int> > _vertexInfo;
         double NeutrinoEnergyTh;
-        double NeutrinoEnergyReco;
+        //double NeutrinoEnergyReco;
         double Ep_t;
         double Em_t;
 
@@ -83,14 +86,16 @@ namespace larcv {
         int _Nreco;
         int randomSeed;
 
+        bool IsMCC9;
+
         int _vtx_id;
-        int NvertexSubmitted;
-        int NgoodReco;
         int NtracksReco;
         std::vector<std::string> checkEvents;
         std::string _filename;
 
         TTree *_recoTree;
+        TTree *_recoTree_SCEadded;
+
         std::vector<int>    _trk_id_v;
         std::vector<double> _E_muon_v;
         std::vector<double> _E_proton_v;
@@ -148,9 +153,8 @@ namespace larcv {
         std::vector<int> _DeadWireList_U;
         std::vector<int> _DeadWireList_V;
         std::vector<int> _DeadWireList_Y;
-        std::vector<bool>   _Reco_goodness_v;
-        std::vector<bool>  _track_Goodness_v;
-        std::vector<larlite::event_track> _EventRecoVertices;
+        std::vector<int>   _Reco_goodness_v;
+        std::vector<int>  _track_Goodness_v;
 
         std::vector<TVector3> MCVertices;
         std::vector<TVector3> recoEndPoints;
@@ -207,6 +211,73 @@ namespace larcv {
         double _MuonEndPoint_Z;
         double _ProtonEndPoint_Z;
         double _ElectronEndPoint_Z;
+
+
+        //////////////////////////////////////////////
+        // values for tracks with added SCE
+        //////////////////////////////////////////////
+
+        std::vector<double> _E_muon_v_sceadded;
+        std::vector<double> _E_proton_v_sceadded;
+        std::vector<double> _Length_v_sceadded;
+        std::vector<double> _Avg_Ion_v_sceadded;
+        std::vector<double> _Avg_IonY_v_sceadded;
+        std::vector<double> _vertexPhi_sceadded;
+        std::vector<double> _vertexTheta_sceadded;
+        std::vector<double> _vertexPhi_2cm_sceadded;
+        std::vector<double> _vertexTheta_2cm_sceadded;
+        std::vector<double> _vertexPhi_5cm_sceadded;
+        std::vector<double> _vertexTheta_5cm_sceadded;
+        std::vector<double> _vertexPhi_7cm_sceadded;
+        std::vector<double> _vertexTheta_7cm_sceadded;
+        std::vector<double> _vertexPhi_10cm_sceadded;
+        std::vector<double> _vertexTheta_10cm_sceadded;
+        std::vector<double> _vertexPhi_12cm_sceadded;
+        std::vector<double> _vertexTheta_12cm_sceadded;
+        std::vector<double> _vertexPhi_15cm_sceadded;  
+        std::vector<double> _vertexTheta_15cm_sceadded;
+        std::vector<double> _vertexPhi_17cm_sceadded;
+        std::vector<double> _vertexTheta_17cm_sceadded;
+        std::vector<double> _vertexPhi_20cm_sceadded;
+        std::vector<double> _vertexTheta_20cm_sceadded;
+        std::vector<double> _vertexPhi_30cm_sceadded;
+        std::vector<double> _vertexTheta_30cm_sceadded;
+        std::vector<double> _closestWall_sceadded;
+        std::vector<double> _Ion_5cm_v_sceadded;
+        std::vector<double> _Ion_10cm_v_sceadded;
+        std::vector<double> _Ion_tot_v_sceadded;
+        std::vector<double> recoEndPoints_x_sceadded;
+        std::vector<double> recoEndPoints_y_sceadded;
+        std::vector<double> recoEndPoints_z_sceadded;
+        std::vector<double> _IonY_5cm_v_sceadded;
+        std::vector<double> _IonY_10cm_v_sceadded;
+        std::vector<double> _IonY_tot_v_sceadded;
+        std::vector<double> _Trunc_dQdX1_v_sceadded;
+        std::vector<double> _Trunc_dQdX3_v_sceadded;
+        std::vector<double> _IondivLength_v_sceadded;
+
+        std::vector< std::vector<double> > _trackQ3_v_sceadded;
+        std::vector< std::vector<double> > _trackQ5_v_sceadded;
+        std::vector< std::vector<double> > _trackQ10_v_sceadded;
+        std::vector< std::vector<double> > _trackQ20_v_sceadded;
+        std::vector< std::vector<double> > _trackQ30_v_sceadded;
+        std::vector< std::vector<double> > _trackQ50_v_sceadded;
+        std::vector< std::vector<double> > _TotalADCvalues_v_sceadded;
+        std::vector< std::vector<double> > _Angle_v_sceadded;
+
+        TVector3 RecoVertex_sceadded;
+        TVector3 _RecoVertex_sceadded;
+
+
+        std::vector<TVector3> recoEndPoints_sceadded;
+
+        float _vtx_x_sceadded;
+        float _vtx_y_sceadded;
+        float _vtx_z_sceadded;
+
+        ////////////////////////////////////////////
+        ////////////////////////////////////////////
+        ////////////////////////////////////////////
 
         std::string _input_pgraph_producer;
         std::string _img2d_producer;

@@ -98,42 +98,65 @@ mkdir -p $LARCV_BINDIR;
 export LD_LIBRARY_PATH=$LARCV_LIBDIR:$LD_LIBRARY_PATH
 export PYTHONPATH=$LARCV_BASEDIR/python:$PYTHONPATH
 
+## =======================
+## SETUP SUPERA
+## -------------
+
+if [[ -z $LARCV_BUILD_SUPERA ]]; then
+    export  LARCV_BUILD_SUPERA=0
+fi
+
 if [[ $LARLITE_BASEDIR ]]; then
-    printf "\033[93mLArLite\033[00m\n"
-    echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
-    echo "    Preparing APILArLite package for build (making sym links)"
-    target=$LARCV_APPDIR/Supera/larfmwk_shared/*
-    for f in $target
-    do
-	ln -sf $f $LARCV_APPDIR/Supera/APILArLite/
-    done
+    if [ $LARCV_BUILD_SUPERA -eq 1 ]; then
+	printf "\033[93mLArLite\033[00m\n"
+	echo "    Found larlite set up @ \$LARLITE_BASEDIR=${LARLITE_BASEDIR}"
+	echo "    Preparing APILArLite package for build (making sym links)"
+	target=$LARCV_APPDIR/Supera/larfmwk_shared/*
+	for f in $target
+	do
+	    ln -sf $f $LARCV_APPDIR/Supera/APILArLite/
+	done
+    else
+	printf "\033[93mLArLite\033[00m\n"
+	echo "    LARCV_BUILD_SUPERA not set. To build, define and set to 1."
+    fi
 fi
 
 if [[ -d $MRB_TOP/srcs/uboonecode/uboone ]]; then
-    printf "\033[93mLArSoft\033[00m\n"
-    echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
-    echo "    Preparing APILArSoft package for build (making sym links)"
-    target=$LARCV_APPDIR/Supera/larfmwk_shared/*
-    for f in $target
-    do
-	ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
-    done
-    if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
-	ln -s $LARCV_APPDIR/Supera/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+    if [ $LARCV_BUILD_SUPERA -eq 1 ]; then
+	printf "\033[93mLArSoft\033[00m\n"
+	echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
+	echo "    Preparing APILArSoft package for build (making sym links)"
+	target=$LARCV_APPDIR/Supera/larfmwk_shared/*
+	for f in $target
+	do
+	    ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
+	done
+	if [ ! -d $MRB_TOP/srcs/uboonecode/uboone/Supera ]; then
+	    ln -s $LARCV_APPDIR/Supera/APILArSoft $MRB_TOP/srcs/uboonecode/uboone/Supera
+	fi
+    else
+	printf "\033[93mLArSoft\033[00m\n"
+	echo "    LARCV_BUILD_SUPERA not set. To build, define and set to 1."
     fi
 fi
 
 if [[ -d $MRB_TOP/srcs/argoneutcode/ ]]; then
-    printf "\033[93mLArSoft\033[00m\n"
-    echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
-    echo "    Preparing APILArSoft package for build (making sym links)"
-    target=$LARCV_APPDIR/Supera/larfmwk_shared/*
-    for f in $target
-    do
-    ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
-    done
-    if [ ! -d $MRB_TOP/srcs/argoneutcode/Supera ]; then
-    ln -s $LARCV_APPDIR/Supera/APILArSoft $MRB_TOP/srcs/argoneutcode/Supera
+    if [ $LARCV_BUILD_SUPERA -eq 1 ]; then
+	printf "\033[93mLArSoft/ArgoNeut\033[00m\n"
+	echo "    Found local larsoft @ \$MRB_TOP=${MRB_TOP}"
+	echo "    Preparing APILArSoft package for build (making sym links)"
+	target=$LARCV_APPDIR/Supera/larfmwk_shared/*
+	for f in $target
+	do
+	    ln -sf $f $LARCV_APPDIR/Supera/APILArSoft/
+	done
+	if [ ! -d $MRB_TOP/srcs/argoneutcode/Supera ]; then
+	    ln -s $LARCV_APPDIR/Supera/APILArSoft $MRB_TOP/srcs/argoneutcode/Supera
+	fi
+    else
+	printf "\033[93mLArSoft/ArgoNeut\033[00m\n"
+	echo "    LARCV_BUILD_SUPERA not set. To build, define and set to 1."
     fi
 fi
 

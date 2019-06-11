@@ -216,7 +216,8 @@ namespace larcv {
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
-            std::cout << "vertex #" << vertex_index << std::endl;
+            std::cout << "vertex #" << vertex_index << " / " << ev_vertex->size() << std::endl;
+
             int treeEntry = -1;
             //treeEntry = SearchMap();
             //if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
@@ -245,7 +246,7 @@ namespace larcv {
 
             tracker.FeedLarliteVertexTracks(TracksAtVertex);
             tracker.Get3DtracksFromLarlite();
-            tracker.DrawVertex();
+            tracker.DrawVertexVertical();
             //tracker.DrawVertex3D();
         }
 

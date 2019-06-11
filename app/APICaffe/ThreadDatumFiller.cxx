@@ -154,7 +154,7 @@ namespace larcv {
 
       LARCV_INFO() << "Process " << process_name << " = DatumFiller: " << ptr->is("DatumFiller") << std::endl;
 
-      if (ptr->is("DatumFiller")) {
+      if (ptr->is("DatumFiller") || ptr->is("ImageFiller")) {
         if (datum_filler_id != kINVALID_SIZE) {
           LARCV_CRITICAL() << "Duplicate DatumFillers: id=" << datum_filler_id
                            << " vs. id=" << id << std::endl;
