@@ -85,23 +85,25 @@ namespace larcv {
         _storage.add_in_filename(_finll);
 
         if(!_storage.open()) {
-            LARCV_CRITICAL() << "ERROR, larlite input file could not open" << std::endl;
-            throw larbys("die");
-        }
+	  LARCV_CRITICAL() << "ERROR, larlite input file could not open" << std::endl;
+	  throw larbys("die");
+
+	}
+
+	  // this needs to be a class member, and created at initialize
+	  out_iom = new larcv::IOManager( larcv::IOManager::kWRITE );
+	  out_iom->set_verbosity((larcv::msg::Level_t)0);
+	  out_iom->set_out_file("test.root");
+	  out_iom->initialize();
+
+	  
 
     }
-
+  
     bool Chimera::process(IOManager& mgr){
         //ClearEvent();
         gStyle->SetOptStat(0);
 
-	IOManager out_iom(IOManager::kWRITE);
-	out_iom.set_verbosity((larcv::msg::Level_t)0);
-	out_iom.set_out_file("test.root");
-	out_iom.initialize();
-
-        auto ev_img_out        = (EventImage2D*)out_iom.get_data(kProductImage2D,_chimera_producer);
-	
         TVector3 vertex(-1,-1,-1);
 
         auto ev_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
@@ -110,10 +112,12 @@ namespace larcv {
         _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
 
+	/*
 	if (_run != myRun && _subrun != mySubrun && _event != myEvent ) {
 	  std::cout << "We don't have a match! QUITTING..." << std::endl; 
 	  return true;
 	}
+	*/
 
         std::cout << std::endl;
         std::cout << "============================================" << std::endl;
@@ -203,7 +207,7 @@ namespace larcv {
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
-	    if (_vtx_id != myVtxid) continue;
+	    //	    if (_vtx_id != myVtxid) continue;
 
 	    //            std::cout << "vertex #" << vertex_index << std::endl;
 	    std::cout << "vertex #" << vertex_index+1 << " / " << ev_vertex->size() << std::endl;
@@ -236,27 +240,45 @@ namespace larcv {
             mach.FeedLarliteVertexTracks(TracksAtVertex);
             mach.Get3DtracksFromLarlite();
 	    
+	    std::cout << "Right before DrawVertex" << std::endl;
+
 	    // "crop" around the selected track (in _vertexTracks)
 	    // set every pixel outside that box to zero
 	    // then loop through each pixel in the cropped region and ask: is it within ~3 pixels of what's in _vertexTracks?
 	    // if yes, then skip; if no, then set pixel value to 0
 	    //	    mach.GetImageOneTrack(myTrack);
-	    mach.DrawVertex(); 
+	    //mach.DrawVertex(); 
+
+	    std::cout << "Does it even get to this point? Yes." << std::endl;
+	    std::cout << TracksAtVertex.size() << std::endl;
+	    
 	    
 	    //	    mach.DrawVertex3D();
 
-	    std::vector<larcv::Image2D> output = mach.GetImageOneTrack(myTrack);
-	    for (auto const& img : output) {
-	      ev_img_out->Append(img);
+	    for (int i=0; i < TracksAtVertex.size(); i++) {
+	      std::cout << "In the loop!" << std::endl;
+	      auto ev_img_out        = (EventImage2D*)out_iom->get_data(kProductImage2D,_chimera_producer);
+	      std::cout << "Made our producer first..." << std::endl;
+
+	      std::vector<larcv::Image2D> output = mach.GetImageOneTrack(i); 
+	      std::cout << "Cleaned tracks for index " << i << std::endl;
+
+	      std::cout << "Image items follow... " << std::endl;
+	      for (auto const& img : output) {
+		ev_img_out->Append(img);
+	      }
+
+	      std::cout << "Done... " << std::endl;
+
+	      out_iom->set_id( _run, _subrun, _event*100+i); // 100+i at the end to identify uniquely based on track
+	      out_iom->save_entry();
+	      
 	    }
 
 	    //	    mgr.finalize();
 
         }
 	
-	out_iom.set_id( _run, _subrun, _event);
-	out_iom.save_entry();
-	out_iom.finalize();
 	
         return true;
 
@@ -264,9 +286,10 @@ namespace larcv {
 
     void Chimera::finalize(){
       mach.finalize();
-        std::cout << "finalized mach" << std::endl;
-
-        _storage.close();
+      std::cout << "finalized mach" << std::endl;
+      out_iom->finalize();
+      _storage.close();
+      delete out_iom;
 
     }
   

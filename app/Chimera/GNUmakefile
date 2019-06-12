@@ -4,7 +4,7 @@
 PACKAGE_NAME = Chimera
 
 # specific names for this package
-SOURCES = $(wildcard *.cxx)
+SOURCES = $(filter-out readimg.cxx, $(wildcard *.cxx))
 FMWK_HEADERS = LinkDef.h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
 #HEADERS += IOManager.inl

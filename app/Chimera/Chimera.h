@@ -61,6 +61,8 @@ namespace larcv {
 	void SetMyEvent(int i){myEvent = i;}
 	void SetMyVtxid(int i){myVtxid = i;}
 	void SetMyTrack(int i){myTrack = i;}
+
+	IOManager* out_iom;
 	
         void finalize();
 
