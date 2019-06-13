@@ -53,7 +53,7 @@ namespace larcv {
 
     const std::vector<larcv::ImageMeta>& meta_v() const { return _meta_v; };
 
-    std::vector<larcv::Image2D> as_Image2D();
+    std::vector<larcv::Image2D> as_Image2D() const;
 
   protected:
 

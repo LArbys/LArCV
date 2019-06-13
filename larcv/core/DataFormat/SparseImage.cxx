@@ -176,7 +176,7 @@ namespace larcv {
   * embed data into dense image2d format
   *
   */
-  std::vector<larcv::Image2D> SparseImage::as_Image2D() {
+  std::vector<larcv::Image2D> SparseImage::as_Image2D() const {
     std::vector<larcv::Image2D> img_v;
     for (size_t iimg=0; iimg<_meta_v.size(); iimg++ ) {
       const larcv::ImageMeta& meta = _meta_v.at(iimg);
