@@ -26,6 +26,35 @@ namespace larcv {
   }
 
   /**
+   * constructor where we convert a subset of a vector
+   * we provide this to avoid a copy
+   *
+   */
+  SparseImage::SparseImage( const std::vector<larcv::Image2D>& img_v,
+                            const int start_index, const int end_index,
+                            const std::vector<float>& thresholds,
+                            const std::vector<int>& require_pixel )
+    : _id(0),
+      _nfeatures(end_index-start_index+1)
+  {
+    std::vector<const larcv::Image2D*> pimg_v;
+    for ( int idx=start_index; idx<=end_index; idx++ )
+      pimg_v.push_back( &img_v[idx] );
+    convertImages(pimg_v,thresholds,require_pixel);
+  }
+
+  // constructor for Infill version - keep dead channels
+  SparseImage::SparseImage( const larcv::Image2D& img,
+                            const larcv::Image2D& labels,
+                            const std::vector<float>& thresholds )
+    : _id(0),
+      _nfeatures(1)
+   {
+
+     convertImages_Infill(img, labels, thresholds);
+   }
+
+  /**
    * constructor directly using values. for copying.
    *
    */
@@ -101,6 +130,46 @@ namespace larcv {
         }
       }
     }
+  }
+
+// convert Images version built for infill
+  void SparseImage::convertImages_Infill( const larcv::Image2D& img,
+                           const larcv::Image2D& labels,
+                           const std::vector<float>& thresholds )
+  {
+
+    // save meta
+    _meta = img.meta();
+
+    size_t ncols  = _meta.cols();
+    size_t nrows  = _meta.rows();
+
+    std::vector<float> thresh = thresholds;
+    if (thresh.size()!=1) {
+      // broadcast
+      thresh.resize( 1, thresholds[0] );
+    }
+
+    // reserve space, expect sparsity factor of about 10
+    _pixelarray.clear();
+    _pixelarray.reserve( ncols*nrows );
+
+    for ( size_t col=0; col<ncols; col++ ) {
+      for ( size_t row=0; row<nrows; row++ ) {
+        bool hasfeature = false;
+        float pixval = img.pixel(row,col);
+        float labelval = labels.pixel(row,col);
+        if ( pixval>=thresh[0] || labelval>0.0 ) {
+          hasfeature = true;
+        }
+        if ( hasfeature ) {
+          _pixelarray.push_back((float)row);
+          _pixelarray.push_back((float)col);
+          _pixelarray.push_back( pixval );
+        }
+      }
+    }
+
   }
 
   /**

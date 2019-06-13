@@ -25,6 +25,16 @@ namespace larcv {
                  const std::vector<float>& data,
                  const std::vector<larcv::ImageMeta>& meta_v,
                  const int index=0);
+    SparseImage( const std::vector<larcv::Image2D>& img_v,
+                 const int start_index, const int end_index,
+                 const std::vector<float>& thresholds,
+                 const std::vector<int>& require_pixel );
+    
+    // Infill version of constructor
+    SparseImage( const larcv::Image2D& img,
+                 const larcv::Image2D& labels,
+                 const std::vector<float>& thresholds);
+
     virtual ~SparseImage() {};
 
     /// Return image index ID number (should be unique within larcv::EventImage2D)
@@ -52,8 +62,13 @@ namespace larcv {
                        const std::vector<float>& thresholds,
                        const std::vector<int>& require_pixel );
 
+    void convertImages_Infill(const larcv::Image2D& img,
+                             const larcv::Image2D& labels,
+                             const std::vector<float>& thresholds);
+
     std::vector<float> _pixelarray;
     std::vector<larcv::ImageMeta>   _meta_v;
+    larcv::ImageMeta  _meta;
     ImageIndex_t _id;
     unsigned int _nfeatures;
 
