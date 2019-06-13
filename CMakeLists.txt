@@ -63,14 +63,20 @@ endif()
 
 # --- Torch
 if (USE_TORCH)
-   # For container
-   set( OpenBLAS_DIR "$ENV{OPENBLAS_DIR}/share/cmake/OpenBLAS" )
-   set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
-   find_package( OpenBLAS REQUIRED )
-   find_package( Torch REQUIRED )
+  if (ON_FNAL)
+    # For FNAL
+    set( Torch_DIR "$ENV{LIBTORCH_DIR}/$ENV{LIBTORCH_FQ_DIR}/share/cmake/Torch" )
+  else()
+    set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
+    find_package( CUDA )
+  endif()
+
+  set( OpenBLAS_DIR "$ENV{OPENBLAS_DIR}/share/cmake/OpenBLAS" )
+  set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
+  find_package( OpenBLAS REQUIRED )
+  find_package( Torch REQUIRED )
 endif()
 
-find_package( CUDA )
 
 ## Git Submodules
 
