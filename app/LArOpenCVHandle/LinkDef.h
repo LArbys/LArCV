@@ -31,8 +31,10 @@
 #pragma link C++ class larcv::InterWriteOutLC+;
 #pragma link C++ class larcv::SingleROIFaker+;
 #pragma link C++ class larcv::SSNetChecker+;
+#pragma link C++ class larcv::HIPMIPMetrics+;
 
 #endif
+
 
 
 
