@@ -139,10 +139,11 @@ namespace larcv {
   {
 
     // save meta
-    _meta = img.meta();
+    _meta_v.push_back(img.meta());
 
-    size_t ncols  = _meta.cols();
-    size_t nrows  = _meta.rows();
+    size_t ncols  = _meta_v.front().cols();
+    size_t nrows  = _meta_v.front().rows();
+    size_t nfeats = nfeatures();
 
     std::vector<float> thresh = thresholds;
     if (thresh.size()!=1) {
