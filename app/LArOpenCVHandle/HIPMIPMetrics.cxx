@@ -20,7 +20,7 @@ namespace larcv {
     
   void HIPMIPMetrics::configure(const PSet& cfg)
   {
-		// no configs for now
+		_particle_segment_id = cfg.get<int>("ParticleSegmentID",9); 
 	}
 
   void HIPMIPMetrics::initialize()
@@ -68,7 +68,7 @@ namespace larcv {
 			protonADCCt[img] = 0;
 
 			for(size_t i = 0; i < v_seg.size(); i++){
-				if(v_seg.as_vector().at(i) == 9){
+				if(v_seg.as_vector().at(i) == _particle_segment_id){
 					protonPixelCt[img] += 1;
 					protonADCCt[img] += v_img.as_vector().at(i);
 				}
