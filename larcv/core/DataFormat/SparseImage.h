@@ -37,13 +37,16 @@ namespace larcv {
 
     virtual ~SparseImage() {};
 
+    /// number of points
+    size_t len() const { return _pixelarray.size()/(2+_nfeatures); };
+    
     /// Return image index ID number (should be unique within larcv::EventImage2D)
     ImageIndex_t index() const { return _id; }
     /// Index setter
     void index(ImageIndex_t n) { _id = n; }
 
     /// Get Data
-    unsigned int nfeatures() const { return _nfeatures; };
+    unsigned int nfeatures() const { return _nfeatures; }; ///< features excludes coord points
     const std::vector<float>& pixellist() const { return _pixelarray; };
     std::vector<float>& mutable_pixellist() { return _pixelarray; };
 

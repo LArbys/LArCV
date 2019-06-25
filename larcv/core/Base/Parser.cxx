@@ -47,8 +47,8 @@ namespace larcv {
     {
       std::string tmp=value;
       std::transform(tmp.begin(),tmp.end(),tmp.begin(),::tolower);
-      if( value.compare("true")  || value.compare("1") ) return true;
-      if( value.compare("false") || value.compare("0") ) return false;
+      if( tmp=="true" || tmp=="t" || value=="1" )  return true;
+      if( tmp=="false" || tmp=="f" || value=="0" ) return false;
       tmp = "Invalid bool expression: " + tmp;
       throw larbys(tmp);
       return false;
