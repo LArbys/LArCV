@@ -32,8 +32,14 @@ namespace larcv {
     }
 
     /**
-     * create a json object from an clustermask object
+     * create a json object from an clustermask object.
      *
+     * @param[in] mask ClusterMask object to serialize
+     * @param[in] run Run number
+     * @param[in] subrun Subrun number
+     * @param[in] event Event number
+     * @param[in] id Integer provided to user to label object in this event
+     * @return json message
      */
     json as_json( const larcv::ClusterMask& mask, int run, int subrun, int event, int id ) {
 
@@ -108,7 +114,10 @@ namespace larcv {
     }
 
     /**
-     * create image2d from json
+     * create image2d from json.
+     *
+     * @param[in] j JSON object with image2d info.
+     * @return image2d from json message
      *
      */
     larcv::Image2D image2d_from_json( const json& j ) {
@@ -116,6 +125,14 @@ namespace larcv {
       larcv::Image2D img2d( meta, j["data"].get<std::vector<float>>() );
       return img2d;
     }
+
+    /**
+     * create ClusterMask from json.
+     *
+     * @param[in] j JSON object with image2d info.
+     * @return ClusterMask from json message
+     *
+     */
     larcv::ClusterMask clustermask_from_json( const json& j ) {
       larcv::ImageMeta meta = imagemeta_from_json( j["meta"] );
       larcv::BBox2D dummy_box(1600,5000,1600,5000,kINVALID_PROJECTIONID);
@@ -139,7 +156,28 @@ namespace larcv {
     }
 
     /**
+     * 
+     * create ClusterMask from json.
+     *
+     * provide function with same name as other types.
+     *
+     * @param[in] j JSON object with image2d info.
+     * @param[out] mask_v container to return ClusterMask
+     *
+     */
+    void from_json( const json& j, std::vector<larcv::ClusterMask>& mask_v ) {
+      larcv::ClusterMask mask = clustermask_from_json( j );
+      mask_v.emplace_back( std::move(mask) );
+    }
+
+    /**
      * get run, subrun, event, id from json
+     * 
+     * @param[in] j json object
+     * @param[inout] run Run number
+     * @param[inout] subrun Subrun number
+     * @param[inout] event Event number
+     * @param[inout] id Image ID number
      *
      */
     void rseid_from_json( const json& j,
@@ -155,6 +193,8 @@ namespace larcv {
     /**
      * create imagemeta from json
      *
+     * @param[in] j JSON object with ImageMeta info in it
+     * @return ImageMeta object
      *
      */
     larcv::ImageMeta imagemeta_from_json( const json& j ) {
@@ -168,6 +208,13 @@ namespace larcv {
       return meta;
     }
 
+    /**
+     * convert bson to image2d.
+     *
+     * @param[in]  b buffer of bytes containing binary json message
+     * @return image2d serialized in binary json
+     *
+     */
     larcv::Image2D image2d_from_bson( const std::vector<std::uint8_t>& b ) {
       json j = json::from_bson(b);
       return image2d_from_json( j );
@@ -182,6 +229,22 @@ namespace larcv {
     larcv::Image2D image2d_from_json_str( const std::string& s ) {
       return image2d_from_json( json::parse(s) );
     }
+
+
+    /**
+     * convert json to image2d.
+     *
+     * provides function call with same name as the other types.
+     *
+     * @param[in]  j json object containing image2d data
+     * @param[out] image2d serialized in binary json
+     *
+     */
+    void from_json( const json& j, std::vector<larcv::Image2D>& img_v ) {
+      larcv::Image2D img = image2d_from_json( j );
+      img_v.emplace_back( std::move(img) );
+    }
+
 
     /*
      * create a json object for an image2d represented as a pixel list
@@ -416,7 +479,8 @@ namespace larcv {
     /**
      * convert SparseImage json message back into a SparseImage object
      *
-     * @param[in] json message containng sparseimage data
+     * @param[in] json message containng sparseimage data.
+     * @return SparseImage from message.
      */
     larcv::SparseImage sparseimg_fromjson( const json& msg )
     {
@@ -461,7 +525,19 @@ namespace larcv {
     }
 
 
-
+    /**
+     * convert SparseImage json message back into a SparseImage object.
+     *
+     * provide function with same name as other types.
+     *
+     * @param[in] json message containng sparseimage data.
+     * @return SparseImage from message.
+     */
+    void from_json( const json& msg, std::vector<larcv::SparseImage>& spimg_v )
+    {
+      larcv::SparseImage spimg = sparseimg_fromjson( msg );
+      spimg_v.emplace_back( std::move(spimg) );
+    }
 
 
 #ifdef HASPYUTIL

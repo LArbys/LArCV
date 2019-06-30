@@ -19,11 +19,19 @@
 #pragma link C++ function  larcv::json::rseid_from_json(const nlohmann::json&, int&, int&, int&, int& )+;
 #pragma link C++ function  larcv::json::image2d_from_bson(const std::vector<std::uint8_t>& )+;
 #pragma link C++ class     larcv::json::load_jsonutils+;
+#pragma link C++ function  larcv::json::from_json( const json&, std::vector<larcv::Image2D>& )+;
+
 // sparse image
 #pragma link C++ function  larcv::json::as_json( const larcv::SparseImage&, int, int, int, int )+;
 #pragma link C++ function  larcv::json::as_bson( const larcv::SparseImage&, int, int, int, int )+;
 #pragma link C++ function  larcv::json::sparseimg_fromjson( const json&)+;
 #pragma link C++ function  larcv::json::sparseimg_fromjson( const json& msg, int&, int&, int&, int& )+;
+#pragma link C++ function  larcv::json::from_json( const json&, std::vector<larcv::SparseImage>& )+;
+
+// cluster mask
+#pragma link C++ function  larcv::json::as_bson( const larcv::ClusterMask& mask, int, int, int, int )+;
+#pragma link C++ function  larcv::json::clustermask_from_json( const json& )+;
+#pragma link C++ function  larcv::json::from_json( const json&, std::vector<larcv::ClusterMask>& )+;
 
 #ifndef __CINT__
 
