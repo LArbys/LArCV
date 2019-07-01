@@ -8,8 +8,8 @@
 
 # clean up previously set env
 if [[ -z $FORCE_LARCV_BASEDIR ]]; then
-    where="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    export LARCV_BASEDIR=${where}
+    __larcv_configure_where__="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    export LARCV_BASEDIR=${__larcv_configure_where__}
 else
     export LARCV_BASEDIR=$FORCE_LARCV_BASEDIR
 fi
