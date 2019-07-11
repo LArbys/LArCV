@@ -14,6 +14,8 @@
 #ifndef __CHIMERA_H__
 #define __CHIMERA_H__
 
+#include <tuple>
+
 #include "TH2D.h"
 #include "TH1D.h"
 #include "TTree.h"
@@ -70,13 +72,26 @@ namespace larcv {
 
 	int iTrack;
 	larlite::storage_manager _storage;
-	larcv::IOManager ioman;
 	larcv::ChimeraMachinery mach; 
 	std::vector< std::vector<int> > _vertexInfo;
         double NeutrinoEnergyTh;
         double NeutrinoEnergyReco;
         double Ep_t;
         double Em_t;
+
+	// Variables for the vertex tree
+	int run;
+	int subrun;
+	int event;
+	double vtxPt_plane0_x;
+	double vtxPt_plane0_y;
+	double vtxPt_plane1_x;
+	double vtxPt_plane1_y;
+	double vtxPt_plane2_x;
+	double vtxPt_plane2_y;
+
+	TFile *f1;
+	TTree *_tree;
 
         int _run;
         int _subrun;

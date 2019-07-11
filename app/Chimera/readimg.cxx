@@ -42,7 +42,7 @@ int main( int nargs, char** argv ) {
   outlarlite.set_out_filename( output_larlite );
   outlarlite.open();
   */
-  std::string output_hist = "histogram_file.root";
+  std::string output_hist = "originalVertex.root";
   TFile fout( output_hist.c_str(), "new" ); // do not rewrite
   TH2D* hadc[3];
 
@@ -53,7 +53,7 @@ int main( int nargs, char** argv ) {
     std::cout << "entry " << i << std::endl;
 
     // in
-    auto ev_img = (larcv::EventImage2D*)iolarcv.get_data( larcv::kProductImage2D, "test" );
+    auto ev_img = (larcv::EventImage2D*)iolarcv.get_data( larcv::kProductImage2D, "wire" );
 
     // out: if I am saving Image2Ds
     //auto evout_wire            = (larcv::EventImage2D*)outlarcv.get_data( larcv::kProductImage2D, "testout");
@@ -67,7 +67,7 @@ int main( int nargs, char** argv ) {
       auto const& img = ev_img->Image2DArray().at( planeid );
       auto const& meta = img.meta();
       char histname_event[100];
-      sprintf(histname_event,"hadc_run%d_event%d_plane%d",run,event,planeid);
+      sprintf(histname_event,"hadc_run%d_subrun%d_event%d_plane%d",run,subrun,event,planeid);
       hadc[planeid] = new TH2D(histname_event,"",meta.cols(), 0, meta.cols(), meta.rows(),0,meta.rows());
 
       for(int row = 0; row<meta.rows(); row++){
