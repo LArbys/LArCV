@@ -57,6 +57,8 @@ namespace larcv {
         void SetLLInName(const std::string& finll) { _finll = finll;}
         void SetRootAnaFile(const std::string& anaFile){_fana = anaFile;}
 	void SetOutDir(std::string s){out_dir = s;}
+	void SetOutVtx(std::string s){out_vtx = s;}
+	void SetOutImage2d(std::string s){out_image2d = s;}
 
 	void SetMyRun(int i){myRun = i;}
 	void SetMySubrun(int i){mySubrun = i;}
@@ -210,6 +212,8 @@ namespace larcv {
 	std::string _finll;
 	std::string _fana;
 	std::string out_dir;
+	std::string out_vtx;
+	std::string out_image2d;
 	std::string eventListFile;
         bool _mask_shower;
 

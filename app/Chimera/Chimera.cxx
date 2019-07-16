@@ -43,6 +43,7 @@
 #include "DataFormat/EventPGraph.h"
 #include "DataFormat/EventPixel2D.h"
 
+#include <string>
 #include <cassert>
 #include <fstream>
 #include <tuple>
@@ -91,7 +92,7 @@ namespace larcv {
 	}
 
 	// Create tree that will hold vertex point for each track
-	f1 = new TFile("testVertices_july10.root","RECREATE");
+	f1 = new TFile(out_vtx.c_str(),"RECREATE");
 	_tree = new TTree("tree","Vertex Tree");
 	_tree->Branch("run", &run, "run/I");
 	_tree->Branch("subrun", &subrun, "subrun/I");
@@ -108,7 +109,7 @@ namespace larcv {
 	
 	out_iom = new larcv::IOManager( larcv::IOManager::kWRITE );
 	out_iom->set_verbosity((larcv::msg::Level_t)0);
-	out_iom->set_out_file("test_july10.root");
+	out_iom->set_out_file(out_image2d);
 	out_iom->initialize();	  
 	
 	  

@@ -7,7 +7,8 @@ if len(sys.argv) < 4:
     print
     print "IMG_FILE        = str(sys.argv[1])"
     print "LARLITE_IN_FILE = str(sys.argv[2])"
-    print "OUTPUT_DIR      = str(sys.argv[3])"
+    print "OUT_VTX         = str(sys.argv[3])"
+    print "OUT_IMAGE2D     = str(sys.argv[4])"
     print
     sys.exit(1)
 
@@ -20,15 +21,15 @@ ROOT.gROOT.SetBatch(True)
 CONFIG_FILE     = "cfg/chimera.cfg" #str(sys.argv[1])
 IMG_FILE        = str(sys.argv[1])
 LARLITE_IN_FILE = str(sys.argv[2])
-OUTPUT_DIR      = str(sys.argv[3])
-#MY_RUN          = int(sys.argv[4])
-#MY_SUBRUN       = int(sys.argv[5])
+#OUTPUT_DIR      = str(sys.argv[3])
+OUT_VTX         = str(sys.argv[3])
+OUT_IMAGE2D     = str(sys.argv[4])
 #MY_EVENT        = int(sys.argv[6])
 #MY_VTXID        = int(sys.argv[7])
 #MY_TRACK        = int(sys.argv[8])
 EVENT_FILE      = ""
 
-print "This is the output dir: ", OUTPUT_DIR
+#print "This is the output dir: ", OUTPUT_DIR
 
 #num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
 
@@ -52,15 +53,15 @@ alg.SetSplineLocation(SPLINE_PATH)
 
 print "PRINDING",LARLITE_IN_FILE
 
-alg.SetOutDir(OUTPUT_DIR)
+#alg.SetOutDir(ROOT.std.string(OUTPUT_DIR))
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
-#alg.SetMyRun(MY_RUN)
+alg.SetOutVtx(ROOT.std.string(OUT_VTX))
+alg.SetOutImage2d(ROOT.std.string(OUT_IMAGE2D))
 #alg.SetMySubrun(MY_SUBRUN)
 #alg.SetMyEvent(MY_EVENT)
 #alg.SetMyVtxid(MY_VTXID)
 #alg.SetMyTrack(MY_TRACK)
 #alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
-
 
 proc.initialize()
 proc.batch_process()
