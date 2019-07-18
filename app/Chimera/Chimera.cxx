@@ -123,13 +123,13 @@ namespace larcv {
         TVector3 vertex(-1,-1,-1);
 
         auto ev_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
-        _run    = (int) ev_img_v->run();
+        _run    = (int) ev_img_v->run(); 	
         _subrun = (int) ev_img_v->subrun();
         _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
 
-	/*
-	if (_run != myRun && _subrun != mySubrun && _event != myEvent ) {
+	/*	
+	if (_run != 6865 || _subrun != 52 || _event != 2644 ) {
 	  std::cout << "We don't have a match! QUITTING..." << std::endl; 
 	  return true;
 	}
@@ -150,10 +150,16 @@ namespace larcv {
         if(ev_img_v->Image2DArray().size()==0){std::cout << "ev_img_v->Image2DArray().size()==0" << std::endl;return true;}
         if(ev_track->size()==0){std::cout << "ev_track->size()==0" << std::endl;return true;}
 
+	std::cout << "Supera run: " << _run << std::endl;
+	std::cout << "Larlite run: " << _storage.run_id() << std::endl;
+	std::cout << "Supera subrun: " << _subrun << std::endl;
+	std::cout << "Larlite subrun: " << _storage.subrun_id() << std::endl;
+	std::cout << "Supera event: " << _event << std::endl;
+	std::cout << "Larlite event: " << _storage.event_id() << std::endl;
+
         if((int)(_storage.run_id())    != _run){std::cout << "run# larlite and larcv don't match" << std::endl;return true;}
         if((int)(_storage.subrun_id()) != _subrun){std::cout << "subrun# larlite and larcv don't match" << std::endl;return true;}
         if((int)(_storage.event_id())  != _event){std::cout << "event# larlite and larcv don't match" << std::endl;return true;}
-
 
 
         //auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
@@ -203,7 +209,9 @@ namespace larcv {
             //if(full_tag_img_thru_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_thru_v)[iPlane] );
             //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
         }
-        mach.SetOriginalImage(Full_image_v); 
+        mach.SetOriginalImage(Full_image_v);
+        std::cout << "Full_image_v[0].meta().tl().x = " << Full_image_v[0].meta().tl().x << std::endl;
+        std::cout << "Full_image_v[0].meta().br().x = " << Full_image_v[0].meta().br().x << std::endl;
         mach.SetTaggedImage(Tagged_Image);
         mach.SetTrackInfo(_run, _subrun, _event, 0);
 
@@ -224,9 +232,9 @@ namespace larcv {
             larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
 	    //	    if (_vtx_id != myVtxid) continue;
-
+	    
 	    //            std::cout << "vertex #" << vertex_index << std::endl;
-	    std::cout << "vertex #" << vertex_index+1 << " / " << ev_vertex->size() << std::endl;
+	    std::cout << "vertex #" << vertex_index << " / " << ev_vertex->size() << std::endl;
             int treeEntry = -1;
             //treeEntry = SearchMap();
             //if(treeEntry==-1){std::cout << "Not in the list...passing..." << std::endl;continue;}
@@ -254,7 +262,7 @@ namespace larcv {
             }
 
             mach.FeedLarliteVertexTracks(TracksAtVertex);
-            mach.Get3DtracksFromLarlite();
+            //mach.Get3DtracksFromLarlite();
 	    
 	    std::cout << "Right before DrawVertex" << std::endl;
 
@@ -263,19 +271,21 @@ namespace larcv {
 	    // then loop through each pixel in the cropped region and ask: is it within ~3 pixels of what's in _vertexTracks?
 	    // if yes, then skip; if no, then set pixel value to 0
 	    //	    mach.GetImageOneTrack(myTrack);
-	    //mach.DrawVertex(); 
+	    mach.DrawVertex(); 
 
 	    //    std::cout << "Does it even get to this point? Yes." << std::endl;
 	    //std::cout << TracksAtVertex.size() << std::endl;
 	    
 	    
-	    //	    mach.DrawVertex3D();
+	    //mach.DrawVertex3D();
 
 	    // For each track in the vertex:
 	    for (int i=0; i < TracksAtVertex.size(); i++) {
 	      //	      std::cout << "In the loop!" << std::endl;
 	      auto ev_img_out        = (EventImage2D*)out_iom->get_data(kProductImage2D,_chimera_producer);
 	      //	      std::cout << "Made our producer first..." << std::endl;
+
+	      std::cout << "Vertex Index: " << vertex_index << std::endl;
 
 	      std::vector<larcv::Image2D> output;
 	      std::vector<std::pair<double, double>> vtxVector;

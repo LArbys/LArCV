@@ -42,7 +42,7 @@ int main( int nargs, char** argv ) {
   outlarlite.set_out_filename( output_larlite );
   outlarlite.open();
   */
-  std::string output_hist = "originalVertex.root";
+  std::string output_hist = "findingMuon.root";
   TFile fout( output_hist.c_str(), "new" ); // do not rewrite
   TH2D* hadc[3];
 
@@ -53,7 +53,7 @@ int main( int nargs, char** argv ) {
     std::cout << "entry " << i << std::endl;
 
     // in
-    auto ev_img = (larcv::EventImage2D*)iolarcv.get_data( larcv::kProductImage2D, "wire" );
+    auto ev_img = (larcv::EventImage2D*)iolarcv.get_data( larcv::kProductImage2D, "test" );
 
     // out: if I am saving Image2Ds
     //auto evout_wire            = (larcv::EventImage2D*)outlarcv.get_data( larcv::kProductImage2D, "testout");

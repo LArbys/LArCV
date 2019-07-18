@@ -24,12 +24,13 @@ LARLITE_IN_FILE = str(sys.argv[2])
 #OUTPUT_DIR      = str(sys.argv[3])
 OUT_VTX         = str(sys.argv[3])
 OUT_IMAGE2D     = str(sys.argv[4])
+OUTPUT_DIR     = str(sys.argv[5])
 #MY_EVENT        = int(sys.argv[6])
 #MY_VTXID        = int(sys.argv[7])
 #MY_TRACK        = int(sys.argv[8])
 EVENT_FILE      = ""
 
-#print "This is the output dir: ", OUTPUT_DIR
+print "This is the output dir: ", OUTPUT_DIR
 
 #num = int(os.path.basename(IMG_FILE).split(".")[0].split("_")[-1])
 
@@ -53,7 +54,7 @@ alg.SetSplineLocation(SPLINE_PATH)
 
 print "PRINDING",LARLITE_IN_FILE
 
-#alg.SetOutDir(ROOT.std.string(OUTPUT_DIR))
+alg.SetOutDir(ROOT.std.string(OUTPUT_DIR))
 alg.SetLLInName(ROOT.std.string(LARLITE_IN_FILE))
 alg.SetOutVtx(ROOT.std.string(OUT_VTX))
 alg.SetOutImage2d(ROOT.std.string(OUT_IMAGE2D))
@@ -64,5 +65,6 @@ alg.SetOutImage2d(ROOT.std.string(OUT_IMAGE2D))
 #alg.SetRootAnaFile(ROOT.std.string(ROOT_ANAFILE))
 
 proc.initialize()
+#proc.batch_process(0,1)
 proc.batch_process()
 proc.finalize()

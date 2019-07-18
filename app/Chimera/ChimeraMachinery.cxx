@@ -1673,6 +1673,28 @@ namespace larcv {
     //______________________________________________________NEED THIS
     void ChimeraMachinery::DrawVertexVertical(){
         tellMe("DrawVertexVertical",0);
+        
+        
+        std::cout << "plane " << 0 << " image dimensions : " << std::endl;
+        std::cout << "nbinsX "<< original_full_image_v[0].meta().cols()                                     << std::endl;
+        std::cout << "Xmin "  << original_full_image_v[0].meta().tl().x                                     << std::endl;
+        std::cout << "Xmax "  << original_full_image_v[0].meta().tl().x+original_full_image_v[0].meta().width()   << std::endl;
+        std::cout << "NbinsY " << original_full_image_v[0].meta().rows()                                     << std::endl;
+        std::cout << "Ymin "  << original_full_image_v[0].meta().br().y                                     << std::endl;
+        std::cout << "Ymax "  << original_full_image_v[0].meta().br().y+original_full_image_v[0].meta().height() << std::endl;
+        std::cout << std::endl;
+        std::cout << "__________________" << std::endl;
+        
+        hit_image_v = GetFullImage();
+        
+        std::cout << "plane " << 0 << " image dimensions : " << std::endl;
+        std::cout << "nbinsX "<< hit_image_v[0].meta().cols()                                     << std::endl;
+        std::cout << "Xmin "  << hit_image_v[0].meta().tl().x                                     << std::endl;
+        std::cout << "Xmax "  << hit_image_v[0].meta().tl().x+hit_image_v[0].meta().width()   << std::endl;
+        std::cout << "NbinsY " << hit_image_v[0].meta().rows()                                     << std::endl;
+        std::cout << "Ymin "  << hit_image_v[0].meta().br().y                                     << std::endl;
+        std::cout << "Ymax "  << hit_image_v[0].meta().br().y+hit_image_v[0].meta().height() << std::endl;
+        std::cout << std::endl;
 
         TH2D *hImage[3];
         TGraph *gStartNend[3];
@@ -1682,7 +1704,7 @@ namespace larcv {
         //if(_tooShortFaintTrack_v.size() != _vertexTracks.size())DiagnoseVertex();
 
 
-	//        hit_image_v = GetFullImage();
+        
         //EnhanceDerivative();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),8000,4500);
