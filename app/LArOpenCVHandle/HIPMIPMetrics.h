@@ -58,7 +58,7 @@ namespace larcv {
 		int	_totalProtonPix_plane2;
 		int _totalProtonADC_plane2;
 
-		int _particle_segment_id;
+		int _particle_segment_id,	_particle_adc_threshold;
 
   };
 

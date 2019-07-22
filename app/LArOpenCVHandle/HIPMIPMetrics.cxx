@@ -20,7 +20,8 @@ namespace larcv {
     
   void HIPMIPMetrics::configure(const PSet& cfg)
   {
-		_particle_segment_id = cfg.get<int>("ParticleSegmentID",9); 
+		_particle_segment_id = cfg.get<int>("ParticleSegmentID",9);
+		_particle_adc_threshold = cfg.get<int>("ParticleADCThreshold",10);
 	}
 
   void HIPMIPMetrics::initialize()
@@ -69,8 +70,11 @@ namespace larcv {
 
 			for(size_t i = 0; i < v_seg.size(); i++){
 				if(v_seg.as_vector().at(i) == _particle_segment_id){
-					protonPixelCt[img] += 1;
-					protonADCCt[img] += v_img.as_vector().at(i);
+					// We want to disregard pixels with tiny shoulders of proton-ness, so for simplicity we'll threshold at an ADC count of 10
+					if(v_img.as_vector().at(i) > _particle_adc_threshold){
+						protonPixelCt[img] += 1;
+						protonADCCt[img] += v_img.as_vector().at(i);
+					}
 				}
 			}
 		}	
