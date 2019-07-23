@@ -10,9 +10,11 @@ class IOManager(object):
         tf = 0
         if not tick_forward:
             tf = 1
-            print "Assuming tick-backward order to Image2D data"
+            #print "Assuming tick-backward order to Image2D data"
 
-        self.iom = larcv.IOManager(IOMode,"pyrgb",tf)
+        self.iom = larcv.IOManager(IOMode,"pyrgb::IOManager",tf)
+        self.iom.logger().send( larcv.msg.kINFO, "IOManager").write( "assuming tick-backward order for image2d\n",
+                                                                     len("assuming tick-backward order for image2d\n") )
 
         for f in infiles :
             self.iom.add_in_file(f)
@@ -20,6 +22,8 @@ class IOManager(object):
         if outfile is not None:
             self.iom.set_verbosity(0)
             self.iom.set_out_file(outfile)
+        else:
+            self.iom.set_verbosity(2)
             
         self.iom.initialize()
 

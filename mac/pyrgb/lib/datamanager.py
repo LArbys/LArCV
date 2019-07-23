@@ -81,7 +81,7 @@ class DataManager(object):
                 self.larlite_list.append( infile )
 
         # open the input IOManager
-        self.iom = IOManager(self.larcv_list,"pyrgb::IOManager",tick_forward=tick_forward)
+        self.iom = IOManager(self.larcv_list,tick_forward=tick_forward)
         self.iom.set_verbosity(1)
 
         self.IF = ImageFactory()
