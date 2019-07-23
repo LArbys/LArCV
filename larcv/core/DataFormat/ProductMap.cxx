@@ -35,6 +35,20 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::SparseImage   > () { return kProductSparseImage;   }
   template<> ProductType_t ProductType< larcv::ClusterMask   > () { return kProductClusterMask;   }
 
+  std::string GetProductTypeName( ProductType_t prodtype ) {
+    if (prodtype<0 || prodtype>=larcv::kProductUnknown)
+      return ProductTypeNames_v.back();
+    else
+      return ProductTypeNames_v[prodtype];
+  };
+
+  ProductType_t GetProductTypeID( std::string prodname ) {
+    for ( size_t itype=0; itype<kProductUnknown; itype++ )
+      if (ProductTypeNames_v[itype]==prodname ) return (ProductType_t)itype;
+    return kProductUnknown;
+  };
+  
+
 }
 
 #endif

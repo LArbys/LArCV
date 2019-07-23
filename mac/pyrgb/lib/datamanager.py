@@ -1,3 +1,4 @@
+import os,sys
 import numpy as np
 import time, re
 
@@ -13,33 +14,78 @@ from imagefactory import ImageFactory
 
 class DataManager(object):
 
+    __handled_larlite_types = []
+    
     def __init__(self,argv):
-
+        """
+        look into file contents, determine if larlite/larcv and register products
+        """
         input_list = []
         for arg in argv:
             if "--" not in arg:
-                input_list.append(arg)
+                if os.path.exists(arg):
+                    input_list.append(arg)
+                else:
+                    print "Could not load input file: ",arg
+
+
+        # support for old larcv1 files
         tick_forward=True
         if "--tickbackward" in argv:
             tick_forward=False
+
+        # prepare dictionary holding product names (keys) and producer names of that type (values)
+        self.keys = {}
+        for i in xrange(larcv.kProductUnknown):
+            product = str(larcv.ProductName(i))
+            self.keys[product] = []
         
-        self.iom = IOManager(input_list,tick_forward=tick_forward)
-        self.keys ={}
+        self.logger = larcv.logger("pyrgb::DataManager")
+        self.larcv_list = []
+        self.larlite_list = []
+
+        for infile in input_list:
+            islarcv   = False
+            islarlite = False
+            try:
+                self.logger.send(larcv.msg.kINFO,"datamanager").write( "keys inside {}\n".format(infile),
+                                                                       len("keys inside {}\n".format(infile) ) )
+                rfile = ROOT.TFile(infile)
+                keys = rfile.GetListOfKeys()
+                for ikey in xrange(keys.GetEntries()):
+                    keyname = str(keys.At(ikey).GetName())
+                    prodname = keyname.split("_")[0]
+
+                    lcv_prodid = larcv.GetProductTypeID(prodname)
+                    fwtype = '[unrecognized]'
+                    if lcv_prodid!=larcv.kProductUnknown:
+                        # recognized larcv product
+                        fwtype = "[larcv]"
+                        islarcv = True
+                        self.keys[prodname].append(keyname.split("_")[1])
+                    elif prodname in DataManager.__handled_larlite_types:
+                        fwtype = "[larlite]"
+                        islarlite = True
+
+                    fwinfo = "  {} {} {}\n".format( ikey, keyname, fwtype)
+                    self.logger.send(larcv.msg.kINFO,"datamanager").write( fwinfo, len(fwinfo) )
+
+            except:
+                msg = "keys inside {}\n".format(infile)
+                errmsg = "  err={}".format(sys.exc_info()[0])
+                self.logger.send(larcv.msg.kWARNING,"datamanager").write( msg, len(msg) )
+                self.logger.send(larcv.msg.kWARNING,"datamanager").write( errmsg, len(errmsg) )
+            if islarcv:
+                self.larcv_list.append( infile )
+            if islarlite:
+                self.larlite_list.append( infile )
+
+        # open the input IOManager
+        self.iom = IOManager(self.larcv_list,"pyrgb::IOManager",tick_forward=tick_forward)
+        self.iom.set_verbosity(1)
 
         self.IF = ImageFactory()
         
-        # get keys from rootfile, iterate over the enum
-        # and see what's in the root file
-        for i in xrange(larcv.kProductUnknown):
-            product = larcv.ProductName(i)
-
-            self.keys[product] = []
-
-            producers=self.iom.iom.producer_list(i)
-            
-            for p in producers:
-                self.keys[product].append(p)
-
         # run subrun and event start at zero
         self.run    = -1
         self.subrun = -1

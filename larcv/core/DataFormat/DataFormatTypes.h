@@ -88,7 +88,7 @@ namespace larcv {
 
   /// Type of data product
   enum ProductType_t {
-    kProductImage2D,  ///< Image2D, EventImage2D
+    kProductImage2D=0,  ///< Image2D, EventImage2D
     kProductROI,      ///< ROI, EventROI
     kProductChStatus, ///< ChStatus, EventChStatus
     kProductPixel2D,  ///< Pixel2D, Pixel2DCluster
@@ -100,6 +100,20 @@ namespace larcv {
 
     kProductUnknown      ///< LArbys
   };
+
+  // Name of data product
+  static const std::vector<std::string> ProductTypeNames_v =
+    {"image2d",
+     "roi",
+     "chstatus",
+     "pixel2d",
+     "pgraph",
+     "voxel3d",
+     "sparseimage",
+     "clustermask",
+     "unknown"};
+
+    
 
 }
 #endif

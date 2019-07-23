@@ -1,4 +1,4 @@
-
+ 
 #ifndef __LARCV_PRODUCTMAP_H__
 #define __LARCV_PRODUCTMAP_H__
 
@@ -26,6 +26,11 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::SparseImage  > ();
   class ClusterMask;
   template<> ProductType_t ProductType< larcv::ClusterMask  > ();
+
+  // python-friendly alternative functions  
+  std::string   GetProductTypeName( ProductType_t prodtype );
+  ProductType_t GetProductTypeID( std::string prodname );
+  
 }
 
 #endif
