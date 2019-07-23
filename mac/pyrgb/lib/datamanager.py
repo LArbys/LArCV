@@ -62,7 +62,7 @@ class DataManager(object):
                         # recognized larcv product
                         fwtype = "[larcv]"
                         islarcv = True
-                        self.keys[prodname].append(keyname.split("_")[1])
+                        self.keys[prodname].append(keyname[len(prodname)+1:-len("_tree")])
                     elif prodname in DataManager.__handled_larlite_types:
                         fwtype = "[larlite]"
                         islarlite = True

@@ -87,6 +87,8 @@ namespace larcv {
   PyObject* as_ndarray_bbox(const larcv::ClusterMask &mask);
   /// larcv::ClusterMask points_v to numpy array converter
   PyObject* as_ndarray_mask(const larcv::ClusterMask &mask);
+  /// direct larcv::ClusterMask points_v to numpy array conversion (not embedded)
+  PyObject *as_ndarray_mask_pixlist(const larcv::ClusterMask &mask, float x_offset=0., float y_offset=0.);
 
   ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
 

@@ -191,6 +191,7 @@ class RGBDisplay(QtGui.QWidget):
         # Both
         self.kBOTH = QtGui.QRadioButton("Both")
         self.lay_inputs.addWidget(self.kBOTH, 2, parstart)
+        
 
         # --------------------------------------------------------
         # Options
@@ -208,11 +209,21 @@ class RGBDisplay(QtGui.QWidget):
         # Yes or no to draw ROI (must hit replot)
         self.draw_bbox = QtGui.QCheckBox("Draw ROI")
         self.draw_bbox.setChecked(True)
-        self.lay_inputs.addWidget(self.draw_bbox, 2, optstart)
+        self.lay_inputs.addWidget(self.draw_bbox, 2, optstart)        
+
+        # draw clustermasks
+        self.comboClusterMask = QtGui.QComboBox()
+        if len(self.dm.keys['clustermask'])==0:
+            self.comboClusterMask.addItem("No cluster masks")
+        else:
+            self.comboClusterMask.addItem("Do not draw masks")
+            for prod in self.dm.keys['clustermask']:
+                self.comboClusterMask.addItem(prod)
+        self.lay_inputs.addWidget(self.comboClusterMask, 0, optstart+1)
 
         # -------------------------------------------------------
         # Utilities
-        utilstart = optstart + 1
+        utilstart = optstart + 2
         # RGBCaffe will open and close bottom of the window
         #utillabel     = QtGui.QLabel("Utilities")
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
@@ -501,7 +512,7 @@ class RGBDisplay(QtGui.QWidget):
                 self.views.append(-1)  # sentinal for don't fill this channel
 
     def plotData(self):
-
+        """ plotting main loop """
 
         # if there are presets clear them out
         if hasattr(self.image,"preset_layout"):
@@ -600,24 +611,23 @@ class RGBDisplay(QtGui.QWidget):
         #end vichack
         
         # no ROI's -- finish early
-        if hasroi == False:
-            self.autoRange()
-            return
+        if hasroi:
+            xmin, xmax, ymin, ymax = (1e9, 0, 1e9, 0)
+            for roi in self.rois:
+                for bb in roi['bbox']:
+                    if xmin > bb.min_x():
+                        xmin = bb.min_x()
+                    if xmax < bb.max_x():
+                        xmax = bb.max_x()
+                    if ymin > bb.min_y():
+                        ymin = bb.min_y()
+                    if ymax < bb.max_y():
+                        ymax = bb.max_y()
 
-        xmin, xmax, ymin, ymax = (1e9, 0, 1e9, 0)
-        for roi in self.rois:
-            for bb in roi['bbox']:
-                if xmin > bb.min_x():
-                    xmin = bb.min_x()
-                if xmax < bb.max_x():
-                    xmax = bb.max_x()
-                if ymin > bb.min_y():
-                    ymin = bb.min_y()
-                if ymax < bb.max_y():
-                    ymax = bb.max_y()
+            if self.roi_exists == True:
+                self.drawBBOX(self.which_type())
 
-        if self.roi_exists == True:
-            self.drawBBOX(self.which_type())
+        self.drawClusterMasks()
 
         self.autoRange()
 
@@ -840,6 +850,46 @@ class RGBDisplay(QtGui.QWidget):
             except:
                 pass
             self.setImage( self.pimg )
+
+    def drawClusterMasks(self):
+        """ if combo box has producer set and cluster masks exists in datamanager,
+        add cluster masks to self.plt (PyQtGraph PlotWidget).
+        takes the form of a bounidng box and graph"""
+        print "Draw Cluster Masks called"
+        if len(self.dm.keys["clustermask"])==0:
+            return
+        if self.comboClusterMask.currentText()=="Do not draw masks":
+            return
+
+        try:
+            meta = self.image.imgs[0].meta()
+        except:
+            return
+            
+        for producer in self.dm.keys['clustermask']:
+            ev_clustmask = self.dm.iom.get_data(larcv.kProductClusterMask,producer)
+
+            
+            for mask_plane in xrange(ev_clustmask.as_vector().size()):
+                if mask_plane not in self.views:
+                    continue
+
+                plane_mask_v = ev_clustmask.as_vector().at(mask_plane)
+                nplane_masks = plane_mask_v.size()
+
+                for imask in xrange(nplane_masks):
+                    clustmask = plane_mask_v.at(imask)
+                    point_v = clustmask.points_v
+                    bbox    = clustmask.box
+                    #print "offset: ",bbox.min_x(),",",bbox.min_y()
+                    maskdata_np = larcv.as_ndarray_mask_pixlist( clustmask, bbox.min_x(), bbox.min_y() )
+                    #print "converted: ",maskdata_np.shape
+                    mask_plot = pyqtgraph.ScatterPlotItem( pos=maskdata_np, symbol='s' )
+                    self.plt.addItem(mask_plot)
+                    #maskbbox_np = larcv.as_ndarray_bbox( clustmask )
+                    #maskdata_np = larcv.as_ndarray_mask( clustmask )
+                    #print imask,maskdata_np.shape
+                    
 
     def _makeNavFrame(self):
         self._navframe = QtGui.QFrame()

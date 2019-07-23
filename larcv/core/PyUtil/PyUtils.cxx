@@ -132,16 +132,37 @@ larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarr
   return cmask;
 }
 
-PyObject *as_ndarray_mask(const ClusterMask &mask) {
-  SetPyUtil();
-  npy_intp dim_data[2];
-  dim_data[0] = (mask.box.width()/mask.meta.pixel_width())+1; //Add one for the 0th spot
-  dim_data[1] = (mask.box.height()/mask.meta.pixel_height())+1; //Add one for the 0th spot
-  std::vector<float> const &vec = mask.as_vector_mask();//= copy_v;
+  PyObject *as_ndarray_mask(const ClusterMask &mask) {
+    SetPyUtil();
+    npy_intp dim_data[2];
+    dim_data[0] = (mask.box.width()/mask.meta.pixel_width())+1; //Add one for the 0th spot
+    dim_data[1] = (mask.box.height()/mask.meta.pixel_height())+1; //Add one for the 0th spot
+    std::vector<float> const &vec = mask.as_vector_mask();//= copy_v;
+    
+    return PyArray_Transpose(((PyArrayObject*)(PyArray_SimpleNewFromData(2, dim_data, NPY_FLOAT, (char *)&(vec[0])))),NULL);
+  }
+  
+  PyObject *as_ndarray_mask_pixlist(const ClusterMask &mask, float x_offset, float y_offset ) {
+    SetPyUtil();
 
-  return PyArray_Transpose(((PyArrayObject*)(PyArray_SimpleNewFromData(2, dim_data, NPY_FLOAT, (char *)&(vec[0])))),NULL);
-}
-
+    int nd = 2;
+    npy_intp dim_data[2];
+    dim_data[0] = mask.points_v.size();
+    dim_data[1] = 2;
+    
+    PyArrayObject* arr = (PyArrayObject*)PyArray_ZEROS( nd, dim_data, NPY_FLOAT, 0 );
+    float* data = (float*)PyArray_DATA(arr);
+    
+    for ( size_t ipt=0; ipt<mask.points_v.size(); ipt++ ) {
+      float x = x_offset+mask.points_v.at(ipt).x;
+      float y = y_offset+mask.points_v.at(ipt).y;
+      *( data + 2*ipt )     = x;
+      *( data + 2*ipt + 1 ) = y;
+    }
+    
+    return (PyObject*)arr;
+  }
+  
 PyObject *as_ndarray_bbox(const ClusterMask &mask) {
   SetPyUtil();
   npy_intp dim_data[1];
