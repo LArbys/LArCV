@@ -221,6 +221,13 @@ class RGBDisplay(QtGui.QWidget):
                 self.comboClusterMask.addItem(prod)
         self.lay_inputs.addWidget(self.comboClusterMask, 0, optstart+1)
 
+        self.checkboxDrawClusterMask = QtGui.QCheckBox("Draw masks")
+        self.checkboxDrawClusterBBox = QtGui.QCheckBox("Draw mask box")
+        self.checkboxDrawClusterMask.setChecked(True)
+        self.checkboxDrawClusterBBox.setChecked(True)
+        self.lay_inputs.addWidget(self.checkboxDrawClusterMask, 1, optstart+1)
+        self.lay_inputs.addWidget(self.checkboxDrawClusterBBox, 2, optstart+1)        
+
         # -------------------------------------------------------
         # Utilities
         utilstart = optstart + 2
@@ -865,7 +872,11 @@ class RGBDisplay(QtGui.QWidget):
             meta = self.image.imgs[0].meta()
         except:
             return
-            
+
+        pencolors = [(255,0,0),
+                     (0,255,0),
+                     (0,0,255)]
+        
         for producer in self.dm.keys['clustermask']:
             ev_clustmask = self.dm.iom.get_data(larcv.kProductClusterMask,producer)
 
@@ -881,14 +892,30 @@ class RGBDisplay(QtGui.QWidget):
                     clustmask = plane_mask_v.at(imask)
                     point_v = clustmask.points_v
                     bbox    = clustmask.box
-                    #print "offset: ",bbox.min_x(),",",bbox.min_y()
-                    maskdata_np = larcv.as_ndarray_mask_pixlist( clustmask, bbox.min_x(), bbox.min_y() )
-                    #print "converted: ",maskdata_np.shape
-                    mask_plot = pyqtgraph.ScatterPlotItem( pos=maskdata_np, symbol='s' )
-                    self.plt.addItem(mask_plot)
-                    #maskbbox_np = larcv.as_ndarray_bbox( clustmask )
-                    #maskdata_np = larcv.as_ndarray_mask( clustmask )
-                    #print imask,maskdata_np.shape
+
+                    if self.checkboxDrawClusterMask.isChecked():
+                        maskdata_np = larcv.as_ndarray_mask_pixlist( clustmask, bbox.min_x(), bbox.min_y() )
+                        mask_plot = pyqtgraph.ScatterPlotItem( pos=maskdata_np, symbol='s', size=2 )
+                        self.plt.addItem(mask_plot)
+                    if self.checkboxDrawClusterBBox.isChecked():
+                        curvedata_np = np.zeros( (5,2) )
+                        curvedata_np[0,0] = bbox.min_x()
+                        curvedata_np[0,1] = bbox.min_y()
+                        curvedata_np[1,0] = bbox.min_x()
+                        curvedata_np[1,1] = bbox.max_y()
+                        curvedata_np[2,0] = bbox.max_x()
+                        curvedata_np[2,1] = bbox.max_y()
+                        curvedata_np[3,0] = bbox.max_x()
+                        curvedata_np[3,1] = bbox.min_y()
+                        curvedata_np[4,0] = bbox.min_x()
+                        curvedata_np[4,1] = bbox.min_y()
+                        pencolor = (255,255,255)
+                        if mask_plane in [0,1,2]:
+                            pencolor = pencolors[mask_plane]
+                        curveplot = pyqtgraph.PlotCurveItem( x=curvedata_np[:,0],
+                                                             y=curvedata_np[:,1],
+                                                             fillLevel=None, pen=pencolor )
+                        self.plt.addItem(curveplot)
                     
 
     def _makeNavFrame(self):
