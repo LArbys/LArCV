@@ -228,9 +228,19 @@ class RGBDisplay(QtGui.QWidget):
         self.lay_inputs.addWidget(self.checkboxDrawClusterMask, 1, optstart+1)
         self.lay_inputs.addWidget(self.checkboxDrawClusterBBox, 2, optstart+1)        
 
+        # draw pixel2d
+        self.comboPixel2D = QtGui.QComboBox()
+        if len(self.dm.keys['pixel2d'])==0:
+            self.comboPixel2D.addItem("No pixel2d")
+        else:
+            self.comboPixel2D.addItem("Do not draw pixel2d")
+            for prod in self.dm.keys['pixel2d']:
+                self.comboPixel2D.addItem(prod)
+        self.lay_inputs.addWidget(self.comboPixel2D, 0, optstart+2)
+        
         # -------------------------------------------------------
         # Utilities
-        utilstart = optstart + 2
+        utilstart = optstart + 3
         # RGBCaffe will open and close bottom of the window
         #utillabel     = QtGui.QLabel("Utilities")
         self.rgbcaffe = QtGui.QPushButton("Enable RGBCaffe")
@@ -635,6 +645,7 @@ class RGBDisplay(QtGui.QWidget):
                 self.drawBBOX(self.which_type())
 
         self.drawClusterMasks()
+        self.drawPixel2D()
 
         self.autoRange()
 
@@ -865,7 +876,7 @@ class RGBDisplay(QtGui.QWidget):
         print "Draw Cluster Masks called"
         if len(self.dm.keys["clustermask"])==0:
             return
-        if self.comboClusterMask.currentText()=="Do not draw masks":
+        if str(self.comboClusterMask.currentText())=="Do not draw masks":
             return
 
         try:
@@ -877,47 +888,107 @@ class RGBDisplay(QtGui.QWidget):
                      (0,255,0),
                      (0,0,255)]
         
-        for producer in self.dm.keys['clustermask']:
-            ev_clustmask = self.dm.iom.get_data(larcv.kProductClusterMask,producer)
+        #for producer in self.dm.keys['clustermask']:
+        producer = str(self.comboClusterMask.currentText()).strip()
+        ev_clustmask = self.dm.iom.get_data(larcv.kProductClusterMask,producer)
+            
+        for mask_plane in xrange(ev_clustmask.as_vector().size()):
+            if mask_plane not in self.views:
+                continue
+
+            plane_mask_v = ev_clustmask.as_vector().at(mask_plane)
+            nplane_masks = plane_mask_v.size()
+
+            for imask in xrange(nplane_masks):
+                clustmask = plane_mask_v.at(imask)
+                point_v = clustmask.points_v
+                bbox    = clustmask.box
+
+                if self.checkboxDrawClusterMask.isChecked():
+                    maskdata_np = larcv.as_ndarray_mask_pixlist( clustmask, bbox.min_x(), bbox.min_y() )
+                    mask_plot = pyqtgraph.ScatterPlotItem( pos=maskdata_np, symbol='s', size=2 )
+                    self.plt.addItem(mask_plot)
+                if self.checkboxDrawClusterBBox.isChecked():
+                    curvedata_np = np.zeros( (5,2) )
+                    curvedata_np[0,0] = bbox.min_x()
+                    curvedata_np[0,1] = bbox.min_y()
+                    curvedata_np[1,0] = bbox.min_x()
+                    curvedata_np[1,1] = bbox.max_y()
+                    curvedata_np[2,0] = bbox.max_x()
+                    curvedata_np[2,1] = bbox.max_y()
+                    curvedata_np[3,0] = bbox.max_x()
+                    curvedata_np[3,1] = bbox.min_y()
+                    curvedata_np[4,0] = bbox.min_x()
+                    curvedata_np[4,1] = bbox.min_y()
+                    pencolor = (255,255,255)
+                    if mask_plane in [0,1,2]:
+                        pencolor = pencolors[mask_plane]
+                    curveplot = pyqtgraph.PlotCurveItem( x=curvedata_np[:,0],
+                                                         y=curvedata_np[:,1],
+                                                         fillLevel=None, pen=pencolor )
+                    self.plt.addItem(curveplot)
+
+    def drawPixel2D(self):
+        """ if combo box has producer set and cluster masks exists in datamanager,
+        add cluster masks to self.plt (PyQtGraph PlotWidget).
+        takes the form of a bounidng box and graph"""
+        print "Draw Cluster Masks called"
+        if len(self.dm.keys["pixel2d"])==0:
+            return
+        if "Do not draw" in str(self.comboPixel2D.currentText()):
+            return
+
+        try:
+            meta = self.image.imgs[0].meta()
+        except:
+            return
+
+        pencolors = [(255,0,0),
+                     (0,255,0),
+                     (0,0,255)]
+        
+        producer   = str(self.comboPixel2D.currentText()).strip()
+        ev_pixel2d = self.dm.iom.get_data(larcv.kProductPixel2D, producer)
+
+        for plane in self.views:
+            if plane<0:
+                continue
+
+            # clusters loop first
+            try:
+                cluster_v = ev_pixel2d.Pixel2DClusterArray( plane )
+                print "Number of pixel2d clusters in plane[{}]: {}".format(plane,cluster_v.size())
+                for icluster in xrange(cluster_v.size()):
+                    cluster = cluster_v.at(icluster)
+                    pixdata_np = np.zeros( (cluster.size(),2) )
+                    print "Number of pixels in cluster[{}]: {}".format(icluster,cluster.size())
+                    pencolor = np.random.randint(255,size=3)
+                    for ipix in xrange(cluster.size()):
+                        pix2d = cluster.at(ipix)
+                        pixdata_np[ipix,0] = pix2d.X()
+                        pixdata_np[ipix,1] = pix2d.Y()
+                    pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=10, pxMode=True )
+                    self.plt.addItem(pix_plot)
+            except:
+                print "couldnt open pixel2dcluster for plane={}".format(plane)
+
+            # now individual pixel2d
+            pix_v = ev_pixel2d.Pixel2DArray( plane )
+            if pix_v.size()>0:            
+                pixdata_np = np.zeros( (pix_v.size(),2) )
+                pencolor = (255,255,255)
+                if plane in [0,1,2]:
+                    pencolor = pencolors[plane]
+                    
+                #fillcolor = np.random.randint(255,size=3)
+                for ipix in xrange(pix_v.size()):
+                    pix2d = pix_v.at(ipix)
+                    pixdata_np[ipix,0] = pix2d.X()
+                    pixdata_np[ipix,1] = pix2d.Y()
+                pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=10, pen=pencolor, pxMode=True )
+                self.plt.addItem(pix_plot)
 
             
-            for mask_plane in xrange(ev_clustmask.as_vector().size()):
-                if mask_plane not in self.views:
-                    continue
-
-                plane_mask_v = ev_clustmask.as_vector().at(mask_plane)
-                nplane_masks = plane_mask_v.size()
-
-                for imask in xrange(nplane_masks):
-                    clustmask = plane_mask_v.at(imask)
-                    point_v = clustmask.points_v
-                    bbox    = clustmask.box
-
-                    if self.checkboxDrawClusterMask.isChecked():
-                        maskdata_np = larcv.as_ndarray_mask_pixlist( clustmask, bbox.min_x(), bbox.min_y() )
-                        mask_plot = pyqtgraph.ScatterPlotItem( pos=maskdata_np, symbol='s', size=2 )
-                        self.plt.addItem(mask_plot)
-                    if self.checkboxDrawClusterBBox.isChecked():
-                        curvedata_np = np.zeros( (5,2) )
-                        curvedata_np[0,0] = bbox.min_x()
-                        curvedata_np[0,1] = bbox.min_y()
-                        curvedata_np[1,0] = bbox.min_x()
-                        curvedata_np[1,1] = bbox.max_y()
-                        curvedata_np[2,0] = bbox.max_x()
-                        curvedata_np[2,1] = bbox.max_y()
-                        curvedata_np[3,0] = bbox.max_x()
-                        curvedata_np[3,1] = bbox.min_y()
-                        curvedata_np[4,0] = bbox.min_x()
-                        curvedata_np[4,1] = bbox.min_y()
-                        pencolor = (255,255,255)
-                        if mask_plane in [0,1,2]:
-                            pencolor = pencolors[mask_plane]
-                        curveplot = pyqtgraph.PlotCurveItem( x=curvedata_np[:,0],
-                                                             y=curvedata_np[:,1],
-                                                             fillLevel=None, pen=pencolor )
-                        self.plt.addItem(curveplot)
-                    
-
     def _makeNavFrame(self):
         self._navframe = QtGui.QFrame()
         self._navlayout = QtGui.QGridLayout()
