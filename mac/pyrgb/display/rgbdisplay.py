@@ -16,6 +16,7 @@ from ..lib import storage as store
 
 from ..lib.hoverrect import HoverRect
 from ..lib.roislider import ROISlider
+from ..lib.dlvertexparser import DLVertexParser
 
 try:
     from cv2layout import CV2Layout
@@ -245,11 +246,11 @@ class RGBDisplay(QtGui.QWidget):
         else:
             self.comboPGraph.addItem("Do not draw pgraph")
             for prod in self.dm.keys['pgraph']:
-                ev_pgraph = self.dm.iom.get_data(larcv.kProductPGraph,prod)
-                npgs = ev_pgraph.PGraphArray().size()
-                for ipg in xrange(npgs):
-                    pname = "{}[{}]".format(prod,ipg)
-                    self.comboPGraph.addItem(pname)
+            #    ev_pgraph = self.dm.iom.get_data(larcv.kProductPGraph,prod)
+            #    npgs = ev_pgraph.PGraphArray().size()
+            #    for ipg in xrange(npgs):
+            #        pname = "{}:{}".format(prod,ipg)
+                self.comboPGraph.addItem(prod)
         self.lay_inputs.addWidget(self.comboPGraph, 1, optstart+2)
         
         # -------------------------------------------------------
@@ -660,6 +661,7 @@ class RGBDisplay(QtGui.QWidget):
 
         self.drawClusterMasks()
         self.drawPixel2D()
+        self.drawPGraph()        
 
         self.autoRange()
 
@@ -1003,10 +1005,47 @@ class RGBDisplay(QtGui.QWidget):
                 for ipix in xrange(pix_v.size()):
                     pix2d = pix_v.at(ipix)
                     pixdata_np[ipix,0] = pix2d.X()
-                    pixdata_np[ipix,1] = pix2d.Y()
+                    if self.dm.iom.tick_forward:
+                        pixdata_np[ipix,1] = pix2d.Y()
+                    else:
+                        pixdata_np[ipix,1] = meta.rows()-pix2d.Y()-1
                 pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=10, pen=pencolor, pxMode=True )
                 self.plt.addItem(pix_plot)
 
+    def drawPGraph(self):
+        """ if combo box has producer set and cluster masks exists in datamanager,
+        add cluster masks to self.plt (PyQtGraph PlotWidget).
+        takes the form of a bounidng box and graph"""
+        print "Draw Cluster Masks called"
+        if len(self.dm.keys["pgraph"])==0:
+            return
+        if "Do not draw" in str(self.comboPGraph.currentText()):
+            return
+
+        try:
+            meta = self.image.imgs[0].meta()
+        except:
+            return
+
+        pencolors = [(255,0,0),
+                     (0,255,0),
+                     (0,0,255)]
+
+        parser = DLVertexParser()        
+        producer = str(self.comboPGraph.currentText()).strip()
+        ev_pgraph = self.dm.iom.get_data( larcv.kProductPGraph, producer )
+        for vtx_idx in xrange(ev_pgraph.PGraphArray().size()):
+            #pgraph = ev_pgraph.PGraphArray().at(vtx_idx)
+            plot_items = parser.getVertexPlotItems( vtx_idx, self.dm.iom,
+                                                    tickforward=self.dm.iom.tick_forward,
+                                                    producername=producer )
+            for iplane,plot_v in plot_items.items():
+                if iplane in self.views:
+                    for plot in plot_v:
+                        self.plt.addItem(plot)
+                    self.plt.addItem( plot_items['vertex'][iplane] )
+
+                
             
     def _makeNavFrame(self):
         self._navframe = QtGui.QFrame()

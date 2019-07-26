@@ -14,7 +14,7 @@ from imagefactory import ImageFactory
 
 class DataManager(object):
 
-    __handled_larlite_types = []
+    __handled_larlite_types = [] # non right now
     
     def __init__(self,argv):
         """
