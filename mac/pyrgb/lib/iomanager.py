@@ -11,6 +11,7 @@ class IOManager(object):
         if not tick_forward:
             tf = 1
             #print "Assuming tick-backward order to Image2D data"
+        self.tick_forward = tick_forward
 
         self.iom = larcv.IOManager(IOMode,"pyrgb::IOManager",tf)
         self.iom.logger().send( larcv.msg.kINFO, "IOManager").write( "assuming tick-backward order for image2d\n",

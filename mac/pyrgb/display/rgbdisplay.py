@@ -982,7 +982,10 @@ class RGBDisplay(QtGui.QWidget):
                     for ipix in xrange(cluster.size()):
                         pix2d = cluster.at(ipix)
                         pixdata_np[ipix,0] = pix2d.X()
-                        pixdata_np[ipix,1] = pix2d.Y()
+                        if self.dm.iom.tick_forward:
+                            pixdata_np[ipix,1] = pix2d.Y()
+                        else:
+                            pixdata_np[ipix,1] = meta.rows()-pix2d.Y()-1 # needed for tick-backward era objects
                     pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=3, pen=pencolor, pxMode=True )
                     self.plt.addItem(pix_plot)
             except:
