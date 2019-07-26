@@ -91,7 +91,9 @@ namespace larcv {
 	double vtxPt_plane1_y;
 	double vtxPt_plane2_x;
 	double vtxPt_plane2_y;
-
+	std::vector<double> treeVtxPts;
+	std::vector<std::vector<double>> treeVtxVector;
+	
 	TFile *f1;
 	TTree *_tree;
 

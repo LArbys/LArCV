@@ -104,6 +104,8 @@ namespace larcv {
 	_tree->Branch("vtxPt_plane1_y", &vtxPt_plane1_y, "vtxPt_plane1_y/D");
 	_tree->Branch("vtxPt_plane2_x", &vtxPt_plane2_x, "vtxPt_plane2_x/D");
 	_tree->Branch("vtxPt_plane2_y", &vtxPt_plane2_y, "vtxPt_plane2_y/D");
+	// This is a 1D vector of a 3D vector of 3D vertex points (X, Y, Z)
+	_tree->Branch("treeVtxVector", &treeVtxVector); // Don't need 3rd argument
 
 	//	std::cout << "Initialized, amde tree" << std::endl;
 	
@@ -121,6 +123,8 @@ namespace larcv {
         gStyle->SetOptStat(0);
 
         TVector3 vertex(-1,-1,-1);
+
+
 
         auto ev_img_v        = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
         _run    = (int) ev_img_v->run(); 	
@@ -150,13 +154,14 @@ namespace larcv {
         if(ev_img_v->Image2DArray().size()==0){std::cout << "ev_img_v->Image2DArray().size()==0" << std::endl;return true;}
         if(ev_track->size()==0){std::cout << "ev_track->size()==0" << std::endl;return true;}
 
+	/*
 	std::cout << "Supera run: " << _run << std::endl;
 	std::cout << "Larlite run: " << _storage.run_id() << std::endl;
 	std::cout << "Supera subrun: " << _subrun << std::endl;
 	std::cout << "Larlite subrun: " << _storage.subrun_id() << std::endl;
 	std::cout << "Supera event: " << _event << std::endl;
 	std::cout << "Larlite event: " << _storage.event_id() << std::endl;
-
+	*/
         if((int)(_storage.run_id())    != _run){std::cout << "run# larlite and larcv don't match" << std::endl;return true;}
         if((int)(_storage.subrun_id()) != _subrun){std::cout << "subrun# larlite and larcv don't match" << std::endl;return true;}
         if((int)(_storage.event_id())  != _event){std::cout << "event# larlite and larcv don't match" << std::endl;return true;}
@@ -210,12 +215,12 @@ namespace larcv {
             //if(full_tag_img_stop_v->size() == 3)Tagged_Image[iPlane].overlay( (*full_tag_img_stop_v)[iPlane] );
         }
         mach.SetOriginalImage(Full_image_v);
-        std::cout << "Full_image_v[0].meta().tl().x = " << Full_image_v[0].meta().tl().x << std::endl;
-        std::cout << "Full_image_v[0].meta().br().x = " << Full_image_v[0].meta().br().x << std::endl;
+	//        std::cout << "Full_image_v[0].meta().tl().x = " << Full_image_v[0].meta().tl().x << std::endl;
+        //std::cout << "Full_image_v[0].meta().br().x = " << Full_image_v[0].meta().br().x << std::endl;
         mach.SetTaggedImage(Tagged_Image);
         mach.SetTrackInfo(_run, _subrun, _event, 0);
 
-	std::cout << _run << " " << _subrun << " " << _event <<  std::endl;
+	//	std::cout << _run << " " << _subrun << " " << _event <<  std::endl;
 
 
         static std::vector<TVector3> vertex_v;
@@ -229,7 +234,11 @@ namespace larcv {
 	
 	// Going thru the different vertices found
         for(int vertex_index=0;vertex_index<ev_vertex->size();vertex_index++){
-            larlite::event_track TracksAtVertex;
+
+	  treeVtxPts.clear();
+
+	  
+	  larlite::event_track TracksAtVertex;
             _vtx_id = vertex_index;
 	    //	    if (_vtx_id != myVtxid) continue;
 	    
@@ -254,24 +263,36 @@ namespace larcv {
             //mach.FeedVtxGoodness((*_Reco_goodness_v));
 
             mach.SetSingleVertex(TVector3(ev_vertex->at(vertex_index).X(),ev_vertex->at(vertex_index).Y(),ev_vertex->at(vertex_index).Z()));
+	    treeVtxPts.push_back(ev_vertex->at(vertex_index).X());
+
+	    //	    std::cout << "Pushing back the X position of the vertex: " << treeVtxPts[0] << std::endl;
+
+	    treeVtxPts.push_back(ev_vertex->at(vertex_index).Y());
+
+	    //	    std::cout << "Pushing back the Y position of the vertex: " << treeVtxPts[1] << std::endl;
+
+	    treeVtxPts.push_back(ev_vertex->at(vertex_index).Z());
+
+	    //	    std::cout << "Pushing back the Z position of the vertex: " << treeVtxPts[2] << std::endl;
+
             mach.SetVertexID(ev_vertex->at(vertex_index).ID());
 
             for(auto const& trk_index : vtx_to_trk[vertex_index]) {
                 TracksAtVertex.push_back( (*ev_trk)[trk_index]);
-                std::cout << "\t => trk#" << trk_index << ", " << TracksAtVertex.back().Length() << " cm" << std::endl;
+		//                std::cout << "\t => trk#" << trk_index << ", " << TracksAtVertex.back().Length() << " cm" << std::endl;
             }
 
             mach.FeedLarliteVertexTracks(TracksAtVertex);
             //mach.Get3DtracksFromLarlite();
 	    
-	    std::cout << "Right before DrawVertex" << std::endl;
+	    //	    std::cout << "Right before DrawVertex" << std::endl;
 
 	    // "crop" around the selected track (in _vertexTracks)
 	    // set every pixel outside that box to zero
 	    // then loop through each pixel in the cropped region and ask: is it within ~3 pixels of what's in _vertexTracks?
 	    // if yes, then skip; if no, then set pixel value to 0
 	    //	    mach.GetImageOneTrack(myTrack);
-	    mach.DrawVertex(); 
+	    //	    mach.DrawVertex(); 
 
 	    //    std::cout << "Does it even get to this point? Yes." << std::endl;
 	    //std::cout << TracksAtVertex.size() << std::endl;
@@ -281,6 +302,10 @@ namespace larcv {
 
 	    // For each track in the vertex:
 	    for (int i=0; i < TracksAtVertex.size(); i++) {
+
+	      treeVtxVector.clear();
+
+	      
 	      //	      std::cout << "In the loop!" << std::endl;
 	      auto ev_img_out        = (EventImage2D*)out_iom->get_data(kProductImage2D,_chimera_producer);
 	      //	      std::cout << "Made our producer first..." << std::endl;
@@ -307,6 +332,8 @@ namespace larcv {
 	      vtxPt_plane1_y = vtxVector[1].second;
 	      vtxPt_plane2_x = vtxVector[2].first;
 	      vtxPt_plane2_y = vtxVector[2].second;
+
+	      treeVtxVector.push_back(treeVtxPts);
 
 	      //	      std::cout << "RSE: " << run << " " << subrun << " " << event << std::endl;
 	      /*
