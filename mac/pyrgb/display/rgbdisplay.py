@@ -237,6 +237,20 @@ class RGBDisplay(QtGui.QWidget):
             for prod in self.dm.keys['pixel2d']:
                 self.comboPixel2D.addItem(prod)
         self.lay_inputs.addWidget(self.comboPixel2D, 0, optstart+2)
+
+        # draw pgraph
+        self.comboPGraph = QtGui.QComboBox()
+        if len(self.dm.keys['pgraph'])==0:
+            self.comboPGraph.addItem("No pgraph")
+        else:
+            self.comboPGraph.addItem("Do not draw pgraph")
+            for prod in self.dm.keys['pgraph']:
+                ev_pgraph = self.dm.iom.get_data(larcv.kProductPGraph,prod)
+                npgs = ev_pgraph.PGraphArray().size()
+                for ipg in xrange(npgs):
+                    pname = "{}[{}]".format(prod,ipg)
+                    self.comboPGraph.addItem(pname)
+        self.lay_inputs.addWidget(self.comboPGraph, 1, optstart+2)
         
         # -------------------------------------------------------
         # Utilities
@@ -962,12 +976,14 @@ class RGBDisplay(QtGui.QWidget):
                     cluster = cluster_v.at(icluster)
                     pixdata_np = np.zeros( (cluster.size(),2) )
                     print "Number of pixels in cluster[{}]: {}".format(icluster,cluster.size())
-                    pencolor = np.random.randint(255,size=3)
+                    pencolor = (255,255,255)
+                    if plane in [0,1,2]:
+                        pencolor = pencolors[plane]                    
                     for ipix in xrange(cluster.size()):
                         pix2d = cluster.at(ipix)
                         pixdata_np[ipix,0] = pix2d.X()
                         pixdata_np[ipix,1] = pix2d.Y()
-                    pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=10, pxMode=True )
+                    pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=3, pen=pencolor, pxMode=True )
                     self.plt.addItem(pix_plot)
             except:
                 print "couldnt open pixel2dcluster for plane={}".format(plane)
