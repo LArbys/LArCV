@@ -64,7 +64,8 @@ namespace larcv {
         _par_pix_producer          = cfg.get<std::string>("ParPixelProducer");
         _true_roi_producer         = cfg.get<std::string>("TrueROIProducer");
         _mask_shower               = cfg.get<bool>("MaskShower",false);
-
+	_inputFile                 = cfg.get<std::string>("inputFile");
+	_inputTree                 = cfg.get<std::string>("inputTree");
     }
 
     void Run3DTracker::MakeTTree(){
@@ -307,6 +308,13 @@ namespace larcv {
 
         std::cout << filename << std::endl;
 
+	// Tree containing the 3D vtx points
+	f1 = new TFile(_inputFile.c_str(),"READ");
+	tr1 = (TTree *)f1->Get(_inputTree.c_str());
+	tr1->SetBranchAddress("vtxVector",&ev_vtx);
+
+	std::cout << "ev_vtx->size() = " << ev_vtx->size() << std::endl;
+
         // define trees & branches
         MakeTTree();
         MakeTTree_SCEadded();
@@ -323,8 +331,9 @@ namespace larcv {
 
     }
 
-    bool Run3DTracker::process(IOManager& mgr)
+  bool Run3DTracker::process(IOManager& mgr)
     {
+
         ClearEvent();
         std::cout << std::endl;
         std::cout << "============================================" << std::endl;
@@ -333,12 +342,14 @@ namespace larcv {
         gStyle->SetOptStat(0);
 
         TVector3 vertex(-1,-1,-1);
-
-        auto ev_pgraph_v     = (EventPGraph*) mgr.get_data(kProductPGraph,_input_pgraph_producer);
-        _run    = (int) ev_pgraph_v->run();
-        _subrun = (int) ev_pgraph_v->subrun();
-        _event  = (int) ev_pgraph_v->event();
+	
+        auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
+        _run    = (int) ev_img_v->run();
+        _subrun = (int) ev_img_v->subrun();
+        _event  = (int) ev_img_v->event();
         _entry  = (int) mgr.current_entry();
+
+	std::cout << _run << " " << _subrun << " " << _event << std::endl;
 
         auto ev_track           = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco");
         auto ev_vertex          = (larlite::event_vertex*) _storage.get_data(larlite::data::kVertex,"trackReco");
@@ -346,10 +357,12 @@ namespace larcv {
         auto ev_track_sceadded  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco_sceadded");
         auto ev_ass_scedradded  = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco_sceadded");
 
+	std::cout << "ev_vtx->size() = " << ev_vtx->size() << std::endl;
 
-        if(ev_pgraph_v->PGraphArray().size()==0){advance_larlite();return true;}
+        if(ev_vtx->size()==0){advance_larlite();return true;}
 
-        auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
+	
+
         //auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
         //auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
 
@@ -366,8 +379,6 @@ namespace larcv {
         auto full_adc_img_v = &(ev_img_v->Image2DArray());
         //auto full_tag_img_thru_v = &(tag_img_thru_v->Image2DArray());
         //auto full_tag_img_stop_v = &(tag_img_stop_v->Image2DArray());
-
-
 
         //
         // Fill MC if exists
@@ -410,17 +421,17 @@ namespace larcv {
         static std::vector<TVector3> vertex_v_sceadded;
         if(vertex_v.size()!=0)vertex_v.clear();
 
-        for(size_t pgraph_id = 0; pgraph_id < ev_pgraph_v->PGraphArray().size(); ++pgraph_id) {
+        for(size_t pgraph_id = 0; pgraph_id < ev_vtx->size(); ++pgraph_id) {
+	  
+	  std::vector<double> pgraph = ev_vtx->at(pgraph_id);
+	  auto const& roi_v         = pgraph;//.ParticleArray();
+	  auto const& cluster_idx_v = pgraph;//.ClusterIndexArray();
 
-            auto const& pgraph = ev_pgraph_v->PGraphArray().at(pgraph_id);
-            auto const& roi_v         = pgraph.ParticleArray();
-            auto const& cluster_idx_v = pgraph.ClusterIndexArray();
+	  RecoVertex.SetXYZ(pgraph.at(0),pgraph.at(1),pgraph.at(2));
+	  vertex_v.push_back(RecoVertex);
 
-            RecoVertex.SetXYZ(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
-            vertex_v.push_back(RecoVertex);
-
-            RecoVertex_sceadded.SetXYZ(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
-            vertex_v_sceadded.push_back(RecoVertex_sceadded);
+	  //            RecoVertex_sceadded.SetXYZ(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
+	  //vertex_v_sceadded.push_back(RecoVertex_sceadded);
 
             if (_mask_shower) {
 
@@ -436,7 +447,7 @@ namespace larcv {
                     const auto& roi = roi_v[roid];
                     auto cidx = cluster_idx_v.at(roid);
 
-                    if (roi.Shape() == kShapeTrack) continue;
+		    //                    if (roi.Shape() == kShapeTrack) continue;
 
                     for(size_t plane=0; plane<3; ++plane) {
 
@@ -633,7 +644,7 @@ namespace larcv {
 
                 //tracker.DrawVertexVertical();
 
-
+		/*
                 /////////////////////////
                 // sce added variables //
                 /////////////////////////
@@ -726,7 +737,7 @@ namespace larcv {
                     _IondivLength_v_sceadded.push_back(_Ion_tot_v_sceadded[itrack]/_Length_v_sceadded[itrack]);
                 }
                 _RecoVertex_sceadded = vertex_v_sceadded.at(ivertex);
-
+		*/
                 randomSeed = tracker.GetRandomSeed();
                 //tracker.DrawVertexVertical();
 

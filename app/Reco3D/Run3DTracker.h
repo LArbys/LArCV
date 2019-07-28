@@ -85,7 +85,14 @@ namespace larcv {
         int _entry;
         int _Nreco;
         int randomSeed;
-
+	
+	std::string _inputFile;
+	std::string _inputTree;
+	TFile *f1;
+	TTree *tr1;
+	//	std::vector<std::vector<double>> *vtxVector;
+	std::vector<std::vector<double>> *ev_vtx;
+	
         bool IsMCC9;
 
         int _vtx_id;
