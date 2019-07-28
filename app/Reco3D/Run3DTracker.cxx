@@ -63,7 +63,7 @@ namespace larcv {
         _img2d_producer            = cfg.get<std::string>("Image2DProducer");
         _par_pix_producer          = cfg.get<std::string>("ParPixelProducer");
         _true_roi_producer         = cfg.get<std::string>("TrueROIProducer");
-        _mask_shower               = cfg.get<bool>("MaskShower",false);
+	_mask_shower               = cfg.get<bool>("MaskShower",false);
 	_inputFile                 = cfg.get<std::string>("inputFile");
 	_inputTree                 = cfg.get<std::string>("inputTree");
     }
@@ -342,7 +342,9 @@ namespace larcv {
         gStyle->SetOptStat(0);
 
         TVector3 vertex(-1,-1,-1);
-	
+
+	tr1->GetEntry(mgr.current_entry());
+
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
         _run    = (int) ev_img_v->run();
         _subrun = (int) ev_img_v->subrun();
@@ -357,11 +359,7 @@ namespace larcv {
         auto ev_track_sceadded  = (larlite::event_track*)  _storage.get_data(larlite::data::kTrack,"trackReco_sceadded");
         auto ev_ass_scedradded  = (larlite::event_ass*)    _storage.get_data(larlite::data::kAssociation,"trackReco_sceadded");
 
-	std::cout << "ev_vtx->size() = " << ev_vtx->size() << std::endl;
-
         if(ev_vtx->size()==0){advance_larlite();return true;}
-
-	
 
         //auto tag_img_thru_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"thrumutags");
         //auto tag_img_stop_v     = (EventImage2D*)mgr.get_data(kProductImage2D,"stopmutags");
@@ -428,6 +426,9 @@ namespace larcv {
 	  auto const& cluster_idx_v = pgraph;//.ClusterIndexArray();
 
 	  RecoVertex.SetXYZ(pgraph.at(0),pgraph.at(1),pgraph.at(2));
+
+	  std::cout << "THIS IS THE SET XYZ RECO VERTEX: " << pgraph.at(0) << ", " << pgraph.at(1) << ", " << pgraph.at(2) << std::endl;
+	  
 	  vertex_v.push_back(RecoVertex);
 
 	  //            RecoVertex_sceadded.SetXYZ(pgraph.ParticleArray().front().X(),pgraph.ParticleArray().front().Y(),pgraph.ParticleArray().front().Z());
