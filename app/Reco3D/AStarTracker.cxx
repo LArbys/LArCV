@@ -712,6 +712,7 @@ namespace larcv {
         if(_vertexQDQX.size()      !=0)_vertexQDQX.clear();
         if(_vertexEndPoints.size() !=0)_vertexEndPoints.clear();
         if(_vertex_dQdX_v.size()   !=0)_vertex_dQdX_v.clear();
+        if(_Track15cmAvgPt.size()  !=0)_Track15cmAvgPt.clear();
         _vertexEndPoints.push_back(start_pt);
 
         // look for tracks that start from the vertex
@@ -3441,8 +3442,10 @@ namespace larcv {
                 }
                 if(NpointAveragedOn!=0){AvPt*=1./NpointAveragedOn;}
                 AvPt_v.push_back(AvPt+start_pt);
+                if(dAverage == 15)_Track15cmAvgPt.push_back(AvPt+start_pt);
             }
         }
+
 
         if(vertexAngles_v.size()!=0){vertexAngles_v.clear();}
         if(_vertexPhi.size()!=0){_vertexPhi.clear();}

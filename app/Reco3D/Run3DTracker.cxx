@@ -83,7 +83,7 @@ namespace larcv {
         _recoTree->Branch("randomSeed",&randomSeed);
         _recoTree->Branch("trk_id_v", &_trk_id_v);
         _recoTree->Branch("NtracksReco",&NtracksReco);
-
+        _recoTree->Branch("MinLengthAllowed",&MinLengthAllowed);
         _recoTree->Branch("trackQ3_v",&_trackQ3_v);
         _recoTree->Branch("trackQ5_v",&_trackQ5_v);
         _recoTree->Branch("trackQ10_v",&_trackQ10_v);
@@ -141,6 +141,9 @@ namespace larcv {
         _recoTree->Branch("vertexTheta_20cm",&_vertexTheta_20cm);
         _recoTree->Branch("vertexPhi_30cm",&_vertexPhi_30cm);
         _recoTree->Branch("vertexTheta_30cm",&_vertexTheta_30cm);
+        _recoTree->Branch("trackAvg15cm_x",&trackAvg15cm_x);
+        _recoTree->Branch("trackAvg15cm_y",&trackAvg15cm_y);
+        _recoTree->Branch("trackAvg15cm_z",&trackAvg15cm_z);
 
         _recoTree->Branch("closestWall",&_closestWall);
 
@@ -193,8 +196,8 @@ namespace larcv {
 
         _recoTree_SCEadded->Branch("randomSeed",&randomSeed);
         _recoTree_SCEadded->Branch("trk_id_v", &_trk_id_v);
-        _recoTree_SCEadded->Branch("NtracksReco",&NtracksReco);
-
+        _recoTree_SCEadded->Branch("NtracksReco",&NtracksReco_sceadded);
+        _recoTree_SCEadded->Branch("MinLengthAllowed",&MinLengthAllowed);
         _recoTree_SCEadded->Branch("trackQ3_v",&_trackQ3_v_sceadded);
         _recoTree_SCEadded->Branch("trackQ5_v",&_trackQ5_v_sceadded);
         _recoTree_SCEadded->Branch("trackQ10_v",&_trackQ10_v_sceadded);
@@ -253,6 +256,10 @@ namespace larcv {
         _recoTree_SCEadded->Branch("vertexPhi_30cm",&_vertexPhi_30cm_sceadded);
         _recoTree_SCEadded->Branch("vertexTheta_30cm",&_vertexTheta_30cm_sceadded);
 
+        _recoTree_SCEadded->Branch("trackAvg15cm_x_sceadded",&trackAvg15cm_x_sceadded);
+        _recoTree_SCEadded->Branch("trackAvg15cm_y_sceadded",&trackAvg15cm_y_sceadded);
+        _recoTree_SCEadded->Branch("trackAvg15cm_z_sceadded",&trackAvg15cm_z_sceadded);
+
         _recoTree_SCEadded->Branch("closestWall",&_closestWall_sceadded);
 
         _recoTree_SCEadded->Branch("recoEndPoints_x",&recoEndPoints_x_sceadded);
@@ -300,7 +307,8 @@ namespace larcv {
         tracker.SetSplineFile(_spline_file);
         tracker.initialize();
         tracker.SetRandomSeed(100);
-        tracker.SetMinLength(3);//cm
+        MinLengthAllowed = 3;
+        tracker.SetMinLength(MinLengthAllowed);//cm
         tracker.SetVerbose(0);
 
         std::string filename;
@@ -515,14 +523,14 @@ namespace larcv {
                 
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
-
+                NtracksReco = 0;
                 for(size_t itrack = 0; itrack<recoedVertex.size();itrack++){
                     ass_vertex_to_track_v.push_back(ev_track->size());
                     recoedVertex[itrack].set_track_id(TrackID);
                     (*ev_track).push_back(recoedVertex[itrack]);
                     _trk_id_v.push_back(TrackID);
                     TrackID++;
-                    if(recoedVertex[itrack].Length(0) > 5){NtracksReco++;}
+                    if(recoedVertex[itrack].Length(0) > MinLengthAllowed){NtracksReco++;}
                 }
 
                 auto Energies_v = tracker.GetEnergies();
@@ -601,6 +609,13 @@ namespace larcv {
                 _vertexPhi_15cm   = tracker.GetVertexPhi();
                 _vertexTheta_15cm = tracker.GetVertexTheta();
 
+                trackAvg15cm = tracker.GetTrack15cmAvg();
+                for(size_t ii=0 ;ii < trackAvg15cm.size();ii++){
+                    trackAvg15cm_x.push_back(trackAvg15cm.at(ii).X());
+                    trackAvg15cm_y.push_back(trackAvg15cm.at(ii).Y());
+                    trackAvg15cm_z.push_back(trackAvg15cm.at(ii).Z());
+                }
+
                 if(recoEndPoints.size()   !=0)recoEndPoints.clear();
                 if(recoEndPoints_x.size() !=0)recoEndPoints_x.clear();
                 if(recoEndPoints_y.size() !=0)recoEndPoints_y.clear();
@@ -641,13 +656,14 @@ namespace larcv {
                 tracker.Add_SCE_to_Tracks();
 
                 auto recoedVertex_sceadded = tracker.GetReconstructedVertexTracks();
+                NtracksReco_sceadded = 0;
                 for(size_t itrack = 0; itrack<recoedVertex_sceadded.size();itrack++){
                     ass_vertex_to_track_sceadded_v.push_back(ev_track->size());
                     recoedVertex_sceadded[itrack].set_track_id(TrackID);
                     (*ev_track).push_back(recoedVertex_sceadded[itrack]);
                     _trk_id_v.push_back(TrackID);
                     TrackID++;
-                    if(recoedVertex_sceadded[itrack].Length(0) > 5){NtracksReco++;}
+                    if(recoedVertex_sceadded[itrack].Length(0) > MinLengthAllowed){NtracksReco_sceadded++;}
                 }
 
                 auto Energies_scedr_v = tracker.GetEnergies();
@@ -711,6 +727,13 @@ namespace larcv {
                 _vertexTheta_sceadded      = tracker.GetVertexTheta();
                 _vertexPhi_15cm_sceadded   = tracker.GetVertexPhi();
                 _vertexTheta_15cm_sceadded = tracker.GetVertexTheta();
+
+                trackAvg15cm_sceadded = tracker.GetTrack15cmAvg();
+                for(size_t ii=0 ;ii < trackAvg15cm_sceadded.size();ii++){
+                    trackAvg15cm_x_sceadded.push_back(trackAvg15cm_sceadded.at(ii).X());
+                    trackAvg15cm_y_sceadded.push_back(trackAvg15cm_sceadded.at(ii).Y());
+                    trackAvg15cm_z_sceadded.push_back(trackAvg15cm_sceadded.at(ii).Z());
+                }
 
                 if(recoEndPoints_sceadded.size()   !=0)recoEndPoints_sceadded.clear();
                 if(recoEndPoints_x_sceadded.size() !=0)recoEndPoints_x_sceadded.clear();

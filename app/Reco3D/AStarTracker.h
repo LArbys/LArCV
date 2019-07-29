@@ -192,6 +192,7 @@ namespace larcv {
         std::vector<TVector3>   OrderList(std::vector<TVector3> list);
         std::vector<TVector3>   FitBrokenLine();
         std::vector<TVector3>   GetEndPoints();
+        std::vector<TVector3>   GetTrack15cmAvg(){return _Track15cmAvgPt;}
         std::vector<TVector3>   Reconstruct(int run, int subrun,int event,int track,std::vector<larcv::Image2D> images,TVector3 vertex, TVector3 endPoint){
             SetTrackInfo(run, subrun, event, track);
             SetImages(images);
@@ -313,6 +314,7 @@ namespace larcv {
         std::vector<TVector3> _3DTrack;
         std::vector<TVector3> _vertexEndPoints;
         std::vector<TVector3> _eventVertices;
+        std::vector<TVector3> _Track15cmAvgPt;
         std::vector<std::vector<TVector3> > _vertexTracks;
         std::vector<std::vector<TVector3> > _vertexTracks_SCE;
 
