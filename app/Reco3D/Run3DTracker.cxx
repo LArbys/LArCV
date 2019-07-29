@@ -73,7 +73,7 @@ namespace larcv {
 
         _recoTree->Branch("run"     , &_run   , "_run/I");
         _recoTree->Branch("subrun"  , &_subrun, "_subrun/I");
-        _recoTree->Branch("event"   , &_event , "_event/I");
+        _recoTree->Branch("event"   , &_event, "_event/I");
         _recoTree->Branch("entry"   , &_entry , "_entry/I");
 
         _recoTree->Branch("vtx_id", &_vtx_id , "vtx_id/I");
@@ -355,8 +355,8 @@ namespace larcv {
 
         auto ev_img_v           = (EventImage2D*)mgr.get_data(kProductImage2D,_img2d_producer);
         _run    = (int) ev_img_v->run();
-        _subrun = (int) ev_img_v->subrun();
-        _event  = (int) ev_img_v->event();
+        _subrun = ev_img_v->subrun();
+        _event  = ev_img_v->event();
         _entry  = (int) mgr.current_entry();
 
 	std::cout << _run << " " << _subrun << " " << _event << std::endl;

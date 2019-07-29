@@ -79,8 +79,8 @@ namespace larcv {
         double Em_t;
 
         int _run;
-        int _subrun;
-        int _event;
+        ULong_t _subrun;
+        ULong_t _event;
         int _nentry;
         int _entry;
         int _Nreco;
