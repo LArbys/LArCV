@@ -90,7 +90,6 @@ namespace larcv {
 	std::string _inputTree;
 	TFile *f1;
 	TTree *tr1;
-	//	std::vector<std::vector<double>> *vtxVector;
 	std::vector<std::vector<double>> *ev_vtx = 0;
 	
         bool IsMCC9;

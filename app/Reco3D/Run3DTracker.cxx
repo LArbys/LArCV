@@ -311,7 +311,16 @@ namespace larcv {
 	// Tree containing the 3D vtx points
 	f1 = new TFile(_inputFile.c_str(),"READ");
 	tr1 = (TTree *)f1->Get(_inputTree.c_str());
-	tr1->SetBranchAddress("vtxVector",&ev_vtx);
+	tr1->SetBranchAddress("vtxVector", &ev_vtx);
+
+	tr1->GetEntry(0);
+	std::cout << "Entry 0 X: " << ev_vtx->at(0).at(0) << std::endl;
+
+	tr1->GetEntry(1);
+	std::cout << "Entry 1 X: " << ev_vtx->at(0).at(0) << std::endl;
+
+	tr1->GetEntry(9);
+	std::cout << "Entry 9 X: " << ev_vtx->at(0).at(0) << std::endl;
 
 	std::cout << "ev_vtx->size() = " << ev_vtx->size() << std::endl;
 
@@ -333,7 +342,6 @@ namespace larcv {
 
   bool Run3DTracker::process(IOManager& mgr)
     {
-
         ClearEvent();
         std::cout << std::endl;
         std::cout << "============================================" << std::endl;
@@ -381,13 +389,14 @@ namespace larcv {
         //
         // Fill MC if exists
         //
+	
         EventROI* ev_partroi_v = nullptr;
         if (!_true_roi_producer.empty()){ev_partroi_v = (EventROI*) mgr.get_data(kProductROI,_true_roi_producer);}
         if (ev_partroi_v) {
             const auto& mc_roi_v = ev_partroi_v->ROIArray();
             FillMC(mc_roi_v);
         }
-
+	
 
         // loop over found vertices
         //auto const& pcluster_m = ev_pcluster_v->Pixel2DClusterArray();
@@ -743,7 +752,7 @@ namespace larcv {
                 //tracker.DrawVertexVertical();
 
                 //______________________
-                if(ev_partroi_v)MCevaluation();
+		if(ev_partroi_v)MCevaluation();
                 //----------------------
 
                 _recoTree->Fill();
