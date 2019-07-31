@@ -4,9 +4,8 @@
 #include "ClusterMask.h"
 
 namespace larcv {
-
   ClusterMask::ClusterMask()
-  : box(0,0,0,0,kINVALID_PROJECTIONID) , meta(ImageMeta()), points_v(0,Point2D(0,0))
+  : box(0,0,0,0,kINVALID_PROJECTIONID) , meta(ImageMeta()), points_v(0,Point2D(0,0)), track_starts(0,Point2D(0,0)), track_ends(0,Point2D(0,0)), ancestor_track_start(0,0), shower_starts(0,Point2D(0,0))
   {
     probability_of_class = -1;
     type = 0;
@@ -14,9 +13,20 @@ namespace larcv {
     // _box.clear();
   }
 
-
   ClusterMask::ClusterMask(BBox2D box_in, ImageMeta meta_in, std::vector<Point2D> pts_in, InteractionID_t type_in)
-  :  box(box_in), meta(meta_in), points_v(pts_in), type(type_in)
+  :  box(box_in), meta(meta_in), points_v(pts_in), type(type_in), track_starts(0,Point2D(0,0)), track_ends(0,Point2D(0,0)), ancestor_track_start(0,0), shower_starts(0,Point2D(0,0))
+  {
+    probability_of_class = -1;
+    // _box = {(float) meta_in.col(box.min_x()), (float) meta_in.row(box.min_y()), (float) (meta_in.col(box.max_x())-meta_in.col(box.min_x())), (float) (meta_in.row(box.max_y())-meta_in.row(box.min_y())), (float) type};
+    // _mask = std::vector<float>( (box.height()/meta_in.pixel_height()+1) * (box.width()/meta_in.pixel_width()+1), 0.0);
+    // for (Point2D pt : points_v){
+    //   // _mask[(int)(pt.x - meta_in.col(box.min_x())) * box.height()/meta_in.pixel_height()+1 + pt.y-meta_in.row(box.min_y())] = 1.0;
+    //   _mask[(int)(pt.x - meta_in.col(box.min_x())) * ((box.height()/meta_in.pixel_height())+1) + (pt.y - meta_in.row(box.min_y())) ] = 1.0;
+    // }
+  }
+
+  ClusterMask::ClusterMask(BBox2D box_in, ImageMeta meta_in, std::vector<Point2D> pts_in, InteractionID_t type_in, std::vector<larcv::Point2D> tckst_in,  std::vector<larcv::Point2D> tckend_in, larcv::Point2D tckst_anc_in, std::vector<larcv::Point2D> shwst_in )
+  :  box(box_in), meta(meta_in), points_v(pts_in), type(type_in), track_starts(tckst_in), track_ends(tckend_in), ancestor_track_start(tckst_anc_in), shower_starts(shwst_in)
   {
     probability_of_class = -1;
     // _box = {(float) meta_in.col(box.min_x()), (float) meta_in.row(box.min_y()), (float) (meta_in.col(box.max_x())-meta_in.col(box.min_x())), (float) (meta_in.row(box.max_y())-meta_in.row(box.min_y())), (float) type};

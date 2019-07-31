@@ -35,14 +35,20 @@ namespace larcv {
     ClusterMask();
     ClusterMask(BBox2D box_in, ImageMeta meta, std::vector<Point2D> pts_in, InteractionID_t type_in);
 
+    ClusterMask(BBox2D box_in, ImageMeta meta, std::vector<Point2D> pts_in, InteractionID_t type_in, std::vector<larcv::Point2D> tckst_in,  std::vector<larcv::Point2D> tckend_in, larcv::Point2D tckst_anc_in, std::vector<larcv::Point2D> shwst_in );
+
     ~ClusterMask() {}
 
 
     BBox2D box; //Placeholder for bbox
     ImageMeta meta;
-    std::vector<Point2D> points_v;
+    std::vector<Point2D> points_v; //Binary mask of points
     InteractionID_t type;
     float probability_of_class;
+    std::vector<larcv::Point2D> track_starts;
+    std::vector<larcv::Point2D> track_ends;
+    std::vector<larcv::Point2D> shower_starts;
+    larcv::Point2D ancestor_track_start; // Vertex!
     // std::vector<float> _mask;
     // std::vector<float> _box;
 
