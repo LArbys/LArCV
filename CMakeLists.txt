@@ -65,15 +65,14 @@ endif()
 if (USE_TORCH)
   if (ON_FNAL)
     # For FNAL
-    set( Torch_DIR "$ENV{LIBTORCH_DIR}/$ENV{LIBTORCH_FQ_DIR}/share/cmake/Torch" )
-    set( OpenBLAS_DIR "$ENV{OPENBLAS_DIR}/share/cmake/OpenBLAS" )
+    set( Torch_DIR "$ENV{LIBTORCH_FQ_DIR}/lib/python2.7/site-packages/torch/share/cmake/Torch" )
+    set( OpenBLAS_DIR "$ENV{OPENBLAS_FQ_DIR}/lib/cmake/openblas" )
     find_package( OpenBLAS REQUIRED )    
   else()
-    set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
+    set( Torch_DIR "$ENV{LIBTORCH_FQ_DIR}/lib/python2.7/site-packages/torch/share/cmake/Torch" )
     find_package( CUDA )
   endif()
 
-  set( Torch_DIR "$ENV{LIBTORCH_DIR}/share/cmake/Torch" )
   find_package( Torch REQUIRED )
 endif()
 
