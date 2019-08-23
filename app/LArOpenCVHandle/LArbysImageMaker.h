@@ -11,7 +11,7 @@
 
 #ifndef __CLING__
 #ifndef __CINT__
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 #endif
 #endif
 

@@ -8,15 +8,7 @@
 #include "TVector3.h"
 
 // opencv
-#ifdef LARCV_OPENCV
-#ifndef __CLING__
-#ifndef __CINT__
-#include  <opencv2/opencv.hpp>
-#endif
-#endif
-#include <opencv2/core/core.hpp>
-
-#endif //opencv
+#include <opencv2/core.hpp>
 
 namespace larcv {
 

@@ -15,8 +15,8 @@
 #include "LArbysImageMaker.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/Contour2DAnalysis.h"
 #include "LArOpenCV/ImageCluster/AlgoFunction/ImagePatchAnalysis.h"
+#include <opencv2/core.hpp>
 #include "opencv2/imgproc.hpp"
-#include <opencv2/opencv.hpp>
 #include "LArOpenCV/Core/larbys.h"
 #include "Geo2D/Core/VectorArray.h"
 #include "CVUtil/CVUtil.h"

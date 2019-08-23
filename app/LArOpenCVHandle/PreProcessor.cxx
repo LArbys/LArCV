@@ -8,6 +8,8 @@
 #include <array>
 #include <limits>
 
+#include <opencv2/imgcodecs.hpp>
+
 namespace larcv {
 
   PreProcessor::PreProcessor()

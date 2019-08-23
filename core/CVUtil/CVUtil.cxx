@@ -2,6 +2,8 @@
 #define __LARCV_CVUTIL_CXX__
 
 #include "CVUtil.h"
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 namespace larcv {
 
@@ -123,7 +125,7 @@ namespace larcv {
   Image2D imread(const std::string file_name)
   {
     ::cv::Mat image;
-    image = ::cv::imread(file_name.c_str(), CV_LOAD_IMAGE_COLOR);
+    image = ::cv::imread(file_name.c_str(), cv::IMREAD_COLOR);
 
     ImageMeta meta(image.cols,image.rows,image.cols, image.rows, 0., 0.);
     Image2D larcv_img(meta);
@@ -147,7 +149,7 @@ namespace larcv {
   Image2D imread_gray(const std::string file_name)
   {
     ::cv::Mat image;
-    image = ::cv::imread(file_name.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    image = ::cv::imread(file_name.c_str(), cv::IMREAD_GRAYSCALE );
 
     ImageMeta meta(image.cols,image.rows,image.cols, image.rows, 0., 0.);
     Image2D larcv_img(meta);

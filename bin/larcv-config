@@ -37,7 +37,7 @@ while test $# -gt 0; do
 	      out+=" "
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
-	      out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs "
+	      out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_imgproc -lopencv_imgcodecs "
 	  fi
 	  out+=" -L${LARCV_LIBDIR} -llarcv "
 	  ;;

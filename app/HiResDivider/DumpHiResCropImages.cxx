@@ -7,8 +7,8 @@
 #include "TTree.h"
 
 #ifdef USE_OPENCV
-#include "opencv/cv.h"
-#include "opencv2/opencv.hpp"
+#include "opencv2/core.hpp"
+#include "opencv2/imgcodecs.hpp"
 #endif
 
 namespace larcv {

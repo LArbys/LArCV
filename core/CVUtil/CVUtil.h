@@ -3,8 +3,7 @@
 
 #ifndef __CINT__ 
 #ifndef __CLING__
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 #endif
 #endif
 #include "DataFormat/Image2D.h"
