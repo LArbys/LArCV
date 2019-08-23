@@ -14,6 +14,8 @@
 #ifndef __CHIMERA_H__
 #define __CHIMERA_H__
 
+#include <tuple>
+
 #include "TH2D.h"
 #include "TH1D.h"
 #include "TTree.h"
@@ -55,6 +57,8 @@ namespace larcv {
         void SetLLInName(const std::string& finll) { _finll = finll;}
         void SetRootAnaFile(const std::string& anaFile){_fana = anaFile;}
 	void SetOutDir(std::string s){out_dir = s;}
+	void SetOutVtx(std::string s){out_vtx = s;}
+	void SetOutImage2d(std::string s){out_image2d = s;}
 
 	void SetMyRun(int i){myRun = i;}
 	void SetMySubrun(int i){mySubrun = i;}
@@ -70,13 +74,28 @@ namespace larcv {
 
 	int iTrack;
 	larlite::storage_manager _storage;
-	larcv::IOManager ioman;
 	larcv::ChimeraMachinery mach; 
 	std::vector< std::vector<int> > _vertexInfo;
         double NeutrinoEnergyTh;
         double NeutrinoEnergyReco;
         double Ep_t;
         double Em_t;
+
+	// Variables for the vertex tree
+	int run;
+	int subrun;
+	int event;
+	double vtxPt_plane0_x;
+	double vtxPt_plane0_y;
+	double vtxPt_plane1_x;
+	double vtxPt_plane1_y;
+	double vtxPt_plane2_x;
+	double vtxPt_plane2_y;
+	std::vector<double> treeVtxPts;
+	std::vector<std::vector<double>> treeVtxVector;
+	
+	TFile *f1;
+	TTree *_tree;
 
         int _run;
         int _subrun;
@@ -195,6 +214,8 @@ namespace larcv {
 	std::string _finll;
 	std::string _fana;
 	std::string out_dir;
+	std::string out_vtx;
+	std::string out_image2d;
 	std::string eventListFile;
         bool _mask_shower;
 

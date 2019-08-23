@@ -42,7 +42,7 @@ int main( int nargs, char** argv ) {
   outlarlite.set_out_filename( output_larlite );
   outlarlite.open();
   */
-  std::string output_hist = "histogram_file.root";
+  std::string output_hist = "findingMuon.root";
   TFile fout( output_hist.c_str(), "new" ); // do not rewrite
   TH2D* hadc[3];
 
@@ -67,7 +67,7 @@ int main( int nargs, char** argv ) {
       auto const& img = ev_img->Image2DArray().at( planeid );
       auto const& meta = img.meta();
       char histname_event[100];
-      sprintf(histname_event,"hadc_run%d_event%d_plane%d",run,event,planeid);
+      sprintf(histname_event,"hadc_run%d_subrun%d_event%d_plane%d",run,subrun,event,planeid);
       hadc[planeid] = new TH2D(histname_event,"",meta.cols(), 0, meta.cols(), meta.rows(),0,meta.rows());
 
       for(int row = 0; row<meta.rows(); row++){

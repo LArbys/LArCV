@@ -17,6 +17,7 @@
 
 #include <string>
 #include <fstream>
+#include <tuple>
 
 #include "Analysis/ana_base.h"
 #include "DataFormat/track.h"
@@ -229,7 +230,8 @@ namespace larcv {
         std::vector<std::pair<int, int> >      GetWireTimeProjection(TVector3 point);
 
         std::vector<larcv::Image2D> GetFullImage();
-	std::vector<larcv::Image2D> GetImageOneTrack(size_t trackNumber);
+	//	std::vector<larcv::Image2D> GetImageOneTrack(size_t trackNumber);
+	std::tuple< std::vector<larcv::Image2D>, std::vector<std::pair<double, double>> > GetImageOneTrack(size_t trackNumber);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
         void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative();*/ShaveTracks();}
@@ -238,6 +240,7 @@ namespace larcv {
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
         TSpline3* GetProtonT2dEdx(){return sProtonT2dEdx;}
         TSpline3* GetMuonT2dEdx(){return sMuonT2dEdx;}
+
 
 
     protected:
@@ -254,6 +257,7 @@ namespace larcv {
         int _event;
         int _track;
         int _vtxID;
+
         int _compressionFactor_t;
         int _compressionFactor_w;
         int _eventTreated;
@@ -361,6 +365,11 @@ namespace larcv {
         larlite::event_track _vertexLarliteTracks_sceadded;
 
         TCanvas *c2;
+
+	// Vector of vertex points, for each plane (3) and position in X and Y (2)
+	std::vector<int> vtxRowCols{2};
+	std::vector <std::pair<double, double> > vtxPts;
+
 
     private:
         //	larutil::SpaceChargeMicroBooNE _sce;

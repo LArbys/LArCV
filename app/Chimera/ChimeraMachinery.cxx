@@ -13,6 +13,8 @@
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/TimeService.h"
 
+#include <tuple>
+
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TFile.h"
@@ -1671,6 +1673,28 @@ namespace larcv {
     //______________________________________________________NEED THIS
     void ChimeraMachinery::DrawVertexVertical(){
         tellMe("DrawVertexVertical",0);
+        
+        
+        std::cout << "plane " << 0 << " image dimensions : " << std::endl;
+        std::cout << "nbinsX "<< original_full_image_v[0].meta().cols()                                     << std::endl;
+        std::cout << "Xmin "  << original_full_image_v[0].meta().tl().x                                     << std::endl;
+        std::cout << "Xmax "  << original_full_image_v[0].meta().tl().x+original_full_image_v[0].meta().width()   << std::endl;
+        std::cout << "NbinsY " << original_full_image_v[0].meta().rows()                                     << std::endl;
+        std::cout << "Ymin "  << original_full_image_v[0].meta().br().y                                     << std::endl;
+        std::cout << "Ymax "  << original_full_image_v[0].meta().br().y+original_full_image_v[0].meta().height() << std::endl;
+        std::cout << std::endl;
+        std::cout << "__________________" << std::endl;
+        
+        hit_image_v = GetFullImage();
+        
+        std::cout << "plane " << 0 << " image dimensions : " << std::endl;
+        std::cout << "nbinsX "<< hit_image_v[0].meta().cols()                                     << std::endl;
+        std::cout << "Xmin "  << hit_image_v[0].meta().tl().x                                     << std::endl;
+        std::cout << "Xmax "  << hit_image_v[0].meta().tl().x+hit_image_v[0].meta().width()   << std::endl;
+        std::cout << "NbinsY " << hit_image_v[0].meta().rows()                                     << std::endl;
+        std::cout << "Ymin "  << hit_image_v[0].meta().br().y                                     << std::endl;
+        std::cout << "Ymax "  << hit_image_v[0].meta().br().y+hit_image_v[0].meta().height() << std::endl;
+        std::cout << std::endl;
 
         TH2D *hImage[3];
         TGraph *gStartNend[3];
@@ -1680,7 +1704,7 @@ namespace larcv {
         //if(_tooShortFaintTrack_v.size() != _vertexTracks.size())DiagnoseVertex();
 
 
-	//        hit_image_v = GetFullImage();
+        
         //EnhanceDerivative();
 
         TCanvas *c = new TCanvas(Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),Form("cVertex_%05d_%05d_%05d_%04d_%04d",_run,_subrun,_event,_vtxID,_track),8000,4500);
@@ -3684,7 +3708,7 @@ namespace larcv {
                     if(original_full_image_v[iPlane].pixel(irow,icol) > _ADCthreshold)summedVal+=original_full_image_v[iPlane].pixel(irow,icol);
                 }
                 if(summedVal == 0){
-                    original_full_image_v[iPlane].paint_col(icol,_deadWireValue);
+		  original_full_image_v[iPlane].paint_col(icol,_deadWireValue); // ** sets blue
                 }
             }
         }
@@ -3739,7 +3763,7 @@ namespace larcv {
         return data_images;
     }
     //______________________________________________________CHIMERA DEV
-  std::vector<larcv::Image2D> ChimeraMachinery::GetImageOneTrack(size_t trackNumber) {
+  std::tuple< std::vector<larcv::Image2D>, std::vector<std::pair<double, double>> > ChimeraMachinery::GetImageOneTrack(size_t trackNumber) {
     
     hit_image_v = GetFullImage();
 
@@ -3750,10 +3774,16 @@ namespace larcv {
     std::vector<double> xMin(3);
     std::vector<double> yMax(3);
     std::vector<double> yMin(3);
+
+    // Vector of vertex points, for each plane (3) and position in X and Y (2)
+    //    std::vector<int> vtxRowCols(2);
+    //std::vector <std::vector<double> > vtxPts(3, vtxRowCols);
     
     std::vector<std::vector<std::pair<double, double>>> projectedTrack;
+
+    vtxPts.clear();
       
-    for(size_t iPlane=0; iPlane<hit_image_v.size();iPlane++) {
+    for(size_t iPlane=0; iPlane < hit_image_v.size(); iPlane++) {
 
       xMax[iPlane] = -999;
       yMax[iPlane] = -999;
@@ -3784,9 +3814,23 @@ namespace larcv {
 	  yMin[iPlane] = y_pixel;
 	
 	planeTrack.push_back(xyPoint);
+
+	if (iPoint == 0) {
+	  //std::cout << "x_pixel and y_pixel: " << x_pixel << " " << y_pixel << std::endl;
+	  //	  std::cout << "XYPOINT FIRST!!!!!!!!! " << xyPoint.first << " XYPINT SECOND:) " << xyPoint.second << std::endl;
+	  vtxPts.push_back(xyPoint);
+
+	  //	  std::cout << "What's in the vector. X: " << vtxPts[iPlane].first << " Y: " << vtxPts[iPlane].second << std::endl;
+	  
+	  //	  vtxPts[iPlane][0] = x_pixel; 
+	  //	  vtxPts[iPlane][1] = y_pixel; 
+	  
+	}
 	
       }
       
+
+
       projectedTrack.push_back(planeTrack);
 	
     }
@@ -3797,8 +3841,8 @@ namespace larcv {
     //std::cout << "THIRD PLANE: " << "xMax: " << xMax[2]+3 << " xMin: " << xMin[2]-3 << " yMax: " << yMax[2]+3 << " yMin: " << yMin[2]-3 << std::endl;
     
       for (size_t iPlane = 0; iPlane<3; iPlane++) {
-          std::cout << "These are the boundaries of the box for this plane:" << std::endl;
-          std::cout << "xMax: " << xMax[iPlane]+3 << " xMin: " << xMin[iPlane]-3 << " yMax: " << yMax[iPlane]+3 << " yMin: " << yMin[iPlane]-3 << std::endl;
+	//          std::cout << "These are the boundaries of the box for this plane:" << std::endl;
+	// std::cout << "xMax: " << xMax[iPlane]+3 << " xMin: " << xMin[iPlane]-3 << " yMax: " << yMax[iPlane]+3 << " yMin: " << yMin[iPlane]-3 << std::endl;
           for (size_t icol = 0; icol < hit_image_v[iPlane].meta().cols(); icol++) {
               for(size_t irow = 0; irow < hit_image_v[iPlane].meta().rows(); irow++) {
                   if (hit_image_v[iPlane].pixel(irow,icol) < _ADCthreshold  || hit_image_v[iPlane].pixel(irow,icol)==_deadWireValue) continue;
@@ -3819,7 +3863,16 @@ namespace larcv {
               }
           }
       }
-      return hit_image_v;
+      /*
+      std::cout << "LAST PRINT" << std::endl;
+      std::cout << vtxPts[0].first << std::endl;
+      std::cout << vtxPts[0].second << std::endl;
+      std::cout << vtxPts[1].first << std::endl;
+      std::cout << vtxPts[1].second << std::endl;
+      std::cout << vtxPts[2].first << std::endl;
+      std::cout << vtxPts[2].second << std::endl;
+      */
+      return std::make_tuple( hit_image_v, vtxPts );
   }
   //______________________________________________________
     std::vector<std::pair<int, int> > ChimeraMachinery::GetWireTimeProjection(TVector3 point){

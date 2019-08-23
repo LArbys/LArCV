@@ -77,6 +77,7 @@ namespace larcv {
         //double NeutrinoEnergyReco;
         double Ep_t;
         double Em_t;
+        double MinLengthAllowed;
 
         int _run;
         int _subrun;
@@ -90,6 +91,7 @@ namespace larcv {
 
         int _vtx_id;
         int NtracksReco;
+        int NtracksReco_sceadded;
         std::vector<std::string> checkEvents;
         std::string _filename;
 
@@ -255,6 +257,12 @@ namespace larcv {
         std::vector<double> _Trunc_dQdX1_v_sceadded;
         std::vector<double> _Trunc_dQdX3_v_sceadded;
         std::vector<double> _IondivLength_v_sceadded;
+        std::vector<double> trackAvg15cm_x;
+        std::vector<double> trackAvg15cm_y;
+        std::vector<double> trackAvg15cm_z;
+        std::vector<double> trackAvg15cm_x_sceadded;
+        std::vector<double> trackAvg15cm_y_sceadded;
+        std::vector<double> trackAvg15cm_z_sceadded;
 
         std::vector< std::vector<double> > _trackQ3_v_sceadded;
         std::vector< std::vector<double> > _trackQ5_v_sceadded;
@@ -270,6 +278,8 @@ namespace larcv {
 
 
         std::vector<TVector3> recoEndPoints_sceadded;
+        std::vector<TVector3> trackAvg15cm;
+        std::vector<TVector3> trackAvg15cm_sceadded;
 
         float _vtx_x_sceadded;
         float _vtx_y_sceadded;
