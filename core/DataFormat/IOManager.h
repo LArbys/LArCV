@@ -36,8 +36,11 @@ namespace larcv {
     /// Three IO modes: read, write, or read-and-write
     enum IOMode_t { kREAD, kWRITE, kBOTH };
 
+    /// What is the tick order on-disk. TickForward, TickBackward. Forward is default. Backward for backwards compatibility.
+    enum TickOrder_t { kTickForward, kTickBackward };
+    
     /// Default constructor
-    IOManager(IOMode_t mode=kREAD, std::string name="IOManager");
+    IOManager(IOMode_t mode=kREAD, std::string name="IOManager", TickOrder_t tickorder=kTickBackward);
 
     /// Configuration PSet construction so you don't have to call setter functions
     IOManager(const PSet& cfg);
@@ -66,6 +69,12 @@ namespace larcv {
     
     EventBase* get_data(const ProductType_t type, const std::string& producer);
     EventBase* get_data(const ProducerID_t id);
+
+    // we provide the option to not automatically clear the write container
+    //   after saving an entry. this can help reduce the number of allocs
+    //   by allowing us to overwrite values, rather create an entirely new image.
+    //   useful if we are creating a large number of images every event
+    void donot_clear_product( const ProductType_t type, const std::string& producer );
 
     //
     // Some template class getter for auto-cast
@@ -98,6 +107,8 @@ namespace larcv {
 
     const std::vector<std::string>& file_list() const
     { return _in_file_v; }
+
+    void specify_data_read( const ProductType_t type, const std::string& name );
     
   private:
     void   set_id();
@@ -105,6 +116,7 @@ namespace larcv {
     size_t register_producer(const ProductType_t type, const std::string& name);
 
     IOMode_t    _io_mode;
+    TickOrder_t _input_tick_order;
     bool        _prepared;
     TFile*      _out_file;
     size_t      _in_tree_index;
@@ -130,9 +142,10 @@ namespace larcv {
     std::vector<larcv::ProductType_t> _read_only_type;
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
+    std::vector<bool> _clear_id_bool;
+    //std::map< larcv::ProducerID_t, bool > _image2d_id_wasreversed;
   };
 
 }
-
 #endif
 

@@ -441,4 +441,26 @@ namespace larcv {
     return norm_img;
   }
 
+  /**
+   * 
+   * we rearrange the data vector from ubdl layout in tick-forward order.
+   * note that the data continues to be stored in row-major order.
+   * as rows correspond to ticks, row-major keeps the data from a wire waveform contiguous.
+   * 
+   */
+  void Image2D::reverseTimeOrder() {
+    std::vector<float> temp( _img.size(), 0 );
+    // transpose first
+    for ( size_t col=0; col<_meta.cols(); col++ ) {
+      for ( size_t row=0; row<_meta.rows(); row++ ) {
+        temp[ _meta.index(row,col) ] = _img[ _meta.index( _meta.rows()-1-row, col ) ];
+      }
+    }
+    // copy
+    _img = temp;
+
+    // if originally in forward-tick order, then origin is in wrong spot. change it.
+    _meta.reset_origin(_meta.min_x(),_meta.max_y()+_meta.height());
+  }
+  
 }

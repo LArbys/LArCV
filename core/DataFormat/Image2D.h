@@ -141,6 +141,10 @@ namespace larcv {
     void eltwise( const Image2D& rhs );
     /// Element-wise multiplication w/ 1D array data
     void eltwise(const std::vector<float>& arr,bool allow_longer=false);
+
+    /// Reverse time-order: for compatibility with images made from LArCV1-ubdl
+    void reverseTimeOrder();
+
         
   private:
     std::vector<float> _img;
