@@ -1,3 +1,4 @@
+#!/bin/env python
 import os, sys
 
 if len(sys.argv) != 8:
