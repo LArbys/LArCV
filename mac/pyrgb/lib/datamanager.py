@@ -55,8 +55,11 @@ class DataManager(object):
                 for ikey in xrange(keys.GetEntries()):
                     keyname = str(keys.At(ikey).GetName())
                     prodname = keyname.split("_")[0]
-
-                    lcv_prodid = larcv.GetProductTypeID(prodname)
+                    if prodname == "partroi":
+                        typename = "roi" # hack need for (maybe) bug in larcv
+                    else:
+                        typename = prodname
+                    lcv_prodid = larcv.GetProductTypeID(typename)
                     fwtype = '[unrecognized]'
                     if lcv_prodid!=larcv.kProductUnknown:
                         # recognized larcv product
