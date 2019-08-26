@@ -230,6 +230,8 @@ namespace larcv {
     if(!_fout_name.empty()) {
       LARCV_NORMAL() << "Opening analysis output file " << _fout_name << std::endl;
       _fout = TFile::Open(_fout_name.c_str(),"RECREATE");
+      for ( auto& p : _proc_v )
+        p->_fout = _fout;
     }
 
     // Initialize process
