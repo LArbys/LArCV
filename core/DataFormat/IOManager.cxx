@@ -132,6 +132,8 @@ namespace larcv {
     }
 
     _input_tick_order = (!cfg.get<bool>("TickForward",false)) ? kTickBackward :  kTickForward;
+
+    _reverse_image2d_products = cfg.get<std::vector<std::string> >("ReverseImage2DList",std::vector<std::string>());
   }
 
   bool IOManager::initialize()
@@ -238,12 +240,27 @@ namespace larcv {
       in_tree_ptr->SetBranchAddress(br_name.c_str(), &(_product_ptr_v[id]));
       _in_tree_v[id] = in_tree_ptr;
       _in_tree_index_v.push_back(kINVALID_SIZE);
-
+      
       if ( type==kProductImage2D && _input_tick_order==kTickForward ) {
-        LARCV_INFO() << "  input image2d is in tick-forward order" << std::endl;
-        // register product ID
-        //_image2d_id_wasreversed.insert(std::make_pair(id,false));
-      }
+	bool reverseme = false;
+	if ( _reverse_image2d_products.size()==0 ) {
+	  reverseme = true;
+	}
+	else {
+	  for (auto const& reverse_prod : _reverse_image2d_products ) {
+	    if ( reverse_prod==name ) {
+	      reverseme = true;
+	      break;
+	    }
+	  }
+	}
+
+	if ( reverseme ) {
+	  // register product ID to be reversed
+	  LARCV_WARNING() << " input image2d [" << name << "] is in tick-forward order" << std::endl;
+	  _reverse_productid.insert( id );
+	}
+      }//if tickforward true and image
     }
 
     if(_io_mode != kREAD) {
@@ -601,15 +618,20 @@ namespace larcv {
       // if image2d and input is expected to be in reverse-tick order AND we haven't flipped it yet,
       // then we flip the row data
       if ( product_type(id)==kProductImage2D && _input_tick_order==kTickForward ) {
-        LARCV_WARNING() << "Input expected in tick-forwrd order. Reverse to tick-backward. "
-                        << "And move origin to be w.r.t bottom left" << std::endl;
-        EventImage2D* evimg = (EventImage2D*)ptr;
-        std::vector<Image2D> img_v;
-        evimg->Move(img_v);
-        for ( auto& img2d : img_v ) img2d.reverseTimeOrder();
-        evimg->Emplace(std::move(img_v));
-      }
 
+	if ( _reverse_productid.find(id)!=_reverse_productid.end() ) {
+	  LARCV_WARNING() << "Input image2d [" << _in_tree_v[id]->GetName() << "] expected in tick-forwrd order." << std::endl;
+	  LARCV_WARNING() << "Reverse to tick-backward. Move origin to be w.r.t top left" << std::endl;
+	  EventImage2D* evimg = (EventImage2D*)ptr;
+	  std::vector<Image2D> img_v;
+	  evimg->Move(img_v);
+	  for ( auto& img2d : img_v ) {
+	    img2d.reverseTimeOrder();
+	  }
+	  evimg->Emplace(std::move(img_v));
+	}
+      }
+      
     }
 
     return _product_ptr_v[id];
@@ -728,6 +750,7 @@ namespace larcv {
     for(auto& m : _key_list) m.clear();
     _clear_id_bool.clear();
     _clear_id_bool.resize(1000,true);
+    _reverse_productid.clear();
   }
 
   void IOManager::donot_clear_product( const ProductType_t type, const std::string& producer ) {

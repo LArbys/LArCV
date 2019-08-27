@@ -143,6 +143,8 @@ namespace larcv {
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
     std::vector<bool> _clear_id_bool;
+    std::vector<std::string> _reverse_image2d_products;
+    std::set< larcv::ProducerID_t > _reverse_productid;
     //std::map< larcv::ProducerID_t, bool > _image2d_id_wasreversed;
   };
 

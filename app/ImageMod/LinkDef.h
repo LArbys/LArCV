@@ -39,6 +39,7 @@
 #pragma link C++ class larcv::ROIMerger+;
 #pragma link C++ class larcv::ImageFromPixel2D+;
 #pragma link C++ class larcv::ROIPad+;
+#pragma link C++ class larcv::ProducerWiseMax+;
 
 #pragma link C++ class larcv::UnionROI+;
 #pragma link C++ class larcv::ROIClipper+;
