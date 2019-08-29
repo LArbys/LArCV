@@ -297,6 +297,15 @@ namespace larcv {
         std::string _foutll;
         std::string out_dir;
         bool _mask_shower;
+
+	// NAMES OF OUTPUT TREES
+	std::string _anatree_name;
+	std::string _anatree_sce_name;
+	std::string _out_track_prodname;
+	std::string _out_vertex_prodname;
+	std::string _out_assoc_prodname;
+	std::string _out_track_sce_prodname;
+	std::string _out_assoc_sce_prodname;
     };
 
     /**

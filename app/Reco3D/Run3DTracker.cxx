@@ -64,6 +64,26 @@ namespace larcv {
         _par_pix_producer          = cfg.get<std::string>("ParPixelProducer");
         _true_roi_producer         = cfg.get<std::string>("TrueROIProducer");
         _mask_shower               = cfg.get<bool>("MaskShower",false);
+	_anatree_name              = cfg.get<std::string>("AnaTreeName","_recoTree");
+	_anatree_sce_name          = cfg.get<std::string>("AnaTreeSCEAddedName","_recoTree_SCEadded");
+	_out_track_prodname        = cfg.get<std::string>("OutputTrackProducerName", "trackReco");
+	_out_vertex_prodname       = cfg.get<std::string>("OutputVertexProducerName","trackReco");
+	_out_assoc_prodname        = cfg.get<std::string>("OutputAssocProducerName", "trackReco");
+	_out_track_sce_prodname    = cfg.get<std::string>("OutputTrackSCEAddedProducerName", "trackReco_sceadded");
+	_out_assoc_sce_prodname    = cfg.get<std::string>("OutputAssocSCEAddedProducerName", "trackReco_sceadded");
+
+	if ( _out_track_prodname==_out_track_sce_prodname ) {
+	  LARCV_CRITICAL() << "Cannot name normal and SCE-added track producer the same" << std::endl;
+	  throw larbys("Cannot name normal and SCE-added track producer the same");
+	}
+	if ( _out_assoc_prodname==_out_assoc_sce_prodname ) {
+	  LARCV_CRITICAL() << "Cannot name normal and SCE-added association producer the same" << std::endl;
+	  throw larbys("Cannot name normal and SCE-added association producer the same");
+	}
+	if ( _anatree_name==_anatree_sce_name ) {
+	  LARCV_CRITICAL() << "Cannot name normal and SCE-added ana tree the same" << std::endl;
+	  throw larbys("Cannot name normal and SCE-added ana tree the same");
+	}
 
     }
 
