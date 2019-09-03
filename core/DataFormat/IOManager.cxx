@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "EventImage2D.h"
 #include "EventROI.h"
+#include "EventPixel2D.h"
 
 namespace larcv {
 
@@ -135,7 +136,8 @@ namespace larcv {
     _input_tick_order = (!cfg.get<bool>("TickForward",false)) ? kTickBackward :  kTickForward;
 
     _reverse_image2d_products = cfg.get<std::vector<std::string> >("ReverseImage2DList",std::vector<std::string>());
-    _reverse_roi_products     = cfg.get<std::vector<std::string> >("ReverseROIList",std::vector<std::string>());    
+    _reverse_roi_products     = cfg.get<std::vector<std::string> >("ReverseROIList",std::vector<std::string>());
+    _reverse_pixel2d_products = cfg.get<std::vector<std::string> >("ReversePixel2DList",std::vector<std::string>());
   }
 
   bool IOManager::initialize()
@@ -271,7 +273,19 @@ namespace larcv {
 	    }
 	  }
 	}
-
+	else if ( type==kProductPixel2D ) {
+	  if ( _reverse_pixel2d_products.size()==0 ) reverseme = true;
+	  else {
+	    for (auto const& reverse_prod : _reverse_pixel2d_products ) {
+	      if ( reverse_prod==name ) {
+		LARCV_WARNING() << " input Pixel2D [" << name << "] is in tick-forward order, will be reveresed" << std::endl;	      
+		reverseme = true;
+		break;
+	      }
+	    }
+	  }
+	}
+        
 	if ( reverseme ) {
 	  // register product ID to be reversed
 	  _reverse_productid.insert( id );
@@ -664,7 +678,9 @@ namespace larcv {
 	    }
 	    evroi->Set( roi_v  );
 	  }
-
+          else if ( product_type(id)==kProductPixel2D ) {
+            ((EventPixel2D*)ptr)->reverseTickOrder();
+          }
 	    
 	}
       }

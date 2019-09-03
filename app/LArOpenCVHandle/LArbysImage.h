@@ -123,6 +123,8 @@ namespace larcv {
     bool _store_shower_image;
     std::string _shower_pixel_prod;
 
+    bool _store_recon_input_images; ///< if true, we store the images seen by the vertexer (adc, shower, track). these will have been masked.
+
   };
 
   /**
