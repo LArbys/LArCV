@@ -15,6 +15,7 @@
 #define __LARCV_IMAGEMETA_H__
 
 #include <iostream>
+#include <cstdio>
 #include "larcv/core/Base/larbys.h"
 #include "DataFormatTypes.h"
 #include "Point.h"
@@ -121,9 +122,10 @@ namespace larcv {
     /// Provide absolute vertical coordinate of the center of a specified pixel row
     double pos_y   (size_t row) const { return _origin.y + pixel_height() * row; }
     /// Provide horizontal pixel index for a given horizontal x position (in absolute coordinate)
-    size_t col (double x) const;
+    size_t col (double x, const char* calling_file=__FILE__, const int calling_line=__LINE__ ) const;
+    
     /// Provide vertical pixel index for a given vertical y position (in absolute coordinate)
-    size_t row (double y) const;
+    size_t row (double y, const char* calling_file=__FILE__, const int calling_line=__LINE__ ) const;
     /// Change # of vertical/horizontal pixels in meta data
     void update(size_t row_count, size_t col_count){
       _row_count = row_count;

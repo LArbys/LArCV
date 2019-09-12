@@ -30,11 +30,14 @@ namespace larcv {
       @param[in] x-coordinate
       @return size_t column coordinate
   */
-  size_t ImageMeta::col(double x) const
+  //size_t ImageMeta::col(double x) const
+  size_t ImageMeta::col (double x, const char* calling_file, const int calling_line ) const
   {
     if(x < _origin.x || x >= (_origin.x + _width)) {
       std::stringstream ss;
-      ss << "Requested col for x=" << x << " ... but the x (rows) span only " << _origin.x << " => " << _origin.x + _width << "!" << std::endl;
+      ss << "Requested col for x=" << x << " ... but the x-dim spans only " << _origin.x << " => " << _origin.x + _width << "!"
+         << " called from " << calling_file << ":" << calling_line
+         << std::endl;
       throw larbys(ss.str());
     }
     return (size_t)((x - _origin.x) / pixel_width());
@@ -48,11 +51,13 @@ namespace larcv {
       @param[in] y-coordinate
       @return size_t row coordinate
   */
-  size_t ImageMeta::row(double y) const
+  size_t ImageMeta::row(double y, const char* calling_file, const int calling_line) const
   {
     if(y < _origin.y || y >= (_origin.y+_height) ) {
       std::stringstream ss;
-      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y << " => " << _origin.y + _height << "!" << std::endl;
+      ss << "Requested row for y=" << y << " ... but the y-dim spans only " << _origin.y << " => " << _origin.y + _height << "!"
+         << " called from " << calling_file << ":" << calling_line
+         << std::endl;
       throw larbys(ss.str());
     }
     return (size_t)((y-_origin.y) / pixel_height());

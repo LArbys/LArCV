@@ -738,8 +738,12 @@ class RGBDisplay(QtGui.QWidget):
                 imm = self.image.imgs[ix].meta()
 
                 # x,y  relative coordinate of bounding-box w.r.t. image in original unit
-                x = bbox.min_x() - imm.min_x()
-                y = bbox.min_y() - imm.min_y()
+                if self.dm.iom.tick_forward:
+                    x = bbox.min_x() - imm.min_x()
+                    y = bbox.min_y() - imm.min_y()
+                else:
+                    x = bbox.min_x() - imm.min_x()
+                    y = (bbox.min_y()-bbox.height()) - imm.min_y()
 
                 # dw_i is an image X-axis unit legnth in pixel. dh_i for
                 # Y-axis. (i.e. like 0.5 pixel/cm)
@@ -748,7 +752,8 @@ class RGBDisplay(QtGui.QWidget):
 
                 # w_b is width of a rectangle in original unit
                 w_b = bbox.max_x() - bbox.min_x()
-                h_b = bbox.max_y() - bbox.min_y()
+                #h_b = bbox.max_y() - bbox.min_y()
+                h_b = bbox.height()
 
                 ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type']))
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
@@ -973,6 +978,11 @@ class RGBDisplay(QtGui.QWidget):
             # clusters loop first
             try:
                 cluster_v = ev_pixel2d.Pixel2DClusterArray( plane )
+                meta_v    = ev_pixel2d.ClusterMetaArray(plane)
+                if meta_v.size()==cluster_v.size():
+                    has_meta = True
+                else:
+                    has_meta = False
                 print "Number of pixel2d clusters in plane[{}]: {}".format(plane,cluster_v.size())
                 for icluster in xrange(cluster_v.size()):
                     cluster = cluster_v.at(icluster)
@@ -988,6 +998,8 @@ class RGBDisplay(QtGui.QWidget):
                             pixdata_np[ipix,1] = pix2d.Y()
                         else:
                             pixdata_np[ipix,1] = meta.rows()-pix2d.Y()-1 # needed for tick-backward era objects
+
+                            
                     pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=3, pen=pencolor, pxMode=True )
                     self.plt.addItem(pix_plot)
             except:
