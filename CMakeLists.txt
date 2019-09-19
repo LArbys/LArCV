@@ -16,6 +16,7 @@ find_package(ROOT CONFIG REQUIRED)
 
 #---OPENCV
 if (USE_OPENCV)
+  set(OpenCV_DIR $ENV{OPENCV_LIBDIR}/../share/OpenCV)
   find_package(OpenCV CONFIG REQUIRED)
   if (NOT OpenCV_FOUND)
     set(USE_OPENCV 0)
