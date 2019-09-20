@@ -15,24 +15,34 @@ namespace larcv {
     return ( col * _row_count + row );
   }
 
-  size_t ImageMeta::col(double x) const
+  long ImageMeta::col(double x, const char* callfrom_file, const int callfrom_line ) const
   {
     if(x < _origin.x || x >= (_origin.x + _width)) {
       std::stringstream ss;
-      ss << "Requested col for x=" << x << " ... but the x (rows) span only " << _origin.x << " => " << _origin.x + _width << "!" << std::endl;
+      ss << "Requested col for x=" << x << " ... but the x (rows) span only " << _origin.x << " => " << _origin.x + _width << "!";
+      if ( std::string(callfrom_file)=="ImageMeta.h" )
+        ss << " call this using ImageMeta::col( x, __FILE__, __LINE__ ) to get info on the location of the bad call.";
+      else
+        ss << " calling from: " << __FILE__ << ":" << __LINE__;
+      ss << std::endl;
       throw larbys(ss.str());
     }
-    return (size_t)((x - _origin.x) / pixel_width());
+    return (long)((x - _origin.x) / pixel_width());
   }
 
-  size_t ImageMeta::row(double y) const
+  long ImageMeta::row(double y, const char* callfrom_file, const int callfrom_line ) const
   {
     if(y <= (_origin.y - _height) || y > _origin.y) {
       std::stringstream ss;
-      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y - _height << " => " << _origin.y << "!" << std::endl;
+      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y - _height << " => " << _origin.y << "!";
+      if ( std::string(callfrom_file)=="ImageMeta.h" )
+        ss << " call this using ImageMeta::col( x, __FILE__, __LINE__ ) to get info on the location of the bad call.";
+      else
+        ss << " calling from: " << __FILE__ << ":" << __LINE__;
+      ss << std::endl;
       throw larbys(ss.str());
     }
-    return (size_t)((_origin.y - y) / pixel_height());
+    return (long)((_origin.y - y) / pixel_height());
   }
 
   ImageMeta ImageMeta::overlap(const ImageMeta& meta) const
