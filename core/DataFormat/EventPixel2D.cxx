@@ -150,8 +150,11 @@ namespace larcv {
         auto& reverse = meta_v[icluster];
 
         for ( auto& pix : cluster ) {
-          float tick = meta.min_y() + meta.pixel_height()*pix.Y(); // originally tick forward
-          pix.Y( reverse.row(tick) ); // use tick-backward meta to find new row
+          float tick = meta.min_y() + meta.pixel_height()*(pix.Y()+1); // originally tick forward
+	  if ( tick<meta.max_y() )
+	    pix.Y( reverse.row(tick, __FILE__, __LINE__ ) ); // use tick-backward meta to find new row
+	  else if ( tick>=meta.max_y() )
+	    pix.Y( 0 );
         }
       }
 
