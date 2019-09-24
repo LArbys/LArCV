@@ -201,7 +201,10 @@ class ROIToolLayout(QtGui.QGridLayout):
         for event in xrange(max_):
 
             if not event in self.captured_rse_map.keys():
-                continue
+                print "Event ",event," not in captured RSE map. filling in: map[",int(self.event.text()),"] = ",(self.run,self.subrun,self.event_num)
+                self.captured_rse_map[int(self.event.text())] = (self.run,self.subrun,self.event_num)                
+
+                #continue
 
             if len(self.labeltools.stored_labels)>0:
                 label_array  = self.ou_iom.get_data(larcv.kProductPixel2D,self.output_prod)
@@ -267,7 +270,10 @@ class ROIToolLayout(QtGui.QGridLayout):
                 
             # Save them to the tree
             out_rse = self.captured_rse_map[event]
-            print 'Saving RSE =',out_rse
+            print 'Saving event[',event,'] RSE =',out_rse
+            if out_rse[0]==18446744073709551615:
+                out_rse = (0,0,event)
+
             self.ou_iom.set_id(out_rse[0],out_rse[1],out_rse[2])
             self.ou_iom.save_entry()
 

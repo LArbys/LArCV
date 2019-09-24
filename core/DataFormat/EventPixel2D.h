@@ -83,6 +83,8 @@ namespace larcv {
     void Emplace(const larcv::PlaneID_t plane, Pixel2DCluster&& cluster, const ImageMeta&);
 #endif
 
+    void reverseTickOrder(); ///< convert tick-forward pixel order to tick-backward (hack during ubdl/dllee_unified transition)
+
   private:
 
     std::map< ::larcv::PlaneID_t, std::vector< ::larcv::Pixel2D > >        _pixel_m;

@@ -71,6 +71,7 @@ namespace larcv {
       _shower_pixel_prod = cfg.get<std::string>("ShowerPixelProducer");
       assert(!_shower_pixel_prod.empty());
     }
+    _store_recon_input_images = cfg.get<bool>("StoreReconInputImages",false);
 
     return;
   }
@@ -363,6 +364,29 @@ namespace larcv {
 				       crop_chstat_image_v);
 	
 	status = status && StoreParticles(mgr,crop_adc_image_v,pidx);
+
+        if ( _store_recon_input_images ) {
+          auto event_recoinput_adc = (EventImage2D*)mgr.get_data(kProductImage2D,"vtxinput_adc");
+          auto event_recoinput_shr = (EventImage2D*)mgr.get_data(kProductImage2D,"vtxinput_shr");
+          auto event_recoinput_trk = (EventImage2D*)mgr.get_data(kProductImage2D,"vtxinput_trk");
+
+          for ( size_t p=0; p<crop_adc_image_v.size(); p++ ) {
+            // embed in original meta for easier display?
+            auto const& orig_image = adc_image_v[p];
+            larcv::Image2D inputadc( orig_image.meta() );
+            inputadc.overlay( crop_adc_image_v[p], larcv::Image2D::kOverWrite );
+            event_recoinput_adc->Emplace( std::move(inputadc) );
+            
+            larcv::Image2D inputshr( orig_image.meta() );
+            inputshr.overlay( crop_shower_image_v[p], larcv::Image2D::kOverWrite );
+            event_recoinput_shr->Emplace( std::move(inputshr) );
+                                       
+            larcv::Image2D inputtrk( orig_image.meta() );
+            inputtrk.overlay( crop_track_image_v[p], larcv::Image2D::kOverWrite );
+            event_recoinput_trk->Emplace( std::move(inputtrk) );
+          }
+        }
+        
 
       } // end loop over ROI
     } // end image fed to reco
