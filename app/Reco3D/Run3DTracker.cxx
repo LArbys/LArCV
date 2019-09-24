@@ -295,7 +295,7 @@ namespace larcv {
         _recoTree_SCEadded->Branch("ProtonEndPoint_Z", &_ProtonEndPoint_Z, "ProtonEndPoint_Z/D");
         _recoTree_SCEadded->Branch("ElectronEndPoint_Z", &_ElectronEndPoint_Z, "ElectronEndPoint_Z/D");
     }
-    
+
     void Run3DTracker::initialize()
     {
         LARCV_INFO() << "[Run3DTracker]" << std::endl;
@@ -520,7 +520,7 @@ namespace larcv {
                     std::cout << "trial #" << Ntrials << "/"<< NtotalTrials <<" GoodVertex = " << GoodVertex << std::endl;
                     if(GoodVertex || Ntrials == NtotalTrials)break;
                 }
-                
+
                 auto recoedVertex = tracker.GetReconstructedVertexTracks();
 
                 NtracksReco = 0;
@@ -658,9 +658,9 @@ namespace larcv {
                 auto recoedVertex_sceadded = tracker.GetReconstructedVertexTracks();
                 NtracksReco_sceadded = 0;
                 for(size_t itrack = 0; itrack<recoedVertex_sceadded.size();itrack++){
-                    ass_vertex_to_track_sceadded_v.push_back(ev_track->size());
+                    ass_vertex_to_track_sceadded_v.push_back(ev_track_sceadded->size());
                     recoedVertex_sceadded[itrack].set_track_id(TrackID);
-                    (*ev_track).push_back(recoedVertex_sceadded[itrack]);
+                    (*ev_track_sceadded).push_back(recoedVertex_sceadded[itrack]);
                     _trk_id_v.push_back(TrackID);
                     TrackID++;
                     if(recoedVertex_sceadded[itrack].Length(0) > MinLengthAllowed){NtracksReco_sceadded++;}
@@ -768,7 +768,7 @@ namespace larcv {
 
         // set the ass
         ev_ass->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_vv);
-        ev_ass_scedradded->set_association(ev_vertex->id(),ev_track->id(), ass_vertex_to_track_sceadded_vv);
+        ev_ass_scedradded->set_association(ev_vertex->id(),ev_track_sceadded->id(), ass_vertex_to_track_sceadded_vv);
 
         advance_larlite();
         std::cout << "...Reconstruted..." << std::endl;
@@ -972,17 +972,17 @@ namespace larcv {
         _MuonEndPoint_Z = -1.0*kINVALID_DOUBLE;
         _ProtonEndPoint_Z = -1.0*kINVALID_DOUBLE;
         _ElectronEndPoint_Z = -1.0*kINVALID_DOUBLE;
-        
+
         _Ep_t = -1.0*kINVALID_DOUBLE;
         _Em_t = -1.0*kINVALID_DOUBLE;
         _Ee_t = -1.0*kINVALID_DOUBLE;
-        
+
         MCvertex.SetXYZ(-1,-1,-1);
         if(MCVertices.size()!=0)MCVertices.clear();
-        
+
         ClearVertex();
     }
-    
+
     void Run3DTracker::ClearVertex() {
         _vtx_id = -1.0 * kINVALID_INT;
         _vtx_x  = -1.0 * kINVALID_FLOAT;
@@ -1025,7 +1025,7 @@ namespace larcv {
         _trackQ5_v_sceadded.clear();
         _trackQ3_v.clear();
         _trackQ3_v_sceadded.clear();
-        
+
     }
 
 }
