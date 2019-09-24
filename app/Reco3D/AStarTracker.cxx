@@ -1363,7 +1363,9 @@ namespace larcv {
                     for(size_t icol=0;icol<hit_image_v[iPlane].meta().cols();icol++){
                         if(icol<x_proj-20 || icol>x_proj+20)continue;
                         if(sqrt( pow(irow+0.5-y_proj,2)+pow(icol+0.5-x_proj,2) ) < shellPix){
-                            if(hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue && hit_image_v[iPlane].pixel(irow,icol)!=0){
+                            if(hit_image_v[iPlane].pixel(irow,icol) != _deadWireValue
+                               && hit_image_v[iPlane].pixel(irow,icol)!=0
+                               && hit_image_v[iPlane].pixel(irow,icol) != recoveredvalue){
                                 Npx++;
                                 dQdx_per_plane+= hit_image_v[iPlane].pixel(irow,icol);
 
@@ -3428,7 +3430,7 @@ namespace larcv {
 
         double phi,theta;// angles w.r.t. the detector phi is in the (X,Y) plane => azimuthal angle, theta is w.r.t the Z axis => polar angle.
 
-
+        if(_Track15cmAvgPt.size()!=0)_Track15cmAvgPt.clear();
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             if(_vertexTracks[itrack][0] == start_pt){
                 NtracksAtVertex++;
@@ -3731,7 +3733,7 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::MakeDeadWireList(){
         std::cout << "MakeDeadWireList()" << std::endl;
-        if(_deadWires_v.size()!=0){std::cout << "dead wires already acqured for this image" << std::endl;return;}
+        if(_deadWires_v.size()!=0){std::cout << "dead wires already acquired for this image" << std::endl;return;}
         // find dead/bad wires and paint them with 20
         for(size_t iPlane=0;iPlane<3;iPlane++){
             std::vector<double> deadWires_oneplane;
@@ -3942,7 +3944,7 @@ namespace larcv {
     void AStarTracker::RecoverFromFail(){
         tellMe("RecoverFromFail()",0);
         double x,y,z;
-        double recoveredvalue = _deadWireValue+100;
+        recoveredvalue = _deadWireValue+100;
         bool recoverFromFaint = false;
         bool recoverFromDead = true;
         int NpointAveragedOn = 0;
