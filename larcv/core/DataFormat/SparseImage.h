@@ -46,9 +46,13 @@ namespace larcv {
     void index(ImageIndex_t n) { _id = n; }
 
     /// Get Data
-    unsigned int nfeatures() const { return _nfeatures; }; ///< features excludes coord points
+    int nfeatures() const { return _nfeatures; }; ///< features excludes coord points
+    int stride() const { return _nfeatures+2; };
     const std::vector<float>& pixellist() const { return _pixelarray; };
     std::vector<float>& mutable_pixellist() { return _pixelarray; };
+
+    /// Get point feature
+    float getfeature( int point_index, int feature_index ) const { return _pixelarray[ point_index*stride() + feature_index ]; };
 
     const larcv::ImageMeta& meta(int feature_index) const {
       return _meta_v.at(feature_index);

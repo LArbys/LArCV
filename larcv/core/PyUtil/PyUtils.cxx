@@ -736,16 +736,17 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    * @return a numpy array with shape (N,F) where N is number of points
    *         and F is number of features. First two values are (row,col)
    */
-  PyObject* as_ndarray( const larcv::SparseImage& sparseimg,
-                        larcv::msg::Level_t verbosity ) {
+  PyObject* as_sparseimg_ndarray( const larcv::SparseImage& sparseimg,
+                                  larcv::msg::Level_t verbosity ) {
 
     larcv::SetPyUtil();
 
     size_t stride = 2+sparseimg.nfeatures();
     size_t npts   = sparseimg.pixellist().size()/stride;
-    if ( verbosity==larcv::msg::kDEBUG )
+    if ( verbosity==larcv::msg::kDEBUG ) {
       larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << " npts=" << npts << " stride=" << stride << std::endl;
+    }
 
     npy_intp *dim_data = new npy_intp[2];
     dim_data[0] = npts;
@@ -761,9 +762,10 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     }
 
 
-    if ( verbosity==larcv::msg::kDEBUG )
+    if ( verbosity==larcv::msg::kDEBUG ) {
       larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "fill array with " << npts << " points" << std::endl;
+    }
 
     for ( size_t ipt=0; ipt<npts; ipt++ ) {
       for ( size_t ifeat=0; ifeat<stride; ifeat++ ) {
@@ -771,9 +773,10 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
       }
     }
 
-    if ( verbosity==larcv::msg::kDEBUG )
+    if ( verbosity==larcv::msg::kDEBUG ) {
       larcv::logger::get("pyutils::as_ndarray(sparseimg)").send( larcv::msg::kDEBUG, __FUNCTION__, __LINE__, __FILE__ )
         << "returned array" << std::endl;
+    }
 
     return (PyObject*)array;
 

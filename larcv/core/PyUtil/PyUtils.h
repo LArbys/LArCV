@@ -75,8 +75,8 @@ namespace larcv {
                                  const larcv::Image2D& img3,
                                  const float threshold, larcv::msg::Level_t verbosity );
 
-  PyObject* as_ndarray( const larcv::SparseImage&,
-                        larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
+  PyObject* as_sparseimg_ndarray( const larcv::SparseImage&,
+                                  larcv::msg::Level_t verbosity=larcv::msg::kNORMAL );
 
 
   SparseImage sparseimg_from_ndarray( PyObject*,
