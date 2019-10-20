@@ -141,7 +141,7 @@ namespace larcv {
       for ( size_t icluster=0; icluster<pixcluster_v.size(); icluster++ ) {
         auto& cluster = pixcluster_v[icluster];
         auto& meta = meta_v[icluster];
-        auto& reverse = meta_v[icluster];
+        auto& reverse = reverse_meta_v[icluster];
 
         float old_max = meta.min_y(); // old origin was at max
         float old_min = meta.min_y() - meta.height();
@@ -151,7 +151,11 @@ namespace larcv {
 	    pix.Y( reverse.row(tick, __FILE__, __LINE__ ) ); // use tick-backward meta to find new row
           else {
             //outside the new meta?
-            LARCV_CRITICAL() << "reversed pixel outside the new (tick-forward meta)" << std::endl;
+            LARCV_CRITICAL() << "reversed pixel outside the new (tick-forward meta): "
+                             << " old-range=[" << old_min << "," << old_max << "] "
+                             << " new-range=[" << reverse.min_y() << "," << reverse.max_y() << "]"
+                             << " tick=" << tick
+                             << std::endl;
             assert(false);
           }
         }

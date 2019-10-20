@@ -104,8 +104,8 @@ class DLVertexParser:
                         cluster = cluster_v.at(icluster)
                         meta    = meta_v.at(icluster)
 
-                        if not tickforward:
-                            meta_tick = meta.min_y()-meta.height()
+                        #if not tickforward:
+                        #    meta_tick = meta.min_y()-meta.height()
                         
                         pixdata_np  = np.zeros( (cluster.size()+1,2) )
                         #print "Number of pixels in cluster[{}]: {}".format(icluster,cluster.size())
@@ -114,10 +114,8 @@ class DLVertexParser:
                         for ipix in xrange(cluster.size()):
                             pix2d = cluster.at(ipix)
                             pixdata_np[ipix,0] = meta.min_x()+pix2d.X()
-                            if tickforward:
-                                pixdata_np[ipix,1] = meta.min_y()/6 + pix2d.Y()
-                            else:
-                                pixdata_np[ipix,1] = (meta_tick-2400)/6 + meta.height()/6 - pix2d.Y() # needed for tick-backward era objects
+                            pixdata_np[ipix,1] = (meta.min_y()-2400)/6 + pix2d.Y()
+                            
                             if ipix==0:
                                 pixdata_np[cluster.size(),0] = pixdata_np[ipix,0]
                                 pixdata_np[cluster.size(),1] = pixdata_np[ipix,1]

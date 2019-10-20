@@ -738,12 +738,12 @@ class RGBDisplay(QtGui.QWidget):
                 imm = self.image.imgs[ix].meta()
 
                 # x,y  relative coordinate of bounding-box w.r.t. image in original unit
-                if self.dm.iom.tick_forward:
-                    x = bbox.min_x() - imm.min_x()
-                    y = bbox.min_y() - imm.min_y()
-                else:
-                    x = bbox.min_x() - imm.min_x()
-                    y = (bbox.min_y()-bbox.height()) - imm.min_y()
+                #if self.dm.iom.tick_forward:
+                x = bbox.min_x() - imm.min_x()
+                y = bbox.min_y() - imm.min_y()
+                #else:
+                #    x = bbox.min_x() - imm.min_x()
+                #    y = (bbox.min_y()-bbox.height()) - imm.min_y()
 
                 # dw_i is an image X-axis unit legnth in pixel. dh_i for
                 # Y-axis. (i.e. like 0.5 pixel/cm)
@@ -994,11 +994,7 @@ class RGBDisplay(QtGui.QWidget):
                     for ipix in xrange(cluster.size()):
                         pix2d = cluster.at(ipix)
                         pixdata_np[ipix,0] = pix2d.X()
-                        if self.dm.iom.tick_forward:
-                            pixdata_np[ipix,1] = pix2d.Y()
-                        else:
-                            pixdata_np[ipix,1] = meta.rows()-pix2d.Y()-1 # needed for tick-backward era objects
-
+                        pixdata_np[ipix,1] = pix2d.Y()
                             
                     pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=3, pen=pencolor, pxMode=True )
                     self.plt.addItem(pix_plot)
@@ -1017,10 +1013,8 @@ class RGBDisplay(QtGui.QWidget):
                 for ipix in xrange(pix_v.size()):
                     pix2d = pix_v.at(ipix)
                     pixdata_np[ipix,0] = pix2d.X()
-                    if self.dm.iom.tick_forward:
-                        pixdata_np[ipix,1] = pix2d.Y()
-                    else:
-                        pixdata_np[ipix,1] = meta.rows()-pix2d.Y()-1
+                    pixdata_np[ipix,1] = pix2d.Y()
+
                 pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=10, pen=pencolor, pxMode=True )
                 self.plt.addItem(pix_plot)
 
