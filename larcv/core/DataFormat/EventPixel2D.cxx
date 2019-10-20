@@ -1,6 +1,8 @@
 #ifndef EVENTPIXEL2D_CXX
 #define EVENTPIXEL2D_CXX
 
+#include <assert.h>
+
 #include "EventPixel2D.h"
 #include "larcv/core/Base/larcv_logger.h"
 #include "larcv/core/Base/larbys.h"
@@ -120,6 +122,46 @@ namespace larcv {
     col.back()._id = col.size() - 1;
     _cluster_meta_m[plane].push_back(meta);
   }
+
+  void EventPixel2D::reverseTickOrder() {
+    // reverse the tick orientation for the pixel clusters in the container
+    for ( auto it = _cluster_m.begin(); it!=_cluster_m.end(); it++ ) {
+      auto& pixcluster_v = it->second;
+      auto& meta_v       = _cluster_meta_m[it->first];
+
+      // first make copy of meta with time reversal
+      std::vector<larcv::ImageMeta> reverse_meta_v;
+      for ( auto& meta : meta_v ) {
+        larcv::ImageMeta reverse(meta);
+        reverse.reset_origin( meta.min_x(), meta.min_y() - meta.height() );
+        reverse_meta_v.emplace_back( std::move(reverse ) );
+      }
+
+      // now reverse the pixels
+      for ( size_t icluster=0; icluster<pixcluster_v.size(); icluster++ ) {
+        auto& cluster = pixcluster_v[icluster];
+        auto& meta = meta_v[icluster];
+        auto& reverse = meta_v[icluster];
+
+        float old_max = meta.min_y(); // old origin was at max
+        float old_min = meta.min_y() - meta.height();
+        for ( auto& pix : cluster ) {
+          float tick = meta.min_y() - meta.pixel_height()*(pix.Y()); // originally tick-backward
+	  if ( tick>=reverse.min_y() && tick<reverse.max_y() )
+	    pix.Y( reverse.row(tick, __FILE__, __LINE__ ) ); // use tick-backward meta to find new row
+          else {
+            //outside the new meta?
+            LARCV_CRITICAL() << "reversed pixel outside the new (tick-forward meta)" << std::endl;
+            assert(false);
+          }
+        }
+      }
+      
+      // replace old metas
+      std::swap( meta_v, reverse_meta_v );
+    }
+  }
+  
 }
 
 #endif

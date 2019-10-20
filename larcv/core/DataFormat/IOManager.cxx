@@ -8,6 +8,8 @@
 #include <algorithm>
 #include "EventImage2D.h"
 #include "EventClusterMask.h"
+#include "EventROI.h"
+#include "EventPixel2D.h"
 
 namespace larcv {
 
@@ -31,6 +33,9 @@ namespace larcv {
     , _product_ctr      (0)
     , _product_ptr_v    ()
     , _product_type_v   ()
+    ,_reverse_all_image2d_products(false)
+    ,_reverse_all_roi_products(false)
+    ,_reverse_all_pixel2d_products(false)
   { reset(); }
 
   IOManager::IOManager(const PSet& cfg)
@@ -133,7 +138,35 @@ namespace larcv {
     }
 
     _input_tick_order = (!cfg.get<bool>("TickBackward",false)) ? kTickForward :  kTickBackward;
-  }
+
+    // tick-reversal products
+    // we first check if "all" is provided
+    std::vector< std::string >* reverse_list_v[3] = { &_reverse_image2d_products,
+                                                      &_reverse_roi_products,
+                                                      &_reverse_pixel2d_products };
+    bool* reverse_all[3] = { &_reverse_all_image2d_products,
+                             &_reverse_all_roi_products,
+                             &_reverse_all_pixel2d_products };
+    std::vector< std::string >  reverse_keynames_v = { "ReverseImage2DList",
+                                                       "ReverseROIList",
+                                                       "ReversePixel2DList" };
+    for (int i=0; i<3; i++ ) {
+      try {
+        std::string isall = cfg.get<std::string >(reverse_keynames_v[i]);
+        if (isall=="ALL" || isall=="all" || isall=="All") {
+          (*reverse_all[i]) = true;
+        }
+        else {
+          throw std::runtime_error("not a proper command");
+        }
+      }
+      catch (...) {
+        // get the list
+        (*reverse_list_v[i]) = cfg.get<std::vector<std::string> >(reverse_keynames_v[i],std::vector<std::string>());
+      }
+    }
+    
+  }// end of configure(const larcv::PSet&)
 
   bool IOManager::initialize()
   {
@@ -240,11 +273,56 @@ namespace larcv {
       _in_tree_v[id] = in_tree_ptr;
       _in_tree_index_v.push_back(kINVALID_SIZE);
 
-      if ( type==kProductImage2D && _input_tick_order==kTickBackward ) {
-        LARCV_INFO() << "  input image2d is in tick-backward order" << std::endl;
-        // register product ID
-        //_image2d_id_wasreversed.insert(std::make_pair(id,false));
-      }
+      // We determine if the product has been marked to have tick-order reversed
+      if ( _input_tick_order==kTickBackward ) {
+        
+ 	bool reverseme = false;
+ 	if ( type==kProductImage2D ) {
+ 	  if ( _reverse_all_image2d_products ) {
+ 	    reverseme = true;
+ 	  }
+          else {
+ 	    for (auto const& reverse_prod : _reverse_image2d_products ) {
+ 	      if ( reverse_prod==name ) {
+ 		reverseme = true;
+ 		LARCV_WARNING() << " input image2d [" << name << "] is in tick-backward order, will be reveresed" << std::endl;
+ 		break;
+ 	      }
+ 	    }
+ 	  }
+ 	}
+ 	else if ( type==kProductROI ) {
+ 	  if ( _reverse_all_roi_products ) reverseme = true;
+ 	  else {
+ 	    for (auto const& reverse_prod : _reverse_roi_products ) {
+ 	      if ( reverse_prod==name ) {
+ 		LARCV_WARNING() << " input ROI [" << name << "] is in tick-backward order, will be reveresed" << std::endl;	      
+ 		reverseme = true;
+ 		break;
+ 	      }
+ 	    }
+ 	  }
+ 	}
+ 	else if ( type==kProductPixel2D ) {
+ 	  if ( _reverse_all_pixel2d_products ) reverseme = true;
+ 	  else {
+ 	    for (auto const& reverse_prod : _reverse_pixel2d_products ) {
+ 	      if ( reverse_prod==name ) {
+ 		LARCV_WARNING() << " input Pixel2D [" << name << "] is in tick-backward order, will be reveresed" << std::endl;	      
+ 		reverseme = true;
+ 		break;
+ 	      }
+ 	    }
+ 	  }
+ 	}
+         
+ 	if ( reverseme ) {
+ 	  // register product ID to be reversed
+ 	  _reverse_productid.insert( id );
+ 	}
+ 	
+      }//if tickbackward
+      
     }
 
     if(_io_mode != kREAD) {
@@ -601,17 +679,45 @@ namespace larcv {
 
       // if image2d and input is expected to be in reverse-tick order AND we haven't flipped it yet,
       // then we flip the row data
-      if ( product_type(id)==kProductImage2D && _input_tick_order==kTickBackward ) {
-        LARCV_DEBUG() << "Input expected in tick-backward order. Reverse. "
-                      << "And move origin to be w.r.t bottom left" << std::endl;
-        EventImage2D* evimg = (EventImage2D*)ptr;
-        std::vector<Image2D> img_v;
-        evimg->Move(img_v);
-        for ( auto& img2d : img_v ) img2d.reverseTimeOrder();
-        evimg->Emplace(std::move(img_v));
-      }
+      if ( _input_tick_order==IOManager::kTickBackward ) {
 
-    }
+	if ( _reverse_productid.find(id)!=_reverse_productid.end() ) {
+
+	  if (  product_type(id)==kProductImage2D ) {
+	    LARCV_WARNING() << "Input image2d [" << _in_tree_v[id]->GetName() << "] expected in tick-backward order." << std::endl;
+	    LARCV_WARNING() << "Reverse to tick-forward. Move origin to be w.r.t bottom left" << std::endl;
+	    EventImage2D* evimg = (EventImage2D*)ptr;
+	    std::vector<Image2D> img_v;
+	    evimg->Move(img_v);
+	    for ( auto& img2d : img_v ) {
+	      img2d.reverseTimeOrder();
+	    }
+	    evimg->Emplace(std::move(img_v));
+	  }
+	  else if (  product_type(id)==kProductROI ) {
+
+	    // make copy
+	    EventROI* evroi = (EventROI*)ptr;
+	    std::vector<larcv::ROI> roi_v = evroi->ROIArray();
+	    for ( auto& roi : roi_v ) {
+	      // copy of BB
+	      std::vector<larcv::ImageMeta> bb_v = roi.BB();
+	      for ( auto& bb : bb_v ) {
+		bb.reset_origin( bb.min_x(), bb.min_y() - bb.height() );
+	      }
+	      roi.SetBB(bb_v); // replace
+	    }
+	    evroi->Set( roi_v  );
+            
+	  }
+          else if ( product_type(id)==kProductPixel2D ) {
+            ((EventPixel2D*)ptr)->reverseTickOrder();
+          }
+	    
+	}
+      }//end if tick-backward flag on
+      
+    }// READ NEW INPUT ENTRY
 
     return _product_ptr_v[id];
   }
@@ -729,6 +835,13 @@ namespace larcv {
     for(auto& m : _key_list) m.clear();
     _clear_id_bool.clear();
     _clear_id_bool.resize(1000,true);
+    _reverse_productid.clear();
+    _reverse_all_image2d_products = false;
+    _reverse_all_roi_products = false;
+    _reverse_all_pixel2d_products = false;
+    _reverse_image2d_products.clear();
+    _reverse_roi_products.clear();
+    _reverse_pixel2d_products.clear();
   }
 
   void IOManager::donot_clear_product( const ProductType_t type, const std::string& producer ) {
@@ -756,6 +869,12 @@ namespace larcv {
                                      const std::string& producername ) {
     _read_only_name.push_back( producername );
     _read_only_type.push_back( type );
+  }
+
+  void IOManager::reverse_all_products() {
+    _reverse_all_image2d_products = true;
+    _reverse_all_roi_products = true;
+    _reverse_all_pixel2d_products = true;
   }
 
 }

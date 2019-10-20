@@ -17,6 +17,9 @@ class IOManager(object):
         self.iom.logger().send( larcv.msg.kINFO, "IOManager").write( "assuming tick-backward order for image2d\n",
                                                                      len("assuming tick-backward order for image2d\n") )
 
+        if not self.tick_forward:
+            self.iom.reverse_all_products()
+
         for f in infiles :
             self.iom.add_in_file(f)
                 

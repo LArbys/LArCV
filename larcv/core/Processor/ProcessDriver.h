@@ -77,6 +77,8 @@ namespace larcv {
 
     size_t get_tree_index( size_t entry ) const;
 
+    ProcessBase* process_ptr_mutable( ProcessID_t id );
+
   private:
 
     bool _process_entry_( bool autosave_entry=true );

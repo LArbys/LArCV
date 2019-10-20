@@ -63,6 +63,7 @@ namespace larcv {
     void clear_entry();
     void set_id(const size_t run, const size_t subrun, const size_t event);
     size_t current_entry() const { return _in_tree_index; }
+    void reverse_all_products();
     
     size_t get_n_entries() const
     { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
@@ -143,7 +144,18 @@ namespace larcv {
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
     std::vector<bool> _clear_id_bool;
-    //std::map< larcv::ProducerID_t, bool > _image2d_id_wasreversed;
+
+    // name of trees whose data needs to have their tick direction reversed (backwards to forwards)
+    std::vector<std::string> _reverse_image2d_products;
+    std::vector<std::string> _reverse_roi_products;
+    std::vector<std::string> _reverse_pixel2d_products;
+    bool _reverse_all_image2d_products;
+    bool _reverse_all_roi_products;
+    bool _reverse_all_pixel2d_products;
+    
+    // ID number of data product that will be reversed
+    std::set< larcv::ProducerID_t > _reverse_productid;
+    
   };
 
 }

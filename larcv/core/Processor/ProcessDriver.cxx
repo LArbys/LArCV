@@ -87,6 +87,16 @@ namespace larcv {
     return _proc_v[id];
   }
 
+  ProcessBase* ProcessDriver::process_ptr_mutable(size_t id)
+  {
+    LARCV_DEBUG() << "Called" << std::endl;
+    if(id >= _proc_v.size()) {
+      LARCV_CRITICAL() << "Invalid ID requested: " << id << std::endl;
+      throw larbys();
+    }
+    return _proc_v[id];
+  }
+  
   void ProcessDriver::configure(const std::string config_file)
   {
     LARCV_DEBUG() << "Called" << std::endl;
