@@ -146,7 +146,10 @@ namespace larcv {
         float old_max = meta.min_y(); // old origin was at max
         float old_min = meta.min_y() - meta.height();
         for ( auto& pix : cluster ) {
-          float tick = meta.min_y() - meta.pixel_height()*(pix.Y()); // originally tick-backward
+          float tick = meta.min_y() - meta.pixel_height()*((int)pix.Y()+1); // originally tick-backward
+          if ( tick==reverse.max_y() )
+            tick -= meta.pixel_height();
+
 	  if ( tick>=reverse.min_y() && tick<reverse.max_y() )
 	    pix.Y( reverse.row(tick, __FILE__, __LINE__ ) ); // use tick-backward meta to find new row
           else {
