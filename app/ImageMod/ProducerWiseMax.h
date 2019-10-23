@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __CHANNELMAX_H__
-#define __CHANNELMAX_H__
+#ifndef __PRODUCERWISE_MAX_H__
+#define __PRODUCERWISE_MAX_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"

@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __IMAGEFROMPIXEL2D_H__
-#define __IMAGEFROMPIXEL2D_H__
+#ifndef __IMAGE_FROM_PIXEL2D_CLUSTER_H__
+#define __IMAGE_FROM_PIXEL2D_CLUSTER_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"

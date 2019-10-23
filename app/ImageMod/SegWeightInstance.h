@@ -11,8 +11,8 @@
 /** \addtogroup Package_Name
 
     @{*/
-#ifndef __SEGWEIGHTTRACKSHOWER_H__
-#define __SEGWEIGHTTRACKSHOWER_H__
+#ifndef __SEGWEIGHT_INSTANCE_H__
+#define __SEGWEIGHT_INSTANCE_H__
 
 #include "Processor/ProcessBase.h"
 #include "Processor/ProcessFactory.h"
