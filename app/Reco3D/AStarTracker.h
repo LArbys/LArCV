@@ -266,6 +266,7 @@ namespace larcv {
         int randomSeed;
 
         double _ADCthreshold;
+        double recoveredvalue;
         double _speedOffset;
         double _Length3D;
         double _MinLength;
