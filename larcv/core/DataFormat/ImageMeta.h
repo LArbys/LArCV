@@ -108,7 +108,7 @@ namespace larcv {
     double pixel_height () const { return (_row_count ? _height / (double)_row_count : 0.); }
 
     /// Provide 1-D array index from row and column
-    size_t index( size_t row, size_t col ) const;
+    size_t index( size_t row, size_t col, const char* calling_file=0, const int calling_line=0 ) const;
     /// Provide absolute scale min x
     double min_x() const { return _origin.x; }
     /// Provide absolute scale max x

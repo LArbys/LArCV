@@ -62,7 +62,7 @@ namespace larcv {
     /// Size of data, equivalent of # rows x # columns
     size_t size() const { return _img.size(); }
     /// Specific pixel value getter
-    float pixel(size_t row, size_t col) const;
+    float pixel(size_t row, size_t col,  const char* calling_file=__FILE__, const int calling_line=__LINE__ ) const;
     /// larcv::ImageMeta const reference getter
     const ImageMeta& meta() const { return _meta; }
     /// Compress image data and returns compressed data 1D array

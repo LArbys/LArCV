@@ -70,11 +70,11 @@
 
 #pragma link C++ class larcv::BBox2D+;
 #pragma link C++ class std::vector<larcv::BBox2D>+;
-#pragma link C++ class larcv::EventBBox2D+;
+//#pragma link C++ class larcv::EventBBox2D+;
 
 #pragma link C++ class larcv::BBox3D+;
 #pragma link C++ class std::vector<larcv::BBox3D>+;
-#pragma link C++ class larcv::EventBBox3D+;
+//#pragma link C++ class larcv::EventBBox3D+;
 
 #pragma link C++ class larcv::ClusterMask+;
 #pragma link C++ class std::vector<larcv::ClusterMask>+;

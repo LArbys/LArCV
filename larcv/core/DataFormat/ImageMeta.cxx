@@ -12,11 +12,15 @@ namespace larcv {
      @param[in] col column in 2D pixel coordinates
      @return int index of data vector (col-major), i.e. col*rows()+row
   */  
-  size_t ImageMeta::index( size_t row, size_t col ) const {
+  size_t ImageMeta::index( size_t row, size_t col, const char* calling_file, const int calling_line ) const {
     
     if ( row >= _row_count || col >= _col_count ) {
       std::stringstream ss;
-      ss << "Invalid pixel index queried: (" << row << "," << col << ") but the dimension is only ("<<_row_count<<","<<_col_count<<")!"<<std::endl;
+      ss << "Invalid pixel index queried: (" << row << "," << col << ") but the dimension is only ("<<_row_count<<","<<_col_count<<")!";
+      if ( calling_file!=0 )
+        ss << " Called from " << calling_file << ":L" << calling_line;
+      ss <<std::endl;
+      
       throw larbys(ss.str());
     }    
     return ( col * _row_count + row );

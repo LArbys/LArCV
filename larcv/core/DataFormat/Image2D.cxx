@@ -100,8 +100,8 @@ namespace larcv {
   void Image2D::binary_threshold(float thres, float lower_overwrite, float upper_overwrite)
   { for(auto& v : _img) v = (v <= thres ? lower_overwrite : upper_overwrite); }
 
-  float Image2D::pixel( size_t row, size_t col ) const 
-  { return _img[_meta.index(row,col)]; }
+  float Image2D::pixel( size_t row, size_t col,  const char* calling_file, const int calling_line ) const 
+  { return _img[_meta.index(row,col,calling_file,calling_line)]; }
 
   void Image2D::copy(size_t row, size_t col, const float* src, size_t num_pixel) 
   { 
