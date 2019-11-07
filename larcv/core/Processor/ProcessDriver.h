@@ -32,7 +32,7 @@ namespace larcv {
     ProcessDriver(std::string name);
     
     /// Default destructor
-    ~ProcessDriver(){}
+    virtual ~ProcessDriver(){}
 
     void reset();
 
@@ -79,9 +79,11 @@ namespace larcv {
 
     ProcessBase* process_ptr_mutable( ProcessID_t id );
 
-  private:
+  protected:
 
     bool _process_entry_( bool autosave_entry=true );
+    bool _run_process_( ProcessBase* p ) { return p->process( _io ); };
+    
 #ifndef __CINT__
     size_t _batch_start_entry;
     size_t _batch_num_entry;
