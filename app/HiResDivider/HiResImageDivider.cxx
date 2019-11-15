@@ -23,7 +23,7 @@ namespace larcv {
 
     void HiResImageDivider::ApplySCE(larcv::Vertex& vtx)
     {
-      static larutil::SpaceChargeMicroBooNE sce;
+      static larutil::SpaceChargeMicroBooNE sce(larutil::SpaceChargeMicroBooNE::kMCC9_Forward);
       auto pos = sce.GetPosOffsets(vtx.X(), vtx.Y(), vtx.Z());
       vtx.Reset( (vtx.X() - pos[0] + 0.7),
 		 (vtx.Y() + pos[1]),
