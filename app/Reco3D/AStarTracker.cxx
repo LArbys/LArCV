@@ -3308,7 +3308,7 @@ namespace larcv {
     void AStarTracker::Add_SCE_to_Tracks(){
         tellMe("Add_SCE_to_Tracks()",0);
         if(_vertexTracks_SCE.size()!=0)_vertexTracks_SCE.clear();
-        larutil::SpaceChargeMicroBooNE sce;
+        larutil::SpaceChargeMicroBooNE sce(kMCC9_Backward);
 
         for(size_t itrack = 0;itrack<_vertexTracks.size();itrack++){
             std::vector<TVector3> CorrectedTrack;
@@ -3320,8 +3320,8 @@ namespace larcv {
                 auto const sceOffset = sce.GetPosOffsets(pt_X,pt_Y,pt_Z);
 
                 double sceptX = pt_X - sceOffset[0] + 0.7;
-                double sceptY = pt_Y - sceOffset[1];
-                double sceptZ = pt_Z - sceOffset[2];
+                double sceptY = pt_Y + sceOffset[1];
+                double sceptZ = pt_Z + sceOffset[2];
 
                 TVector3 CorrectedNode(sceptX,sceptY,sceptZ);
                 CorrectedTrack.push_back(CorrectedNode);
