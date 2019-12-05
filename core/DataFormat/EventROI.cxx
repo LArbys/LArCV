@@ -2,6 +2,7 @@
 #define EVENTROI_CXX
 
 #include "EventROI.h"
+#include <sstream>
 
 namespace larcv{
 
@@ -16,7 +17,13 @@ namespace larcv{
 
   const ROI& EventROI::at(ImageIndex_t id) const
   {
-    if( id >= _part_v.size() ) throw larbys("Invalid request (ImageIndex_t out-o-range)!");
+    if( id >= _part_v.size() ) {
+      std::stringstream msg;
+      msg << "EventROI.cxx" << ".L" << __LINE__ << ":"
+	  << "Invalid request (ImageIndex_t[" << id << "] out-o-range [>=" << _part_v.size() << "] )!"
+	  << std::endl;
+      throw larbys(msg.str());
+    }
     return _part_v[id];
   }
 
