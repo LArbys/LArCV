@@ -16,7 +16,9 @@ namespace larcv{
 
   const PGraph& EventPGraph::at(size_t id) const
   {
-    if( id >= _int_v.size() ) throw larbys("Invalid request (ImageIndex_t out-o-range)!");
+    if( id >= _int_v.size() ) {
+      throw larbys("Invalid request (ImageIndex_t out-o-range)!");
+    }
     return _int_v[id];
   }
 
