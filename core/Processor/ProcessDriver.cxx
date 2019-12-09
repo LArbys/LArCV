@@ -255,6 +255,8 @@ namespace larcv {
 
     // Initialize process
     for(auto& p : _proc_v) {
+      if ( _fout )
+        p->_fout = _fout;
       LARCV_INFO() << "Initializing: " << p->name() << std::endl;
       p->initialize();
     }
