@@ -32,6 +32,7 @@
 
 
 void remove_from_hit(larcv::Image2D& removal_img, const larlite::hit& hit, int padding=2);
+void overlay_from_hit(larcv::Image2D& new_img, const larcv::Image2D& old_img, const larlite::hit& hit, int padding=2);
 
 int main(int nargs, char** argv){
   //to run:
@@ -115,11 +116,19 @@ int main(int nargs, char** argv){
 			std::cout << "\n";
       io_out_cv->set_id(ev_in_adc->run(),ev_in_adc->subrun(),ev_in_adc->event());
       larcv::EventImage2D* const ev_thrumu_out = (larcv::EventImage2D * )(io_out_cv->get_data(larcv::kProductImage2D, "thrumu"));
+      larcv::EventImage2D* const ev_masked_out = (larcv::EventImage2D * )(io_out_cv->get_data(larcv::kProductImage2D, "masked"));
 
-      // Copy Images
+      // Copy Images for removal for thrumu
       larcv::Image2D thrumu_u(img_adc_v[0]);
       larcv::Image2D thrumu_v(img_adc_v[1]);
       larcv::Image2D thrumu_y(img_adc_v[2]);
+      // copy Images for overlay for masked
+      larcv::Image2D masked_u(img_adc_v[0]);
+      larcv::Image2D masked_v(img_adc_v[1]);
+      larcv::Image2D masked_y(img_adc_v[2]);
+      masked_u.paint(0.);
+      masked_v.paint(0.);
+      masked_y.paint(0.);
 
       for (int idx=0;idx < ev_hit_wc.size();idx++){
         larlite::hit hit = ev_hit_wc[idx];
@@ -128,17 +137,25 @@ int main(int nargs, char** argv){
           //These functions have a 3rd arg that does padding, default is 2
           //around the hit's col and row vals.
           remove_from_hit(thrumu_u, hit);
+          overlay_from_hit(masked_u,img_adc_v[plane], hit);
         }
         else if (plane == 1){
           remove_from_hit(thrumu_v, hit);
+          overlay_from_hit(masked_v,img_adc_v[plane], hit);
         }
         else {
           remove_from_hit(thrumu_y, hit);
+          overlay_from_hit(masked_y,img_adc_v[plane], hit);
         }
       }
+      //Emplace images into output file
       ev_thrumu_out->Emplace(std::move(thrumu_u));
       ev_thrumu_out->Emplace(std::move(thrumu_v));
       ev_thrumu_out->Emplace(std::move(thrumu_y));
+
+      ev_masked_out->Emplace(std::move(masked_u));
+      ev_masked_out->Emplace(std::move(masked_v));
+      ev_masked_out->Emplace(std::move(masked_y));
 
       io_out_cv->save_entry();
     } //End of entry loop
@@ -157,12 +174,19 @@ int main(int nargs, char** argv){
 		const auto ev_wire_test           = (larcv::EventImage2D*)io_test.get_data( larcv::kProductImage2D, "thrumu");
 		std::vector<larcv::Image2D> const& wire_v_test = ev_wire_test->Image2DArray();
     std::cout << wire_v_test.size() << " Output wire v test size \n";
+    const auto ev_masked_test           = (larcv::EventImage2D*)io_test.get_data( larcv::kProductImage2D, "masked");
+    std::vector<larcv::Image2D> const& masked_v_test = ev_masked_test->Image2DArray();
+    std::cout << masked_v_test.size() << " Output masked v test size \n";
 
-    // // To Draw Stuff:
+    // To Draw Stuff:
+    // TH2D removed_h =TH2D("removed_h","removed_h ",3456,0.,3456,1008,0.,1008.);
+    // TH2D kept_h =TH2D("kept_h","kept_h ",3456,0.,3456,1008,0.,1008.);
     // for (int i = 0;i<3; i++){
     //   for (int row = 0;row<1008;row++){
     //     for (int col = 0;col<3456; col++){
-    //       // orig_h.SetBinContent(col,row,img_adc_v[i].pixel(row,col));
+    //       double val = masked_v_test[i].pixel(row,col);
+    //       if (val == 50.0) val = 500;
+    //       kept_h.SetBinContent(col,row,val);
     //       removed_h.SetBinContent(col,row,wire_v_test[i].pixel(row,col));
     //     }
     //   }
@@ -174,6 +198,14 @@ int main(int nargs, char** argv){
     //   removed_h.Draw();
     //   can.SaveAs(Form("Removed_SaveTest_WC_%d.png",i));
     //   removed_h.Reset();
+    //
+    //   kept_h.SetTitle("Test Save Kept WC Image");
+    //   kept_h.SetXTitle("column");
+    //   kept_h.SetYTitle("row");
+    //   kept_h.SetOption("COLZ");
+    //   kept_h.Draw();
+    //   can.SaveAs(Form("Kept_SaveTest_WC_%d.png",i));
+    //   kept_h.Reset();
     // }
 
   }
@@ -186,6 +218,10 @@ return 0;
 
 //Functions:
 void remove_from_hit(larcv::Image2D& removed_img, const larlite::hit& hit, int padding){
+  /*
+  this function takes in an image and a hit, and removes charge in the Image
+  based on the hit's position, with some padding around it (default padding of 2)
+  */
   int row;
   int col;
   int plane;
@@ -217,6 +253,59 @@ void remove_from_hit(larcv::Image2D& removed_img, const larlite::hit& hit, int p
   for (int r = minrow-padding; r <= maxrow+padding; r++){
     for(int c = col-padding; c <= col+padding; c++){
       removed_img.set_pixel(r,c,0);
+    }
+  }
+  return;
+}
+
+void overlay_from_hit(larcv::Image2D& new_img, const larcv::Image2D& old_img, const larlite::hit& hit, int padding){
+  /*
+  this image takes in a new image, and an old image, and overlays the old img
+  on top of the new img where the hit is located in row and col with some padding
+  around the hit location
+  if the column is all 0s in the padded region then instead you overlay a
+  value of 50 at the hit location
+  */
+  int row;
+  int col;
+  int plane;
+  float showerscore;
+  float hit_dist;
+  int minrow;
+  int maxrow;
+  float offset = -3;
+  larcv::ImageMeta meta = old_img.meta();
+  if(hit.View()==2){
+    plane = 2;
+    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
+    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
+    row = meta.row(hit.PeakTime()+2400+offset);
+    col = meta.col(hit.Channel()-2*2400);
+  }
+  else if (hit.View()==0){
+    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
+    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
+    row = meta.row(hit.PeakTime()+2400+offset);
+    col = meta.col(hit.Channel());
+    plane = 0;
+  }
+  else if (hit.View()==1){
+    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
+    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
+    row = meta.row(hit.PeakTime()+2400+offset);
+    col = meta.col(hit.Channel()-2400);
+    plane = 1;
+  }
+  for(int c = col-padding; c <= col+padding; c++){
+    double col_sum = 0;
+    for (int r = minrow-padding; r <= maxrow+padding; r++){
+      double val = old_img.pixel(r,c);
+      col_sum += val;
+      new_img.set_pixel(r,c,val);
+    }
+    if (col_sum == 0) {
+      // std::cout << "FLAG Hit Placed in Dead Region\n";
+      new_img.set_pixel(row,c,50.000);
     }
   }
   return;
