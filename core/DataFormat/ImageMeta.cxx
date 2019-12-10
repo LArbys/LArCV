@@ -34,7 +34,7 @@ namespace larcv {
   {
     if(y <= (_origin.y - _height) || y > _origin.y) {
       std::stringstream ss;
-      ss << "Requested col for y=" << y << " ... but the y (cols) spans only " << _origin.y - _height << " => " << _origin.y << "!";
+      ss << "Requested row for y=" << y << " ... but the y (rows) spans only " << _origin.y - _height << " => " << _origin.y << "!";
       if ( std::string(callfrom_file)=="ImageMeta.h" )
         ss << " call this using ImageMeta::col( x, __FILE__, __LINE__ ) to get info on the location of the bad call.";
       else

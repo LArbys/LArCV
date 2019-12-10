@@ -8,7 +8,9 @@ namespace larcv {
   
   PurityMonitorMask::PurityMonitorMask( std::string instance_name )
     : larcv::ProcessBase("PurityMonitorMask"),
-    _name(instance_name)
+      _name(instance_name),
+      _tree(nullptr),
+      _save_ana(false)
   {
   }
 
@@ -17,16 +19,22 @@ namespace larcv {
   void PurityMonitorMask::configure( const PSet& pset ) {}
 
   void PurityMonitorMask::initialize() {
+
     ana_file().cd();
 
     // create anafile
-    _tree = new TTree("pmnoise","Purity Monitor Noise variables");
-    _tree->Branch("run",      &_run,      "run/I");
-    _tree->Branch("subrun",   &_subrun,   "subrun/I");
-    _tree->Branch("event",    &_event,    "event/I");
-    _tree->Branch("row",      &_row,      "row/I");
-    _tree->Branch("qsum",     &_qsum,     "qsum/F");
-    _tree->Branch("naboveth", &_naboveth, "naboveth/I" );
+    if ( _save_ana ) {
+      _tree = new TTree("pmnoise","Purity Monitor Noise variables");
+      _tree->Branch("run",      &_run,      "run/I");
+      _tree->Branch("subrun",   &_subrun,   "subrun/I");
+      _tree->Branch("event",    &_event,    "event/I");
+      _tree->Branch("row",      &_row,      "row/I");
+      _tree->Branch("qsum",     &_qsum,     "qsum/F");
+      _tree->Branch("naboveth", &_naboveth, "naboveth/I" );
+    }
+    else {
+      _tree = nullptr;
+    }
     
   }
 
@@ -89,7 +97,9 @@ namespace larcv {
         _row = (int)r;
         _qsum = chargesum;
         _naboveth = nabove_thresh;
-        _tree->Fill();
+
+	if ( _save_ana )
+	  _tree->Fill();
 
         if ( _naboveth>500 || (_naboveth>0 && _qsum/float(_naboveth)>400 ) ) {
           for ( size_t c=0; c<meta.cols();c++ ) {

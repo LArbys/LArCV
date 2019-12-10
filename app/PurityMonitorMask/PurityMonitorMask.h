@@ -46,6 +46,7 @@ namespace larcv {
     int _naboveth;
 
     TTree* _tree;
+    bool   _save_ana;
 
   };
 
