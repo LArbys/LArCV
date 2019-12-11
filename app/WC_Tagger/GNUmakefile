@@ -16,3 +16,6 @@ all:  thrumu_maker
 
 thrumu_maker: thrumu_maker.cxx
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o thrumu_maker $(LIBS)
+
+clean:
+	rm thrumu_maker
