@@ -127,8 +127,11 @@ namespace larcv {
     auto const ev_img2d = (EventImage2D*)(mgr.get_data(kProductImage2D,_img2d_prod));
     if (!ev_img2d) throw larbys("Invalid image producer provided");
 
-    auto const ev_croi_v     = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
-    if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
+    EventROI* ev_croi_v     = nullptr;
+    if ( !_reco_roi_prod.empty() ) {
+      ev_croi_v = (EventROI*)(mgr.get_data(kProductROI,_reco_roi_prod));
+      if (!ev_croi_v) throw larbys("Invalid cROI producer provided");
+    }
 
     EventPGraph* ev_pgraph = nullptr;
     if (!_pgraph_prod.empty()) {
@@ -238,8 +241,12 @@ namespace larcv {
     }
 
 
+    std::vector< larcv::ROI > croi_v;
+    if ( ev_croi_v )
+      croi_v = ev_croi_v->ROIArray();
+    
     const double tick = (_scex / larp->DriftVelocity() + 4) * 2. + 3200.;
-    _num_croi    = ev_croi_v->ROIArray().size();
+    _num_croi    = croi_v.size();
     _num_croi_with_vertex = 0;
     _good_croi0 = 0;
     _good_croi1 = 0;
@@ -247,9 +254,9 @@ namespace larcv {
     _good_croi_ctr = 0;
 
     std::vector<std::vector<ImageMeta> > roid_v;
-    roid_v.reserve(ev_croi_v->ROIArray().size());
+    roid_v.reserve(croi_v.size());
 
-    for(auto const& croi : ev_croi_v->ROIArray()) {
+    for(auto const& croi : croi_v) {
       auto const& bb_v = croi.BB();
       roid_v.push_back(crop_metas(adc_img_v,bb_v));
 
@@ -303,7 +310,9 @@ namespace larcv {
       auto const& bb_v = roi_v.front().BB();
 
       auto iter = std::find(roid_v.begin(),roid_v.end(),bb_v);
-      if (iter == roid_v.end()) throw larbys("Unknown image meta");
+      if ( roid_v.size()>0 ) {
+        if (iter == roid_v.end()) throw larbys("Unknown image meta");
+      }
 
       auto roid = iter - roid_v.begin();
 
