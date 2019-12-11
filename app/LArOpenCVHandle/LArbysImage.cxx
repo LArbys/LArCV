@@ -174,13 +174,22 @@ namespace larcv {
     bool status = true;
 
     if(_roi_producer.empty()) {
+      LARCV_INFO() << "Running in Empty ROI Mode" << std::endl;
       size_t pidx = 0;          
       const auto& adc_image_v    = get_image2d(mgr,_adc_producer);
       const auto& track_image_v  = get_image2d(mgr,_track_producer);
       const auto& shower_image_v = get_image2d(mgr,_shower_producer);
       const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
-      _LArbysImageMaker.ConstructCosmicImage(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
-      _LArbysImageMaker.ConstructCosmicImage(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+      if ( !_thrumu_producer.empty() && _mask_thrumu_pixels )      
+        _LArbysImageMaker.ConstructCosmicImage(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
+      else
+        LARCV_DEBUG() << "Not loading thrumu image" << std::endl;
+
+      if ( !_stopmu_producer.empty() && _mask_stopmu_pixels )            
+        _LArbysImageMaker.ConstructCosmicImage(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+      else
+        LARCV_DEBUG() << "Not loading stopmu image" << std::endl;
+      
       const auto& thrumu_image_v = _thrumu_image_v;
       const auto& stopmu_image_v = _stopmu_image_v;
       
@@ -228,7 +237,7 @@ namespace larcv {
 	}
 
 	status = Reconstruct(copy_adc_image_v,
-			     copy_track_image_v,copy_shower_image_v,
+			     copy_track_image_v, copy_shower_image_v,
 			     thrumu_image_v, stopmu_image_v,
 			     chstat_image_v);
 	status = status && StoreParticles(mgr,copy_adc_image_v,pidx);
@@ -244,9 +253,19 @@ namespace larcv {
       const auto& track_image_v  = get_image2d(mgr,_track_producer);
       const auto& shower_image_v = get_image2d(mgr,_shower_producer);
       const auto& chstat_image_v = get_image2d(mgr,_channel_producer);
+
+      _thrumu_image_v.clear();
+      _stopmu_image_v.clear();
+
+      if ( !_thrumu_producer.empty() && !_mask_thrumu_pixels )
+        _LArbysImageMaker.ConstructCosmicImage(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
+      else
+        LARCV_DEBUG() << "Not loading thrumu image" << std::endl;
       
-      _LArbysImageMaker.ConstructCosmicImage(mgr, _thrumu_producer, _tags_datatype, adc_image_v, _thrumu_image_v);
-      _LArbysImageMaker.ConstructCosmicImage(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+      if ( !_stopmu_producer.empty() && !_mask_stopmu_pixels )      
+        _LArbysImageMaker.ConstructCosmicImage(mgr, _stopmu_producer, _tags_datatype, adc_image_v, _stopmu_image_v);
+      else
+        LARCV_DEBUG() << "Not loading stopmu image" << std::endl;
 
       const auto& thrumu_image_v = _thrumu_image_v;
       const auto& stopmu_image_v = _stopmu_image_v;
@@ -442,6 +461,14 @@ namespace larcv {
     auto event_img_pixel        = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_img");
     auto event_ctor_super_pixel = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_super_ctor");
     auto event_img_super_pixel  = (EventPixel2D*) iom.get_data(kProductPixel2D,_output_producer + "_super_img");
+    auto event_vtxin_img        = (EventImage2D*) iom.get_data(kProductImage2D,_output_producer +"_inputimg");
+
+    if ( event_vtxin_img->Image2DArray().size()==0 ) {
+      LARCV_DEBUG() << "save input ADC image into algorithms" << std::endl;
+      for ( auto const& img : adc_image_v ) {
+        event_vtxin_img->Append( img );
+      }
+    }
     
     const auto& data_mgr = _alg_mgr.DataManager();
     const auto& ass_man  = data_mgr.AssManager();
