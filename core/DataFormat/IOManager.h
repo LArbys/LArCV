@@ -109,6 +109,11 @@ namespace larcv {
     { return _in_file_v; }
 
     void specify_data_read( const ProductType_t type, const std::string& name );
+
+    // functions to specify which products to reverse the tick order
+    void reverse_image2d_tree( std::string name );
+    void reverse_roi_tree( std::string name );
+    void reverse_pixel2d_tree( std::string name );
     
   private:
     void   set_id();
