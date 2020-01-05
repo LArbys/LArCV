@@ -233,7 +233,7 @@ namespace larcv {
         std::vector<larcv::Image2D> GetFullImage();
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector<TVector3> EndPoints);
         std::vector<larcv::Image2D> CropFullImage2bounds(std::vector< std::vector<TVector3> > _vertex_v);
-        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints){hit_image_v = CropFullImage2bounds(EndPoints);/*EnhanceDerivative();*/ShaveTracks();}
+        void CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints);
 
         TSpline3* GetProtonRange2T(){return sProtonRange2T;}
         TSpline3* GetMuonRange2T(){return sMuonRange2T;}
@@ -322,6 +322,7 @@ namespace larcv {
         std::vector<larcv::AStar3DNode> RecoedPath;
 
         std::vector<larcv::Image2D> hit_image_v;
+        std::vector<larcv::Image2D> masked_hit_image_v;
         std::vector<larcv::Image2D> original_full_image_v;
         std::vector<larcv::Image2D> chstatus_image_v;
         std::vector<larcv::Image2D> taggedPix_v;

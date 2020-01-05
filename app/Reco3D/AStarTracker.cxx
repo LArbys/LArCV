@@ -29,6 +29,7 @@
 #include "AStar3DAlgoProton.h"
 
 #include <cassert>
+#include <ctime>
 
 namespace larcv {
 
@@ -566,16 +567,19 @@ namespace larcv {
                         if(alphaCol >= 0 && alphaCol <= 1 && alphaRow >= 0 && alphaRow <= 1){
                             if(GetDist2line(A,B,pC) < shellMask){
                                 hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+				masked_hit_image_v[iPlane].set_pixel(irow,icol,10.0);
                             }
                         }
                         if((_3DTrack[iNode]-_3DTrack[0]).Mag() < 2){
                             if((pC-A).Mag() < 0.75*shellMask || (pC-B).Mag() < 0.5*shellMask){
                                 hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+				masked_hit_image_v[iPlane].set_pixel(irow,icol,10.0);
                             }
                         }
                         else{
                             if((pC-A).Mag() < 1.5*shellMask || (pC-B).Mag() < shellMask){
                                 hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+				masked_hit_image_v[iPlane].set_pixel(irow,icol,10.0);
                             }
                         }
 
@@ -621,16 +625,19 @@ namespace larcv {
                             if(alpha  >= -0.1 && alpha <= 1.1){
                                 if(GetDist2line(A,B,pC) < shellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+				    masked_hit_image_v[iPlane].set_pixel(irow,icol,10.0);
                                 }
                             }
                             if((_vertexTracks[itrack][iNode]-_vertexTracks[itrack][0]).Mag() < 2){
                                 if((pC-A).Mag() < 0.75*shellMask || (pC-B).Mag() < 0.75*shellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+				    masked_hit_image_v[iPlane].set_pixel(irow,icol,10.0);
                                 }
                             }
                             else{
                                 if((pC-A).Mag() < 1.5*shellMask || (pC-B).Mag() < 1.5*shellMask){
                                     hit_image_v[iPlane].set_pixel(irow,icol,MaskedValue);
+				    masked_hit_image_v[iPlane].set_pixel(irow,icol,10.0);
                                 }
                             }
 
@@ -649,6 +656,8 @@ namespace larcv {
         std::vector<TVector3> thisvertex;
         thisvertex.push_back(start_pt);
         MakeDeadWireList();
+	hit_image_v.clear();
+	masked_hit_image_v.clear();
         CropFullImage2boundsIntegrated(thisvertex);
         //DrawROI();
         //MakeDeadWireList();
@@ -998,6 +1007,9 @@ namespace larcv {
     //______________________________________________________
     void AStarTracker::ImprovedCluster(){
         tellMe("ImprovedCluster()",0);
+
+	std::clock_t begin = std::clock();
+	
         bool foundNewPoint = true;
         bool terminate = false;
         std::vector<TVector3> list3D;
@@ -1107,8 +1119,8 @@ namespace larcv {
                     coord2D[iPlane][1] = y_proj;
                     coord2D[iPlane][2] = 0;
 
-                    if(x_proj > hit_image_v[iPlane].meta().cols()-10
-                       || y_proj > hit_image_v[iPlane].meta().rows()-10
+                    if(x_proj > (int)hit_image_v[iPlane].meta().cols()-10
+                       || y_proj > (int)hit_image_v[iPlane].meta().rows()-10
                        || x_proj < 10
                        || y_proj < 10) {terminate = true;break;}
                     coord2D[iPlane][2] = hit_image_v[iPlane].pixel(y_proj,x_proj);
@@ -1120,8 +1132,8 @@ namespace larcv {
                     for(size_t iPlane=0;iPlane<3;iPlane++){
                         double x_proj,y_proj;
                         ProjectTo3D(original_full_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
-                        if((x_proj > original_full_image_v[iPlane].meta().cols()-10
-                            || y_proj > original_full_image_v[iPlane].meta().rows()-10
+                        if((x_proj > (int)original_full_image_v[iPlane].meta().cols()-10
+                            || y_proj > (int)original_full_image_v[iPlane].meta().rows()-10
                             || x_proj < 10
                             || y_proj < 10)){ReallyTerminate = true;}
                     }
@@ -1142,9 +1154,9 @@ namespace larcv {
                         foundNewPoint = true;
                     }
                 }
-            }
+            }//end of thisList loop 
 
-            //decide what is the starting point for the next iteration
+            //decide what is the starting point for the next iteration by finding point furthest from start
             double dist = 0;
             if(_3DTrack.size() > 0){
                 for(size_t i = 0;i<list3D.size();i++){
@@ -1154,6 +1166,12 @@ namespace larcv {
         }
 
         _3DTrack = list3D;
+
+	clock_t end = clock();
+	char msg[50];
+	sprintf(msg,"ImprovedCluster() elapsed=%.3f secs",float(end - begin) / CLOCKS_PER_SEC);
+	tellMe(msg,0);
+
     }
     //______________________________________________________
     void AStarTracker::PreSortAndOrderPoints(){
@@ -2660,7 +2678,11 @@ namespace larcv {
     }
     //______________________________________________________
     void AStarTracker::ShaveTracks(){
-        tellMe("ShaveTracks()",1);
+        
+        tellMe("ShaveTracks()",0);
+
+	std::clock_t begin = std::clock();
+
         bool erasedPixel=true;
         while(erasedPixel == true){
             erasedPixel=false;
@@ -2789,6 +2811,11 @@ namespace larcv {
                 }
             }
         }
+
+	clock_t end = clock();
+	char msg[50];
+	sprintf(msg,"ShaveTracks() elapsed=%.3f secs",float(end - begin) / CLOCKS_PER_SEC);
+	tellMe(msg,0);
     }
     //______________________________________________________
     bool AStarTracker::CheckEndPointsInVolume(TVector3 point){
@@ -3726,6 +3753,44 @@ namespace larcv {
         if(_3DTrack.size()==0) _3DTrack.push_back(start_pt);
         return CropFullImage2bounds(_3DTrack);
     }
+
+    //______________________________________________________
+
+    /** 
+     * crop image and shave tracks in one call
+     *
+     * note: TMW modified version makes no crop
+     * 
+     * @param[in] EndPoints collection of space points around which to crop
+     * 
+     */
+    void AStarTracker::CropFullImage2boundsIntegrated(std::vector<TVector3> EndPoints) {
+      // TMW: we try to avoid the cropping. huge computation time waste, a lot of reallocation of memory and scanning across image. 
+      // causes exception to be thrown in production.
+      if ( hit_image_v.size()==0 ) {
+	std::cout << "AStarTracker::CropFullImage2boundsIntegrated() make hit_image_v" << std::endl;
+	// we use the image where dead wires are painted with values 
+	// and the image is inverted for whatever reason
+	hit_image_v = GetFullImage();
+	// I suspect I need to create a blank erased pixel image
+	// then call a new version of shavetracks() that uses this to mask
+	masked_hit_image_v.clear();
+	for ( auto const& hitimg : hit_image_v ) {
+	  larcv::Image2D maskimg(hitimg.meta());
+	  maskimg.paint(0.0);
+	  masked_hit_image_v.emplace_back( std::move(maskimg) );
+	}
+      }
+
+      // The old routine
+      //hit_image_v = CropFullImage2bounds(EndPoints);
+      /*EnhanceDerivative();*/
+      //ShaveTracks();
+    }
+
+    //______________________________________________________
+
+
     //______________________________________________________
     void AStarTracker::ClearDeadWireList(){
         if(_deadWires_v.size()!=0)_deadWires_v.clear();
