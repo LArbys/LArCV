@@ -1023,6 +1023,10 @@ namespace larcv {
         list3D.push_back(lastNode);// make sure the vertex point is in the future track;
         int iter = 0;
 
+	// clear the generated hit tracker
+	for ( auto& img : gen_hit_image_v )
+	  img.paint(0.0);
+	
         /*std::vector<TVector3> vectorList;
         for(size_t i=0;i<100000;i++){
             TVector3 newCandidate;
@@ -1048,7 +1052,11 @@ namespace larcv {
         hThetaPhi->Delete();
         cThetaPhiVertex->Delete();*/
 
-
+	float dt_genpts = 0.;
+	float dt_gencone = 0.;
+	float dt_keeppt = 0.;
+	float dt_pickend = 0.;
+	float dt_tooclose = 0.;
 
         while(foundNewPoint && terminate == false){
             //if(_IsMCC9)std::cout << "update search pattern for MCC9" << std::endl;
@@ -1061,17 +1069,25 @@ namespace larcv {
             std::vector<TVector3> thisList;
             thisList.push_back(lastNode);
 
+	    std::clock_t genpt_begin = std::clock();
+	    
             //for this iteration, throw points and look for possible candidates
             // find points on a small sphere around the last found point
             for(size_t i = 0;i<10000;i++){
-                double r = ran.Uniform(0.1,rmax);
+                double r = ran.Uniform(0.3,rmax);
                 ran.Sphere(x,y,z,r);
+		if ( x*x+y*y+z*z<0.3*0.3 ) continue; // dont gen a point too close to the start
                 newCandidate.SetXYZ(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
                 if(!CheckEndPointsInVolume(newCandidate)) continue; // point out of detector volume
                 thisList.push_back(newCandidate);
             }
 
+	    std::clock_t genpt_end = std::clock();
+	    dt_genpts += float( genpt_end-genpt_begin )/CLOCKS_PER_SEC;
+
             //if we have a nicely defined track, find point in a larger cone after the last found point
+	    std::clock_t gencone_begin = std::clock();
+	    
             if(list3D.size() > 2 && (lastNode-start_pt).Mag() > _MinLength){
                 TVector3 AvPt(0,0,0);
                 int NpointAveragedOn = 0;
@@ -1087,26 +1103,51 @@ namespace larcv {
 
                 for(size_t i = 0;i<10000;i++){
                     double r = ran.Uniform(0,2*rmax);
+		    if ( r<0.3 ) continue;
                     ran.Sphere(x,y,z,r);
+		    if ( x*x+y*y+z*z<=0.3*0.3 ) continue; // dont gen a point too close to the start
                     newCandidate.SetXYZ(lastNode.X()+x,lastNode.Y()+y,lastNode.Z()+z);
                     if(!CheckEndPointsInVolume(newCandidate)) continue; // point out of detector volume
                     if((lastNode-AvPt).Angle(newCandidate-lastNode) > 30*TMath::Pi()/180.)continue;
                     thisList.push_back(newCandidate);
                 }
             }
+	    std::clock_t gencone_end = std::clock();
+	    dt_gencone += float( gencone_end - gencone_begin )/CLOCKS_PER_SEC;
 
             // decide which point we keep
+	    std::clock_t keeppt_begin = std::clock();
             for(size_t i = 0;i<thisList.size();i++){
                 newCandidate = thisList[i];
 
                 double coord2D[3][3];// for each plane : x,y and ADC value;
                 bool TooClose = false;
 
-                if(list3D.size() >= 1){// point too close to already found point
-                    for(size_t i = 0;i<list3D.size()-1;i++){
-                        if((newCandidate-list3D[i]).Mag() < 0.3) TooClose=true;
-                    }
-                }
+		std::clock_t tooclose_begin = std::clock();
+		
+                // if(list3D.size() >= 1){// point too close to already found point
+                //     for(size_t i = 0;i<list3D.size()-1;i++){
+                //         if((newCandidate-list3D[i]).Mag() < 0.3) TooClose=true;
+                //     }
+                // }
+		if ( list3D.size()>1 ) {
+		  int marked = 0;
+		  for(size_t iPlane = 0;iPlane<3;iPlane++){
+		    auto const& meta = hit_image_v[iPlane].meta();
+                    double x_proj, y_proj;
+                    ProjectTo3D(hit_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
+		    if ( (int)x_proj<0 || (int)x_proj>=meta.cols()
+			 || (int)y_proj<=0 || (int)y_proj>=meta.rows() ) {
+		      continue;
+		    }
+		    if ( gen_hit_image_v[iPlane].pixel(y_proj,x_proj) >0 )
+		      marked += 1;
+		  }
+		  if (marked==3) TooClose = true;
+		}
+		    
+		std::clock_t tooclose_end = std::clock();
+		dt_tooclose += float(tooclose_end-tooclose_begin)/CLOCKS_PER_SEC;
 
                 if(TooClose)continue;
 
@@ -1152,17 +1193,26 @@ namespace larcv {
                         MaxsummedADC = pointSummedADC;
                         list3D.push_back(newCandidate);
                         foundNewPoint = true;
+			// estblish new point. we mark pixel location of generated point. prevents regeneration.
+			for(size_t iPlane=0;iPlane<3;iPlane++){
+			  gen_hit_image_v[iPlane].set_pixel( coord2D[iPlane][1], coord2D[iPlane][0], 10 );
+			}
                     }
                 }
-            }//end of thisList loop 
+            }//end of thisList loop
+	    std::clock_t keeppt_end = std::clock();
+	    dt_keeppt += float(keeppt_end-keeppt_begin)/CLOCKS_PER_SEC;
 
             //decide what is the starting point for the next iteration by finding point furthest from start
+	    std::clock_t pickend_begin = std::clock();
             double dist = 0;
             if(_3DTrack.size() > 0){
                 for(size_t i = 0;i<list3D.size();i++){
                     if((_3DTrack[0]-list3D[i]).Mag() > dist){lastNode = list3D[i];dist = (_3DTrack[0]-list3D[i]).Mag();}
                 }
             }
+	    std::clock_t pickend_end = std::clock();
+	    dt_pickend += float(pickend_end-pickend_begin)/CLOCKS_PER_SEC;
         }
 
         _3DTrack = list3D;
@@ -1171,6 +1221,18 @@ namespace larcv {
 	char msg[50];
 	sprintf(msg,"ImprovedCluster() elapsed=%.3f secs",float(end - begin) / CLOCKS_PER_SEC);
 	tellMe(msg,0);
+
+	sprintf(msg,"  gen pts elapsed=%.3f secs",dt_genpts);
+	tellMe(msg,0);
+	sprintf(msg,"  gen cone elapsed=%.3f secs",dt_gencone);
+	tellMe(msg,0);
+	sprintf(msg,"  keep pts elapsed=%.3f secs",dt_keeppt);
+	tellMe(msg,0);
+	sprintf(msg,"    -- too close test elapsed=%.3f secs",dt_tooclose);
+	tellMe(msg,0);
+	sprintf(msg,"  pick end elapsed=%.3f secs",dt_pickend);
+	tellMe(msg,0);
+	
 
     }
     //______________________________________________________
@@ -3775,9 +3837,11 @@ namespace larcv {
 	// I suspect I need to create a blank erased pixel image
 	// then call a new version of shavetracks() that uses this to mask
 	masked_hit_image_v.clear();
+	gen_hit_image_v.clear();	
 	for ( auto const& hitimg : hit_image_v ) {
 	  larcv::Image2D maskimg(hitimg.meta());
 	  maskimg.paint(0.0);
+	  gen_hit_image_v.push_back(maskimg);
 	  masked_hit_image_v.emplace_back( std::move(maskimg) );
 	}
       }

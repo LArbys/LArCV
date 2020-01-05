@@ -323,6 +323,7 @@ namespace larcv {
 
         std::vector<larcv::Image2D> hit_image_v;
         std::vector<larcv::Image2D> masked_hit_image_v;
+        std::vector<larcv::Image2D> gen_hit_image_v;	
         std::vector<larcv::Image2D> original_full_image_v;
         std::vector<larcv::Image2D> chstatus_image_v;
         std::vector<larcv::Image2D> taggedPix_v;
