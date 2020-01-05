@@ -30,6 +30,8 @@
 
 #include <cassert>
 #include <ctime>
+#include <set>
+#include <array>
 
 namespace larcv {
 
@@ -1026,6 +1028,11 @@ namespace larcv {
 	// clear the generated hit tracker
 	for ( auto& img : gen_hit_image_v )
 	  img.paint(0.0);
+
+	// instead of O(n^2) test to check for too close points
+	// we use log(N) look-up table based on pixel coordinates
+	// checks if we've generated this point already
+	std::set< std::array<int,6> > gen_pixel_coords;
 	
         /*std::vector<TVector3> vectorList;
         for(size_t i=0;i<100000;i++){
@@ -1132,10 +1139,13 @@ namespace larcv {
                 // }
 		if ( list3D.size()>1 ) {
 		  int marked = 0;
+		  std::array<int,6> pixcoord;
 		  for(size_t iPlane = 0;iPlane<3;iPlane++){
 		    auto const& meta = hit_image_v[iPlane].meta();
                     double x_proj, y_proj;
                     ProjectTo3D(hit_image_v[iPlane].meta(),newCandidate.X(), newCandidate.Y(), newCandidate.Z(),0, iPlane, x_proj,y_proj);
+		    pixcoord[2*iPlane]   = (int)x_proj;
+		    pixcoord[2*iPlane+1] = (int)y_proj;
 		    if ( (int)x_proj<0 || (int)x_proj>=meta.cols()
 			 || (int)y_proj<=0 || (int)y_proj>=meta.rows() ) {
 		      continue;
@@ -1143,7 +1153,9 @@ namespace larcv {
 		    if ( gen_hit_image_v[iPlane].pixel(y_proj,x_proj) >0 )
 		      marked += 1;
 		  }
-		  if (marked==3) TooClose = true;
+		  //if (marked==3) TooClose = true;
+		  if ( gen_pixel_coords.find( pixcoord )!=gen_pixel_coords.end() )
+		    TooClose = true;
 		}
 		    
 		std::clock_t tooclose_end = std::clock();
@@ -1194,9 +1206,14 @@ namespace larcv {
                         list3D.push_back(newCandidate);
                         foundNewPoint = true;
 			// estblish new point. we mark pixel location of generated point. prevents regeneration.
+			std::array<int,6> pixcoord;
 			for(size_t iPlane=0;iPlane<3;iPlane++){
 			  gen_hit_image_v[iPlane].set_pixel( coord2D[iPlane][1], coord2D[iPlane][0], 10 );
+			  pixcoord[2*iPlane] = coord2D[iPlane][0];
+			  pixcoord[2*iPlane+1] = coord2D[iPlane][1];
+			  gen_pixel_coords.insert( pixcoord );
 			}
+
                     }
                 }
             }//end of thisList loop
