@@ -629,6 +629,9 @@ namespace larcv {
                 _vertexPhi_15cm   = tracker.GetVertexPhi();
                 _vertexTheta_15cm = tracker.GetVertexTheta();
 
+		trackAvg15cm_x.clear();
+		trackAvg15cm_y.clear();
+		trackAvg15cm_z.clear();
                 trackAvg15cm = tracker.GetTrack15cmAvg();
                 for(size_t ii=0 ;ii < trackAvg15cm.size();ii++){
                     trackAvg15cm_x.push_back(trackAvg15cm.at(ii).X());
@@ -748,6 +751,9 @@ namespace larcv {
                 _vertexPhi_15cm_sceadded   = tracker.GetVertexPhi();
                 _vertexTheta_15cm_sceadded = tracker.GetVertexTheta();
 
+		trackAvg15cm_x_sceadded.clear();
+		trackAvg15cm_y_sceadded.clear();
+		trackAvg15cm_z_sceadded.clear();
                 trackAvg15cm_sceadded = tracker.GetTrack15cmAvg();
                 for(size_t ii=0 ;ii < trackAvg15cm_sceadded.size();ii++){
                     trackAvg15cm_x_sceadded.push_back(trackAvg15cm_sceadded.at(ii).X());

@@ -758,9 +758,19 @@ namespace larcv {
 
         start_pt = vertexPoint;
 
+	// reset hit image, so we can get charge values when making/diagnosing tracks/vertices 
+	hit_image_v.clear();
+	masked_hit_image_v.clear();
+	std::vector< TVector3 > dummy;
+        CropFullImage2boundsIntegrated(dummy);
+
         CleanUpVertex();
         _vertexLength = GetVertexLength();
         DiagnoseVertex();
+
+	hit_image_v.clear();
+	masked_hit_image_v.clear();
+        CropFullImage2boundsIntegrated(dummy);	
         MakeVertexTrack();
         //if (_DrawOutputs) DrawVertex();
         //std::cout << "vertex drawn" << std::endl;
