@@ -11,11 +11,14 @@ LIBS += `larlite-config --libs`
 LIBS += `larcv-config --libs`
 # LIBS += -L$(UBLARCVAPP_LIBDIR)
 
-all:  thrumu_maker
+all:  thrumu_maker thrumu_maker_tickforward
 
 
 thrumu_maker: thrumu_maker.cxx
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o thrumu_maker $(LIBS)
 
+thrumu_maker_tickforward: thrumu_maker_tickforward.cxx
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ -o thrumu_maker_tickforward $(LIBS)
+
 clean:
-	rm thrumu_maker
+	rm thrumu_maker thrumu_maker_tickforward
