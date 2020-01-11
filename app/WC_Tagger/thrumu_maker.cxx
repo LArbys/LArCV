@@ -229,29 +229,58 @@ void remove_from_hit(larcv::Image2D& removed_img, const larlite::hit& hit, int p
   int maxrow;
   float offset = -3;
   larcv::ImageMeta meta = removed_img.meta();
+
+  float maxtick = hit.PeakTime()+2400+hit.SigmaPeakTime();
+  float mintick = hit.PeakTime()+2400-hit.SigmaPeakTime();
+  //std::cout << "mintick1: " << mintick << " " << maxtick << std::endl;
+  if ( maxtick >= meta.max_y() )
+    maxtick = meta.max_y()-meta.pixel_height();
+  if ( mintick <= meta.min_y() )
+    mintick = meta.min_y()+meta.pixel_height();
+  //std::cout << "mintick2: " << mintick << " " << maxtick << std::endl;
+
+  if (mintick>=meta.max_y()) return;
+  if (maxtick<=meta.min_y()) return;
+
+  float peaktick = hit.PeakTime()+2400+offset;
+  if ( peaktick>=meta.max_y() ) return;
+  if ( peaktick<=meta.min_y() ) return;
+  
   if(hit.View()==2){
     plane = 2;
-    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
-    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
-    row = meta.row(hit.PeakTime()+2400+offset);
-    col = meta.col(hit.Channel()-2*2400);
+    minrow = meta.row(mintick,__FILE__,__LINE__);
+    maxrow = meta.row(maxtick,__FILE__,__LINE__);
+    row = meta.row(hit.PeakTime()+2400+offset,__FILE__,__LINE__);
+    col = meta.col(hit.Channel()-2*2400,__FILE__,__LINE__);
   }
   else if (hit.View()==0){
-    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
-    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
-    row = meta.row(hit.PeakTime()+2400+offset);
-    col = meta.col(hit.Channel());
+    minrow = meta.row(mintick,__FILE__,__LINE__);
+    maxrow = meta.row(maxtick,__FILE__,__LINE__);
+    row = meta.row(hit.PeakTime()+2400+offset, __FILE__, __LINE__);
+    col = meta.col(hit.Channel(), __FILE__, __LINE__);
     plane = 0;
   }
   else if (hit.View()==1){
-    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
-    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
-    row = meta.row(hit.PeakTime()+2400+offset);
-    col = meta.col(hit.Channel()-2400);
+    minrow = meta.row(mintick,__FILE__,__LINE__);
+    maxrow = meta.row(maxtick,__FILE__,__LINE__);
+    row = meta.row(hit.PeakTime()+2400+offset,__FILE__,__LINE__);
+    col = meta.col(hit.Channel()-2400,__FILE__,__LINE__);
     plane = 1;
   }
+
+  if ( minrow>maxrow ) {
+    int tmp = minrow;
+    minrow = maxrow;
+    maxrow = tmp;
+  }
+  
   for (int r = minrow-padding; r <= maxrow+padding; r++){
+    if (r<0 ) continue;
+    if (r>=(int)removed_img.meta().rows()) continue;
     for(int c = col-padding; c <= col+padding; c++){
+      if (c<0 ) continue;
+      if (c>=(int)removed_img.meta().cols()) continue;
+
       removed_img.set_pixel(r,c,0);
     }
   }
@@ -275,30 +304,56 @@ void overlay_from_hit(larcv::Image2D& new_img, const larcv::Image2D& old_img, co
   int maxrow;
   float offset = -3;
   larcv::ImageMeta meta = old_img.meta();
+
+  float maxtick = hit.PeakTime()+2400+hit.SigmaPeakTime();
+  float mintick = hit.PeakTime()+2400-hit.SigmaPeakTime();
+  if ( maxtick >= meta.max_y() )
+    maxtick = meta.max_y()-meta.pixel_height();
+  if ( mintick <= meta.min_y() )
+    mintick = meta.min_y()+meta.pixel_height();
+
+  if (mintick>=meta.max_y()) return;
+  if (maxtick<=meta.min_y()) return;
+
+  float peaktick = hit.PeakTime()+2400+offset;
+  if ( peaktick>=meta.max_y() ) return;
+  if ( peaktick<=meta.min_y() ) return;  
+  
   if(hit.View()==2){
     plane = 2;
-    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
-    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
-    row = meta.row(hit.PeakTime()+2400+offset);
-    col = meta.col(hit.Channel()-2*2400);
+    minrow = meta.row(mintick,__FILE__,__LINE__);
+    maxrow = meta.row(maxtick,__FILE__,__LINE__);
+    row = meta.row(hit.PeakTime()+2400+offset,__FILE__,__LINE__);
+    col = meta.col(hit.Channel()-2*2400,__FILE__,__LINE__);
   }
   else if (hit.View()==0){
-    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
-    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
-    row = meta.row(hit.PeakTime()+2400+offset);
-    col = meta.col(hit.Channel());
+    minrow = meta.row(mintick,__FILE__,__LINE__);
+    maxrow = meta.row(maxtick,__FILE__,__LINE__);
+    row = meta.row(hit.PeakTime()+2400+offset,__FILE__,__LINE__);
+    col = meta.col(hit.Channel(),__FILE__,__LINE__);
     plane = 0;
   }
   else if (hit.View()==1){
-    minrow = meta.row(hit.PeakTime()+2400-hit.SigmaPeakTime());
-    maxrow = meta.row(hit.PeakTime()+2400+hit.SigmaPeakTime());
-    row = meta.row(hit.PeakTime()+2400+offset);
-    col = meta.col(hit.Channel()-2400);
+    minrow = meta.row(mintick,__FILE__,__LINE__);
+    maxrow = meta.row(maxtick,__FILE__,__LINE__);
+    row = meta.row(hit.PeakTime()+2400+offset,__FILE__,__LINE__);
+    col = meta.col(hit.Channel()-2400,__FILE__,__LINE__);
     plane = 1;
   }
+
+  if ( minrow>maxrow ) {
+    int tmp = minrow;
+    minrow = maxrow;
+    maxrow = tmp;
+  }
+  
   for(int c = col-padding; c <= col+padding; c++){
     double col_sum = 0;
+    if ( c<0 ) continue;
+    if ( c>=(int)new_img.meta().cols() ) continue;
     for (int r = minrow-padding; r <= maxrow+padding; r++){
+      if ( r<0) continue;
+      if ( r>=new_img.meta().rows() ) continue;
       double val = old_img.pixel(r,c);
       col_sum += val;
       new_img.set_pixel(r,c,val);

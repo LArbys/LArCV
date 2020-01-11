@@ -4,6 +4,7 @@ CXXFLAGS = -g -fPIC
 INCLUDES =`root-config --cflags`
 INCLUDES += `larcv-config --includes`
 INCLUDES += `larlite-config --includes`
+#INCLUDES += -std=c++17
 # INCLUDES += -I$(UBLARCVAPP_INCDIR)
 
 LIBS = `root-config --libs`

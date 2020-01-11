@@ -832,5 +832,36 @@ namespace larcv {
     _read_only_type.push_back( type );
   }
 
+  /**
+   * mark the image2d tree to be reversed
+   *
+   * @param[in] string name of image2d tree to be reversed
+   *
+   */
+  void IOManager::reverse_image2d_tree( std::string name ) {
+    _reverse_image2d_products.push_back( name );
+  }
+
+  /**
+   * mark the roi tree to be reversed
+   *
+   * @param[in] string name of roi tree to be reversed
+   *
+   */
+  void IOManager::reverse_roi_tree( std::string name ) {
+    _reverse_roi_products.push_back( name );
+  }
+
+
+  /**
+   * mark the image2d tree to be reversed
+   *
+   * @param[in] string name of image2d tree to be reversed
+   *
+   */
+  void IOManager::reverse_pixel2d_tree( std::string name ) {
+    _reverse_pixel2d_products.push_back( name );
+  }
+  
 }
 #endif
