@@ -23,9 +23,17 @@
 
 namespace larcv {
 
-  TH2D as_th2d( const larcv::Image2D& img, std::string histname );
+  class rootutils {
+  public:
+    rootutils() {};
+    ~rootutils() {};
+
+    
+    static TH2D as_th2d( const larcv::Image2D& img, std::string histname );
   
-  std::vector< TH2D > as_th2d_v( const std::vector<larcv::Image2D>& img_v, std::string histstemname );
+    static std::vector< TH2D > as_th2d_v( const std::vector<larcv::Image2D>& img_v, std::string histstemname );
+
+  };
   
 }
 

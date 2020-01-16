@@ -5,7 +5,7 @@
 namespace larcv {
 
 
-  TH2D as_th2d( const larcv::Image2D& img, std::string histname ) {
+  TH2D rootutils::as_th2d( const larcv::Image2D& img, std::string histname ) {
 
     const larcv::ImageMeta& meta = img.meta();
     
@@ -24,7 +24,7 @@ namespace larcv {
     return h;
   }
 
-  std::vector< TH2D > as_th2d_v( const std::vector<larcv::Image2D>& img_v, std::string histstemname ) {
+  std::vector< TH2D > rootutils::as_th2d_v( const std::vector<larcv::Image2D>& img_v, std::string histstemname ) {
 
     std::vector< TH2D > h_v;
     h_v.reserve( img_v.size() );
