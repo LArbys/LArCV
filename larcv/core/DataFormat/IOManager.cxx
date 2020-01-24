@@ -877,5 +877,11 @@ namespace larcv {
     _reverse_all_pixel2d_products = true;
   }
 
+  int IOManager::addto_storeonly_list( ProductType_t type, std::string producername ) {
+    _store_only_name.push_back( producername );
+    _store_only_type.push_back( type );
+    return _store_only_name.size();
+  }
+
 }
 #endif

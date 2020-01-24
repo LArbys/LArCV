@@ -109,7 +109,8 @@ namespace larcv {
     const std::vector<std::string>& file_list() const
     { return _in_file_v; }
 
-    void specify_data_read( const ProductType_t type, const std::string& name );
+    void specify_data_read(    const ProductType_t type, const std::string& name );
+    int  addto_storeonly_list( ProductType_t type, std::string producer );
     
   private:
     void   set_id();
