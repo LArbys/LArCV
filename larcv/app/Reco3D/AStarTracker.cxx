@@ -5,7 +5,7 @@
 #include "DataFormat/track.h"
 #include "DataFormat/vertex.h"
 #include "DataFormat/hit.h"
-#include "DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/Image2D.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/wire.h"
 #include "LArUtil/Geometry.h"
@@ -2636,16 +2636,16 @@ namespace larcv {
                                 std::cout << "WARNING" << std::endl;
                                 continue;
                             }
-                            
+
                         }
                     }
                 }//end of the loop adding non-zero pixels for dead region failures
             }
             // end of dead wire recovery
         }
-        
-        
-        
+
+
+
         if(((_tooShortFaintTrack && recoverFromFaint) || (recoverFromDead && _tooShortDeadWire)) && NumberRecoveries < 10){
             NumberRecoveries++;
             std::cout << "Recovered " << NumberRecoveries << " times" << std::endl;
@@ -2671,7 +2671,7 @@ namespace larcv {
             }
         }
         newTrack.push_back(_3DTrack.back());
-        
+
         _3DTrack = newTrack;
     }
     //-------------------------------------------------------
@@ -2800,6 +2800,6 @@ namespace larcv {
         }
         _3DTrack = newTrack;
     }
-    
+
 }
 #endif

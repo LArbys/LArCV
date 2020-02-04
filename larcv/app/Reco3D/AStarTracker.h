@@ -22,8 +22,8 @@
 #include "DataFormat/track.h"
 #include "DataFormat/mctrack.h"
 #include <TVector3.h>
-#include "DataFormat/Image2D.h"
-#include "DataFormat/ImageMeta.h"
+#include "larcv/core/DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/ImageMeta.h"
 #include "DataFormat/wire.h"
 #include "TH1D.h"
 #include "TH2D.h"
@@ -37,8 +37,8 @@
 //#include "AStar3DAlgo.h"
 //#include "AStar3DAlgoProton.h"
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 #include "LArUtil/SpaceChargeMicroBooNE.h"
 
 namespace larcv {
@@ -313,4 +313,4 @@ namespace larcv {
 //
 //**************************************************************************
 
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group

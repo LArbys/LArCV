@@ -7,11 +7,11 @@
 #include "DataFormat/track.h"
 #include "DataFormat/vertex.h"
 #include "DataFormat/hit.h"
-#include "DataFormat/Image2D.h"
-#include "DataFormat/EventImage2D.h"
+#include "larcv/core/DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/EventImage2D.h"
 #include "DataFormat/mctrack.h"
 #include "DataFormat/wire.h"
-#include "DataFormat/EventROI.h"
+#include "larcv/core/DataFormat/EventROI.h"
 #include "LArUtil/Geometry.h"
 #include "LArUtil/GeometryHelper.h"
 #include "LArUtil/TimeService.h"
@@ -40,8 +40,8 @@
 
 
 //#include "../../core/DataFormat/EventPGraph.h"
-#include "DataFormat/EventPGraph.h"
-#include "DataFormat/EventPixel2D.h"
+#include "larcv/core/DataFormat/EventPGraph.h"
+#include "larcv/core/DataFormat/EventPixel2D.h"
 
 #include <cassert>
 
@@ -633,17 +633,17 @@ namespace larcv {
         _MuonEndPoint_Z = -1.0*kINVALID_DOUBLE;
         _ProtonEndPoint_Z = -1.0*kINVALID_DOUBLE;
         _ElectronEndPoint_Z = -1.0*kINVALID_DOUBLE;
-        
+
         _Ep_t = -1.0*kINVALID_DOUBLE;
         _Em_t = -1.0*kINVALID_DOUBLE;
         _Ee_t = -1.0*kINVALID_DOUBLE;
-        
+
         MCvertex.SetXYZ(-1,-1,-1);
         if(MCVertices.size()!=0)MCVertices.clear();
-        
+
         ClearVertex();
     }
-    
+
     void Run3DTracker::ClearVertex() {
         _vtx_id = -1.0 * kINVALID_INT;
         _vtx_x  = -1.0 * kINVALID_FLOAT;
@@ -671,7 +671,7 @@ namespace larcv {
         _trackQ10_v.clear();
         _trackQ5_v.clear();
         _trackQ3_v.clear();
-        
+
     }
 
 }

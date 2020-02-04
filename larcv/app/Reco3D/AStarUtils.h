@@ -2,7 +2,7 @@
 #define ASTARUTILS_H
 
 // larcv
-#include "DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/Image2D.h"
 
 // ROOT
 #include "TVector3.h"
@@ -28,14 +28,13 @@ namespace larcv {
 	      double parent_t,
 	      uint plane,
 	      double& xpixel, double& ypixel);
-  
+
 #ifdef LARCV_OPENCV
   std::vector<std::vector<cv::Point_<int> > > TrackToPixels(const std::vector<TVector3>& xyz_v,
 							      const std::vector<ImageMeta>& meta_v);
 #endif
-  
+
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group

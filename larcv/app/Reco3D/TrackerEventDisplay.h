@@ -22,8 +22,8 @@
 #include "DataFormat/storage_manager.h"
 #include "DataFormat/track.h"
 
-#include "Processor/ProcessBase.h"
-#include "Processor/ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 #include "AStarTracker.h"
 
 namespace larcv {
@@ -208,11 +208,10 @@ namespace larcv {
         ~TrackerEventDisplayProcessFactory() {}
         /// creation method
         ProcessBase* create(const std::string instance_name) { return new TrackerEventDisplay(instance_name); }
-        
+
     };
-    
+
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group
