@@ -1001,6 +1001,128 @@ namespace larcv {
         if(MCVertices.size()!=0)MCVertices.clear();
 
         ClearVertex();
+
+	// clear all vectors
+	_trk_id_v.clear();
+	_E_muon_v.clear();
+	_E_proton_v.clear();
+	_Length_v.clear();
+	_Avg_Ion_v.clear();
+	_Avg_IonY_v.clear();
+	_vertexPhi.clear();
+	_vertexTheta.clear();
+      
+	_vertexPhi_2cm.clear();
+	_vertexTheta_2cm.clear();
+	_vertexPhi_5cm.clear();
+	_vertexTheta_5cm.clear();
+	_vertexPhi_7cm.clear();
+	_vertexTheta_7cm.clear();
+	_vertexPhi_10cm.clear();
+	_vertexTheta_10cm.clear();
+	_vertexPhi_12cm.clear();
+	_vertexTheta_12cm.clear();
+	_vertexPhi_15cm.clear();// same as simply _vertexPhi, I just wanted to make the distance averaged on explicit
+	_vertexTheta_15cm.clear();// same as simply _vertexTheta, I just wanted to make the distance averaged on explicit
+	_vertexPhi_17cm.clear();
+	_vertexTheta_17cm.clear();
+	_vertexPhi_20cm.clear();
+	_vertexTheta_20cm.clear();
+	_vertexPhi_30cm.clear();
+	_vertexTheta_30cm.clear();
+	_closestWall.clear();
+	_Ion_5cm_v.clear();
+	_Ion_10cm_v.clear();
+	_Ion_tot_v.clear();
+      
+	recoEndPoints_x.clear();
+	recoEndPoints_y.clear();
+	recoEndPoints_z.clear();
+      
+	_IonY_5cm_v.clear();
+	_IonY_10cm_v.clear();
+	_IonY_tot_v.clear();
+      
+	_Trunc_dQdX1_v.clear();
+	_Trunc_dQdX3_v.clear();
+	_IondivLength_v.clear();
+      
+	_trackQ3_v.clear();
+	_trackQ5_v.clear();
+	_trackQ10_v.clear();
+	_trackQ20_v.clear();
+	_trackQ30_v.clear();
+	_trackQ50_v.clear();
+	_TotalADCvalues_v.clear();
+	_Angle_v.clear();
+	_DeadWireList.clear();
+	_DeadWireList_U.clear();
+	_DeadWireList_V.clear();
+	_DeadWireList_Y.clear();
+	_Reco_goodness_v.clear();
+	_track_Goodness_v.clear();
+
+	MCVertices.clear();
+	recoEndPoints.clear();
+
+	_E_muon_v_sceadded.clear();
+	_E_proton_v_sceadded.clear();
+	_Length_v_sceadded.clear();
+	_Avg_Ion_v_sceadded.clear();
+	_Avg_IonY_v_sceadded.clear();
+	_vertexPhi_sceadded.clear();
+	_vertexTheta_sceadded.clear();
+	_vertexPhi_2cm_sceadded.clear();
+	_vertexTheta_2cm_sceadded.clear();
+	_vertexPhi_5cm_sceadded.clear();
+	_vertexTheta_5cm_sceadded.clear();
+	_vertexPhi_7cm_sceadded.clear();
+	_vertexTheta_7cm_sceadded.clear();
+	_vertexPhi_10cm_sceadded.clear();
+	_vertexTheta_10cm_sceadded.clear();
+	_vertexPhi_12cm_sceadded.clear();
+	_vertexTheta_12cm_sceadded.clear();
+	_vertexPhi_15cm_sceadded.clear();  
+	_vertexTheta_15cm_sceadded.clear();
+	_vertexPhi_17cm_sceadded.clear();
+	_vertexTheta_17cm_sceadded.clear();
+	_vertexPhi_20cm_sceadded.clear();
+	_vertexTheta_20cm_sceadded.clear();
+	_vertexPhi_30cm_sceadded.clear();
+	_vertexTheta_30cm_sceadded.clear();
+	_closestWall_sceadded.clear();
+	_Ion_5cm_v_sceadded.clear();
+	_Ion_10cm_v_sceadded.clear();
+	_Ion_tot_v_sceadded.clear();
+	recoEndPoints_x_sceadded.clear();
+	recoEndPoints_y_sceadded.clear();
+	recoEndPoints_z_sceadded.clear();
+	_IonY_5cm_v_sceadded.clear();
+	_IonY_10cm_v_sceadded.clear();
+	_IonY_tot_v_sceadded.clear();
+	_Trunc_dQdX1_v_sceadded.clear();
+	_Trunc_dQdX3_v_sceadded.clear();
+	_IondivLength_v_sceadded.clear();
+	trackAvg15cm_x.clear();
+	trackAvg15cm_y.clear();
+	trackAvg15cm_z.clear();
+	trackAvg15cm_x_sceadded.clear();
+	trackAvg15cm_y_sceadded.clear();
+	trackAvg15cm_z_sceadded.clear();
+
+	_trackQ3_v_sceadded.clear();
+	_trackQ5_v_sceadded.clear();
+	_trackQ10_v_sceadded.clear();
+	_trackQ20_v_sceadded.clear();
+	_trackQ30_v_sceadded.clear();
+	_trackQ50_v_sceadded.clear();
+	_TotalADCvalues_v_sceadded.clear();
+	_Angle_v_sceadded.clear();
+      
+	recoEndPoints_sceadded.clear();
+	trackAvg15cm.clear();
+	trackAvg15cm_sceadded.clear();
+
     }
 
     void Run3DTracker::ClearVertex() {
@@ -1012,7 +1134,7 @@ namespace larcv {
       _vtx_x_sceadded  = -1.0 * kINVALID_FLOAT;
       _vtx_y_sceadded  = -1.0 * kINVALID_FLOAT;
       _vtx_z_sceadded  = -1.0 * kINVALID_FLOAT;
-
+      
       _trk_id_v.clear();
       _E_muon_v.clear();
       _E_proton_v.clear();
@@ -1048,78 +1170,22 @@ namespace larcv {
       recoEndPoints_x.clear();
       recoEndPoints_y.clear();
       recoEndPoints_z.clear();
-      
+
       _IonY_5cm_v.clear();
       _IonY_10cm_v.clear();
       _IonY_tot_v.clear();
       
       _Trunc_dQdX1_v.clear();
       _Trunc_dQdX3_v.clear();
-      _IondivLength_v.clear();
-      
-      _trackQ3_v.clear();
-      _trackQ5_v.clear();
-      _trackQ10_v.clear();
-      _trackQ20_v.clear();
-      _trackQ30_v.clear();
-      _trackQ50_v.clear();
-      _TotalADCvalues_v.clear();
-      _Angle_v.clear();
-      _DeadWireList.clear();
-      _DeadWireList_U.clear();
-      _DeadWireList_V.clear();
-      _DeadWireList_Y.clear();
-      _Reco_goodness_v.clear();
-      _track_Goodness_v.clear();
-
-      MCVertices.clear();
-      recoEndPoints.clear();
-
-      _E_muon_v_sceadded.clear();
-      _E_proton_v_sceadded.clear();
-      _Length_v_sceadded.clear();
-      _Avg_Ion_v_sceadded.clear();
-      _Avg_IonY_v_sceadded.clear();
-      _vertexPhi_sceadded.clear();
-      _vertexTheta_sceadded.clear();
-      _vertexPhi_2cm_sceadded.clear();
-      _vertexTheta_2cm_sceadded.clear();
-      _vertexPhi_5cm_sceadded.clear();
-      _vertexTheta_5cm_sceadded.clear();
-      _vertexPhi_7cm_sceadded.clear();
-      _vertexTheta_7cm_sceadded.clear();
-      _vertexPhi_10cm_sceadded.clear();
-      _vertexTheta_10cm_sceadded.clear();
-      _vertexPhi_12cm_sceadded.clear();
-      _vertexTheta_12cm_sceadded.clear();
-      _vertexPhi_15cm_sceadded.clear();  
-      _vertexTheta_15cm_sceadded.clear();
-      _vertexPhi_17cm_sceadded.clear();
-      _vertexTheta_17cm_sceadded.clear();
-      _vertexPhi_20cm_sceadded.clear();
-      _vertexTheta_20cm_sceadded.clear();
-      _vertexPhi_30cm_sceadded.clear();
-      _vertexTheta_30cm_sceadded.clear();
-      _closestWall_sceadded.clear();
-      _Ion_5cm_v_sceadded.clear();
-      _Ion_10cm_v_sceadded.clear();
-      _Ion_tot_v_sceadded.clear();
-      recoEndPoints_x_sceadded.clear();
-      recoEndPoints_y_sceadded.clear();
-      recoEndPoints_z_sceadded.clear();
-      _IonY_5cm_v_sceadded.clear();
-      _IonY_10cm_v_sceadded.clear();
-      _IonY_tot_v_sceadded.clear();
-      _Trunc_dQdX1_v_sceadded.clear();
-      _Trunc_dQdX3_v_sceadded.clear();
-      _IondivLength_v_sceadded.clear();
+      _IondivLength_v.clear();      
+     
       trackAvg15cm_x.clear();
       trackAvg15cm_y.clear();
       trackAvg15cm_z.clear();
       trackAvg15cm_x_sceadded.clear();
       trackAvg15cm_y_sceadded.clear();
       trackAvg15cm_z_sceadded.clear();
-
+      
       _trackQ3_v_sceadded.clear();
       _trackQ5_v_sceadded.clear();
       _trackQ10_v_sceadded.clear();
@@ -1132,8 +1198,7 @@ namespace larcv {
       recoEndPoints_sceadded.clear();
       trackAvg15cm.clear();
       trackAvg15cm_sceadded.clear();
-      
-        
+ 
     }
 
 }
