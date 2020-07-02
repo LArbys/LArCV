@@ -201,13 +201,20 @@ namespace larcv {
         std::vector<larcv::Image2D> Full_image_v(3);
 
         //double wireRange = 5000;
-        double wireRange[3] = {2500,2500,3500};
-        double tickRange = 8502;
-        //double tickRange = 10000;
+	//double tickRange = 10000;
+	
+	// old (wrong) meta
+	//        double wireRange[3] = {2500,2500,3500};
+	// double tickRange = 8502;
+
+        double wireRange[3] = {3456,3456,3456};
+        double tickRange = 8448;
 
         // Create base image2D with the full view, fill it with the input image 2D, we will crop it later
         for(size_t iPlane=0;iPlane<3;iPlane++){
-            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange[iPlane],tickRange,(int)(tickRange)/6,(int)(wireRange[iPlane]),0,tickRange);
+	  //            Full_meta_v[iPlane] = larcv::ImageMeta(wireRange[iPlane],tickRange,(int)(tickRange)/6,(int)(wireRange[iPlane]),0,tickRange);
+	  //	  Full_meta_v[iPlane] = full_adc_img_v[iPlane].meta();
+	  Full_meta_v[iPlane] = full_adc_img_v->at(iPlane).meta();
             Full_image_v[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             Tagged_Image[iPlane] = larcv::Image2D(Full_meta_v[iPlane]);
             if(full_adc_img_v->size() == 3)Full_image_v[iPlane].overlay( (*full_adc_img_v)[iPlane] );
