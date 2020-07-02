@@ -90,6 +90,7 @@ namespace larcv {
     //kProductGeo2D,    ///< Vector2D, LineSegment2D
     kProductPGraph,   ///< PGraph, EventPGraph
     kProductVoxel3D,  ///< Voxel3D, EventVoxel3D
+    kProductSparseImage, ///< SparseImage, EventSparseImage
     kProductUnknown   ///< LArbys
   };
 
