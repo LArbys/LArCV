@@ -1,4 +1,4 @@
-cd ~/dllee_unified/LArCV/build/
+cd ../../build/
 rm -rf Chimera
 cd ..
 make
