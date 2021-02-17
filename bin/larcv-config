@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Python version
+let PYTHON_VERSION=`python -V 2>&1 | awk '{ print $2 }' | sed 's/\./\ /g' | awk '{ print $1 }'`
+if [ $PYTHON_VERSION -eq 3 ]; then
+    PYBIN=python3
+    PYCONFIG=python3-config
+else
+    PYBIN=python
+    PYCONFIG=python-config
+fi
+
+
 out=""
 while test $# -gt 0; do
   case "$1" in
@@ -16,11 +27,15 @@ while test $# -gt 0; do
 	  if [ $LARCV_OPENCV -eq 1 ]; then
 	      out+="-I${OPENCV_INCDIR} "
 	  fi
-	  out+=`python-config --includes`
+	  out+=`${PYCONFIG} --includes`
 	  out+=" "
 	  if [ $LARCV_NUMPY -eq 1 ]; then
 	      out+="-I"
-	      out+=`python -c "import numpy; print numpy.get_include()"`
+	      if [ $PYTHON_VERSION -eq 3 ]; then
+		  out+=`${PYBIN} -c "import numpy; print(numpy.get_include())"`
+	      else
+		  out+=`${PYBIN} -c "import numpy; print numpy.get_include()"`
+	      fi
 	      out+=" "
 	  fi
 	  ;;
@@ -31,9 +46,9 @@ while test $# -gt 0; do
 	  out=""
 	  if [ $LARCV_NUMPY -eq 1 ]; then
 	      out+=" -L"
-	      out+=`python-config --prefix`
+	      out+=`${PYCONFIG} --prefix`
 	      out+="/lib/ "
-	      out+=`python-config --ldflags`
+	      out+=`${PYCONFIG} --ldflags`
 	      out+=" "
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
