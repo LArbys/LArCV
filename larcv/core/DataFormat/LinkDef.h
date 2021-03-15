@@ -81,6 +81,9 @@
 #pragma link C++ class std::vector<std::vector<larcv::ClusterMask>>+;
 #pragma link C++ class larcv::EventClusterMask+;
 
+#pragma link C++ class larcv::Particle+;
+#pragma link C++ class larcv::EventParticle+;
+
 //ADD_NEW_CLASS ... do not change this line
 
 #endif

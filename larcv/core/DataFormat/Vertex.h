@@ -20,6 +20,11 @@ namespace larcv {
     inline double Z() const { return _z; }
     inline double T() const { return _t; }
     
+    inline double x() const { return _x; }
+    inline double y() const { return _y; }
+    inline double z() const { return _z; }
+    inline double t() const { return _t; }
+    
     /// Default destructor
     virtual ~Vertex(){};
     

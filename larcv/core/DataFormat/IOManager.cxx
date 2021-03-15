@@ -285,7 +285,7 @@ namespace larcv {
  	    for (auto const& reverse_prod : _reverse_image2d_products ) {
  	      if ( reverse_prod==name ) {
  		reverseme = true;
- 		LARCV_WARNING() << " input image2d [" << name << "] is in tick-backward order, will be reveresed" << std::endl;
+ 		LARCV_DEBUG() << " input image2d [" << name << "] is in tick-backward order, will be reveresed" << std::endl;
  		break;
  	      }
  	    }
@@ -296,7 +296,7 @@ namespace larcv {
  	  else {
  	    for (auto const& reverse_prod : _reverse_roi_products ) {
  	      if ( reverse_prod==name ) {
- 		LARCV_WARNING() << " input ROI [" << name << "] is in tick-backward order, will be reveresed" << std::endl;	      
+ 		LARCV_DEBUG() << " input ROI [" << name << "] is in tick-backward order, will be reveresed" << std::endl;	      
  		reverseme = true;
  		break;
  	      }
@@ -308,7 +308,7 @@ namespace larcv {
  	  else {
  	    for (auto const& reverse_prod : _reverse_pixel2d_products ) {
  	      if ( reverse_prod==name ) {
- 		LARCV_WARNING() << " input Pixel2D [" << name << "] is in tick-backward order, will be reveresed" << std::endl;	      
+ 		LARCV_DEBUG() << " input Pixel2D [" << name << "] is in tick-backward order, will be reveresed" << std::endl;	      
  		reverseme = true;
  		break;
  	      }
@@ -684,8 +684,8 @@ namespace larcv {
 	if ( _reverse_productid.find(id)!=_reverse_productid.end() ) {
 
 	  if (  product_type(id)==kProductImage2D ) {
-	    LARCV_WARNING() << "Input image2d [" << _in_tree_v[id]->GetName() << "] expected in tick-backward order." << std::endl;
-	    LARCV_WARNING() << "Reverse to tick-forward. Move origin to be w.r.t bottom left" << std::endl;
+	    LARCV_DEBUG() << "Input image2d [" << _in_tree_v[id]->GetName() << "] expected in tick-backward order." << std::endl;
+	    LARCV_DEBUG() << "Reverse to tick-forward. Move origin to be w.r.t bottom left" << std::endl;
 	    EventImage2D* evimg = (EventImage2D*)ptr;
 	    std::vector<Image2D> img_v;
 	    evimg->Move(img_v);

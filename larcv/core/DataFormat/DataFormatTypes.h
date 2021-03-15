@@ -32,6 +32,10 @@ namespace larcv {
   /// Invalid Voxel3DID_t definition
   static const Voxel3DID_t kINVALID_VOXEL3DID = kINVALID_ULONGLONG;
 
+  /// "ID" for Particle
+  typedef unsigned short InstanceID_t;  
+  static const unsigned short kINVALID_INSTANCEID = kINVALID_USHORT;
+
   /// Channel status constants
   namespace chstatus {
     static const short kNOTPRESENT = -1;        ///< Channel does not exist
@@ -97,7 +101,7 @@ namespace larcv {
     kProductVoxel3D,     ///< Voxel3D, EventVoxel3D
     kProductSparseImage, ///< SparseImage, EventSparseImage
     kProductClusterMask,  ///< ClusterMask, EventClusterMask
-
+    kProductParticle,    ///< Particle, EventParticle
     kProductUnknown      ///< LArbys
   };
 
