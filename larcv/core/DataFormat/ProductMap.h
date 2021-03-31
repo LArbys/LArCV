@@ -26,6 +26,8 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::SparseImage  > ();
   class ClusterMask;
   template<> ProductType_t ProductType< larcv::ClusterMask  > ();
+  class Particle;
+  template<> ProductType_t ProductType< larcv::Particle  > ();
 
   // python-friendly alternative functions  
   std::string   GetProductTypeName( ProductType_t prodtype );
