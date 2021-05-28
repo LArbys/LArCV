@@ -34,6 +34,7 @@
 #pragma link C++ class larcv::load_pyutil+;
 #pragma link C++ class larcv::PyImageMaker+;
 #pragma link C++ class larcv::NumpyArrayFloat+;
+#pragma link C++ class larcv::NumpyArrayInt+;
 
 //ADD_NEW_CLASS ... do not change this line
 

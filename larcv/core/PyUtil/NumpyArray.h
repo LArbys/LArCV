@@ -29,6 +29,29 @@ namespace larcv {
 
   };
 
+
+  class NumpyArrayInt  {
+    
+  public:
+    
+    NumpyArrayInt()
+      : ndims(0)
+      {};
+
+    NumpyArrayInt( PyObject* array );
+    virtual ~NumpyArrayInt() {};
+
+    int store( PyObject* array );
+    PyObject* tonumpy();    
+    int dtype();
+
+    int ndims;
+    std::vector<int> shape;
+    std::vector<int> data;
+
+
+  };
+  
 }
 
 #endif
