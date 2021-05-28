@@ -191,11 +191,14 @@ PyObject *as_ndarray(const std::vector<float> &vec) {
 
 PyObject *as_ndarray(const Image2D &img) {
   SetPyUtil();
-  int* dim_data = new int[2];
+  npy_intp dim_data[2];
   dim_data[0] = img.meta().cols();
   dim_data[1] = img.meta().rows();
   auto const &vec = img.as_vector();
-  return PyArray_FromDimsAndData(2, dim_data, NPY_FLOAT, (char *)&(vec[0]));
+
+
+  return PyArray_SimpleNewFromData( 2, dim_data, NPY_FLOAT, (void*)vec.data() );
+  //return PyArray_FromDimsAndData(2, dim_data, NPY_FLOAT, (char *)&(vec[0]));
 }
 
 void copy_array(PyObject *arrayin, const std::vector<float> &cvec) {
