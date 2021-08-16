@@ -22,6 +22,7 @@ if 'LARCV_NUMPY' in os.environ and os.environ['LARCV_NUMPY'] == '1':
     from ROOT import larcv
     larcv.load_pyutil
 if 'LARCV_OPENCV' in os.environ and os.environ['LARCV_OPENCV'] == '1':
+    from ROOT import larcv
     larcv.load_cvutil
 #larcv.load_rootutil
 #larcv.LoadImageMod
