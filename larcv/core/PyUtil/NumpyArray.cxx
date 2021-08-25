@@ -111,16 +111,19 @@ namespace larcv {
     import_array1(0);
 
     npy_intp* dims = new npy_intp[ndims];
-    for (int i=0; i<ndims; i++)
+    for (int i=0; i<ndims; i++) {
       dims[i] = shape[i];
+    }
 
     //    PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
+    PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
 
-    PyObject* array = PyArray_SimpleNewFromData( ndims, &dims[0], NPY_FLOAT, data.data() );
-
+    float* np_data = (float*)PyArray_DATA( array );
+    memcpy( np_data, data.data(), sizeof(float)*data.size());
+    
     delete [] dims;
 
-    return array;
+    return (PyObject*)array;
   }
 
   // ==================================================
