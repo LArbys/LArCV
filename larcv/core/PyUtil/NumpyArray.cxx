@@ -103,6 +103,7 @@ namespace larcv {
     }
 
     delete [] dims;
+    return 0;
   }
 
   PyObject* NumpyArrayFloat::tonumpy()
@@ -219,6 +220,7 @@ namespace larcv {
     }
 
     delete [] dims;
+    return 0;
   }
 
   PyObject* NumpyArrayInt::tonumpy()
