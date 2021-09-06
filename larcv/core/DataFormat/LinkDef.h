@@ -64,8 +64,8 @@
 #pragma link C++ function larcv::GetProductTypeName( larcv::ProductType_t )+;
 #pragma link C++ function larcv::GetProductTypeID( std::string )+;
 
-//#pragma link C++ class larcv::Point2D+;
-//#pragma link C++ class std::vector<larcv::Point2D>+;
+#pragma link C++ class larcv::Point2D+;
+#pragma link C++ class std::vector<larcv::Point2D>+;
 #pragma link C++ class larcv::Point3D+;
 
 #pragma link C++ class larcv::BBox2D+;
