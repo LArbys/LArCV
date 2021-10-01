@@ -1,5 +1,5 @@
 #thanks taritree
-
+from __future__ import print_function
 import os
 import sys
 import copy
@@ -29,7 +29,7 @@ try:
 except:
     pass
 
-from roilayout import ROIToolLayout
+from .roilayout import ROIToolLayout
 
 import pyqtgraph.exporters
 
@@ -248,7 +248,7 @@ class RGBDisplay(QtGui.QWidget):
             for prod in self.dm.keys['pgraph']:
             #    ev_pgraph = self.dm.iom.get_data(larcv.kProductPGraph,prod)
             #    npgs = ev_pgraph.PGraphArray().size()
-            #    for ipg in xrange(npgs):
+            #    for ipg in range(npgs):
             #        pname = "{}:{}".format(prod,ipg)
                 self.comboPGraph.addItem(prod)
         self.lay_inputs.addWidget(self.comboPGraph, 1, optstart+2)
@@ -265,7 +265,7 @@ class RGBDisplay(QtGui.QWidget):
         try:
             import cv2
         except:
-            print "No OpenCV. Disabling."
+            print("No OpenCV. Disabling.")
             self.rgbcv2.setEnabled(False)
 
         self.rgbcaffe.setFixedWidth(130)
@@ -279,8 +279,8 @@ class RGBDisplay(QtGui.QWidget):
         
         # Particle types
         self.kTypes = {'kBNB':   (self.kBNB, [0,2]),
-                       'kOTHER': (self.kOTHER, [i for i in xrange(10) if i != 2]),
-                       'kBOTH':  (self.kBOTH, [i for i in xrange(10)])}
+                       'kOTHER': (self.kOTHER, [i for i in range(10) if i != 2]),
+                       'kBOTH':  (self.kBOTH, [i for i in range(10)])}
 
         # The current image array, useful for getting meta
         self.image = None
@@ -318,7 +318,7 @@ class RGBDisplay(QtGui.QWidget):
             self.caffe_layout = CaffeLayout(self.caffe_test,self)
             self.caffe_enabled = True
         except:
-            print "Caffe Disabled"
+            print("Caffe Disabled")
             self.caffe_enabled = False
             self.rgbcaffe.setEnabled(False)
 
@@ -327,7 +327,7 @@ class RGBDisplay(QtGui.QWidget):
         try:
             self.cv2_layout = CV2Layout()
         except:
-            print "no CV2"
+            print("no CV2")
             self.cv2_layout = None
             pass
         self.cv2_enabled = False
@@ -346,7 +346,7 @@ class RGBDisplay(QtGui.QWidget):
         # -----------------------------------------------------------------------------
         self.event_base_and_images = {}
         self.rse_map = {}
-        print "len(self.event_base_and_images): ",len(self.event_base_and_images)
+        print("len(self.event_base_and_images): ",len(self.event_base_and_images))
 
 
 
@@ -363,11 +363,11 @@ class RGBDisplay(QtGui.QWidget):
     # erez
     def prepare_rse_navigation(self):
         if len(self.rse_map)==0:
-            print "preparing R/S/E navigation...."
+            print("preparing R/S/E navigation....")
             self.dm.get_all_images(self.image_producer,self.event_base_and_images,self.rse_map)
             rselist = self.rse_map.keys()
             rselist.sort()
-            print rselist
+            print(rselist)
             if self.run.text()=="-1" and self.subrun.text()=="-1" and self.event_num.text()=="-1" and len(rselist)>0:
                 self.run.setText("%d"%(rselist[0][0]))
                 self.subrun.setText("%d"%(rselist[0][1]))
@@ -758,7 +758,7 @@ class RGBDisplay(QtGui.QWidget):
                 ti = pg.TextItem(text=larcv.ROIType2String(roi_p['type']))
                 ti.setPos(x * dw_i, (y + h_b) * dh_i + 1)
 
-                print str(self.event.text()),x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i,"\n"
+                print(str(self.event.text()),x * dw_i, y * dh_i, w_b * dw_i, h_b * dh_i,"\n")
 
                 r1 = HoverRect(x * dw_i,
                                y * dh_i,
@@ -792,7 +792,7 @@ class RGBDisplay(QtGui.QWidget):
     # through caffe_layout.py
     def load_current_image(self):
 
-        print "Loading current image!"
+        print("Loading current image!")
         
         # revert the image back to Image2D.nd_array style
         self.image.revert_image()
@@ -832,7 +832,7 @@ class RGBDisplay(QtGui.QWidget):
         exporter.parameters()['height'] = 700 
         exporter.export('R{}_S{}_E{}.png'.format(str(self.run.text()),str(self.subrun.text()),str(self.event.text())))
 #        exporter.export('saved_image_{}_{}.png'.format(str(self.event.text()),self.savecounter))
-        print "Saved image {}".format(self.savecounter)
+        print("Saved image {}".format(self.savecounter))
         self.savecounter += 1
 
     def setImage( self, img ):
@@ -845,7 +845,7 @@ class RGBDisplay(QtGui.QWidget):
             self.imi.setImage( img )
         else:
             self.applyGradientFalseColorMap()
-            #print "flatten image and set it"
+            #print("flatten image and set it")
             flatten = np.sum( img, axis=2 )
             self.imi.setImage( flatten )
         
@@ -863,7 +863,7 @@ class RGBDisplay(QtGui.QWidget):
         """ connected to false color widget signal: sigGradientChangeFinished.
             job is to set the color map of the image plot (self.imi)"""
         if self.use_false_color.isChecked():
-            #print "Set false color scale"
+            #print("Set false color scale")
             self.lut = self.false_color_widget.colorMap().getLookupTable(0.0, 1.0, 256)
             try:
                 self.imi.setLookupTable(self.lut)
@@ -881,7 +881,7 @@ class RGBDisplay(QtGui.QWidget):
             self.setImage( self.pimg )
         else:
             # attempt to reset it
-            #print "restore false color scale"
+            #print("restore false color scale")
             self.false_color_widget.hide()
             try:
                 self.imi.setLookupTable(None)
@@ -894,7 +894,7 @@ class RGBDisplay(QtGui.QWidget):
         """ if combo box has producer set and cluster masks exists in datamanager,
         add cluster masks to self.plt (PyQtGraph PlotWidget).
         takes the form of a bounidng box and graph"""
-        print "Draw Cluster Masks called"
+        print("Draw Cluster Masks called")
         if len(self.dm.keys["clustermask"])==0:
             return
         if str(self.comboClusterMask.currentText())=="Do not draw masks":
@@ -913,14 +913,14 @@ class RGBDisplay(QtGui.QWidget):
         producer = str(self.comboClusterMask.currentText()).strip()
         ev_clustmask = self.dm.iom.get_data(larcv.kProductClusterMask,producer)
             
-        for mask_plane in xrange(ev_clustmask.as_vector().size()):
+        for mask_plane in range(ev_clustmask.as_vector().size()):
             if mask_plane not in self.views:
                 continue
 
             plane_mask_v = ev_clustmask.as_vector().at(mask_plane)
             nplane_masks = plane_mask_v.size()
 
-            for imask in xrange(nplane_masks):
+            for imask in range(nplane_masks):
                 clustmask = plane_mask_v.at(imask)
                 point_v = clustmask.points_v
                 bbox    = clustmask.box
@@ -953,7 +953,7 @@ class RGBDisplay(QtGui.QWidget):
         """ if combo box has producer set and cluster masks exists in datamanager,
         add cluster masks to self.plt (PyQtGraph PlotWidget).
         takes the form of a bounidng box and graph"""
-        print "Draw Cluster Masks called"
+        print("Draw Cluster Masks called")
         if len(self.dm.keys["pixel2d"])==0:
             return
         if "Do not draw" in str(self.comboPixel2D.currentText()):
@@ -983,15 +983,15 @@ class RGBDisplay(QtGui.QWidget):
                     has_meta = True
                 else:
                     has_meta = False
-                print "Number of pixel2d clusters in plane[{}]: {}".format(plane,cluster_v.size())
-                for icluster in xrange(cluster_v.size()):
+                print("Number of pixel2d clusters in plane[{}]: {}".format(plane,cluster_v.size()))
+                for icluster in range(cluster_v.size()):
                     cluster = cluster_v.at(icluster)
                     pixdata_np = np.zeros( (cluster.size(),2) )
-                    print "Number of pixels in cluster[{}]: {}".format(icluster,cluster.size())
+                    print("Number of pixels in cluster[{}]: {}".format(icluster,cluster.size()))
                     pencolor = (255,255,255)
                     if plane in [0,1,2]:
                         pencolor = pencolors[plane]                    
-                    for ipix in xrange(cluster.size()):
+                    for ipix in range(cluster.size()):
                         pix2d = cluster.at(ipix)
                         pixdata_np[ipix,0] = pix2d.X()
                         pixdata_np[ipix,1] = pix2d.Y()
@@ -999,7 +999,7 @@ class RGBDisplay(QtGui.QWidget):
                     pix_plot = pyqtgraph.ScatterPlotItem( pos=pixdata_np, symbol='o', size=3, pen=pencolor, pxMode=True )
                     self.plt.addItem(pix_plot)
             except:
-                print "couldnt open pixel2dcluster for plane={}".format(plane)
+                print("couldnt open pixel2dcluster for plane={}".format(plane))
 
             # now individual pixel2d
             pix_v = ev_pixel2d.Pixel2DArray( plane )
@@ -1010,7 +1010,7 @@ class RGBDisplay(QtGui.QWidget):
                     pencolor = pencolors[plane]
                     
                 #fillcolor = np.random.randint(255,size=3)
-                for ipix in xrange(pix_v.size()):
+                for ipix in range(pix_v.size()):
                     pix2d = pix_v.at(ipix)
                     pixdata_np[ipix,0] = pix2d.X()
                     pixdata_np[ipix,1] = pix2d.Y()
@@ -1022,7 +1022,7 @@ class RGBDisplay(QtGui.QWidget):
         """ if combo box has producer set and cluster masks exists in datamanager,
         add cluster masks to self.plt (PyQtGraph PlotWidget).
         takes the form of a bounidng box and graph"""
-        print "Draw Cluster Masks called"
+        print("Draw Cluster Masks called")
         if len(self.dm.keys["pgraph"])==0:
             return
         if "Do not draw" in str(self.comboPGraph.currentText()):
@@ -1040,7 +1040,7 @@ class RGBDisplay(QtGui.QWidget):
         parser = DLVertexParser()        
         producer = str(self.comboPGraph.currentText()).strip()
         ev_pgraph = self.dm.iom.get_data( larcv.kProductPGraph, producer )
-        for vtx_idx in xrange(ev_pgraph.PGraphArray().size()):
+        for vtx_idx in range(ev_pgraph.PGraphArray().size()):
             #pgraph = ev_pgraph.PGraphArray().at(vtx_idx)
             plot_items = parser.getVertexPlotItems( vtx_idx, self.dm.iom,
                                                     tickforward=self.dm.iom.tick_forward,

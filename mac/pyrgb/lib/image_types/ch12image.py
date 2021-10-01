@@ -1,4 +1,4 @@
-from plotimage import PlotImage
+from .plotimage import PlotImage
 from .. import np
 from .. import QtGui
 

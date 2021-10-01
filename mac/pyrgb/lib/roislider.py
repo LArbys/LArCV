@@ -1,3 +1,4 @@
+from __future__ import print_function
 from .. import pg
 import numpy as np
 
@@ -45,11 +46,11 @@ class ROISliderGroup:
         self.vertexplot = pg.ScatterPlotItem(pxMode=False)
 
         if vertices is not None:
-            print "bbox specified vertices"
+            print("bbox specified vertices")
             self.pos  = np.asarray( vertices )
             self.fix_vertex_to_bb = False
         else:
-            print "default vertices"
+            print("default vertices")
             self.pos = np.zeros( (3,2), dtype=np.float )
 
         assert( self.pos.shape == (3,2) )
@@ -72,7 +73,7 @@ class ROISliderGroup:
 
             if self.fix_vertex_to_bb:
                 # use center of boxes
-                print "center vertex"
+                print("center vertex")
                 self.centerVertices()
 
 
@@ -127,7 +128,7 @@ class ROISliderGroup:
                 
     def setVertex(self,plane, pos):
         # if called, that means user wishes to set vertex position
-        print pos,self.vertices[plane]["pos"].shape
+        print(pos,self.vertices[plane]["pos"].shape)
         self.fix_vertex_to_bb = False
         self.vertices[plane]["pos"][0] = pos[0]
         if self.use_same_times:

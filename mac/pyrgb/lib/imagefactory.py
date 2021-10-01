@@ -1,6 +1,6 @@
-from image_types.defaultimage   import DefaultImage
-from image_types.fakecolorimage import FakeColorImage
-from image_types.ch12image      import Ch12Image
+from .image_types.defaultimage   import DefaultImage
+from .image_types.fakecolorimage import FakeColorImage
+from .image_types.ch12image      import Ch12Image
 
 class ImageFactory(object):
     def __init__(self):

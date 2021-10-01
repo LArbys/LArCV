@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os,sys
 from .. import pg
 
@@ -63,8 +64,8 @@ class CrossHairs:
             
     def mouseClicked(self,evt):
         if self.active:
-            print "mouse-click: cross-hair response. plane=",self.plane
-            print "(x,y)=",self.last_point
+            print("mouse-click: cross-hair response. plane=",self.plane)
+            print("(x,y)=",self.last_point)
             self.plt.removeItem( self.vLine )
             self.plt.removeItem( self.hLine )
             if self.plane==0:

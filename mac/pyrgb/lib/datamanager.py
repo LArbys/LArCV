@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os,sys
 import numpy as np
 import time, re
@@ -5,8 +6,8 @@ import time, re
 from .. import ROOT
 from .. import larcv
 
-from iomanager import IOManager
-from imagefactory import ImageFactory
+from .iomanager import IOManager
+from .imagefactory import ImageFactory
 
 # data manger helps get the producers from the ROOT file
 # as well as manage factory creation of images as the user
@@ -26,7 +27,7 @@ class DataManager(object):
                 if os.path.exists(arg):
                     input_list.append(arg)
                 else:
-                    print "Could not load input file: ",arg
+                    print("Could not load input file: ",arg)
 
 
         # support for old larcv1 files
@@ -36,7 +37,7 @@ class DataManager(object):
 
         # prepare dictionary holding product names (keys) and producer names of that type (values)
         self.keys = {}
-        for i in xrange(larcv.kProductUnknown):
+        for i in range(larcv.kProductUnknown):
             product = str(larcv.ProductName(i))
             self.keys[product] = []
         
@@ -52,7 +53,7 @@ class DataManager(object):
                                                                        len("keys inside {}\n".format(infile) ) )
                 rfile = ROOT.TFile(infile)
                 keys = rfile.GetListOfKeys()
-                for ikey in xrange(keys.GetEntries()):
+                for ikey in range(keys.GetEntries()):
                     keyname = str(keys.At(ikey).GetName())
                     prodname = keyname.split("_")[0]
                     if prodname == "partroi":
@@ -146,11 +147,11 @@ class DataManager(object):
             event_base = self.iom.get_data(larcv.kProductImage2D,imgprod)
             event_base_and_images[entry] = event_base
             rse = ( int(event_base.run()),int(event_base.subrun()),int(event_base.event()) )
-            #print rse
+            #print(rse
             #rse_map[entry] = [event_base.run(),event_base.subrun(),event_base.event()]
             rse_map[ rse ] = entry
-#            print rse_map[entry]
-        print "collected %d images...\nready for RSE navigation"%len(event_base_and_images)
+#            print(rse_map[entry])
+        print("collected %d images...\nready for RSE navigation"%len(event_base_and_images))
 
         return
     
@@ -164,7 +165,7 @@ class DataManager(object):
         if wanted_rse in rse_map:
             return self.get_event_image(rse_map[wanted_rse],imgprod,roiprod,planes,refresh)
         else:
-            print "i couldn't find this R/S/E..."
+            print("i couldn't find this R/S/E...")
             return None, False
  
         ii = -1
@@ -175,7 +176,7 @@ class DataManager(object):
                 break
     
         if (ii==-1):
-            print "i couldn't find this R/S/E..."
+            print("i couldn't find this R/S/E...")
                         
         return self.get_event_image(ii,imgprod,roiprod,planes,refresh)
 
