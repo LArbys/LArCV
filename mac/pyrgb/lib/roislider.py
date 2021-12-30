@@ -1,3 +1,4 @@
+from __future__ import print_function
 from .. import pg
 import numpy as np
 
@@ -45,11 +46,11 @@ class ROISliderGroup:
         self.vertexplot = pg.ScatterPlotItem(pxMode=False)
 
         if vertices is not None:
-            print "bbox specified vertices"
+            print("bbox specified vertices")
             self.pos  = np.asarray( vertices )
             self.fix_vertex_to_bb = False
         else:
-            print "default vertices"
+            print("default vertices")
             self.pos = np.zeros( (3,2), dtype=np.float )
 
         assert( self.pos.shape == (3,2) )
@@ -72,7 +73,7 @@ class ROISliderGroup:
 
             if self.fix_vertex_to_bb:
                 # use center of boxes
-                print "center vertex"
+                print("center vertex")
                 self.centerVertices()
 
 
@@ -101,21 +102,21 @@ class ROISliderGroup:
                 if roi == sender: continue
                 roi.setSize(size, finish=False)
         else:
-            #print "same-time resize. ROI set "%(self)," : "
+            #print("same-time resize. ROI set "%(self)," : ")
             sender = self.rois[0].sender()
             sender_pos = sender.pos()
             sender_shape = sender.size()
             tstart = sender_pos[1]
             tend   = sender_pos[1]+sender_shape[1]
-            #print "  ",sender
-            #print "  ",
+            #print("  ",sender)
+            #print("  ",)
             for roi in self.rois:
                 pos = roi.pos()
                 roi.setPos( [pos[0],tstart], finish=False, update=False )
                 s   = roi.size()
                 roi.setSize( [s[0], sender_shape[1] ], finish=False, update=False )
-                #print roi.pos(),
-            #print
+                #print(roi.pos(),)
+            #print()
         # setting vertex position
         if self.fix_vertex_to_bb:
             self.centerVertices()
@@ -127,7 +128,7 @@ class ROISliderGroup:
                 
     def setVertex(self,plane, pos):
         # if called, that means user wishes to set vertex position
-        print pos,self.vertices[plane]["pos"].shape
+        print(pos,self.vertices[plane]["pos"].shape)
         self.fix_vertex_to_bb = False
         self.vertices[plane]["pos"][0] = pos[0]
         if self.use_same_times:

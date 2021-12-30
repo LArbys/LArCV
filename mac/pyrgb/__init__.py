@@ -1,5 +1,5 @@
+from __future__ import print_function
 from pyqtgraph.Qt import QtGui, QtCore
-
 import ROOT
 from larcv import larcv
 import pyqtgraph as pg
@@ -14,5 +14,5 @@ larcv.load_pyutil
 try:
     import cv2
 except:
-    print "NO CV2"
+    print("NO CV2")
 

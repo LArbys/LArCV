@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # thanks taritree(!)
-
+from __future__ import print_function
 import os,sys
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
@@ -13,6 +13,6 @@ rgbdisplay = rgbd.RGBDisplay(sys.argv[1:])
 rgbdisplay.show()
 
 if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-    print "exec called ..."
+    print("exec called ...")
     rgbdisplay.show()
     QtGui.QApplication.instance().exec_()
