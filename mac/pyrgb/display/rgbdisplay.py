@@ -845,7 +845,7 @@ class RGBDisplay(QtGui.QWidget):
             self.imi.setImage( img )
         else:
             self.applyGradientFalseColorMap()
-            #print "flatten image and set it"
+            #print("flatten image and set it")
             flatten = np.sum( img, axis=2 )
             self.imi.setImage( flatten )
         
@@ -863,7 +863,7 @@ class RGBDisplay(QtGui.QWidget):
         """ connected to false color widget signal: sigGradientChangeFinished.
             job is to set the color map of the image plot (self.imi)"""
         if self.use_false_color.isChecked():
-            #print "Set false color scale"
+            #print("Set false color scale")
             self.lut = self.false_color_widget.colorMap().getLookupTable(0.0, 1.0, 256)
             try:
                 self.imi.setLookupTable(self.lut)
@@ -881,7 +881,7 @@ class RGBDisplay(QtGui.QWidget):
             self.setImage( self.pimg )
         else:
             # attempt to reset it
-            #print "restore false color scale"
+            #print("restore false color scale")
             self.false_color_widget.hide()
             try:
                 self.imi.setLookupTable(None)

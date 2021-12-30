@@ -150,7 +150,7 @@ class DataManager(object):
             #print(rse)
             #rse_map[entry] = [event_base.run(),event_base.subrun(),event_base.event()]
             rse_map[ rse ] = entry
-#            print(rse_map[entry])
+            #print(rse_map[entry])
         print("collected %d images...\nready for RSE navigation"%len(event_base_and_images))
 
         return
