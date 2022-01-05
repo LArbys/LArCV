@@ -16,6 +16,7 @@ namespace larcv {
 int SetPyUtil() {
   static bool once = false;
   if (!once) {
+    logger::get("PyUtils").send(larcv::msg::kNORMAL, __FUNCTION__, __LINE__, "calling import_array1(0)")  << std::endl;
     #ifdef USE_PYTHON3
         import_array1(0);
     #else
