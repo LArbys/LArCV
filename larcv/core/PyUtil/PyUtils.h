@@ -16,6 +16,7 @@ typedef _object PyObject;
 #include "larcv/core/DataFormat/EventChStatus.h"
 #include "larcv/core/DataFormat/SparseImage.h"
 #include "larcv/core/DataFormat/ClusterMask.h"
+#include "larcv/core/DataFormat/Voxel2D.h"
 
 
 namespace larcv {
@@ -92,6 +93,8 @@ namespace larcv {
 
   ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
 
+  // sparsetensor2d into dense numpy array (np.float)
+  PyObject *as_ndarray(const SparseTensor2D& data, bool clear_mem=false);  
 
 }
 

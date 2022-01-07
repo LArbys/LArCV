@@ -845,6 +845,26 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     return sparseimg;
   }
 
+  PyObject *as_ndarray(const SparseTensor2D& data, bool clear_mem) {
+    SetPyUtil();
+    npy_intp dim_data[2];
+    dim_data[0] = data.meta().cols();
+    dim_data[1] = data.meta().rows();
+    
+    static std::vector<float> local_data;
+    local_data.resize(data.meta().size());
+    for(auto &v : local_data) v = 0.;
+    
+    for(auto const& vox : data.as_vector()) local_data[vox.id()]=vox.value();
+    
+    auto res = PyArray_Transpose(((PyArrayObject*)(PyArray_SimpleNewFromData(2, dim_data, NPY_FLOAT, (char *)&(local_data[0])))),NULL);
+    //return PyArray_FromDimsAndData(2, dim_data, NPY_FLOAT, (char *)&(vec[0]));
+    
+    if(clear_mem) local_data.clear();
+    return res;
+  }
+  
+
 }
 
 #endif

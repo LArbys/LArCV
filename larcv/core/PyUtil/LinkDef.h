@@ -29,6 +29,7 @@
 #pragma link C++ function larcv::as_sparseimg_ndarray( const larcv::SparseImage&, larcv::msg::Level_t )+;
 #pragma link C++ function larcv::sparseimg_from_ndarray( PyObject*, const std::vector<larcv::ImageMeta>&, larcv::msg::Level_t );
 #pragma link C++ function larcv::as_ndarray_mask_pixlist( const larcv::ClusterMask&, float, float )+;
+#pragma link C++ function larcv::as_ndarray(const SparseTensor2D&, bool)+;
 
 #endif
 #pragma link C++ class larcv::load_pyutil+;
