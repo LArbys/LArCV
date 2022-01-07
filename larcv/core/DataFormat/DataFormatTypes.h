@@ -27,6 +27,9 @@ namespace larcv {
   /// Invalid plane definition
   static const PlaneID_t kINVALID_PLANE = kINVALID_USHORT;
 
+  typedef unsigned long long VoxelID_t;  
+  static const VoxelID_t kINVALID_VOXELID = kINVALID_ULONGLONG;  
+  
   /// "ID" for Voxel3D
   typedef unsigned long long Voxel3DID_t;
   /// Invalid Voxel3DID_t definition
@@ -102,6 +105,8 @@ namespace larcv {
     kProductSparseImage, ///< SparseImage, EventSparseImage
     kProductClusterMask,  ///< ClusterMask, EventClusterMask
     kProductParticle,    ///< Particle, EventParticle
+    kProductClusterPixel2D, ///< ClusterPixel2D, EventClusterPixel2D
+    kProductSparseTensor2D, ///< SparseTensor2D, EventSparseTensor2D
     kProductUnknown      ///< LArbys
   };
 
@@ -116,6 +121,13 @@ namespace larcv {
      "sparseimage",
      "clustermask",
      "unknown"};
+
+  /// Coordinate unit type
+  enum DistanceUnit_t {
+    kUnitUnknown, ///< undefined scale (bad!)
+    kUnitCM,      ///< cm scale
+    kUnitWireTime ///< wire/time in 2D image
+  };
 
     
 

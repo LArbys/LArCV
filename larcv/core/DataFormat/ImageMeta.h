@@ -106,9 +106,14 @@ namespace larcv {
     double pixel_width  () const { return (_col_count ? _width  / (double)_col_count : 0.); }
     /// Pixel vertical size
     double pixel_height () const { return (_row_count ? _height / (double)_row_count : 0.); }
-
     /// Provide 1-D array index from row and column
     size_t index( size_t row, size_t col, const char* calling_file=0, const int calling_line=0 ) const;
+    /// Given a position, returns pixel ID
+    size_t id( const double x, const double y ) const { return index(row(y), col(x)); }
+    /// Provide absolute coordinate of the center of a specified pixel index    
+    inline Point2D position (size_t index) const { return Point2D(pos_x(index / rows()), pos_y(index % rows())); }
+    /// Provide absolute coordinate of the center of a specified pixel (row,col)
+    inline Point2D position (size_t row, size_t col) const { return Point2D(index(row, col)); }
     /// Provide absolute scale min x
     double min_x() const { return _origin.x; }
     /// Provide absolute scale max x
@@ -149,6 +154,8 @@ namespace larcv {
     
     /// Dump info in text
     std::string dump() const;
+
+    inline size_t size () const { return _row_count * _col_count; }
 
   protected:
 

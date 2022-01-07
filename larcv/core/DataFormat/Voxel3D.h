@@ -1,218 +1,162 @@
 /**
  * \file Voxel3D.h
  *
- * \ingroup DataFormat
- * 
- * \brief Class def header for a class Voxel3D
+ * \ingroup core_DataFormat
+ *
+ * \brief Class def header for 3D specific extension of voxels
  *
  * @author kazuhiro
  */
 
-/** \addtogroup DataFormat
+/** \addtogroup core_DataFormat
 
     @{*/
-#ifndef VOXEL3D_H
-#define VOXEL3D_H
+#ifndef LARCV_VOXEL3D_H
+#define LARCV_VOXEL3D_H
 
-#include <iostream>
-#include <vector>
-#include <array>
-#include "DataFormatTypes.h"
+#include "Voxel.h"
+#include "Voxel3DMeta.h"
+#include "utils.h"
 namespace larcv {
 
   /**
-     \class Voxel3D
-     @brief 3D voxel definition element class consisting of ID and stored value
+     \class SparseTensor3D
+     @brief Container of multiple (3D-projected) voxel set array
   */
-  class Voxel3D{
-    
+  class SparseTensor3D : public VoxelSet {
   public:
-    
-    /// Default constructor
-    Voxel3D(Voxel3DID_t id=kINVALID_VOXEL3DID, float value=kINVALID_FLOAT);
-    /// Default destructor
-    ~Voxel3D(){}
-    
-    /// ID getter
-    inline Voxel3DID_t ID() const { return _id; }
-    /// Value getter
-    inline float  Value() const { return _value; }
-
-    /// Value setter
-    inline void Set(Voxel3DID_t id, float value) { _id = id; _value = value; }
+    /// Default ctor
+    SparseTensor3D() {}
+    SparseTensor3D(VoxelSet&& vs, Voxel3DMeta meta);
+    /// Default dtor
+    virtual ~SparseTensor3D() {}
+    SparseTensor3D& operator= (const VoxelSet& rhs)
+    { *((VoxelSet*)this) = rhs; this->meta(this->meta()); return *this;}
 
     //
-    // uniry operators
+    // Read-access
     //
-    inline Voxel3D& operator += (float value)
-    { _value += value; return (*this); }
-    inline Voxel3D& operator -= (float value)
-    { _value -= value; return (*this); }
-    inline Voxel3D& operator *= (float factor)
-    { _value *= factor; return (*this); }
-    inline Voxel3D& operator /= (float factor)
-    { _value /= factor; return (*this); }
+    /// Access Voxel3DMeta of specific projection
+    inline const larcv::Voxel3DMeta& meta() const { return _meta; }
 
     //
-    // binary operators
+    // Write-access
     //
-    inline bool operator == (const Voxel3D& rhs) const
-    { return (_id == rhs._id); }
-    inline bool operator <  (const Voxel3D& rhs) const
-    {
-      if( _id < rhs._id) return true;
-      if( _id > rhs._id) return false;
-      return false;
+    /// Create & add/set a single voxel
+    void emplace(const double x, const double y, const double z, const float val, const bool add=true);
+    /// Emplace the whole voxel set w/ meta
+    inline void emplace(VoxelSet&& vs, const Voxel3DMeta& meta)
+    {*((VoxelSet*)this) = std::move(vs); this->meta(meta);}
+    /// Merge another SparseTensor3D
+    inline void merge(const SparseTensor3D& vs, bool add=true, bool check_meta_strict=true)
+    { 
+      if(!(this->meta().valid()))
+        this->meta(vs.meta());
+      else if(check_meta_strict) {
+        if(vs.meta() != this->meta()) {
+          std::cerr << "Meta mismatched (strict check)!" << std::endl
+                    << this->meta().dump() << std::endl
+                    << vs.meta().dump() << std::endl;
+          throw std::exception();
+        }
+      }
+      else if(this->meta().num_voxel_x() != vs.meta().num_voxel_x() || 
+        this->meta().num_voxel_y() != vs.meta().num_voxel_y() || 
+        this->meta().num_voxel_z() != vs.meta().num_voxel_z() ) {
+          std::cerr << "Meta mismatched (loose check)!" << std::endl
+                    << this->meta().dump() << std::endl
+                    << vs.meta().dump() << std::endl;
+          throw std::exception(); 
+      }
+      for(auto const& v : vs.as_vector()) this->emplace(v.id(),v.value(),add);
     }
-    inline bool operator <= (const Voxel3D& rhs) const
-    { return  ((*this) == rhs || (*this) < rhs); }
-    inline bool operator >  (const Voxel3D& rhs) const
-    { return !((*this) <= rhs); }
-    inline bool operator >= (const Voxel3D& rhs) const
-    { return !((*this) <  rhs); }
-
-    inline bool operator == (const float& rhs) const
-    { return _value == rhs; }
-    inline bool operator <  (const float& rhs) const
-    { return _value <  rhs; }
-    inline bool operator <= (const float& rhs) const
-    { return _value <= rhs; }
-    inline bool operator >  (const float& rhs) const
-    { return _value >  rhs; }
-    inline bool operator >= (const float& rhs) const
-    { return _value >= rhs; }
+    /// Emplace a new voxel from id & value
+    inline void emplace(VoxelID_t id, float value, const bool add)
+    { VoxelSet::emplace(id, value, add); }
+    /// Set the whole voxel set w/ meta
+    inline void set(const VoxelSet& vs, const Voxel3DMeta& meta)
+    {*((VoxelSet*)this) = vs; this->meta(meta);}
+    /// Clear everything
+    inline void clear_data() { VoxelSet::clear_data(); _meta = Voxel3DMeta(); }
+    /// Meta setter
+    void meta(const larcv::Voxel3DMeta& meta);
+    /// Returns a const reference to voxel closest to a voxel with specified id. if no such voxel within distance, return invalid voxel.
+    const Voxel& close(VoxelID_t id, double distance) const;
+    /// Whether a voxel belongs to this VoxelSet or not, within some distance threshold
+    bool within(VoxelID_t id, double distance) const;
+    /// Compute PCA of this set of voxels
+  	Point3D pca() const;
+    PCA_3D fit_pca(bool store_spread=true, bool use_true_coord=false);
 
   private:
-    Voxel3DID_t _id; ///< voxel id
-    float  _value; ///< Pixel Value
+    larcv::Voxel3DMeta _meta;
+
   };
 
   /**
-     \class Voxel3DMeta
-     @brief Meta data for defining voxels (ID, size, position) and voxelized volume (coordinate, size)
+     \class ClusterVoxel3D
+     @brief Container of multiple (3D-projected) voxel set array
   */
-  class Voxel3DMeta {
+  class ClusterVoxel3D : public VoxelSetArray {
   public:
     /// Default ctor
-    Voxel3DMeta();
+    ClusterVoxel3D() {}
     /// Default dtor
-    ~Voxel3DMeta(){}
+    virtual ~ClusterVoxel3D() {}
 
-    /// Define dimensions
-    void Set(double xmin, double xmax,
-	     double ymin, double ymax,
-	     double zmin, double zmax,
-	     size_t xnum,
-	     size_t ynum,
-	     size_t znum);
-    /// Clear method
-    void Clear();
-    /// Checker if the meta parameters are set properly or not
-    inline bool Valid() const { return _valid; }
-    /// Returns size
-    inline Voxel3DID_t Size() const { return _num_element; }
-    /// Given a position, returns voxel ID
-    Voxel3DID_t ID(double x, double y, double z) const;
-    /// Given a valid voxel ID, returns a position array
-    const std::array<double,3> Position(Voxel3DID_t id) const;
-    /// Given a valid voxel ID, returns X position
-    double X(Voxel3DID_t id) const;
-    /// Given a valid voxel ID, returns Y position
-    double Y(Voxel3DID_t id) const;
-    /// Given a valid voxel ID, returns Z position
-    double Z(Voxel3DID_t id) const;
-    /// Returns voxel count along x-axis
-    inline size_t NumVoxelX()  const { return _xnum; }
-    /// Returns voxel count along y-axis
-    inline size_t NumVoxelY()  const { return _ynum; }
-    /// Returns voxel count along z-axis
-    inline size_t NumVoxelZ()  const { return _znum; }
-    /// Returns voxel size along x-axis;
-    inline double SizeVoxelX() const { return _xlen; }
-    /// Returns voxel size along y-axis;
-    inline double SizeVoxelY() const { return _ylen; }
-    /// Returns voxel size along z-axis;
-    inline double SizeVoxelZ() const { return _zlen; }
-    /// Returns voxel definition maximum x value
-    inline double MaxX() const { return _xmax; }
-    /// Returns voxel definition maximum y value
-    inline double MaxY() const { return _ymax; }
-    /// Returns voxel definition maximum z value
-    inline double MaxZ() const { return _zmax; }
-    /// Returns voxel definition minimum x value
-    inline double MinX() const { return _xmin; }
-    /// Returns voxel definition minimum y value
-    inline double MinY() const { return _ymin; }
-    /// Returns voxel definition minimum z value
-    inline double MinZ() const { return _zmin; }
-    /// text dumper
-    std::string  Dump() const;
-    
+    //
+    // Read-access
+    //
+    /// Access Voxel3DMeta of specific projection
+    inline const larcv::Voxel3DMeta& meta() const { return _meta; }
+
+    //
+    // Write-access
+    //
+    /// Clear everything
+    inline void clear_data() { VoxelSetArray::clear_data(); _meta = Voxel3DMeta(); }
+    /// set VoxelSetArray
+    inline void set(VoxelSetArray& vsa, const Voxel3DMeta& meta)
+    { *((VoxelSetArray*)this) = vsa; this->meta(meta); }
+    /// emplace VoxelSetArray
+    inline void emplace(VoxelSetArray&& vsa, const Voxel3DMeta& meta)
+    { *((VoxelSetArray*)this) = std::move(vsa); this->meta(meta); }
+    /// Merge another ClusterVoxel3D
+    inline void merge(const ClusterVoxel3D& vsa, bool check_meta_strict=true)
+    { 
+      if(!(this->meta().valid()))
+        this->meta(vsa.meta());
+      else if(check_meta_strict) {
+        if(vsa.meta() != this->meta()) {
+          std::cerr << "Meta mismatched (strict check)!" << std::endl
+                    << this->meta().dump() << std::endl
+                    << vsa.meta().dump() << std::endl;
+          throw std::exception();
+        }
+      }
+      else if(this->meta().num_voxel_x() != vsa.meta().num_voxel_x() || 
+        this->meta().num_voxel_y() != vsa.meta().num_voxel_y() || 
+        this->meta().num_voxel_z() != vsa.meta().num_voxel_z() ) {
+        if(vsa.meta() != this->meta()) {
+          std::cerr << "Meta mismatched (loose check)!" << std::endl
+                    << this->meta().dump() << std::endl
+                    << vsa.meta().dump() << std::endl;
+          throw std::exception(); 
+        }
+      }
+      for(auto vs : vsa.as_vector()) {
+        vs.id(larcv::kINVALID_INSTANCEID);
+        ((VoxelSetArray*)this)->emplace(std::move(vs));
+      } 
+    }
+    /// Meta setter
+    void meta(const larcv::Voxel3DMeta& meta);
+
   private:
-
-    bool   _valid; ///< Boolean set to true only if voxel parameters are properly set
-    Voxel3DID_t _num_element; ///< Total number of voxel elements
-    
-    double _xmin; ///< X min value in voxel definition in [cm]
-    double _xmax; ///< X max value in voxel definition in [cm]
-    double _xlen; ///< X voxel size in [cm]
-    
-    double _ymin; ///< Y min value in voxel definition in [cm]
-    double _ymax; ///< Y min value in voxel definition in [cm]
-    double _ylen; ///< Y voxel size in [cm]
-    
-    double _zmin; ///< Z min value in voxel definition in [cm]
-    double _zmax; ///< Z min value in voxel definition in [cm]
-    double _zlen; ///< Z voxel size in [cm]
-    
-    size_t _xnum; ///< Number of voxels along X
-    size_t _ynum; ///< Number of voxels along Y
-    size_t _znum; ///< Number of voxels along Z
+    larcv::Voxel3DMeta _meta;
   };
 
-  /**
-     \class Voxel3DSet
-     @brief Container of multiple voxels consisting of ordered sparse vector and meta data
-   */
-  class Voxel3DSet {
-  public:
-    /// Default ctor
-    Voxel3DSet(const Voxel3DMeta& meta=Voxel3DMeta());
-    /// Default dtor
-    ~Voxel3DSet(){}
-
-    /// getter
-    inline const std::vector<larcv::Voxel3D>& GetVoxelSet() const
-    { return _voxel_v; }
-    
-    /// getter
-    inline const Voxel3DMeta& GetVoxelMeta() const
-    { return _meta; }
-    /// clear
-    inline void Clear() { _voxel_v.clear(); _meta.Clear();}
-    /// reset
-    inline void Reset(const Voxel3DMeta& meta)
-    { Clear(); _meta = meta; }
-    /// adder
-    void Add(const Voxel3D& vox);
-    #ifndef __CINT__
-    #ifndef __CLING__
-    /// adder
-    void Emplace(Voxel3D&& vox);
-    /// mover
-    inline void Move(Voxel3DSet&& vox_set)
-    { _meta = std::move(vox_set._meta); _voxel_v = std::move(vox_set._voxel_v); }
-    #endif
-    #endif
-  private:
-    /// Meta data information
-    Voxel3DMeta _meta;
-    /// Ordered sparse vector of voxels 
-    std::vector<larcv::Voxel3D> _voxel_v;
-  };
-  
 }
 
 #endif
-/** @} */ // end of doxygen group 
-
+/** @} */ // end of doxygen group

@@ -19,6 +19,10 @@ ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
 add_library(${MODULE_NAME} SHARED ${SOURCES} G__${MODULE_NAME}.cxx)
 set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
 target_link_libraries(${MODULE_NAME} PUBLIC LArCVCoreBase ${ROOT_LIBRARIES})
+#target_include_directories(${MODULE_NAME}
+#  PUBLIC
+#  PRIVATE
+#  ${EIGEN3_INCLUDE_DIRS} )
 
 # install libraries and headers
 install(TARGETS ${MODULE_NAME}

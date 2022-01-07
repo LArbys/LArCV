@@ -23,6 +23,9 @@ if (USE_OPENCV)
   endif()
 endif()
 
+#---Eigen
+#find_package(Eigen3 REQUIRED)
+
 #---PYTHON
 
 if (USE_PYTHON3)

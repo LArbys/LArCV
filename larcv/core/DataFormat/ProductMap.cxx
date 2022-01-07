@@ -19,6 +19,8 @@ namespace larcv {
     case kProductSparseImage:  return "sparseimg";
     case kProductClusterMask:  return "clustermask";
     case kProductParticle: return "particle";
+    case kProductClusterPixel2D: return "cluster2d";
+    case kProductSparseTensor2D: return "sparse2d";      
       //case kProductGeo2D:    return "geo2d";
     default:
       std::stringstream ss;
