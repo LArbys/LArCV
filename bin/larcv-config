@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 # Python version
-let PYTHON_VERSION=`python -V 2>&1 | awk '{ print $2 }' | sed 's/\./\ /g' | awk '{ print $1 }'`
-if [ $PYTHON_VERSION -eq 3 ]; then
+#let PYTHON_VERSION=`python -V 2>&1 | awk '{ print $2 }' | sed 's/\./\ /g' | awk '{ print $1 }'`
+
+if [ $LARCV_PYTHON -eq 3 ]; then
     PYBIN=python3
     PYCONFIG=python3-config
 else

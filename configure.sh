@@ -6,6 +6,11 @@
 # Use this to not build w/ opencv
 #export LARCV_NOOPENCV=1
 
+# DETECT PYTHON VERSION
+let PYTHON_VERSION=`python -V 2>&1 | awk '{ print $2 }' | sed 's/\./\ /g' | awk '{ print $1 }'`
+#echo Using Python $PYTHON_VERSION
+export LARCV_PYTHON=$PYTHON_VERSION
+
 # clean up previously set env
 if [[ -z $FORCE_LARCV_BASEDIR ]]; then
     __larcv_configure_where__="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -115,6 +120,7 @@ printf "\033[93mLArCV\033[00m FYI shell env. may useful for external packages:\n
 printf "    \033[95mLARCV_INCDIR\033[00m   = $LARCV_INCDIR\n"
 printf "    \033[95mLARCV_LIBDIR\033[00m   = $LARCV_LIBDIR\n"
 printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
+printf "    \033[95mLARCV_PYTHON\033[00m   = $LARCV_PYTHON\n"
 
 # modify paths
 [[ ":$PATH:" != *":${LARCV_BASEDIR}/bin:"* ]] && export PATH="${LARCV_BASEDIR}/bin:${PATH}"
