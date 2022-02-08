@@ -8,12 +8,25 @@ endif()
 
 #---Module directory
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-set(CMAKE_CXX_STANDARD 14)
 
 ## Dependencies
 
 #---CERN ROOT
 find_package(ROOT CONFIG REQUIRED)
+# we set the compiler version based on the one used for ROOT
+execute_process(
+    COMMAND bash "-c" "root-config --features | awk '{print $1}'"
+    OUTPUT_VARIABLE ROOT_CXX_STANDARD )
+if (${ROOT_CXX_STANDARD} MATCHES "cxx17")
+  message("Using CXX17")
+  set(CMAKE_CXX_STANDARD 17)
+elseif (${ROOT_CXX_STANDARD} MATCHES "cxx14")
+  message("Using CXX17")
+  set(CMAKE_CXX_STANDARD 14)
+else ()
+  message("Using CXX11")  
+  set(CMAKE_CXX_STANDARD 11)
+endif()
 
 #---OPENCV
 if (USE_OPENCV)
