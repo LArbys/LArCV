@@ -18,13 +18,13 @@ execute_process(
     COMMAND bash "-c" "root-config --features | awk '{print $1}'"
     OUTPUT_VARIABLE ROOT_CXX_STANDARD )
 if (${ROOT_CXX_STANDARD} MATCHES "cxx17")
-  message("Using CXX17")
+  message( STATUS "using cxx17")
   set(CMAKE_CXX_STANDARD 17)
 elseif (${ROOT_CXX_STANDARD} MATCHES "cxx14")
-  message("Using CXX17")
+  message( STATUS "ssing cxx14")
   set(CMAKE_CXX_STANDARD 14)
 else ()
-  message("Using CXX11")  
+  message( STATUS "using cxx11")  
   set(CMAKE_CXX_STANDARD 11)
 endif()
 
