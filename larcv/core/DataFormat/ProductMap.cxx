@@ -20,7 +20,8 @@ namespace larcv {
     case kProductClusterMask:  return "clustermask";
     case kProductParticle: return "particle";
     case kProductClusterPixel2D: return "cluster2d";
-    case kProductSparseTensor2D: return "sparse2d";      
+    case kProductSparseTensor2D: return "sparse2d";
+    case kProductSparseTensor3D: return "sparse3d";            
       //case kProductGeo2D:    return "geo2d";
     default:
       std::stringstream ss;
@@ -37,7 +38,9 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::Voxel3D  > () { return kProductVoxel3D;  }
   template<> ProductType_t ProductType< larcv::SparseImage   > () { return kProductSparseImage;   }
   template<> ProductType_t ProductType< larcv::ClusterMask   > () { return kProductClusterMask;   }
-  template<> ProductType_t ProductType< larcv::Particle   > () { return kProductParticle;   }  
+  template<> ProductType_t ProductType< larcv::Particle   > () { return kProductParticle;   }
+  template<> ProductType_t ProductType< larcv::SparseTensor2D   > () { return kProductSparseTensor2D;   }
+  template<> ProductType_t ProductType< larcv::SparseTensor3D   > () { return kProductSparseTensor3D;   }      
 
   std::string GetProductTypeName( ProductType_t prodtype ) {
     if (prodtype<0 || prodtype>=larcv::kProductUnknown)

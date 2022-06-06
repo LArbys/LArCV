@@ -28,7 +28,11 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::ClusterMask  > ();
   class Particle;
   template<> ProductType_t ProductType< larcv::Particle  > ();
-
+  class SparseTensor2D;
+  template<> ProductType_t ProductType< larcv::SparseTensor2D  > ();
+  class SparseTensor3D;
+  template<> ProductType_t ProductType< larcv::SparseTensor3D  > ();
+  
   // python-friendly alternative functions  
   std::string   GetProductTypeName( ProductType_t prodtype );
   ProductType_t GetProductTypeID( std::string prodname );

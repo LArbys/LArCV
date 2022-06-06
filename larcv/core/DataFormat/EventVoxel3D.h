@@ -18,6 +18,8 @@
 #include "EventBase.h"
 #include "DataProductFactory.h"
 #include "Voxel3D.h"
+#include "EventSparseTensor3D.h"
+
 namespace larcv {
 
   /**
@@ -40,25 +42,6 @@ namespace larcv {
     
   };
 
-  /**
-    \class EventSparseTensor3D
-    \brief Event-wise class to store a collection of VoxelSet 
-  */
-  class EventSparseTensor3D : public EventBase,
-			      public SparseTensor3D{
-
-  public:
-
-    /// Default constructor
-    EventSparseTensor3D() {}
-
-    /// Default destructor
-    virtual ~EventSparseTensor3D() {}
-
-    /// EventBase::clear() override
-    inline void clear() {EventBase::clear(); SparseTensor3D::clear_data();}
-    
-  };
 
 }
 
@@ -85,28 +68,6 @@ namespace larcv {
     ~EventClusterVoxel3DFactory() {}
     /// create method
     EventBase* create() { return new EventClusterVoxel3D; }
-  };
-
-  // Template instantiation for IO
-  // template<> inline std::string product_unique_name<larcv::EventSparseTensor3D>() { return "sparse3d"; }
-  // template EventSparseTensor3D& IOManager::get_data<larcv::EventSparseTensor3D>(const std::string&);
-  // template EventSparseTensor3D& IOManager::get_data<larcv::EventSparseTensor3D>(const ProducerID_t);
-
-  /**
-     \class larcv::EventSparseTensor3D
-     \brief A concrete factory class for larcv::EventSparseTensor3D
-  */
-  class EventSparseTensor3DFactory : public DataProductFactoryBase {
-  public:
-    /// ctor
-    EventSparseTensor3DFactory()
-    {
-      //DataProductFactory::get().add_factory(product_unique_name<larcv::EventSparseTensor3D>(), this);
-    }
-    /// dtor
-    ~EventSparseTensor3DFactory() {}
-    /// create method
-    EventBase* create() { return new EventSparseTensor3D; }
   };
 
 

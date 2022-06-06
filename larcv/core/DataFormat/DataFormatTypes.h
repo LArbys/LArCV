@@ -107,6 +107,7 @@ namespace larcv {
     kProductParticle,    ///< Particle, EventParticle
     kProductClusterPixel2D, ///< ClusterPixel2D, EventClusterPixel2D
     kProductSparseTensor2D, ///< SparseTensor2D, EventSparseTensor2D
+    kProductSparseTensor3D, ///< SparseTensor3D, EventSparseTensor3D
     kProductUnknown      ///< LArbys
   };
 

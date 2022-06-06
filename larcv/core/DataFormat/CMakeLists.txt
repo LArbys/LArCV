@@ -23,6 +23,7 @@ set( HEADERS
   EventSparseImage.h
   EventVoxel2D.h
   EventVoxel3D.h
+  EventSparseTensor3D.h  
   Image2D.h
   ImageMeta.h
   IOManager.h
@@ -40,6 +41,7 @@ set( HEADERS
   Vertex.h
   Voxel2D.h
   Voxel3D.h
+  SparseTensor3D.h
   Voxel3DMeta.h
   Voxel.h  
 )
@@ -62,6 +64,7 @@ add_library( ${LIBNAME} SHARED
   EventSparseImage.cxx
   EventVoxel2D.cxx
   EventVoxel3D.cxx
+  EventSparseTensor3D.cxx    
   Image2D.cxx
   ImageMeta.cxx
   IOManager.cxx
@@ -78,6 +81,7 @@ add_library( ${LIBNAME} SHARED
   Vertex.cxx
   Voxel2D.cxx
   Voxel3D.cxx
+  SparseTensor3D.cxx
   Voxel3DMeta.cxx
   Voxel.cxx  
 )
@@ -90,8 +94,8 @@ target_sources( ${LIBNAME} PRIVATE G__${MODULE_NAME}.cxx )
 
 set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
 
-message("hmm: ${PROJECT_SOURCE_DIR}")
-message("hmm:   $<INSTALL_INTERFACE:include/>")
+#message("hmm: ${PROJECT_SOURCE_DIR}")
+#message("hmm:   $<INSTALL_INTERFACE:include/>")
 target_include_directories(${LIBNAME}
   PUBLIC
   $<INSTALL_INTERFACE:include/larcv/core/DataFormat>

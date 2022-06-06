@@ -14,6 +14,7 @@ if 'LARLITE_BASEDIR' in os.environ:
 larcv_dir = os.environ['LARCV_LIBDIR']
 # We need to load in order
 for l in [x for x in os.listdir(larcv_dir) if x.endswith('.so')]:
+    #print("loading larcv lib: ",l)
     ROOT.gSystem.Load(l)
 #larcv.Vertex
 #larcv.CSVData
@@ -26,3 +27,4 @@ if 'LARCV_OPENCV' in os.environ and os.environ['LARCV_OPENCV'] == '1':
     #larcv.load_cvutil
 #larcv.load_rootutil
 #larcv.LoadImageMod
+from ROOT import larcv
