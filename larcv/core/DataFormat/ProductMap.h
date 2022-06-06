@@ -32,6 +32,8 @@ namespace larcv {
   template<> ProductType_t ProductType< larcv::SparseTensor2D  > ();
   class SparseTensor3D;
   template<> ProductType_t ProductType< larcv::SparseTensor3D  > ();
+  class ClusterVoxel3D;
+  template<> ProductType_t ProductType< larcv::ClusterVoxel3D  > ();
   
   // python-friendly alternative functions  
   std::string   GetProductTypeName( ProductType_t prodtype );

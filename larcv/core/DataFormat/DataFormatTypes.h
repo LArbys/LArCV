@@ -108,6 +108,7 @@ namespace larcv {
     kProductClusterPixel2D, ///< ClusterPixel2D, EventClusterPixel2D
     kProductSparseTensor2D, ///< SparseTensor2D, EventSparseTensor2D
     kProductSparseTensor3D, ///< SparseTensor3D, EventSparseTensor3D
+    kProductClusterVoxel3D, ///< ClusterVoxel3D, EventClusterVoxel3D
     kProductUnknown      ///< LArbys
   };
 
@@ -121,6 +122,11 @@ namespace larcv {
      "voxel3d",
      "sparseimage",
      "clustermask",
+     "particle",
+     "cluster2d",
+     "sparse2d",
+     "sparse3d",
+     "cluster3d",
      "unknown"};
 
   /// Coordinate unit type
