@@ -1,9 +1,0 @@
-*.ipynb
-*.root
-*.png
-*.err
-*.out
-\#*
-\.\#*
-\cfg
-\display

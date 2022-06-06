@@ -12,7 +12,7 @@ namespace larcv {
   public:
 
     SparseImage()
-      : _id(0),_nfeatures(0)
+      : _pixelarray(std::vector<float>()),_id(0),_nfeatures(0)
       {};
     SparseImage( const std::vector<const larcv::Image2D*>& img_v,
                  const std::vector<float>& thresholds,

@@ -54,7 +54,7 @@ while test $# -gt 0; do
 	  fi
 	  if [ $LARCV_OPENCV -eq 1 ]; then
 	      #out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs "
-	      out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_imgproc "
+	      out+=" -L${OPENCV_LIBDIR} -lopencv_core -lopencv_imgproc " # simplified dependency for FNAL
 	  fi
 	  out+=" -L${LARCV_LIBDIR} -lLArCVCoreBase -lLArCVCoreDataFormat -lLArCVCoreROOTUtil -lLArCVCoreProcessor"
 	  ;;

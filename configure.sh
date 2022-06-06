@@ -127,6 +127,7 @@ printf "    \033[95mLARCV_PYTHON\033[00m   = $LARCV_PYTHON\n"
 [[ ":$LD_LIBRARY_PATH:" != *":${LARCV_LIBDIR}/bin:"* ]] && export LD_LIBRARY_PATH="${LARCV_LIBDIR}:${LD_LIBRARY_PATH}"
 [[ ":$DYLD_LIBRARY_PATH:" != *":${LARCV_LIBDIR}/bin:"* ]] && export DYLD_LIBRARY_PATH="${LARCV_LIBDIR}:${DYLD_LIBRARY_PATH}"
 
+
 # put the rgb viewer into the path
 [[ ":$PATH:" != *":${LARCV_BASEDIR}/mac:"* ]] && export PATH="${LARCV_BASEDIR}/mac:${PATH}"
 

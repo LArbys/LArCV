@@ -5,6 +5,8 @@
 #include "EventImage2D.h"
 #include "larcv/core/Base/larbys.h"
 
+#include <sstream>
+
 namespace larcv {
 
   /// Global larcv::SBClusterFactory to register ClusterAlgoFactory
@@ -19,9 +21,11 @@ namespace larcv {
   const Image2D& EventImage2D::at(ImageIndex_t id) const
   {
     if( id >= _image_v.size() ) {
-      std::stringstream ss;
-      ss << __FILE__"." << __LINE__ << "Invalid request [" << id << "] (ImageIndex_t out-o-range, max=" << _image_v.size() << ")!";
-      throw larbys(ss.str());
+      std::stringstream msg;
+      msg << "EventImage2D.cxx" << ".L" << __LINE__ << ":"
+	  << "Invalid request (ImageIndex_t[" << id << "] out-o-range [>=" << _image_v.size() << "] )!"
+	  << std::endl;
+      throw larbys(msg.str());
     }
     return _image_v[id];
   }

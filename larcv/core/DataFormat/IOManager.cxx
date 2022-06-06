@@ -684,6 +684,7 @@ namespace larcv {
 	if ( _reverse_productid.find(id)!=_reverse_productid.end() ) {
 
 	  if (  product_type(id)==kProductImage2D ) {
+
 	    LARCV_DEBUG() << "Input image2d [" << _in_tree_v[id]->GetName() << "] expected in tick-backward order." << std::endl;
 	    LARCV_DEBUG() << "Reverse to tick-forward. Move origin to be w.r.t bottom left" << std::endl;
 	    EventImage2D* evimg = (EventImage2D*)ptr;
@@ -708,7 +709,6 @@ namespace larcv {
 	      roi.SetBB(bb_v); // replace
 	    }
 	    evroi->Set( roi_v  );
-            
 	  }
           else if ( product_type(id)==kProductPixel2D ) {
             ((EventPixel2D*)ptr)->reverseTickOrder();
@@ -882,6 +882,27 @@ namespace larcv {
     _store_only_type.push_back( type );
     return _store_only_name.size();
   }
+  
+  /**
+   * mark the image2d tree to be reversed
+   *
+   * @param[in] string name of image2d tree to be reversed
+   *
+   */
+  void IOManager::reverse_pixel2d_tree( std::string name ) {
+    _reverse_pixel2d_products.push_back( name );
+  }
 
+  /**
+   * mark the roi tree to be reversed
+   *
+   * @param[in] string name of roi tree to be reversed
+   *
+   */
+  void IOManager::reverse_roi_tree( std::string name ) {
+    _reverse_roi_products.push_back( name );
+  }
+  
+  
 }
 #endif

@@ -1,8 +1,8 @@
 #ifndef EVENT_SPARSE_IMAGE_CXX
 #define EVENT_SPARSE_IMAGE_CXX
 
-#include "EventSparseImage.h"
 #include "larcv/core/Base/larbys.h"
+#include "EventSparseImage.h"
 
 namespace larcv {
 

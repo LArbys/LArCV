@@ -32,9 +32,11 @@ namespace larcv {
     ProcessDriver(std::string name);
     
     /// Default destructor
-    virtual ~ProcessDriver(){}
+    virtual ~ProcessDriver();
 
     void reset();
+
+    void set_iomanager( IOManager* io ) { _io = io; _external_io=true; };
 
     void configure(const std::string config_file);
 
@@ -52,7 +54,7 @@ namespace larcv {
     
     bool process_entry(size_t entry,bool force_reload=false, bool autosave_entry=true);
 
-    const EventBase& event_id() const { return _io.last_event_id(); }
+    const EventBase& event_id() const { return _io->last_event_id(); }
 
     void batch_process(size_t start_entry=0, size_t num_entries=0);
 
@@ -68,12 +70,12 @@ namespace larcv {
 
     const ProcessBase* process_ptr(ProcessID_t id) const;
 
-    const IOManager& io() const { return _io; }
+    const IOManager& io() const { return *_io; }
 
-    IOManager& io_mutable() { return _io; }
+    IOManager& io_mutable() { return *_io; }
 
     void set_id(size_t run, size_t subrun, size_t event)
-    { _io.set_id(run,subrun,event); }
+    { _io->set_id(run,subrun,event); }
 
     size_t get_tree_index( size_t entry ) const;
 
@@ -82,23 +84,26 @@ namespace larcv {
   protected:
 
     bool _process_entry_( bool autosave_entry=true );
-    bool _run_process_( ProcessBase* p ) { return p->process( _io ); };
+    bool _run_process_( ProcessBase* p ) { return p->process( *_io ); };
     
 #ifndef __CINT__
-    size_t _batch_start_entry;
-    size_t _batch_num_entry;
     size_t _current_entry;
     bool _enable_filter;
     bool _random_access;
     bool _process_good_status;
-    bool _process_cleared;
+    bool _process_cleared; 
+    IOManager* _io;   
     std::vector<size_t> _access_entry_v;
-    IOManager _io;
     std::map<std::string,larcv::ProcessID_t> _proc_m;
     std::vector<larcv::ProcessBase*> _proc_v;
     bool _processing;
     TFile* _fout;    
     std::string _fout_name;
+
+    size_t _batch_start_entry;
+    size_t _batch_num_entry;
+
+    bool _external_io; ///< true if using an externally-provided IOManager
     bool _has_event_creator;
 #endif
   };

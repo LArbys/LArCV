@@ -1,1 +1,0 @@
-RSE = ["run","subrun","event"]

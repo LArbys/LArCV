@@ -119,7 +119,9 @@ namespace larcv {
     std::vector<float>&& move();
     /// Move data contents in
     void move(std::vector<float>&&);
-
+    // Make a sum-normalized-to-1 image
+    std::vector<float> norm_image_as_vector() const;      
+    
     inline Image2D& operator+=(const float val)
     { for(auto& v : _img) v+= val; return (*this);}
     inline Image2D operator+(const float val) const
@@ -171,7 +173,6 @@ namespace larcv {
 
     // scale values (in-place)
     void scale_inplace( float scalefactor );
-    
     
   private:
     std::vector<float> _img;

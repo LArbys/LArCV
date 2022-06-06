@@ -63,7 +63,6 @@ namespace larcv {
     void clear_entry();
     void set_id(const size_t run, const size_t subrun, const size_t event);
     size_t current_entry() const { return _in_tree_index; }
-    void reverse_all_products();
     
     size_t get_n_entries() const
     { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
@@ -109,8 +108,15 @@ namespace larcv {
     const std::vector<std::string>& file_list() const
     { return _in_file_v; }
 
+    //
     void specify_data_read(    const ProductType_t type, const std::string& name );
     int  addto_storeonly_list( ProductType_t type, std::string producer );
+
+    // functions to specify specific oft-used products to reverse the tick order
+    void reverse_all_products();    
+    void reverse_image2d_tree( std::string name );
+    void reverse_roi_tree( std::string name );
+    void reverse_pixel2d_tree( std::string name );
     
   private:
     void   set_id();

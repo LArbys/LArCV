@@ -7,7 +7,8 @@ namespace larcv {
   SparseImage::SparseImage( const std::vector<const larcv::Image2D*>& img_v,
                             const std::vector<float>& thresholds,
                             const std::vector<int>& require_pixel )
-    : _id(0),
+    : _pixelarray(std::vector<float>()),
+      _id(0),
       _nfeatures(img_v.size())
   {
     convertImages(img_v,thresholds,require_pixel);
@@ -16,7 +17,8 @@ namespace larcv {
   SparseImage::SparseImage( const std::vector<larcv::Image2D>& img_v,
                             const std::vector<float>& thresholds,
                             const std::vector<int>& require_pixel )
-    : _id(0),
+    : _pixelarray(std::vector<float>()),
+      _id(0),
       _nfeatures(img_v.size())
   {
     std::vector<const larcv::Image2D*> pimg_v;
@@ -34,7 +36,8 @@ namespace larcv {
                             const int start_index, const int end_index,
                             const std::vector<float>& thresholds,
                             const std::vector<int>& require_pixel )
-    : _id(0),
+    : _pixelarray(std::vector<float>()),
+      _id(0),
       _nfeatures(end_index-start_index+1)
   {
     std::vector<const larcv::Image2D*> pimg_v;
@@ -47,7 +50,8 @@ namespace larcv {
   SparseImage::SparseImage( const larcv::Image2D& img,
                             const larcv::Image2D& labels,
                             const std::vector<float>& thresholds )
-    : _id(0),
+    : _pixelarray(std::vector<float>()),
+      _id(0),
       _nfeatures(1)
    {
 
@@ -63,7 +67,10 @@ namespace larcv {
                             const std::vector<float>& data,
                             const std::vector<larcv::ImageMeta>& meta_v,
                             const int index)
-    : _id(index), _nfeatures(nfeatures), _pixelarray(data), _meta_v(meta_v)
+    : _pixelarray(data),
+      _meta_v(meta_v),
+      _id(index),
+      _nfeatures(nfeatures)
   {
     // sanity checks
     if ( (2+nfeatures)*npoints != (int)data.size()  ) {
@@ -74,7 +81,7 @@ namespace larcv {
       throw std::runtime_error(msg.str());
     }
 
-    if ( nfeatures!=meta_v.size() ) {
+    if ( _nfeatures!=meta_v.size() ) {
       throw std::runtime_error("SparseImage::SparseImage: number of features and metas must be the same");
     }
   }
@@ -143,7 +150,6 @@ namespace larcv {
 
     size_t ncols  = _meta_v.front().cols();
     size_t nrows  = _meta_v.front().rows();
-    size_t nfeats = nfeatures();
 
     std::vector<float> thresh = thresholds;
     if (thresh.size()!=1) {

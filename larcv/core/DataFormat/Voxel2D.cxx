@@ -47,6 +47,8 @@ namespace larcv {
 				final_vox = (*i);
 			}
 		}
+		if ( final_vox == kINVALID_VOXEL )
+		  return kINVALID_VOXEL;
 		return final_vox;
 	}
 

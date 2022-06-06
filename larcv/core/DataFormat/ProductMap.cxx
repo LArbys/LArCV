@@ -52,7 +52,6 @@ namespace larcv {
     return kProductUnknown;
   };
   
-
 }
 
 #endif

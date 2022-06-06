@@ -4,8 +4,8 @@
 #ifndef __CINT__ 
 #ifndef __CLING__
 #include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
+//#include <opencv2/imgcodecs.hpp>
+//#include <opencv2/imgproc.hpp>
 #endif
 #endif
 #include "larcv/core/DataFormat/Image2D.h"
