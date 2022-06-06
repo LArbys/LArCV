@@ -13,7 +13,6 @@ When reading tickbackward images, the data is flipped along the row axis in orde
 
 Planned features
 * ROOT utilities for quick, cheap visualization from command line or python interpretor
-* Remove UB-stuff from app (now in its own [repo](https://github.com/LArbys/ublarcvapp).
 * Proper documentation off all classes
 * Convenient multi-process data-loader into DL frameworks (still kind of clunky right now).
   examples and unittests.
@@ -29,6 +28,7 @@ Recently completed features
   This way data is not obsolete, but any code that assumes reverse time order is!
   We do this by specifying in IOManager that Image2D loaded from branches are reversetimeorder.
   For those image2d's, we reshape the array. [done]
+* Remove UB-stuff from app (now in its own repo, [ublarcvapp](https://github.com/LArbys/ublarcvapp)).  
 * Propagate changes of tick-forward order to rest of code.
     * imagemeta methods [done]
     * image2d methods
@@ -43,9 +43,7 @@ Recently completed features
 * Cmake (3.10) REQUIRED
 * ROOT  (>6)   REQUIRED
 * Python 2 or 3 (optional)
-* OpenCV 3 (optional)
-* LArLite (optional)
-* LArSoft (optional)
+* OpenCV 4 (optional)
 
 ### Setup
 
@@ -56,28 +54,27 @@ Recently completed features
 
 1. clone the repository
 
-      git clone https://github.com/LArbys/LArCV.git
+        git clone https://github.com/LArbys/LArCV.git
 
 2. go into the LArCV directory
 3. run the build configuration script
 
-      source configure.sh
+        source configure.sh
       
 4. make a build folder somewhere, e.g. in the same folder as this README.
 
-      mkdir build
+        mkdir build
 
 5. go into the folder and run cmake
 
-
-      cd build
-      cmake -DUSE_PYTHON3=ON ../
+        cd build
+        cmake -DUSE_PYTHON3=ON ../
 
    (If you require `python2`, probably deprecated in the future, you can use the cmake flag `-DUSE_PYTHON2=ON` instead.)
 
 6. then make and install the code
 
-      make install
+        make install
 
 
 The output of `make install` will be libaries and headers in `build/installed/`.
