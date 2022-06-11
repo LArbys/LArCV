@@ -26,6 +26,9 @@ namespace larcv {
     std::vector<int> shape;
     std::vector<float> data;
 
+  private:
+
+    static bool _setup_numpy;
 
   };
 
@@ -49,7 +52,8 @@ namespace larcv {
     std::vector<int> shape;
     std::vector<int> data;
 
-
+  private:
+    static bool _setup_numpy;
   };
   
 }
