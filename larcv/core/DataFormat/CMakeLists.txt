@@ -11,7 +11,7 @@ set( HEADERS
   DataFormatTypes.h
   DataFormatUtil.h
   DataProductFactory.h
-  #eigen.h
+  eigen.h
   EventBase.h
   EventChStatus.h
   EventClusterMask.h
@@ -54,7 +54,7 @@ add_library( ${LIBNAME} SHARED
   ClusterMask.cxx
   DataFormatUtil.cxx
   DataProductFactory.cxx
-  #eigen.cxx
+  eigen.cxx
   EventBase.cxx
   EventChStatus.cxx
   EventClusterMask.cxx

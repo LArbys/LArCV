@@ -38,6 +38,8 @@
 #pragma link C++ class std::map<larcv::PlaneID_t,larcv::ChStatus>+;
 #pragma link C++ class larcv::EventChStatus+;
 
+#pragma link C++ class larcv::Voxel+;
+
 #pragma link C++ class larcv::Pixel2D+;
 #pragma link C++ class larcv::Pixel2DCluster+;
 #pragma link C++ class larcv::EventPixel2D+;
@@ -46,6 +48,7 @@
 #pragma link C++ class larcv::EventPGraph+;
 
 #pragma link C++ class larcv::VoxelSet+;
+#pragma link C++ class larcv::VoxelSetArray+;
 
 #pragma link C++ class larcv::ClusterPixel2D+;
 #pragma link C++ class larcv::EventClusterPixel2D+;
@@ -90,6 +93,7 @@
 #pragma link C++ class larcv::EventClusterMask+;
 
 #pragma link C++ class larcv::Particle+;
+#pragma link C++ class larcv::ParticleSet+;
 #pragma link C++ class larcv::EventParticle+;
 
 //ADD_NEW_CLASS ... do not change this line
