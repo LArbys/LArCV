@@ -14,14 +14,15 @@ if 'LARLITE_BASEDIR' in os.environ:
 larcv_dir = os.environ['LARCV_LIBDIR']
 # We need to load in order
 for l in [x for x in os.listdir(larcv_dir) if x.endswith('.so')]:
-    #print("loading larcv lib: ",l)
+    if "LARCV_PYTHONLOAD_DEBUG" in os.environ and os.environ['LARCV_PYTHONLOAD_DEBUG'] != '0':
+        print("loading larcv lib: ",l)
     ROOT.gSystem.Load(l)
 #larcv.Vertex
 #larcv.CSVData
 #k=larcv.logger # this line to load C++ functions
 if 'LARCV_NUMPY' in os.environ and os.environ['LARCV_NUMPY'] == '1':
     from ROOT import larcv
-    larcv.load_pyutil
+    #larcv.load_pyutil
 if 'LARCV_OPENCV' in os.environ and os.environ['LARCV_OPENCV'] == '1':
     from ROOT import larcv
     #larcv.load_cvutil
