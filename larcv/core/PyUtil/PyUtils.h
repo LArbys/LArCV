@@ -11,6 +11,8 @@ typedef _object PyObject;
 #endif
 #endif
 
+#include "setpyutils.h"
+
 #include "larcv/core/DataFormat/Image2D.h"
 #include "larcv/core/DataFormat/ROI.h"
 #include "larcv/core/DataFormat/EventChStatus.h"
@@ -18,12 +20,10 @@ typedef _object PyObject;
 #include "larcv/core/DataFormat/ClusterMask.h"
 #include "larcv/core/DataFormat/Voxel2D.h"
 
+#include "PyUtils_sparsetensor.h"
 
 namespace larcv {
 
-  /// Utility function: call one-time-only numpy module initialization (you don't
-  /// have to call)
-  int SetPyUtil();
   ///
   PyObject *as_ndarray(const std::vector<float> &data);
   /// larcv::Image2D to numpy array converter
@@ -92,9 +92,6 @@ namespace larcv {
   PyObject *as_ndarray_mask_pixlist(const larcv::ClusterMask &mask, float x_offset=0., float y_offset=0.);
 
   ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
-
-  // sparsetensor2d into dense numpy array (np.float)
-  PyObject *as_ndarray(const SparseTensor2D& data, bool clear_mem=false);  
 
 }
 

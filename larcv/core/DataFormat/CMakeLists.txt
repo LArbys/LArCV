@@ -23,6 +23,7 @@ set( HEADERS
   EventSparseImage.h
   EventVoxel2D.h
   EventVoxel3D.h
+  EventSparseTensor2D.h  
   EventSparseTensor3D.h
   EventClusterVoxel3D.h    
   Image2D.h
@@ -42,6 +43,7 @@ set( HEADERS
   Vertex.h
   Voxel2D.h
   Voxel3D.h
+  SparseTensor2D.h  
   SparseTensor3D.h
   ClusterVoxel3D.h  
   Voxel3DMeta.h
@@ -66,6 +68,7 @@ add_library( ${LIBNAME} SHARED
   EventSparseImage.cxx
   EventVoxel2D.cxx
   EventVoxel3D.cxx
+  EventSparseTensor2D.cxx  
   EventSparseTensor3D.cxx
   EventClusterVoxel3D.cxx  
   Image2D.cxx
@@ -84,6 +87,7 @@ add_library( ${LIBNAME} SHARED
   Vertex.cxx
   Voxel2D.cxx
   Voxel3D.cxx
+  SparseTensor2D.cxx  
   SparseTensor3D.cxx
   ClusterVoxel3D.cxx  
   Voxel3DMeta.cxx

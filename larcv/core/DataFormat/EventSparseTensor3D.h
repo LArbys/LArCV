@@ -3,6 +3,7 @@
 
 #include "DataProductFactory.h"
 #include "DataFormatTypes.h"
+
 #include "SparseTensor3D.h"
 
 namespace larcv {

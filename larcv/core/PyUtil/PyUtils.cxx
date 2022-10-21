@@ -13,20 +13,6 @@
 #endif
 namespace larcv {
 
-int SetPyUtil() {
-  static bool once = false;
-  if (!once) {
-    logger::get("PyUtils").send(larcv::msg::kNORMAL, __FUNCTION__, __LINE__, "calling import_array1(0)")  << std::endl;
-    #ifdef USE_PYTHON3
-        import_array1(0);
-    #else
-        import_array1(0);
-    #endif
-    once = true;
-  }
-  return 0;
-}
-
 larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarray_box, ImageMeta meta, PyObject *pyarray_prob) {
   /*
   This function takes in a numpy matrix of shape (N,2) representing a binary
@@ -845,25 +831,6 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     return sparseimg;
   }
 
-  PyObject *as_ndarray(const SparseTensor2D& data, bool clear_mem) {
-    SetPyUtil();
-    npy_intp dim_data[2];
-    dim_data[0] = data.meta().cols();
-    dim_data[1] = data.meta().rows();
-    
-    static std::vector<float> local_data;
-    local_data.resize(data.meta().size());
-    for(auto &v : local_data) v = 0.;
-    
-    for(auto const& vox : data.as_vector()) local_data[vox.id()]=vox.value();
-    
-    auto res = PyArray_Transpose(((PyArrayObject*)(PyArray_SimpleNewFromData(2, dim_data, NPY_FLOAT, (char *)&(local_data[0])))),NULL);
-    //return PyArray_FromDimsAndData(2, dim_data, NPY_FLOAT, (char *)&(vec[0]));
-    
-    if(clear_mem) local_data.clear();
-    return res;
-  }
-  
 
 }
 

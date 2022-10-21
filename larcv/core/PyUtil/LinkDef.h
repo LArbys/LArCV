@@ -32,6 +32,8 @@
 #pragma link C++ function larcv::as_ndarray_mask_pixlist( const larcv::ClusterMask&, float, float )+;
 #pragma link C++ function larcv::as_ndarray(const SparseTensor2D&, bool)+;
 
+#pragma link C++ function larcv::fill_3d_voxels(const larcv::SparseTensor3D&, PyObject*, PyObject*)+;
+
 #endif
 #pragma link C++ class larcv::load_pyutil+;
 #pragma link C++ class larcv::PyImageMaker+;
