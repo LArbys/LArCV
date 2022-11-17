@@ -1,8 +1,5 @@
 #include "PyUtils_sparsetensor.h"
 
-#include "setpyutils.h"
-
-#include "larcv/core/Base/larcv_logger.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #ifdef USE_PYTHON3
 #include "numpy/arrayobject.h"
@@ -15,9 +12,16 @@
 
 namespace larcv {
 
+  bool PyUtils_sparsetensor::_import_numpy = false;
+  
   PyObject *as_ndarray(const SparseTensor2D& data, bool clear_mem) {
     
-    SetPyUtil();
+    if ( !PyUtils_sparsetensor::_import_numpy ) {
+      // needed for numpy api
+      import_array1(0);
+      PyUtils_sparsetensor::_import_numpy = true;
+    }
+    
     npy_intp dim_data[2];
     dim_data[0] = data.meta().cols();
     dim_data[1] = data.meta().rows();
@@ -39,8 +43,12 @@ namespace larcv {
    * @brief convert SparseTensor3D into a numpy array
    *
    */
-  void fill_3d_voxels(const SparseTensor3D& data, PyObject* pyarray, PyObject* select) {
-    SetPyUtil();
+  int fill_3d_voxels(const SparseTensor3D& data, PyObject* pyarray, PyObject* select) {
+
+    if ( !PyUtils_sparsetensor::_import_numpy ) { 
+      import_array1(0);
+      PyUtils_sparsetensor::_import_numpy = true;
+    }
 
     int **carray;
     const int dtype = NPY_INT;
@@ -95,7 +103,7 @@ namespace larcv {
     
     PyArray_Free(pyarray,  (void *)carray);
     
-    return;
+    return 0;
   }
 
 }

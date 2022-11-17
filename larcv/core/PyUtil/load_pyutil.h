@@ -21,6 +21,11 @@ namespace larcv {
      \class load_pyutil
      User defined class load_pyutil ... these comments are used to generate
      doxygen documentation!
+
+     Purpose of this class is to just trigger the loading of the library by calling in python
+     
+     from larcv import larcv
+     larcv.load_pyutil
   */
   class load_pyutil{
     

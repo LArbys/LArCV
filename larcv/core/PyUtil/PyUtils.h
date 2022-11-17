@@ -11,8 +11,6 @@ typedef _object PyObject;
 #endif
 #endif
 
-#include "setpyutils.h"
-
 #include "larcv/core/DataFormat/Image2D.h"
 #include "larcv/core/DataFormat/ROI.h"
 #include "larcv/core/DataFormat/EventChStatus.h"
@@ -93,6 +91,19 @@ namespace larcv {
 
   ClusterMask as_clustermask(PyObject *, PyObject *, ImageMeta, PyObject *);
 
+  class PyUtils {
+    
+    PyUtils() {};
+    virtual ~PyUtils() {};
+    
+  public:
+    static int SetPyUtil();
+    
+  private:
+    static bool _import_numpy;
+    
+  };
+  
 }
 
 #endif

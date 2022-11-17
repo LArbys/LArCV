@@ -13,6 +13,22 @@
 #endif
 namespace larcv {
 
+bool PyUtils::_import_numpy = false;
+
+int PyUtils::SetPyUtil() {
+
+  if (!PyUtils::_import_numpy) {
+#ifdef USE_PYTHON3
+    import_array1(0);
+#else
+    import_array1(0);
+#endif
+    PyUtils::_import_numpy = true;
+  }
+  return 0;
+}
+  
+
 larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarray_box, ImageMeta meta, PyObject *pyarray_prob) {
   /*
   This function takes in a numpy matrix of shape (N,2) representing a binary
@@ -21,7 +37,7 @@ larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarr
   object ClusterMask, having built a meta, a BBox2D and a vector of Point2Ds
   from them. (Hopefully) it now also takes in a 1 value numpy array with the probability of class
   */
-  SetPyUtil();
+  PyUtils::SetPyUtil();
   float *carray_prob;
   // Create C arrays from numpy objects:
   const int dtype_prob = NPY_FLOAT;
@@ -120,7 +136,7 @@ larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarr
 }
 
   PyObject *as_ndarray_mask(const ClusterMask &mask) {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     npy_intp dim_data[2];
     dim_data[0] = (mask.box.width()/mask.meta.pixel_width())+1; //Add one for the 0th spot
     dim_data[1] = (mask.box.height()/mask.meta.pixel_height())+1; //Add one for the 0th spot
@@ -130,7 +146,7 @@ larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarr
   }
 
   PyObject *as_ndarray_mask_pixlist(const ClusterMask &mask, float x_offset, float y_offset ) {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
 
     int nd = 2;
     npy_intp dim_data[2];
@@ -151,7 +167,7 @@ larcv::ClusterMask as_clustermask(PyObject *pyarray_sparse_mask, PyObject *pyarr
   }
 
 PyObject *as_ndarray_bbox(const ClusterMask &mask) {
-  SetPyUtil();
+  PyUtils::SetPyUtil();
   npy_intp dim_data[1];
   dim_data[0] = 5;
   std::vector<float> const &vec = mask.as_vector_box();
@@ -160,7 +176,7 @@ PyObject *as_ndarray_bbox(const ClusterMask &mask) {
 }
 
 PyObject *as_ndarray(const std::vector<float> &vec) {
-  SetPyUtil();
+  PyUtils::SetPyUtil();
 
   if (vec.size() >= INT_MAX) {
     LARCV_CRITICAL() << "Length of data vector too long to specify ndarray. "
@@ -177,19 +193,40 @@ PyObject *as_ndarray(const std::vector<float> &vec) {
 }
 
 PyObject *as_ndarray(const Image2D &img) {
-  SetPyUtil();
+
+  PyUtils::SetPyUtil();
+  
   npy_intp dim_data[2];
   dim_data[0] = img.meta().cols();
   dim_data[1] = img.meta().rows();
   auto const &vec = img.as_vector();
+  
+  PyArrayObject* array = nullptr;
+  try {
+    array = (PyArrayObject*)PyArray_SimpleNew( 2, dim_data, NPY_FLOAT );
+  }
+  catch (std::exception& e ) {
+    larcv::logger::get("pyutils::as_ndarray").send( larcv::msg::kCRITICAL, __FUNCTION__, __LINE__, __FILE__ )
+      << "trouble allocating new pyarray: " << e.what() << std::endl;
+    throw larbys();
+  }
 
+  std::cout << "Fill zeros" << std::endl;
+  const int ncols = img.meta().cols();
+  const int nrows = img.meta().rows();
+  for (int c=0; c<ncols; c++) {
+    for (int r=0; r<nrows; r++ ) {
+      *((float*)PyArray_GETPTR2( array, c, r )) = vec.data()[c*nrows + r];
+    }
+  }
 
-  return PyArray_SimpleNewFromData( 2, dim_data, NPY_FLOAT, (void*)vec.data() );
+  std::cout << "return array" << std::endl;  
+  return (PyObject*)array;
   //return PyArray_FromDimsAndData(2, dim_data, NPY_FLOAT, (char *)&(vec[0]));
 }
 
 void copy_array(PyObject *arrayin, const std::vector<float> &cvec) {
-  SetPyUtil();
+  PyUtils::SetPyUtil();
   PyArrayObject *ptr = (PyArrayObject *)(arrayin);
   /*
   std::cout<< PyArray_NDIM(ptr) << std::endl
@@ -214,7 +251,7 @@ void copy_array(PyObject *arrayin, const std::vector<float> &cvec) {
 }
 
 PyObject *as_caffe_ndarray(const Image2D &img) {
-  SetPyUtil();
+  PyUtils::SetPyUtil();
   int *dim_data = new int[2];
   dim_data[0] = img.meta().rows();
   dim_data[1] = img.meta().cols();
@@ -223,7 +260,7 @@ PyObject *as_caffe_ndarray(const Image2D &img) {
 }
 
 larcv::Image2D as_image2d_meta(PyObject *pyarray, ImageMeta meta) {
-  SetPyUtil();
+  PyUtils::SetPyUtil();
   float **carray;
   // Create C arrays from numpy objects:
   const int dtype = NPY_FLOAT;
@@ -248,7 +285,7 @@ larcv::Image2D as_image2d_meta(PyObject *pyarray, ImageMeta meta) {
 }
 
 larcv::Image2D as_image2d(PyObject *pyarray) {
-  SetPyUtil();
+  PyUtils::SetPyUtil();
   float **carray;
   // Create C arrays from numpy objects:
   const int dtype = NPY_FLOAT;
@@ -295,7 +332,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
   PyObject* as_ndarray( const ChStatus& status ) {
     // NOTE: CREATES WRAPPER
-    SetPyUtil();
+    PyUtils::SetPyUtil();
 
     int nd = 1;
     int dim_data[1];
@@ -309,7 +346,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
   PyObject* as_ndarray( const EventChStatus& evstatus ) {
     // NOTE: CREATES NEW ARRAY
 
-    SetPyUtil();
+    PyUtils::SetPyUtil();
 
     int nd = 2;
     npy_intp dim_data[2];
@@ -338,7 +375,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
   ChStatus as_chstatus( PyObject* pyarray, const int planeid ) {
 
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     const int dtype = NPY_USHORT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
     npy_intp dims[1];
@@ -361,7 +398,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
 
   EventChStatus as_eventchstatus( PyObject* pyarray ) {
 
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     const int dtype      = NPY_USHORT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
     int nd               = PyArray_NDIM( (PyArrayObject*)pyarray );
@@ -402,7 +439,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    *
    */
   PyObject* as_pybytes( const std::vector<std::uint8_t>& buf ) {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     return PyBytes_FromStringAndSize( (const char*)buf.data(), buf.size() );
   }
 
@@ -416,7 +453,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
    *
    */
   PyObject* as_pixelarray( const larcv::Image2D& img, const float threshold, larcv::msg::Level_t verbosity ) {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     // first, get a list of pixel values
     // each entry is (row,col,pixelvalue)
     larcv::logger::get("pyutils::as_pixelarray").set(verbosity);
@@ -491,7 +528,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
                                           const larcv::Image2D& select_img,
                                           const float threshold, bool selectifabove,
                                           larcv::msg::Level_t verbosity ) {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     // first, get a list of pixel values
     // each entry is (row,col,pixelvalue)
     larcv::logger::get("pyutils::as_pixelarray").set(verbosity);
@@ -572,7 +609,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
   PyObject* as_union_pixelarray( const std::vector<const larcv::Image2D*> pimg_v,
                                  const float threshold,
                                  larcv::msg::Level_t verbosity ) {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
     // first, get a list of pixel values
     // each entry is (row,col,pixelvalue)
     larcv::logger::get("pyutils::as_union_pixelarray").set(verbosity);
@@ -729,7 +766,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
   PyObject* as_sparseimg_ndarray( const larcv::SparseImage& sparseimg,
                                   larcv::msg::Level_t verbosity ) {
 
-    larcv::SetPyUtil();
+    larcv::PyUtils::SetPyUtil();
 
     size_t stride = 2+sparseimg.nfeatures();
     size_t npts   = sparseimg.pixellist().size()/stride;
@@ -787,7 +824,7 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
                                              const std::vector<larcv::ImageMeta>& meta_v,
                                              larcv::msg::Level_t verbosity )
   {
-    SetPyUtil();
+    PyUtils::SetPyUtil();
 
     int dtype = PyArray_TYPE((PyArrayObject*)ndarray);
 
