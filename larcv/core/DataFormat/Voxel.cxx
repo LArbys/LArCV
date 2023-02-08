@@ -4,6 +4,7 @@
 #include "Voxel.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 namespace larcv {
 
@@ -166,6 +167,11 @@ namespace larcv {
       }
     }
     return;
+  }
+
+  void VoxelSet::sort()
+  {
+    std::sort( _voxel_v.begin(), _voxel_v.end() );
   }
 
   //
