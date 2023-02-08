@@ -33,6 +33,8 @@
 #pragma link C++ function larcv::as_ndarray(const SparseTensor2D&, bool)+;
 
 #pragma link C++ function larcv::fill_3d_voxels(const larcv::SparseTensor3D&, PyObject*, PyObject*)+;
+#pragma link C++ function larcv::fill_3d_pcloud(const SparseTensor3D&, PyObject*, PyObject*);
+#pragma link C++ function larcv::fill_3d_pcloud(const VoxelSet&, const Voxel3DMeta&, PyObject*, PyObject*);
 
 #endif
 #pragma link C++ class larcv::load_pyutil+;

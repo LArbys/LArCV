@@ -17,7 +17,14 @@ namespace larcv {
   PyObject *as_ndarray(const SparseTensor2D& data, bool clear_mem=false);  
 
   // sparsetensor3d into a dense numpy array
-  int fill_3d_voxels(const SparseTensor3D& data, PyObject* pyarray, PyObject* select);
+  int fill_3d_voxels(const SparseTensor3D& data, PyObject* pyarray, PyObject* select=nullptr);
+
+  /// larcv::VoxelSet to 3D numpy point cloud array (NUM_POINTS,1/3/4) converter
+  int fill_3d_pcloud(const SparseTensor3D &data, PyObject* pyarray, PyObject* select=nullptr);
+  
+  /// larcv::VOxelSet to 3D numpy point cloud array (NUM_POINTS,1/3/4) converter
+  int fill_3d_pcloud(const VoxelSet &data, const Voxel3DMeta& meta, PyObject* pyarray, PyObject* select=nullptr);
+  
 
   class PyUtils_sparsetensor {
 
