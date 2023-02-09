@@ -72,7 +72,14 @@ if [[ -z $OPENCV_LIBDIR ]]; then
 fi
 
 # Check Numpy
-export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
+if [[ ${LARCV_PYTHON} -eq 2 ]]; then
+    export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy_py2`
+else
+    export LARCV_NUMPY=`$LARCV_BASEDIR/bin/check_numpy`
+fi
+       
+       
+   
 
 # Check for libtorch
 export LARCV_LIBTORCH=1
@@ -121,6 +128,7 @@ printf "    \033[95mLARCV_INCDIR\033[00m   = $LARCV_INCDIR\n"
 printf "    \033[95mLARCV_LIBDIR\033[00m   = $LARCV_LIBDIR\n"
 printf "    \033[95mLARCV_BUILDDIR\033[00m = $LARCV_BUILDDIR\n"
 printf "    \033[95mLARCV_PYTHON\033[00m   = $LARCV_PYTHON\n"
+printf "    \033[95mLARCV_NUMPY\033[00m    = $LARCV_NUMPY\n"
 
 # modify paths
 [[ ":$PATH:" != *":${LARCV_BASEDIR}/bin:"* ]] && export PATH="${LARCV_BASEDIR}/bin:${PATH}"
