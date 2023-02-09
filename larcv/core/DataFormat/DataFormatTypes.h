@@ -65,6 +65,10 @@ namespace larcv {
   enum ShapeType_t {
     kShapeShower,  ///< Shower
     kShapeTrack,   ///< Track
+    kShapeMichel,  ///< Michel
+    kShapeDelta,     ///< Delta ray
+    kShapeLEScatter, ///< low energy scattering (e.g. low-E compton)
+    kShapeGhost,     ///< ghost 3d point    
     kShapeUnknown  ///< LArbys
   };
 
