@@ -63,7 +63,7 @@ namespace larcv {
 
   /// Object appearance type in LArTPC
   enum ShapeType_t {
-    kShapeShower,  ///< Shower
+    kShapeShower=0,  ///< Shower
     kShapeTrack,   ///< Track
     kShapeMichel,  ///< Michel
     kShapeDelta,     ///< Delta ray
