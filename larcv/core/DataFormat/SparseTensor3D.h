@@ -75,7 +75,31 @@ namespace larcv {
     /// Compute PCA of this set of voxels
   	Point3D pca() const;
     PCA_3D fit_pca(bool store_spread=true, bool use_true_coord=false);
-
+    /// Merge another SparseTensor3D
+    inline void fast_merge(const SparseTensor3D& vs, bool add=true, bool check_meta_strict=true)
+    { 
+      if(!(this->meta().valid()))
+        this->meta(vs.meta());
+      else if(check_meta_strict) {
+        if(vs.meta() != this->meta()) {
+          std::cerr << "Meta mismatched (strict check)!" << std::endl
+                    << this->meta().dump() << std::endl
+                    << vs.meta().dump() << std::endl;
+          throw std::exception();
+        }
+      }
+      else if(this->meta().num_voxel_x() != vs.meta().num_voxel_x() || 
+	      this->meta().num_voxel_y() != vs.meta().num_voxel_y() || 
+	      this->meta().num_voxel_z() != vs.meta().num_voxel_z() ) {
+	std::cerr << "Meta mismatched (loose check)!" << std::endl
+		  << this->meta().dump() << std::endl
+		  << vs.meta().dump() << std::endl;
+	throw std::exception(); 
+      }
+      for(auto const& v : vs.as_vector()) this->push_back(v.id(),v.value());
+      this->sort();
+    };
+    
   private:
     larcv::Voxel3DMeta _meta;
 
