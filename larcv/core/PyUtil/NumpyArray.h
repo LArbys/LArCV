@@ -19,7 +19,9 @@ namespace larcv {
     virtual ~NumpyArrayFloat() {};
 
     int store( PyObject* array );
-    PyObject* tonumpy();    
+    PyObject* tonumpy();
+    PyObject* tonumpy_nocopy();    
+    int into_numpy2d(PyObject* array);    
     int dtype();
 
     int ndims;
@@ -45,7 +47,7 @@ namespace larcv {
     virtual ~NumpyArrayInt() {};
 
     int store( PyObject* array );
-    PyObject* tonumpy();    
+    PyObject* tonumpy();
     int dtype();
 
     int ndims;

@@ -8,6 +8,8 @@
 #include <numpy/ndarrayobject.h>
 #endif
 
+#include "larcv/core/Base/larcv_logger.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -103,6 +105,12 @@ namespace larcv {
     return 0;
   }
 
+  /**
+   * create a numpy array that has a copy of the data
+   *
+   * not entirely confident it doesn't leak memory somehow
+   *
+   */
   PyObject* NumpyArrayFloat::tonumpy()
   {
     if ( !_setup_numpy ) {
@@ -110,22 +118,105 @@ namespace larcv {
       _setup_numpy = true;
     }
 
+    // set the shape
     npy_intp* dims = new npy_intp[ndims];
     for (int i=0; i<ndims; i++) {
       dims[i] = shape[i];
     }
 
-    //    PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
-    PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
+    // old old way
+    //PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
+
+    // proper way?
+    PyArray_Descr* descr = PyArray_DescrFromType(NPY_FLOAT);
+    PyArrayObject* array
+      = (PyArrayObject*)PyArray_NewFromDescr( &PyArray_Type, descr, ndims, dims, NULL, NULL, 0, NULL);
 
     float* np_data = (float*)PyArray_DATA( array );
-    memcpy( np_data, data.data(), sizeof(float)*data.size());
+    memcpy( np_data, data.data(), sizeof(float)*data.size()); //fast, but is this causing a memory leak?
     
     delete [] dims;
 
     return (PyObject*)array;
   }
 
+  /**
+   * create a numpy array that wraps around the ROOT data
+   *
+   * can cause segfault if ROOT moves to new entry while numpy array still in use.
+   * suggestion to use np.copy around this array reference
+   *
+   */  
+  PyObject* NumpyArrayFloat::tonumpy_nocopy()
+  {
+    if ( !_setup_numpy ) {
+      import_array1(0);
+      _setup_numpy = true;
+    }
+
+    // set the shape
+    npy_intp* dims = new npy_intp[ndims];
+    for (int i=0; i<ndims; i++) {
+      dims[i] = shape[i];
+    }
+
+    //    PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
+    //PyArrayObject* array = (PyArrayObject*)PyArray_SimpleNew( ndims, &dims[0], NPY_FLOAT );
+    PyArray_Descr* descr = PyArray_DescrFromType(NPY_FLOAT);
+    PyArrayObject* array
+      = (PyArrayObject*)PyArray_NewFromDescr( &PyArray_Type, descr, ndims, dims, NULL, data.data(), 0, NULL);
+
+    // float* np_data = (float*)PyArray_DATA( array );
+    // memcpy( np_data, data.data(), sizeof(float)*data.size()); //fast, but is this causing a memory leak?
+    
+    delete [] dims;
+
+    return (PyObject*)array;
+  }
+  
+  int NumpyArrayFloat::into_numpy2d( PyObject* pyarray )
+  {
+    if ( !_setup_numpy ) {
+      import_array1(0);
+      _setup_numpy = true;
+    }
+
+    if ( ndims!=2 ) {
+      logger::get("PyUtil").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+				 "ERROR: this instance of NumpyArrayFloat is not 2D");
+      throw std::runtime_error("ERROR: this instance of NumpyArrayFloat is not 2D");
+    }
+    
+    // get key info to shape and types
+    PyArray_Descr *descr = PyArray_DESCR((PyArrayObject*)pyarray);
+    npy_intp* dims = PyArray_DIMS((PyArrayObject*)pyarray);
+    int ndims = PyArray_NDIM((PyArrayObject*)pyarray);
+    
+    // get c-array to access data
+    float **carray;
+    
+    if (PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr) < 0) {
+      logger::get("PyUtil::NumpyArrayFloat").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
+						  "ERROR: cannot convert pyarray to 2D C-array");
+      throw std::runtime_error("ERROR: cannot convert pyarray to 2D C-array");
+    }
+
+    // loop copy is slow!!
+    // for (size_t i=0; i<shape[0]; i++) {
+    //   for (size_t j=0; j<shape[1]; j++) {
+    // 	size_t index = i*shape[1]+j;
+    // 	carray[i][j] = data[index];
+    //   }
+    // }
+    
+    memcpy( (float*)carray, data.data(), sizeof(float)*data.size()); //fast, but is this causing a memory leak?
+    
+    
+    //PyArray_Free(pyarray,  (void *)carray);
+    
+    return 0;
+  }
+  
   // ==================================================
   // NumpyArrayInt
   // ==================================================
