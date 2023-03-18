@@ -188,31 +188,31 @@ namespace larcv {
     }
     
     // get key info to shape and types
-    PyArray_Descr *descr = PyArray_DESCR((PyArrayObject*)pyarray);
-    npy_intp* dims = PyArray_DIMS((PyArrayObject*)pyarray);
-    int ndims = PyArray_NDIM((PyArrayObject*)pyarray);
-    
-    // get c-array to access data
+    const int dtype = NPY_FLOAT;
+    PyArray_Descr *descr = PyArray_DescrFromType(dtype);
+    npy_intp dims[2];
     float **carray;
-    
-    if (PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr) < 0) {
+    int err = PyArray_AsCArray(&pyarray, (void **)&carray, dims, 2, descr);
+    if ( err<0 ) {
+      std::stringstream ss;
+      ss << "ERROR[code=" << err << "]: cannot convert pyarray to 2D C-array";
       logger::get("PyUtil::NumpyArrayFloat").send(larcv::msg::kCRITICAL, __FUNCTION__, __LINE__,
-						  "ERROR: cannot convert pyarray to 2D C-array");
-      throw std::runtime_error("ERROR: cannot convert pyarray to 2D C-array");
+						  ss.str());
+      throw std::runtime_error(ss.str());
     }
 
     // loop copy is slow!!
-    // for (size_t i=0; i<shape[0]; i++) {
-    //   for (size_t j=0; j<shape[1]; j++) {
-    // 	size_t index = i*shape[1]+j;
-    // 	carray[i][j] = data[index];
-    //   }
-    // }
+    for (size_t i=0; i<shape[0]; i++) {
+      for (size_t j=0; j<shape[1]; j++) {
+	size_t index = i*shape[1]+j;
+	carray[i][j] = data[index];
+      }
+    }
     
-    memcpy( (float*)carray, data.data(), sizeof(float)*data.size()); //fast, but is this causing a memory leak?
+    //memcpy( (float*)carray, data.data(), sizeof(float)*data.size()); //fast, but is this causing a memory leak?
     
     
-    //PyArray_Free(pyarray,  (void *)carray);
+    PyArray_Free(pyarray,  (void *)carray);
     
     return 0;
   }
