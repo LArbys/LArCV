@@ -52,7 +52,7 @@ namespace larcv {
     /// Reset contents w/ new larcv::ImageMeta
     void reset(const ImageMeta&);
     /// Various modes used to combine pixels
-    enum CompressionModes_t { kSum, kAverage, kMaxPool, kOverWrite};
+    enum CompressionModes_t { kSum, kAverage, kMaxPool, kOverWrite, kSubtract};
     /// Move origin position
     void reset_origin(double x, double y) {_meta.reset_origin(x,y);}
     /// Return image index ID number (should be unique within larcv::EventImage2D)
