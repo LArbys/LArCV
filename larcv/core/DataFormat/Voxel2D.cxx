@@ -38,16 +38,16 @@ namespace larcv {
 		auto iter_min = std::lower_bound(voxel_v.begin(), voxel_v.end(), vox_min);
 
 		double min_distance = distance;
-		Voxel final_vox = kINVALID_VOXEL;
+		const Voxel* final_vox = &kINVALID_VOXEL;
 		for (auto i = iter_min; i < iter_max; ++i) {
 			const Point2D current_point = meta.position((*i).id());
 			double d = pt.distance(current_point);
 			if (d < min_distance) {
 				min_distance = d;
-				final_vox = (*i);
+				final_vox = &(*i);
 			}
 		}
-		return final_vox;
+		return *final_vox;
 	}
 
     ClusterPixel2D::ClusterPixel2D(larcv::VoxelSetArray&& vsa, larcv::ImageMeta meta)
