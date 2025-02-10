@@ -647,6 +647,12 @@ namespace larcv {
     return get_data(id);
   }
 
+  EventBase* IOManager::get_data(const std::string& type_name, const std::string& producer)
+  {
+    larcv::ProductType_t datatype = getProductIDfromName( type_name );
+    return get_data( datatype, producer );
+  }
+
   EventBase* IOManager::get_data(const size_t id)
   {
     LARCV_DEBUG() << "start" << std::endl;
@@ -842,6 +848,10 @@ namespace larcv {
     _reverse_image2d_products.clear();
     _reverse_roi_products.clear();
     _reverse_pixel2d_products.clear();
+    _name_to_product_map.clear();
+    for (int i=0; i<(int)larcv::ProductTypeNames_v.size(); i++) {
+      _name_to_product_map[ ProductTypeNames_v[i] ] = (ProductType_t)i;
+    }
   }
 
   void IOManager::donot_clear_product( const ProductType_t type, const std::string& producer ) {
@@ -882,6 +892,19 @@ namespace larcv {
     _store_only_type.push_back( type );
     return _store_only_name.size();
   }
+
+  larcv::ProductType_t IOManager::getProductIDfromName( const std::string& type_name )
+  {
+    auto it_name = _name_to_product_map.find( type_name );
+    if ( it_name==_name_to_product_map.end() ) {
+      LARCV_ERROR() << "Data type with name=\"" << type_name << "\" not recognized. See larcv/core/DataFormat/DataFormatTypes.h" << std::endl;
+      return larcv::kProductUnknown;
+    }
+
+    return it_name->second;
+  }
+
+  
 
 }
 #endif

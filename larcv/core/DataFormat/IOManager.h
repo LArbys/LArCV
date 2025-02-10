@@ -69,6 +69,7 @@ namespace larcv {
     { return (_in_tree_entries ? _in_tree_entries : _out_tree_entries); }
     
     EventBase* get_data(const ProductType_t type, const std::string& producer);
+    EventBase* get_data(const std::string& type_name, const std::string& producer);
     EventBase* get_data(const ProducerID_t id);
 
     // we provide the option to not automatically clear the write container
@@ -145,6 +146,8 @@ namespace larcv {
     std::vector<bool> _store_only_bool;
     std::vector<bool> _read_id_bool;
     std::vector<bool> _clear_id_bool;
+    std::map< std::string, larcv::ProductType_t > _name_to_product_map;
+    larcv::ProductType_t getProductIDfromName( const std::string& type_name );
 
     // name of trees whose data needs to have their tick direction reversed (backwards to forwards)
     std::vector<std::string> _reverse_image2d_products;
