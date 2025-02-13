@@ -53,7 +53,10 @@
 #pragma link C++ class larcv::SparseTensor2D+;
 #pragma link C++ class larcv::EventSparseTensor2D+;
 
+#pragma link C++ class larcv::Voxel3D+;
+#pragma link C++ class std::vector<larcv::Voxel3D>+;
 #pragma link C++ class larcv::Voxel3DMeta+;
+#pragma link C++ class larcv::Voxel3DSet+;
 #pragma link C++ class larcv::SparseTensor3D+;
 #pragma link C++ class larcv::ClusterVoxel3D+;
 #pragma link C++ class larcv::EventClusterVoxel3D+;
