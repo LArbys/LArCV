@@ -2,6 +2,8 @@
 #define PROCESSDRIVER_CXX
 #include <sstream>
 #include <iomanip>
+#include <random>
+#include <algorithm>
 #include "ProcessDriver.h"
 #include "ProcessFactory.h"
 #include "larcv/core/Base/LArCVBaseUtilFunc.h"
@@ -258,7 +260,15 @@ namespace larcv {
     if(nentries) {
       _access_entry_v.resize(nentries);
       for(size_t i=0; i<_access_entry_v.size(); ++i) _access_entry_v[i] = i;
-      if(_random_access) std::random_shuffle(_access_entry_v.begin(),_access_entry_v.end());
+      if(_random_access) {
+	// Create a random number generator
+	std::random_device rd;
+	std::mt19937 g(rd());
+	// Use std::shuffle instead of std::random_shuffle
+	std::shuffle(_access_entry_v.begin(), _access_entry_v.end(), g);
+	// old c++11 method
+	//std::random_shuffle(_access_entry_v.begin(),_access_entry_v.end());
+      }
     }
 
     _current_entry = 0;
