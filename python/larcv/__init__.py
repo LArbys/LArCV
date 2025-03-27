@@ -24,6 +24,5 @@ larcv.IOManager
 if 'LARCV_NUMPY' in os.environ and os.environ['LARCV_NUMPY'] == '1':
     larcv.load_pyutil
 if 'LARCV_OPENCV' in os.environ and os.environ['LARCV_OPENCV'] == '1':
-    #larcv.load_cvutil
-    pass
-#larcv.LoadImageMod
+    larcv.load_cvutil
+larcv.LoadImageMod
