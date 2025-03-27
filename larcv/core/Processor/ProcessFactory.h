@@ -18,7 +18,8 @@
 #include <map>
 #include "larcv/core/Base/larcv_base.h"
 #include "larcv/core/Base/larbys.h"
-#include "ProcessBase.h"
+#include "larcv/core/Processor/ProcessBase.h"
+
 namespace larcv {
 
   /**

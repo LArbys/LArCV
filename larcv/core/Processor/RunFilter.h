@@ -14,8 +14,8 @@
 #ifndef __RUNFILTER_H__
 #define __RUNFILTER_H__
 
-#include "ProcessBase.h"
-#include "ProcessFactory.h"
+#include "larcv/core/Processor/ProcessBase.h"
+#include "larcv/core/Processor/ProcessFactory.h"
 namespace larcv {
 
   /**
