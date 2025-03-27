@@ -15,10 +15,10 @@
 #define __LARCVBASE_CONFIGMANAGER_H__
 
 #include <iostream>
-#include "larcv_base.h"
-#include "larbys.h"
-#include "PSet.h"
 #include <set>
+#include "larcv/core/Base/larcv_base.h"
+#include "larcv/core/Base/larbys.h"
+#include "larcv/core/Base/PSet.h"
 
 namespace larcv {
   /**

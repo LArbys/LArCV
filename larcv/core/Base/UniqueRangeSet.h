@@ -17,7 +17,7 @@
 #include <set>
 #include <iostream>
 #include <exception>
-#include "Range.h"
+#include "larcv/core/Base/Range.h"
 
 namespace larcv {
 
@@ -91,16 +91,16 @@ namespace larcv {
       auto iter = start_iter;
       T  tmp_end=end;
       while(iter != this->end()) {
-	if(iter != start_iter)
-	  res.emplace(tmp_end,(*iter)._window.first);
-	tmp_end   = (*iter)._window.second;
-	if(iter == end_iter) break;
-	++iter;
+        if(iter != start_iter)
+          res.emplace(tmp_end,(*iter)._window.first);
+        tmp_end   = (*iter)._window.second;
+        if(iter == end_iter) break;
+        ++iter;
       }
 
       // Anything to add to the tail?
       if(tmp_end < end) 
-	res.emplace(tmp_end,end);
+        res.emplace(tmp_end,end);
 
       return res;
     }
@@ -115,10 +115,10 @@ namespace larcv {
       auto tmp_a = Range<T>(start,end);
       size_t ctr=0;
       while(iter != this->end()) {
-	tmp_a += (*iter);
-	this->erase(iter);
-	iter = this->find(tmp_a);
-	++ctr;
+        tmp_a += (*iter);
+        this->erase(iter);
+        iter = this->find(tmp_a);
+        ++ctr;
       }
       this->insert(tmp_a);
       return ctr;

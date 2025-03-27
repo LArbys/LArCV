@@ -16,7 +16,7 @@
 #define __LARCV_BASE_H__
 
 #include <vector>
-#include "larcv_logger.h"
+#include "larcv/core/Base/larcv_logger.h"
 
 namespace larcv {
     

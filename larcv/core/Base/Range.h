@@ -126,6 +126,8 @@ namespace larcv {
   };
 }
 
+#ifndef __CINT__
+#ifndef __CLING__ //hide from dict maker and interpretter
 namespace std {
   // Implement pointer comparison in case it's useful
   template <class T>
@@ -140,6 +142,8 @@ namespace std {
     { return (*lhs) < (*rhs); }
   };
 }
+#endif
+#endif
 
 #endif
 /** @} */ // end of doxygen group

@@ -1,7 +1,7 @@
 #ifndef __LARCVBASE_UTILFUNC_H__
 #define __LARCVBASE_UTILFUNC_H__
 
-#include "PSet.h"
+#include "larcv/core/Base/PSet.h"
 
 namespace larcv {
 
