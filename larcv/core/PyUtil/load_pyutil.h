@@ -5,6 +5,9 @@
  * 
  * \brief Class def header for a class load_pyutil
  *
+ * This is a dummy class we can load in order to get ROOT to start
+ * loading our libraries when in python environment.
+ * 
  * @author kazuhiro
  */
 

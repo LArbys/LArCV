@@ -16,7 +16,7 @@
 
 #include <vector>
 #include "larcv/core/DataFormat/IOManager.h"
-#include "ProcessBase.h"
+#include "larcv/core/Processor/ProcessBase.h"
 
 namespace larcv {
   /**
@@ -84,7 +84,6 @@ namespace larcv {
     bool _process_entry_( bool autosave_entry=true );
     bool _run_process_( ProcessBase* p ) { return p->process( _io ); };
     
-#ifndef __CINT__
     size_t _batch_start_entry;
     size_t _batch_num_entry;
     size_t _current_entry;
@@ -94,13 +93,16 @@ namespace larcv {
     bool _process_cleared;
     std::vector<size_t> _access_entry_v;
     IOManager _io;
+#ifndef __CINT__
+#ifndef __CLING__
     std::map<std::string,larcv::ProcessID_t> _proc_m;
     std::vector<larcv::ProcessBase*> _proc_v;
+#endif
+#endif
     bool _processing;
     TFile* _fout;    
     std::string _fout_name;
     bool _has_event_creator;
-#endif
   };
 }
 

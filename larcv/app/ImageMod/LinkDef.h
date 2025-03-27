@@ -31,12 +31,12 @@
 #pragma link C++ class larcv::CropROI+;
 #pragma link C++ class larcv::ROIMask+;
 #pragma link C++ class larcv::ChannelMax+;
-#pragma link C++ class larcv::SegWeightTrackShower+;
+//#pragma link C++ class larcv::SegWeightTrackShower+;
 #pragma link C++ class larcv::ModularPadImage+;
 #pragma link C++ class larcv::MultiROICropper+;
 #pragma link C++ function larcv::cluster_to_image2d(const larcv::Pixel2DCluster&, size_t, size_t)+;
 #pragma link C++ class larcv::LoadImageMod+;
-#pragma link C++ class larcv::ROIMerger+;
+//#pragma link C++ class larcv::ROIMerger+;
 #pragma link C++ class larcv::ImageFromPixel2D+;
 #pragma link C++ class larcv::ROIPad+;
 

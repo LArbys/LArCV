@@ -22,7 +22,7 @@ namespace larcv {
      User defined class load_rootutil ... these comments are used to generate
      doxygen documentation!
   */
-  class load_rootutil{
+  class load_rootutil {
     
   public:
     
@@ -30,7 +30,7 @@ namespace larcv {
     load_rootutil();
 
     /// Default destructor
-    ~load_rootutil(){}
+    virtual ~load_rootutil(){};
     
   };
 }

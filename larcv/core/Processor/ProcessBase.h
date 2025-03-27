@@ -16,7 +16,8 @@
 
 #include "larcv/core/Base/Watch.h"
 #include "larcv/core/DataFormat/IOManager.h"
-#include "ProcessorTypes.h"
+#include "larcv/core/Processor/ProcessorTypes.h"
+
 namespace larcv {
 
   class ProcessDriver;

@@ -10,6 +10,7 @@
 #include <locale>
 
 namespace larcv {
+
   namespace parser {
 
     // STRING WHITESPACE CLEANING FROM: https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
@@ -103,12 +104,13 @@ namespace larcv {
     {
       std::string res="[";
       for(auto const& v : value)
-	res += ToString(v) + ",";
+        res += ToString(v) + ",";
       res = res.substr(0,res.size()-1);
       res += "]";
       return res;
     }
   }
+
 }
 
 #endif

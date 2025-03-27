@@ -26,7 +26,7 @@ namespace larcv {
   class rootutils {
   public:
     rootutils() {};
-    ~rootutils() {};
+    virtual ~rootutils() {};
 
     
     static TH2D as_th2d( const larcv::Image2D& img, std::string histname );

@@ -5,7 +5,8 @@
 
 namespace larcv{
 
-  load_rootutil::load_rootutil(){}
+  load_rootutil::load_rootutil()
+  {}
 
 }
 

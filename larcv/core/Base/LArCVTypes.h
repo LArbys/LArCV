@@ -7,11 +7,6 @@
 #include <limits>
 #include <climits>
 
-
-#include <vector>
-#include <limits>
-#include <climits>
-
 /**
    \namespace larcv
    C++ namespace for developping LArTPC software interface to computer vision software (LArCV)
@@ -51,8 +46,10 @@ namespace larcv {
   namespace msg {
 
     /// Message level
-    enum Level_t { kDEBUG, kINFO, kNORMAL, kWARNING, kERROR, kCRITICAL, kMSG_TYPE_MAX };
+    enum Level_t { kDEBUG=0, kINFO, kNORMAL, kWARNING, kERROR, kCRITICAL, kMSG_TYPE_MAX };
 
+#ifndef __CINT__
+#ifndef __CLING__ // hide arrays whose size defined by enum from CLING 
     /// Formatted message prefix per message level
     const std::string kStringPrefix[kMSG_TYPE_MAX] =
       {
@@ -64,7 +61,10 @@ namespace larcv {
         "  \033[5;1;33;41m[CRITICAL]\033[00m "  ///< kCRITICAL message prefix
       };
     ///< Prefix of message
+#endif
+#endif
   }
+
 
 }
 #endif

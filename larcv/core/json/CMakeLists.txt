@@ -1,17 +1,28 @@
 set(MODULE_NAME LArCVCoreJSON)
 
 # Collect the headers
-file(GLOB HEADERS "*.h")
+set( HEADERS
+  json_utils.h
+)
 
-# Remove LinkDef.h
-list(FILTER HEADERS EXCLUDE REGEX ".*LinkDef.h$")
+# Collect the sources
+add_library( ${MODULE_NAME} SHARED 
+  json_utils.cxx
+)
  
-# However, the file(GLOB...) allows for wildcard additions:
-file(GLOB SOURCES "*.cxx")
-
-# Include directory
-include_directories( ${LARCV_JSON_INCLUDE_DIR} ${LARCV_BASE_DIR})
-
+set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
+target_include_directories(${MODULE_NAME}
+  PUBLIC
+  $<INSTALL_INTERFACE:include/larcv/core/json>
+  PRIVATE
+  ${PROJECT_SOURCE_DIR}
+)
+target_link_libraries( ${MODULE_NAME} PUBLIC 
+  LArCVCoreBase 
+  LArCVCoreDataFormat 
+  LArCVCorePyUtil
+)
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} )
 if (LARCV_USE_PYTHON)
   add_definitions("-DHASPYUTIL")
   include_directories( ${PYTHON_INCLUDE_PATH} )
@@ -20,18 +31,15 @@ endif()
 # Generate the dictionary
 ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
  
-# Generate the shared library from the sources
-add_library(${MODULE_NAME} SHARED ${SOURCES} G__${MODULE_NAME}.cxx)
-set_target_properties(${MODULE_NAME} PROPERTIES PUBLIC_HEADER "${HEADERS}")
-target_link_libraries(${MODULE_NAME} PUBLIC ${ROOT_LIBS} LArCVCoreDataFormat )
+# add dictionary file to sources
+target_sources( ${MODULE_NAME} PRIVATE G__${MODULE_NAME}.cxx )
 
 install(TARGETS ${MODULE_NAME}
   EXPORT larcv
   LIBRARY DESTINATION lib
   PUBLIC_HEADER DESTINATION include/larcv/core/json)
+
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}_rdict.pcm
   ${CMAKE_CURRENT_BINARY_DIR}/lib${MODULE_NAME}.rootmap
   DESTINATION lib  )
-
-
