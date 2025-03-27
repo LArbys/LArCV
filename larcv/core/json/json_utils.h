@@ -1,14 +1,31 @@
-#include "Python.h"
+#ifndef __LARCV_CORE_JSON_JSONUTILS_H__
+#define __LARCV_CORE_JSON_JSONUTILS_H__
 
-#include "nlohmann/json.hpp"
-#include "larcv/core/DataFormat/Image2D.h"
-
-#include "stdlib.h"
-#include "bytesobject.h"
+#include <cstdlib>
 
 #ifdef HASPYUTIL
 #include "larcv/core/PyUtil/PyUtils.h"
 #endif
+
+#ifndef __CINT__
+#ifndef __CLING__ // no way we can parse this
+#include "nlohmann/json.hpp"
+#endif
+#endif
+
+#if defined(__CLING__) || defined(__CINT__)
+// forward declaration when cling interpretter running
+namespace nlohmann {
+  class json;
+}
+#endif
+
+#include "larcv/core/DataFormat/Image2D.h"
+#include "larcv/core/DataFormat/SparseImage.h"
+#include "larcv/core/DataFormat/ClusterMask.h"
+
+// note: current ROOT dict maker and/or cling interpretter
+// cannot produce proper python bindings. needs lots of work.
 
 namespace larcv {
 
@@ -114,8 +131,10 @@ namespace larcv {
     class load_jsonutils {
     public:
       load_jsonutils(){};
-      ~load_jsonutils(){};
+      virtual ~load_jsonutils(){};
     };
 
   }
 }
+
+#endif

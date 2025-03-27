@@ -65,11 +65,9 @@
 
 #pragma link C++ class larcv::DataProductFactory+;
 #pragma link C++ class larcv::IOManager+;
-#ifndef __CINT__
 #pragma link C++ function larcv::ProductName(larcv::ProductType_t)+;
 #pragma link C++ function larcv::ROIType2String(larcv::ROIType_t)+;
 #pragma link C++ function larcv::String2ROIType(const string&)+;
-#endif
 #pragma link C++ function larcv::GetProductTypeName( larcv::ProductType_t )+;
 #pragma link C++ function larcv::GetProductTypeID( std::string )+;
 

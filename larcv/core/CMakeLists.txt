@@ -7,9 +7,8 @@ endif()
 if (USE_OPENCV)
   add_subdirectory(CVUtil)
 endif()
-
-#add_subdirectory(json)
-#add_subdirectory(CPPUtil)
+add_subdirectory(json)
+add_subdirectory(CPPUtil)
 #add_subdirectory(ROOTUtil)
 
 
