@@ -1,8 +1,28 @@
 #ifndef __LARCV_CORE_DATAFORMAT_NUMPY_ARRAY_H__
 #define __LARCV_CORE_DATAFORMAT_NUMPY_ARRAY_H__
 
+/**
+ * \file NumpyArray.h
+ *
+ * \ingroup PyUtil
+ * 
+ * \brief Classes to provide numpy array wrappers in pyroot scripts
+ *
+ * Because I am a bad person.
+ * 
+ * @author twongjirad
+ */
+
+struct _object;
+typedef _object PyObject;
+
+#ifndef __CINT__
+#ifndef __CLING__
 #include <Python.h>
 #include "bytesobject.h"
+#endif
+#endif
+
 #include <vector>
 
 namespace larcv {

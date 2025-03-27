@@ -19,11 +19,10 @@ if not 'LARCV_BASEDIR' in os.environ:
 #larcv.CSVData
 #k=larcv.logger # this line to load C++ functions
 from ROOT import larcv
-#larcv.IOManager
+larcv.IOManager
 #larcv.load_rootutil
 if 'LARCV_NUMPY' in os.environ and os.environ['LARCV_NUMPY'] == '1':
-    #larcv.load_pyutil
-    pass
+    larcv.load_pyutil
 if 'LARCV_OPENCV' in os.environ and os.environ['LARCV_OPENCV'] == '1':
     #larcv.load_cvutil
     pass

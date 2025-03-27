@@ -16,8 +16,9 @@
 
 #include "larcv/core/Processor/ProcessBase.h"
 #include "larcv/core/Processor/ProcessFactory.h"
-#include "PyUtils.h"
 #include "larcv/core/DataFormat/ImageMeta.h"
+#include "larcv/core/PyUtil/PyUtils.h"
+
 namespace larcv {
 
   /**
