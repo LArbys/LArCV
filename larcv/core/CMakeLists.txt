@@ -1,6 +1,9 @@
 add_subdirectory(Base)
 add_subdirectory(DataFormat)
 add_subdirectory(Processor)
+add_subdirectory(CPPUtil)
+add_subdirectory(ROOTUtil)
+
 if (LARCV_USE_PYTHON)
   add_subdirectory(PyUtil)
 endif()
@@ -8,10 +11,6 @@ if (USE_OPENCV)
   add_subdirectory(CVUtil)
 endif()
 add_subdirectory(json)
-add_subdirectory(CPPUtil)
-#add_subdirectory(ROOTUtil)
-
-
-#if (Torch_FOUND)
-#  add_subdirectory(TorchUtil)
-#endif()
+if (Torch_FOUND)
+ add_subdirectory(TorchUtil)
+endif()

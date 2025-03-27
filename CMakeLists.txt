@@ -15,13 +15,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(ROOT CONFIG REQUIRED)
 # we set the compiler version based on the one used for ROOT
 execute_process(
-    COMMAND bash "-c" "root-config --features | awk '{print $1}'"
+    COMMAND bash "-c" "root-config --features"
     OUTPUT_VARIABLE TEST_ROOT_CXX_STANDARD )
 if (${TEST_ROOT_CXX_STANDARD} MATCHES "cxx17")
   message( STATUS "using cxx17")
   set(CMAKE_CXX_STANDARD 17)
 elseif (${TEST_ROOT_CXX_STANDARD} MATCHES "cxx14")
-  message( STATUS "ssing cxx14")
+  message( STATUS "using cxx14")
   set(CMAKE_CXX_STANDARD 14)
 else ()
   message( STATUS "using cxx11")  
@@ -83,15 +83,13 @@ endif()
 if (USE_TORCH)
   if (ON_FNAL)
     # For FNAL
-    set( Torch_DIR "$ENV{LIBTORCH_FQ_DIR}/lib/python2.7/site-packages/torch/share/cmake/Torch" )
+    set( Torch_DIR "$ENV{LIBTORCH_LIB}" )
     #set( OpenBLAS_DIR "$ENV{OPENBLAS_FQ_DIR}/lib/cmake/openblas" )
     #find_package( OpenBLAS REQUIRED )    
   else()
-    set( Torch_DIR "$ENV{LIBTORCH_FQ_DIR}/lib/python2.7/site-packages/torch/share/cmake/Torch" )
-    find_package( CUDA )
+    set( Torch_DIR "$ENV{TORCH_CMAKE_DIR}" )
   endif()
-
-  find_package( Torch REQUIRED )
+  find_package( Torch )
 endif()
 
 
