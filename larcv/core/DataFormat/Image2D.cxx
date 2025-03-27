@@ -382,6 +382,14 @@ namespace larcv {
 	  _img[index1+row_index] = img2[index2+row_index];
 
 	break;
+
+      case kSubtract:
+
+	for(size_t row_index=0; row_index < nrows; ++row_index) 
+
+	  _img[index1+row_index] -= img2[index2+row_index];
+
+	break;
       }
     }
   }

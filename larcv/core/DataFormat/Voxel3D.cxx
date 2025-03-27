@@ -6,6 +6,11 @@
 #include <algorithm>
 
 namespace larcv {
+
+  Voxel3D::Voxel3D(Voxel3DID_t id, float value)
+  { _id = id; _value = value; }
+
+  
 	SparseTensor3D::SparseTensor3D(VoxelSet&& vs, Voxel3DMeta meta)
 		: VoxelSet(std::move(vs))
 	{ this->meta(meta); }
