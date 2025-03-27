@@ -4,13 +4,14 @@ add_subdirectory(Processor)
 if (LARCV_USE_PYTHON)
   add_subdirectory(PyUtil)
 endif()
+if (USE_OPENCV)
+  add_subdirectory(CVUtil)
+endif()
 
 #add_subdirectory(json)
 #add_subdirectory(CPPUtil)
 #add_subdirectory(ROOTUtil)
-#if (USE_OPENCV)
-#  add_subdirectory(CVUtil)
-#endif()
+
 
 #if (Torch_FOUND)
 #  add_subdirectory(TorchUtil)
