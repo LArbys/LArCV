@@ -20,6 +20,74 @@
 namespace larcv {
 
   /**
+     \class Voxel3D
+     @brief 3D voxel definition element class consisting of ID and stored value
+  */
+  class Voxel3D{
+    
+  public:
+    
+    /// Default constructor
+    Voxel3D(Voxel3DID_t id=kINVALID_VOXEL3DID, float value=kINVALID_FLOAT);
+    /// Default destructor
+    ~Voxel3D(){}
+    
+    /// ID getter
+    inline Voxel3DID_t ID() const { return _id; }
+    /// Value getter
+    inline float  Value() const { return _value; }
+
+    /// Value setter
+    inline void Set(Voxel3DID_t id, float value) { _id = id; _value = value; }
+
+    //
+    // uniry operators
+    //
+    inline Voxel3D& operator += (float value)
+    { _value += value; return (*this); }
+    inline Voxel3D& operator -= (float value)
+    { _value -= value; return (*this); }
+    inline Voxel3D& operator *= (float factor)
+    { _value *= factor; return (*this); }
+    inline Voxel3D& operator /= (float factor)
+    { _value /= factor; return (*this); }
+
+    //
+    // binary operators
+    //
+    inline bool operator == (const Voxel3D& rhs) const
+    { return (_id == rhs._id); }
+    inline bool operator <  (const Voxel3D& rhs) const
+    {
+      if( _id < rhs._id) return true;
+      if( _id > rhs._id) return false;
+      return false;
+    }
+    inline bool operator <= (const Voxel3D& rhs) const
+    { return  ((*this) == rhs || (*this) < rhs); }
+    inline bool operator >  (const Voxel3D& rhs) const
+    { return !((*this) <= rhs); }
+    inline bool operator >= (const Voxel3D& rhs) const
+    { return !((*this) <  rhs); }
+
+    inline bool operator == (const float& rhs) const
+    { return _value == rhs; }
+    inline bool operator <  (const float& rhs) const
+    { return _value <  rhs; }
+    inline bool operator <= (const float& rhs) const
+    { return _value <= rhs; }
+    inline bool operator >  (const float& rhs) const
+    { return _value >  rhs; }
+    inline bool operator >= (const float& rhs) const
+    { return _value >= rhs; }
+
+  private:
+    Voxel3DID_t _id; ///< voxel id
+    float  _value; ///< Pixel Value
+  };
+
+  
+  /**
      \class SparseTensor3D
      @brief Container of multiple (3D-projected) voxel set array
   */

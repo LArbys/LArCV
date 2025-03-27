@@ -881,18 +881,58 @@ namespace larcv {
     _read_only_type.push_back( type );
   }
 
+  /**
+   * specify a data type and producername to be read.
+   *
+   * if at least one defined, then these are only the
+   * data products read from the file. rest ignored.
+   * if this never set, then by default, we read all
+   * trees from the file
+   *
+   * @param[in] type ProductType_t number
+   * @param[in] string Name of producer (in otherwords, the tree name in the file)
+   *
+   * effect is to modify _read_only_type and _read_only_name
+   */
+  void IOManager::specify_data_read( const std::string type_name,
+                                     const std::string& producername ) {
+
+    larcv::ProductType_t datatype = getProductIDfromName( type_name );    
+    specify_data_read( datatype, producername );
+    
+  }
+  
   void IOManager::reverse_all_products() {
     _reverse_all_image2d_products = true;
     _reverse_all_roi_products = true;
     _reverse_all_pixel2d_products = true;
   }
 
+  /**
+   * @brief register the output data type and treename to an exclusive list of what will be saved.
+   *
+   * @param[in] type ProductType_t See larcv/core/DataFormat/DataFormatTypes.h for enums.
+   * @param[in] producername string name of output tree.
+   * 
+   */
   int IOManager::addto_storeonly_list( ProductType_t type, std::string producername ) {
     _store_only_name.push_back( producername );
     _store_only_type.push_back( type );
     return _store_only_name.size();
   }
 
+  /**
+   * @brief register the output data type and treename to an exclusive list of what will be saved.
+   *
+   * @param[in] type string  See larcv/core/DataFormat/DataFormatTypes.h for strings.
+   * @param[in] producername String name of output tree.
+   * 
+   */
+  int IOManager::addto_storeonly_list( std::string type, std::string producername ) {
+    larcv::ProductType_t datatype = getProductIDfromName( type );    
+    return addto_storeonly_list( datatype, producername );
+  }
+  
   larcv::ProductType_t IOManager::getProductIDfromName( const std::string& type_name )
   {
     auto it_name = _name_to_product_map.find( type_name );
