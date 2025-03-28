@@ -29,6 +29,10 @@ include_directories(
 # Generate the dictionary
 ROOT_GENERATE_DICTIONARY(G__${MODULE_NAME} ${HEADERS} LINKDEF LinkDef.h)
 
+# add dictionary file to sources
+target_sources( ${MODULE_NAME} PRIVATE G__${MODULE_NAME}.cxx )
+
+
 install(TARGETS ${MODULE_NAME}
   EXPORT larcv
   LIBRARY DESTINATION lib
