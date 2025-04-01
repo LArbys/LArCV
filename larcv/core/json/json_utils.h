@@ -8,17 +8,17 @@
 #endif
 
 #ifndef __CINT__
-#ifndef __CLING__ // no way we can parse this
+#ifndef __CLING__ // no way ROOT dict maker can parse this
 #include "nlohmann/json.hpp"
 #endif
 #endif
 
-#if defined(__CLING__) || defined(__CINT__)
-// forward declaration when cling interpretter running
-namespace nlohmann {
-  class json;
-}
-#endif
+// #if defined(__CLING__) || defined(__CINT__)
+// // forward declaration when cling interpretter running
+// namespace nlohmann {
+//   class json;
+// }
+// #endif
 
 #include "larcv/core/DataFormat/Image2D.h"
 #include "larcv/core/DataFormat/SparseImage.h"
@@ -30,6 +30,20 @@ namespace nlohmann {
 namespace larcv {
 
   namespace json {
+
+    // first, these are the functions we want python bindings for
+    // -------------
+    // SparseImage
+    // -------------
+    PyObject* as_bson_pybytes( const larcv::SparseImage& sparsedata,
+                               int run=0, int subrun=0, int event=0, int id=0);
+    
+    larcv::SparseImage sparseimg_from_bson_pybytes( PyObject* str ,
+                                                    int& run, int& subrun, int& event, int& id);    
+
+    // hide the rest of the functions
+#ifndef __CINT__
+#ifndef __CLING__
 
     // for convenience
     typedef nlohmann::json json;
@@ -106,14 +120,6 @@ namespace larcv {
     larcv::Image2D image2d_from_pybytes( PyObject* bytes,
                                           int& run, int& subrun, int& event, int& id);
 
-    // -------------
-    // SparseImage
-    // -------------
-
-    PyObject* as_bson_pybytes( const larcv::SparseImage& sparsedata,
-                               int run=0, int subrun=0, int event=0, int id=0);
-    larcv::SparseImage sparseimg_from_bson_pybytes( PyObject* str ,
-                                                    int& run, int& subrun, int& event, int& id);
 
     // -------------
     // ClusterMask
@@ -127,11 +133,21 @@ namespace larcv {
 
 #endif
 
+#endif // __CINT__
+#endif // __CLING__
+
     // this hack is needed for some reason
     class load_jsonutils {
     public:
-      load_jsonutils(){};
+      load_jsonutils();
       virtual ~load_jsonutils(){};
+
+      static int load();
+
+    private:
+
+      static bool _setup_numpy;
+      
     };
 
   }

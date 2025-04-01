@@ -1,8 +1,27 @@
 #include "json_utils.h"
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include "numpy/arrayobject.h"
+
 namespace larcv {
 
   namespace json {
+
+    bool load_jsonutils::_setup_numpy = false;
+    
+    load_jsonutils::load_jsonutils()
+    {
+      load();
+    }
+
+    int load_jsonutils::load()
+    {
+      if (!load_jsonutils::_setup_numpy) {
+	import_array1(0);
+      }
+      return 0;
+    }
+    
 
     /**
      * create a json object from an image2d object

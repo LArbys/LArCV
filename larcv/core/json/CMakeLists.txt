@@ -16,6 +16,8 @@ target_include_directories(${MODULE_NAME}
   $<INSTALL_INTERFACE:include/larcv/core/json>
   PRIVATE
   ${PROJECT_SOURCE_DIR}
+  ${PYTHON_INCLUDE_PATH} 
+  ${NUMPY_INCLUDES}   
 )
 target_link_libraries( ${MODULE_NAME} PUBLIC 
   LArCVCoreBase 
