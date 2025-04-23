@@ -112,8 +112,20 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 endif()
 
 #---check json
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/json/CMakeLists.txt")
-  message(FATAL_ERROR "The json submodule was not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+if(EXISTS "$ENV{NLOHMANN_JSON_DIR}/share/cmake/nlohmann_json/nlohmann_jsonConfig.cmake")
+  message( STATUS "Use cmvfs nlohmann/json")
+  set( nlohmann_json_DIR )
+  find_package( nlohmann_json REQUIRED )
+  set(LARCV_JSON_INCLUDE_DIR $ENV{NLOHMANN_JSON_INC})
+else()
+  if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/json/CMakeLists.txt")
+    message(FATAL_ERROR "The json submodule was not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+  else()
+    ## External repos (from submodules)
+    include_directories(extern/json)
+    add_subdirectory(extern/json)
+    set(LARCV_JSON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/json/single_include)
+  endif()
 endif()
 
 ## Setup
@@ -124,10 +136,6 @@ include(${ROOT_USE_FILE})
 #---Define Variables for subdirectory cmakelists
 set(LARCV_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-## External repos (from submodules)
-include_directories(extern/json)
-add_subdirectory(extern/json)
-set(LARCV_JSON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/json/single_include)
 
 ## Add Source
 
