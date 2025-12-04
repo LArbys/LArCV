@@ -229,11 +229,11 @@ void copy_array(PyObject *arrayin, const std::vector<float> &cvec) {
 
 PyObject *as_caffe_ndarray(const Image2D &img) {
   SetPyUtil();
-  int *dim_data = new int[2];
+  npy_intp dim_data[2];
   dim_data[0] = img.meta().rows();
   dim_data[1] = img.meta().cols();
   auto const &vec = img.as_vector();
-  return PyArray_FromDimsAndData(2, dim_data, NPY_FLOAT, (char *)&(vec[0]));
+  return PyArray_SimpleNewFromData(2, dim_data, NPY_FLOAT, (void *)vec.data());
 }
 
 larcv::Image2D as_image2d_meta(PyObject *pyarray, ImageMeta meta) {
@@ -312,11 +312,11 @@ void fill_img_col(Image2D &img, std::vector<short> &adcs, const int col,
     SetPyUtil();
 
     int nd = 1;
-    int dim_data[1];
+    npy_intp dim_data[1];
     dim_data[0] = status.as_vector().size();
     auto const &stat_v = status.as_vector();
 
-    return PyArray_FromDimsAndData( nd, dim_data, NPY_USHORT, (char*)(&stat_v[0]) );
+    return PyArray_SimpleNewFromData( nd, dim_data, NPY_USHORT, (void*)(stat_v.data()) );
   }
 
 
